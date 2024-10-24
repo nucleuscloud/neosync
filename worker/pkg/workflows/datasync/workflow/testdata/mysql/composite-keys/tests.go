@@ -10,7 +10,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Composite key transformation + truncate",
-			Folder:          "mysql/composite-keys",
+			Folder:          "testdata/mysql/composite-keys",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql", "insert.sql"},
 			JobMappings:     getPkTransformerJobmappings(),

@@ -223,7 +223,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
-		&v1alpha1_transformersservice.Config{},
+		&v1alpha1_transformersservice.Config{
+			IsPresidioEnabled: true,
+			IsNeosyncCloud:    false,
+		},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
 		s.Mocks.Presidio.Entities,
