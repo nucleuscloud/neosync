@@ -14,7 +14,7 @@ type mssqlConnectConfig struct {
 	user string
 }
 
-var _ *mssqlConnectConfig = (*mssqlConnectConfig)(nil)
+var _ DbConnectConfig = (*mssqlConnectConfig)(nil)
 
 func (m *mssqlConnectConfig) String() string {
 	return m.url
