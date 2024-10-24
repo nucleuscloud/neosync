@@ -38,7 +38,7 @@ plugins:
     opt: json,proto_docs.json
 
   - local: protoc-gen-connect-openapi
-    out: backend/gen/openapi
+    out: docs/openapi
     opt:
       - content-types=json
 
