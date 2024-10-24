@@ -6,7 +6,14 @@ authors:
   - evis
 ---
 
-1. Update CLI to support syncing from S3
-2. Support ability to convert a personal account to a paid team account
-3. Support inserting JSONB types
-4. Init Data Anonymization API Endpoint
+1. Added support for free form text anonymization as an API
+2. Added support for free form text anonymization as a transformer through the job sync
+3. Added support for configuring the entities in the anonymization API
+4. Added support for allow/deny lists in the API
+5. Added support for configuring the S3 connection parameters in the CLI
+6. Added support for a Python SDK
+7. Added new SDK docs with more examples and code snippets
+8. Added support for the CLI to use shared connection pools
+9. Added support for default values for Transformers
+10. Added support for more run details in an expanded view
+11. Fixed a bug that was causing the CLI sync from S3 -> Mysql to break when a table is empty
