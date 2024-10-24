@@ -4,7 +4,7 @@ description: Guide to Using the Anonymization Service Endpoints
 id: anonymization-service-endpoints
 hide_title: false
 slug: /guides/anonymization-service-endpoints
-# cSpell:words Neosync,Protos
+# cSpell:words Neosync,Protos,cmedicine
 ---
 
 ## Introduction
@@ -182,6 +182,165 @@ Determines the behavior of the anonymization process when encountering errors. O
 `true`: The process halts immediately upon encountering the first error.
 
 `false`: The process continues anonymizing remaining data, collecting all errors.
+
+## Customizing Entities
+
+The Anonymization endpoint uses a Named Entity Recognition model under the covers to detect PII and then redact it. It comes with a base list of entities that it will automatically detect but you can also create your own entities.
+
+### Retrieving the list of base entities
+
+If you just want to use the base entities then you can leave the entities field blank. If you want to customize them, then you can see base list of entities that we support by calling the `getTransformPiiEntities` endpoint like this:
+
+```typescript
+const neosyncClient = getNeosyncClient({
+  getAccessToken: () => {
+    return api_key; // this is your api_key
+  },
+  getTransport(interceptors) {
+    return createConnectTransport({
+      baseUrl: api_url, // the api_url - check the SDK docs for the appropriate URL
+      httpVersion: '2',
+      interceptors: interceptors,
+    });
+  },
+});
+
+const entities = await neosyncClient.transformers.getTransformPiiEntities({
+  accountId: accountId, // this is your account Id
+});
+```
+
+This will return all of the supported entities.
+
+### Filtering Entities
+
+There are some situations where you do not want to detect certain PII entities. In these cases, you can filter out certain entities from being detected.
+
+In the following example, we will filter out the `DATE_TIME` entity from the base list of entities.
+
+```typescript
+// client initialization
+
+// ...
+
+const entities = await neosyncClient.transformers.getTransformPiiEntities({
+  accountId: accountId,
+});
+
+const filteredEntities = entities.entities.filter(
+  (entity) => entity != 'DATE_TIME'
+);
+
+const transformers: TransformerMapping[] = [
+  new TransformerMapping({
+    expression: '.text',
+    transformer: new TransformerConfig({
+      config: {
+        case: 'transformPiiTextConfig',
+        value: new TransformPiiText({
+          scoreThreshold: 0.2,
+          allowedEntities: filteredEntities,
+        }),
+      },
+    }),
+  }),
+];
+
+// calling the anonymizeSingle endpoint
+
+//...
+```
+
+This will detect every base entity beside the `DATE_TIME` entity.
+
+### Adding Custom Entities
+
+If you want to add Custom Entities that will always be redacted, you can create `denyRecognizers`.
+
+In the following example, we're going to add `Advil` to `denyRecognizer` to ensure it's always redacted.
+
+**Important**
+If you are filtering the base list of entities at all as in the previous example, then you need to add the name of the `denyRecognizer`, in this case `medicine`, to the list of entities that you are passing into the `entities` field or else it won't be recognizer. If you are not changing the list of base entities at all, then you do not need to add it.
+
+```typescript
+// client initialization
+
+// ...
+
+//input with PII (Name, Medicine, Phone Number)
+const data = {
+  text: "Hello, yes, this is John Williams. I had an appointment 5 days ago to get some Advil and Ibuprofen, but didn't pick it up. Can you give me a call back at 6173943902? Thank you.",
+};
+
+// transformer configuration
+const transformers: TransformerMapping[] = [
+      new TransformerMapping({
+        expression: ".text",
+        transformer: new TransformerConfig({
+          config: {
+            case: "transformPiiTextConfig",
+            value: new TransformPiiText({
+              scoreThreshold: 0.2,
+              denyRecognizers: [
+                {
+                  name: "medicine",
+                  denyWords: ["Advil"],
+                },
+              ],
+            }),
+          },
+        }),
+      }),
+    ];
+
+// calling the anonymizeSingle endpoint
+
+//...
+
+// redacted output with the allowed phrases not redacted even though it's clearly a phone number
+{"text":"Hello, yes, this is \u003cPERSON\u003e. I had an appointment \u003cDATE_TIME\u003e to get some \u003cmedicine\u003e and Ibuprofen, but didn't pick it up. Can you give me a call back at \u003cPHONE_NUMBER\u003e? Thank you."}
+```
+
+## Adding Allowed Phrases
+
+The Allow Phrases list allows you to pass in a set of strings that will never get anonymized even if they are detected as PII. This is helpful if there are certain words that you need to always be in plain-text.
+
+You can set the allow list by passing in an array of strings. For example:
+
+```typescript
+// client initialization
+
+// ...
+
+
+//input with PII (Name, Medicine, Phone Number)
+const data = {
+  text: "Hello, yes, this is John Williams. I had an appointment 5 days ago to get some Advil and Ibuprofen, but didn't pick it up. Can you give me a call back at 6173943902? Thank you.",
+};
+
+// transformer configuration
+const transformers: TransformerMapping[] = [
+      new TransformerMapping({
+        expression: ".text",
+        transformer: new TransformerConfig({
+          config: {
+            case: "transformPiiTextConfig",
+            value: new TransformPiiText({
+              scoreThreshold: 0.2,
+              allowedPhrases: ["6173943902"],
+            }),
+          },
+        }),
+      }),
+    ];
+
+// calling the anonymizeSingle endpoint
+
+//...
+
+// redacted output with the allowed phrases not redacted even though it's clearly a phone number
+{"text":"Hello, yes, this is \u003cPERSON\u003e. I had an appointment \u003cDATE_TIME\u003e to get some Advil and Ibuprofen, but didn't pick it up. Can you give me a call back at 6173943902? Thank you."}
+```
 
 ## Error Handling
 
