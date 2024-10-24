@@ -60,6 +60,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -105,6 +106,12 @@ func serve(ctx context.Context) error {
 	}
 
 	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
+
+	eelicense, err := license.NewFromEnv()
+	if err != nil {
+		return fmt.Errorf("unable to initialize ee license from env: %w", err)
+	}
+	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
 
 	mux := http.NewServeMux()
 
@@ -404,7 +411,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), billingClient)
+	}, db, tfwfmgr, authclient, authadminclient, billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -474,18 +481,9 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db, useraccountService)
-	api.Handle(
-		mgmtv1alpha1connect.NewTransformersServiceHandler(
-			transformerService,
-			connect.WithInterceptors(stdInterceptors...),
-			connect.WithInterceptors(stdAuthInterceptors...),
-			connect.WithRecover(recoverHandler),
-		),
-	)
-
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
+	var presEntityClient presidioapi.EntityInterface
 	if getIsNeosyncCloud() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
@@ -494,6 +492,7 @@ func serve(ctx context.Context) error {
 		if ok {
 			slogger.Debug("presidio analyze client is enabled")
 			presAnalyzeClient = analyzeClient
+			presEntityClient = analyzeClient
 		}
 		anonClient, ok, err := getPresidioAnonymizeClient()
 		if err != nil {
@@ -504,6 +503,19 @@ func serve(ctx context.Context) error {
 			presAnonClient = anonClient
 		}
 	}
+
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
+		IsPresidioEnabled: getIsNeosyncCloud(),
+		IsNeosyncCloud:    getIsNeosyncCloud(),
+	}, db, useraccountService, presEntityClient)
+	api.Handle(
+		mgmtv1alpha1connect.NewTransformersServiceHandler(
+			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
+		),
+	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
 		IsPresidioEnabled: getIsNeosyncCloud(),

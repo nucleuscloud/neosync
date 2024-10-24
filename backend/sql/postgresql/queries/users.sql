@@ -202,9 +202,9 @@ SET onboarding_config = $1
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
 
--- name: SetAccountMaxAllowedRecords :one
+-- name: SetAccountCreatedAt :one
 UPDATE neosync_api.accounts
-SET max_allowed_records = $1
+SET created_at = $1
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
 

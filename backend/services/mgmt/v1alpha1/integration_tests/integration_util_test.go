@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -42,18 +43,18 @@ func requireConnectError(t testing.TB, err error, expectedCode connect.Code) {
 	require.Equal(t, expectedCode, connectErr.Code(), fmt.Sprintf("%d: %s", connectErr.Code(), connectErr.Message()))
 }
 
-func (s *IntegrationTestSuite) setMaxAllowedRecords(
+func (s *IntegrationTestSuite) setAccountCreatedAt(
 	ctx context.Context,
 	accountId string,
-	maxAllowed uint64, //nolint:unparam // want to leave it here to allow other options in the future
+	createdAt time.Time,
 ) error {
 	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return err
 	}
-	_, err = s.NeosyncQuerier.SetAccountMaxAllowedRecords(ctx, s.Pgcontainer.DB, db_queries.SetAccountMaxAllowedRecordsParams{
-		MaxAllowedRecords: pgtype.Int8{Int64: int64(maxAllowed), Valid: true},
-		AccountId:         accountUuid,
+	_, err = s.NeosyncQuerier.SetAccountCreatedAt(ctx, s.Pgcontainer.DB, db_queries.SetAccountCreatedAtParams{
+		CreatedAt: pgtype.Timestamp{Time: createdAt, Valid: true},
+		AccountId: accountUuid,
 	})
 	return err
 }

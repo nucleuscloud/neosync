@@ -1802,6 +1802,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateCardNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - validLuhn
+            - not:
+                anyOf:
+                  - required:
+                      - validLuhn
+      anyOf:
+        - required:
+            - validLuhn
+        - not:
+            anyOf:
+              - required:
+                  - validLuhn
       properties:
         validLuhn:
           type: boolean
@@ -1810,6 +1825,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateCategorical:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - categories
+            - not:
+                anyOf:
+                  - required:
+                      - categories
+      anyOf:
+        - required:
+            - categories
+        - not:
+            anyOf:
+              - required:
+                  - categories
       properties:
         categories:
           type: string
@@ -1822,6 +1852,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateCountry:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - generateFullName
+            - not:
+                anyOf:
+                  - required:
+                      - generateFullName
+      anyOf:
+        - required:
+            - generateFullName
+        - not:
+            anyOf:
+              - required:
+                  - generateFullName
       properties:
         generateFullName:
           type: boolean
@@ -1835,6 +1880,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateE164PhoneNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
       properties:
         min:
           oneOf:
@@ -1879,6 +1939,35 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateFloat64:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+        - anyOf:
+            - required:
+                - precision
+            - not:
+                anyOf:
+                  - required:
+                      - precision
+        - anyOf:
+            - required:
+                - randomizeSign
+            - not:
+                anyOf:
+                  - required:
+                      - randomizeSign
       properties:
         randomizeSign:
           type: boolean
@@ -1910,6 +1999,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateGender:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - abbreviate
+            - not:
+                anyOf:
+                  - required:
+                      - abbreviate
+      anyOf:
+        - required:
+            - abbreviate
+        - not:
+            anyOf:
+              - required:
+                  - abbreviate
       properties:
         abbreviate:
           type: boolean
@@ -1918,6 +2022,28 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateInt64:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+        - anyOf:
+            - required:
+                - randomizeSign
+            - not:
+                anyOf:
+                  - required:
+                      - randomizeSign
       properties:
         randomizeSign:
           type: boolean
@@ -2020,6 +2146,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateState:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - generateFullName
+            - not:
+                anyOf:
+                  - required:
+                      - generateFullName
+      anyOf:
+        - required:
+            - generateFullName
+        - not:
+            anyOf:
+              - required:
+                  - generateFullName
       properties:
         generateFullName:
           type: boolean
@@ -2033,6 +2174,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateString:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
       properties:
         min:
           oneOf:
@@ -2048,6 +2204,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateStringPhoneNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
       properties:
         min:
           oneOf:
@@ -2075,6 +2246,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.GenerateUuid:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - includeHyphens
+            - not:
+                anyOf:
+                  - required:
+                      - includeHyphens
+      anyOf:
+        - required:
+            - includeHyphens
+        - not:
+            anyOf:
+              - required:
+                  - includeHyphens
       properties:
         includeHyphens:
           type: boolean
@@ -3778,6 +3964,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformE164PhoneNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3801,6 +4002,20 @@ components:
                 anyOf:
                   - required:
                       - invalidEmailAction
+        - anyOf:
+            - required:
+                - preserveDomain
+            - not:
+                anyOf:
+                  - required:
+                      - preserveDomain
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
       properties:
         preserveDomain:
           type: boolean
@@ -3830,6 +4045,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformFirstName:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3838,6 +4068,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformFloat64:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - randomizationRangeMax
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMax
+        - anyOf:
+            - required:
+                - randomizationRangeMin
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMin
       properties:
         randomizationRangeMin:
           oneOf:
@@ -3853,6 +4098,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformFullName:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3861,6 +4121,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - randomizationRangeMax
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMax
+        - anyOf:
+            - required:
+                - randomizationRangeMin
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMin
       properties:
         randomizationRangeMin:
           oneOf:
@@ -3876,6 +4151,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64PhoneNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3892,6 +4182,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformLastName:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3900,6 +4205,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformPhoneNumber:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean
@@ -3924,11 +4244,42 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.PiiDenyRecognizer'
           title: deny_recognizers
           description: Configure deny lists where each word is treated as PII.
+        allowedEntities:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          title: allowed_entities
+          description: |-
+            Configure a list of entities to be used for PII analysis. If not provided or empty, all entities are considiered
+             If this is specified, any ad-hoc, or deny_recognizers entity names must also be provided.
+             To see available builtin entities, call the GetPiiTextEntities() RPC method to see what is available for your account.
+        allowedPhrases:
+          type: array
+          items:
+            type: string
+          title: allowed_phrases
+          description: Exact match of PII phrases identified by the analysis engine.
       title: TransformPiiText
       additionalProperties: false
       description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
     mgmt.v1alpha1.TransformString:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
       properties:
         preserveLength:
           type: boolean

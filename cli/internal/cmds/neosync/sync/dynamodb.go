@@ -62,8 +62,6 @@ func buildAwsCredConfig(cmd *cobra.Command, config *cmdConfig) (*cmdConfig, erro
 
 func generateDynamoDbBenthosConfig(
 	cmd *cmdConfig,
-	// apiUrl string,
-	// authToken *string,
 	table string,
 ) *benthosConfigResponse {
 	bc := &neosync_benthos.BenthosConfig{

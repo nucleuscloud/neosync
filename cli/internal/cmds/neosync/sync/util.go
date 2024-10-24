@@ -3,10 +3,10 @@ package sync_cmd
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strings"
 
-	charmlog "github.com/charmbracelet/log"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -69,7 +69,7 @@ func isConfigReady(config *benthosConfigResponse, queuedMap map[string][]string)
 	return true
 }
 
-func groupConfigsByDependency(configs []*benthosConfigResponse, logger *charmlog.Logger) [][]*benthosConfigResponse {
+func groupConfigsByDependency(configs []*benthosConfigResponse, logger *slog.Logger) [][]*benthosConfigResponse {
 	groupedConfigs := [][]*benthosConfigResponse{}
 	configMap := map[string]*benthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols

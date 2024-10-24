@@ -63,6 +63,9 @@ const (
 	// TransformersServiceValidateUserRegexCodeProcedure is the fully-qualified name of the
 	// TransformersService's ValidateUserRegexCode RPC.
 	TransformersServiceValidateUserRegexCodeProcedure = "/mgmt.v1alpha1.TransformersService/ValidateUserRegexCode"
+	// TransformersServiceGetTransformPiiEntitiesProcedure is the fully-qualified name of the
+	// TransformersService's GetTransformPiiEntities RPC.
+	TransformersServiceGetTransformPiiEntitiesProcedure = "/mgmt.v1alpha1.TransformersService/GetTransformPiiEntities"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -78,6 +81,7 @@ var (
 	transformersServiceIsTransformerNameAvailableMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("IsTransformerNameAvailable")
 	transformersServiceValidateUserJavascriptCodeMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("ValidateUserJavascriptCode")
 	transformersServiceValidateUserRegexCodeMethodDescriptor         = transformersServiceServiceDescriptor.Methods().ByName("ValidateUserRegexCode")
+	transformersServiceGetTransformPiiEntitiesMethodDescriptor       = transformersServiceServiceDescriptor.Methods().ByName("GetTransformPiiEntities")
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
@@ -92,6 +96,8 @@ type TransformersServiceClient interface {
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
 	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
+	// Retrieve a list of available Pii entities for use with the TransformPiiText transformer
+	GetTransformPiiEntities(context.Context, *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -164,6 +170,13 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(transformersServiceValidateUserRegexCodeMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getTransformPiiEntities: connect.NewClient[v1alpha1.GetTransformPiiEntitiesRequest, v1alpha1.GetTransformPiiEntitiesResponse](
+			httpClient,
+			baseURL+TransformersServiceGetTransformPiiEntitiesProcedure,
+			connect.WithSchema(transformersServiceGetTransformPiiEntitiesMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -179,6 +192,7 @@ type transformersServiceClient struct {
 	isTransformerNameAvailable    *connect.Client[v1alpha1.IsTransformerNameAvailableRequest, v1alpha1.IsTransformerNameAvailableResponse]
 	validateUserJavascriptCode    *connect.Client[v1alpha1.ValidateUserJavascriptCodeRequest, v1alpha1.ValidateUserJavascriptCodeResponse]
 	validateUserRegexCode         *connect.Client[v1alpha1.ValidateUserRegexCodeRequest, v1alpha1.ValidateUserRegexCodeResponse]
+	getTransformPiiEntities       *connect.Client[v1alpha1.GetTransformPiiEntitiesRequest, v1alpha1.GetTransformPiiEntitiesResponse]
 }
 
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
@@ -236,6 +250,11 @@ func (c *transformersServiceClient) ValidateUserRegexCode(ctx context.Context, r
 	return c.validateUserRegexCode.CallUnary(ctx, req)
 }
 
+// GetTransformPiiEntities calls mgmt.v1alpha1.TransformersService.GetTransformPiiEntities.
+func (c *transformersServiceClient) GetTransformPiiEntities(ctx context.Context, req *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error) {
+	return c.getTransformPiiEntities.CallUnary(ctx, req)
+}
+
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
@@ -248,6 +267,8 @@ type TransformersServiceHandler interface {
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
 	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
+	// Retrieve a list of available Pii entities for use with the TransformPiiText transformer
+	GetTransformPiiEntities(context.Context, *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -316,6 +337,13 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		connect.WithSchema(transformersServiceValidateUserRegexCodeMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	transformersServiceGetTransformPiiEntitiesHandler := connect.NewUnaryHandler(
+		TransformersServiceGetTransformPiiEntitiesProcedure,
+		svc.GetTransformPiiEntities,
+		connect.WithSchema(transformersServiceGetTransformPiiEntitiesMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
@@ -338,6 +366,8 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 			transformersServiceValidateUserJavascriptCodeHandler.ServeHTTP(w, r)
 		case TransformersServiceValidateUserRegexCodeProcedure:
 			transformersServiceValidateUserRegexCodeHandler.ServeHTTP(w, r)
+		case TransformersServiceGetTransformPiiEntitiesProcedure:
+			transformersServiceGetTransformPiiEntitiesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -385,4 +415,8 @@ func (UnimplementedTransformersServiceHandler) ValidateUserJavascriptCode(contex
 
 func (UnimplementedTransformersServiceHandler) ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.ValidateUserRegexCode is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) GetTransformPiiEntities(context.Context, *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetTransformPiiEntities is not implemented"))
 }

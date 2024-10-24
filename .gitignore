@@ -36,3 +36,5 @@ tmp
 venv/
 venv2/
 python/dist/
+
+neosync_ee_ca.key

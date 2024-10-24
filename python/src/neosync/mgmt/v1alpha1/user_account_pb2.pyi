@@ -20,6 +20,8 @@ class BillingStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     BILLING_STATUS_UNSPECIFIED: _ClassVar[BillingStatus]
     BILLING_STATUS_ACTIVE: _ClassVar[BillingStatus]
     BILLING_STATUS_EXPIRED: _ClassVar[BillingStatus]
+    BILLING_STATUS_TRIAL_ACTIVE: _ClassVar[BillingStatus]
+    BILLING_STATUS_TRIAL_EXPIRED: _ClassVar[BillingStatus]
 
 class AccountStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -27,6 +29,8 @@ class AccountStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: _ClassVar[AccountStatus]
+    ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: _ClassVar[AccountStatus]
+    ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: _ClassVar[AccountStatus]
 USER_ACCOUNT_TYPE_UNSPECIFIED: UserAccountType
 USER_ACCOUNT_TYPE_PERSONAL: UserAccountType
 USER_ACCOUNT_TYPE_TEAM: UserAccountType
@@ -34,10 +38,14 @@ USER_ACCOUNT_TYPE_ENTERPRISE: UserAccountType
 BILLING_STATUS_UNSPECIFIED: BillingStatus
 BILLING_STATUS_ACTIVE: BillingStatus
 BILLING_STATUS_EXPIRED: BillingStatus
+BILLING_STATUS_TRIAL_ACTIVE: BillingStatus
+BILLING_STATUS_TRIAL_EXPIRED: BillingStatus
 ACCOUNT_STATUS_REASON_UNSPECIFIED: AccountStatus
 ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT: AccountStatus
 ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: AccountStatus
+ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: AccountStatus
+ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: AccountStatus
 
 class GetUserRequest(_message.Message):
     __slots__ = ()

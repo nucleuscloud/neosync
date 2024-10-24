@@ -2,10 +2,8 @@ package sync_cmd
 
 import (
 	"context"
-	"os"
 	"testing"
 
-	charmlog "github.com/charmbracelet/log"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
@@ -67,11 +65,7 @@ func Test_Sync_Postgres(t *testing.T) {
 
 	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
 
-	// discardLogger := testutil.GetTestCharmLogger()
-	discardLogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-		Level:           charmlog.DebugLevel,
-	})
+	discardLogger := testutil.GetTestCharmSlogger()
 
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "source", postgres.Source.URL)

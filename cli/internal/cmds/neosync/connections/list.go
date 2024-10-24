@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -55,10 +56,11 @@ func listConnections(
 	if debugMode {
 		logLevel = charmlog.DebugLevel
 	}
-	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
 		ReportTimestamp: true,
 		Level:           logLevel,
 	})
+	logger := slog.New(charmlogger)
 
 	var accountId = accountIdFlag
 	if accountId == nil || *accountId == "" {

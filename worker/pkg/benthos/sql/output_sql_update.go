@@ -27,34 +27,6 @@ type DbPoolProvider interface {
 	GetDb(driver, dsn string) (SqlDbtx, error)
 }
 
-type dbPoolProvider struct {
-	pools map[string]*sql.DB
-	mu    sync.Mutex
-}
-
-func NewDbPoolProvider() *dbPoolProvider {
-	return &dbPoolProvider{
-		pools: make(map[string]*sql.DB),
-	}
-}
-func (p *dbPoolProvider) GetDb(driver, dsn string) (SqlDbtx, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	if db, exists := p.pools[dsn]; exists {
-		return db, nil
-	}
-
-	db, err := sql.Open(driver, dsn)
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxOpenConns(10)
-
-	p.pools[dsn] = db
-	return db, nil
-}
-
 func sqlUpdateOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("driver")).

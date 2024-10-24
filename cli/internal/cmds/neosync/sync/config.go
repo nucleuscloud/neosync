@@ -3,9 +3,9 @@ package sync_cmd
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
-	charmlog "github.com/charmbracelet/log"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
@@ -151,11 +151,11 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 	return config, nil
 }
 
-func isConfigValid(cmd *cmdConfig, logger *charmlog.Logger, connection *mgmtv1alpha1.Connection, connectionType ConnectionType) error {
-	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1alpha1.Connection, sourceConnectionType ConnectionType) error {
+	if sourceConnectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("S3 source connection type requires job-id or job-run-id.")
 	}
-	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+	if sourceConnectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
@@ -163,7 +163,7 @@ func isConfigValid(cmd *cmdConfig, logger *charmlog.Logger, connection *mgmtv1al
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
-	if connectionType == mysqlConnection || connectionType == postgresConnection {
+	if sourceConnectionType == mysqlConnection || sourceConnectionType == postgresConnection {
 		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")
 		}
@@ -176,7 +176,7 @@ func isConfigValid(cmd *cmdConfig, logger *charmlog.Logger, connection *mgmtv1al
 		}
 	}
 
-	if connectionType == awsDynamoDBConnection {
+	if sourceConnectionType == awsDynamoDBConnection {
 		if cmd.AwsDynamoDbDestination == nil {
 			return fmt.Errorf("must provide destination aws credentials")
 		}
@@ -187,12 +187,12 @@ func isConfigValid(cmd *cmdConfig, logger *charmlog.Logger, connection *mgmtv1al
 	}
 	logger.Debug("Validated config")
 
-	if connection.AccountId != *cmd.AccountId {
+	if sourceConnection.AccountId != *cmd.AccountId {
 		return fmt.Errorf("Connection not found. AccountId: %s", *cmd.AccountId)
 	}
 
 	logger.Debug("Checking if source and destination are compatible")
-	err := areSourceAndDestCompatible(connection, cmd.Destination.Driver)
+	err := areSourceAndDestCompatible(sourceConnection, cmd.Destination.Driver)
 	if err != nil {
 		return err
 	}

@@ -152,3 +152,7 @@ stringData:
     {{- end }} # ends loki check
 
     {{- end }} # ends runLogs.enabled check
+
+    {{- if and .Values.ee .Values.ee.license }}
+    EE_LICENSE: {{ .Values.ee.license | quote }}
+    {{- end }}

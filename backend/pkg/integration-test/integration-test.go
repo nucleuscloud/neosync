@@ -62,6 +62,13 @@ type Mocks struct {
 	Authmanagerclient     *authmgmt.MockInterface
 	Prometheusclient      *promapiv1mock.MockAPI
 	Billingclient         *billing.MockInterface
+	Presidio              Presidiomocks
+}
+
+type Presidiomocks struct {
+	Analyzer   *presidioapi.MockAnalyzeInterface
+	Anonymizer *presidioapi.MockAnonymizeInterface
+	Entities   *presidioapi.MockEntityInterface
 }
 
 type NeosyncApiTestClient struct {
@@ -148,6 +155,11 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		Authmanagerclient:     authmgmt.NewMockInterface(t),
 		Prometheusclient:      promapiv1mock.NewMockAPI(t),
 		Billingclient:         billing.NewMockInterface(t),
+		Presidio: Presidiomocks{
+			Analyzer:   presidioapi.NewMockAnalyzeInterface(t),
+			Anonymizer: presidioapi.NewMockAnonymizeInterface(t),
+			Entities:   presidioapi.NewMockEntityInterface(t),
+		},
 	}
 
 	maxAllowed := int64(10000)
@@ -157,7 +169,6 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		s.Mocks.Prometheusclient,
 		nil,
 	)
 
@@ -167,7 +178,6 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		s.Mocks.Prometheusclient,
 		nil,
 	)
 
@@ -189,15 +199,14 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		s.Mocks.Prometheusclient,
 		s.Mocks.Billingclient,
 	)
 	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(
 		&v1alpha_anonymizationservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true, IsPresidioEnabled: false},
 		nil,
 		neoCloudAuthdUserService,
-		nil, // presidio
-		nil, // presidio
+		s.Mocks.Presidio.Analyzer,
+		s.Mocks.Presidio.Anonymizer,
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 	)
 
@@ -217,6 +226,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		&v1alpha1_transformersservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
+		s.Mocks.Presidio.Entities,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(

@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
-	charmlog "github.com/charmbracelet/log"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
@@ -100,7 +99,7 @@ func GetNeosyncUrl() string {
 }
 
 // Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
-func GetNeosyncHttpClient(ctx context.Context, apiKey *string, logger *charmlog.Logger) (*http.Client, error) {
+func GetNeosyncHttpClient(ctx context.Context, apiKey *string, logger *slog.Logger) (*http.Client, error) {
 	token, err := GetToken(ctx, apiKey, logger)
 	if err != nil {
 		return nil, err
@@ -108,7 +107,7 @@ func GetNeosyncHttpClient(ctx context.Context, apiKey *string, logger *charmlog.
 	return http_client.NewWithBearerAuth(token), nil
 }
 
-func GetToken(ctx context.Context, apiKey *string, logger *charmlog.Logger) (*string, error) {
+func GetToken(ctx context.Context, apiKey *string, logger *slog.Logger) (*string, error) {
 	isAuthEnabled, err := IsAuthEnabled(ctx)
 	if err != nil {
 		return nil, err
@@ -131,10 +130,3 @@ func GetToken(ctx context.Context, apiKey *string, logger *charmlog.Logger) (*st
 	}
 	return token, nil
 }
-
-// connectInterceptors := []connect.Interceptor{}
-// neosyncurl := shared.GetNeosyncUrl()
-// httpclient := shared.GetNeosyncHttpClient()
-// connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
-// userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-// connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)

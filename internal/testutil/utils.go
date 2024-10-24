@@ -23,8 +23,10 @@ func GetTestSlogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 }
 
-func GetTestCharmLogger() *charmlog.Logger {
-	return charmlog.NewWithOptions(io.Discard, charmlog.Options{
+func GetTestCharmSlogger() *slog.Logger {
+	charmlogger := charmlog.NewWithOptions(io.Discard, charmlog.Options{
 		Level: charmlog.DebugLevel,
 	})
+	return slog.New(charmlogger)
+
 }

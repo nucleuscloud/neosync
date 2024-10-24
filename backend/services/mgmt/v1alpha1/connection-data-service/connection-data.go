@@ -1,12 +1,12 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"sort"
 	"strings"
@@ -283,27 +283,30 @@ func (s *Service) GetConnectionDataStream(
 					return fmt.Errorf("error creating gzip reader: %w", err)
 				}
 
-				scanner := bufio.NewScanner(gzr)
-				for scanner.Scan() {
-					line := scanner.Bytes()
+				decoder := json.NewDecoder(gzr)
+				for {
 					var data map[string]any
-					err = json.Unmarshal(line, &data)
-					if err != nil {
+
+					// Decode the next JSON object
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
+						break // End of file, stop the loop
+					} else if err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
 					}
-
 					rowMap := make(map[string][]byte)
 					for key, value := range data {
 						var byteValue []byte
-						if str, ok := value.(string); ok {
+						switch v := value.(type) {
+						case string:
 							// try converting string directly to []byte
 							// prevents quoted strings
-							byteValue = []byte(str)
-						} else {
+							byteValue = []byte(v)
+						default:
 							// if not a string use JSON encoding
-							byteValue, err = json.Marshal(value)
+							byteValue, err = json.Marshal(v)
 							if err != nil {
 								result.Body.Close()
 								gzr.Close()
@@ -320,11 +323,6 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-				}
-				if err := scanner.Err(); err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return err
 				}
 				result.Body.Close()
 				gzr.Close()
@@ -649,12 +647,14 @@ func (s *Service) GetConnectionSchema(
 					return nil, fmt.Errorf("error creating gzip reader: %w", err)
 				}
 
-				scanner := bufio.NewScanner(gzr)
-				if scanner.Scan() {
-					line := scanner.Bytes()
+				decoder := json.NewDecoder(gzr)
+				for {
 					var data map[string]any
-					err = json.Unmarshal(line, &data)
-					if err != nil {
+					// Decode the next JSON object
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
+						break // End of file, stop the loop
+					} else if err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return nil, err
@@ -667,11 +667,7 @@ func (s *Service) GetConnectionSchema(
 							Column: key,
 						})
 					}
-				}
-				if err := scanner.Err(); err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return nil, err
+					break // Only care about first record
 				}
 				result.Body.Close()
 				gzr.Close()

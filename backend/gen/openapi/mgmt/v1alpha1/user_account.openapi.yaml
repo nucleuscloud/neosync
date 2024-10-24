@@ -860,6 +860,8 @@ components:
         - ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT
         - ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT
         - ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
+        - ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
+        - ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
     mgmt.v1alpha1.BillingStatus:
       type: string
       title: BillingStatus
@@ -867,6 +869,8 @@ components:
         - BILLING_STATUS_UNSPECIFIED
         - BILLING_STATUS_ACTIVE
         - BILLING_STATUS_EXPIRED
+        - BILLING_STATUS_TRIAL_ACTIVE
+        - BILLING_STATUS_TRIAL_EXPIRED
     mgmt.v1alpha1.UserAccountType:
       type: string
       title: UserAccountType
@@ -1503,12 +1507,15 @@ components:
           description: |-
             A count of the currently used records for the current billing period.
              This may go over the allowed record count depending on when the record count is polled by the metric system.
+             @deprecated
         allowedRecordCount:
           oneOf:
             - type: string
             - type: number
           title: allowed_record_count
-          description: The allowed record count. It will be null if there is no limit.
+          description: |-
+            The allowed record count. It will be null if there is no limit.
+             @deprecated
         accountStatus:
           allOf:
             - title: account_status
