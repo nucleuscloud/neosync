@@ -174,7 +174,7 @@ export default function MysqlForm(props: Props) {
                 <FormDescription>Your connection URL</FormDescription>
                 <FormControl>
                   <Input
-                    placeholder="mysql://username:password@hostname:port/database"
+                    placeholder="username:password@tcp(hostname:port)/database"
                     {...field}
                   />
                 </FormControl>

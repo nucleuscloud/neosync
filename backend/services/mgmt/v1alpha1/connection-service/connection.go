@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/url"
+	"log/slog"
 	"strings"
 	"sync"
 
@@ -17,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"golang.org/x/sync/errgroup"
 
@@ -31,7 +32,7 @@ func (s *Service) CheckConnectionConfig(
 
 	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig())
+		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig(), logger)
 		if err != nil {
 			return nil, err
 		}
@@ -188,75 +189,32 @@ func (s *Service) CheckConnectionConfigById(
 	}), nil
 }
 
-func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig) (string, error) {
+func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (string, error) {
 	if cconfig == nil {
 		return "", errors.New("connection config was nil, unable to retrieve db role")
 	}
 
 	switch typedconfig := cconfig.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return getPostgresUserFromConnectionConfig(typedconfig.PgConfig)
+		parsedCfg, err := dbconnectconfig.NewFromPostgresConnection(typedconfig, nil, logger)
+		if err != nil {
+			return "", fmt.Errorf("unable to parse pg connection: %w", err)
+		}
+		return parsedCfg.GetUser(), nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return getMysqlUserFromConnectionConfig(typedconfig.MysqlConfig)
+		parsedCfg, err := dbconnectconfig.NewFromMysqlConnection(typedconfig, nil, logger)
+		if err != nil {
+			return "", fmt.Errorf("unable to parse mysql connection: %w", err)
+		}
+		return parsedCfg.GetUser(), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return getMssqlUserFromConnectionConfig(typedconfig.MssqlConfig)
+		parsedCfg, err := dbconnectconfig.NewFromMssqlConnection(typedconfig, nil)
+		if err != nil {
+			return "", fmt.Errorf("unable to parse mssql connection: %w", err)
+		}
+		return parsedCfg.GetUser(), nil
 	default:
 		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role: %w", typedconfig, errors.ErrUnsupported)
-	}
-}
-
-func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig) (string, error) {
-	switch config := pgconfig.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-		return config.Connection.User, nil
-	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-		u, err := url.Parse(config.Url)
-		if err != nil {
-			var urlErr *url.Error
-			if errors.As(err, &urlErr) {
-				return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
-			}
-			return "", fmt.Errorf("unable to parse postgres url: %w", err)
-		}
-		return u.User.Username(), nil
-	default:
-		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
-	}
-}
-
-func getMysqlUserFromConnectionConfig(pgconfig *mgmtv1alpha1.MysqlConnectionConfig) (string, error) {
-	switch config := pgconfig.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
-		return config.Connection.User, nil
-	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		u, err := url.Parse(config.Url)
-		if err != nil {
-			var urlErr *url.Error
-			if errors.As(err, &urlErr) {
-				return "", fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
-			}
-			return "", fmt.Errorf("unable to parse mysql url: %w", err)
-		}
-		return u.User.Username(), nil
-	default:
-		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
-	}
-}
-
-func getMssqlUserFromConnectionConfig(ccfg *mgmtv1alpha1.MssqlConnectionConfig) (string, error) {
-	switch config := ccfg.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
-		u, err := url.Parse(config.Url)
-		if err != nil {
-			var urlErr *url.Error
-			if errors.As(err, &urlErr) {
-				return "", fmt.Errorf("unable to parse mssql url [%s]: %w", urlErr.Op, urlErr.Err)
-			}
-			return "", fmt.Errorf("unable to parse mssql url: %w", err)
-		}
-		return u.User.Username(), nil
-	default:
-		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
 	}
 }
 
