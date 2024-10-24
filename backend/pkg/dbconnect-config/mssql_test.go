@@ -66,6 +66,63 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				actual.String(),
 			)
 		})
+		t.Run("ok_strong_password", func(t *testing.T) {
+			actual, err := NewFromMssqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+					MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+							Url: "sqlserver://sa:myStr0ngP%40assword@localhost:1433/myinstance?database=master",
+						},
+					},
+				},
+				&testConnectionTimeout,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"sqlserver://sa:myStr0ngP%40assword@localhost:1433/myinstance?connection+timeout=5&database=master",
+				actual.String(),
+			)
+		})
+		t.Run("ok_no_instance", func(t *testing.T) {
+			actual, err := NewFromMssqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+					MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+							Url: "sqlserver://sa:myStr0ngP%40assword@localhost:1433?database=master",
+						},
+					},
+				},
+				&testConnectionTimeout,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"sqlserver://sa:myStr0ngP%40assword@localhost:1433?connection+timeout=5&database=master",
+				actual.String(),
+			)
+		})
+		t.Run("ok_no_instance_no_port", func(t *testing.T) {
+			actual, err := NewFromMssqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+					MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+							Url: "sqlserver://sa:myStr0ngP%40assword@localhost?database=master",
+						},
+					},
+				},
+				&testConnectionTimeout,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"sqlserver://sa:myStr0ngP%40assword@localhost?connection+timeout=5&database=master",
+				actual.String(),
+			)
+		})
 	})
 }
 

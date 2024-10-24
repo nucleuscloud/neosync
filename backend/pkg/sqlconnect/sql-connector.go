@@ -330,12 +330,12 @@ func (s *stdlibContainer) Close() error {
 }
 
 type ConnectionDetails struct {
-	dbconnectconfig.GeneralDbConnectConfig
+	dbconnectconfig.DbConnectConfig
 	MaxConnectionLimit *int32
 }
 
 func (c *ConnectionDetails) String() string {
-	return c.GeneralDbConnectConfig.String()
+	return c.DbConnectConfig.String()
 }
 
 type ClientCertConfig struct {

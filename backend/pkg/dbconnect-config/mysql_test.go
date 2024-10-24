@@ -107,6 +107,26 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				actual.String(),
 			)
 		})
+		t.Run("ok_specialchars_userpass", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "specialuser!*-:46!ZfMv3@Uh8*-<@@tcp(localhost:3309)/mydb",
+						},
+					},
+				},
+				nil,
+				discardLogger,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"specialuser!*-:46!ZfMv3@Uh8*-<@@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+				actual.String(),
+			)
+		})
 	})
 
 	t.Run("URL_URI", func(t *testing.T) {
