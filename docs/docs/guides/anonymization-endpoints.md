@@ -4,7 +4,7 @@ description: Guide to Using the Anonymization Service Endpoints
 id: anonymization-service-endpoints
 hide_title: false
 slug: /guides/anonymization-service-endpoints
-# cSpell:words Neosync,Protos
+# cSpell:words Neosync,Protos,cmedicine
 ---
 
 ## Introduction
