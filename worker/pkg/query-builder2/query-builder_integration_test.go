@@ -81,7 +81,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -178,7 +178,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -369,7 +369,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -499,7 +499,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -628,7 +628,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -753,7 +753,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -859,7 +859,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -948,7 +948,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		rowCount := 0
@@ -1038,7 +1038,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -1308,7 +1308,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		if rows != nil {
 			allrows = append(allrows, rows)
 		}
@@ -1437,7 +1437,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql, "table %s", table)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		if rows != nil {
 			allrows = append(allrows, rows)
 		}
