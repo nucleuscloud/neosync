@@ -86,4 +86,6 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 EOF
 
+npm --prefix docs run build-deps -s &
+
 wait

@@ -5,7 +5,8 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "npm run proto-build && docusaurus build",
+    "build-deps": "npm run proto-build && npm run combine-openapi",
+    "build": "npm run build-deps && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
