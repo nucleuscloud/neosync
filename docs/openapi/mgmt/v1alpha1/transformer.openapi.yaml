@@ -1,5 +1,6 @@
 openapi: 3.1.0
 info:
+  version: "0.4"
   title: mgmt.v1alpha1
 paths:
   /mgmt.v1alpha1.TransformersService/GetSystemTransformers:
