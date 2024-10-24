@@ -19,7 +19,7 @@
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "proto-build": "docusaurus generate-proto-docs",
-    "combine-openapi": "openapi-merge-cli --config openapi-merge.json",
+    "combine-openapi": "redocly join openapi/mgmt/v1alpha1/*.yaml -o openapi/neosync.mgmt.v1alpha1.yaml",
     "spellcheck": "cspell"
   },
   "dependencies": {
