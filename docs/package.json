@@ -42,8 +42,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.5.2",
     "@docusaurus/types": "^3.5.2",
-    "@tsconfig/docusaurus": "^2.0.3",
     "@redocly/cli": "^1.25.7",
+    "@tsconfig/docusaurus": "^2.0.3",
     "cspell": "^8.15.2",
     "knip": "^5.33.3",
     "postcss-import": "^16.1.0",
