@@ -1,0 +1,32 @@
+{
+  "inputs": [
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/anonymization.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/api_key.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/auth.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/connection_data.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/connection.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/job.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/metrics.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/transformer.openapi.yaml"
+    },
+    {
+      "inputFile": "openapi/mgmt/v1alpha1/user_account.openapi.yaml"
+    }
+  ],
+  "output": "openapi/neosync.mgmt.v1alpha1.json"
+}
