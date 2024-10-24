@@ -453,7 +453,9 @@ func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	testFolder := "testdata/postgres/virtual-foreign-keys"
 	// setup
-	err := s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"target-setup.sql"})
+	err := s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"source-setup.sql"})
+	require.NoError(s.T(), err)
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"target-setup.sql"})
 	require.NoError(s.T(), err)
 
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
