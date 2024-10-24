@@ -108,7 +108,7 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 	systemPrompt := buildSystemPrompt(columns, dataTypes)
 	conversation := []azopenai.ChatRequestMessageClassification{
 		&azopenai.ChatRequestSystemMessage{
-			Content: ptr(systemPrompt),
+			Content: azopenai.NewChatRequestSystemMessageContent(systemPrompt),
 		},
 	}
 	prompt := ""
@@ -214,7 +214,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	}
 	b.conversation = append(
 		b.conversation,
-		&azopenai.ChatRequestAssistantMessage{Content: choice.Message.Content},
+		&azopenai.ChatRequestAssistantMessage{Content: azopenai.NewChatRequestAssistantMessageContent(*choice.Message.Content)},
 		&azopenai.ChatRequestUserMessage{Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%d more records", batchSize))},
 	)
 

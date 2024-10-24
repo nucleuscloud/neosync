@@ -33,7 +33,7 @@ export default function SubPageHeader(props: Props) {
           {subheading}
         </div>
       ))}
-      <Separator className="dark:bg-gray-600" />
+      <Separator className="dark:bg-gray-700" />
     </div>
   );
 }
