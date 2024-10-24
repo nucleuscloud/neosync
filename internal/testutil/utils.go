@@ -28,5 +28,4 @@ func GetTestCharmSlogger() *slog.Logger {
 		Level: charmlog.DebugLevel,
 	})
 	return slog.New(charmlogger)
-
 }

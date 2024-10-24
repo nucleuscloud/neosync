@@ -236,8 +236,6 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					require.NoError(t, err)
 					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
 					require.NoError(t, err)
-					// s.RunPostgresSqlFiles(s.postgres.Source.DB, tt.Folder, []string{"teardown.sql"})
-					// s.RunPostgresSqlFiles(s.postgres.Target.DB, tt.Folder, []string{"teardown.sql"})
 				})
 			}
 		})
@@ -453,10 +451,10 @@ func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
-	testFolder := "postgres/virtual-foreign-keys"
+	testFolder := "testdata/postgres/virtual-foreign-keys"
 	// setup
-	// s.RunPostgresSqlFiles(s.postgres.Source.DB, testFolder, []string{"source-setup.sql"})
-	s.RunPostgresSqlFiles(s.postgres.Target.DB, testFolder, []string{"target-setup.sql"})
+	err := s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"target-setup.sql"})
+	require.NoError(s.T(), err)
 
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
 	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
@@ -555,7 +553,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	testName := "Virtual Foreign Key primary key transform"
 	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
-	err := env.GetWorkflowError()
+	err = env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
@@ -626,8 +624,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
-					s.RunMysqlSqlFiles(s.mysql.Source.DB, tt.Folder, tt.SourceFilePaths)
-					s.RunMysqlSqlFiles(s.mysql.Target.DB, tt.Folder, tt.TargetFilePaths)
+					err := s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					require.NoError(t, err)
 
 					schemas := []*mgmtv1alpha1.MysqlSourceSchemaOption{}
 					subsetMap := map[string]*mgmtv1alpha1.MysqlSourceSchemaOption{}
@@ -750,7 +750,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
-					err := env.GetWorkflowError()
+					err = env.GetWorkflowError()
 					if tt.ExpectError {
 						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
 						return
@@ -768,8 +768,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					}
 
 					// tear down
-					s.RunMysqlSqlFiles(s.mysql.Source.DB, tt.Folder, []string{"teardown.sql"})
-					s.RunMysqlSqlFiles(s.mysql.Target.DB, tt.Folder, []string{"teardown.sql"})
+					err = s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
 				})
 			}
 		})
@@ -1395,7 +1397,9 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	// setup
 	testName := "Generate Job"
-	s.RunPostgresSqlFiles(s.postgres.Target.DB, "generate-job", []string{"setup.sql"})
+	folder := "testdata/generate-job"
+	err := s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"setup.sql"})
+	require.NoError(s.T(), err)
 
 	connectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
 	schema := "generate_job"
@@ -1491,7 +1495,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	srv := startHTTPServer(s.T(), mux)
 	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
-	err := env.GetWorkflowError()
+	err = env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
 
 	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
@@ -1503,7 +1507,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	require.Equalf(s.T(), 10, count, fmt.Sprintf("Test: %s Table: %s", testName, table))
 
 	// tear down
-	s.RunPostgresSqlFiles(s.postgres.Target.DB, "generate-job", []string{"teardown.sql"})
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
 }
 
 func executeWorkflow(

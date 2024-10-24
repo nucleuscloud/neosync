@@ -202,8 +202,6 @@ func runSync(ctx context.Context, outputType output.OutputType, benv *service.En
 		// TUI mode, discard log output
 		synclogger = slog.New(slog.NewJSONHandler(io.Discard, nil))
 	}
-	if benv == nil {
-	}
 	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, synclogger, outputType), opts...).Run(); err != nil {
 		logger.Error(fmt.Sprintf("Error syncing data: %v", err))
 		return fmt.Errorf("unable to finish syncing data: %w", err)

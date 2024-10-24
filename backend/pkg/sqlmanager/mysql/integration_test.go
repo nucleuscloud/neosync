@@ -72,7 +72,6 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 			}
 		}
 	}
-
 }
 
 func TestIntegrationTestSuite(t *testing.T) {

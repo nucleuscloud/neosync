@@ -3,10 +3,8 @@ package datasync_workflow
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
 	"os"
 	"testing"
 
@@ -14,12 +12,11 @@ import (
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgx/v5/pgxpool"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
-	tcmysql "github.com/nucleuscloud/neosync/internal/testcontainers/mysql"
-	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
+	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
+	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testmongodb "github.com/testcontainers/testcontainers-go/modules/mongodb"
@@ -363,20 +360,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.mongodb = mongodbTest
 }
 
-func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
-	s.T().Logf("running postgres sql file. folder: %s \n", testFolder)
-	for _, file := range files {
-		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
-		if err != nil {
-			panic(err)
-		}
-		_, err = pool.Exec(s.ctx, string(sqlStr))
-		if err != nil {
-			panic(fmt.Errorf("unable to exec sql when running postgres sql files: %w", err))
-		}
-	}
-}
-
 func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string, files []string) {
 	s.T().Logf("running mysql sql file. folder: %s \n", testFolder)
 	for _, file := range files {
@@ -589,20 +572,4 @@ func TestIntegrationTestSuite(t *testing.T) {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))
-}
-
-func getDbPgUrl(dburl, database, sslmode string) (string, error) {
-	u, err := url.Parse(dburl)
-	if err != nil {
-		var urlErr *url.Error
-		if errors.As(err, &urlErr) {
-			return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
-		}
-		return "", fmt.Errorf("unable to parse postgres url: %w", err)
-	}
-
-	u.Path = database
-	query := u.Query()
-	query.Add("sslmode", sslmode)
-	return u.String(), nil
 }
