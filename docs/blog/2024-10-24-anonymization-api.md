@@ -1,7 +1,7 @@
 ---
-title: 9/26 - CLI S3 Sync
+title: 10/24 - Anonymization API
 hide_table_of_contents: false
-slug: /cli-sync
+slug: /anonymization-api
 authors:
   - evis
 ---
