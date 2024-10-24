@@ -342,7 +342,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found.")
+			c.logger.Warn("No tables found when building destination schema from s3.")
 			return nil, nil
 		}
 		schemaConfig = schemaCfg
@@ -365,7 +365,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found.")
+			c.logger.Warn("No tables found when building destination schema from gcp cloud storage.")
 			return nil, nil
 		}
 		schemaConfig = schemaCfg
@@ -381,7 +381,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found.")
+			c.logger.Warn("No tables found when building destination schema from mysql.")
 			return nil, nil
 		}
 		schemaConfig = schemaCfg
@@ -397,7 +397,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found.")
+			c.logger.Warn("No tables found when building destination schema from postgres.")
 			return nil, nil
 		}
 		schemaConfig = schemaCfg
@@ -412,7 +412,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found.")
+			c.logger.Warn("No tables found when building destination schema from dynamodb.")
 			return nil, nil
 		}
 		tableMap := map[string]struct{}{}
@@ -426,7 +426,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 		}
 		return [][]*benthosConfigResponse{configs}, nil
 	default:
-		return nil, fmt.Errorf("this connection type is not currently supported")
+		return nil, fmt.Errorf("this connection type is not currently supported: %T", sourceConnectionType)
 	}
 
 	c.logger.Debug("Building sync configs")
@@ -948,13 +948,13 @@ func (c *clisync) getDestinationSchemaConfig(
 		SchemaConfig: sc,
 	}))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve connection schema for connection: %w", err)
 	}
 
 	tableColMap := getTableColMap(schemaResp.Msg.GetSchemas())
 	if len(tableColMap) == 0 {
-		c.logger.Info("No tables found.")
-		return nil, nil
+		c.logger.Warn("no tables found after retrieving connection schema.")
+		return &schemaConfig{}, nil
 	}
 
 	schemaMap := map[string]struct{}{}
@@ -966,10 +966,10 @@ func (c *clisync) getDestinationSchemaConfig(
 		schemas = append(schemas, s)
 	}
 
-	c.logger.Info("Building table constraints...")
+	c.logger.Info(fmt.Sprintf("Building table constraints for %d schemas...", len(schemas)))
 	tableConstraints, err := c.getDestinationTableConstraints(schemas)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to build destination tablle constraints: %w", err)
 	}
 
 	primaryKeys := map[string]*mgmtv1alpha1.PrimaryConstraint{}
