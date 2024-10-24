@@ -3,13 +3,12 @@ package sqlmanager_mysql
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	"github.com/stretchr/testify/suite"
 )
@@ -75,10 +74,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))

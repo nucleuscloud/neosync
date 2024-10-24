@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
 )
@@ -79,10 +78,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))

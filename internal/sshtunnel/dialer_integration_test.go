@@ -4,9 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 	"time"
 
@@ -15,24 +12,19 @@ import (
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/postgrestunconnector"
+	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
+	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/testcontainers/testcontainers-go"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
-	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
-
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func Test_NewLazySSHDialer(t *testing.T) {
 	t.Parallel()
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
 		return
 	}
 
@@ -60,20 +52,13 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := testpg.Run(
-			ctx,
-			"postgres:15",
-			postgres.WithDatabase("postgres"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").
-					WithOccurrence(2).WithStartupTimeout(20*time.Second),
-			),
-		)
-		require.NoError(t, err)
-		connstr, err := container.ConnectionString(ctx, "sslmode=disable")
+		container, err := tcpostgres.NewPostgresTestContainer(ctx)
+		if err != nil {
+			panic(err)
+		}
 		require.NoError(t, err)
 
-		connector, cleanup, err := postgrestunconnector.New(dialer, connstr)
+		connector, cleanup, err := postgrestunconnector.New(dialer, container.URL)
 		require.NoError(t, err)
 		defer cleanup()
 
@@ -83,21 +68,12 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := testmysql.Run(ctx,
-			"mysql:8.0.36",
-			testmysql.WithDatabase("mydb"),
-			testmysql.WithUsername("root"),
-			testmysql.WithPassword("password"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("port: 3306  MySQL Community Server").
-					WithOccurrence(1).WithStartupTimeout(20*time.Second),
-			),
-		)
-		require.NoError(t, err)
-		connstr, err := container.ConnectionString(ctx)
-		require.NoError(t, err)
+		container, err := tcmysql.NewMysqlTestContainer(ctx)
+		if err != nil {
+			panic(err)
+		}
 
-		connector, cleanup, err := mysqltunconnector.New(dialer, connstr)
+		connector, cleanup, err := mysqltunconnector.New(dialer, container.URL)
 		require.NoError(t, err)
 		defer cleanup()
 

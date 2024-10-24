@@ -2,25 +2,21 @@ package neosyncdb
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go"
-	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -31,12 +27,9 @@ var (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	pgpool *pgxpool.Pool
-
 	ctx context.Context
 
-	pgcontainer   *testpg.PostgresContainer
-	connstr       string
+	pgcontainer   *tcpostgres.PostgresTestContainer
 	migrationsDir string
 
 	db *NeosyncDb
@@ -45,38 +38,21 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	pgcontainer, err := testpg.Run(
-		s.ctx,
-		"postgres:15",
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(5*time.Second),
-		),
-	)
+	pgcontainer, err := tcpostgres.NewPostgresTestContainer(s.ctx)
 	if err != nil {
 		panic(err)
 	}
 	s.pgcontainer = pgcontainer
-	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-	s.connstr = connstr
 
-	pool, err := pgxpool.New(s.ctx, connstr)
-	if err != nil {
-		panic(err)
-	}
-	s.pgpool = pool
 	s.migrationsDir = "../../sql/postgresql/schema"
 
-	s.db = New(pool, db_queries.New())
+	s.db = New(s.pgcontainer.DB, db_queries.New())
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
 	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+	err := neomigrate.Up(s.ctx, s.pgcontainer.URL, s.migrationsDir, discardLogger)
 	if err != nil {
 		panic(err)
 	}
@@ -86,22 +62,19 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	// Dropping here because 1) more efficient and 2) we have a bad down migration
 	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
 	// we should do something about that at some point. Running this single drop is easier though
-	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+	_, err := s.pgcontainer.DB.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
 	if err != nil {
 		panic(err)
 	}
-	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
+	_, err = s.pgcontainer.DB.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.pgpool != nil {
-		s.pgpool.Close()
-	}
 	if s.pgcontainer != nil {
-		err := s.pgcontainer.Terminate(s.ctx)
+		err := s.pgcontainer.TearDown(s.ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -109,10 +82,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))
