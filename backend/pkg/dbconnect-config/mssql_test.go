@@ -27,6 +27,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://test-user:test-pass@localhost:1433/myinstance?connection+timeout=5&database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "test-user", actual.GetUser())
 		})
 		t.Run("ok_no_timeout", func(t *testing.T) {
 			actual, err := NewFromMssqlConnection(
@@ -46,6 +47,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://test-user:test-pass@localhost:1433/myinstance?database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "test-user", actual.GetUser())
 		})
 		t.Run("ok_user_provided_timeout", func(t *testing.T) {
 			actual, err := NewFromMssqlConnection(
@@ -65,6 +67,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://test-user:test-pass@localhost:1433/myinstance?connection+timeout=10&database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "test-user", actual.GetUser())
 		})
 		t.Run("ok_strong_password", func(t *testing.T) {
 			actual, err := NewFromMssqlConnection(
@@ -84,6 +87,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://sa:myStr0ngP%40assword@localhost:1433/myinstance?connection+timeout=5&database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "sa", actual.GetUser())
 		})
 		t.Run("ok_no_instance", func(t *testing.T) {
 			actual, err := NewFromMssqlConnection(
@@ -103,6 +107,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://sa:myStr0ngP%40assword@localhost:1433?connection+timeout=5&database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "sa", actual.GetUser())
 		})
 		t.Run("ok_no_instance_no_port", func(t *testing.T) {
 			actual, err := NewFromMssqlConnection(
@@ -122,6 +127,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 				"sqlserver://sa:myStr0ngP%40assword@localhost?connection+timeout=5&database=master",
 				actual.String(),
 			)
+			assert.Equal(t, "sa", actual.GetUser())
 		})
 	})
 }
