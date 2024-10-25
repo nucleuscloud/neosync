@@ -1,16 +1,26 @@
 import {
   SupportedJobType,
   SystemTransformer,
+  TransformerConfig,
   TransformerDataType,
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { JobType } from './schema-constraint-handler';
 
+// Helper function to extract the 'case' property from a config type
+type ExtractCase<T> = T extends { case: infer U } ? U : never;
+
+// Computed type that extracts all case types from the config union
+export type TransformerConfigCase = NonNullable<
+  ExtractCase<TransformerConfig['config']>
+>;
+
 export class TransformerHandler {
   private readonly systemTransformers: SystemTransformer[];
   private readonly userDefinedTransformers: UserDefinedTransformer[];
 
+  private readonly systemByType: Map<TransformerConfigCase, SystemTransformer>;
   private readonly systemBySource: Map<TransformerSource, SystemTransformer>;
   private readonly userDefinedById: Map<string, UserDefinedTransformer>;
 
@@ -21,6 +31,13 @@ export class TransformerHandler {
     this.systemTransformers = systemTransformers;
     this.userDefinedTransformers = userDefinedTransformers;
 
+    this.systemByType = new Map(
+      // todo
+      systemTransformers.map((t) => [
+        t.config?.config.case ?? 'generateEmailConfig',
+        t,
+      ])
+    );
     this.systemBySource = new Map(systemTransformers.map((t) => [t.source, t]));
     this.userDefinedById = new Map(
       userDefinedTransformers.map((t) => [t.id, t])
@@ -66,10 +83,10 @@ export class TransformerHandler {
     };
   }
 
-  public getSystemTransformerBySource(
-    source: TransformerSource
+  public getSystemTransformerByConfigCase(
+    caseType: TransformerConfigCase | string
   ): SystemTransformer | undefined {
-    return this.systemBySource.get(source);
+    return this.systemByType.get(caseType as TransformerConfigCase);
   }
 
   public getUserDefinedTransformerById(

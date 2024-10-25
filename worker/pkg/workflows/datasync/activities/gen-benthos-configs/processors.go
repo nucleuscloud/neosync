@@ -167,26 +167,27 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 	var jsFunctions []string
 
 	for _, col := range cols {
-		if shouldProcessStrict(col.Transformer) {
-			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
+		jmTransformer := col.GetTransformer()
+		if shouldProcessStrict(jmTransformer) {
+			if jmTransformer.GetConfig().GetUserDefinedTransformerConfig() != nil {
+				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.GetTransformer())
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
-				col.Transformer = val
+				jmTransformer = val
 			}
-			switch col.Transformer.Source {
-			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
-				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+			switch cfg := jmTransformer.GetConfig().GetConfig().(type) {
+			case *mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig:
+				code := cfg.TransformJavascriptConfig.GetCode()
 				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT))
 				}
-			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
-				code := col.Transformer.Config.GetGenerateJavascriptConfig().Code
+			case *mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig:
+				code := cfg.GenerateJavascriptConfig.GetCode()
 				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT))
 				}
 			}
 		}
@@ -199,6 +200,16 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 	}
 }
 
+// Checks if it is a gen or transform javascript
+func isJavascriptTransformer(jmt *mgmtv1alpha1.JobMappingTransformer) bool {
+	if jmt == nil {
+		return false
+	}
+	isSource := jmt.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT || jmt.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+	isConfig := jmt.GetConfig().GetTransformJavascriptConfig() != nil || jmt.GetConfig().GetGenerateJavascriptConfig() != nil
+	return isSource || isConfig
+}
+
 func buildMutationConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
@@ -209,22 +220,22 @@ func buildMutationConfigs(
 	mutations := []string{}
 
 	for _, col := range cols {
-		colInfo := tableColumnInfo[col.Column]
-		if shouldProcessColumn(col.Transformer) {
-			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+		colInfo := tableColumnInfo[col.GetColumn()]
+		if shouldProcessColumn(col.GetTransformer()) {
+			if col.GetTransformer().GetConfig().GetUserDefinedTransformerConfig() != nil {
 				// handle user defined transformer -> get the user defined transformer configs using the id
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
+				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.GetTransformer())
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
 				col.Transformer = val
 			}
-			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT && col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT {
+			if isJavascriptTransformer(col.GetTransformer()) {
 				mutation, err := computeMutationFunction(col, colInfo, splitColumnPaths)
 				if err != nil {
-					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
+					return "", fmt.Errorf("%s is not a supported transformer: %w", col.GetTransformer(), err)
 				}
-				mutations = append(mutations, fmt.Sprintf("root.%s = %s", getBenthosColumnKey(col.Column, splitColumnPaths), mutation))
+				mutations = append(mutations, fmt.Sprintf("root.%s = %s", getBenthosColumnKey(col.GetColumn(), splitColumnPaths), mutation))
 			}
 		}
 	}
@@ -409,14 +420,15 @@ func convertUserDefinedFunctionConfig(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	t *mgmtv1alpha1.JobMappingTransformer,
 ) (*mgmtv1alpha1.JobMappingTransformer, error) {
-	transformer, err := transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
+	transformerResp, err := transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
 	if err != nil {
 		return nil, err
 	}
+	transformer := transformerResp.Msg.GetTransformer()
 
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: transformer.Msg.Transformer.Source,
-		Config: transformer.Msg.Transformer.Config,
+		Source: transformer.GetSource(),
+		Config: transformer.GetConfig(),
 	}, nil
 }
 
@@ -434,56 +446,56 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	formattedColPath := getBenthosColumnKey(col.Column, splitColumnPath)
 	config := col.GetTransformer().GetConfig()
 
-	switch col.Transformer.Source {
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL:
+	switch config.GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
 		opts, err := transformers.NewGenerateCategoricalOptsFromConfig(config.GetGenerateCategoricalConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL:
+	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
 		opts, err := transformers.NewGenerateEmailOptsFromConfig(config.GetGenerateEmailConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL:
+	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		opts, err := transformers.NewTransformEmailOptsFromConfig(config.GetTransformEmailConfig(), &maxLen)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
+	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
 		opts, err := transformers.NewGenerateBoolOptsFromConfig(config.GetGenerateBoolConfig())
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig:
 		opts, err := transformers.NewGenerateCardNumberOptsFromConfig(config.GetGenerateCardNumberConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY:
+	case *mgmtv1alpha1.TransformerConfig_GenerateCityConfig:
 		opts, err := transformers.NewGenerateCityOptsFromConfig(config.GetGenerateCityConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
 		opts, err := transformers.NewGenerateInternationalPhoneNumberOptsFromConfig(config.GetGenerateE164PhoneNumberConfig())
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME:
+	case *mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig:
 		opts, err := transformers.NewGenerateFirstNameOptsFromConfig(config.GetGenerateFirstNameConfig(), &maxLen)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64:
+	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
 		var precision *int64
 		if config != nil && config.GetGenerateFloat64Config() != nil && config.GetGenerateFloat64Config().GetPrecision() > 0 {
 			userDefinedPrecision := config.GetGenerateFloat64Config().GetPrecision()
@@ -509,122 +521,122 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS:
+	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
 		opts, err := transformers.NewGenerateFullAddressOptsFromConfig(config.GetGenerateFullAddressConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:
+	case *mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig:
 		opts, err := transformers.NewGenerateFullNameOptsFromConfig(config.GetGenerateFullNameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER:
+	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
 		opts, err := transformers.NewGenerateGenderOptsFromConfig(config.GetGenerateGenderConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig:
 		opts, err := transformers.NewGenerateInt64PhoneNumberOptsFromConfig(config.GetGenerateInt64PhoneNumberConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64:
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
 		opts, err := transformers.NewGenerateInt64OptsFromConfig(config.GetGenerateInt64Config())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME:
+	case *mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig:
 		opts, err := transformers.NewGenerateLastNameOptsFromConfig(config.GetGenerateLastNameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH:
+	case *mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig:
 		opts, err := transformers.NewGenerateSHA256HashOptsFromConfig(config.GetGenerateSha256HashConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN:
+	case *mgmtv1alpha1.TransformerConfig_GenerateSsnConfig:
 		opts, err := transformers.NewGenerateSSNOptsFromConfig(config.GetGenerateSsnConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE:
+	case *mgmtv1alpha1.TransformerConfig_GenerateStateConfig:
 		opts, err := transformers.NewGenerateStateOptsFromConfig(config.GetGenerateStateConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
+	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
 		opts, err := transformers.NewGenerateStreetAddressOptsFromConfig(config.GetGenerateStreetAddressConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
 		opts, err := transformers.NewGenerateStringPhoneNumberOptsFromConfig(config.GetGenerateStringPhoneNumberConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
+	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		// todo: we need to pull in the min from the database schema
 		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(config.GetGenerateStringConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP:
+	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
 		opts, err := transformers.NewGenerateUnixTimestampOptsFromConfig(config.GetGenerateUnixtimestampConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME:
+	case *mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig:
 		opts, err := transformers.NewGenerateUsernameOptsFromConfig(config.GetGenerateUsernameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP:
+	case *mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig:
 		opts, err := transformers.NewGenerateUTCTimestampOptsFromConfig(config.GetGenerateUtctimestampConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID:
+	case *mgmtv1alpha1.TransformerConfig_GenerateUuidConfig:
 		opts, err := transformers.NewGenerateUUIDOptsFromConfig(config.GetGenerateUuidConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE:
+	case *mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig:
 		opts, err := transformers.NewGenerateZipcodeOptsFromConfig(config.GetGenerateZipcodeConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
 		opts, err := transformers.NewTransformE164PhoneNumberOptsFromConfig(config.GetTransformE164PhoneNumberConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME:
+	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
 		opts, err := transformers.NewTransformFirstNameOptsFromConfig(config.GetTransformFirstNameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
+	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
 		var precision *int64
 		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
 			newPrecision := int64(*colInfo.NumericPrecision)
@@ -640,54 +652,54 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
+	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
 		opts, err := transformers.NewTransformFullNameOptsFromConfig(config.GetTransformFullNameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
 		opts, err := transformers.NewTransformInt64PhoneNumberOptsFromConfig(config.GetTransformInt64PhoneNumberConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64:
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
 		opts, err := transformers.NewTransformInt64OptsFromConfig(config.GetTransformInt64Config())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME:
+	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
 		opts, err := transformers.NewTransformLastNameOptsFromConfig(config.GetTransformLastNameConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER:
+	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		opts, err := transformers.NewTransformStringPhoneNumberOptsFromConfig(config.GetTransformPhoneNumberConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING:
+	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
 		minLength := int64(3) // todo: we need to pull in this value from the database schema
 		opts, err := transformers.NewTransformStringOptsFromConfig(config.GetTransformStringConfig(), &minLength, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL:
+	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
 		return shared.NullString, nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT:
+	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
 		return `"DEFAULT"`, nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE:
+	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
 		opts, err := transformers.NewTransformCharacterScrambleOptsFromConfig(config.GetTransformCharacterScrambleConfig())
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY:
+	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
 		opts, err := transformers.NewGenerateCountryOptsFromConfig(config.GetGenerateCountryConfig())
 		if err != nil {
 			return "", err

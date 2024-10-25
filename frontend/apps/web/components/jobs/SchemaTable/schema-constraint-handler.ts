@@ -28,7 +28,7 @@ export interface SchemaConstraintHandler {
   getIdentityType(key: ColumnKey): string | undefined;
 }
 
-interface ColumnKey {
+export interface ColumnKey {
   schema: string;
   table: string;
   column: string;

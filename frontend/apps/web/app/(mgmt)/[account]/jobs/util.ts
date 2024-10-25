@@ -71,7 +71,6 @@ import {
   PostgresTruncateTableConfig,
   RetryPolicy,
   TransformerConfig,
-  TransformerSource,
   ValidateJobMappingsRequest,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
@@ -702,7 +701,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
   return {
     boolean: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.GENERATE_BOOL,
         config: new TransformerConfig({
           config: {
             case: 'generateBoolConfig',
@@ -713,7 +711,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     byte: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -724,7 +721,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     n: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -735,7 +731,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     s: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.GENERATE_RANDOM_STRING,
         config: new TransformerConfig({
           config: {
             case: 'generateStringConfig',
@@ -860,7 +855,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     boolean: convertJobMappingTransformerToForm(
       ut.boolean ||
         new JobMappingTransformer({
-          source: TransformerSource.GENERATE_BOOL,
           config: new TransformerConfig({
             config: {
               case: 'generateBoolConfig',
@@ -872,7 +866,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     byte: convertJobMappingTransformerToForm(
       ut.b ||
         new JobMappingTransformer({
-          source: TransformerSource.PASSTHROUGH,
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -884,7 +877,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     n: convertJobMappingTransformerToForm(
       ut.n ||
         new JobMappingTransformer({
-          source: TransformerSource.PASSTHROUGH,
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -896,7 +888,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     s: convertJobMappingTransformerToForm(
       ut.s ||
         new JobMappingTransformer({
-          source: TransformerSource.GENERATE_RANDOM_STRING,
           config: new TransformerConfig({
             config: {
               case: 'generateStringConfig',
@@ -1521,20 +1512,18 @@ export async function validateJobMapping(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer:
-          m.transformer.source != 0
-            ? convertJobMappingTransformerFormToJobMappingTransformer(
-                m.transformer
-              )
-            : new JobMappingTransformer({
-                source: 1,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: {},
-                  },
-                }),
+        transformer: m.transformer.config.case
+          ? convertJobMappingTransformerFormToJobMappingTransformer(
+              m.transformer
+            )
+          : new JobMappingTransformer({
+              config: new TransformerConfig({
+                config: {
+                  case: 'passthroughConfig',
+                  value: {},
+                },
               }),
+            }),
       });
     }),
     virtualForeignKeys: virtualForeignKeys.map((v) => {

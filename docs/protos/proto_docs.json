@@ -11195,7 +11195,7 @@
           "fields": [
             {
               "name": "source",
-              "description": "",
+              "description": "@deprecated - This is no longer used in favor just providing the TransformerConfig",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",

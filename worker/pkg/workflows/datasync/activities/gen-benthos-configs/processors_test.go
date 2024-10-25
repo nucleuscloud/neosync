@@ -63,7 +63,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 		[]*mgmtv1alpha1.JobMapping{
 			{
 				Schema: "public", Table: "users", Column: "address",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
@@ -123,7 +123,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 		ctx, mockTransformerClient,
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "test",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
@@ -194,8 +194,8 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
 		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
+			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
+			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
 		nil,
@@ -265,8 +265,8 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
 		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
+			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
+			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, false),
 		nil,
@@ -325,7 +325,7 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 		[]*mgmtv1alpha1.JobMapping{
 			{
 				Schema: "public", Table: "users", Column: "foo.bar.baz",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,

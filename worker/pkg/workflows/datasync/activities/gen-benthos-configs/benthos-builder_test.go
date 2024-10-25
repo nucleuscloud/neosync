@@ -46,7 +46,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 				{
@@ -54,7 +56,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 			},
@@ -130,8 +134,9 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 				{
@@ -139,7 +144,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
@@ -344,19 +348,21 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+		}}},
 	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
@@ -397,7 +403,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 	require.Equal(t, `root."email" = transform_email(value:this."email",preserve_length:false,preserve_domain:true,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`, *output[0].Mutation)
@@ -405,10 +411,9 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
-				Nullconfig: &mgmtv1alpha1.Null{},
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 			},
 		},
 	}
@@ -419,7 +424,6 @@ func Test_ShouldProcessColumnTrue(t *testing.T) {
 
 func Test_ShouldProcessColumnFalse(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
@@ -448,7 +452,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 
 	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})
 
 	require.NoError(t, err)
@@ -486,7 +490,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}), nil)
 
 	jmt := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
 				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
@@ -497,7 +500,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}
 
 	expected := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -517,7 +519,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 func MockJobMappingTransformer(source int32, transformerId string) db_queries.NeosyncApiTransformer {
 	return db_queries.NeosyncApiTransformer{
 		Source:            source,
-		TransformerConfig: &pg_models.TransformerConfigs{},
+		TransformerConfig: &pg_models.TransformerConfig{},
 	}
 }
 
@@ -611,7 +613,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
+				Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
 			},
 		}, &sqlmanager_shared.ColumnInfo{}, false)
 	require.NoError(t, err)
@@ -1010,7 +1012,6 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: transformer.Source,
 						Config: transformer.Config,
 					},
 				}, emailColInfo, false)
@@ -1199,7 +1200,6 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: transformer.Source,
 						Config: transformer.Config,
 					},
 				}, emailColInfo, false)
@@ -1220,7 +1220,6 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	}
 	jm := &mgmtv1alpha1.JobMapping{
 		Transformer: &mgmtv1alpha1.JobMappingTransformer{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{

@@ -134,7 +134,7 @@ func filterForeignKeysMap(
 			}
 			for i, c := range fk.Columns {
 				t, ok := cols[c]
-				if !fk.NotNullable[i] && (!ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL) {
+				if !fk.NotNullable[i] && (!ok || isNullJobMappingTransformer(t)) {
 					continue
 				}
 
@@ -149,6 +149,24 @@ func filterForeignKeysMap(
 		}
 	}
 	return newFkMap
+}
+
+func isNullJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	if t == nil {
+		return false
+	}
+	isNullSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL
+	isNullConfig := t.GetConfig().GetNullconfig()
+	return isNullSource || isNullConfig
+}
+
+func isDefaultJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	if t == nil {
+		return false
+	}
+	isDefSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
+	isDefConfig := t.GetConfig().GetGenerateDefaultConfig()
+	return isDefSource || isDefConfig
 }
 
 func mergeVirtualForeignKeys(
@@ -357,12 +375,12 @@ func getColumnDefaultProperties(
 			return nil, err
 		}
 
-		transformer, ok := colTransformers[cName]
+		jmTransformer, ok := colTransformers[cName]
 		if !ok {
 			return nil, fmt.Errorf("transformer missing for column: %s", cName)
 		}
 		var hasDefaultTransformer bool
-		if transformer != nil && transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
+		if jmTransformer != nil && isDefaultJobMappingTransformer(jmTransformer) {
 			hasDefaultTransformer = true
 		}
 		if !needsReset && !needsOverride && !hasDefaultTransformer {

@@ -942,26 +942,22 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 	if s.UnmappedTransforms == nil {
 		s.UnmappedTransforms = &DynamoDBSourceUnmappedTransformConfig{
 			B: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					Passthrough: &PassthroughConfig{},
 				},
 			},
 			Boolean: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					GenerateBool: &GenerateBoolConfig{},
 				},
 			},
 			N: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					Passthrough: &PassthroughConfig{},
 				},
 			},
 			S: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					GenerateString: &GenerateStringConfig{},
 				},
 			},
