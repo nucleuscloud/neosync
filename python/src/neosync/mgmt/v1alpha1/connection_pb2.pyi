@@ -235,9 +235,9 @@ class SqlConnectionOptions(_message.Message):
     MAX_OPEN_DURATION_FIELD_NUMBER: _ClassVar[int]
     max_connection_limit: int
     max_idle_connections: int
-    max_idle_duration: int
-    max_open_duration: int
-    def __init__(self, max_connection_limit: _Optional[int] = ..., max_idle_connections: _Optional[int] = ..., max_idle_duration: _Optional[int] = ..., max_open_duration: _Optional[int] = ...) -> None: ...
+    max_idle_duration: str
+    max_open_duration: str
+    def __init__(self, max_connection_limit: _Optional[int] = ..., max_idle_connections: _Optional[int] = ..., max_idle_duration: _Optional[str] = ..., max_open_duration: _Optional[str] = ...) -> None: ...
 
 class SSHTunnel(_message.Message):
     __slots__ = ("host", "port", "user", "known_host_public_key", "authentication")

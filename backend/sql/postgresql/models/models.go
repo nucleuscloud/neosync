@@ -440,10 +440,10 @@ type PostgresConnection struct {
 }
 
 type ConnectionOptions struct {
-	MaxConnectionLimit *int32 `json:"maxConnectionLimit,omitempty"`
-	MaxIdleConnections *int32 `json:"maxIdleConnections,omitempty"`
-	MaxIdleDuration    *int64 `json:"maxIdleDuration,omitempty"`
-	MaxOpenDuration    *int64 `json:"maxOpenDuration,omitempty"`
+	MaxConnectionLimit *int32  `json:"maxConnectionLimit,omitempty"`
+	MaxIdleConnections *int32  `json:"maxIdleConnections,omitempty"`
+	MaxIdleDuration    *string `json:"maxIdleDuration,omitempty"`
+	MaxOpenDuration    *string `json:"maxOpenDuration,omitempty"`
 }
 
 func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {

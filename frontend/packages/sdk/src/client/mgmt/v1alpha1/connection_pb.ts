@@ -1288,29 +1288,21 @@ export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
    * Sets the maximum amount of time a connection may be idle.
    * Expired connections may be closed lazily before reuse.
    * if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
-   * This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
-   * Nanosecond = 1
-   * Microsecond = 1000 * Nanosecond
-   * Millisecond = 1000 * Microsecond
-   * Second = 1000 * Millisecond
+   * This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
    *
-   * @generated from field: optional int64 max_idle_duration = 3;
+   * @generated from field: optional string max_idle_duration = 3;
    */
-  maxIdleDuration?: bigint;
+  maxIdleDuration?: string;
 
   /**
    * Sets the maximum amount of time a connection may be reused.
    * Expired connections may be closed lazily before reuse.
    * If this value is less than or equal to 0, connections may not be closed due to a connection's age.
-   * This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
-   * Nanosecond = 1
-   * Microsecond = 1000 * Nanosecond
-   * Millisecond = 1000 * Microsecond
-   * Second = 1000 * Millisecond
+   * This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
    *
-   * @generated from field: optional int64 max_open_duration = 4;
+   * @generated from field: optional string max_open_duration = 4;
    */
-  maxOpenDuration?: bigint;
+  maxOpenDuration?: string;
 
   constructor(data?: PartialMessage<SqlConnectionOptions>) {
     super();
@@ -1322,8 +1314,8 @@ export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "max_connection_limit", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
     { no: 2, name: "max_idle_connections", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
-    { no: 3, name: "max_idle_duration", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 4, name: "max_open_duration", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 3, name: "max_idle_duration", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "max_open_duration", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlConnectionOptions {
