@@ -21,6 +21,7 @@ export class TransformerHandler {
   private readonly userDefinedTransformers: UserDefinedTransformer[];
 
   private readonly systemByType: Map<TransformerConfigCase, SystemTransformer>;
+  // used by user-defined to go from User Defined -> System
   private readonly systemBySource: Map<TransformerSource, SystemTransformer>;
   private readonly userDefinedById: Map<string, UserDefinedTransformer>;
 
@@ -31,13 +32,13 @@ export class TransformerHandler {
     this.systemTransformers = systemTransformers;
     this.userDefinedTransformers = userDefinedTransformers;
 
-    this.systemByType = new Map(
-      // todo
-      systemTransformers.map((t) => [
-        t.config?.config.case ?? 'generateEmailConfig',
-        t,
-      ])
-    );
+    this.systemByType = new Map();
+    systemTransformers.forEach((t) => {
+      if (t.config?.config.case) {
+        this.systemByType.set(t.config.config.case, t);
+      }
+    });
+
     this.systemBySource = new Map(systemTransformers.map((t) => [t.source, t]));
     this.userDefinedById = new Map(
       userDefinedTransformers.map((t) => [t.id, t])

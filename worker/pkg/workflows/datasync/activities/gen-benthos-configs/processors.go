@@ -446,67 +446,67 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	formattedColPath := getBenthosColumnKey(col.Column, splitColumnPath)
 	config := col.GetTransformer().GetConfig()
 
-	switch config.GetConfig().(type) {
+	switch cfg := config.GetConfig().(type) {
 	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
-		opts, err := transformers.NewGenerateCategoricalOptsFromConfig(config.GetGenerateCategoricalConfig())
+		opts, err := transformers.NewGenerateCategoricalOptsFromConfig(cfg.GenerateCategoricalConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
-		opts, err := transformers.NewGenerateEmailOptsFromConfig(config.GetGenerateEmailConfig(), &maxLen)
+		opts, err := transformers.NewGenerateEmailOptsFromConfig(cfg.GenerateEmailConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
-		opts, err := transformers.NewTransformEmailOptsFromConfig(config.GetTransformEmailConfig(), &maxLen)
+		opts, err := transformers.NewTransformEmailOptsFromConfig(cfg.TransformEmailConfig, &maxLen)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
-		opts, err := transformers.NewGenerateBoolOptsFromConfig(config.GetGenerateBoolConfig())
+		opts, err := transformers.NewGenerateBoolOptsFromConfig(cfg.GenerateBoolConfig)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig:
-		opts, err := transformers.NewGenerateCardNumberOptsFromConfig(config.GetGenerateCardNumberConfig())
+		opts, err := transformers.NewGenerateCardNumberOptsFromConfig(cfg.GenerateCardNumberConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCityConfig:
-		opts, err := transformers.NewGenerateCityOptsFromConfig(config.GetGenerateCityConfig(), &maxLen)
+		opts, err := transformers.NewGenerateCityOptsFromConfig(cfg.GenerateCityConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
-		opts, err := transformers.NewGenerateInternationalPhoneNumberOptsFromConfig(config.GetGenerateE164PhoneNumberConfig())
+		opts, err := transformers.NewGenerateInternationalPhoneNumberOptsFromConfig(cfg.GenerateE164PhoneNumberConfig)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig:
-		opts, err := transformers.NewGenerateFirstNameOptsFromConfig(config.GetGenerateFirstNameConfig(), &maxLen)
+		opts, err := transformers.NewGenerateFirstNameOptsFromConfig(cfg.GenerateFirstNameConfig, &maxLen)
 		if err != nil {
 			return "", nil
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
 		var precision *int64
-		if config != nil && config.GetGenerateFloat64Config() != nil && config.GetGenerateFloat64Config().GetPrecision() > 0 {
-			userDefinedPrecision := config.GetGenerateFloat64Config().GetPrecision()
+		if cfg.GenerateFloat64Config.GetPrecision() > 0 {
+			userDefinedPrecision := cfg.GenerateFloat64Config.GetPrecision()
 			precision = &userDefinedPrecision
-			config.GetGenerateFloat64Config().Precision = &userDefinedPrecision
+			cfg.GenerateFloat64Config.Precision = &userDefinedPrecision
 		}
 		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
 			newPrecision := transformer_utils.Ceil(*precision, int64(*colInfo.NumericPrecision))
 			precision = &newPrecision
 		}
-		if config != nil && config.GetGenerateFloat64Config() != nil && precision != nil {
+		if precision != nil {
 			config.GetGenerateFloat64Config().Precision = precision
 		}
 
@@ -516,122 +516,122 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			scale = &newScale
 		}
 
-		opts, err := transformers.NewGenerateFloat64OptsFromConfig(col.Transformer.Config.GetGenerateFloat64Config(), scale)
+		opts, err := transformers.NewGenerateFloat64OptsFromConfig(cfg.GenerateFloat64Config, scale)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
-		opts, err := transformers.NewGenerateFullAddressOptsFromConfig(config.GetGenerateFullAddressConfig(), &maxLen)
+		opts, err := transformers.NewGenerateFullAddressOptsFromConfig(cfg.GenerateFullAddressConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig:
-		opts, err := transformers.NewGenerateFullNameOptsFromConfig(config.GetGenerateFullNameConfig(), &maxLen)
+		opts, err := transformers.NewGenerateFullNameOptsFromConfig(cfg.GenerateFullNameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
-		opts, err := transformers.NewGenerateGenderOptsFromConfig(config.GetGenerateGenderConfig(), &maxLen)
+		opts, err := transformers.NewGenerateGenderOptsFromConfig(cfg.GenerateGenderConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig:
-		opts, err := transformers.NewGenerateInt64PhoneNumberOptsFromConfig(config.GetGenerateInt64PhoneNumberConfig())
+		opts, err := transformers.NewGenerateInt64PhoneNumberOptsFromConfig(cfg.GenerateInt64PhoneNumberConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
-		opts, err := transformers.NewGenerateInt64OptsFromConfig(config.GetGenerateInt64Config())
+		opts, err := transformers.NewGenerateInt64OptsFromConfig(cfg.GenerateInt64Config)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig:
-		opts, err := transformers.NewGenerateLastNameOptsFromConfig(config.GetGenerateLastNameConfig(), &maxLen)
+		opts, err := transformers.NewGenerateLastNameOptsFromConfig(cfg.GenerateLastNameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig:
-		opts, err := transformers.NewGenerateSHA256HashOptsFromConfig(config.GetGenerateSha256HashConfig())
+		opts, err := transformers.NewGenerateSHA256HashOptsFromConfig(cfg.GenerateSha256HashConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateSsnConfig:
-		opts, err := transformers.NewGenerateSSNOptsFromConfig(config.GetGenerateSsnConfig())
+		opts, err := transformers.NewGenerateSSNOptsFromConfig(cfg.GenerateSsnConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateStateConfig:
-		opts, err := transformers.NewGenerateStateOptsFromConfig(config.GetGenerateStateConfig())
+		opts, err := transformers.NewGenerateStateOptsFromConfig(cfg.GenerateStateConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
-		opts, err := transformers.NewGenerateStreetAddressOptsFromConfig(config.GetGenerateStreetAddressConfig(), &maxLen)
+		opts, err := transformers.NewGenerateStreetAddressOptsFromConfig(cfg.GenerateStreetAddressConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
-		opts, err := transformers.NewGenerateStringPhoneNumberOptsFromConfig(config.GetGenerateStringPhoneNumberConfig())
+		opts, err := transformers.NewGenerateStringPhoneNumberOptsFromConfig(cfg.GenerateStringPhoneNumberConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		// todo: we need to pull in the min from the database schema
-		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(config.GetGenerateStringConfig(), &maxLen)
+		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(cfg.GenerateStringConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
-		opts, err := transformers.NewGenerateUnixTimestampOptsFromConfig(config.GetGenerateUnixtimestampConfig())
+		opts, err := transformers.NewGenerateUnixTimestampOptsFromConfig(cfg.GenerateUnixtimestampConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig:
-		opts, err := transformers.NewGenerateUsernameOptsFromConfig(config.GetGenerateUsernameConfig(), &maxLen)
+		opts, err := transformers.NewGenerateUsernameOptsFromConfig(cfg.GenerateUsernameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig:
-		opts, err := transformers.NewGenerateUTCTimestampOptsFromConfig(config.GetGenerateUtctimestampConfig())
+		opts, err := transformers.NewGenerateUTCTimestampOptsFromConfig(cfg.GenerateUtctimestampConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateUuidConfig:
-		opts, err := transformers.NewGenerateUUIDOptsFromConfig(config.GetGenerateUuidConfig())
+		opts, err := transformers.NewGenerateUUIDOptsFromConfig(cfg.GenerateUuidConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig:
-		opts, err := transformers.NewGenerateZipcodeOptsFromConfig(config.GetGenerateZipcodeConfig())
+		opts, err := transformers.NewGenerateZipcodeOptsFromConfig(cfg.GenerateZipcodeConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
-		opts, err := transformers.NewTransformE164PhoneNumberOptsFromConfig(config.GetTransformE164PhoneNumberConfig(), &maxLen)
+		opts, err := transformers.NewTransformE164PhoneNumberOptsFromConfig(cfg.TransformE164PhoneNumberConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
-		opts, err := transformers.NewTransformFirstNameOptsFromConfig(config.GetTransformFirstNameConfig(), &maxLen)
+		opts, err := transformers.NewTransformFirstNameOptsFromConfig(cfg.TransformFirstNameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
@@ -647,44 +647,44 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}
-		opts, err := transformers.NewTransformFloat64OptsFromConfig(col.Transformer.Config.GetTransformFloat64Config(), scale, precision)
+		opts, err := transformers.NewTransformFloat64OptsFromConfig(cfg.TransformFloat64Config, scale, precision)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
-		opts, err := transformers.NewTransformFullNameOptsFromConfig(config.GetTransformFullNameConfig(), &maxLen)
+		opts, err := transformers.NewTransformFullNameOptsFromConfig(cfg.TransformFullNameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
-		opts, err := transformers.NewTransformInt64PhoneNumberOptsFromConfig(config.GetTransformInt64PhoneNumberConfig())
+		opts, err := transformers.NewTransformInt64PhoneNumberOptsFromConfig(cfg.TransformInt64PhoneNumberConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
-		opts, err := transformers.NewTransformInt64OptsFromConfig(config.GetTransformInt64Config())
+		opts, err := transformers.NewTransformInt64OptsFromConfig(cfg.TransformInt64Config)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
-		opts, err := transformers.NewTransformLastNameOptsFromConfig(config.GetTransformLastNameConfig(), &maxLen)
+		opts, err := transformers.NewTransformLastNameOptsFromConfig(cfg.TransformLastNameConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
-		opts, err := transformers.NewTransformStringPhoneNumberOptsFromConfig(config.GetTransformPhoneNumberConfig(), &maxLen)
+		opts, err := transformers.NewTransformStringPhoneNumberOptsFromConfig(cfg.TransformPhoneNumberConfig, &maxLen)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
 		minLength := int64(3) // todo: we need to pull in this value from the database schema
-		opts, err := transformers.NewTransformStringOptsFromConfig(config.GetTransformStringConfig(), &minLength, &maxLen)
+		opts, err := transformers.NewTransformStringOptsFromConfig(cfg.TransformStringConfig, &minLength, &maxLen)
 		if err != nil {
 			return "", err
 		}
@@ -694,18 +694,18 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
 		return `"DEFAULT"`, nil
 	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
-		opts, err := transformers.NewTransformCharacterScrambleOptsFromConfig(config.GetTransformCharacterScrambleConfig())
+		opts, err := transformers.NewTransformCharacterScrambleOptsFromConfig(cfg.TransformCharacterScrambleConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
-		opts, err := transformers.NewGenerateCountryOptsFromConfig(config.GetGenerateCountryConfig())
+		opts, err := transformers.NewGenerateCountryOptsFromConfig(cfg.GenerateCountryConfig)
 		if err != nil {
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
 	default:
-		return "", fmt.Errorf("unsupported transformer")
+		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}
 }

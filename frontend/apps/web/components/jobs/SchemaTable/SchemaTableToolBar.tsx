@@ -328,10 +328,10 @@ function getFilteredTransformersForBulkSet<TData>(
     userDefinedArrays.push(userDefined);
   });
 
-  const uniqueSystemSources = findCommonSystemSources(systemArrays);
-  const uniqueSystem = uniqueSystemSources
-    .map((source) =>
-      transformerHandler.getSystemTransformerByConfigCase(source)
+  const uniqueSystemConfigCases = findCommonSystemConfigCases(systemArrays);
+  const uniqueSystem = uniqueSystemConfigCases
+    .map((configCase) =>
+      transformerHandler.getSystemTransformerByConfigCase(configCase)
     )
     .filter((x): x is SystemTransformer => !!x);
 
@@ -346,7 +346,7 @@ function getFilteredTransformersForBulkSet<TData>(
   };
 }
 
-function findCommonSystemSources(
+function findCommonSystemConfigCases(
   arrays: SystemTransformer[][]
 ): TransformerConfigCase[] {
   const elementCount: Record<TransformerConfigCase, number> = {} as Record<
