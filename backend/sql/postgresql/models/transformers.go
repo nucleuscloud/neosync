@@ -39,7 +39,7 @@ type TransformerConfigs struct {
 	TransformE164PhoneNumber   *TransformE164PhoneNumberConfig  `json:"transformE164PhoneNumber,omitempty"`
 	TransformFirstname         *TransformFirstNameConfig        `json:"transformFirstName,omitempty"`
 	TransformFloat64           *TransformFloat64Config          `json:"transformFloat64,omitempty"`
-	TransformFullName          *TransformFullNameConfig         `json:"transformFullName,,omitempty"`
+	TransformFullName          *TransformFullNameConfig         `json:"transformFullName,omitempty"`
 	TransformInt64PhoneNumber  *TransformInt64PhoneNumberConfig `json:"transformInt64PhoneNumber,omitempty"`
 	TransformInt64             *TransformInt64Config            `json:"transformInt64,omitempty"`
 	TransformLastName          *TransformLastNameConfig         `json:"transformLastName,omitempty"`
