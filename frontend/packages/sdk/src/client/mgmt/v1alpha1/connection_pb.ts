@@ -1267,11 +1267,50 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
  */
 export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
   /**
-   * Limits the number of open connections in the pool.
+   * Sets the maximum number of open connections
+   * If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
+   * If this value is less than or equal to 0, then there is no limit on the number of open connections. If not provided, the default is 0 (unlimited).
    *
    * @generated from field: optional int32 max_connection_limit = 1;
    */
   maxConnectionLimit?: number;
+
+  /**
+   * Sets the maximum number of connections in the idle connection pool.
+   * This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
+   * If this value is less than or equal to 0, then no idle connections are maintained. If not provided, the default is 2, which may change in a future release.
+   *
+   * @generated from field: optional int32 max_idle_connections = 2;
+   */
+  maxIdleConnections?: number;
+
+  /**
+   * Sets the maximum amount of time a connection may be idle.
+   * Expired connections may be closed lazily before reuse.
+   * if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
+   * This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
+   * Nanosecond = 1
+   * Microsecond = 1000 * Nanosecond
+   * Millisecond = 1000 * Microsecond
+   * Second = 1000 * Millisecond
+   *
+   * @generated from field: optional int64 max_idle_duration = 3;
+   */
+  maxIdleDuration?: bigint;
+
+  /**
+   * Sets the maximum amount of time a connection may be reused.
+   * Expired connections may be closed lazily before reuse.
+   * If this value is less than or equal to 0, connections may not be closed due to a connection's age.
+   * This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
+   * Nanosecond = 1
+   * Microsecond = 1000 * Nanosecond
+   * Millisecond = 1000 * Microsecond
+   * Second = 1000 * Millisecond
+   *
+   * @generated from field: optional int64 max_open_duration = 4;
+   */
+  maxOpenDuration?: bigint;
 
   constructor(data?: PartialMessage<SqlConnectionOptions>) {
     super();
@@ -1282,6 +1321,9 @@ export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
   static readonly typeName = "mgmt.v1alpha1.SqlConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "max_connection_limit", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 2, name: "max_idle_connections", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 3, name: "max_idle_duration", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 4, name: "max_open_duration", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlConnectionOptions {

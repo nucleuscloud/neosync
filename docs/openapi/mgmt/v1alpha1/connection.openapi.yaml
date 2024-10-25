@@ -1480,18 +1480,70 @@ components:
                 anyOf:
                   - required:
                       - maxConnectionLimit
-      anyOf:
-        - required:
-            - maxConnectionLimit
-        - not:
-            anyOf:
-              - required:
-                  - maxConnectionLimit
+        - anyOf:
+            - required:
+                - maxIdleConnections
+            - not:
+                anyOf:
+                  - required:
+                      - maxIdleConnections
+        - anyOf:
+            - required:
+                - maxIdleDuration
+            - not:
+                anyOf:
+                  - required:
+                      - maxIdleDuration
+        - anyOf:
+            - required:
+                - maxOpenDuration
+            - not:
+                anyOf:
+                  - required:
+                      - maxOpenDuration
       properties:
         maxConnectionLimit:
           type: integer
           title: max_connection_limit
-          description: Limits the number of open connections in the pool.
+          description: |-
+            Sets the maximum number of open connections
+             If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
+             If this value is less than or equal to 0, then there is no limit on the number of open connections. If not provided, the default is 0 (unlimited).
+        maxIdleConnections:
+          type: integer
+          title: max_idle_connections
+          description: |-
+            Sets the maximum number of connections in the idle connection pool.
+             This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
+             If this value is less than or equal to 0, then no idle connections are maintained. If not provided, the default is 2, which may change in a future release.
+        maxIdleDuration:
+          oneOf:
+            - type: string
+            - type: number
+          title: max_idle_duration
+          description: |-
+            Sets the maximum amount of time a connection may be idle.
+             Expired connections may be closed lazily before reuse.
+             if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
+             This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
+             Nanosecond = 1
+             Microsecond = 1000 * Nanosecond
+             Millisecond = 1000 * Microsecond
+             Second = 1000 * Millisecond
+        maxOpenDuration:
+          oneOf:
+            - type: string
+            - type: number
+          title: max_open_duration
+          description: |-
+            Sets the maximum amount of time a connection may be reused.
+             Expired connections may be closed lazily before reuse.
+             If this value is less than or equal to 0, connections may not be closed due to a connection's age.
+             This value is treated as a Go time.Duration value, which is time measured in nanoseconds.
+             Nanosecond = 1
+             Microsecond = 1000 * Nanosecond
+             Millisecond = 1000 * Microsecond
+             Second = 1000 * Millisecond
       title: SqlConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.UpdateConnectionRequest:
