@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -19,14 +20,14 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	slogger *slog.Logger,
 ) ([]*BenthosConfigResponse, error) {
 	// Create appropriate database builder based on source type
-	dbType := getConnectionType(sourceConnection)
+	dbType := bb_shared.GetConnectionType(sourceConnection)
 	dbBuilder, err := NewBenthosBuilder(dbType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create database builder: %w", err)
 	}
 
 	// Build source config based on flow type
-	sourceParams := &SourceParams{
+	sourceParams := &bb_shared.SourceParams{
 		Job:               job,
 		SourceConnection:  sourceConnection,
 		Logger:            slogger,
@@ -37,13 +38,13 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	}
 
 	jobType := determineJobType(job)
-	var sourceConfig *BenthosSourceConfig
+	var sourceConfig *bb_shared.BenthosSourceConfig
 	switch jobType {
-	case JobTypeSync:
+	case bb_shared.JobTypeSync:
 		sourceConfig, err = dbBuilder.BuildSyncSourceConfig(ctx, sourceParams)
-	case JobTypeGenerate:
+	case bb_shared.JobTypeGenerate:
 		sourceConfig, err = dbBuilder.BuildGenerateSourceConfig(ctx, sourceParams)
-	case JobTypeAIGenerate:
+	case bb_shared.JobTypeAIGenerate:
 		sourceConfig, err = dbBuilder.BuildAIGenerateSourceConfig(ctx, sourceParams)
 	default:
 		return nil, fmt.Errorf("unsupported job type: %s", jobType)
@@ -58,7 +59,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	for destIdx, destConnection := range destinationConnections {
 
 		// Create destination builder
-		destDbType := getConnectionType(destConnection)
+		destDbType := bb_shared.GetConnectionType(destConnection)
 		destBuilder, err := NewBenthosBuilder(destDbType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
@@ -69,7 +70,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to find destination options for connection: %s", destConnection.GetId())
 		}
 
-		destParams := &DestinationParams{
+		destParams := &bb_shared.DestinationParams{
 			SourceConfig:      sourceConfig,
 			DestinationIdx:    destIdx,
 			DestinationOpts:   destOpts,
@@ -81,9 +82,24 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			MetricsEnabled:    b.metricsEnabled,
 		}
 
-		destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
+		// destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("unable to build destination config: %w", err)
+		// }
+
+		var destConfig *bb_shared.BenthosDestinationConfig
+		switch jobType {
+		case bb_shared.JobTypeSync:
+			destConfig, err = destBuilder.BuildSyncDestinationConfig(ctx, destParams)
+		case bb_shared.JobTypeGenerate:
+			destConfig, err = destBuilder.BuildGenerateDestinationConfig(ctx, destParams)
+		case bb_shared.JobTypeAIGenerate:
+			destConfig, err = destBuilder.BuildAIGenerateDestinationConfig(ctx, destParams)
+		default:
+			return nil, fmt.Errorf("unsupported job type: %s", jobType)
+		}
 		if err != nil {
-			return nil, fmt.Errorf("unable to build destination config: %w", err)
+			return nil, err
 		}
 
 		// Convert configs to response format
@@ -142,24 +158,24 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 }
 
 // Helper functions
-func determineJobType(job *mgmtv1alpha1.Job) JobType {
+func determineJobType(job *mgmtv1alpha1.Job) bb_shared.JobType {
 	switch job.GetSource().GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres,
 		*mgmtv1alpha1.JobSourceOptions_Mysql,
 		*mgmtv1alpha1.JobSourceOptions_Mssql,
 		*mgmtv1alpha1.JobSourceOptions_Mongodb,
 		*mgmtv1alpha1.JobSourceOptions_Dynamodb:
-		return JobTypeSync
+		return bb_shared.JobTypeSync
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		return JobTypeGenerate
+		return bb_shared.JobTypeGenerate
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		return JobTypeAIGenerate
+		return bb_shared.JobTypeAIGenerate
 	default:
 		return ""
 	}
 }
 
-func convertToResponse(sourceConfig *BenthosSourceConfig, destConfig *BenthosDestinationConfig) *BenthosConfigResponse {
+func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, destConfig *bb_shared.BenthosDestinationConfig) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
 		Name:                    sourceConfig.Name,
 		Config:                  sourceConfig.Config,

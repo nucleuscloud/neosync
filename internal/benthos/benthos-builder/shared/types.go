@@ -1,13 +1,11 @@
-package benthos_builder
+package benthosbuilder_shared
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -30,7 +28,7 @@ const (
 	ConnectionTypeOpenAI   ConnectionType = "openai"
 )
 
-func getConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
+func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return ConnectionTypePostgres
@@ -64,53 +62,6 @@ const (
 	JobTypeAIGenerate JobType = "ai-generate"
 )
 
-type BenthosRedisConfig struct {
-	Key    string
-	Table  string // schema.table
-	Column string
-}
-
-// BenthosManager handles the overall process of building Benthos configs
-type BenthosConfigManager struct {
-	sqlmanager sqlmanager.SqlManagerClient
-	// jobclient         mgmtv1alpha1connect.JobServiceClient
-	// connclient        mgmtv1alpha1connect.ConnectionServiceClient
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient
-	redisConfig       *shared.RedisConfig
-	metricsEnabled    bool
-}
-
-// Creates a new Benthos Manager. Used for creating benthos configs
-func NewBenthosConfigManager(
-	sqlmanager sqlmanager.SqlManagerClient,
-	jobclient mgmtv1alpha1connect.JobServiceClient,
-	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	jobId string,
-	workflowId string,
-	runId string,
-	redisConfig *shared.RedisConfig,
-	metricsEnabled bool,
-) *BenthosConfigManager {
-	return &BenthosConfigManager{
-		sqlmanager: sqlmanager,
-		// jobclient:         jobclient,
-		// connclient:        connclient,
-		transformerclient: transformerclient,
-		redisConfig:       redisConfig,
-		metricsEnabled:    metricsEnabled,
-	}
-}
-
-// BenthosBuilder is the main interface for building Benthos configs
-type BenthosBuilder interface {
-	// BuildSourceConfig builds the source configuration for a given database and flow type
-	BuildSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
-
-	// BuildDestinationConfig builds the destination configuration
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
-}
-
 // DatabaseBenthosBuilder is the interface that each database type must implement
 type DatabaseBenthosBuilder interface {
 	// BuildSyncSourceConfig builds a sync source configuration
@@ -122,8 +73,14 @@ type DatabaseBenthosBuilder interface {
 	// BuildAIGenerateSourceConfig builds an AI generate source configuration
 	BuildAIGenerateSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
 
-	// BuildDestinationConfig builds a destination configuration
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+	// BuildSyncDestinationConfig builds a sync destination configuration
+	BuildSyncDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+
+	// BuildGenerateDestinationConfig builds a generate destination configuration
+	BuildGenerateDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+
+	// BuildAIGenerateDestinationConfig builds an AI generate destination configuration
+	BuildAIGenerateDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
 }
 
 // SourceParams contains all parameters needed to build a source configuration
@@ -159,6 +116,12 @@ type DestinationParams struct {
 	SchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo
 }
 
+type BenthosRedisConfig struct {
+	Key    string
+	Table  string // schema.table
+	Column string
+}
+
 // BenthosSourceConfig represents a Benthos source configuration
 type BenthosSourceConfig struct {
 	Config            *neosync_benthos.BenthosConfig
@@ -183,45 +146,4 @@ type BenthosSourceConfig struct {
 type BenthosDestinationConfig struct {
 	Outputs     []neosync_benthos.Outputs
 	BenthosDsns []*shared.BenthosDsn
-}
-
-type BenthosConfigResponse struct {
-	Name                    string
-	DependsOn               []*tabledependency.DependsOn
-	RunType                 tabledependency.RunType
-	Config                  *neosync_benthos.BenthosConfig
-	TableSchema             string
-	TableName               string
-	Columns                 []string
-	RedisDependsOn          map[string][]string
-	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
-	SourceConnectionType    string // used for logging
-
-	Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*shared.BenthosDsn
-	RedisConfig []*BenthosRedisConfig
-
-	primaryKeys []string
-
-	metriclabels metrics.MetricLabels
-}
-
-// New creates a new BenthosBuilder based on database type
-func NewBenthosBuilder(connType ConnectionType) (DatabaseBenthosBuilder, error) {
-	switch connType {
-	case ConnectionTypePostgres:
-		return NewPostgresBuilder(), nil
-	// case ConnectionTypeMysql:
-	// 	return newMysqlBuilder(), nil
-	// case ConnectionTypeMssql:
-	// 	return newMssqlBuilder(), nil
-	// case ConnectionTypeS3:
-	// 	return newS3Builder(), nil
-	// case ConnectionTypeMongo:
-	// 	return newMongoBuilder(), nil
-	// case ConnectionTypeDynamodb:
-	// 	return newDynamoBuilder(), nil
-	default:
-		return nil, fmt.Errorf("unsupported connection type: %s", connType)
-	}
 }
