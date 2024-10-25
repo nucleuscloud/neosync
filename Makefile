@@ -9,7 +9,8 @@
         compose/auth/up compose/auth/down \
         compose/dev/up compose/dev/down \
         compose/dev/auth/up compose/dev/auth/down \
-				helm/docs
+				helm/docs \
+				generate/backend
 default: help
 
 help:
@@ -71,6 +72,9 @@ install/frontend: ## Runs npm install for the frontend
 
 build/frontend: ## Builds the frontend (don't do this if intending to develop locally)
 	@cd ./frontend && npm run build
+
+generate/backend: ## Runs the backend generate script
+	@cd ./backend && make gen
 
 # Linting
 lint: ## Lints the project

@@ -45,7 +45,10 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	dbconnopts := getConnectionOptsFromConnectionConfig(cc)
+	dbconnopts, err := getConnectionOptsFromConnectionConfig(cc)
+	if err != nil {
+		return nil, err
+	}
 
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -150,7 +153,7 @@ func getTunnelConnectorFn(
 	}
 }
 
-func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) *DbConnectionOptions {
+func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) (*DbConnectionOptions, error) {
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return sqlConnOptsToDbConnOpts(config.MysqlConfig.GetConnectionOptions())
@@ -163,13 +166,32 @@ func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) *D
 	}
 }
 
-func sqlConnOptsToDbConnOpts(co *mgmtv1alpha1.SqlConnectionOptions) *DbConnectionOptions {
+func sqlConnOptsToDbConnOpts(co *mgmtv1alpha1.SqlConnectionOptions) (*DbConnectionOptions, error) {
 	if co == nil {
 		co = &mgmtv1alpha1.SqlConnectionOptions{}
 	}
-	return &DbConnectionOptions{
-		MaxOpenConns: convertInt32PtrToIntPtr(co.MaxConnectionLimit),
+	var connMaxIdleTime *time.Duration
+	if co.GetMaxIdleDuration() != "" {
+		duration, err := time.ParseDuration(co.GetMaxIdleDuration())
+		if err != nil {
+			return nil, fmt.Errorf("max idle duration is not a valid Go duration string: %w", err)
+		}
+		connMaxIdleTime = &duration
 	}
+	var connMaxLifetime *time.Duration
+	if co.GetMaxOpenDuration() != "" {
+		duration, err := time.ParseDuration(co.GetMaxOpenDuration())
+		if err != nil {
+			return nil, fmt.Errorf("max open duration is not a vlaid Go duration string: %w", err)
+		}
+		connMaxLifetime = &duration
+	}
+	return &DbConnectionOptions{
+		MaxOpenConns:    convertInt32PtrToIntPtr(co.MaxConnectionLimit),
+		MaxIdleConns:    convertInt32PtrToIntPtr(co.MaxIdleConnections),
+		ConnMaxIdleTime: connMaxIdleTime,
+		ConnMaxLifetime: connMaxLifetime,
+	}, nil
 }
 
 func convertInt32PtrToIntPtr(input *int32) *int {
