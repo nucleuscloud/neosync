@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -14,17 +15,45 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-// DatabaseType represents supported database types
-type DatabaseType string
+// ConnectionType represents supported connection types
+type ConnectionType string
 
 const (
-	DatabaseTypePostgres DatabaseType = "postgres"
-	DatabaseTypeMysql    DatabaseType = "mysql"
-	DatabaseTypeMssql    DatabaseType = "mssql"
-	DatabaseTypeS3       DatabaseType = "s3"
-	DatabaseTypeMongo    DatabaseType = "mongodb"
-	DatabaseTypeDynamodb DatabaseType = "dynamodb"
+	ConnectionTypePostgres ConnectionType = "postgres"
+	ConnectionTypeMysql    ConnectionType = "mysql"
+	ConnectionTypeMssql    ConnectionType = "mssql"
+	ConnectionTypeS3       ConnectionType = "aws-s3"
+	ConnectionTypeGCP      ConnectionType = "gcp-cloud-storage"
+	ConnectionTypeMongo    ConnectionType = "mongodb"
+	ConnectionTypeDynamodb ConnectionType = "aws-dynamodb"
+	ConnectionTypeLocalDir ConnectionType = "local-directory"
+	ConnectionTypeOpenAI   ConnectionType = "openai"
 )
+
+func getConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
+	switch connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return ConnectionTypePostgres
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return ConnectionTypeMysql
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return ConnectionTypeMssql
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return ConnectionTypeS3
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		return ConnectionTypeGCP
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return ConnectionTypeMongo
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return ConnectionTypeDynamodb
+	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
+		return ConnectionTypeLocalDir
+	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
+		return ConnectionTypeOpenAI
+	default:
+		return "unknown"
+	}
+}
 
 // JobType represents the type of job
 type JobType string
@@ -34,6 +63,44 @@ const (
 	JobTypeGenerate   JobType = "generate"
 	JobTypeAIGenerate JobType = "ai-generate"
 )
+
+type BenthosRedisConfig struct {
+	Key    string
+	Table  string // schema.table
+	Column string
+}
+
+// BenthosManager handles the overall process of building Benthos configs
+type BenthosConfigManager struct {
+	sqlmanager sqlmanager.SqlManagerClient
+	// jobclient         mgmtv1alpha1connect.JobServiceClient
+	// connclient        mgmtv1alpha1connect.ConnectionServiceClient
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+	redisConfig       *shared.RedisConfig
+	metricsEnabled    bool
+}
+
+// Creates a new Benthos Manager. Used for creating benthos configs
+func NewBenthosConfigManager(
+	sqlmanager sqlmanager.SqlManagerClient,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	jobId string,
+	workflowId string,
+	runId string,
+	redisConfig *shared.RedisConfig,
+	metricsEnabled bool,
+) *BenthosConfigManager {
+	return &BenthosConfigManager{
+		sqlmanager: sqlmanager,
+		// jobclient:         jobclient,
+		// connclient:        connclient,
+		transformerclient: transformerclient,
+		redisConfig:       redisConfig,
+		metricsEnabled:    metricsEnabled,
+	}
+}
 
 // BenthosBuilder is the main interface for building Benthos configs
 type BenthosBuilder interface {
@@ -66,25 +133,24 @@ type SourceParams struct {
 	Logger            *slog.Logger
 	TransformerClient mgmtv1alpha1connect.TransformersServiceClient
 	SqlManager        sqlmanager.SqlManagerClient
-	JobId             string
-	WorkflowId        string
-	RunId             string
 	RedisConfig       *shared.RedisConfig
 	MetricsEnabled    bool
+}
+
+type referenceKey struct {
+	Table  string
+	Column string
 }
 
 // DestinationParams contains all parameters needed to build a destination configuration
 type DestinationParams struct {
 	SourceConfig      *BenthosSourceConfig
 	DestinationIdx    int
-	Destination       *mgmtv1alpha1.JobDestination
+	DestinationOpts   *mgmtv1alpha1.JobDestinationOptions
 	DestConnection    *mgmtv1alpha1.Connection
 	Logger            *slog.Logger
 	TransformerClient mgmtv1alpha1connect.TransformersServiceClient
 	SqlManager        sqlmanager.SqlManagerClient
-	JobId             string
-	WorkflowId        string
-	RunId             string
 	RedisConfig       *shared.RedisConfig
 	MetricsEnabled    bool
 	// Additional fields specific to source type
@@ -108,8 +174,8 @@ type BenthosSourceConfig struct {
 	BenthosDsns       []*shared.BenthosDsn
 	RedisConfig       []*BenthosRedisConfig
 	PrimaryKeys       []string
-	DatabaseType      DatabaseType
-	FlowType          JobType
+	ConnectionType    ConnectionType
+	JobType           JobType
 	MetricLabels      []string
 }
 
@@ -119,22 +185,43 @@ type BenthosDestinationConfig struct {
 	BenthosDsns []*shared.BenthosDsn
 }
 
+type BenthosConfigResponse struct {
+	Name                    string
+	DependsOn               []*tabledependency.DependsOn
+	RunType                 tabledependency.RunType
+	Config                  *neosync_benthos.BenthosConfig
+	TableSchema             string
+	TableName               string
+	Columns                 []string
+	RedisDependsOn          map[string][]string
+	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
+	SourceConnectionType    string // used for logging
+
+	Processors  []*neosync_benthos.ProcessorConfig
+	BenthosDsns []*shared.BenthosDsn
+	RedisConfig []*BenthosRedisConfig
+
+	primaryKeys []string
+
+	metriclabels metrics.MetricLabels
+}
+
 // New creates a new BenthosBuilder based on database type
-func New(dbType DatabaseType) (DatabaseBenthosBuilder, error) {
-	switch dbType {
-	case DatabaseTypePostgres:
-		return newPostgresBuilder(), nil
-	case DatabaseTypeMysql:
-		return newMysqlBuilder(), nil
-	case DatabaseTypeMssql:
-		return newMssqlBuilder(), nil
-	case DatabaseTypeS3:
-		return newS3Builder(), nil
-	case DatabaseTypeMongo:
-		return newMongoBuilder(), nil
-	case DatabaseTypeDynamodb:
-		return newDynamoBuilder(), nil
+func NewBenthosBuilder(connType ConnectionType) (DatabaseBenthosBuilder, error) {
+	switch connType {
+	case ConnectionTypePostgres:
+		return NewPostgresBuilder(), nil
+	// case ConnectionTypeMysql:
+	// 	return newMysqlBuilder(), nil
+	// case ConnectionTypeMssql:
+	// 	return newMssqlBuilder(), nil
+	// case ConnectionTypeS3:
+	// 	return newS3Builder(), nil
+	// case ConnectionTypeMongo:
+	// 	return newMongoBuilder(), nil
+	// case ConnectionTypeDynamodb:
+	// 	return newDynamoBuilder(), nil
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+		return nil, fmt.Errorf("unsupported connection type: %s", connType)
 	}
 }
