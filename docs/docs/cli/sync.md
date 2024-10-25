@@ -66,7 +66,7 @@ destination:
   on-conflict:
     do-nothing: false
   connection-opts:
-    open-limit: 25 # remove to unset and use system default (not recommended)
+    open-limit: 25 # remove to unset and use system default (CLI hard-codes to default of 25)
     idle-limit: 2 # remove to unset and use system default
     idle-duration: 30s # remove to unset and use system default
     open-duration: 5m # remove to unset and use system default
