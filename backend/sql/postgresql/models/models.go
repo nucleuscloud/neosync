@@ -441,11 +441,17 @@ type PostgresConnection struct {
 
 type ConnectionOptions struct {
 	MaxConnectionLimit *int32 `json:"maxConnectionLimit,omitempty"`
+	MaxIdleConnections *int32 `json:"maxIdleConnections,omitempty"`
+	MaxIdleDuration    *int64 `json:"maxIdleDuration,omitempty"`
+	MaxOpenDuration    *int64 `json:"maxOpenDuration,omitempty"`
 }
 
 func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {
 	return &mgmtv1alpha1.SqlConnectionOptions{
 		MaxConnectionLimit: s.MaxConnectionLimit,
+		MaxIdleConnections: s.MaxIdleConnections,
+		MaxIdleDuration:    s.MaxIdleDuration,
+		MaxOpenDuration:    s.MaxOpenDuration,
 	}
 }
 
@@ -454,6 +460,9 @@ func (s *ConnectionOptions) FromDto(dto *mgmtv1alpha1.SqlConnectionOptions) {
 		dto = &mgmtv1alpha1.SqlConnectionOptions{}
 	}
 	s.MaxConnectionLimit = dto.MaxConnectionLimit
+	s.MaxIdleConnections = dto.MaxIdleConnections
+	s.MaxOpenDuration = dto.MaxOpenDuration
+	s.MaxIdleDuration = dto.MaxIdleDuration
 }
 
 type SSHTunnel struct {

@@ -168,7 +168,10 @@ func sqlConnOptsToDbConnOpts(co *mgmtv1alpha1.SqlConnectionOptions) *DbConnectio
 		co = &mgmtv1alpha1.SqlConnectionOptions{}
 	}
 	return &DbConnectionOptions{
-		MaxOpenConns: convertInt32PtrToIntPtr(co.MaxConnectionLimit),
+		MaxOpenConns:    convertInt32PtrToIntPtr(co.MaxConnectionLimit),
+		MaxIdleConns:    convertInt32PtrToIntPtr(co.MaxIdleConnections),
+		ConnMaxIdleTime: (*time.Duration)(co.MaxIdleDuration),
+		ConnMaxLifetime: (*time.Duration)(co.MaxOpenDuration),
 	}
 }
 
