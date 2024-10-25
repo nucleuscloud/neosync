@@ -49,11 +49,15 @@ import TransformerSelect from './TransformerSelect';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerHandler } from './transformer-handler';
 
+export type TableViewType = 'table' | 'json';
+
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
+  currentView?: TableViewType;
+  onViewChange(view: TableViewType): void;
 }
 
 export function SchemaTableToolbar<TData>({
@@ -61,6 +65,8 @@ export function SchemaTableToolbar<TData>({
   transformerHandler,
   constraintHandler,
   jobType,
+  currentView = 'table',
+  onViewChange,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasSelectedRows = Object.values(table.getState().rowSelection).some(
@@ -278,6 +284,14 @@ export function SchemaTableToolbar<TData>({
             />
           )}
           <SchemaTableViewOptions table={table} />
+          <div>
+            <Button type="button" onClick={() => onViewChange('table')}>
+              Table View
+            </Button>
+            <Button type="button" onClick={() => onViewChange('json')}>
+              JSON View
+            </Button>
+          </div>
         </div>
       </div>
     </div>

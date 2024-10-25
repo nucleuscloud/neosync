@@ -17,20 +17,23 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import {
+  convertJobMappingTransformerFormToJobMappingTransformer,
   JobMappingFormValues,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
 import {
   GetConnectionSchemaResponse,
+  JobMapping,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
-import { ReactElement, useMemo } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
+import { TableViewType } from './SchemaTableToolBar';
 import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
 import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
@@ -92,6 +95,8 @@ export function SchemaTable(props: Props): ReactElement {
     [schema, data]
   );
 
+  const [tableViewType, setTableViewType] = useState<TableViewType>('table');
+
   if (isLoading || !data) {
     return <SkeletonTable />;
   }
@@ -144,6 +149,22 @@ export function SchemaTable(props: Props): ReactElement {
               transformerHandler={handler}
               constraintHandler={constraintHandler}
               jobType={jobType}
+              view={tableViewType}
+              onViewChange={(view) => setTableViewType(view)}
+              toJsonString={(d) => {
+                const jobmappings = d.map((mapping) => {
+                  return new JobMapping({
+                    schema: mapping.schema,
+                    table: mapping.table,
+                    column: mapping.column,
+                    transformer:
+                      convertJobMappingTransformerFormToJobMappingTransformer(
+                        mapping.transformer
+                      ),
+                  }).toJson();
+                });
+                return JSON.stringify(jobmappings, null, 2);
+              }}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -168,6 +189,22 @@ export function SchemaTable(props: Props): ReactElement {
           transformerHandler={handler}
           constraintHandler={constraintHandler}
           jobType={jobType}
+          view={tableViewType}
+          onViewChange={(view) => setTableViewType(view)}
+          toJsonString={(d) => {
+            const jobmappings = d.map((mapping) => {
+              return new JobMapping({
+                schema: mapping.schema,
+                table: mapping.table,
+                column: mapping.column,
+                transformer:
+                  convertJobMappingTransformerFormToJobMappingTransformer(
+                    mapping.transformer
+                  ),
+              }).toJson();
+            });
+            return JSON.stringify(jobmappings, null, 2);
+          }}
         />
       )}
     </div>
