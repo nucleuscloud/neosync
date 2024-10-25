@@ -372,7 +372,6 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -438,7 +437,6 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
