@@ -156,7 +156,7 @@ func isNullJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool {
 		return false
 	}
 	isNullSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL
-	isNullConfig := t.GetConfig().GetNullconfig()
+	isNullConfig := t.GetConfig().GetNullconfig() != nil
 	return isNullSource || isNullConfig
 }
 
@@ -165,7 +165,7 @@ func isDefaultJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool 
 		return false
 	}
 	isDefSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
-	isDefConfig := t.GetConfig().GetGenerateDefaultConfig()
+	isDefConfig := t.GetConfig().GetGenerateDefaultConfig() != nil
 	return isDefSource || isDefConfig
 }
 

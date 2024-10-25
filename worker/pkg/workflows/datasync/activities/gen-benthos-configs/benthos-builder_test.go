@@ -8,14 +8,12 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
@@ -514,13 +512,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	resp, err := convertUserDefinedFunctionConfig(ctx, mockTransformerClient, jmt)
 	require.NoError(t, err)
 	require.Equal(t, resp, expected)
-}
-
-func MockJobMappingTransformer(source int32, transformerId string) db_queries.NeosyncApiTransformer {
-	return db_queries.NeosyncApiTransformer{
-		Source:            source,
-		TransformerConfig: &pg_models.TransformerConfig{},
-	}
 }
 
 func Test_buildPlainInsertArgs(t *testing.T) {
