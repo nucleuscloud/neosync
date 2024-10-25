@@ -52,6 +52,8 @@ To persist settings, a yaml config may be enabled. It can be provided like so:
 neosync sync --config ./path/to/config.yaml
 ```
 
+> **NB:** Flags will take precedence over values provided in the config.
+
 ```yaml
 source:
   connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
@@ -66,7 +68,7 @@ destination:
   on-conflict:
     do-nothing: false
   connection-opts:
-    open-limit: 25 # remove to unset and use system default (CLI hard-codes to default of 25)
+    open-limit: 25 # remove to unset and use system default (CLI falls back to default of 25 if not provided)
     idle-limit: 2 # remove to unset and use system default
     idle-duration: 30s # remove to unset and use system default
     open-duration: 5m # remove to unset and use system default
