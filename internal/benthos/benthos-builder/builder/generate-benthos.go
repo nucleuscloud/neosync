@@ -21,7 +21,8 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 ) ([]*BenthosConfigResponse, error) {
 	// Create appropriate database builder based on source type
 	dbType := bb_shared.GetConnectionType(sourceConnection)
-	dbBuilder, err := NewBenthosBuilder(dbType)
+	jobType := bb_shared.GetJobType(job)
+	dbBuilder, err := NewBenthosBuilder(dbType, jobType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create database builder: %w", err)
 	}
@@ -37,18 +38,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		MetricsEnabled:    b.metricsEnabled,
 	}
 
-	jobType := determineJobType(job)
-	var sourceConfig *bb_shared.BenthosSourceConfig
-	switch jobType {
-	case bb_shared.JobTypeSync:
-		sourceConfig, err = dbBuilder.BuildSyncSourceConfig(ctx, sourceParams)
-	case bb_shared.JobTypeGenerate:
-		sourceConfig, err = dbBuilder.BuildGenerateSourceConfig(ctx, sourceParams)
-	case bb_shared.JobTypeAIGenerate:
-		sourceConfig, err = dbBuilder.BuildAIGenerateSourceConfig(ctx, sourceParams)
-	default:
-		return nil, fmt.Errorf("unsupported job type: %s", jobType)
-	}
+	sourceConfig, err := dbBuilder.BuildSourceConfig(ctx, sourceParams)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +50,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 
 		// Create destination builder
 		destDbType := bb_shared.GetConnectionType(destConnection)
-		destBuilder, err := NewBenthosBuilder(destDbType)
+		destBuilder, err := NewBenthosBuilder(destDbType, jobType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
 		}
@@ -82,27 +72,13 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			MetricsEnabled:    b.metricsEnabled,
 		}
 
-		// destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("unable to build destination config: %w", err)
-		// }
-
-		var destConfig *bb_shared.BenthosDestinationConfig
-		switch jobType {
-		case bb_shared.JobTypeSync:
-			destConfig, err = destBuilder.BuildSyncDestinationConfig(ctx, destParams)
-		case bb_shared.JobTypeGenerate:
-			destConfig, err = destBuilder.BuildGenerateDestinationConfig(ctx, destParams)
-		case bb_shared.JobTypeAIGenerate:
-			destConfig, err = destBuilder.BuildAIGenerateDestinationConfig(ctx, destParams)
-		default:
-			return nil, fmt.Errorf("unsupported job type: %s", jobType)
-		}
+		destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
 		if err != nil {
 			return nil, err
 		}
 
-		// Convert configs to response format
+		// more work to do here
+		// needs to handle multiple destinations
 		response := convertToResponse(sourceConfig, destConfig)
 		responses = append(responses, response)
 	}
@@ -155,24 +131,6 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 		destOpts[dest.GetConnectionId()] = dest.GetOptions()
 	}
 	return destOpts
-}
-
-// Helper functions
-func determineJobType(job *mgmtv1alpha1.Job) bb_shared.JobType {
-	switch job.GetSource().GetOptions().GetConfig().(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Postgres,
-		*mgmtv1alpha1.JobSourceOptions_Mysql,
-		*mgmtv1alpha1.JobSourceOptions_Mssql,
-		*mgmtv1alpha1.JobSourceOptions_Mongodb,
-		*mgmtv1alpha1.JobSourceOptions_Dynamodb:
-		return bb_shared.JobTypeSync
-	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		return bb_shared.JobTypeGenerate
-	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		return bb_shared.JobTypeAIGenerate
-	default:
-		return ""
-	}
 }
 
 func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, destConfig *bb_shared.BenthosDestinationConfig) *BenthosConfigResponse {

@@ -62,28 +62,31 @@ const (
 	JobTypeAIGenerate JobType = "ai-generate"
 )
 
-// DatabaseBenthosBuilder is the interface that each database type must implement
-type DatabaseBenthosBuilder interface {
-	// BuildSyncSourceConfig builds a sync source configuration
-	BuildSyncSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
-
-	// BuildGenerateSourceConfig builds a generate source configuration
-	BuildGenerateSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
-
-	// BuildAIGenerateSourceConfig builds an AI generate source configuration
-	BuildAIGenerateSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
-
-	// BuildSyncDestinationConfig builds a sync destination configuration
-	BuildSyncDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
-
-	// BuildGenerateDestinationConfig builds a generate destination configuration
-	BuildGenerateDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
-
-	// BuildAIGenerateDestinationConfig builds an AI generate destination configuration
-	BuildAIGenerateDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+type ConnectionBenthosBuilder interface {
+	// Builds a benthos source configuration
+	BuildSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
+	// Builds a benthos destination configuration
+	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
 }
 
-// SourceParams contains all parameters needed to build a source configuration
+func GetJobType(job *mgmtv1alpha1.Job) JobType {
+	switch job.GetSource().GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres,
+		*mgmtv1alpha1.JobSourceOptions_Mysql,
+		*mgmtv1alpha1.JobSourceOptions_Mssql,
+		*mgmtv1alpha1.JobSourceOptions_Mongodb,
+		*mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		return JobTypeSync
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		return JobTypeGenerate
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		return JobTypeAIGenerate
+	default:
+		return ""
+	}
+}
+
+// SourceParams contains all parameters needed to build a source benthos configuration
 type SourceParams struct {
 	Job               *mgmtv1alpha1.Job
 	SourceConnection  *mgmtv1alpha1.Connection
@@ -99,7 +102,7 @@ type referenceKey struct {
 	Column string
 }
 
-// DestinationParams contains all parameters needed to build a destination configuration
+// DestinationParams contains all parameters needed to build a destination benthos configuration
 type DestinationParams struct {
 	SourceConfig      *BenthosSourceConfig
 	DestinationIdx    int
