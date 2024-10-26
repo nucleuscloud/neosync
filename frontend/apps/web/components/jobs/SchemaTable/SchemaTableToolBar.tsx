@@ -527,15 +527,15 @@ function ExportMappings<TData>(
     <div className="flex flex-col gap-4 justify-start items-start">
       <div className="text-sm font-semibold">Export Summary</div>
       <div className="flex flex-col items-start w-full ">
-        <div className="flex flex-row items-center">
+        <div className="flex flex-row items-center text-sm">
           <FaDatabase className="w-4 h-4 mr-2" />
           {numSchemas} {numSchemas > 1 ? 'schemas' : 'schema'}
         </div>
-        <div className="flex flex-row items-center">
+        <div className="flex flex-row items-center text-sm">
           <FaTable className="w-4 h-4 mr-2" />
           {numTables} {numTables > 1 ? 'tables' : 'table'}
         </div>
-        <div className="flex flex-row items-center">
+        <div className="flex flex-row items-center text-sm">
           <FaColumns className="w-4 h-4 mr-2" />
           {numColumns} {numColumns > 1 ? 'columns' : 'column'}
         </div>
