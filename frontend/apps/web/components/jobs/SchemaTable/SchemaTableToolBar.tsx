@@ -14,7 +14,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/libs/utils';
 import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
@@ -41,10 +40,12 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { Row, Table } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
-import { AiOutlineExport, AiOutlineImport } from 'react-icons/ai';
+import { AiOutlineExport } from 'react-icons/ai';
+import { toast } from 'sonner';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -223,35 +224,19 @@ export function SchemaTableToolbar<TData>({
                     disabled={form.getValues('mappings').length == 0}
                   >
                     <div className="flex flex-row items-center gap-2">
-                      <AiOutlineImport />
-                      <ButtonText text="Import" />
-                    </div>
-                  </Button>
-                }
-                headerText="Apply Default Transformers?"
-                description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated (non-Identity)columns."
-                body={<ImportMappings />}
-                containerClassName="max-w-xl"
-                onConfirm={() => {}}
-                buttonText="Import"
-              />
-              <ConfirmationDialog
-                trigger={
-                  <Button
-                    variant="outline"
-                    type="button"
-                    disabled={form.getValues('mappings').length == 0}
-                  >
-                    <div className="flex flex-row items-center gap-2">
                       <AiOutlineExport />
-                      <ButtonText text="Export" />
+                      <ButtonText text="Export Mappings" />
                     </div>
                   </Button>
                 }
                 headerText="Export Mappings"
                 description="Export your mappings to a JSON file"
                 body={
-                  <ExportMappings data={data.slice(0, 2)} progress={progress} />
+                  <ExportMappings
+                    data={data.slice(0, 2)}
+                    progress={progress}
+                    isExporting={isExporting}
+                  />
                 }
                 containerClassName="max-w-xl"
                 onConfirm={async () => {
@@ -259,7 +244,7 @@ export function SchemaTableToolbar<TData>({
                     setIsExporting(true);
                     setProgress(0);
 
-                    // Process data in chunks
+                    // process data in chunks
                     const chunkSize = 100; // number of elements in array to chunk
                     const totalChunks = Math.ceil(data.length / chunkSize);
                     let processedChunks = 0;
@@ -280,7 +265,7 @@ export function SchemaTableToolbar<TData>({
                     }
 
                     // create and download file
-                    const blob = new Blob([JSON.stringify(chunks)], {
+                    const blob = new Blob([JSON.stringify(chunks, null, 2)], {
                       type: 'application/json',
                     });
 
@@ -288,23 +273,25 @@ export function SchemaTableToolbar<TData>({
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = 'job_mapping';
+
+                    const date = format(new Date(), 'MM/dd/yyyy hh:mm:ss');
+                    link.download = `transformer_mappings_${date}`;
 
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     window.URL.revokeObjectURL(url);
 
-                    // Reset after a brief delay
                     setTimeout(() => {
                       setIsExporting(false);
                       setProgress(0);
                     }, 1000);
                   } catch (error) {
-                    console.error('Export failed:', error);
-                    // TODO: handle on Error state
-                    // onError?.(error as Error);
+                    const err = error as Error;
                     setIsExporting(false);
+                    toast.error('Unable to export mappings', {
+                      description: err.message,
+                    });
                     setProgress(0);
                   }
                 }}
@@ -509,16 +496,17 @@ function findCommonUserDefinedIds(
 interface ExportMappingsProps<TData> {
   data: TData[];
   progress: number;
+  isExporting: boolean;
 }
 
 function ExportMappings<TData>(
   props: ExportMappingsProps<TData>
 ): ReactElement {
-  const { data, progress } = props;
+  const { data, progress, isExporting } = props;
 
   return (
-    <div className="flex flex-col gap-10 justify-start items-start">
-      {progress > 0 ? (
+    <div className="flex flex-col gap-4 justify-start items-start">
+      {isExporting && progress > 0 ? (
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-full bg-blue-500 transition-all duration-300 ease-out"
@@ -541,7 +529,7 @@ function ExportFilePreview(props: ExportFilePreview): ReactElement {
   const { resolvedTheme } = useTheme();
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="text-sm">Preview</div>
+      <div className="text-sm">Preview (first two mappings)</div>
       <Editor
         height="200px"
         width="100%"
@@ -558,19 +546,6 @@ function ExportFilePreview(props: ExportFilePreview): ReactElement {
           lineNumbers: 'on',
         }}
       />
-    </div>
-  );
-}
-
-function ImportMappings(): ReactElement {
-  const sample = `{schema:'evis', table:'test',transformer:{config:'source'}}'`;
-  return (
-    <div className="flex flex-col gap-10 justify-start items-start">
-      <div className="flex flex-col gap-4">
-        <div className="text-sm">File name</div>
-        <Input value="" placeholder="<job>_<mapping>_export.json" />
-      </div>
-      <ExportFilePreview sample={sample} />
     </div>
   );
 }
