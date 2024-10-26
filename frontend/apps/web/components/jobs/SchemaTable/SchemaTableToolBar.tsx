@@ -42,9 +42,10 @@ import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { Row, Table } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { AiOutlineExport } from 'react-icons/ai';
+import { FaColumns, FaDatabase, FaTable } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
@@ -82,6 +83,17 @@ export function SchemaTableToolbar<TData>({
     );
 
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
+
+  const { numSchemas, numTables, numColumns } = useMemo(() => {
+    return {
+      numSchemas: new Set(form.getValues('mappings').map((item) => item.schema))
+        .size,
+      numTables: new Set(form.getValues('mappings').map((item) => item.table))
+        .size,
+      numColumns: new Set(form.getValues('mappings').map((item) => item.column))
+        .size,
+    };
+  }, [form.getValues('mappings')]);
 
   const transformer = getTransformerFromField(
     transformerHandler,
@@ -236,6 +248,9 @@ export function SchemaTableToolbar<TData>({
                     data={data.slice(0, 2)}
                     progress={progress}
                     isExporting={isExporting}
+                    numSchemas={numSchemas}
+                    numTables={numTables}
+                    numColumns={numColumns}
                   />
                 }
                 containerClassName="max-w-xl"
@@ -497,15 +512,35 @@ interface ExportMappingsProps<TData> {
   data: TData[];
   progress: number;
   isExporting: boolean;
+  numSchemas: number;
+  numTables: number;
+  numColumns: number;
 }
 
 function ExportMappings<TData>(
   props: ExportMappingsProps<TData>
 ): ReactElement {
-  const { data, progress, isExporting } = props;
+  const { data, progress, isExporting, numSchemas, numTables, numColumns } =
+    props;
 
   return (
     <div className="flex flex-col gap-4 justify-start items-start">
+      <div className="text-sm font-semibold">Export Summary</div>
+      <div className="flex flex-col items-start w-full ">
+        <div className="flex flex-row items-center">
+          <FaDatabase className="w-4 h-4 mr-2" />
+          {numSchemas} {numSchemas > 1 ? 'schemas' : 'schema'}
+        </div>
+        <div className="flex flex-row items-center">
+          <FaTable className="w-4 h-4 mr-2" />
+          {numTables} {numTables > 1 ? 'tables' : 'table'}
+        </div>
+        <div className="flex flex-row items-center">
+          <FaColumns className="w-4 h-4 mr-2" />
+          {numColumns} {numColumns > 1 ? 'columns' : 'column'}
+        </div>
+      </div>
+
       {isExporting && progress > 0 ? (
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
@@ -514,7 +549,9 @@ function ExportMappings<TData>(
           />
         </div>
       ) : (
-        <ExportFilePreview sample={JSON.stringify(data, null, 2)} />
+        <div className="pt-4 w-full">
+          <ExportFilePreview sample={JSON.stringify(data, null, 2)} />
+        </div>
       )}
     </div>
   );
@@ -529,7 +566,7 @@ function ExportFilePreview(props: ExportFilePreview): ReactElement {
   const { resolvedTheme } = useTheme();
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="text-sm">Preview (first two mappings)</div>
+      <div className="text-sm font-semibold">Mappings Preview</div>
       <Editor
         height="200px"
         width="100%"
