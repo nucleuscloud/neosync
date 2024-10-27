@@ -45,7 +45,7 @@ import { useTheme } from 'next-themes';
 import { ReactElement, useMemo, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { AiOutlineExport } from 'react-icons/ai';
-import { FaColumns, FaDatabase, FaTable } from 'react-icons/fa';
+import { GoColumns, GoDatabase, GoTable } from 'react-icons/go';
 import { toast } from 'sonner';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
@@ -85,13 +85,20 @@ export function SchemaTableToolbar<TData>({
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
   const { numSchemas, numTables, numColumns } = useMemo(() => {
+    const schemas = new Set();
+    const tables = new Set();
+    const columns = new Set();
+
+    form.getValues('mappings').forEach((item) => {
+      schemas.add(item.schema);
+      tables.add(item.table);
+      columns.add(item.column);
+    });
+
     return {
-      numSchemas: new Set(form.getValues('mappings').map((item) => item.schema))
-        .size,
-      numTables: new Set(form.getValues('mappings').map((item) => item.table))
-        .size,
-      numColumns: new Set(form.getValues('mappings').map((item) => item.column))
-        .size,
+      numSchemas: schemas.size,
+      numTables: tables.size,
+      numColumns: columns.size,
     };
   }, [form.getValues('mappings')]);
 
@@ -528,15 +535,15 @@ function ExportMappings<TData>(
       <div className="text-sm font-semibold">Export Summary</div>
       <div className="flex flex-col items-start w-full ">
         <div className="flex flex-row items-center text-sm">
-          <FaDatabase className="w-4 h-4 mr-2" />
+          <GoDatabase className="w-4 h-4 mr-2" />
           {numSchemas} {numSchemas > 1 ? 'schemas' : 'schema'}
         </div>
         <div className="flex flex-row items-center text-sm">
-          <FaTable className="w-4 h-4 mr-2" />
+          <GoTable className="w-4 h-4 mr-2" />
           {numTables} {numTables > 1 ? 'tables' : 'table'}
         </div>
         <div className="flex flex-row items-center text-sm">
-          <FaColumns className="w-4 h-4 mr-2" />
+          <GoColumns className="w-4 h-4 mr-2" />
           {numColumns} {numColumns > 1 ? 'columns' : 'column'}
         </div>
       </div>
