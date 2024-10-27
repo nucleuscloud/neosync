@@ -596,7 +596,7 @@ function ExportFilePreview(props: ExportFilePreview): ReactElement {
         }}
       />
       <div className="text-xs text-gray-500">
-        Showing 2/{numColumns} objects
+        Showing 2/{numColumns} objects that will be exported
       </div>
     </div>
   );
