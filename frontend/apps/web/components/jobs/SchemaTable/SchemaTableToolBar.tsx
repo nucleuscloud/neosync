@@ -24,6 +24,7 @@ import {
 import {
   convertJobMappingTransformerToForm,
   DefaultTransformerFormValues,
+  JobMappingFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
@@ -89,7 +90,7 @@ export function SchemaTableToolbar<TData>({
     const tables = new Set();
     const columns = new Set();
 
-    form.getValues('mappings').forEach((item) => {
+    getSelectedOrAllTableData(table).forEach((item) => {
       schemas.add(item.schema);
       tables.add(item.table);
       columns.add(item.column);
@@ -100,7 +101,7 @@ export function SchemaTableToolbar<TData>({
       numTables: tables.size,
       numColumns: columns.size,
     };
-  }, [form.getValues('mappings')]);
+  }, [table.getSelectedRowModel().rows]); // if the selectedRowModel changes then we know the user made changes and we should refetch data
 
   const transformer = getTransformerFromField(
     transformerHandler,
@@ -252,7 +253,7 @@ export function SchemaTableToolbar<TData>({
                 description="Export your mappings to a JSON file"
                 body={
                   <ExportMappings
-                    data={data.slice(0, 2)}
+                    data={getSelectedOrAllTableData(table).slice(0, 2)} // if the user only selects some rows to export then we only export those otherwise export all
                     progress={progress}
                     isExporting={isExporting}
                     numSchemas={numSchemas}
@@ -262,6 +263,7 @@ export function SchemaTableToolbar<TData>({
                 }
                 containerClassName="max-w-xl"
                 onConfirm={async () => {
+                  const data = getSelectedOrAllTableData(table);
                   try {
                     setIsExporting(true);
                     setProgress(0);
@@ -557,7 +559,10 @@ function ExportMappings<TData>(
         </div>
       ) : (
         <div className="pt-4 w-full">
-          <ExportFilePreview sample={JSON.stringify(data, null, 2)} />
+          <ExportFilePreview
+            sample={JSON.stringify(data, null, 2)}
+            numColumns={numColumns}
+          />
         </div>
       )}
     </div>
@@ -565,15 +570,17 @@ function ExportMappings<TData>(
 }
 interface ExportFilePreview {
   sample: string;
+  numColumns: number;
 }
 
 function ExportFilePreview(props: ExportFilePreview): ReactElement {
-  const { sample } = props;
+  const { sample, numColumns } = props;
 
   const { resolvedTheme } = useTheme();
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="text-sm font-semibold">Mappings Preview</div>
+
       <Editor
         height="200px"
         width="100%"
@@ -590,6 +597,21 @@ function ExportFilePreview(props: ExportFilePreview): ReactElement {
           lineNumbers: 'on',
         }}
       />
+      <div className="text-xs text-gray-500">
+        Showing 2/{numColumns} objects
+      </div>
     </div>
   );
+}
+
+function getSelectedOrAllTableData<TData>(
+  table: Table<TData>
+): JobMappingFormValues[] {
+  return table.getSelectedRowModel().rows.length !== 0
+    ? table
+        .getSelectedRowModel()
+        .rows.map((item) => item.original as JobMappingFormValues)
+    : table
+        .getRowModel()
+        .rows.map((item) => item.original as JobMappingFormValues);
 }
