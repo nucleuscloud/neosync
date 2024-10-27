@@ -16,82 +16,113 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	job *mgmtv1alpha1.Job,
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnections []*mgmtv1alpha1.Connection,
-	destinationOptions []*mgmtv1alpha1.JobDestination,
-	slogger *slog.Logger,
+	runId string,
+	metricLabelKeyVals map[string]string,
+	logger *slog.Logger,
 ) ([]*BenthosConfigResponse, error) {
-	// Create appropriate database builder based on source type
-	dbType := bb_shared.GetConnectionType(sourceConnection)
+	sourceConnectionType := bb_shared.GetConnectionType(sourceConnection)
 	jobType := bb_shared.GetJobType(job)
-	dbBuilder, err := NewBenthosBuilder(dbType, jobType)
+	logger = logger.With(
+		"sourceConnectionType", sourceConnectionType,
+		"jobType", jobType,
+	)
+	dbBuilder, err := NewBenthosBuilder(sourceConnectionType, jobType)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create database builder: %w", err)
+		return nil, fmt.Errorf("unable to create benthos builder: %w", err)
 	}
+	logger.Debug(fmt.Sprintf("created source benthos builder for %s", sourceConnectionType))
+
+	// build benthos input for postgres
+
+	// build benthos process postgres to mysql
+	// build benthos process postgres to s3
+	//
+
+	// build benthos output for mysql
+	// build benthos output for s3
 
 	// Build source config based on flow type
 	sourceParams := &bb_shared.SourceParams{
 		Job:               job,
+		RunId:             runId,
 		SourceConnection:  sourceConnection,
-		Logger:            slogger,
+		Logger:            logger,
 		TransformerClient: b.transformerclient,
 		SqlManager:        b.sqlmanager,
 		RedisConfig:       b.redisConfig,
 		MetricsEnabled:    b.metricsEnabled,
 	}
 
-	sourceConfig, err := dbBuilder.BuildSourceConfig(ctx, sourceParams)
+	// also builds processors
+	sourceConfigs, err := dbBuilder.BuildSourceConfigs(ctx, sourceParams)
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug(fmt.Sprintf("built %d source configs", len(sourceConfigs)))
 
-	destinationOpts := buildDestinationOptionsMap(destinationOptions)
-	// Process each destination
+	// dbBuilder.BuildProcessors
+
+	destinationOpts := buildDestinationOptionsMap(job.GetDestinations())
+
+	logger.Debug(fmt.Sprintf("building %d destination configs", len(destinationConnections)))
 	responses := []*BenthosConfigResponse{}
 	for destIdx, destConnection := range destinationConnections {
-
 		// Create destination builder
-		destDbType := bb_shared.GetConnectionType(destConnection)
-		destBuilder, err := NewBenthosBuilder(destDbType, jobType)
+		destConnectionType := bb_shared.GetConnectionType(destConnection)
+		destBuilder, err := NewBenthosBuilder(destConnectionType, jobType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
 		}
+		logger.Debug(fmt.Sprintf("created destination benthos builder for %s", destConnectionType))
 
 		destOpts, ok := destinationOpts[destConnection.GetId()]
 		if !ok {
 			return nil, fmt.Errorf("unable to find destination options for connection: %s", destConnection.GetId())
 		}
 
-		destParams := &bb_shared.DestinationParams{
-			SourceConfig:      sourceConfig,
-			DestinationIdx:    destIdx,
-			DestinationOpts:   destOpts,
-			DestConnection:    destConnection,
-			Logger:            slogger,
-			TransformerClient: b.transformerclient,
-			SqlManager:        b.sqlmanager,
-			RedisConfig:       b.redisConfig,
-			MetricsEnabled:    b.metricsEnabled,
-		}
+		for _, sourceConfig := range sourceConfigs {
+			destParams := &bb_shared.DestinationParams{
+				SourceConfig:      sourceConfig,
+				Job:               job,
+				RunId:             runId,
+				DestinationIdx:    destIdx,
+				DestinationOpts:   destOpts,
+				DestConnection:    destConnection,
+				Logger:            logger,
+				TransformerClient: b.transformerclient,
+				SqlManager:        b.sqlmanager,
+				RedisConfig:       b.redisConfig,
+				MetricsEnabled:    b.metricsEnabled,
+			}
 
-		destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
-		if err != nil {
-			return nil, err
+			destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
+			if err != nil {
+				return nil, err
+			}
+			sourceConfig.Config.Output.Broker.Outputs = append(sourceConfig.Config.Output.Broker.Outputs, destConfig.Outputs...)
+			sourceConfig.BenthosDsns = append(sourceConfig.BenthosDsns, destConfig.BenthosDsns...)
 		}
+		logger.Debug(fmt.Sprintf("applied destination (%s) to %d source configs", destConnectionType, len(sourceConfigs)))
+	}
 
-		// more work to do here
-		// needs to handle multiple destinations
-		response := convertToResponse(sourceConfig, destConfig)
+	for _, sourceConfig := range sourceConfigs {
+		response := convertToResponse(sourceConfig, sourceConnectionType)
 		responses = append(responses, response)
 	}
 
 	// pass in all the labels??
 	if b.metricsEnabled {
+		logger.Debug("metrics enabled. applying metric labels")
 		labels := metrics.MetricLabels{
 			metrics.NewEqLabel(metrics.AccountIdLabel, job.AccountId),
 			metrics.NewEqLabel(metrics.JobIdLabel, job.Id),
-			// need to pass these in??
+			// need to pass these in
 			// metrics.NewEqLabel(metrics.TemporalWorkflowId, withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey)),
 			// metrics.NewEqLabel(metrics.TemporalRunId, withEnvInterpolation(metrics.TemporalRunIdEnvKey)),
 			metrics.NewEqLabel(metrics.NeosyncDateLabel, withEnvInterpolation(metrics.NeosyncDateEnvKey)),
+		}
+		for key, val := range metricLabelKeyVals {
+			labels = append(labels, metrics.NewEqLabel(key, val))
 		}
 		for _, resp := range responses {
 			joinedLabels := append(labels, resp.metriclabels...) //nolint:gocritic
@@ -116,7 +147,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	// 	return nil, fmt.Errorf("unable to set run contexts: %w", err)
 	// }
 
-	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
+	logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil
 }
 
@@ -133,7 +164,7 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 	return destOpts
 }
 
-func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, destConfig *bb_shared.BenthosDestinationConfig) *BenthosConfigResponse {
+func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, sourceConnectionType bb_shared.ConnectionType) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
 		Name:                    sourceConfig.Name,
 		Config:                  sourceConfig.Config,
@@ -143,11 +174,11 @@ func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, destConfig *
 		TableName:               sourceConfig.TableName,
 		Columns:                 sourceConfig.Columns,
 		RedisDependsOn:          sourceConfig.RedisDependsOn,
-		ColumnDefaultProperties: sourceConfig.DefaultProperties,
+		ColumnDefaultProperties: sourceConfig.ColumnDefaultProperties,
 		Processors:              sourceConfig.Processors,
-		BenthosDsns:             append(sourceConfig.BenthosDsns, destConfig.BenthosDsns...),
+		BenthosDsns:             sourceConfig.BenthosDsns,
 		RedisConfig:             sourceConfig.RedisConfig,
-		SourceConnectionType:    string(sourceConfig.ConnectionType),
-		// metriclabels:            convertMetricLabels(sourceConfig.MetricLabels),
+		SourceConnectionType:    string(sourceConnectionType),
+		metriclabels:            sourceConfig.Metriclabels,
 	}
 }

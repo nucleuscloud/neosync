@@ -6,8 +6,8 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -28,6 +28,7 @@ const (
 	ConnectionTypeOpenAI   ConnectionType = "openai"
 )
 
+// Determines type fo connection from Connection
 func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -62,13 +63,7 @@ const (
 	JobTypeAIGenerate JobType = "ai-generate"
 )
 
-type ConnectionBenthosBuilder interface {
-	// Builds a benthos source configuration
-	BuildSourceConfig(ctx context.Context, params *SourceParams) (*BenthosSourceConfig, error)
-	// Builds a benthos destination configuration
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
-}
-
+// Determines type of job from Job
 func GetJobType(job *mgmtv1alpha1.Job) JobType {
 	switch job.GetSource().GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres,
@@ -86,9 +81,25 @@ func GetJobType(job *mgmtv1alpha1.Job) JobType {
 	}
 }
 
+// source: pg - PgConnectionBenthosBUIlder (I know how to calcualte pg source data, and I support destionaation PG, Mysql, S3, etc.)
+// source: mysql
+// source: mssql
+
+type ConnectionBenthosBuilder interface {
+	// Builds benthos source configs
+	BuildSourceConfigs(ctx context.Context, params *SourceParams) ([]*BenthosSourceConfig, error) // benthos input
+
+	// BuildProcessors?
+
+	// Builds a benthos destination config
+	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error) // benthos output
+
+}
+
 // SourceParams contains all parameters needed to build a source benthos configuration
 type SourceParams struct {
 	Job               *mgmtv1alpha1.Job
+	RunId             string
 	SourceConnection  *mgmtv1alpha1.Connection
 	Logger            *slog.Logger
 	TransformerClient mgmtv1alpha1connect.TransformersServiceClient
@@ -97,7 +108,7 @@ type SourceParams struct {
 	MetricsEnabled    bool
 }
 
-type referenceKey struct {
+type ReferenceKey struct {
 	Table  string
 	Column string
 }
@@ -105,6 +116,8 @@ type referenceKey struct {
 // DestinationParams contains all parameters needed to build a destination benthos configuration
 type DestinationParams struct {
 	SourceConfig      *BenthosSourceConfig
+	Job               *mgmtv1alpha1.Job
+	RunId             string
 	DestinationIdx    int
 	DestinationOpts   *mgmtv1alpha1.JobDestinationOptions
 	DestConnection    *mgmtv1alpha1.Connection
@@ -113,10 +126,6 @@ type DestinationParams struct {
 	SqlManager        sqlmanager.SqlManagerClient
 	RedisConfig       *shared.RedisConfig
 	MetricsEnabled    bool
-	// Additional fields specific to source type
-	PrimaryKeyToFKMap   map[string]map[string][]*referenceKey
-	ColTransformerMap   map[string]map[string]*mgmtv1alpha1.JobMappingTransformer
-	SchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo
 }
 
 type BenthosRedisConfig struct {
@@ -127,26 +136,31 @@ type BenthosRedisConfig struct {
 
 // BenthosSourceConfig represents a Benthos source configuration
 type BenthosSourceConfig struct {
-	Config            *neosync_benthos.BenthosConfig
-	Name              string
-	DependsOn         []*tabledependency.DependsOn
-	RunType           tabledependency.RunType
-	TableSchema       string
-	TableName         string
-	Columns           []string
-	RedisDependsOn    map[string][]string
-	DefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
-	Processors        []*neosync_benthos.ProcessorConfig
-	BenthosDsns       []*shared.BenthosDsn
-	RedisConfig       []*BenthosRedisConfig
-	PrimaryKeys       []string
-	ConnectionType    ConnectionType
-	JobType           JobType
-	MetricLabels      []string
+	Config                  *neosync_benthos.BenthosConfig
+	Name                    string
+	DependsOn               []*tabledependency.DependsOn
+	RunType                 tabledependency.RunType
+	TableSchema             string
+	TableName               string
+	Columns                 []string
+	RedisDependsOn          map[string][]string
+	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
+	Processors              []*neosync_benthos.ProcessorConfig
+	BenthosDsns             []*BenthosDsn
+	RedisConfig             []*BenthosRedisConfig
+	PrimaryKeys             []string
+	Metriclabels            metrics.MetricLabels
 }
 
 // BenthosDestinationConfig represents a Benthos destination configuration
 type BenthosDestinationConfig struct {
 	Outputs     []neosync_benthos.Outputs
-	BenthosDsns []*shared.BenthosDsn
+	BenthosDsns []*BenthosDsn
+}
+
+// Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
+type BenthosDsn struct {
+	EnvVarKey string
+	// Neosync Connection Id
+	ConnectionId string
 }

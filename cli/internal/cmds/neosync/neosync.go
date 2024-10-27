@@ -11,6 +11,7 @@ import (
 	connections_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/connections"
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
 	login_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/login"
+	newsync_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/newsync"
 	sync_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/sync"
 	version_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/version"
 	whoami_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/whoami"
@@ -73,6 +74,7 @@ func Execute() {
 	rootCmd.AddCommand(whoami_cmd.NewCmd())
 	rootCmd.AddCommand(login_cmd.NewCmd())
 	rootCmd.AddCommand(sync_cmd.NewCmd())
+	rootCmd.AddCommand(newsync_cmd.NewCmd())
 	rootCmd.AddCommand(accounts_cmd.NewCmd())
 	rootCmd.AddCommand(connections_cmd.NewCmd())
 

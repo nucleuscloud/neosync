@@ -1,7 +1,6 @@
 package benthos_builder
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -37,11 +36,11 @@ func NewBenthosConfigManager(
 	}
 }
 
-type BenthosBuilder interface {
-	BuildSourceConfig(ctx context.Context, params *bb_shared.SourceParams) (*bb_shared.BenthosSourceConfig, error)
+// type BenthosBuilder interface {
+// 	BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error)
 
-	BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error)
-}
+// 	BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error)
+// }
 
 type BenthosConfigResponse struct {
 	Name                    string
@@ -56,7 +55,7 @@ type BenthosConfigResponse struct {
 	SourceConnectionType    string // used for logging
 
 	Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*shared.BenthosDsn
+	BenthosDsns []*bb_shared.BenthosDsn
 	RedisConfig []*bb_shared.BenthosRedisConfig
 
 	primaryKeys []string
@@ -64,11 +63,13 @@ type BenthosConfigResponse struct {
 	metriclabels metrics.MetricLabels
 }
 
-// Creates a new BenthosBuilder based on connection and job type
+// Creates a new ConnectionBenthosBuilder based on connection and job type
 func NewBenthosBuilder(connType bb_shared.ConnectionType, jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
 	switch connType {
 	case bb_shared.ConnectionTypePostgres:
 		return bb_conns.NewPostgresBenthosBuilder(jobType)
+	case bb_shared.ConnectionTypeMysql:
+		return bb_conns.NewMysqlBenthosBuilder(jobType)
 	default:
 		return nil, fmt.Errorf("unsupported connection type and job type: [%s, %s]", connType, jobType)
 	}

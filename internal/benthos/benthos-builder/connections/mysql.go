@@ -4,12 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
@@ -18,16 +15,16 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-func NewPostgresBenthosBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
+func NewMysqlBenthosBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
 	switch jobType {
 	case bb_shared.JobTypeSync:
-		return NewPostgresSyncBuilder(), nil
-	case bb_shared.JobTypeGenerate:
-		return NewPostgresGenerateBuilder(), nil
-	case bb_shared.JobTypeAIGenerate:
-		return NewPostgresAIGenerateBuilder(), nil
+		return NewMysqlSyncBuilder(), nil
+	// case bb_shared.JobTypeGenerate:
+	// 	return NewMysqlGenerateBuilder(), nil
+	// case bb_shared.JobTypeAIGenerate:
+	// 	return NewMysqlAIGenerateBuilder(), nil
 	default:
-		return nil, fmt.Errorf("unsupported postgres job type: %s", jobType)
+		return nil, fmt.Errorf("unsupported Mysql job type: %s", jobType)
 	}
 }
 
@@ -35,7 +32,7 @@ func NewPostgresBenthosBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionB
 	Sync
 */
 
-type postgresSyncBuilder struct {
+type mysqlSyncBuilder struct {
 	// reverse of table dependency
 	// map of foreign key to source table + column
 	primaryKeyToForeignKeysMap   map[string]map[string][]*bb_shared.ReferenceKey           // schema.table -> column -> ForeignKey
@@ -43,16 +40,16 @@ type postgresSyncBuilder struct {
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
 }
 
-func NewPostgresSyncBuilder() bb_shared.ConnectionBenthosBuilder {
-	return &postgresSyncBuilder{}
+func NewMysqlSyncBuilder() bb_shared.ConnectionBenthosBuilder {
+	return &mysqlSyncBuilder{}
 }
 
-func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
+func (b *mysqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	logger := params.Logger
 
-	sqlSourceOpts, err := getPostgresJobSourceOpts(job.Source)
+	sqlSourceOpts, err := getMysqlJobSourceOpts(job.Source)
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +208,15 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 	return configs, nil
 }
 
-func getPostgresJobSourceOpts(
+func getMysqlJobSourceOpts(
 	source *mgmtv1alpha1.JobSource,
 ) (*sqlJobSourceOpts, error) {
-	postgresSourceConfig := source.GetOptions().GetPostgres()
-	if postgresSourceConfig == nil {
-		return nil, fmt.Errorf("postgrest job source options missing")
+	mysqlSourceConfig := source.GetOptions().GetMysql()
+	if mysqlSourceConfig == nil {
+		return nil, fmt.Errorf("mysql job source options missing")
 	}
 	schemaOpt := []*schemaOptions{}
-	for _, opt := range postgresSourceConfig.GetSchemas() {
+	for _, opt := range mysqlSourceConfig.GetSchemas() {
 		tableOpts := []*tableOptions{}
 		for _, t := range opt.GetTables() {
 			tableOpts = append(tableOpts, &tableOptions{
@@ -233,13 +230,13 @@ func getPostgresJobSourceOpts(
 		})
 	}
 	return &sqlJobSourceOpts{
-		HaltOnNewColumnAddition:       postgresSourceConfig.GetHaltOnNewColumnAddition(),
-		SubsetByForeignKeyConstraints: postgresSourceConfig.GetSubsetByForeignKeyConstraints(),
+		HaltOnNewColumnAddition:       mysqlSourceConfig.GetHaltOnNewColumnAddition(),
+		SubsetByForeignKeyConstraints: mysqlSourceConfig.GetSubsetByForeignKeyConstraints(),
 		SchemaOpt:                     schemaOpt,
 	}, nil
 }
 
-func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
+func (b *mysqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
 	config := &bb_shared.BenthosDestinationConfig{}
 	// this should not be here
 	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, params.SqlManager, params.Logger)
@@ -261,13 +258,13 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: sqlmanager_shared.PostgresDriver, // TODO
+						Driver: sqlmanager_shared.MysqlDriver, // TODO
 						Dsn:    dsn,
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
-						SkipForeignKeyViolations: destOpts.GetPostgresOptions().GetSkipForeignKeyViolations(),
+						SkipForeignKeyViolations: destOpts.GetMysqlOptions().GetSkipForeignKeyViolations(),
 						WhereColumns:             benthosConfig.PrimaryKeys,
 						ArgsMapping:              buildPlainInsertArgs(args),
 
@@ -332,7 +329,7 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-						Driver: sqlmanager_shared.PostgresDriver,
+						Driver: sqlmanager_shared.MysqlDriver,
 						Dsn:    dsn,
 
 						Schema:                   benthosConfig.TableSchema,
@@ -340,9 +337,9 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 						Columns:                  benthosConfig.Columns,
 						ColumnsDataTypes:         columnTypes,
 						ColumnDefaultProperties:  benthosConfig.ColumnDefaultProperties,
-						OnConflictDoNothing:      destOpts.GetPostgresOptions().GetOnConflict().GetDoNothing(),
-						SkipForeignKeyViolations: destOpts.GetPostgresOptions().GetSkipForeignKeyViolations(),
-						TruncateOnRetry:          destOpts.GetPostgresOptions().GetTruncateTable().GetTruncateBeforeInsert(),
+						OnConflictDoNothing:      destOpts.GetMysqlOptions().GetOnConflict().GetDoNothing(),
+						SkipForeignKeyViolations: destOpts.GetMysqlOptions().GetSkipForeignKeyViolations(),
+						TruncateOnRetry:          destOpts.GetMysqlOptions().GetTruncateTable().GetTruncateBeforeInsert(),
 						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
 						Prefix:                   prefix,
 						Suffix:                   suffix,
@@ -364,115 +361,6 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 			},
 		})
 	}
-
-	return config, nil
-}
-
-func getInsertPrefixAndSuffix(
-	driver, schema, table string,
-	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
-) (prefix, suffix *string) {
-	var pre, suff *string
-	if len(columnDefaultProperties) == 0 {
-		return pre, suff
-	}
-	switch driver {
-	case sqlmanager_shared.MssqlDriver:
-		if hasPassthroughIdentityColumn(columnDefaultProperties) {
-			enableIdentityInsert := true
-			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
-			pre = &p
-			s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
-			suff = &s
-		}
-		return pre, suff
-	default:
-		return pre, suff
-	}
-}
-
-func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) bool {
-	for _, d := range columnDefaultProperties {
-		if d.NeedsOverride && d.NeedsReset && !d.HasDefaultTransformer {
-			return true
-		}
-	}
-	return false
-}
-
-// tries to get destination schema column info map
-// if not uses source destination schema column info map
-func getSqlSchemaColumnMap(
-	ctx context.Context,
-	destination *mgmtv1alpha1.JobDestinationOptions,
-	destinationConnection *mgmtv1alpha1.Connection,
-	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	slogger *slog.Logger,
-) map[string]map[string]*sqlmanager_shared.ColumnInfo {
-	schemaColMap := sourceSchemaColumnInfoMap
-	destOpts, err := shared.GetSqlJobDestinationOpts(destination)
-	if err != nil || destOpts.InitSchema {
-		return schemaColMap
-	}
-	switch destinationConnection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
-		if err != nil {
-			destDb.Db.Close()
-			return schemaColMap
-		}
-		destColMap, err := destDb.Db.GetSchemaColumnMap(ctx)
-		if err != nil {
-			destDb.Db.Close()
-			return schemaColMap
-		}
-		if len(destColMap) != 0 {
-			schemaColMap = destColMap
-		}
-		destDb.Db.Close()
-	}
-	return schemaColMap
-}
-
-/*
-	Generate
-*/
-
-type postgresGenerateBuilder struct {
-}
-
-func NewPostgresGenerateBuilder() bb_shared.ConnectionBenthosBuilder {
-	return &postgresGenerateBuilder{}
-}
-
-func (b *postgresGenerateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
-	return []*bb_shared.BenthosSourceConfig{}, nil
-}
-
-func (b *postgresGenerateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
-	config := &bb_shared.BenthosDestinationConfig{}
-
-	return config, nil
-}
-
-/*
-	AI Generate
-*/
-
-type postgresAIGenerateBuilder struct {
-}
-
-func NewPostgresAIGenerateBuilder() bb_shared.ConnectionBenthosBuilder {
-	return &postgresGenerateBuilder{}
-}
-
-func (b *postgresAIGenerateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
-	return []*bb_shared.BenthosSourceConfig{}, nil
-}
-
-func (b *postgresAIGenerateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
-	config := &bb_shared.BenthosDestinationConfig{}
 
 	return config, nil
 }
