@@ -60,7 +60,6 @@ interface DataTableToolbarProps<TData> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
-  data: TData[];
 }
 
 export function SchemaTableToolbar<TData>({
@@ -68,7 +67,6 @@ export function SchemaTableToolbar<TData>({
   transformerHandler,
   constraintHandler,
   jobType,
-  data,
 }: DataTableToolbarProps<TData>) {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);

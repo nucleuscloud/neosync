@@ -92,7 +92,6 @@ export default function SchemaPageTable<TData, TValue>({
           transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
           jobType={jobType}
-          data={data}
         />
       </div>
       <div
