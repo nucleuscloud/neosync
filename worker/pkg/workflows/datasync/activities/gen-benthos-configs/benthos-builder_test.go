@@ -133,7 +133,9 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
 						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+								PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+							},
 						},
 					},
 				},
@@ -209,7 +211,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		nil,
 		"postgres",
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 

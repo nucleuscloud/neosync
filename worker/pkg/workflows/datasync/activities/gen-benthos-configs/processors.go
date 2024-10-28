@@ -230,7 +230,7 @@ func buildMutationConfigs(
 				}
 				col.Transformer = val
 			}
-			if isJavascriptTransformer(col.GetTransformer()) {
+			if !isJavascriptTransformer(col.GetTransformer()) {
 				mutation, err := computeMutationFunction(col, colInfo, splitColumnPaths)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.GetTransformer(), err)
