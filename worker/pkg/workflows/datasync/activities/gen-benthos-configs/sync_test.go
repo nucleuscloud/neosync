@@ -198,3 +198,49 @@ func Test_BuildMssqlPostTableSyncStatement(t *testing.T) {
 		require.Equal(t, expectedSomeOverride, resultSomeOverride, "Unexpected result when some columns need override")
 	})
 }
+
+func Test_isNullJobMappingTransformer(t *testing.T) {
+	t.Run("yes", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{},
+			},
+		})
+		require.True(t, actual)
+	})
+	t.Run("no", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{},
+			},
+		})
+		require.False(t, actual)
+	})
+	t.Run("nil", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(nil)
+		require.False(t, actual)
+	})
+}
+
+func Test_isDefaultJobMappingTransformer(t *testing.T) {
+	t.Run("yes", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
+			},
+		})
+		require.True(t, actual)
+	})
+	t.Run("no", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{},
+			},
+		})
+		require.False(t, actual)
+	})
+	t.Run("nil", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(nil)
+		require.False(t, actual)
+	})
+}

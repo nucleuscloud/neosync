@@ -48,7 +48,6 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -109,7 +108,6 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 	genCode := `return "hello world";`
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
 				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
@@ -170,7 +168,6 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	ageCol := "age"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -181,7 +178,6 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	}
 
 	jsT2 := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -241,7 +237,6 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 	col2 := "test"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -252,7 +247,6 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 	}
 
 	jsT2 := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
 				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
@@ -310,7 +304,6 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
