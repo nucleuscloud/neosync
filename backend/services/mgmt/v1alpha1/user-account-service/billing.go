@@ -18,6 +18,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -150,6 +151,11 @@ func (s *Service) IsAccountStatusValid(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest],
 ) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
 	accountStatusResp, err := s.GetAccountStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: req.Msg.GetAccountId(),
 	}))
@@ -180,10 +186,16 @@ func (s *Service) IsAccountStatusValid(
 		isValid = true
 	}
 
+	acc, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountId)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 		IsValid:       isValid,
 		AccountStatus: accountStatus,
 		Reason:        &description,
+		CreatedAt:     timestamppb.New(acc.CreatedAt.Time),
 	}), nil
 }
 

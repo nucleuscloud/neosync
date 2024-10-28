@@ -2032,6 +2032,13 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
    */
   accountStatus = AccountStatus.REASON_UNSPECIFIED;
 
+  /**
+   * The timestamp of when the account
+   *
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
+   */
+  createdAt?: Timestamp;
+
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2046,6 +2053,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
     { no: 4, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 5, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
     { no: 6, name: "account_status", kind: "enum", T: proto3.getEnumType(AccountStatus) },
+    { no: 7, name: "created_at", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {
