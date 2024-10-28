@@ -213,7 +213,7 @@ export function SchemaTableToolbar<TData>({
                     );
                   }
                 });
-                form.trigger('mappings'); // trigger validation after bulk updating the selected form optionsk
+                form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               }}
             />
           )}
