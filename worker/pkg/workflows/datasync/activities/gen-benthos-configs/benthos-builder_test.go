@@ -498,6 +498,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}
 
 	expected := &mgmtv1alpha1.JobMappingTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -1018,160 +1019,121 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testing.T) {
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{}},
 		},
 	}
 

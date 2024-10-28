@@ -152,21 +152,21 @@ func filterForeignKeysMap(
 }
 
 func isNullJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool {
-	if t == nil {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
+		return true
+	default:
 		return false
 	}
-	isNullSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL
-	isNullConfig := t.GetConfig().GetNullconfig() != nil
-	return isNullSource || isNullConfig
 }
 
 func isDefaultJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool {
-	if t == nil {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
+		return true
+	default:
 		return false
 	}
-	isDefSource := t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
-	isDefConfig := t.GetConfig().GetGenerateDefaultConfig() != nil
-	return isDefSource || isDefConfig
 }
 
 func mergeVirtualForeignKeys(

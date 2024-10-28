@@ -35,31 +35,23 @@ func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
-	if t == nil {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig,
+		nil:
 		return false
+	default:
+		return true
 	}
-
-	source :=
-		t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
-			t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
-	config := t.GetConfig().GetConfig()
-	passthrough := t.GetConfig().GetPassthroughConfig()
-	return source || (config != nil && passthrough == nil)
 }
 
 func shouldProcessStrict(t *mgmtv1alpha1.JobMappingTransformer) bool {
-	if t == nil {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig,
+		*mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig,
+		*mgmtv1alpha1.TransformerConfig_Nullconfig,
+		nil:
 		return false
+	default:
+		return true
 	}
-
-	source :=
-		t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
-			t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL &&
-			t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH &&
-			t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
-	config := t.GetConfig().GetConfig()
-	genNull := t.GetConfig().GetNullconfig()
-	passthrough := t.GetConfig().GetPassthroughConfig()
-	genDefault := t.GetConfig().GetGenerateDefaultConfig()
-	return source || (config != nil && genNull == nil && passthrough == nil && genDefault == nil)
 }
