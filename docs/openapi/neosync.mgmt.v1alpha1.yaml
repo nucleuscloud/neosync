@@ -9540,6 +9540,9 @@ components:
         source:
           allOf:
             - title: source
+              description: >-
+                @deprecated - This is no longer used in favor just providing the
+                TransformerConfig
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         config:
           allOf:

@@ -5,7 +5,6 @@ import { getDurationValidateFn } from './number';
 
 // Yup schema form JobMappingTransformers
 export const JobMappingTransformerForm = Yup.object({
-  source: Yup.number().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });
 
@@ -18,7 +17,6 @@ export function convertJobMappingTransformerToForm(
   jmt: JobMappingTransformer
 ): JobMappingTransformerForm {
   return {
-    source: jmt.source,
     config: convertTransformerConfigToForm(jmt.config),
   };
 }
@@ -26,7 +24,6 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
   form: JobMappingTransformerForm
 ): JobMappingTransformer {
   return new JobMappingTransformer({
-    source: form.source,
     config: convertTransformerConfigSchemaToTransformerConfig(form.config),
   });
 }

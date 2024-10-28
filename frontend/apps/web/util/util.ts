@@ -150,24 +150,21 @@ export function getTransformerFromField(
   handler: TransformerHandler,
   value: JobMappingTransformerForm
 ): Transformer {
-  if (
-    value.source === TransformerSource.USER_DEFINED &&
-    value.config.case === 'userDefinedTransformerConfig'
-  ) {
+  if (value.config.case === 'userDefinedTransformerConfig') {
     return (
       handler.getUserDefinedTransformerById(value.config.value.id) ??
       new SystemTransformer()
     );
   }
   return (
-    handler.getSystemTransformerBySource(value.source) ??
+    handler.getSystemTransformerByConfigCase(value.config.case) ??
     new SystemTransformer()
   );
 }
 
-// Checks to see if the source is unspecified
+// Checks to see if the config is unspecified
 export function isInvalidTransformer(transformer: Transformer): boolean {
-  return transformer.source === TransformerSource.UNSPECIFIED;
+  return transformer.config == null;
 }
 
 export function getTransformerSelectButtonText(

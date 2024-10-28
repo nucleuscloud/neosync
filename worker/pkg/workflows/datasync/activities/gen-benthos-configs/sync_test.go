@@ -45,9 +45,9 @@ func TestFilterForeignKeysMap(t *testing.T) {
 			name: "Filtered composite foreign keys",
 			colTransformerMap: map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{
 				"table1": {
-					"col1": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
-					"col2": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
-					"col3": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
+					"col1": &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}}},
+					"col2": &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}}},
+					"col3": &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}}},
 				},
 			},
 			foreignKeysMap: map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -73,10 +73,10 @@ func TestFilterForeignKeysMap(t *testing.T) {
 			name: "Filtered foreign keys",
 			colTransformerMap: map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{
 				"table1": {
-					"col1": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH},
+					"col1": &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}}},
 				},
 				"table2": {
-					"col2": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
+					"col2": &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}}},
 				},
 			},
 			foreignKeysMap: map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -196,5 +196,51 @@ func Test_BuildMssqlPostTableSyncStatement(t *testing.T) {
 			sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent("dbo", "test_table"),
 		}
 		require.Equal(t, expectedSomeOverride, resultSomeOverride, "Unexpected result when some columns need override")
+	})
+}
+
+func Test_isNullJobMappingTransformer(t *testing.T) {
+	t.Run("yes", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{},
+			},
+		})
+		require.True(t, actual)
+	})
+	t.Run("no", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{},
+			},
+		})
+		require.False(t, actual)
+	})
+	t.Run("nil", func(t *testing.T) {
+		actual := isNullJobMappingTransformer(nil)
+		require.False(t, actual)
+	})
+}
+
+func Test_isDefaultJobMappingTransformer(t *testing.T) {
+	t.Run("yes", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
+			},
+		})
+		require.True(t, actual)
+	})
+	t.Run("no", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(&mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{},
+			},
+		})
+		require.False(t, actual)
+	})
+	t.Run("nil", func(t *testing.T) {
+		actual := isDefaultJobMappingTransformer(nil)
+		require.False(t, actual)
 	})
 }

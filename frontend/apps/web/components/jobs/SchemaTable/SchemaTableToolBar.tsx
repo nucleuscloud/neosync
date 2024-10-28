@@ -36,7 +36,6 @@ import {
   Passthrough,
   SystemTransformer,
   TransformerConfig,
-  TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
@@ -47,7 +46,10 @@ import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
-import { TransformerHandler } from './transformer-handler';
+import {
+  TransformerConfigCase,
+  TransformerHandler,
+} from './transformer-handler';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -227,7 +229,7 @@ export function SchemaTableToolbar<TData>({
                 formMappings.forEach((fm, idx) => {
                   // skips setting the default transformer if the user has already set the transformer
                   if (
-                    fm.transformer.source != 0 &&
+                    fm.transformer.config.case &&
                     !defaultTransformerValues.overrideTransformers
                   ) {
                     return;
@@ -244,7 +246,6 @@ export function SchemaTableToolbar<TData>({
                     const newJm =
                       isGenerated && !identityType
                         ? new JobMappingTransformer({
-                            source: TransformerSource.GENERATE_DEFAULT,
                             config: new TransformerConfig({
                               config: {
                                 case: 'generateDefaultConfig',
@@ -253,7 +254,6 @@ export function SchemaTableToolbar<TData>({
                             }),
                           })
                         : new JobMappingTransformer({
-                            source: TransformerSource.PASSTHROUGH,
                             config: new TransformerConfig({
                               config: {
                                 case: 'passthroughConfig',
@@ -328,9 +328,11 @@ function getFilteredTransformersForBulkSet<TData>(
     userDefinedArrays.push(userDefined);
   });
 
-  const uniqueSystemSources = findCommonSystemSources(systemArrays);
-  const uniqueSystem = uniqueSystemSources
-    .map((source) => transformerHandler.getSystemTransformerBySource(source))
+  const uniqueSystemConfigCases = findCommonSystemConfigCases(systemArrays);
+  const uniqueSystem = uniqueSystemConfigCases
+    .map((configCase) =>
+      transformerHandler.getSystemTransformerByConfigCase(configCase)
+    )
     .filter((x): x is SystemTransformer => !!x);
 
   const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
@@ -344,30 +346,33 @@ function getFilteredTransformersForBulkSet<TData>(
   };
 }
 
-function findCommonSystemSources(
+function findCommonSystemConfigCases(
   arrays: SystemTransformer[][]
-): TransformerSource[] {
-  const elementCount: Record<TransformerSource, number> = {} as Record<
-    TransformerSource,
+): TransformerConfigCase[] {
+  const elementCount: Record<TransformerConfigCase, number> = {} as Record<
+    TransformerConfigCase,
     number
   >;
   const subArrayCount = arrays.length;
-  const commonElements: TransformerSource[] = [];
+  const commonElements: TransformerConfigCase[] = [];
 
   arrays.forEach((subArray) => {
     // Use a Set to ensure each element in a sub-array is counted only once
     new Set(subArray).forEach((element) => {
-      if (!elementCount[element.source]) {
-        elementCount[element.source] = 1;
+      if (!element.config?.config.case) {
+        return;
+      }
+      if (!elementCount[element.config.config.case]) {
+        elementCount[element.config.config.case] = 1;
       } else {
-        elementCount[element.source]++;
+        elementCount[element.config.config.case]++;
       }
     });
   });
 
   for (const [element, count] of Object.entries(elementCount)) {
     if (count === subArrayCount) {
-      commonElements.push(+element as TransformerSource);
+      commonElements.push(element as TransformerConfigCase);
     }
   }
 

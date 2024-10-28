@@ -109,7 +109,7 @@ type NeosyncApiTransformer struct {
 	Name              string
 	Description       string
 	AccountID         pgtype.UUID
-	TransformerConfig *pg_models.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfig
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 	Source            int32
