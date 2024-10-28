@@ -26,31 +26,17 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		"sourceConnectionType", sourceConnectionType,
 		"jobType", jobType,
 	)
-	dbBuilder, err := NewBenthosBuilder(sourceConnectionType, jobType)
+	dbBuilder, err := b.sourceProvider.NewBuilder(sourceConnectionType, jobType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create benthos builder: %w", err)
 	}
 	logger.Debug(fmt.Sprintf("created source benthos builder for %s", sourceConnectionType))
 
-	// build benthos input for postgres
-
-	// build benthos process postgres to mysql
-	// build benthos process postgres to s3
-	//
-
-	// build benthos output for mysql
-	// build benthos output for s3
-
-	// Build source config based on flow type
 	sourceParams := &bb_shared.SourceParams{
-		Job:               job,
-		RunId:             runId,
-		SourceConnection:  sourceConnection,
-		Logger:            logger,
-		TransformerClient: b.transformerclient,
-		SqlManager:        b.sqlmanager,
-		RedisConfig:       b.redisConfig,
-		MetricsEnabled:    b.metricsEnabled,
+		Job:              job,
+		RunId:            runId,
+		SourceConnection: sourceConnection,
+		Logger:           logger,
 	}
 
 	// also builds processors
@@ -60,8 +46,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	}
 	logger.Debug(fmt.Sprintf("built %d source configs", len(sourceConfigs)))
 
-	// dbBuilder.BuildProcessors
-
 	destinationOpts := buildDestinationOptionsMap(job.GetDestinations())
 
 	logger.Debug(fmt.Sprintf("building %d destination configs", len(destinationConnections)))
@@ -69,7 +53,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	for destIdx, destConnection := range destinationConnections {
 		// Create destination builder
 		destConnectionType := bb_shared.GetConnectionType(destConnection)
-		destBuilder, err := NewBenthosBuilder(destConnectionType, jobType)
+		destBuilder, err := b.destinationProvider.NewBuilder(destConnectionType, jobType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
 		}
@@ -82,17 +66,13 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 
 		for _, sourceConfig := range sourceConfigs {
 			destParams := &bb_shared.DestinationParams{
-				SourceConfig:      sourceConfig,
-				Job:               job,
-				RunId:             runId,
-				DestinationIdx:    destIdx,
-				DestinationOpts:   destOpts,
-				DestConnection:    destConnection,
-				Logger:            logger,
-				TransformerClient: b.transformerclient,
-				SqlManager:        b.sqlmanager,
-				RedisConfig:       b.redisConfig,
-				MetricsEnabled:    b.metricsEnabled,
+				SourceConfig:    sourceConfig,
+				Job:             job,
+				RunId:           runId,
+				DestinationIdx:  destIdx,
+				DestinationOpts: destOpts,
+				DestConnection:  destConnection,
+				Logger:          logger,
 			}
 
 			destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
@@ -182,3 +162,19 @@ func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, sourceConnec
 		metriclabels:            sourceConfig.Metriclabels,
 	}
 }
+
+/*
+
+benthosbuilder.registersource(job sourceConnection)
+benthosbuilder.registerdestionation(job, destinationConnection)
+benthosbuilder.generateconfigs
+
+registersource
+	newpostgressyncbuilder
+
+registerdestination
+	newmysqlsyncbuilder
+
+
+
+*/

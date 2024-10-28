@@ -5,12 +5,9 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 // ConnectionType represents supported connection types
@@ -98,14 +95,10 @@ type ConnectionBenthosBuilder interface {
 
 // SourceParams contains all parameters needed to build a source benthos configuration
 type SourceParams struct {
-	Job               *mgmtv1alpha1.Job
-	RunId             string
-	SourceConnection  *mgmtv1alpha1.Connection
-	Logger            *slog.Logger
-	TransformerClient mgmtv1alpha1connect.TransformersServiceClient
-	SqlManager        sqlmanager.SqlManagerClient
-	RedisConfig       *shared.RedisConfig
-	MetricsEnabled    bool
+	Job              *mgmtv1alpha1.Job
+	RunId            string
+	SourceConnection *mgmtv1alpha1.Connection
+	Logger           *slog.Logger
 }
 
 type ReferenceKey struct {
@@ -115,17 +108,13 @@ type ReferenceKey struct {
 
 // DestinationParams contains all parameters needed to build a destination benthos configuration
 type DestinationParams struct {
-	SourceConfig      *BenthosSourceConfig
-	Job               *mgmtv1alpha1.Job
-	RunId             string
-	DestinationIdx    int
-	DestinationOpts   *mgmtv1alpha1.JobDestinationOptions
-	DestConnection    *mgmtv1alpha1.Connection
-	Logger            *slog.Logger
-	TransformerClient mgmtv1alpha1connect.TransformersServiceClient
-	SqlManager        sqlmanager.SqlManagerClient
-	RedisConfig       *shared.RedisConfig
-	MetricsEnabled    bool
+	SourceConfig    *BenthosSourceConfig
+	Job             *mgmtv1alpha1.Job
+	RunId           string
+	DestinationIdx  int
+	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
+	DestConnection  *mgmtv1alpha1.Connection
+	Logger          *slog.Logger
 }
 
 type BenthosRedisConfig struct {

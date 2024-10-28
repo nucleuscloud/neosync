@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
@@ -18,24 +19,14 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-func NewPostgresBenthosBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
-	switch jobType {
-	case bb_shared.JobTypeSync:
-		return NewPostgresSyncBuilder(), nil
-	case bb_shared.JobTypeGenerate:
-		return NewPostgresGenerateBuilder(), nil
-	case bb_shared.JobTypeAIGenerate:
-		return NewPostgresAIGenerateBuilder(), nil
-	default:
-		return nil, fmt.Errorf("unsupported postgres job type: %s", jobType)
-	}
-}
-
 /*
 	Sync
 */
 
 type postgresSyncBuilder struct {
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient  sqlmanager.SqlManagerClient
+	redisConfig       *shared.RedisConfig
 	// reverse of table dependency
 	// map of foreign key to source table + column
 
@@ -45,8 +36,16 @@ type postgresSyncBuilder struct {
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
 }
 
-func NewPostgresSyncBuilder() bb_shared.ConnectionBenthosBuilder {
-	return &postgresSyncBuilder{}
+func NewPostgresSyncBuilder(
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	redisConfig *shared.RedisConfig,
+) bb_shared.ConnectionBenthosBuilder {
+	return &postgresSyncBuilder{
+		transformerclient: transformerclient,
+		sqlmanagerclient:  sqlmanagerclient,
+		redisConfig:       redisConfig,
+	}
 }
 
 func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
@@ -63,7 +62,7 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := params.SqlManager.NewPooledSqlDb(ctx, logger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -163,13 +162,13 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
-			params.TransformerClient,
+			b.transformerclient,
 			config,
 			columnForeignKeysMap,
 			transformedFktoPkMap,
 			job.Id,
 			params.RunId,
-			params.RedisConfig,
+			b.redisConfig,
 			mappings.Mappings,
 			colInfoMap,
 			nil,

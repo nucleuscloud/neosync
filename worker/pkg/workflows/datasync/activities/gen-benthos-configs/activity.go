@@ -130,7 +130,7 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.metricsEnabled,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
-	return bbuilder.GenerateBenthosConfigs(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
+	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
 }
 
 //
