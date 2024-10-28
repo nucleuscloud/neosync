@@ -219,18 +219,13 @@ func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alph
 }
 
 func shouldProcess(t *mgmtv1alpha1.JobMappingTransformer) bool {
-	if t == nil {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig,
+		nil:
 		return false
+	default:
+		return true
 	}
-
-	source :=
-		t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
-			t.GetSource() != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
-
-	config := t.GetConfig().GetConfig()
-	passthrough := t.GetConfig().GetPassthroughConfig()
-	// we only want to process if there is a non-nil config that is not passthrough
-	return source || (config != nil && passthrough == nil)
 }
 
 func dereferenceValue(value any) any {
