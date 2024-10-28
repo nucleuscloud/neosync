@@ -26,8 +26,6 @@ export function AccountStatusHandler(props: Props) {
     return <Skeleton className="w-[100px] h-8" />;
   }
 
-  console.log('date before', data?.createdAt);
-
   return (
     <div className="flex flex-row items-center gap-2">
       {!systemAppConfig.isNeosyncCloud && (
