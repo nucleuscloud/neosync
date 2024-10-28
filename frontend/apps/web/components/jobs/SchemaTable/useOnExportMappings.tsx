@@ -44,7 +44,7 @@ export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
       });
       await downloadFile({
         data: jms,
-        fileName: 'job-mappings.json',
+        fileName: `mappings-${new Date().toISOString()}.json`,
         shouldFormat,
         // todo: may want to export these in the Props in the future for more control
         onSuccess() {
