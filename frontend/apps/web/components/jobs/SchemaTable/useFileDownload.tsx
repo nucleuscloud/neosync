@@ -3,6 +3,7 @@ import { useState } from 'react';
 interface FileDownloadProps<T> {
   data: T;
   fileName?: string;
+  shouldFormat?: boolean;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
@@ -16,7 +17,10 @@ interface UseFileDownloadResponse<T> {
 const WORKER_CODE = `
   self.onmessage = function(e) {
     try {
-      const jsonString = JSON.stringify(e.data);
+      const { data, shouldFormat } = e.data;
+      const jsonString = shouldFormat
+        ? JSON.stringify(data, null, 2)
+        : JSON.stringify(data);
       self.postMessage(jsonString);
     } catch (error) {
       self.postMessage({ error: error.message });
@@ -31,6 +35,7 @@ export function useFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
   async function downloadFile({
     data,
     fileName = 'download.json',
+    shouldFormat,
     onSuccess,
     onError,
   }: FileDownloadProps<T>): Promise<void> {
@@ -61,7 +66,8 @@ export function useFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
             }
           };
           worker.onerror = (e) => reject(new Error(e.message));
-          worker.postMessage(data);
+          console.log('should format', shouldFormat);
+          worker.postMessage({ data, shouldFormat });
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Worker timeout')), 10000)

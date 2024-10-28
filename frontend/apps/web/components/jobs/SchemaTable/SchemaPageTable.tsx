@@ -39,7 +39,10 @@ interface DataTableProps<TData, TValue> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
-  onExportMappingsClick(selected: TanStackRow<TData>[]): void;
+  onExportMappingsClick(
+    selected: TanStackRow<TData>[],
+    shouldFormat: boolean
+  ): void;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -94,8 +97,11 @@ export default function SchemaPageTable<TData, TValue>({
           transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
           jobType={jobType}
-          onExportMappingsClick={() =>
-            onExportMappingsClick(table.getSelectedRowModel().rows)
+          onExportMappingsClick={(shouldFormat) =>
+            onExportMappingsClick(
+              table.getSelectedRowModel().rows,
+              shouldFormat
+            )
           }
         />
       </div>

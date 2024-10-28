@@ -47,7 +47,7 @@ interface DataTableToolbarProps<TData> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
-  onExportMappingsClick(): void;
+  onExportMappingsClick(shouldFormat: boolean): void;
 }
 
 export function SchemaTableToolbar<TData>({

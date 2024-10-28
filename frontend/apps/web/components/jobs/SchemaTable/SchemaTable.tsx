@@ -150,7 +150,7 @@ export function SchemaTable(props: Props): ReactElement {
               transformerHandler={handler}
               constraintHandler={constraintHandler}
               jobType={jobType}
-              onExportMappingsClick={async (selectedRows) => {
+              onExportMappingsClick={async (selectedRows, shouldFormat) => {
                 const dataToDownload =
                   selectedRows.length === 0
                     ? data
@@ -169,6 +169,7 @@ export function SchemaTable(props: Props): ReactElement {
                 await downloadFile({
                   data: jms,
                   fileName: 'job-mappings.json',
+                  shouldFormat,
                   onSuccess() {
                     toast.success('Successfully exported job mappings!');
                   },
