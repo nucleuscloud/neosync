@@ -76,6 +76,7 @@ import SchemaPageTable, { Row } from '../SchemaTable/SchemaPageTable';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { SchemaConstraintHandler } from '../SchemaTable/schema-constraint-handler';
 import { TransformerHandler } from '../SchemaTable/transformer-handler';
+import { useOnExportMappings } from '../SchemaTable/useOnExportMappings';
 import {
   DestinationDetails,
   OnTableMappingUpdateRequest,
@@ -191,6 +192,10 @@ export default function NosqlTable(props: Props): ReactElement {
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
 
+  const { onClick: onExportMappingsClick } = useOnExportMappings({
+    jobMappings: data,
+  });
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
@@ -240,6 +245,7 @@ export default function NosqlTable(props: Props): ReactElement {
         transformerHandler={handler}
         jobType="sync"
         constraintHandler={constraintHandler}
+        onExportMappingsClick={onExportMappingsClick}
       />
     </div>
   );

@@ -17,20 +17,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import {
-  convertJobMappingTransformerFormToJobMappingTransformer,
   JobMappingFormValues,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
 import {
   GetConnectionSchemaResponse,
-  JobMapping,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
-import { toast } from 'sonner';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
@@ -38,7 +35,7 @@ import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
 import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
-import { useFileDownload } from './useFileDownload';
+import { useOnExportMappings } from './useOnExportMappings';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -96,7 +93,9 @@ export function SchemaTable(props: Props): ReactElement {
     [schema, data]
   );
 
-  const { downloadFile } = useFileDownload();
+  const { onClick: onExportMappingsClick } = useOnExportMappings({
+    jobMappings: data,
+  });
 
   if (isLoading || !data) {
     return <SkeletonTable />;
@@ -150,34 +149,7 @@ export function SchemaTable(props: Props): ReactElement {
               transformerHandler={handler}
               constraintHandler={constraintHandler}
               jobType={jobType}
-              onExportMappingsClick={async (selectedRows, shouldFormat) => {
-                const dataToDownload =
-                  selectedRows.length === 0
-                    ? data
-                    : selectedRows.map((row) => data[row.index]);
-                const jms = dataToDownload.map((d) => {
-                  return new JobMapping({
-                    schema: d.schema,
-                    table: d.table,
-                    column: d.column,
-                    transformer:
-                      convertJobMappingTransformerFormToJobMappingTransformer(
-                        d.transformer
-                      ),
-                  }).toJson();
-                });
-                await downloadFile({
-                  data: jms,
-                  fileName: 'job-mappings.json',
-                  shouldFormat,
-                  onSuccess() {
-                    toast.success('Successfully exported job mappings!');
-                  },
-                  onError(error) {
-                    toast.error(`Failed to export job mappings: ${error}`);
-                  },
-                });
-              }}
+              onExportMappingsClick={onExportMappingsClick}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -202,9 +174,7 @@ export function SchemaTable(props: Props): ReactElement {
           transformerHandler={handler}
           constraintHandler={constraintHandler}
           jobType={jobType}
-          onExportMappingsClick={() => {
-            //
-          }}
+          onExportMappingsClick={onExportMappingsClick}
         />
       )}
     </div>
