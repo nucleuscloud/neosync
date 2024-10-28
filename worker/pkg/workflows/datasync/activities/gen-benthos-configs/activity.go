@@ -9,6 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
@@ -19,7 +20,7 @@ type GenerateBenthosConfigsRequest struct {
 	JobId string
 }
 type GenerateBenthosConfigsResponse struct {
-	BenthosConfigs []*BenthosConfigResponse
+	BenthosConfigs []*benthos_builder.BenthosConfigResponse
 	AccountId      string
 }
 

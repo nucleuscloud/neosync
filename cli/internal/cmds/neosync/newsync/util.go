@@ -13,17 +13,6 @@ import (
 	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
 )
 
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
-
 func maxInt(a, b int) int {
 	if a > b {
 		return a

@@ -283,6 +283,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	var outputConfigs []*BenthosConfigResponse
 	// hack to remove update configs when only syncing to s3
+	// todo should also remove depends on from each config
 	if isOnlyBucketDestinations(job.Destinations) {
 		for _, r := range responses {
 			if r.RunType == tabledependency.RunTypeInsert {
@@ -306,8 +307,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(outputConfigs)))
 	return &GenerateBenthosConfigsResponse{
-		BenthosConfigs: outputConfigs,
-		AccountId:      job.GetAccountId(),
+		// BenthosConfigs: outputConfigs,
+		AccountId: job.GetAccountId(),
 	}, nil
 }
 

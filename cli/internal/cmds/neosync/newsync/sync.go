@@ -2,6 +2,7 @@ package newsync_cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -33,7 +34,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -446,9 +446,12 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 	// 	benthosConfig := generateBenthosConfig(c.cmd, sourceConnectionType, cfg)
 	// 	configs = append(configs, benthosConfig)
 	// }
+	jsonF, _ := json.MarshalIndent(c.sourceConnection, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 
 	job, err := createJob(c.cmd, c.sourceConnection, c.destinationConnection, schemaConfig.Schemas)
 	if err != nil {
+		c.logger.Error("unable to create job")
 		return nil, err
 	}
 	bm := benthos_builder.NewBenthosConfigManager(c.sqlmanagerclient, c.transformerclient, nil, false)
@@ -816,103 +819,6 @@ func getTableInitStatementMap(
 		return initStatementResp.Msg, nil
 	}
 	return nil, nil
-}
-
-type benthosConfigResponse struct {
-	Name      string
-	DependsOn []*tabledependency.DependsOn
-	Config    *neosync_benthos.BenthosConfig
-	Table     string
-	Columns   []string
-}
-
-func generateBenthosConfig(
-	cmd *cmdConfig,
-	connectionType ConnectionType,
-	syncConfig *tabledependency.RunConfig,
-) *benthosConfigResponse {
-	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table())
-
-	var jobId, jobRunId *string
-	if cmd.Source.ConnectionOpts != nil {
-		jobRunId = cmd.Source.ConnectionOpts.JobRunId
-		jobId = cmd.Source.ConnectionOpts.JobId
-	}
-
-	bc := &neosync_benthos.BenthosConfig{
-		StreamConfig: neosync_benthos.StreamConfig{
-			Logger: &neosync_benthos.LoggerConfig{
-				Level:        "ERROR",
-				AddTimestamp: true,
-			},
-			Input: &neosync_benthos.InputConfig{
-				Inputs: neosync_benthos.Inputs{
-					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
-						ConnectionId:   cmd.Source.ConnectionId,
-						ConnectionType: string(connectionType),
-						JobId:          jobId,
-						JobRunId:       jobRunId,
-						Schema:         schema,
-						Table:          table,
-					},
-				},
-			},
-			Pipeline: &neosync_benthos.PipelineConfig{},
-			Output:   &neosync_benthos.OutputConfig{},
-		},
-	}
-
-	if syncConfig.RunType() == tabledependency.RunTypeUpdate {
-		args := syncConfig.InsertColumns()
-		args = append(args, syncConfig.PrimaryKeys()...)
-		bc.Output = &neosync_benthos.OutputConfig{
-			Outputs: neosync_benthos.Outputs{
-				PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-					Driver: string(cmd.Destination.Driver),
-					Dsn:    cmd.Destination.ConnectionUrl,
-
-					Schema:       schema,
-					Table:        table,
-					Columns:      syncConfig.InsertColumns(),
-					WhereColumns: syncConfig.PrimaryKeys(),
-					ArgsMapping:  buildPlainInsertArgs(args),
-
-					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
-					},
-				},
-			},
-		}
-	} else {
-		bc.Output = &neosync_benthos.OutputConfig{
-			Outputs: neosync_benthos.Outputs{
-				PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-					Driver: string(cmd.Destination.Driver),
-					Dsn:    cmd.Destination.ConnectionUrl,
-
-					Schema:              schema,
-					Table:               table,
-					Columns:             syncConfig.SelectColumns(),
-					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
-					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns()),
-
-					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
-					},
-				},
-			},
-		}
-	}
-
-	return &benthosConfigResponse{
-		Name:      fmt.Sprintf("%s.%s", syncConfig.Table(), syncConfig.RunType()),
-		Config:    bc,
-		DependsOn: syncConfig.DependsOn(),
-		Table:     syncConfig.Table(),
-		Columns:   syncConfig.InsertColumns(),
-	}
 }
 
 type schemaConfig struct {

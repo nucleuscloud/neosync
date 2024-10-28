@@ -38,6 +38,8 @@ func NewPostgresBenthosBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionB
 type postgresSyncBuilder struct {
 	// reverse of table dependency
 	// map of foreign key to source table + column
+
+	// when using these in building destination output if they don't exist they should be retrieved from destination
 	primaryKeyToForeignKeysMap   map[string]map[string][]*bb_shared.ReferenceKey           // schema.table -> column -> ForeignKey
 	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table -> column -> transformer
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
