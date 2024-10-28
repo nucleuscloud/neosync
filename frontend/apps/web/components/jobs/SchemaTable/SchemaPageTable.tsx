@@ -10,6 +10,7 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getSortedRowModel,
+  Row as TanStackRow,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -38,6 +39,7 @@ interface DataTableProps<TData, TValue> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
+  onExportMappingsClick(selected: TanStackRow<TData>[]): void;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -46,6 +48,7 @@ export default function SchemaPageTable<TData, TValue>({
   transformerHandler,
   constraintHandler,
   jobType,
+  onExportMappingsClick,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -74,7 +77,6 @@ export default function SchemaPageTable<TData, TValue>({
     getScrollElement: () => tableContainerRef.current,
     overscan: 5,
   });
-
   return (
     <div>
       <div className="flex flex-row items-center gap-2 pt-4 ">
@@ -92,6 +94,9 @@ export default function SchemaPageTable<TData, TValue>({
           transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
           jobType={jobType}
+          onExportMappingsClick={() =>
+            onExportMappingsClick(table.getSelectedRowModel().rows)
+          }
         />
       </div>
       <div

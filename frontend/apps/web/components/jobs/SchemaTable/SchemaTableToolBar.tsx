@@ -31,6 +31,7 @@ import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ApplyDefaultTransformersButton from './ApplyDefaultTransformersButton';
+import ExportJobMappingsButton from './ExportJobMappingsButton';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -46,6 +47,7 @@ interface DataTableToolbarProps<TData> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
+  onExportMappingsClick(): void;
 }
 
 export function SchemaTableToolbar<TData>({
@@ -53,6 +55,7 @@ export function SchemaTableToolbar<TData>({
   transformerHandler,
   constraintHandler,
   jobType,
+  onExportMappingsClick,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasSelectedRows = Object.values(table.getState().rowSelection).some(
@@ -214,6 +217,7 @@ export function SchemaTableToolbar<TData>({
               }}
             />
           )}
+          <ExportJobMappingsButton onClick={onExportMappingsClick} />
           <SchemaTableViewOptions table={table} />
         </div>
       </div>
