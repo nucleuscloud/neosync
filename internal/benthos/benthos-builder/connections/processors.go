@@ -14,7 +14,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 

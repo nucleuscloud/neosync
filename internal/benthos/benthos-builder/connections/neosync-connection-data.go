@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
 )
 
 type neosyncConnectionDataBuilder struct {

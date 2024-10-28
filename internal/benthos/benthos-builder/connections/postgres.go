@@ -13,7 +13,7 @@ import (
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -243,7 +243,7 @@ func getPostgresJobSourceOpts(
 func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
 	config := &bb_shared.BenthosDestinationConfig{}
 	// this should not be here
-	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, params.SqlManager, params.Logger)
+	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 	var colInfoMap map[string]*sqlmanager_shared.ColumnInfo
 	colMap, ok := sqlSchemaColMap[neosync_benthos.BuildBenthosTable(params.SourceConfig.TableSchema, params.SourceConfig.TableName)]
 	if ok {
@@ -294,20 +294,20 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 		for col := range constraints {
 			transformer := b.colTransformerMap[tableKey][col]
 			if shouldProcessStrict(transformer) {
-				if params.RedisConfig == nil {
+				if b.redisConfig == nil {
 					return nil, fmt.Errorf("missing redis config. this operation requires redis")
 				}
 				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.RunId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
-						Url:            params.RedisConfig.Url,
+						Url:            b.redisConfig.Url,
 						Key:            hashedKey,
 						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
 						WalkMetadata:   false,
 						WalkJsonObject: false,
-						Kind:           &params.RedisConfig.Kind,
-						Master:         params.RedisConfig.Master,
-						Tls:            shared.BuildBenthosRedisTlsConfig(params.RedisConfig),
+						Kind:           &b.redisConfig.Kind,
+						Master:         b.redisConfig.Master,
+						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 					},
 				})
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &bb_shared.BenthosRedisConfig{
