@@ -100,7 +100,7 @@ function squashJobMappings(input: JobMapping[][]): JobMapping[] {
   }, []);
 }
 
-// Web Worker code as a blob
+// Async Worker code that handles parsing the input data as JSON
 const workerCode = `
   self.onmessage = function(e) {
     const { file, id } = e.data;

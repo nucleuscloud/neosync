@@ -18,7 +18,7 @@ interface UseOnExportMappingsResponse {
   ): Promise<void>;
 }
 
-// Hook that provides an onClick handles that will download job mappings to disk
+// Hook that provides an onClick handler that will download job mappings to disk
 export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
   const { jobMappings } = props;
   const { downloadFile } = useJsonFileDownload();

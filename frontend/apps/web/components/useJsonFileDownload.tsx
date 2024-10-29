@@ -14,6 +14,7 @@ interface UseFileDownloadResponse<T> {
   error?: string | null;
 }
 
+// Async Worker code that handles stringifying the input contents
 const WORKER_CODE = `
   self.onmessage = function(e) {
     try {
@@ -27,6 +28,7 @@ const WORKER_CODE = `
     }
   }
 `;
+const WORKER_BLOB = new Blob([WORKER_CODE], { type: 'application/javascript' });
 
 /* Hook that provides ability to download a JSON file.
  */
@@ -45,17 +47,12 @@ export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
     setError(null);
 
     try {
-      // Validate input
       if (!data) {
         throw new Error('No data provided for download');
       }
 
-      // Create and setup worker
-      const worker = new Worker(
-        URL.createObjectURL(
-          new Blob([WORKER_CODE], { type: 'application/javascript' })
-        )
-      );
+      const workerUrl = URL.createObjectURL(WORKER_BLOB);
+      const worker = new Worker(workerUrl);
 
       // Handle worker response with timeout
       const textToDownload = await Promise.race([
@@ -68,45 +65,27 @@ export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
             }
           };
           worker.onerror = (e) => reject(new Error(e.message));
-          console.log('should format', shouldFormat);
           worker.postMessage({ data, shouldFormat });
         }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Worker timeout')), 10000)
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  'Timed out while waiting to receive JSON stringification response'
+                )
+              ),
+            10000
+          )
         ),
       ]);
 
       // Clean up worker
       worker.terminate();
-
-      // Create download stream
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(textToDownload));
-          controller.close();
-        },
-      });
+      URL.revokeObjectURL(workerUrl);
 
       // Create and download file
-      const response = new Response(stream);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      // Trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-
-      // Use click() directly instead of appending to document
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 100);
+      await downloadContents(textToDownload, fileName);
 
       onSuccess?.();
     } catch (error) {
@@ -120,4 +99,38 @@ export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
   }
 
   return { downloadFile, isDownloading, error };
+}
+
+async function downloadContents(
+  input: string,
+  fileName: string
+): Promise<void> {
+  // Create download stream
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(input));
+      controller.close();
+    },
+  });
+
+  // Create and download file
+  const response = new Response(stream);
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  // Trigger download
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+
+  // Use click() directly instead of appending to document
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+
+  // Cleanup
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
