@@ -22,27 +22,6 @@ interface Props {
   onImport(jobmappings: JobMapping[], config: ImportMappingsConfig): void;
 }
 
-function squashJobMappings(input: JobMapping[][]): JobMapping[] {
-  return input.reduce((output: JobMapping[], curr: JobMapping[]) => {
-    curr.forEach((mapping) => {
-      // Check if we already have this combination
-      const exists = output.some(
-        (existing) =>
-          existing.schema === mapping.schema &&
-          existing.table === mapping.table &&
-          existing.column === mapping.column
-      );
-
-      // Only add if it's not already present
-      if (!exists) {
-        output.push(mapping);
-      }
-    });
-
-    return output;
-  }, []);
-}
-
 interface ExtractedJobMappings {
   lastModified: number;
   mappings: JobMapping[];
@@ -97,6 +76,27 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+function squashJobMappings(input: JobMapping[][]): JobMapping[] {
+  return input.reduce((output: JobMapping[], curr: JobMapping[]) => {
+    curr.forEach((mapping) => {
+      // Check if we already have this combination
+      const exists = output.some(
+        (existing) =>
+          existing.schema === mapping.schema &&
+          existing.table === mapping.table &&
+          existing.column === mapping.column
+      );
+
+      // Only add if it's not already present
+      if (!exists) {
+        output.push(mapping);
+      }
+    });
+
+    return output;
+  }, []);
 }
 
 // Web Worker code as a blob
@@ -257,12 +257,18 @@ function Body(props: BodyProps): ReactElement {
       description: fileName,
     });
   }, []);
+
   return (
     <div className="flex flex-col gap-2">
       <div>
         <SwitchCard
           isChecked={truncateAll}
-          onCheckedChange={setTruncateAll}
+          onCheckedChange={(value) => {
+            setTruncateAll(value);
+            if (overrideOverlapping) {
+              setOverrideOverlapping(false);
+            }
+          }}
           title="Truncate existing mappings"
           description="Start fresh and only use what was imported."
         />
@@ -270,8 +276,13 @@ function Body(props: BodyProps): ReactElement {
       <div>
         <SwitchCard
           isChecked={overrideOverlapping}
-          onCheckedChange={setOverrideOverlapping}
-          title="Override existing mappings."
+          onCheckedChange={(value) => {
+            setOverrideOverlapping(value);
+            if (truncateAll) {
+              setTruncateAll(false);
+            }
+          }}
+          title="Override existing mappings"
           description="Will override any existing mappings found in the table. Otherwise, only import net new mappings."
         />
       </div>
