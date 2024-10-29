@@ -312,7 +312,7 @@ function validateFileType(file: File): boolean {
   return file.type === 'application/json' || file.name.endsWith('.json');
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB or 52.24MiB (52,427,800 bytes)
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB or 52.42MiB (52,427,800 bytes)
 const MAX_FILE_SIZE_DISPLAY = filesize(MAX_FILE_SIZE, {
   standard: 'jedec', // Renders in MB, which users may be more familiar with
   round: 0,
