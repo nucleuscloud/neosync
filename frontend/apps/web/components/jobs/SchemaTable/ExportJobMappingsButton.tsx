@@ -22,10 +22,7 @@ export default function ExportJobMappingsButton(props: Props): ReactElement {
         headerText="Export Job Mappings"
         description="This will export job mappings to a JSON file and save them to disk."
         body={
-          <ConfirmBody
-            prettyPrint={prettyPrint}
-            setPrettyPrint={setPrettyPrint}
-          />
+          <Body prettyPrint={prettyPrint} setPrettyPrint={setPrettyPrint} />
         }
         containerClassName="max-w-xl"
         onConfirm={() => {
@@ -41,12 +38,12 @@ export default function ExportJobMappingsButton(props: Props): ReactElement {
   );
 }
 
-interface ConfirmBodyProps {
+interface BodyProps {
   prettyPrint: boolean;
   setPrettyPrint(value: boolean): void;
 }
 
-function ConfirmBody(props: ConfirmBodyProps): ReactElement {
+function Body(props: BodyProps): ReactElement {
   const { prettyPrint, setPrettyPrint } = props;
 
   return (

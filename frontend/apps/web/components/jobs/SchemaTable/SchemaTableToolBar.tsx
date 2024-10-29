@@ -32,6 +32,7 @@ import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ApplyDefaultTransformersButton from './ApplyDefaultTransformersButton';
 import ExportJobMappingsButton from './ExportJobMappingsButton';
+import ImportJobMappingsButton from './ImportJobMappingsButton';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -217,6 +218,13 @@ export function SchemaTableToolbar<TData>({
               }}
             />
           )}
+          <ImportJobMappingsButton
+            onImport={(importedJobMappings, importConfig) => {
+              // todo
+              console.log(importedJobMappings);
+              console.log('import config', importConfig);
+            }}
+          />
           <ExportJobMappingsButton onClick={onExportMappingsClick} />
           <SchemaTableViewOptions table={table} />
         </div>
