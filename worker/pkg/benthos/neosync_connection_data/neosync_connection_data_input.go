@@ -3,7 +3,6 @@ package neosync_benthos_connectiondata
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 
 	"connectrpc.com/connect"
@@ -107,7 +106,6 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
 
 	if g.connectionType == "awsS3" {
-		fmt.Println("neo conn data input aws s3")
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
 			if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
@@ -139,7 +137,6 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	fmt.Println("neo conn data input get data")
 	resp, err := g.neosyncConnectApi.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
 		ConnectionId: g.connectionId,
 		Schema:       g.schema,
@@ -149,8 +146,6 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	jsonF, _ := json.MarshalIndent(resp.Msg().Row, "", " ")
-	fmt.Printf("INPUT ROW: %s \n", string(jsonF))
 	g.resp = resp
 	return nil
 }

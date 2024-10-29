@@ -2,7 +2,6 @@ package newsync_cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -246,7 +245,6 @@ func (c *clisync) configureAndRunSync() error {
 	}
 	sourceConnection := connResp.Msg.GetConnection()
 	c.sourceConnection = sourceConnection
-	fmt.Println("sourceConnectionId", sourceConnection.Id)
 
 	connectionprovider := providers.NewProvider(
 		mongoprovider.NewProvider(),
@@ -335,104 +333,6 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 	c.logger.Debug("Validated config")
 
 	c.logger.Info("Retrieving connection schema...")
-	// var schemaConfig *schemaConfig
-	// switch sourceConnectionType {
-	// case awsS3Connection:
-	// 	c.logger.Info("Building schema and table constraints...")
-	// 	var cfg *mgmtv1alpha1.AwsS3SchemaConfig
-	// 	if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-	// 		cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-	// 	} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-	// 		cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-	// 	}
-	// 	s3Config := &mgmtv1alpha1.ConnectionSchemaConfig{
-	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
-	// 			AwsS3Config: cfg,
-	// 		},
-	// 	}
-
-	// 	schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, s3Config)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(schemaCfg.Schemas) == 0 {
-	// 		c.logger.Warn("No tables found when building destination schema from s3.")
-	// 		return nil, nil
-	// 	}
-	// 	schemaConfig = schemaCfg
-	// case gcpCloudStorageConnection:
-	// 	var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
-	// 	if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-	// 		cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-	// 	} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-	// 		cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-	// 	}
-
-	// 	gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
-	// 			GcpCloudstorageConfig: cfg,
-	// 		},
-	// 	}
-
-	// 	schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, gcpConfig)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(schemaCfg.Schemas) == 0 {
-	// 		c.logger.Warn("No tables found when building destination schema from gcp cloud storage.")
-	// 		return nil, nil
-	// 	}
-	// 	schemaConfig = schemaCfg
-	// case mysqlConnection:
-	// 	c.logger.Info("Building schema and table constraints...")
-	// 	mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
-	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
-	// 			MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
-	// 		},
-	// 	}
-	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, mysqlCfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(schemaCfg.Schemas) == 0 {
-	// 		c.logger.Warn("No tables found when building destination schema from mysql.")
-	// 		return nil, nil
-	// 	}
-	// 	schemaConfig = schemaCfg
-	// case postgresConnection:
-	// 	c.logger.Info("Building schema and table constraints...")
-	// 	postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
-	// 			PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
-	// 		},
-	// 	}
-	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, postgresConfig)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(schemaCfg.Schemas) == 0 {
-	// 		c.logger.Warn("No tables found when building destination schema from postgres.")
-	// 		return nil, nil
-	// 	}
-	// 	schemaConfig = schemaCfg
-	// case awsDynamoDBConnection:
-	// 	dynamoConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
-	// 			DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
-	// 		},
-	// 	}
-	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, dynamoConfig)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(schemaCfg.Schemas) == 0 {
-	// 		c.logger.Warn("No tables found when building destination schema from dynamodb.")
-	// 		return nil, nil
-	// 	}
-	// 	schemaConfig = schemaCfg
-	// default:
-	// 	return nil, fmt.Errorf("this connection type is not currently supported: %T", sourceConnectionType)
-	// }
 
 	schemaConfig, err := c.getConnectionSchemaConfig()
 	if err != nil {
@@ -456,20 +356,18 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 
 	syncConfigCount := len(syncConfigs)
 	c.logger.Info(fmt.Sprintf("Generating %d sync configs...", syncConfigCount))
-	// configs := []*benthosConfigResponse{}
-	// for _, cfg := range syncConfigs {
-	// 	benthosConfig := generateBenthosConfig(c.cmd, sourceConnectionType, cfg)
-	// 	configs = append(configs, benthosConfig)
-	// }
-	jsonF, _ := json.MarshalIndent(c.sourceConnection, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	job, err := createJob(c.cmd, c.sourceConnection, c.destinationConnection, schemaConfig.Schemas)
 	if err != nil {
 		c.logger.Error("unable to create job")
 		return nil, err
 	}
-	bm := benthos_builder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, c.cmd.Source.ConnectionOpts.JobRunId, syncConfigs, c.destinationConnection)
+
+	var jobRunId *string
+	if c.cmd.Source.ConnectionOpts != nil {
+		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
+	}
+	bm := benthos_builder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, jobRunId, syncConfigs, c.destinationConnection)
 	configs, err := bm.GenerateBenthosConfigs(
 		c.ctx,
 		job,
@@ -483,9 +381,6 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 		c.logger.Error("unable to build benthos configs")
 		return nil, err
 	}
-
-	jsonF, _ = json.MarshalIndent(configs, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	// order configs in run order by dependency
 	c.logger.Debug("Ordering configs by dependency")
@@ -598,7 +493,6 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthos_build
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
-	fmt.Println("envKeyMap", envKeyMap)
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 	err = streambldr.SetYAML(string(configbits))

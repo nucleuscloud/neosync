@@ -247,7 +247,6 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 }
 
 func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
-	fmt.Println("WRITE BATCH")
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
 
@@ -260,7 +259,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if s.argsMapping != nil {
 		executor = batch.BloblangExecutor(s.argsMapping)
 	}
-	fmt.Println("PROCESS ROWS")
+
 	rows := [][]interface{}{} //nolint:gofmt
 	for i := range batch {
 		if s.argsMapping == nil {
@@ -299,16 +298,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return err
 	}
-
-	// insertQuery, args, err = querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
-	// if err != nil {
-	// 	return err
-	// }
-	fmt.Println()
-	fmt.Println(insertQuery)
-	fmt.Println()
-	fmt.Println(args)
-	fmt.Println()
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))

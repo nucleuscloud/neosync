@@ -1,7 +1,6 @@
 package newsync_cmd
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -14,14 +13,12 @@ func createJob(
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchema []*mgmtv1alpha1.DatabaseColumn,
 ) (*mgmtv1alpha1.Job, error) {
-	jsonF, _ := json.MarshalIndent(sourceSchema, "", " ")
-	fmt.Printf("sourceSchema: %s \n", string(jsonF))
 	sourceConnOpts, err := toJobSourceOption(sourceConnection)
 	if err != nil {
 		return nil, err
 	}
 	jobId := uuid.NewString()
-	if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+	if cmd.Source.ConnectionOpts != nil && cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
 		jobId = *cmd.Source.ConnectionOpts.JobId
 	}
 	return &mgmtv1alpha1.Job{

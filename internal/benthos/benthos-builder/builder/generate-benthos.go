@@ -2,7 +2,6 @@ package benthos_builder
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -113,9 +112,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		response := convertToResponse(sourceConfig, sourceConnectionType)
 		responses = append(responses, response)
 	}
-
-	jsonF, _ := json.MarshalIndent(responses, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	// TODO should this be in benthos builder? how to handle this
 	// // Set post table sync run context
