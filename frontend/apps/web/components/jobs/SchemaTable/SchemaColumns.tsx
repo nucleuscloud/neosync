@@ -68,7 +68,6 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformerHandler, constraintHandler, jobType } = props;
-
   return [
     {
       accessorKey: 'isSelected',
@@ -442,7 +441,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
-
                 const filtered = transformerHandler.getFilteredTransformers(
                   getTransformerFilter(constraintHandler, colkey, jobType)
                 );
