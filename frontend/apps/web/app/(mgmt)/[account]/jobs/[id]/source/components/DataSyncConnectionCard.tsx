@@ -30,6 +30,7 @@ import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
   EditDestinationOptionsFormValues,
+  JobMappingFormValues,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -363,12 +364,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  async function validateMappings() {
+  async function validateMappings(
+    mappings: JobMappingFormValues[] = formMappings
+  ) {
     try {
       setIsValidatingMappings(true);
       const res = await validateJobMapping(
         sourceConnectionId || '',
-        formMappings,
+        mappings,
         account?.id || '',
         formVirtualForeignKeys,
         validateJobMappingsAsync
@@ -482,8 +485,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         shouldValidate: false,
       });
     },
-    triggerUpdate() {
-      form.trigger('mappings');
+    async triggerUpdate() {
+      await form.trigger('mappings');
+      setTimeout(() => {
+        // using form.getvalues instead of formMappings as it is more up to date for some reason (bug?)
+        validateMappings(form.getValues('mappings'));
+      }, 0);
     },
     setSelectedTables: setSelectedTables,
   });
@@ -509,7 +516,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         c.connectionConfig?.config.case !== 'gcpCloudstorageConfig'
     )
   );
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
