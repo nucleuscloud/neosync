@@ -103,6 +103,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypePostgres, sqlbuilder)
 	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMysql, sqlbuilder)
 	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMssql, sqlbuilder)
+	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeDynamodb, bb_conns.NewDynamoDbSyncBuilder(transformerclient))
 }
 
 type BenthosConfigManager struct {
@@ -117,9 +118,6 @@ func NewWorkerBenthosConfigManager(
 	redisConfig *shared.RedisConfig,
 	metricsEnabled bool,
 ) *BenthosConfigManager {
-	fmt.Println()
-	fmt.Println("NEW WORKER BENTHOS CONFIG MANAGER")
-	fmt.Println()
 	provider := NewBuilderProvider()
 	provider.registerStandardBuilders(sqlmanagerclient, transformerclient, redisConfig)
 	return &BenthosConfigManager{
