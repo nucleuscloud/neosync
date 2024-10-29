@@ -26,12 +26,17 @@ export function AccountStatusHandler(props: Props) {
     return <Skeleton className="w-[100px] h-8" />;
   }
 
+  const showTrialCountdown =
+    systemAppConfig.isNeosyncCloud &&
+    (data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_ACTIVE ||
+      data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_EXPIRED);
+
   return (
     <div className="flex flex-row items-center gap-2">
-      {!systemAppConfig.isNeosyncCloud && (
+      {showTrialCountdown && (
         <TrialCountdown
-          createdDate={new Date(
-            data?.createdAt?.toDate() ?? Date.now()
+          trialEndDate={new Date(
+            data?.trialExpiresAt?.toDate() ?? Date.now()
           ).getTime()}
           isAccountStatusValidResp={data}
         />
@@ -47,24 +52,17 @@ export function AccountStatusHandler(props: Props) {
 }
 
 interface TrialCountdownProps {
-  createdDate: number;
+  trialEndDate: number;
   isAccountStatusValidResp: IsAccountStatusValidResponse | undefined;
 }
 
-const TRIAL_DURATION_DAYS = 14;
-
-// TODO: created_at is coming back as blank
-
 function TrialCountdown(props: TrialCountdownProps) {
-  const { createdDate, isAccountStatusValidResp } = props;
+  const { trialEndDate, isAccountStatusValidResp } = props;
 
   const now = Date.now();
-  const trialEndDate = new Date(
-    createdDate + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000
-  );
   const daysRemaining = Math.max(
     0,
-    Math.ceil((trialEndDate.getTime() - now) / (1000 * 60 * 60 * 24))
+    Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24))
   );
 
   const isExpired =
@@ -72,42 +70,45 @@ function TrialCountdown(props: TrialCountdownProps) {
     AccountStatus.ACCOUNT_TRIAL_EXPIRED;
   const isAlmostExpired = daysRemaining <= 3;
 
-  return (
-    <div
-      className={cn(
-        isExpired
-          ? 'border-red-700'
-          : isAlmostExpired
-            ? 'border-orange-700'
-            : 'border border-blue-400 dark:border-blue-700',
-        'flex items-center gap-2 h-8  rounded-md px-2 py-1'
-      )}
-    >
-      <div className="relative flex items-center">
-        <div
-          className={cn(
-            isExpired
-              ? 'red-bg-600'
-              : isAlmostExpired
-                ? 'orange-bg-600'
-                : 'absolute animate-ping h-2.5 w-2.5 rounded-full bg-blue-400 opacity-75'
-          )}
-        />
-        <div
-          className={cn(
-            isExpired
-              ? 'red-bg-600'
-              : isAlmostExpired
-                ? 'orange-bg-600'
-                : 'relative h-2.5 w-2.5 rounded-full bg-blue-500'
-          )}
-        />
+  if (isExpired)
+    return (
+      <div
+        className={cn(
+          isExpired
+            ? 'border-red-700'
+            : isAlmostExpired
+              ? 'border-yellow-500'
+              : ' border-blue-400 dark:border-blue-700',
+          'border flex items-center gap-2 h-8  rounded-md px-2 py-1'
+        )}
+      >
+        <div className="relative flex items-center">
+          <div
+            className={cn(
+              isExpired
+                ? 'bg-red-600'
+                : isAlmostExpired
+                  ? 'bg-yellow-600'
+                  : ' border-blue-400 dark:border-blue-700',
+              'absolute animate-ping h-2.5 w-2.5 rounded-full bg-blue-400 opacity-75'
+            )}
+          />
+          <div
+            className={cn(
+              isExpired
+                ? 'bg-red-600'
+                : isAlmostExpired
+                  ? 'bg-yellow-600'
+                  : 'bg-blue-700',
+              'relative h-2.5 w-2.5 rounded-full'
+            )}
+          />
+        </div>
+        <div className="text-xs ">
+          {isExpired
+            ? 'Trial Expired'
+            : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left in your trial`}
+        </div>
       </div>
-      <div className="text-xs ">
-        {isExpired
-          ? 'Trial Expired'
-          : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left in your trial`}
-      </div>
-    </div>
-  );
+    );
 }

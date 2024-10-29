@@ -368,22 +368,22 @@ class IsAccountStatusValidRequest(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., requested_record_count: _Optional[int] = ...) -> None: ...
 
 class IsAccountStatusValidResponse(_message.Message):
-    __slots__ = ("is_valid", "reason", "should_poll", "used_record_count", "allowed_record_count", "account_status", "created_at")
+    __slots__ = ("is_valid", "reason", "should_poll", "used_record_count", "allowed_record_count", "account_status", "trial_expires_at")
     IS_VALID_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
     SHOULD_POLL_FIELD_NUMBER: _ClassVar[int]
     USED_RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
     ALLOWED_RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_STATUS_FIELD_NUMBER: _ClassVar[int]
-    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    TRIAL_EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
     is_valid: bool
     reason: str
     should_poll: bool
     used_record_count: int
     allowed_record_count: int
     account_status: AccountStatus
-    created_at: _timestamp_pb2.Timestamp
-    def __init__(self, is_valid: bool = ..., reason: _Optional[str] = ..., should_poll: bool = ..., used_record_count: _Optional[int] = ..., allowed_record_count: _Optional[int] = ..., account_status: _Optional[_Union[AccountStatus, str]] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    trial_expires_at: _timestamp_pb2.Timestamp
+    def __init__(self, is_valid: bool = ..., reason: _Optional[str] = ..., should_poll: bool = ..., used_record_count: _Optional[int] = ..., allowed_record_count: _Optional[int] = ..., account_status: _Optional[_Union[AccountStatus, str]] = ..., trial_expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetAccountBillingCheckoutSessionRequest(_message.Message):
     __slots__ = ("account_id",)

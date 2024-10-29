@@ -1488,6 +1488,13 @@ components:
                 anyOf:
                   - required:
                       - reason
+        - anyOf:
+            - required:
+                - trialExpiresAt
+            - not:
+                anyOf:
+                  - required:
+                      - trialExpiresAt
       properties:
         isValid:
           type: boolean
@@ -1522,10 +1529,10 @@ components:
             - title: account_status
               description: The current status of the account. Default is valid.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountStatus'
-        createdAt:
+        trialExpiresAt:
           allOf:
-            - title: created_at
-              description: The timestamp of when the account
+            - title: trial_expires_at
+              description: The time when the trial expires
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
       title: IsAccountStatusValidResponse
       additionalProperties: false

@@ -246,8 +246,8 @@ message IsAccountStatusValidResponse {
   optional uint64 allowed_record_count = 5;
   // The current status of the account. Default is valid.
   AccountStatus account_status = 6;
-  // The timestamp of when the account
-  google.protobuf.Timestamp created_at = 7;
+  // The time when the trial expires
+  optional google.protobuf.Timestamp trial_expires_at = 7;
 }
 
 enum AccountStatus {

@@ -15768,15 +15768,15 @@
               "defaultValue": ""
             },
             {
-              "name": "created_at",
-              "description": "The timestamp of when the account",
-              "label": "",
+              "name": "trial_expires_at",
+              "description": "The time when the trial expires",
+              "label": "optional",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
               "fullType": "google.protobuf.Timestamp",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_trial_expires_at",
               "defaultValue": ""
             }
           ]

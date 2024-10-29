@@ -2033,11 +2033,11 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   accountStatus = AccountStatus.REASON_UNSPECIFIED;
 
   /**
-   * The timestamp of when the account
+   * The time when the trial expires
    *
-   * @generated from field: google.protobuf.Timestamp created_at = 7;
+   * @generated from field: optional google.protobuf.Timestamp trial_expires_at = 7;
    */
-  createdAt?: Timestamp;
+  trialExpiresAt?: Timestamp;
 
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
@@ -2053,7 +2053,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
     { no: 4, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 5, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
     { no: 6, name: "account_status", kind: "enum", T: proto3.getEnumType(AccountStatus) },
-    { no: 7, name: "created_at", kind: "message", T: Timestamp },
+    { no: 7, name: "trial_expires_at", kind: "message", T: Timestamp, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {
