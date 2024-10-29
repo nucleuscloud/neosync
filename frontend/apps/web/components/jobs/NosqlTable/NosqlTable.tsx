@@ -46,6 +46,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ConnectError,
   GetConnectionSchemaResponse,
+  JobMapping,
   JobMappingTransformer,
   Passthrough,
   SystemTransformer,
@@ -71,6 +72,7 @@ import {
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import FormErrorsCard, { FormError } from '../SchemaTable/FormErrorsCard';
+import { ImportMappingsConfig } from '../SchemaTable/ImportJobMappingsButton';
 import { SchemaColumnHeader } from '../SchemaTable/SchemaColumnHeader';
 import SchemaPageTable, { Row } from '../SchemaTable/SchemaPageTable';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
@@ -102,6 +104,10 @@ interface Props {
   destinationDetailsRecord: Record<string, DestinationDetails>;
   onDestinationTableMappingUpdate(req: OnTableMappingUpdateRequest): void;
   showDestinationTableMappings: boolean;
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    importConfig: ImportMappingsConfig
+  ): void;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -119,6 +125,7 @@ export default function NosqlTable(props: Props): ReactElement {
     destinationDetailsRecord,
     onDestinationTableMappingUpdate,
     showDestinationTableMappings,
+    onImportMappingsClick,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -246,6 +253,7 @@ export default function NosqlTable(props: Props): ReactElement {
         jobType="sync"
         constraintHandler={constraintHandler}
         onExportMappingsClick={onExportMappingsClick}
+        onImportMappingsClick={onImportMappingsClick}
       />
     </div>
   );

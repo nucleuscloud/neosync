@@ -21,6 +21,7 @@ import {
 } from '@/yup-validations/jobs';
 import {
   GenerateDefault,
+  JobMapping,
   JobMappingTransformer,
   Passthrough,
   SystemTransformer,
@@ -32,7 +33,9 @@ import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ApplyDefaultTransformersButton from './ApplyDefaultTransformersButton';
 import ExportJobMappingsButton from './ExportJobMappingsButton';
-import ImportJobMappingsButton from './ImportJobMappingsButton';
+import ImportJobMappingsButton, {
+  ImportMappingsConfig,
+} from './ImportJobMappingsButton';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -49,6 +52,10 @@ interface DataTableToolbarProps<TData> {
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
   onExportMappingsClick(shouldFormat: boolean): void;
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    config: ImportMappingsConfig
+  ): void;
 }
 
 export function SchemaTableToolbar<TData>({
@@ -57,6 +64,7 @@ export function SchemaTableToolbar<TData>({
   constraintHandler,
   jobType,
   onExportMappingsClick,
+  onImportMappingsClick,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasSelectedRows = Object.values(table.getState().rowSelection).some(
@@ -218,13 +226,7 @@ export function SchemaTableToolbar<TData>({
               }}
             />
           )}
-          <ImportJobMappingsButton
-            onImport={(importedJobMappings, importConfig) => {
-              // todo
-              console.log(importedJobMappings);
-              console.log('import config', importConfig);
-            }}
-          />
+          <ImportJobMappingsButton onImport={onImportMappingsClick} />
           <ExportJobMappingsButton onClick={onExportMappingsClick} />
           <SchemaTableViewOptions table={table} />
         </div>

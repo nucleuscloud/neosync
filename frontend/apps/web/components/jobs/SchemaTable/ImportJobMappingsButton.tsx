@@ -23,13 +23,13 @@ import {
 import { IoAlertCircleOutline, IoCloseCircle } from 'react-icons/io5';
 import { toast } from 'sonner';
 
-interface ImportConfig {
+export interface ImportMappingsConfig {
   truncateAll: boolean;
   overrideOverlapping: boolean;
 }
 
 interface Props {
-  onImport(jobmappings: JobMapping[], config: ImportConfig): void;
+  onImport(jobmappings: JobMapping[], config: ImportMappingsConfig): void;
 }
 
 function squashJobMappings(input: JobMapping[][]): JobMapping[] {
@@ -88,6 +88,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
         containerClassName="max-w-xl"
         buttonText="Import"
         onConfirm={() => {
+          // Sort the entires by last modified date oldest first
           const sortedEntries = Object.entries(jmExtracted).sort(
             ([, a], [, b]) => a.lastModified - b.lastModified
           );
@@ -100,6 +101,9 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
               truncateAll: truncateAll,
             }
           );
+          setJmExtracted({});
+          setTruncateAll(false);
+          setOverrideOverlapping(false);
         }}
       />
     </div>

@@ -84,6 +84,7 @@ import {
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { useOnImportMappings } from './useOnImportMappings';
 import {
   getConnectionIdFromSource,
   getDestinationDetailsRecord,
@@ -460,6 +461,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     []
   );
 
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    form,
+    appendMappings: append,
+    setSelectedTables: setSelectedTables,
+  });
+
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
   }
@@ -481,6 +488,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         c.connectionConfig?.config.case !== 'gcpCloudstorageConfig'
     )
   );
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -696,6 +704,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 source ?? new Connection(),
                 dynamoDBDestinations.length > 0
               )}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
 
@@ -718,6 +727,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               onValidate={validateMappings}
               addVirtualForeignKey={addVirtualForeignKey}
               removeVirtualForeignKey={removeVirtualForeignKey}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">

@@ -26,7 +26,9 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/libs/utils';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { JobMapping } from '@neosync/sdk';
 import { GoWorkflow } from 'react-icons/go';
+import { ImportMappingsConfig } from './ImportJobMappingsButton';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerHandler } from './transformer-handler';
@@ -43,6 +45,10 @@ interface DataTableProps<TData, TValue> {
     selected: TanStackRow<TData>[],
     shouldFormat: boolean
   ): void;
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    config: ImportMappingsConfig
+  ): void;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -52,6 +58,7 @@ export default function SchemaPageTable<TData, TValue>({
   constraintHandler,
   jobType,
   onExportMappingsClick,
+  onImportMappingsClick,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -103,6 +110,7 @@ export default function SchemaPageTable<TData, TValue>({
               shouldFormat
             )
           }
+          onImportMappingsClick={onImportMappingsClick}
         />
       </div>
       <div
