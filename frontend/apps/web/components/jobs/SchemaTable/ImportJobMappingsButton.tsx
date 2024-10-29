@@ -84,18 +84,12 @@ function getSortedJobMappingsFromExtracted(
 }
 
 function squashJobMappings(input: JobMapping[][]): JobMapping[] {
+  const seen = new Set<string>();
   return input.reduce((output: JobMapping[], curr: JobMapping[]) => {
     curr.forEach((mapping) => {
-      // Check if we already have this combination
-      const exists = output.some(
-        (existing) =>
-          existing.schema === mapping.schema &&
-          existing.table === mapping.table &&
-          existing.column === mapping.column
-      );
-
-      // Only add if it's not already present
-      if (!exists) {
+      const key = `${mapping.schema}.${mapping.table}.${mapping.column}`;
+      if (!seen.has(key)) {
+        seen.add(key);
         output.push(mapping);
       }
     });
