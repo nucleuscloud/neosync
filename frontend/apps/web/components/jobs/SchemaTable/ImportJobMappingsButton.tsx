@@ -44,7 +44,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
           </Button>
         }
         headerText="Import Job Mappings"
-        description="Multiple files may be uploaded. (Oldest first)"
+        description="Multiple files may be uploaded."
         body={
           <Body
             setJobMappings={setJmExtracted}
@@ -281,7 +281,7 @@ function Body(props: BodyProps): ReactElement {
             }
           }}
           title="Override existing mappings"
-          description="Will override any existing mappings found in the table. Otherwise, only import net new mappings."
+          description="If yes, replaces existing mappings. If no, import new ones only."
         />
       </div>
       <FileUpload<JobMapping[]>
