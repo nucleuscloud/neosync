@@ -17,8 +17,12 @@ func createJob(
 	if err != nil {
 		return nil, err
 	}
+	jobId := uuid.NewString()
+	if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+		jobId = *cmd.Source.ConnectionOpts.JobId
+	}
 	return &mgmtv1alpha1.Job{
-		Id:        uuid.NewString(),
+		Id:        jobId,
 		Name:      "cli-sync",
 		AccountId: *cmd.AccountId,
 		Source: &mgmtv1alpha1.JobSource{

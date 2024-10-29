@@ -260,7 +260,6 @@ func (c *clisync) configureAndRunSync() error {
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
-	fmt.Println("destinationConnectionId", destConnection.Id)
 	dsnToConnIdMap := &syncmap.Map{}
 	var sqlDsn string
 	if c.cmd.Destination != nil {
@@ -475,6 +474,9 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 		c.logger.Error("unable to build benthos configs")
 		return nil, err
 	}
+
+	jsonF, _ = json.MarshalIndent(configs, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 
 	// order configs in run order by dependency
 	c.logger.Debug("Ordering configs by dependency")

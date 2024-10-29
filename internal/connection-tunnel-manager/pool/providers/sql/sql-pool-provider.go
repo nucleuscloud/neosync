@@ -38,7 +38,6 @@ func GetSqlPoolProviderGetter(
 	slogger *slog.Logger,
 ) Getter {
 	return func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-		fmt.Println("dsn", dsn)
 		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")

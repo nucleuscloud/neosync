@@ -230,7 +230,12 @@ func BuildPlainInsertQuery(
 		// gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 		gval := goqu.Vals{}
 		for _, a := range row {
-			gval = append(gval, a)
+			switch v := a.(type) {
+			case []byte:
+				gval = append(gval, string(v))
+			default:
+				gval = append(gval, a)
+			}
 		}
 		insert = insert.Vals(gval)
 	}

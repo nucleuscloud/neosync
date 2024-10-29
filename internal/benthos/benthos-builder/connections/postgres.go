@@ -215,6 +215,10 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 
 func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
 	config := &bb_shared.BenthosDestinationConfig{}
+	driver, err := getSqlDriverFromConnection(params.DestConnection)
+	if err != nil {
+		return nil, err
+	}
 	// this should not be here
 	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 	var colInfoMap map[string]*sqlmanager_shared.ColumnInfo
@@ -235,7 +239,7 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: sqlmanager_shared.PostgresDriver, // TODO
+						Driver: driver, // TODO
 						Dsn:    dsn,
 
 						Schema:                   benthosConfig.TableSchema,
@@ -301,12 +305,12 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 			}
 		}
 
-		prefix, suffix := getInsertPrefixAndSuffix(sqlmanager_shared.PostgresDriver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
+		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-						Driver: sqlmanager_shared.PostgresDriver,
+						Driver: driver,
 						Dsn:    dsn,
 
 						Schema:                   benthosConfig.TableSchema,
