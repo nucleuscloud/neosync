@@ -19,7 +19,7 @@ import {
 } from 'react';
 import { IoAlertCircleOutline, IoCloseCircle } from 'react-icons/io5';
 
-export interface FileValidation {
+interface FileValidation {
   validateType(file: File): boolean;
   validateSize(file: File): boolean;
   maxSize?: number; // In bytes
