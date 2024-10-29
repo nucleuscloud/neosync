@@ -20,7 +20,6 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
-	"github.com/nucleuscloud/neosync/internal/testutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
@@ -50,9 +49,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
-	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
-	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
-	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	temporalmocks "go.temporal.io/sdk/mocks"
@@ -79,365 +75,6 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests["PG_Types"] = pgTypesTests
 	allTests["Skip_ForeignKey_Violations"] = skipFkViolationTests
 	return allTests
-}
-
-func Test_Workflow(t *testing.T) {
-	t.Parallel()
-	ok := testutil.ShouldRunIntegrationTest()
-	if !ok {
-		return
-	}
-	ctx := context.Background()
-
-	redis, err := tcredis.NewRedisTestContainer(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	t.Run("postgres", func(t *testing.T) {
-		t.Parallel()
-		postgres, err := tcpostgres.NewPostgresTestContainer(ctx)
-		if err != nil {
-			panic(err)
-		}
-		mysql, err := tcmysql.NewMysqlTestContainer(ctx)
-		if err != nil {
-			panic(err)
-		}
-
-		t.Run("mysql_to_postgres_sync", func(t *testing.T) {
-			t.Parallel()
-			t.Logf("running integration test: %s \n", "postgres_to_mysql_sync")
-
-			mysqlSetupSql := `
-			CREATE DATABASE IF NOT EXISTS hr;
-			USE hr;
-			CREATE TABLE regions (
-				region_id INT (11) AUTO_INCREMENT PRIMARY KEY,
-				region_name VARCHAR (25) DEFAULT NULL
-			);
-
-			CREATE TABLE countries (
-				country_id CHAR (2) PRIMARY KEY,
-				country_name VARCHAR (40) DEFAULT NULL,
-				region_id INT (11) NOT NULL,
-				FOREIGN KEY (region_id) REFERENCES regions (region_id) ON DELETE CASCADE ON UPDATE CASCADE
-			);
-
-			CREATE TABLE locations (
-				location_id INT (11) AUTO_INCREMENT PRIMARY KEY,
-				street_address VARCHAR (40) DEFAULT NULL,
-				postal_code VARCHAR (12) DEFAULT NULL,
-				city VARCHAR (30) NOT NULL,
-				state_province VARCHAR (25) DEFAULT NULL,
-				country_id CHAR (2) NOT NULL,
-				FOREIGN KEY (country_id) REFERENCES countries (country_id) ON DELETE CASCADE ON UPDATE CASCADE
-			);
-
-			INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
-			INSERT INTO regions(region_id,region_name) VALUES (2,'Americas');
-			INSERT INTO regions(region_id,region_name) VALUES (3,'Asia');
-			INSERT INTO regions(region_id,region_name) VALUES (4,'Middle East and Africa');
-			
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('AR','Argentina',2);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('AU','Australia',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('BE','Belgium',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('BR','Brazil',2);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('CA','Canada',2);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('CH','Switzerland',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('CN','China',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('DE','Germany',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('DK','Denmark',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('EG','Egypt',4);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('FR','France',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('HK','HongKong',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('IL','Israel',4);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('IN','India',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('IT','Italy',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('JP','Japan',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('KW','Kuwait',4);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('MX','Mexico',2);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('NG','Nigeria',4);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('NL','Netherlands',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('SG','Singapore',3);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('UK','United Kingdom',1);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('US','United States of America',2);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('ZM','Zambia',4);
-			INSERT INTO countries(country_id,country_name,region_id) VALUES ('ZW','Zimbabwe',4);
-
-			/*Data for the table locations */
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (1400,'2014 Jabberwocky Rd','26192','Southlake','Texas','US');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (1500,'2011 Interiors Blvd','99236','South San Francisco','California','US');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (1700,'2004 Charade Rd','98199','Seattle','Washington','US');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (1800,'147 Spadina Ave','M5V 2L7','Toronto','Ontario','CA');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (2400,'8204 Arthur St',NULL,'London',NULL,'UK');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (2500,'Magdalen Centre, The Oxford Science Park','OX9 9ZB','Oxford','Oxford','UK');
-			INSERT INTO locations(location_id,street_address,postal_code,city,state_province,country_id) VALUES (2700,'Schwanthalerstr. 7031','80925','Munich','Bavaria','DE');
-			`
-
-			postgresSetupSql := `
-				CREATE SCHEMA IF NOT EXISTS hr;
-				SET search_path TO hr;
-				CREATE TABLE regions (
-					region_id SERIAL PRIMARY KEY,
-					region_name CHARACTER VARYING (25)
-				);
-				CREATE TABLE countries (
-					country_id CHARACTER (2) PRIMARY KEY,
-					country_name CHARACTER VARYING (40),
-					region_id INTEGER NOT NULL,
-					FOREIGN KEY (region_id) REFERENCES regions (region_id) ON UPDATE CASCADE ON DELETE CASCADE
-				);
-
-				CREATE TABLE locations (
-					location_id SERIAL PRIMARY KEY,
-					street_address CHARACTER VARYING (40),
-					postal_code CHARACTER VARYING (12),
-					city CHARACTER VARYING (30) NOT NULL,
-					state_province CHARACTER VARYING (25),
-					country_id CHARACTER (2) NOT NULL,
-					FOREIGN KEY (country_id) REFERENCES countries (country_id) ON UPDATE CASCADE ON DELETE CASCADE
-				);
-			`
-
-			// setup
-			_, err = mysql.DB.ExecContext(ctx, mysqlSetupSql)
-			require.NoError(t, err)
-			_, err = postgres.DB.Exec(ctx, postgresSetupSql)
-			require.NoError(t, err)
-
-			tables := []string{"hr.regions", "hr.countries", "hr.locations"}
-			for _, table := range tables {
-				rows, err := postgres.DB.Query(ctx, fmt.Sprintf("select * from %s;", table))
-				require.NoError(t, err)
-				count := 0
-				for rows.Next() {
-					count++
-				}
-				require.Equal(t, count, 0)
-			}
-
-			jobmappings :=
-				[]*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "hr",
-						Table:  "regions",
-						Column: "region_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "regions",
-						Column: "region_name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "countries",
-						Column: "country_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "countries",
-						Column: "country_name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "countries",
-						Column: "region_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "location_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "street_address",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "postal_code",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "city",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "state_province",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "hr",
-						Table:  "locations",
-						Column: "country_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				}
-
-			destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
-				Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
-					PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
-						InitTableSchema: false,
-						TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
-							TruncateBeforeInsert: false,
-						},
-						SkipForeignKeyViolations: false,
-					},
-				},
-			}
-			sourceConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
-			destConnId := "226add85-5751-4232-b085-a0ae93afc7ce"
-
-			mux := http.NewServeMux()
-			mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
-				mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
-				func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
-					return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
-				},
-			))
-			mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
-				mgmtv1alpha1connect.JobServiceGetJobProcedure,
-				func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-					return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-						Job: &mgmtv1alpha1.Job{
-							Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
-							AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
-							Source: &mgmtv1alpha1.JobSource{
-								Options: &mgmtv1alpha1.JobSourceOptions{
-									Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-										Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-											ConnectionId:                  sourceConnId,
-											Schemas:                       []*mgmtv1alpha1.MysqlSourceSchemaOption{},
-											SubsetByForeignKeyConstraints: false,
-										},
-									},
-								},
-							},
-							Destinations: []*mgmtv1alpha1.JobDestination{
-								{
-									ConnectionId: destConnId,
-									Options:      destinationOptions,
-								},
-							},
-							Mappings:           jobmappings,
-							VirtualForeignKeys: []*mgmtv1alpha1.VirtualForeignConstraint{},
-						}}), nil
-				},
-			))
-
-			mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
-				mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
-				func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-					if r.Msg.GetId() == sourceConnId {
-						return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-							Connection: &mgmtv1alpha1.Connection{
-								Id:   sourceConnId,
-								Name: "source",
-								ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-									Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-										MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-											ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-												Url: mysql.URL,
-											},
-										},
-									},
-								},
-							},
-						}), nil
-					}
-					if r.Msg.GetId() == destConnId {
-						return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-							Connection: &mgmtv1alpha1.Connection{
-								Id:   destConnId,
-								Name: "target",
-								ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-									Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-										PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-											ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-												Url: postgres.URL,
-											},
-										},
-									},
-								},
-							},
-						}), nil
-					}
-					return nil, nil
-				},
-			))
-
-			addRunContextProcedureMux(mux)
-			srv := startHTTPServer(t, mux)
-			env := executeWorkflow(t, srv, redis.URL, "115aaf2c-776e-4847-8268-d914e3c15968")
-			require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete."))
-			err = env.GetWorkflowError()
-			require.NoError(t, err, "Received Temporal Workflow Error")
-
-			for _, table := range tables {
-				fmt.Println()
-				fmt.Println(table)
-				rows, err := postgres.DB.Query(ctx, fmt.Sprintf("select * from %s;", table))
-				require.NoError(t, err)
-				count := 0
-				for rows.Next() {
-					vals, err := rows.Values()
-					require.NoError(t, err)
-					fmt.Println(vals)
-					count++
-				}
-				require.Greater(t, count, 0)
-			}
-			fmt.Println()
-
-			// tear down
-			_, err = postgres.DB.Exec(ctx, "DROP SCHEMA IF EXISTS hr CASCADE;")
-			require.NoError(t, err)
-			_, err = mysql.DB.ExecContext(ctx, "DROP DATABASE IF EXISTS hr;")
-			require.NoError(t, err)
-		})
-
-		t.Cleanup(func() {
-			err := postgres.TearDown(ctx)
-			if err != nil {
-				panic(err)
-			}
-		})
-	})
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
@@ -827,7 +464,6 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	for _, m := range jobmappings {
 		if m.Table == "countries" && m.Column == "country_id" {
 			m.Transformer = &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `if (value == 'US') { return 'SU'; } return value;`},
@@ -1352,7 +988,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1363,7 +998,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1384,7 +1018,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1395,7 +1028,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1418,7 +1050,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1429,7 +1060,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1439,13 +1069,11 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			JobOptions: &workflow_testdata.TestJobOptions{
 				DefaultTransformers: &workflow_testdata.DefaultTransformers{
 					Boolean: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 						},
 					},
 					Number: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: gotypeutil.ToPtr(int64(10)), RandomizationRangeMax: gotypeutil.ToPtr(int64(1000))},
@@ -1453,7 +1081,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 					String: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{},
@@ -1461,8 +1088,9 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 					Byte: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 			},
@@ -1650,7 +1278,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1661,7 +1288,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "bool",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1681,7 +1307,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{
@@ -1696,7 +1321,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "embedded_document.name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -1709,7 +1333,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "decimal128",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
@@ -1725,7 +1348,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "int64",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
@@ -1741,7 +1363,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "timestamp",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
@@ -1816,11 +1437,9 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 					},
 					Mappings: []*mgmtv1alpha1.JobMapping{
 						{Schema: schema, Table: table, Column: "region_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							Config: &mgmtv1alpha1.TransformerConfig{},
+							Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
 						}},
 						{Schema: schema, Table: table, Column: "region_name", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 									GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},

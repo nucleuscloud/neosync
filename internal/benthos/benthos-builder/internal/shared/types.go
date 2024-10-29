@@ -15,15 +15,16 @@ import (
 type ConnectionType string
 
 const (
-	ConnectionTypePostgres ConnectionType = "postgres"
-	ConnectionTypeMysql    ConnectionType = "mysql"
-	ConnectionTypeMssql    ConnectionType = "mssql"
-	ConnectionTypeS3       ConnectionType = "aws-s3"
-	ConnectionTypeGCP      ConnectionType = "gcp-cloud-storage"
-	ConnectionTypeMongo    ConnectionType = "mongodb"
-	ConnectionTypeDynamodb ConnectionType = "aws-dynamodb"
-	ConnectionTypeLocalDir ConnectionType = "local-directory"
-	ConnectionTypeOpenAI   ConnectionType = "openai"
+	ConnectionTypePostgres    ConnectionType = "postgres"
+	ConnectionTypeMysql       ConnectionType = "mysql"
+	ConnectionTypeMssql       ConnectionType = "mssql"
+	ConnectionTypeS3          ConnectionType = "aws-s3"
+	ConnectionTypeGCP         ConnectionType = "gcp-cloud-storage"
+	ConnectionTypeMongo       ConnectionType = "mongodb"
+	ConnectionTypeDynamodb    ConnectionType = "aws-dynamodb"
+	ConnectionTypeLocalDir    ConnectionType = "local-directory"
+	ConnectionTypeOpenAI      ConnectionType = "openai"
+	ConnectionTypeNeosyncData ConnectionType = "neosync-data-stream"
 )
 
 // Determines type fo connection from Connection

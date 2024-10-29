@@ -14,171 +14,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-// Defines Provider methods for creating Benthos builders
-type BuilderProvider interface {
-	NewBuilder(connType bb_shared.ConnectionType, jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error)
-}
-
-type BenthosConfigManager struct {
-	sourceProvider      BuilderProvider
-	destinationProvider BuilderProvider
-	metricsEnabled      bool
-}
-
-type SourceBuilderProvider struct {
-	sqlmanagerclient  sqlmanager.SqlManagerClient
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient
-	redisConfig       *shared.RedisConfig
-}
-
-func NewSourceBuilderProvider(
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-) *SourceBuilderProvider {
-	return &SourceBuilderProvider{
-		sqlmanagerclient:  sqlmanagerclient,
-		transformerclient: transformerclient,
-		redisConfig:       redisConfig,
-	}
-}
-
-func getDefaultBuilder(
-	connType bb_shared.ConnectionType,
-	jobType bb_shared.JobType,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-) (bb_shared.ConnectionBenthosBuilder, error) {
-	switch connType {
-	case bb_shared.ConnectionTypePostgres:
-		return newPostgresBuilder(jobType, sqlmanagerclient, transformerclient, redisConfig)
-	case bb_shared.ConnectionTypeMysql:
-		return newPostgresBuilder(jobType, sqlmanagerclient, transformerclient, redisConfig)
-	default:
-		return nil, fmt.Errorf("unsupported connection type: %s", connType)
-	}
-}
-
-func (s *SourceBuilderProvider) NewBuilder(
-	connType bb_shared.ConnectionType,
-	jobType bb_shared.JobType,
-) (bb_shared.ConnectionBenthosBuilder, error) {
-	return getDefaultBuilder(connType, jobType, s.sqlmanagerclient, s.transformerclient, s.redisConfig)
-}
-
-type DestinationBuilderProvider struct {
-	sqlmanagerclient  sqlmanager.SqlManagerClient
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient
-	redisConfig       *shared.RedisConfig
-}
-
-func NewDestinationBuilderProvider(
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-) *DestinationBuilderProvider {
-	return &DestinationBuilderProvider{
-		sqlmanagerclient:  sqlmanagerclient,
-		transformerclient: transformerclient,
-		redisConfig:       redisConfig,
-	}
-}
-
-func (d *DestinationBuilderProvider) NewBuilder(
-	connType bb_shared.ConnectionType,
-	jobType bb_shared.JobType,
-) (bb_shared.ConnectionBenthosBuilder, error) {
-	return getDefaultBuilder(connType, jobType, d.sqlmanagerclient, d.transformerclient, d.redisConfig)
-}
-
-// Shared builder creation functions
-func newPostgresBuilder(
-	jobType bb_shared.JobType,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-) (bb_shared.ConnectionBenthosBuilder, error) {
-	switch jobType {
-	case bb_shared.JobTypeSync:
-		return bb_conns.NewPostgresSyncBuilder(transformerclient, sqlmanagerclient, redisConfig), nil
-	case bb_shared.JobTypeGenerate:
-		return bb_conns.NewPostgresGenerateBuilder(), nil
-	case bb_shared.JobTypeAIGenerate:
-		return bb_conns.NewPostgresAIGenerateBuilder(), nil
-	default:
-		return nil, fmt.Errorf("unsupported postgres job type: %s", jobType)
-	}
-}
-
-func NewWorkerBenthosConfigManager(
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-	metricsEnabled bool,
-) *BenthosConfigManager {
-	return &BenthosConfigManager{
-		sourceProvider: NewSourceBuilderProvider(
-			sqlmanagerclient,
-			transformerclient,
-			redisConfig,
-		),
-		destinationProvider: NewDestinationBuilderProvider(
-			sqlmanagerclient,
-			transformerclient,
-			redisConfig,
-		),
-		metricsEnabled: metricsEnabled,
-	}
-}
-
-func NewCliBenthosConfigManager(
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-	sourceJobRunId *string,
-	syncConfigs []*tabledependency.RunConfig,
-	destinationConnection *mgmtv1alpha1.Connection,
-) *BenthosConfigManager {
-	return &BenthosConfigManager{
-		sourceProvider: NewCliSourceBuilderProvider(connectiondataclient, sqlmanagerclient, sourceJobRunId, syncConfigs, destinationConnection),
-		destinationProvider: NewDestinationBuilderProvider(
-			sqlmanagerclient,
-			transformerclient,
-			redisConfig,
-		),
-	}
-}
-
-type CliSourceBuilderProvider struct {
-	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
-	sqlmanagerclient      sqlmanager.SqlManagerClient
-	sourceJobRunId        *string // when AWS S3 is the source
-	syncConfigs           []*tabledependency.RunConfig
-	destinationConnection *mgmtv1alpha1.Connection
-}
-
-func NewCliSourceBuilderProvider(
-	connectionclientdata mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	sourceJobRunId *string,
-	syncConfigs []*tabledependency.RunConfig,
-	destinationConnection *mgmtv1alpha1.Connection,
-) *CliSourceBuilderProvider {
-	return &CliSourceBuilderProvider{
-		connectiondataclient:  connectionclientdata,
-		sqlmanagerclient:      sqlmanagerclient,
-		sourceJobRunId:        sourceJobRunId,
-		syncConfigs:           syncConfigs,
-		destinationConnection: destinationConnection,
-	}
-}
-
-func (f *CliSourceBuilderProvider) NewBuilder(connType bb_shared.ConnectionType, jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
-	return bb_conns.NewNeosyncConnectionDataSyncBuilder(f.connectiondataclient, f.sqlmanagerclient, f.sourceJobRunId, f.syncConfigs, f.destinationConnection), nil
-}
-
 /* this should really be
 
 type BenthosConfigResponse struct {
@@ -208,4 +43,141 @@ type BenthosConfigResponse struct {
 	// primaryKeys []string
 
 	// metriclabels metrics.MetricLabels
+}
+
+// Creates a ConnectionBenthosBuilder
+type BenthosBuilders func(
+	jobType bb_shared.JobType,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	redisConfig *shared.RedisConfig,
+) (bb_shared.ConnectionBenthosBuilder, error)
+
+type BuilderKey struct {
+	ConnType bb_shared.ConnectionType
+	JobType  bb_shared.JobType
+}
+
+func (b *BuilderKey) String() string {
+	return fmt.Sprintf("%s.%s", b.JobType, b.ConnType)
+}
+
+// BuilderRegistry maintains a mapping of connection types to benthos builders
+type BuilderProvider struct {
+	builders map[string]bb_shared.ConnectionBenthosBuilder
+}
+
+// Creates a new BuilderRegistry with default builders registered
+func NewBuilderProvider() *BuilderProvider {
+	r := &BuilderProvider{
+		builders: make(map[string]bb_shared.ConnectionBenthosBuilder),
+	}
+	return r
+}
+
+func (r *BuilderProvider) Register(jobType bb_shared.JobType, connType bb_shared.ConnectionType, builder bb_shared.ConnectionBenthosBuilder) {
+	key := BuilderKey{ConnType: connType, JobType: jobType}
+	r.builders[key.String()] = builder
+}
+
+// Creates a new builder for the given connection and job type
+func (r *BuilderProvider) GetBuilder(
+	connType bb_shared.ConnectionType,
+	jobType bb_shared.JobType,
+) (bb_shared.ConnectionBenthosBuilder, error) {
+	key := BuilderKey{ConnType: connType, JobType: jobType}
+	builder, exists := r.builders[key.String()]
+	if !exists {
+		return nil, fmt.Errorf("unsupported connection type: %s", connType)
+	}
+	return builder, nil
+}
+
+func (b *BuilderProvider) registerStandardBuilders(
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	redisConfig *shared.RedisConfig,
+) {
+	// be smarter about registering these based on job
+	sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig)
+	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypePostgres, sqlbuilder)
+	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMysql, sqlbuilder)
+	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMssql, sqlbuilder)
+}
+
+type BenthosConfigManager struct {
+	sourceProvider      *BuilderProvider
+	destinationProvider *BuilderProvider
+	metricsEnabled      bool
+}
+
+func NewWorkerBenthosConfigManager(
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	redisConfig *shared.RedisConfig,
+	metricsEnabled bool,
+) *BenthosConfigManager {
+	fmt.Println()
+	fmt.Println("NEW WORKER BENTHOS CONFIG MANAGER")
+	fmt.Println()
+	provider := NewBuilderProvider()
+	provider.registerStandardBuilders(sqlmanagerclient, transformerclient, redisConfig)
+	return &BenthosConfigManager{
+		sourceProvider:      provider,
+		destinationProvider: provider,
+		metricsEnabled:      metricsEnabled,
+	}
+}
+
+func NewCliBenthosConfigManager(
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	redisConfig *shared.RedisConfig,
+	sourceJobRunId *string,
+	syncConfigs []*tabledependency.RunConfig,
+	destinationConnection *mgmtv1alpha1.Connection,
+) *BenthosConfigManager {
+	destinationProvider := NewBuilderProvider()
+	return &BenthosConfigManager{
+		sourceProvider: NewCliSourceBuilderProvider(
+			connectiondataclient,
+			sqlmanagerclient,
+			sourceJobRunId,
+			syncConfigs,
+			destinationConnection,
+		),
+		destinationProvider: destinationProvider,
+		metricsEnabled:      false,
+	}
+}
+
+// NewCliSourceBuilderProvider creates a specialized provider for CLI source operations
+func NewCliSourceBuilderProvider(
+	connectionclientdata mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	sourceJobRunId *string,
+	syncConfigs []*tabledependency.RunConfig,
+	destinationConnection *mgmtv1alpha1.Connection,
+) *BuilderProvider {
+	provider := NewBuilderProvider()
+
+	// Register CLI-specific builder constructor
+	builder := bb_conns.NewNeosyncConnectionDataSyncBuilder(
+		connectionclientdata,
+		sqlmanagerclient,
+		sourceJobRunId,
+		syncConfigs,
+		destinationConnection,
+	)
+
+	// be smarter about registering these based on job
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypePostgres, builder)
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMysql, builder)
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMssql, builder)
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeGCP, builder)
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeS3, builder)
+	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeDynamodb, builder)
+
+	return provider
 }

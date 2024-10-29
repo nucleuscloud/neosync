@@ -26,7 +26,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		"sourceConnectionType", sourceConnectionType,
 		"jobType", jobType,
 	)
-	dbBuilder, err := b.sourceProvider.NewBuilder(sourceConnectionType, jobType)
+	dbBuilder, err := b.sourceProvider.GetBuilder(sourceConnectionType, jobType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create benthos builder: %w", err)
 	}
@@ -53,7 +53,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	for destIdx, destConnection := range destinationConnections {
 		// Create destination builder
 		destConnectionType := bb_shared.GetConnectionType(destConnection)
-		destBuilder, err := b.destinationProvider.NewBuilder(destConnectionType, jobType)
+		destBuilder, err := b.destinationProvider.GetBuilder(destConnectionType, jobType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
 		}
