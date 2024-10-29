@@ -159,7 +159,7 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table()]
 		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table()]
 		colInfoMap := groupedColumnInfo[config.Table()]
-		tableColTransformers := colTransformerMap[config.Table()]
+		// tableColTransformers := colTransformerMap[config.Table()]
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
@@ -182,10 +182,10 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, config.InsertColumns(), colInfoMap, tableColTransformers)
-		if err != nil {
-			return nil, err
-		}
+		// columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, config.InsertColumns(), colInfoMap, tableColTransformers)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		configs = append(configs, &bb_shared.BenthosSourceConfig{
 			Name:           fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
@@ -196,11 +196,11 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 
 			BenthosDsns: []*benthosbuilder.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema:             mappings.Schema,
-			TableName:               mappings.Table,
-			Columns:                 config.InsertColumns(),
-			ColumnDefaultProperties: columnDefaultProperties,
-			PrimaryKeys:             config.PrimaryKeys(),
+			TableSchema: mappings.Schema,
+			TableName:   mappings.Table,
+			Columns:     config.InsertColumns(),
+			// ColumnDefaultProperties: columnDefaultProperties,
+			PrimaryKeys: config.PrimaryKeys(),
 
 			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -214,20 +214,39 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 }
 
 func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
+	logger := params.Logger
+	benthosConfig := params.SourceConfig
+	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
+
 	config := &bb_shared.BenthosDestinationConfig{}
 	driver, err := getSqlDriverFromConnection(params.DestConnection)
 	if err != nil {
 		return nil, err
 	}
 	// this should not be here
-	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+	sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 	var colInfoMap map[string]*sqlmanager_shared.ColumnInfo
-	colMap, ok := sqlSchemaColMap[neosync_benthos.BuildBenthosTable(params.SourceConfig.TableSchema, params.SourceConfig.TableName)]
+	colMap, ok := sqlSchemaColMap[tableKey]
 	if ok {
 		colInfoMap = colMap
 	}
-	benthosConfig := params.SourceConfig
-	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
+
+	colTransformerMap := b.colTransformerMap
+	if len(colTransformerMap) == 0 {
+		groupedMappings := groupMappingsByTable(params.Job.Mappings)
+		groupedTableMapping := getTableMappingsMap(groupedMappings)
+		colTMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
+		b.colTransformerMap = colTMap
+		colTransformerMap = colTMap
+	}
+
+	tableColTransformers := colTransformerMap[tableKey]
+
+	columnDefaultProperties, err := getColumnDefaultProperties(logger, driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
+	if err != nil {
+		return nil, err
+	}
+
 	destOpts := params.DestinationOpts
 	dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", params.DestinationIdx)
 	dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
@@ -317,7 +336,7 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
 						ColumnsDataTypes:         columnTypes,
-						ColumnDefaultProperties:  benthosConfig.ColumnDefaultProperties,
+						ColumnDefaultProperties:  columnDefaultProperties,
 						OnConflictDoNothing:      destOpts.GetPostgresOptions().GetOnConflict().GetDoNothing(),
 						SkipForeignKeyViolations: destOpts.GetPostgresOptions().GetSkipForeignKeyViolations(),
 						TruncateOnRetry:          destOpts.GetPostgresOptions().GetTruncateTable().GetTruncateBeforeInsert(),
@@ -382,17 +401,12 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 // if not uses source destination schema column info map
 func getSqlSchemaColumnMap(
 	ctx context.Context,
-	destination *mgmtv1alpha1.JobDestinationOptions,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	slogger *slog.Logger,
 ) map[string]map[string]*sqlmanager_shared.ColumnInfo {
 	schemaColMap := sourceSchemaColumnInfoMap
-	destOpts, err := shared.GetSqlJobDestinationOpts(destination)
-	if err != nil || destOpts.InitSchema {
-		return schemaColMap
-	}
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)

@@ -1,6 +1,7 @@
 package benthosbuilder_connections
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -395,6 +396,12 @@ func getColumnDefaultProperties(
 	colInfo map[string]*sqlmanager_shared.ColumnInfo,
 	colTransformers map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
+	fmt.Println("col defaults driver", driver, cols)
+	jsonF, _ := json.MarshalIndent(colInfo, "", " ")
+	fmt.Printf("colInfo: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(colTransformers, "", " ")
+	fmt.Printf("colTransformers: %s \n", string(jsonF))
+
 	colDefaults := map[string]*neosync_benthos.ColumnDefaultProperties{}
 	for _, cName := range cols {
 		info, ok := colInfo[cName]

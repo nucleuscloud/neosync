@@ -159,6 +159,10 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
+	if (sourceConnectionType == awsS3Connection || sourceConnectionType == gcpCloudStorageConnection) && cmd.Destination.InitSchema {
+		return errors.New("init schema is only supported when source is a SQL Database")
+	}
+
 	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}

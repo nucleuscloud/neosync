@@ -335,103 +335,112 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 	c.logger.Debug("Validated config")
 
 	c.logger.Info("Retrieving connection schema...")
-	var schemaConfig *schemaConfig
-	switch sourceConnectionType {
-	case awsS3Connection:
-		c.logger.Info("Building schema and table constraints...")
-		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
-		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-		}
-		s3Config := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
-				AwsS3Config: cfg,
-			},
-		}
+	// var schemaConfig *schemaConfig
+	// switch sourceConnectionType {
+	// case awsS3Connection:
+	// 	c.logger.Info("Building schema and table constraints...")
+	// 	var cfg *mgmtv1alpha1.AwsS3SchemaConfig
+	// 	if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+	// 		cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+	// 	} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+	// 		cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+	// 	}
+	// 	s3Config := &mgmtv1alpha1.ConnectionSchemaConfig{
+	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
+	// 			AwsS3Config: cfg,
+	// 		},
+	// 	}
 
-		schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, s3Config)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from s3.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case gcpCloudStorageConnection:
-		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
-		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-		}
+	// 	schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, s3Config)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(schemaCfg.Schemas) == 0 {
+	// 		c.logger.Warn("No tables found when building destination schema from s3.")
+	// 		return nil, nil
+	// 	}
+	// 	schemaConfig = schemaCfg
+	// case gcpCloudStorageConnection:
+	// 	var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+	// 	if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+	// 		cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+	// 	} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+	// 		cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+	// 	}
 
-		gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
-				GcpCloudstorageConfig: cfg,
-			},
-		}
+	// 	gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
+	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+	// 			GcpCloudstorageConfig: cfg,
+	// 		},
+	// 	}
 
-		schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, gcpConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from gcp cloud storage.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case mysqlConnection:
-		c.logger.Info("Building schema and table constraints...")
-		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
-				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, mysqlCfg)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from mysql.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case postgresConnection:
-		c.logger.Info("Building schema and table constraints...")
-		postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, postgresConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from postgres.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case awsDynamoDBConnection:
-		dynamoConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
-				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, dynamoConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from dynamodb.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	default:
-		return nil, fmt.Errorf("this connection type is not currently supported: %T", sourceConnectionType)
+	// 	schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, gcpConfig)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(schemaCfg.Schemas) == 0 {
+	// 		c.logger.Warn("No tables found when building destination schema from gcp cloud storage.")
+	// 		return nil, nil
+	// 	}
+	// 	schemaConfig = schemaCfg
+	// case mysqlConnection:
+	// 	c.logger.Info("Building schema and table constraints...")
+	// 	mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
+	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+	// 			MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+	// 		},
+	// 	}
+	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, mysqlCfg)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(schemaCfg.Schemas) == 0 {
+	// 		c.logger.Warn("No tables found when building destination schema from mysql.")
+	// 		return nil, nil
+	// 	}
+	// 	schemaConfig = schemaCfg
+	// case postgresConnection:
+	// 	c.logger.Info("Building schema and table constraints...")
+	// 	postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
+	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+	// 			PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+	// 		},
+	// 	}
+	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, postgresConfig)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(schemaCfg.Schemas) == 0 {
+	// 		c.logger.Warn("No tables found when building destination schema from postgres.")
+	// 		return nil, nil
+	// 	}
+	// 	schemaConfig = schemaCfg
+	// case awsDynamoDBConnection:
+	// 	dynamoConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
+	// 		Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
+	// 			DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+	// 		},
+	// 	}
+	// 	schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, dynamoConfig)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(schemaCfg.Schemas) == 0 {
+	// 		c.logger.Warn("No tables found when building destination schema from dynamodb.")
+	// 		return nil, nil
+	// 	}
+	// 	schemaConfig = schemaCfg
+	// default:
+	// 	return nil, fmt.Errorf("this connection type is not currently supported: %T", sourceConnectionType)
+	// }
+
+	schemaConfig, err := c.getConnectionSchemaConfig()
+	if err != nil {
+		return nil, err
+	}
+	if len(schemaConfig.Schemas) == 0 {
+		c.logger.Warn("No tables found when building schema from source")
+		return nil, nil
 	}
 
 	c.logger.Debug("Building sync configs")
@@ -483,6 +492,55 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 	groupedConfigs := groupConfigsByDependency(configs, c.logger)
 
 	return groupedConfigs, nil
+}
+
+func (c *clisync) getConnectionSchemaConfigByConnectionType(connection *mgmtv1alpha1.Connection) (*mgmtv1alpha1.ConnectionSchemaConfig, error) {
+	switch conn := connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
+				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+		}
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: cfg,
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
+		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+		}
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
+				AwsS3Config: cfg,
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
 }
 
 var (
@@ -879,7 +937,22 @@ type schemaConfig struct {
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
 
-func (c *clisync) getConnectionSchemaConfig(
+func (c *clisync) getConnectionSchemaConfig() (*schemaConfig, error) {
+	connSchemaCfg, err := c.getConnectionSchemaConfigByConnectionType(c.sourceConnection)
+	if err != nil {
+		return nil, err
+	}
+	switch conn := c.sourceConnection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return c.getSourceConnectionSchemaConfig(c.sourceConnection, connSchemaCfg)
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return c.getDestinationSchemaConfig(c.sourceConnection, connSchemaCfg)
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
+}
+
+func (c *clisync) getSourceConnectionSchemaConfig(
 	connection *mgmtv1alpha1.Connection,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 ) (*schemaConfig, error) {
@@ -956,25 +1029,47 @@ func (c *clisync) getConnectionSchemaConfig(
 }
 
 func (c *clisync) getDestinationSchemaConfig(
-	connection *mgmtv1alpha1.Connection,
+	sourceConnection *mgmtv1alpha1.Connection,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 ) (*schemaConfig, error) {
 	schemaResp, err := c.connectiondataclient.GetConnectionSchema(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		ConnectionId: connection.Id,
+		ConnectionId: sourceConnection.Id,
 		SchemaConfig: sc,
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve connection schema for connection: %w", err)
 	}
+	sourceSchemas := schemaResp.Msg.GetSchemas()
 
-	tableColMap := getTableColMap(schemaResp.Msg.GetSchemas())
+	destSchemas, err := c.getDestinationSchemas()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve destination connection schema for connection: %w", err)
+	}
+
+	tableColMap := getTableColMap(sourceSchemas)
 	if len(tableColMap) == 0 {
 		c.logger.Warn("no tables found after retrieving connection schema.")
 		return &schemaConfig{}, nil
 	}
 
+	hydratedSchemas := sourceSchemas
+	if len(destSchemas) != 0 {
+		hydratedSchemas = []*mgmtv1alpha1.DatabaseColumn{}
+		destColMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
+		for _, col := range destSchemas {
+			destColMap[fmt.Sprintf("%s.%s.%s", col.Schema, col.Table, col.Column)] = col
+		}
+		for _, col := range sourceSchemas {
+			destCol, ok := destColMap[fmt.Sprintf("%s.%s.%s", col.Schema, col.Table, col.Column)]
+			if ok {
+				col = destCol
+			}
+			hydratedSchemas = append(hydratedSchemas, col)
+		}
+	}
+
 	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp.Msg.GetSchemas() {
+	for _, s := range sourceSchemas {
 		schemaMap[s.Schema] = struct{}{}
 	}
 	schemas := []string{}
@@ -985,7 +1080,7 @@ func (c *clisync) getDestinationSchemaConfig(
 	c.logger.Info(fmt.Sprintf("Building table constraints for %d schemas...", len(schemas)))
 	tableConstraints, err := c.getDestinationTableConstraints(schemas)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build destination tablle constraints: %w", err)
+		return nil, fmt.Errorf("unable to build destination table constraints: %w", err)
 	}
 
 	primaryKeys := map[string]*mgmtv1alpha1.PrimaryConstraint{}
@@ -1022,7 +1117,7 @@ func (c *clisync) getDestinationSchemaConfig(
 	}
 
 	return &schemaConfig{
-		Schemas:                    schemaResp.Msg.GetSchemas(),
+		Schemas:                    hydratedSchemas,
 		TableConstraints:           tableConstraints.ForeignKeyConstraints,
 		TablePrimaryKeys:           primaryKeys,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
@@ -1044,4 +1139,40 @@ func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager
 	}
 
 	return constraints, nil
+}
+
+func (c *clisync) getDestinationSchemas() ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
+	defer cancel()
+	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(cctx, string(c.cmd.Destination.Driver), c.cmd.Destination.ConnectionUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	dbschema, err := db.Db.GetDatabaseSchema(cctx)
+	if err != nil {
+		return nil, err
+	}
+	schemas := []*mgmtv1alpha1.DatabaseColumn{}
+	for _, col := range dbschema {
+		col := col
+		var defaultColumn *string
+		if col.ColumnDefault != "" {
+			defaultColumn = &col.ColumnDefault
+		}
+
+		schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+			Schema:             col.TableSchema,
+			Table:              col.TableName,
+			Column:             col.ColumnName,
+			DataType:           col.DataType,
+			IsNullable:         col.IsNullable,
+			ColumnDefault:      defaultColumn,
+			GeneratedType:      col.GeneratedType,
+			IdentityGeneration: col.IdentityGeneration,
+		})
+	}
+
+	return schemas, nil
 }

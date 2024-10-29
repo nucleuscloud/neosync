@@ -183,7 +183,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 			return nil, err
 		}
 	}
-	driver = "postgres"
 
 	output := &pooledInsertOutput{
 		driver:                   driver,
@@ -301,10 +300,10 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 
-	insertQuery, args, err = querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
-	if err != nil {
-		return err
-	}
+	// insertQuery, args, err = querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
+	// if err != nil {
+	// 	return err
+	// }
 	fmt.Println()
 	fmt.Println(insertQuery)
 	fmt.Println()

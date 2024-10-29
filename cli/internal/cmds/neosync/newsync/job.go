@@ -1,6 +1,7 @@
 package newsync_cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,6 +14,8 @@ func createJob(
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchema []*mgmtv1alpha1.DatabaseColumn,
 ) (*mgmtv1alpha1.Job, error) {
+	jsonF, _ := json.MarshalIndent(sourceSchema, "", " ")
+	fmt.Printf("sourceSchema: %s \n", string(jsonF))
 	sourceConnOpts, err := toJobSourceOption(sourceConnection)
 	if err != nil {
 		return nil, err
@@ -93,7 +96,9 @@ func toTransformer(colInfo *mgmtv1alpha1.DatabaseColumn) *mgmtv1alpha1.JobMappin
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+					GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+				},
 			},
 		}
 	}
