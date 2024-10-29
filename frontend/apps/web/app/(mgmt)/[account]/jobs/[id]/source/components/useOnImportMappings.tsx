@@ -5,6 +5,7 @@ import {
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
 import { JobMapping, JobMappingTransformer } from '@neosync/sdk';
+import { toast } from 'sonner';
 
 interface Props {
   setMappings(mappings: JobMappingFormValues[]): void;
@@ -58,6 +59,7 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
         // Setting this here in a timeout so that the UI goes through a full render cycle prior to updating the values again
         setTimeout(() => {
           setMappings(formValues);
+          toast.success(`Successfully imported ${formValues.length} mappings!`);
         }, 0);
       } else {
         const existingValues = getMappings();
@@ -65,6 +67,7 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
         existingValues.forEach((jm, idx) => {
           existingValueMap[`${jm.schema}.${jm.table}.${jm.column}`] = idx;
         });
+        let numReplaced = 0;
 
         const toAdd: JobMappingFormValues[] = [];
         importedJobMappings.forEach((jm) => {
@@ -72,13 +75,15 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
           const key = `${jm.schema}.${jm.table}.${jm.column}`;
           const existingIdx = existingValueMap[key] as number | undefined;
           if (existingIdx != null) {
-            if (importConfig.overrideOverlapping)
+            if (importConfig.overrideOverlapping) {
+              numReplaced += 1;
               setTransformer(
                 existingIdx,
                 convertJobMappingTransformerToForm(
                   jm.transformer ?? new JobMappingTransformer()
                 )
               );
+            }
           } else {
             toAdd.push({
               schema: jm.schema,
@@ -93,12 +98,21 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
         if (toAdd.length > 0) {
           appendNewMappings(toAdd);
         }
-        setSelectedTables(newSelectedTables);
+        toast.success(buildOverlapMessage(numReplaced, toAdd.length));
       }
+      setSelectedTables(newSelectedTables);
       // wrapping this in a set timeout so the form can go through a render cycle prior to triggering the validation
       setTimeout(() => {
         triggerUpdate();
       }, 0);
     },
   };
+}
+
+function buildOverlapMessage(numReplaced: number, numAdded: number): string {
+  if (numReplaced === 0 && numAdded === 0) {
+    return 'Import succeeded but did not add or replace any new mappings.';
+  }
+
+  return `Import succeeded with ${numReplaced || 'no'} mappings replaced and ${numAdded || 'none'} added.`;
 }
