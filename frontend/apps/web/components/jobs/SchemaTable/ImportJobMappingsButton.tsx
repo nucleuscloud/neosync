@@ -11,6 +11,8 @@ import {
   ExclamationTriangleIcon,
   UploadIcon,
 } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { filesize } from 'filesize';
 import {
   ChangeEvent,
   DragEvent,
@@ -74,7 +76,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
           </Button>
         }
         headerText="Import Job Mappings"
-        description="This will import job mappings into the current job. Multiple files may be uploaded."
+        description="This will import job mappings into the current job. Multiple files may be uploaded. They will be processed in the descending order of their last modified time."
         body={
           <Body
             jobmappings={jmExtracted}
@@ -327,15 +329,15 @@ function Body(props: BodyProps): ReactElement {
           isChecked={truncateAll}
           onCheckedChange={setTruncateAll}
           title="Truncate existing mappings"
-          description="This will clear any currently configured mappings and import everything that was found in the files."
+          description="Start fresh and only use what was imported."
         />
       </div>
       <div>
         <SwitchCard
           isChecked={overrideOverlapping}
           onCheckedChange={setOverrideOverlapping}
-          title="Override any existing job mappings."
-          description="If enabled, will override any existing mappings found in the table. Otherwise, the import will only add new mappings not found."
+          title="Override existing mappings."
+          description="Will override any existing mappings found in the table. Otherwise, only import net new mappings."
         />
       </div>
       <div
@@ -374,9 +376,15 @@ function Body(props: BodyProps): ReactElement {
                   <div className="flex items-center">
                     <div className="ml-2">
                       <p className="text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                      <div className="flex flex-row gap-2">
+                        <p className="text-xs text-gray-500">
+                          {filesize(file.size)}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(file.lastModified), 'PPpp')}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
