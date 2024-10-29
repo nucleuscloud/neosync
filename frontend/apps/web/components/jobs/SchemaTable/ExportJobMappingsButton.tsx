@@ -6,11 +6,13 @@ import { ReactElement, useState } from 'react';
 
 interface Props {
   onClick(shouldFormat: boolean): void | Promise<void>;
+  count?: number;
 }
 
 export default function ExportJobMappingsButton(props: Props): ReactElement {
-  const { onClick } = props;
+  const { onClick, count } = props;
   const [prettyPrint, setPrettyPrint] = useState<boolean>(false);
+  const headerText = useHeaderText(count);
   return (
     <div>
       <ConfirmationDialog
@@ -19,7 +21,7 @@ export default function ExportJobMappingsButton(props: Props): ReactElement {
             <ButtonText text="Export" />
           </Button>
         }
-        headerText="Export Job Mappings"
+        headerText={headerText}
         description="This will export job mappings to a JSON file and save them to disk."
         body={
           <Body prettyPrint={prettyPrint} setPrettyPrint={setPrettyPrint} />
@@ -36,6 +38,19 @@ export default function ExportJobMappingsButton(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+const US_NUMBER_FORMAT = new Intl.NumberFormat('en-US');
+
+function useHeaderText(count?: number): string {
+  if (!count) {
+    return 'Export all Job Mappings';
+  }
+  return `Export ${getFormattedCount(count)} selected Job Mapping(s)`;
+}
+
+function getFormattedCount(count: number): string {
+  return US_NUMBER_FORMAT.format(count);
 }
 
 interface BodyProps {

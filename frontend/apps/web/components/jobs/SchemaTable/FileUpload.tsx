@@ -199,6 +199,7 @@ export function FileUpload<T>({
           processing={processing}
           processedData={processedData}
           removeFile={removeFile}
+          renderFileExtra={renderFileExtra}
         />
       </div>
     </div>
@@ -244,7 +245,7 @@ function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   {processing[file.name] && (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent" />
                   )}
@@ -257,14 +258,17 @@ function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
                   {!processing[file.name] &&
                     !errors[file.name] &&
                     renderFileExtra?.(file.name, processedData[file.name])}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(file)}
-                    className="text-gray-500 hover:text-red-500"
-                  >
-                    <IoCloseCircle className="w-4 h-4" />
-                  </Button>
+
+                  <div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(file)}
+                      className="text-gray-500 hover:text-red-500 p-0 px-1"
+                    >
+                      <IoCloseCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
               {errors[file.name] && (

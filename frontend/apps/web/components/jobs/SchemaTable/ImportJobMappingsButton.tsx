@@ -252,7 +252,6 @@ function Body(props: BodyProps): ReactElement {
   );
 
   const handleError = useCallback((fileName: string, error: string) => {
-    // Show toast error like in the original code
     toast.error(`Unable to process input as job mappings: ${error}`, {
       description: fileName,
     });
@@ -297,10 +296,17 @@ function Body(props: BodyProps): ReactElement {
         onSuccess={handleSuccess}
         onRemove={handleRemove}
         onError={handleError}
-        renderFileExtra={(_, data) => <span>{data?.length ?? 0}</span>}
+        renderFileExtra={(_, data) => (
+          <span>{getFormattedCount(data?.length ?? 0)}</span>
+        )}
       />
     </div>
   );
+}
+
+const US_NUMBER_FORMAT = new Intl.NumberFormat('en-US');
+function getFormattedCount(count: number): string {
+  return US_NUMBER_FORMAT.format(count);
 }
 
 function validateFileType(file: File): boolean {

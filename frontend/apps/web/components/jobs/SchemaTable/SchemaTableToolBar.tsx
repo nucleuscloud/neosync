@@ -227,7 +227,10 @@ export function SchemaTableToolbar<TData>({
             />
           )}
           <ImportJobMappingsButton onImport={onImportMappingsClick} />
-          <ExportJobMappingsButton onClick={onExportMappingsClick} />
+          <ExportJobMappingsButton
+            onClick={onExportMappingsClick}
+            count={table.getSelectedRowModel().rows.length}
+          />
           <SchemaTableViewOptions table={table} />
         </div>
       </div>
