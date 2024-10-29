@@ -68,7 +68,6 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformerHandler, constraintHandler, jobType } = props;
-  console.log('rebuilding schema columns');
   return [
     {
       accessorKey: 'isSelected',
