@@ -57,14 +57,8 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
         containerClassName="max-w-xl"
         buttonText="Import"
         onConfirm={() => {
-          // Sort the entires by last modified date oldest first
-          const sortedEntries = Object.entries(jmExtracted).sort(
-            ([, a], [, b]) => a.lastModified - b.lastModified
-          );
           onImport(
-            squashJobMappings(
-              sortedEntries.map(([, values]) => values.mappings)
-            ),
+            squashJobMappings(getSortedJobMappingsFromExtracted(jmExtracted)),
             {
               overrideOverlapping: overrideOverlapping,
               truncateAll: truncateAll,
@@ -77,6 +71,16 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+function getSortedJobMappingsFromExtracted(
+  input: Record<string, ExtractedJobMappings>
+): JobMapping[][] {
+  // Sort the entires by last modified date oldest first
+  const sortedEntries = Object.entries(input).sort(
+    ([, a], [, b]) => a.lastModified - b.lastModified
+  );
+  return sortedEntries.map(([, values]) => values.mappings);
 }
 
 function squashJobMappings(input: JobMapping[][]): JobMapping[] {
