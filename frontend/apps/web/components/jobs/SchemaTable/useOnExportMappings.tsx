@@ -5,7 +5,7 @@ import {
 import { JobMapping } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
-import { useFileDownload } from './useFileDownload';
+import { useJsonFileDownload } from '../../useJsonFileDownload';
 
 interface Props {
   jobMappings: JobMappingFormValues[];
@@ -20,7 +20,7 @@ interface UseOnExportMappingsResponse {
 
 export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
   const { jobMappings } = props;
-  const { downloadFile } = useFileDownload();
+  const { downloadFile } = useJsonFileDownload();
 
   return {
     onClick: async function (

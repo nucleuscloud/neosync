@@ -28,7 +28,9 @@ const WORKER_CODE = `
   }
 `;
 
-export function useFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
+/* Hook that provides ability to download a JSON file.
+ */
+export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
