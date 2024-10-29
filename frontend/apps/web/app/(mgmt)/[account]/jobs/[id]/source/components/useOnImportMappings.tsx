@@ -55,22 +55,12 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
         // any existing rows from the import that may have a different transformer are updated in the form, but not in
         // the UI until a full-refresh takes place (like switching browser tabs and then back again).
         setMappings([]);
-        // form.setValue('mappings', [], {
-        //   shouldDirty: true,
-        //   shouldTouch: true,
-        //   shouldValidate: false,
-        // });
         // Setting this here in a timeout so that the UI goes through a full render cycle prior to updating the values again
         setTimeout(() => {
           setMappings(formValues);
-          // form.setValue('mappings', formValues, {
-          //   shouldDirty: true,
-          //   shouldTouch: true,
-          //   shouldValidate: false,
-          // });
         }, 0);
       } else {
-        const existingValues = getMappings(); //form.getValues('mappings');
+        const existingValues = getMappings();
         const existingValueMap: Record<string, number> = {};
         existingValues.forEach((jm, idx) => {
           existingValueMap[`${jm.schema}.${jm.table}.${jm.column}`] = idx;
@@ -89,12 +79,6 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
                   jm.transformer ?? new JobMappingTransformer()
                 )
               );
-            // form.setValue(
-            //   `mappings.${existingIdx}.transformer`,
-            //   convertJobMappingTransformerToForm(
-            //     jm.transformer ?? new JobMappingTransformer()
-            //   )
-            // );
           } else {
             toAdd.push({
               schema: jm.schema,
