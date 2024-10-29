@@ -462,8 +462,29 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 
   const { onClick: onImportMappingsClick } = useOnImportMappings({
-    form,
-    appendMappings: append,
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
     setSelectedTables: setSelectedTables,
   });
 
