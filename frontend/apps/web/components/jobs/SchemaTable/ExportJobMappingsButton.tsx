@@ -22,7 +22,7 @@ export default function ExportJobMappingsButton(props: Props): ReactElement {
           </Button>
         }
         headerText={headerText}
-        description="This will export job mappings to a JSON file and save them to disk."
+        description="Export job mappings as a JSON file"
         body={
           <Body prettyPrint={prettyPrint} setPrettyPrint={setPrettyPrint} />
         }
@@ -67,7 +67,7 @@ function Body(props: BodyProps): ReactElement {
         isChecked={prettyPrint}
         onCheckedChange={setPrettyPrint}
         title="Format JSON"
-        description="Do you want to format the JSON prior to downloading the file? This will result in a larger overall file size."
+        description="Format JSON before download? (Will increase file size)"
       />
     </div>
   );
