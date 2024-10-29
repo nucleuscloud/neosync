@@ -1,4 +1,4 @@
-package benthosbuilder_connections
+package benthosbuilder_builders
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -40,7 +40,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 	sourceJobRunId *string,
 	syncConfigs []*tabledependency.RunConfig,
 	destinationConnection *mgmtv1alpha1.Connection,
-) bb_shared.ConnectionBenthosBuilder {
+) bb_internal.ConnectionBenthosBuilder {
 	return &neosyncConnectionDataBuilder{
 		connectiondataclient:  connectiondataclient,
 		sqlmanagerclient:      sqlmanagerclient,
@@ -50,11 +50,11 @@ func NewNeosyncConnectionDataSyncBuilder(
 	}
 }
 
-func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, params *bb_shared.SourceParams) ([]*bb_shared.BenthosSourceConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	logger := params.Logger
-	configs := []*bb_shared.BenthosSourceConfig{}
+	configs := []*bb_internal.BenthosSourceConfig{}
 	connectionType, err := getConnectionType(sourceConnection)
 	if err != nil {
 		return nil, err
@@ -99,13 +99,13 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 				},
 			},
 		}
-		configs = append(configs, &bb_shared.BenthosSourceConfig{
+		configs = append(configs, &bb_internal.BenthosSourceConfig{
 			Name:      fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
 			Config:    bc,
 			DependsOn: config.DependsOn(),
 			RunType:   config.RunType(),
 
-			BenthosDsns: []*benthosbuilder.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			TableSchema:             schema,
 			TableName:               table,
@@ -156,7 +156,7 @@ func (b *neosyncConnectionDataBuilder) getSqlDestinationColumnDefaultsByTable(
 	return tableColDefaults, nil
 }
 
-func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
 	return nil, errors.ErrUnsupported
 }
 

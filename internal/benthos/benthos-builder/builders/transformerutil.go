@@ -1,4 +1,4 @@
-package benthosbuilder_connections
+package benthosbuilder_builders
 
 import mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 

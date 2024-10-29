@@ -1,4 +1,4 @@
-package benthos_builder
+package benthosbuilder
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -20,8 +20,8 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	metricLabelKeyVals map[string]string,
 	logger *slog.Logger,
 ) ([]*BenthosConfigResponse, error) {
-	sourceConnectionType := bb_shared.GetConnectionType(sourceConnection)
-	jobType := bb_shared.GetJobType(job)
+	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
+	jobType := bb_internal.GetJobType(job)
 	logger = logger.With(
 		"sourceConnectionType", sourceConnectionType,
 		"jobType", jobType,
@@ -32,7 +32,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	}
 	logger.Debug(fmt.Sprintf("created source benthos builder for %s", sourceConnectionType))
 
-	sourceParams := &bb_shared.SourceParams{
+	sourceParams := &bb_internal.SourceParams{
 		Job:              job,
 		RunId:            runId,
 		SourceConnection: sourceConnection,
@@ -52,7 +52,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	responses := []*BenthosConfigResponse{}
 	for destIdx, destConnection := range destinationConnections {
 		// Create destination builder
-		destConnectionType := bb_shared.GetConnectionType(destConnection)
+		destConnectionType := bb_internal.GetConnectionType(destConnection)
 		destBuilder, err := b.destinationProvider.GetBuilder(destConnectionType, jobType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
@@ -65,7 +65,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		}
 
 		for _, sourceConfig := range sourceConfigs {
-			destParams := &bb_shared.DestinationParams{
+			destParams := &bb_internal.DestinationParams{
 				SourceConfig:    sourceConfig,
 				Job:             job,
 				RunId:           runId,
@@ -144,7 +144,7 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 	return destOpts
 }
 
-func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, sourceConnectionType bb_shared.ConnectionType) *BenthosConfigResponse {
+func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig, sourceConnectionType bb_internal.ConnectionType) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
 		Name:      sourceConfig.Name,
 		Config:    sourceConfig.Config,

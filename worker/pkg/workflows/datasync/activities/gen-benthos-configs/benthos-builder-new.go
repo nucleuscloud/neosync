@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"gopkg.in/yaml.v3"
 )
@@ -34,7 +34,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		}
 		destConnections = append(destConnections, destinationConnection)
 	}
-	benthosManager := benthos_builder.NewWorkerBenthosConfigManager(b.sqlmanagerclient, b.transformerclient, b.redisConfig, false)
+	benthosManager := benthosbuilder.NewWorkerBenthosConfigManager(b.sqlmanagerclient, b.transformerclient, b.redisConfig, false)
 	responses, err := benthosManager.GenerateBenthosConfigs(ctx, job, sourceConnection, destConnections, wfmetadata.WorkflowId, nil, slogger)
 	if err != nil {
 		return nil, err
@@ -53,9 +53,9 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 // this method modifies the input responses by nilling out the benthos config. it returns the same slice for convenience
 func (b *benthosBuilder) setRunContextsNew(
 	ctx context.Context,
-	responses []*benthos_builder.BenthosConfigResponse,
+	responses []*benthosbuilder.BenthosConfigResponse,
 	accountId string,
-) ([]*benthos_builder.BenthosConfigResponse, error) {
+) ([]*benthosbuilder.BenthosConfigResponse, error) {
 	rcstream := b.jobclient.SetRunContexts(ctx)
 
 	for _, config := range responses {

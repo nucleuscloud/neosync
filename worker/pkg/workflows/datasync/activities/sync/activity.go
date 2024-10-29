@@ -21,7 +21,7 @@ import (
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
 	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/mongo"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
@@ -56,7 +56,7 @@ type SyncMetadata struct {
 type SyncRequest struct {
 	// Deprecated
 	BenthosConfig string
-	BenthosDsns   []*benthosbuilder.BenthosDsn
+	BenthosDsns   []*benthosbuilder_shared.BenthosDsn
 	// Identifier that is used in combination with the AccountId to retrieve the benthos config
 	Name      string
 	AccountId string
@@ -341,7 +341,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 func getConnectionsFromBenthosDsns(
 	ctx context.Context,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	dsns []*benthosbuilder.BenthosDsn,
+	dsns []*benthosbuilder_shared.BenthosDsn,
 ) ([]*mgmtv1alpha1.Connection, error) {
 	connections := make([]*mgmtv1alpha1.Connection, len(dsns))
 

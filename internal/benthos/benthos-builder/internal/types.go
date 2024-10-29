@@ -1,4 +1,4 @@
-package benthosbuilder_shared
+package benthosbuilder_internal
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -132,8 +132,8 @@ type BenthosSourceConfig struct {
 	RedisDependsOn          map[string][]string
 	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 	Processors              []*neosync_benthos.ProcessorConfig
-	BenthosDsns             []*benthosbuilder.BenthosDsn
-	RedisConfig             []*benthosbuilder.BenthosRedisConfig
+	BenthosDsns             []*bb_shared.BenthosDsn
+	RedisConfig             []*bb_shared.BenthosRedisConfig
 	PrimaryKeys             []string
 	Metriclabels            metrics.MetricLabels
 }
@@ -141,5 +141,5 @@ type BenthosSourceConfig struct {
 // BenthosDestinationConfig represents a Benthos destination configuration
 type BenthosDestinationConfig struct {
 	Outputs     []neosync_benthos.Outputs
-	BenthosDsns []*benthosbuilder.BenthosDsn
+	BenthosDsns []*bb_shared.BenthosDsn
 }

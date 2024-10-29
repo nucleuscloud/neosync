@@ -27,7 +27,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
-	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
@@ -318,7 +318,7 @@ func (c *clisync) configureAndRunSync() error {
 	return runSync(c.ctx, *c.cmd.OutputType, c.benv, groupedConfigs, c.logger)
 }
 
-func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, error) {
+func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, error) {
 
 	sourceConnectionType, err := getConnectionType(c.sourceConnection)
 	if err != nil {
@@ -367,7 +367,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 	if c.cmd.Source.ConnectionOpts != nil {
 		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
 	}
-	bm := benthos_builder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, jobRunId, syncConfigs, c.destinationConnection)
+	bm := benthosbuilder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, jobRunId, syncConfigs, c.destinationConnection)
 	configs, err := bm.GenerateBenthosConfigs(
 		c.ctx,
 		job,
@@ -443,7 +443,7 @@ var (
 	streamBuilderMu syncmap.Mutex
 )
 
-func syncData(ctx context.Context, benv *service.Environment, cfg *benthos_builder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
+func syncData(ctx context.Context, benv *service.Environment, cfg *benthosbuilder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err

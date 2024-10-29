@@ -1,4 +1,4 @@
-package benthosbuilder_connections
+package benthosbuilder_builders
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
@@ -28,8 +28,8 @@ func buildProcessorConfigsByRunType(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	config *tabledependency.RunConfig,
-	columnForeignKeysMap map[string][]*bb_shared.ReferenceKey,
-	transformedFktoPkMap map[string][]*bb_shared.ReferenceKey,
+	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
@@ -75,7 +75,7 @@ func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
-	transformedFktoPkMap map[string][]*bb_shared.ReferenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	for fkCol, pks := range transformedFktoPkMap {
@@ -125,7 +125,7 @@ func buildProcessorConfigs(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
-	transformedFktoPkMap map[string][]*bb_shared.ReferenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
@@ -317,7 +317,7 @@ func generateSha1Hash(input string) string {
 
 func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
-	transformedFktoPkMap map[string][]*bb_shared.ReferenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {

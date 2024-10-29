@@ -1,4 +1,4 @@
-package benthosbuilder
+package benthosbuilder_shared
 
 // Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
 type BenthosDsn struct {

@@ -1,4 +1,4 @@
-package benthosbuilder_connections
+package benthosbuilder_builders
 
 import (
 	"fmt"

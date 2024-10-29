@@ -1,4 +1,4 @@
-package benthos_builder
+package benthosbuilder
 
 import (
 	"fmt"
@@ -7,9 +7,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/connections"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
+	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -37,8 +37,8 @@ type BenthosConfigResponse struct {
 	// SourceConnectionType    string // used for logging
 
 	// Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*benthosbuilder.BenthosDsn
-	RedisConfig []*benthosbuilder.BenthosRedisConfig
+	BenthosDsns []*bb_shared.BenthosDsn
+	RedisConfig []*bb_shared.BenthosRedisConfig
 
 	// primaryKeys []string
 
@@ -47,15 +47,15 @@ type BenthosConfigResponse struct {
 
 // Creates a ConnectionBenthosBuilder
 type BenthosBuilders func(
-	jobType bb_shared.JobType,
+	jobType bb_internal.JobType,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	redisConfig *shared.RedisConfig,
-) (bb_shared.ConnectionBenthosBuilder, error)
+) (bb_internal.ConnectionBenthosBuilder, error)
 
 type BuilderKey struct {
-	ConnType bb_shared.ConnectionType
-	JobType  bb_shared.JobType
+	ConnType bb_internal.ConnectionType
+	JobType  bb_internal.JobType
 }
 
 func (b *BuilderKey) String() string {
@@ -64,27 +64,27 @@ func (b *BuilderKey) String() string {
 
 // BuilderRegistry maintains a mapping of connection types to benthos builders
 type BuilderProvider struct {
-	builders map[string]bb_shared.ConnectionBenthosBuilder
+	builders map[string]bb_internal.ConnectionBenthosBuilder
 }
 
 // Creates a new BuilderRegistry with default builders registered
 func NewBuilderProvider() *BuilderProvider {
 	r := &BuilderProvider{
-		builders: make(map[string]bb_shared.ConnectionBenthosBuilder),
+		builders: make(map[string]bb_internal.ConnectionBenthosBuilder),
 	}
 	return r
 }
 
-func (r *BuilderProvider) Register(jobType bb_shared.JobType, connType bb_shared.ConnectionType, builder bb_shared.ConnectionBenthosBuilder) {
+func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_internal.ConnectionType, builder bb_internal.ConnectionBenthosBuilder) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 	r.builders[key.String()] = builder
 }
 
 // Creates a new builder for the given connection and job type
 func (r *BuilderProvider) GetBuilder(
-	connType bb_shared.ConnectionType,
-	jobType bb_shared.JobType,
-) (bb_shared.ConnectionBenthosBuilder, error) {
+	connType bb_internal.ConnectionType,
+	jobType bb_internal.JobType,
+) (bb_internal.ConnectionBenthosBuilder, error) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 	builder, exists := r.builders[key.String()]
 	if !exists {
@@ -100,9 +100,9 @@ func (b *BuilderProvider) registerStandardBuilders(
 ) {
 	// be smarter about registering these based on job
 	sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig)
-	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypePostgres, sqlbuilder)
-	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMysql, sqlbuilder)
-	b.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMssql, sqlbuilder)
+	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypePostgres, sqlbuilder)
+	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMysql, sqlbuilder)
+	b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMssql, sqlbuilder)
 }
 
 type BenthosConfigManager struct {
@@ -172,12 +172,12 @@ func NewCliSourceBuilderProvider(
 	)
 
 	// be smarter about registering these based on job
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypePostgres, builder)
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMysql, builder)
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeMssql, builder)
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeGCP, builder)
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeS3, builder)
-	provider.Register(bb_shared.JobTypeSync, bb_shared.ConnectionTypeDynamodb, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypePostgres, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMysql, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMssql, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeGCP, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeS3, builder)
+	provider.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeDynamodb, builder)
 
 	return provider
 }

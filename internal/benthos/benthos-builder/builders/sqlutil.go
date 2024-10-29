@@ -1,4 +1,4 @@
-package benthosbuilder_connections
+package benthosbuilder_builders
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -310,16 +310,16 @@ func filterForeignKeysMap(
 }
 
 // map of table primary key cols to foreign key cols
-func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string][]*bb_shared.ReferenceKey {
-	tc := map[string]map[string][]*bb_shared.ReferenceKey{} // schema.table -> column -> ForeignKey
+func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string][]*bb_internal.ReferenceKey {
+	tc := map[string]map[string][]*bb_internal.ReferenceKey{} // schema.table -> column -> ForeignKey
 	for table, constraints := range tableDependencies {
 		for _, c := range constraints {
 			_, ok := tc[c.ForeignKey.Table]
 			if !ok {
-				tc[c.ForeignKey.Table] = map[string][]*bb_shared.ReferenceKey{}
+				tc[c.ForeignKey.Table] = map[string][]*bb_internal.ReferenceKey{}
 			}
 			for idx, col := range c.ForeignKey.Columns {
-				tc[c.ForeignKey.Table][col] = append(tc[c.ForeignKey.Table][col], &bb_shared.ReferenceKey{
+				tc[c.ForeignKey.Table][col] = append(tc[c.ForeignKey.Table][col], &bb_internal.ReferenceKey{
 					Table:  table,
 					Column: c.Columns[idx],
 				})
@@ -329,7 +329,7 @@ func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_share
 	return tc
 }
 
-func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) *bb_shared.ReferenceKey {
+func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) *bb_internal.ReferenceKey {
 	// Add the foreign key dependencies of the current table
 	if foreignKeys, ok := tableDependencies[tableName]; ok {
 		for _, fk := range foreignKeys {
@@ -341,7 +341,7 @@ func findTopForeignKeySource(tableName, col string, tableDependencies map[string
 			}
 		}
 	}
-	return &bb_shared.ReferenceKey{
+	return &bb_internal.ReferenceKey{
 		Table:  tableName,
 		Column: col,
 	}
@@ -349,11 +349,11 @@ func findTopForeignKeySource(tableName, col string, tableDependencies map[string
 
 // builds schema.table -> FK column ->  PK schema table column
 // find top level primary key column if foreign keys are nested
-func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string]*bb_shared.ReferenceKey {
-	outputMap := map[string]map[string]*bb_shared.ReferenceKey{}
+func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string]*bb_internal.ReferenceKey {
+	outputMap := map[string]map[string]*bb_internal.ReferenceKey{}
 	for tableName, constraints := range tableDeps {
 		if _, ok := outputMap[tableName]; !ok {
-			outputMap[tableName] = map[string]*bb_shared.ReferenceKey{}
+			outputMap[tableName] = map[string]*bb_internal.ReferenceKey{}
 		}
 		for _, con := range constraints {
 			for _, col := range con.Columns {
@@ -368,14 +368,14 @@ func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignC
 func getTransformedFksMap(
 	tabledependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
-) map[string]map[string][]*bb_shared.ReferenceKey {
+) map[string]map[string][]*bb_internal.ReferenceKey {
 	foreignKeyToSourceMap := buildForeignKeySourceMap(tabledependencies)
 	// filter this list by table constraints that has transformer
-	transformedForeignKeyToSourceMap := map[string]map[string][]*bb_shared.ReferenceKey{} // schema.table -> column -> foreignKey
+	transformedForeignKeyToSourceMap := map[string]map[string][]*bb_internal.ReferenceKey{} // schema.table -> column -> foreignKey
 	for table, constraints := range foreignKeyToSourceMap {
 		_, ok := transformedForeignKeyToSourceMap[table]
 		if !ok {
-			transformedForeignKeyToSourceMap[table] = map[string][]*bb_shared.ReferenceKey{}
+			transformedForeignKeyToSourceMap[table] = map[string][]*bb_internal.ReferenceKey{}
 		}
 		for col, tc := range constraints {
 			// only add constraint if foreign key has transformer
@@ -427,7 +427,7 @@ func getColumnDefaultProperties(
 	return colDefaults, nil
 }
 
-func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_shared.ReferenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
+func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_internal.ReferenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
 	for col, fks := range transformedForeignKeyToSourceMap {
 		if !slices.Contains(runconfig.InsertColumns(), col) {

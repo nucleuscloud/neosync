@@ -12,7 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/nucleuscloud/neosync/cli/internal/output"
-	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
@@ -29,7 +29,7 @@ type model struct {
 	ctx              context.Context
 	logger           *slog.Logger
 	benv             *service.Environment
-	groupedConfigs   [][]*benthos_builder.BenthosConfigResponse
+	groupedConfigs   [][]*benthosbuilder.BenthosConfigResponse
 	tableSynced      int
 	index            int
 	width            int
@@ -51,7 +51,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthos_builder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
+func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -137,7 +137,7 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, configs []*benthos_builder.BenthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(ctx context.Context, configs []*benthosbuilder.BenthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -180,7 +180,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthos_builder.Bent
 	}
 }
 
-func getConfigCount(groupedConfigs [][]*benthos_builder.BenthosConfigResponse) int {
+func getConfigCount(groupedConfigs [][]*benthosbuilder.BenthosConfigResponse) int {
 	count := 0
 	for _, group := range groupedConfigs {
 		for _, config := range group {
@@ -192,7 +192,7 @@ func getConfigCount(groupedConfigs [][]*benthos_builder.BenthosConfigResponse) i
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthos_builder.BenthosConfigResponse, logger *slog.Logger) error {
+func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) error {
 	var opts []tea.ProgramOption
 	var synclogger = logger
 	if outputType == output.PlainOutput {
