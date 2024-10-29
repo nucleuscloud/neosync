@@ -68,7 +68,8 @@ func GetJobType(job *mgmtv1alpha1.Job) JobType {
 		*mgmtv1alpha1.JobSourceOptions_Mysql,
 		*mgmtv1alpha1.JobSourceOptions_Mssql,
 		*mgmtv1alpha1.JobSourceOptions_Mongodb,
-		*mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		*mgmtv1alpha1.JobSourceOptions_Dynamodb,
+		*mgmtv1alpha1.JobSourceOptions_AwsS3:
 		return JobTypeSync
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		return JobTypeGenerate

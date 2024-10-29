@@ -55,29 +55,50 @@ func toJobSourceOption(sourceConnection *mgmtv1alpha1.Connection) (*mgmtv1alpha1
 				},
 			},
 		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_AwsS3{
+				AwsS3: &mgmtv1alpha1.AwsS3SourceConnectionOptions{
+					ConnectionId: sourceConnection.Id,
+				},
+			},
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported connection type")
 	}
 }
 
+// if is generated and not idenity then set to generate default
 func toJobMappings(sourceSchema []*mgmtv1alpha1.DatabaseColumn) []*mgmtv1alpha1.JobMapping {
 	mappings := []*mgmtv1alpha1.JobMapping{}
 
 	for _, colInfo := range sourceSchema {
 		mappings = append(mappings, &mgmtv1alpha1.JobMapping{
-			Schema: colInfo.Schema,
-			Table:  colInfo.Table,
-			Column: colInfo.Column,
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-					},
-				},
-			},
+			Schema:      colInfo.Schema,
+			Table:       colInfo.Table,
+			Column:      colInfo.Column,
+			Transformer: toTransformer(colInfo),
 		})
 	}
 
 	return mappings
+}
+
+func toTransformer(colInfo *mgmtv1alpha1.DatabaseColumn) *mgmtv1alpha1.JobMappingTransformer {
+	if colInfo.GeneratedType != nil && colInfo.GetGeneratedType() != "" {
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
+			},
+		}
+	}
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		},
+	}
 }
