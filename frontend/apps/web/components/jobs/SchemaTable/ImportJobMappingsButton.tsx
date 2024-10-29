@@ -44,7 +44,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
           </Button>
         }
         headerText="Import Job Mappings"
-        description="This will import job mappings into the current job. Multiple files may be uploaded. They will be processed in the descending order of their last modified time."
+        description="Multiple files may be uploaded. (Oldest first)"
         body={
           <Body
             setJobMappings={setJmExtracted}
