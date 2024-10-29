@@ -33,7 +33,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
     Record<string, ExtractedJobMappings>
   >({});
   const [truncateAll, setTruncateAll] = useState(false);
-  const [overrideOverallping, setOverrideOverlapping] = useState(false);
+  const [overrideOverlapping, setOverrideOverlapping] = useState(false);
   return (
     <div>
       <ConfirmationDialog
@@ -47,7 +47,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
         body={
           <Body
             setJobMappings={setJmExtracted}
-            overrideOverlapping={overrideOverallping}
+            overrideOverlapping={overrideOverlapping}
             setOverrideOverlapping={setOverrideOverlapping}
             truncateAll={truncateAll}
             setTruncateAll={setTruncateAll}
@@ -65,7 +65,7 @@ export default function ImportJobMappingsButton(props: Props): ReactElement {
               sortedEntries.map(([, values]) => values.mappings)
             ),
             {
-              overrideOverlapping: overrideOverallping,
+              overrideOverlapping: overrideOverlapping,
               truncateAll: truncateAll,
             }
           );
