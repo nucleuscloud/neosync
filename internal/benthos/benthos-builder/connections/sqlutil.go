@@ -445,3 +445,94 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_sh
 	}
 	return redisDependsOnMap
 }
+
+func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
+	switch conn.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return sqlmanager_shared.PostgresDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return sqlmanager_shared.MysqlDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return sqlmanager_shared.MssqlDriver, nil
+	default:
+		return "", fmt.Errorf("unsupported sql connection config")
+	}
+}
+
+func getSqlJobSourceOpts(
+	source *mgmtv1alpha1.JobSource,
+) (*sqlJobSourceOpts, error) {
+	switch jobSourceConfig := source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		if jobSourceConfig.Postgres == nil {
+			return nil, nil
+		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Postgres.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Postgres.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		if jobSourceConfig.Mysql == nil {
+			return nil, nil
+		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Mysql.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		if jobSourceConfig.Mssql == nil {
+			return nil, nil
+		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Mssql.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Mssql.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
+	}
+}

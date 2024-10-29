@@ -243,6 +243,7 @@ func (c *clisync) configureAndRunSync() error {
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
+
 	dsnToConnIdMap := &syncmap.Map{}
 	var sqlDsn string
 	if c.cmd.Destination != nil {

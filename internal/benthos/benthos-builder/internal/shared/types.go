@@ -7,6 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -117,12 +118,6 @@ type DestinationParams struct {
 	Logger          *slog.Logger
 }
 
-type BenthosRedisConfig struct {
-	Key    string
-	Table  string // schema.table
-	Column string
-}
-
 // BenthosSourceConfig represents a Benthos source configuration
 type BenthosSourceConfig struct {
 	Config                  *neosync_benthos.BenthosConfig
@@ -135,8 +130,8 @@ type BenthosSourceConfig struct {
 	RedisDependsOn          map[string][]string
 	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 	Processors              []*neosync_benthos.ProcessorConfig
-	BenthosDsns             []*BenthosDsn
-	RedisConfig             []*BenthosRedisConfig
+	BenthosDsns             []*benthosbuilder.BenthosDsn
+	RedisConfig             []*benthosbuilder.BenthosRedisConfig
 	PrimaryKeys             []string
 	Metriclabels            metrics.MetricLabels
 }
@@ -144,12 +139,5 @@ type BenthosSourceConfig struct {
 // BenthosDestinationConfig represents a Benthos destination configuration
 type BenthosDestinationConfig struct {
 	Outputs     []neosync_benthos.Outputs
-	BenthosDsns []*BenthosDsn
-}
-
-// Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
-type BenthosDsn struct {
-	EnvVarKey string
-	// Neosync Connection Id
-	ConnectionId string
+	BenthosDsns []*benthosbuilder.BenthosDsn
 }

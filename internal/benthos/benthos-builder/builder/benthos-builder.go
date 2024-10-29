@@ -3,10 +3,11 @@ package benthos_builder
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/connections"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -53,7 +54,7 @@ func getDefaultBuilder(
 	case bb_shared.ConnectionTypePostgres:
 		return newPostgresBuilder(jobType, sqlmanagerclient, transformerclient, redisConfig)
 	case bb_shared.ConnectionTypeMysql:
-		return newMysqlBuilder(jobType)
+		return newPostgresBuilder(jobType, sqlmanagerclient, transformerclient, redisConfig)
 	default:
 		return nil, fmt.Errorf("unsupported connection type: %s", connType)
 	}
@@ -110,19 +111,6 @@ func newPostgresBuilder(
 	}
 }
 
-func newMysqlBuilder(jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
-	switch jobType {
-	case bb_shared.JobTypeSync:
-		return bb_conns.NewMysqlSyncBuilder(), nil
-	// case bb_shared.JobTypeGenerate:
-	// 	return bb_conns.NewMysqlGenerateBuilder(), nil
-	// case bb_shared.JobTypeAIGenerate:
-	// 	return bb_conns.NewMysqlAIGenerateBuilder(), nil
-	default:
-		return nil, fmt.Errorf("unsupported mysql job type: %s", jobType)
-	}
-}
-
 func NewWorkerBenthosConfigManager(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
@@ -149,9 +137,12 @@ func NewCliBenthosConfigManager(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	redisConfig *shared.RedisConfig,
+	sourceJobRunId *string,
+	syncConfigs []*tabledependency.RunConfig,
+	destinationConnection *mgmtv1alpha1.Connection,
 ) *BenthosConfigManager {
 	return &BenthosConfigManager{
-		sourceProvider: NewCliSourceBuilderProvider(connectiondataclient),
+		sourceProvider: NewCliSourceBuilderProvider(connectiondataclient, sqlmanagerclient, sourceJobRunId, syncConfigs, destinationConnection),
 		destinationProvider: NewDestinationBuilderProvider(
 			sqlmanagerclient,
 			transformerclient,
@@ -161,16 +152,31 @@ func NewCliBenthosConfigManager(
 }
 
 type CliSourceBuilderProvider struct {
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
+	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
+	sqlmanagerclient      sqlmanager.SqlManagerClient
+	sourceJobRunId        *string // when AWS S3 is the source
+	syncConfigs           []*tabledependency.RunConfig
+	destinationConnection *mgmtv1alpha1.Connection
 }
 
-func NewCliSourceBuilderProvider(client mgmtv1alpha1connect.ConnectionDataServiceClient) *CliSourceBuilderProvider {
-	return &CliSourceBuilderProvider{connectiondataclient: client}
+func NewCliSourceBuilderProvider(
+	connectionclientdata mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	sourceJobRunId *string,
+	syncConfigs []*tabledependency.RunConfig,
+	destinationConnection *mgmtv1alpha1.Connection,
+) *CliSourceBuilderProvider {
+	return &CliSourceBuilderProvider{
+		connectiondataclient:  connectionclientdata,
+		sqlmanagerclient:      sqlmanagerclient,
+		sourceJobRunId:        sourceJobRunId,
+		syncConfigs:           syncConfigs,
+		destinationConnection: destinationConnection,
+	}
 }
 
 func (f *CliSourceBuilderProvider) NewBuilder(connType bb_shared.ConnectionType, jobType bb_shared.JobType) (bb_shared.ConnectionBenthosBuilder, error) {
-	// Always return the connection data stream builder for CLI
-	return bb_conns.NewNeosyncConnectionDataSyncBuilder(f.connectiondataclient), nil
+	return bb_conns.NewNeosyncConnectionDataSyncBuilder(f.connectiondataclient, f.sqlmanagerclient, f.sourceJobRunId, f.syncConfigs, f.destinationConnection), nil
 }
 
 /* this should really be
@@ -184,24 +190,24 @@ type BenthosConfigResponse struct {
 */
 
 type BenthosConfigResponse struct {
-	Name                    string
-	DependsOn               []*tabledependency.DependsOn
-	RunType                 tabledependency.RunType
-	Config                  *neosync_benthos.BenthosConfig
-	TableSchema             string
-	TableName               string
-	Columns                 []string
-	RedisDependsOn          map[string][]string
-	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
-	SourceConnectionType    string // used for logging
+	Name      string
+	DependsOn []*tabledependency.DependsOn
+	// RunType                 tabledependency.RunType
+	Config         *neosync_benthos.BenthosConfig
+	TableSchema    string
+	TableName      string
+	Columns        []string
+	RedisDependsOn map[string][]string
+	// ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
+	// SourceConnectionType    string // used for logging
 
-	Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*bb_shared.BenthosDsn
-	RedisConfig []*bb_shared.BenthosRedisConfig
+	// Processors  []*neosync_benthos.ProcessorConfig
+	BenthosDsns []*benthosbuilder.BenthosDsn
+	RedisConfig []*benthosbuilder.BenthosRedisConfig
 
-	primaryKeys []string
+	// primaryKeys []string
 
-	metriclabels metrics.MetricLabels
+	// metriclabels metrics.MetricLabels
 }
 
 // type BenthosConfigManager interface {

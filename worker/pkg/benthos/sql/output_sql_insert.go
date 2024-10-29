@@ -183,6 +183,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 			return nil, err
 		}
 	}
+	driver = "postgres"
 
 	output := &pooledInsertOutput{
 		driver:                   driver,
@@ -298,6 +299,10 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return err
 	}
+	// insertQuery, args, err := querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
+	// if err != nil {
+	// 	return err
+	// }
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))

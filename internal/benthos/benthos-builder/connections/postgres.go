@@ -13,6 +13,7 @@ import (
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
@@ -53,7 +54,7 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 	job := params.Job
 	logger := params.Logger
 
-	sqlSourceOpts, err := getPostgresJobSourceOpts(job.Source)
+	sqlSourceOpts, err := getSqlJobSourceOpts(job.Source)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +194,7 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
 			RunType:        config.RunType(),
 
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*benthosbuilder.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			TableSchema:             mappings.Schema,
 			TableName:               mappings.Table,
@@ -212,34 +213,6 @@ func (b *postgresSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 	return configs, nil
 }
 
-func getPostgresJobSourceOpts(
-	source *mgmtv1alpha1.JobSource,
-) (*sqlJobSourceOpts, error) {
-	postgresSourceConfig := source.GetOptions().GetPostgres()
-	if postgresSourceConfig == nil {
-		return nil, fmt.Errorf("postgrest job source options missing")
-	}
-	schemaOpt := []*schemaOptions{}
-	for _, opt := range postgresSourceConfig.GetSchemas() {
-		tableOpts := []*tableOptions{}
-		for _, t := range opt.GetTables() {
-			tableOpts = append(tableOpts, &tableOptions{
-				Table:       t.Table,
-				WhereClause: t.WhereClause,
-			})
-		}
-		schemaOpt = append(schemaOpt, &schemaOptions{
-			Schema: opt.GetSchema(),
-			Tables: tableOpts,
-		})
-	}
-	return &sqlJobSourceOpts{
-		HaltOnNewColumnAddition:       postgresSourceConfig.GetHaltOnNewColumnAddition(),
-		SubsetByForeignKeyConstraints: postgresSourceConfig.GetSubsetByForeignKeyConstraints(),
-		SchemaOpt:                     schemaOpt,
-	}, nil
-}
-
 func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_shared.DestinationParams) (*bb_shared.BenthosDestinationConfig, error) {
 	config := &bb_shared.BenthosDestinationConfig{}
 	// this should not be here
@@ -254,7 +227,7 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 	destOpts := params.DestinationOpts
 	dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", params.DestinationIdx)
 	dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &benthosbuilder.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
 		args = append(args, benthosConfig.PrimaryKeys...)
@@ -310,7 +283,7 @@ func (b *postgresSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 					},
 				})
-				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &bb_shared.BenthosRedisConfig{
+				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &benthosbuilder.BenthosRedisConfig{
 					Key:    hashedKey,
 					Table:  tableKey,
 					Column: col,

@@ -34,7 +34,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		}
 		destConnections = append(destConnections, destinationConnection)
 	}
-	benthosManager := benthos_builder.NewBenthosConfigManager(b.sqlmanagerclient, b.transformerclient, b.redisConfig, false)
+	benthosManager := benthos_builder.NewWorkerBenthosConfigManager(b.sqlmanagerclient, b.transformerclient, b.redisConfig, false)
 	responses, err := benthosManager.GenerateBenthosConfigs(ctx, job, sourceConnection, destConnections, wfmetadata.WorkflowId, nil, slogger)
 	if err != nil {
 		return nil, err

@@ -237,6 +237,17 @@ func sync(
 }
 
 func (c *clisync) configureAndRunSync() error {
+	c.logger.Debug("Retrieving neosync connection")
+	connResp, err := c.connectionclient.GetConnection(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: c.cmd.Source.ConnectionId,
+	}))
+	if err != nil {
+		return err
+	}
+	sourceConnection := connResp.Msg.GetConnection()
+	c.sourceConnection = sourceConnection
+	fmt.Println("sourceConnectionId", sourceConnection.Id)
+
 	connectionprovider := providers.NewProvider(
 		mongoprovider.NewProvider(),
 		sqlprovider.NewProvider(c.sqlconnector),
@@ -249,12 +260,15 @@ func (c *clisync) configureAndRunSync() error {
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
+	fmt.Println("destinationConnectionId", destConnection.Id)
 	dsnToConnIdMap := &syncmap.Map{}
 	var sqlDsn string
 	if c.cmd.Destination != nil {
 		sqlDsn = c.cmd.Destination.ConnectionUrl
 	}
 	dsnToConnIdMap.Store(sqlDsn, destConnection.Id)
+	dsnToConnIdMap.Store(sourceConnection.Id, sourceConnection.Id)
+	dsnToConnIdMap.Store(destConnection.Id, destConnection.Id)
 	stopChan := make(chan error, 3)
 	ctx, cancel := context.WithCancel(c.ctx)
 	defer cancel()
@@ -276,7 +290,8 @@ func (c *clisync) configureAndRunSync() error {
 				tunnelmanager,
 				dsnToConnIdMap,
 				map[string]*mgmtv1alpha1.Connection{
-					destConnection.Id: destConnection,
+					destConnection.Id:   destConnection,
+					sourceConnection.Id: sourceConnection,
 				},
 				session,
 				c.logger,
@@ -307,22 +322,14 @@ func (c *clisync) configureAndRunSync() error {
 }
 
 func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, error) {
-	c.logger.Debug("Retrieving neosync connection")
-	connResp, err := c.connectionclient.GetConnection(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: c.cmd.Source.ConnectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-	sourceConnection := connResp.Msg.GetConnection()
-	c.sourceConnection = sourceConnection
-	sourceConnectionType, err := getConnectionType(sourceConnection)
+
+	sourceConnectionType, err := getConnectionType(c.sourceConnection)
 	if err != nil {
 		return nil, err
 	}
 	c.logger.Debug(fmt.Sprintf("Source connection type: %s", sourceConnectionType))
 
-	err = isConfigValid(c.cmd, c.logger, sourceConnection, sourceConnectionType)
+	err = isConfigValid(c.cmd, c.logger, c.sourceConnection, sourceConnectionType)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +352,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 			},
 		}
 
-		schemaCfg, err := c.getDestinationSchemaConfig(sourceConnection, s3Config)
+		schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, s3Config)
 		if err != nil {
 			return nil, err
 		}
@@ -368,7 +375,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 			},
 		}
 
-		schemaCfg, err := c.getDestinationSchemaConfig(sourceConnection, gcpConfig)
+		schemaCfg, err := c.getDestinationSchemaConfig(c.sourceConnection, gcpConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -384,7 +391,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
 			},
 		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, mysqlCfg)
+		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, mysqlCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -400,7 +407,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
 			},
 		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, postgresConfig)
+		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, postgresConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -415,7 +422,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
 			},
 		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, dynamoConfig)
+		schemaCfg, err := c.getConnectionSchemaConfig(c.sourceConnection, dynamoConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -454,7 +461,7 @@ func (c *clisync) configureSync() ([][]*benthos_builder.BenthosConfigResponse, e
 		c.logger.Error("unable to create job")
 		return nil, err
 	}
-	bm := benthos_builder.NewBenthosConfigManager(c.sqlmanagerclient, c.transformerclient, nil, false)
+	bm := benthos_builder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, c.cmd.Source.ConnectionOpts.JobRunId, syncConfigs, c.destinationConnection)
 	configs, err := bm.GenerateBenthosConfigs(
 		c.ctx,
 		job,
@@ -525,6 +532,15 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthos_build
 		return fmt.Errorf("benthos env is nil")
 	}
 
+	envKeyDsnSyncMap := syncmap.Map{}
+	for _, bdsn := range cfg.BenthosDsns {
+		envKeyDsnSyncMap.Store(bdsn.EnvVarKey, bdsn.ConnectionId)
+	}
+
+	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
+	fmt.Println("envKeyMap", envKeyMap)
+	// This must come before SetYaml as otherwise it will not be invoked
+	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
 		return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -547,6 +563,37 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthos_build
 	benthosStream = nil
 	benthosStreamMutex.Unlock()
 	return nil
+}
+
+func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {
+	return func(key string) (string, bool) {
+		if input == nil {
+			return "", false
+		}
+		output, ok := input[key]
+		return output, ok
+	}
+}
+
+func syncMapToStringMap(incoming *syncmap.Map) map[string]string {
+	out := map[string]string{}
+	if incoming == nil {
+		return out
+	}
+
+	incoming.Range(func(key, value any) bool {
+		keyStr, ok := key.(string)
+		if !ok {
+			return true
+		}
+		valStr, ok := value.(string)
+		if !ok {
+			return true
+		}
+		out[keyStr] = valStr
+		return true
+	})
+	return out
 }
 
 func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {

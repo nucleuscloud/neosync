@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthos_builder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builder"
-	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -132,7 +132,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger.Info("completed RunSqlInitTableStatements.")
 
 	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
-	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
+	redisConfigs := map[string]*benthosbuilder.BenthosRedisConfig{}
 	for _, cfg := range bcResp.BenthosConfigs {
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
@@ -362,7 +362,7 @@ func runRedisCleanUpActivity(
 	logger log.Logger,
 	dependsOnMap map[string]map[string][]string,
 	jobId string,
-	redisConfigs map[string]*benthosbuilder_shared.BenthosRedisConfig,
+	redisConfigs map[string]*benthosbuilder.BenthosRedisConfig,
 ) error {
 	if len(redisConfigs) > 0 {
 		for k, cfg := range redisConfigs {
@@ -416,9 +416,9 @@ func withBenthosConfigResponseLoggerTags(bc *benthos_builder.BenthosConfigRespon
 	if bc.TableName != "" {
 		keyvals = append(keyvals, "table", bc.TableName)
 	}
-	if bc.SourceConnectionType != "" {
-		keyvals = append(keyvals, "sourceConnectionType", bc.SourceConnectionType)
-	}
+	// if bc.SourceConnectionType != "" {
+	// 	keyvals = append(keyvals, "sourceConnectionType", bc.SourceConnectionType)
+	// }
 
 	return keyvals
 }

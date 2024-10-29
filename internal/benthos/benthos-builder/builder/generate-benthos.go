@@ -2,6 +2,7 @@ package benthos_builder
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -85,11 +86,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		logger.Debug(fmt.Sprintf("applied destination (%s) to %d source configs", destConnectionType, len(sourceConfigs)))
 	}
 
-	for _, sourceConfig := range sourceConfigs {
-		response := convertToResponse(sourceConfig, sourceConnectionType)
-		responses = append(responses, response)
-	}
-
 	// pass in all the labels??
 	if b.metricsEnabled {
 		logger.Debug("metrics enabled. applying metric labels")
@@ -104,14 +100,22 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		for key, val := range metricLabelKeyVals {
 			labels = append(labels, metrics.NewEqLabel(key, val))
 		}
-		for _, resp := range responses {
-			joinedLabels := append(labels, resp.metriclabels...) //nolint:gocritic
+		for _, resp := range sourceConfigs {
+			joinedLabels := append(labels, resp.Metriclabels...) //nolint:gocritic
 			resp.Config.Metrics = &neosync_benthos.Metrics{
 				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
 				Mapping:       joinedLabels.ToBenthosMeta(),
 			}
 		}
 	}
+
+	for _, sourceConfig := range sourceConfigs {
+		response := convertToResponse(sourceConfig, sourceConnectionType)
+		responses = append(responses, response)
+	}
+
+	jsonF, _ := json.MarshalIndent(responses, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 
 	// TODO should this be in benthos builder? how to handle this
 	// // Set post table sync run context
@@ -146,20 +150,20 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 
 func convertToResponse(sourceConfig *bb_shared.BenthosSourceConfig, sourceConnectionType bb_shared.ConnectionType) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
-		Name:                    sourceConfig.Name,
-		Config:                  sourceConfig.Config,
-		DependsOn:               sourceConfig.DependsOn,
-		RunType:                 sourceConfig.RunType,
-		TableSchema:             sourceConfig.TableSchema,
-		TableName:               sourceConfig.TableName,
-		Columns:                 sourceConfig.Columns,
-		RedisDependsOn:          sourceConfig.RedisDependsOn,
-		ColumnDefaultProperties: sourceConfig.ColumnDefaultProperties,
-		Processors:              sourceConfig.Processors,
-		BenthosDsns:             sourceConfig.BenthosDsns,
-		RedisConfig:             sourceConfig.RedisConfig,
-		SourceConnectionType:    string(sourceConnectionType),
-		metriclabels:            sourceConfig.Metriclabels,
+		Name:      sourceConfig.Name,
+		Config:    sourceConfig.Config,
+		DependsOn: sourceConfig.DependsOn,
+		// RunType:        sourceConfig.RunType,
+		TableSchema:    sourceConfig.TableSchema,
+		TableName:      sourceConfig.TableName,
+		Columns:        sourceConfig.Columns,
+		RedisDependsOn: sourceConfig.RedisDependsOn,
+		// ColumnDefaultProperties: sourceConfig.ColumnDefaultProperties,
+		// Processors:              sourceConfig.Processors,
+		BenthosDsns: sourceConfig.BenthosDsns,
+		RedisConfig: sourceConfig.RedisConfig,
+		// SourceConnectionType:    string(sourceConnectionType),
+		// metriclabels:            sourceConfig.Metriclabels,
 	}
 }
 
