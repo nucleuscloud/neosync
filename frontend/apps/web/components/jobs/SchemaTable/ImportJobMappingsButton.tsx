@@ -223,7 +223,6 @@ function Body(props: BodyProps): ReactElement {
       } finally {
         setProcessing((prev) => ({ ...prev, [fileName]: false }));
       }
-      console.log(`Processed ${fileName}: ${success ? 'success' : error}`);
     };
 
     setWorker(newWorker);
@@ -258,7 +257,6 @@ function Body(props: BodyProps): ReactElement {
       if (worker) {
         const processId = Date.now().toString() + Math.random().toString(36);
         worker.postMessage({ file, id: processId });
-        console.log(`Started processing ${file.name} with ID ${processId}`);
       } else {
         console.error('Worker not initialized');
         setErrors((prev) => ({
