@@ -53,7 +53,7 @@ function ValidationResponseBadge(
           >
             <TiWarningOutline />
             <div className="text-nowrap text-xs pl-2 font-medium">
-              Connection Error - Unable to connect.{' '}
+              Successfully connected - found no tables{' '}
               <span className="underline">More info</span>
             </div>
             <ArrowTopRightIcon />
