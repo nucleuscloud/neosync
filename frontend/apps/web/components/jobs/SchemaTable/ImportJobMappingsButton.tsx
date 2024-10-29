@@ -3,6 +3,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Button } from '@/components/ui/button';
 import { JobMapping } from '@neosync/sdk';
+import { filesize } from 'filesize';
 import {
   ReactElement,
   SetStateAction,
@@ -289,7 +290,7 @@ function Body(props: BodyProps): ReactElement {
         validation={{
           validateType: validateFileType,
           validateSize: validateFileSize,
-          maxSizeDisplay: '50MB',
+          maxSizeDisplay: MAX_FILE_SIZE_DISPLAY,
           acceptedTypes: '.json,application/json',
         }}
         onProcess={processFile}
@@ -313,7 +314,13 @@ function validateFileType(file: File): boolean {
   return file.type === 'application/json' || file.name.endsWith('.json');
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB or 52.24MiB (52,427,800 bytes)
+const MAX_FILE_SIZE_DISPLAY = filesize(MAX_FILE_SIZE, {
+  standard: 'jedec', // Renders in MB, which users may be more familiar with
+  round: 0,
+});
+
+// Handles byte comparison. File.size is the size of the file in bytes
 function validateFileSize(file: File): boolean {
-  const maxSize = 50 * 1024 * 1024; // 50MB
-  return file.size <= maxSize;
+  return file.size <= MAX_FILE_SIZE;
 }
