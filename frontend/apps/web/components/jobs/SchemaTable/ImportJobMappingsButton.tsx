@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { FileProcessingResult, FileUpload } from './FileUpload';
+import { FileProcessingResult, FileUpload } from '../../FileUpload/FileUpload';
 
 export interface ImportMappingsConfig {
   truncateAll: boolean;
