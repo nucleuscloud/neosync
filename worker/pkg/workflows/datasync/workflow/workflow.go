@@ -416,9 +416,6 @@ func withBenthosConfigResponseLoggerTags(bc *benthosbuilder.BenthosConfigRespons
 	if bc.TableName != "" {
 		keyvals = append(keyvals, "table", bc.TableName)
 	}
-	// if bc.SourceConnectionType != "" {
-	// 	keyvals = append(keyvals, "sourceConnectionType", bc.SourceConnectionType)
-	// }
 
 	return keyvals
 }

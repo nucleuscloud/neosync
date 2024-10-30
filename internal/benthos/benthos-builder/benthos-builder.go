@@ -22,13 +22,15 @@ type BenthosConfigResponse struct {
 	DependsOn []*tabledependency.DependsOn
 
 	// TODO refactor these out
-	Config         *neosync_benthos.BenthosConfig
-	TableSchema    string
-	TableName      string
-	Columns        []string
-	RedisDependsOn map[string][]string
-	BenthosDsns    []*bb_shared.BenthosDsn
-	RedisConfig    []*bb_shared.BenthosRedisConfig
+	Config                  *neosync_benthos.BenthosConfig
+	TableSchema             string
+	TableName               string
+	Columns                 []string
+	RunType                 tabledependency.RunType
+	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
+	RedisDependsOn          map[string][]string
+	BenthosDsns             []*bb_shared.BenthosDsn
+	RedisConfig             []*bb_shared.BenthosRedisConfig
 }
 
 // Combines a connection type and job type to uniquely identify a builder configuration

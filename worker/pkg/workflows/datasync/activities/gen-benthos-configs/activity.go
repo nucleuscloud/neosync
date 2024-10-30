@@ -6,11 +6,8 @@ import (
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -22,42 +19,6 @@ type GenerateBenthosConfigsRequest struct {
 type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*benthosbuilder.BenthosConfigResponse
 	AccountId      string
-}
-
-type BenthosRedisConfig struct {
-	Key    string
-	Table  string // schema.table
-	Column string
-}
-
-// run context interface
-// worker uses neosync db
-// cli uses another storage mech // in memory
-// completedMap := {"table2.insert": true}
-
-type BenthosConfigResponse struct {
-	Name string
-	// DependsOn: []string{"table1.insert"}
-
-	// this can go away with new depends on list of config name
-	DependsOn   []*tabledependency.DependsOn
-	TableSchema string
-	TableName   string
-	Columns     []string
-
-	Config                  *neosync_benthos.BenthosConfig                      // not used. stores in run context
-	RunType                 tabledependency.RunType                             // abstract away
-	RedisDependsOn          map[string][]string                                 // post table clean up job
-	RedisConfig             []*BenthosRedisConfig                               // post table clean up
-	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties // need for output
-	SourceConnectionType    string                                              // used for logging this go away
-
-	Processors  []*neosync_benthos.ProcessorConfig // sync top level processor generate output processors
-	BenthosDsns []*shared.BenthosDsn               // need this
-
-	primaryKeys []string // not needed
-
-	metriclabels metrics.MetricLabels // not needed
 }
 
 type Activity struct {
@@ -132,5 +93,3 @@ func (a *Activity) GenerateBenthosConfigs(
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
 }
-
-//

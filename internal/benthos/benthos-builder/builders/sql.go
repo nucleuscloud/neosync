@@ -25,10 +25,9 @@ type sqlSyncBuilder struct {
 	redisConfig        *shared.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
+
 	// reverse of table dependency
 	// map of foreign key to source table + column
-
-	// when using these in building destination output if they don't exist they should be retrieved from destination
 	primaryKeyToForeignKeysMap        map[string]map[string][]*bb_internal.ReferenceKey         // schema.table -> column -> ForeignKey
 	colTransformerMap                 map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table -> column -> transformer
 	sqlSourceSchemaColumnInfoMap      map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
@@ -118,14 +117,36 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
+	}
+
+	return configs, nil
+}
+
+func buildBenthosSqlSourceConfigResponses(
+	slogger *slog.Logger,
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	groupedTableMapping map[string]*tableMapping,
+	runconfigs []*tabledependency.RunConfig,
+	dsnConnectionId string,
+	driver string,
+	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
+	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	jobId, runId string,
+	redisConfig *shared.RedisConfig,
+	primaryKeyToForeignKeysMap map[string]map[string][]*bb_internal.ReferenceKey,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	configs := []*bb_internal.BenthosSourceConfig{}
 
-	// build benthos configs
-
 	// map of table constraints that have transformers
-	transformedForeignKeyToSourceMap := getTransformedFksMap(filteredForeignKeysMap, colTransformerMap)
+	transformedForeignKeyToSourceMap := getTransformedFksMap(tableDependencies, colTransformerMap)
 
-	for _, config := range runConfigs {
+	for _, config := range runconfigs {
 		mappings, ok := groupedTableMapping[config.Table()]
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
@@ -139,7 +160,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
-							Driver: db.Driver,
+							Driver: driver,
 							Dsn:    "${SOURCE_CONNECTION_DSN}",
 
 							Query: query,
@@ -167,13 +188,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
-			b.transformerclient,
+			transformerclient,
 			config,
 			columnForeignKeysMap,
 			transformedFktoPkMap,
-			job.Id,
-			params.RunId,
-			b.redisConfig,
+			jobId,
+			runId,
+			redisConfig,
 			mappings.Mappings,
 			colInfoMap,
 			nil,
@@ -193,7 +214,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
 			RunType:        config.RunType(),
 
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
@@ -207,7 +228,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 			},
 		})
 	}
-
 	return configs, nil
 }
 
@@ -218,7 +238,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	config := &bb_internal.BenthosDestinationConfig{}
 
-	// this is very inefficient
+	// lazy load
 	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
 		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
@@ -231,6 +251,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	colTransformerMap := b.colTransformerMap
+	// lazy load
 	if len(colTransformerMap) == 0 {
 		groupedMappings := groupMappingsByTable(params.Job.Mappings)
 		groupedTableMapping := getTableMappingsMap(groupedMappings)
@@ -244,6 +265,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	if err != nil {
 		return nil, err
 	}
+	params.SourceConfig.ColumnDefaultProperties = columnDefaultProperties
 
 	destOpts := params.DestinationOpts
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})

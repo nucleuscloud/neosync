@@ -1,6 +1,8 @@
 package benthosbuilder_shared
 
 import (
+	"fmt"
+
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 )
@@ -28,4 +30,8 @@ type SelectQueryMapBuilder interface {
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	) (map[string]map[tabledependency.RunType]string, error)
+}
+
+func WithEnvInterpolation(input string) string {
+	return fmt.Sprintf("${%s}", input)
 }

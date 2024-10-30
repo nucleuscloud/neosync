@@ -210,47 +210,6 @@ func BuildInsertQuery(
 	return query, args, nil
 }
 
-func BuildPlainInsertQuery(
-	logger *slog.Logger,
-	driver, schema, table string,
-	columns []string,
-	columnDataTypes []string,
-	values [][]any,
-	onConflictDoNothing *bool,
-	columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
-) (sql string, args []any, err error) {
-	builder := getGoquDialect(driver)
-	sqltable := goqu.S(schema).Table(table)
-	insertCols := make([]any, len(columns))
-	for i, col := range columns {
-		insertCols[i] = col
-	}
-	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
-	for _, row := range values {
-		// gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
-		gval := goqu.Vals{}
-		for _, a := range row {
-			switch v := a.(type) {
-			case []byte:
-				gval = append(gval, string(v))
-			default:
-				gval = append(gval, a)
-			}
-		}
-		insert = insert.Vals(gval)
-	}
-	// adds on conflict do nothing to insert query
-	if *onConflictDoNothing {
-		insert = insert.OnConflict(goqu.DoNothing())
-	}
-
-	query, args, err := insert.ToSQL()
-	if err != nil {
-		return "", nil, err
-	}
-	return query, args, nil
-}
-
 func BuildUpdateQuery(
 	driver, schema, table string,
 	insertColumns []string,

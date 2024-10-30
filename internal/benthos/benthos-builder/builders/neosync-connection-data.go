@@ -16,16 +16,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
-// type ConnectionType string
-
-// const (
-// 	awsS3Connection           ConnectionType = "awsS3"
-// 	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
-// 	postgresConnection        ConnectionType = "postgres"
-// 	mysqlConnection           ConnectionType = "mysql"
-// 	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
-// )
-
 type neosyncConnectionDataBuilder struct {
 	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
 	sqlmanagerclient      sqlmanager.SqlManagerClient
@@ -87,7 +77,6 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 					},
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{},
-				// Output:   &neosync_benthos.OutputConfig{},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
 						Broker: &neosync_benthos.OutputBrokerConfig{
@@ -112,7 +101,6 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 			ColumnDefaultProperties: columnDefaultProperties,
 			PrimaryKeys:             config.PrimaryKeys(),
 		})
-
 	}
 
 	return configs, nil

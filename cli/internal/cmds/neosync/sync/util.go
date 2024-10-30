@@ -10,18 +10,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 )
-
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
 
 func maxInt(a, b int) int {
 	if a > b {
@@ -54,7 +44,7 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 	return "", errors.New("unsupported connection type")
 }
 
-func isConfigReady(config *benthosConfigResponse, queuedMap map[string][]string) bool {
+func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[string][]string) bool {
 	for _, dep := range config.DependsOn {
 		if cols, ok := queuedMap[dep.Table]; ok {
 			for _, dc := range dep.Columns {
@@ -69,17 +59,18 @@ func isConfigReady(config *benthosConfigResponse, queuedMap map[string][]string)
 	return true
 }
 
-func groupConfigsByDependency(configs []*benthosConfigResponse, logger *slog.Logger) [][]*benthosConfigResponse {
-	groupedConfigs := [][]*benthosConfigResponse{}
-	configMap := map[string]*benthosConfigResponse{}
+func groupConfigsByDependency(configs []*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) [][]*benthosbuilder.BenthosConfigResponse {
+	groupedConfigs := [][]*benthosbuilder.BenthosConfigResponse{}
+	configMap := map[string]*benthosbuilder.BenthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols
 
 	// get root configs
-	rootConfigs := []*benthosConfigResponse{}
+	rootConfigs := []*benthosbuilder.BenthosConfigResponse{}
 	for _, c := range configs {
 		if len(c.DependsOn) == 0 {
+			table := fmt.Sprintf("%s.%s", c.TableSchema, c.TableName)
 			rootConfigs = append(rootConfigs, c)
-			queuedMap[c.Table] = c.Columns
+			queuedMap[table] = c.Columns
 		} else {
 			configMap[c.Name] = c
 		}
@@ -98,7 +89,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse, logger *slog.Log
 			return nil
 		}
 		prevTableLen = len(configMap)
-		dependentConfigs := []*benthosConfigResponse{}
+		dependentConfigs := []*benthosbuilder.BenthosConfigResponse{}
 		for _, c := range configMap {
 			if isConfigReady(c, queuedMap) {
 				dependentConfigs = append(dependentConfigs, c)
@@ -108,7 +99,8 @@ func groupConfigsByDependency(configs []*benthosConfigResponse, logger *slog.Log
 		if len(dependentConfigs) > 0 {
 			groupedConfigs = append(groupedConfigs, dependentConfigs)
 			for _, c := range dependentConfigs {
-				queuedMap[c.Table] = append(queuedMap[c.Table], c.Columns...)
+				table := fmt.Sprintf("%s.%s", c.TableSchema, c.TableName)
+				queuedMap[table] = append(queuedMap[table], c.Columns...)
 			}
 		}
 	}

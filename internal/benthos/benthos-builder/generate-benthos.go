@@ -8,6 +8,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -79,7 +81,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		labels := metrics.MetricLabels{
 			metrics.NewEqLabel(metrics.AccountIdLabel, b.job.AccountId),
 			metrics.NewEqLabel(metrics.JobIdLabel, b.job.Id),
-			metrics.NewEqLabel(metrics.NeosyncDateLabel, withEnvInterpolation(metrics.NeosyncDateEnvKey)),
+			metrics.NewEqLabel(metrics.NeosyncDateLabel, bb_shared.WithEnvInterpolation(metrics.NeosyncDateEnvKey)),
 		}
 		for key, val := range b.metricLabelKeyVals {
 			labels = append(labels, metrics.NewEqLabel(key, val))
@@ -114,10 +116,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	return responses, nil
 }
 
-func withEnvInterpolation(input string) string {
-	return fmt.Sprintf("${%s}", input)
-}
-
 // builds map of destination id -> destination options
 func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[string]*mgmtv1alpha1.JobDestinationOptions {
 	destOpts := map[string]*mgmtv1alpha1.JobDestinationOptions{}
@@ -129,15 +127,17 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 
 func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
-		Name:           sourceConfig.Name,
-		Config:         sourceConfig.Config,
-		DependsOn:      sourceConfig.DependsOn,
-		TableSchema:    sourceConfig.TableSchema,
-		TableName:      sourceConfig.TableName,
-		Columns:        sourceConfig.Columns,
-		RedisDependsOn: sourceConfig.RedisDependsOn,
-		BenthosDsns:    sourceConfig.BenthosDsns,
-		RedisConfig:    sourceConfig.RedisConfig,
+		Name:                    sourceConfig.Name,
+		Config:                  sourceConfig.Config,
+		DependsOn:               sourceConfig.DependsOn,
+		TableSchema:             sourceConfig.TableSchema,
+		TableName:               sourceConfig.TableName,
+		Columns:                 sourceConfig.Columns,
+		RunType:                 sourceConfig.RunType,
+		ColumnDefaultProperties: sourceConfig.ColumnDefaultProperties,
+		RedisDependsOn:          sourceConfig.RedisDependsOn,
+		BenthosDsns:             sourceConfig.BenthosDsns,
+		RedisConfig:             sourceConfig.RedisConfig,
 	}
 }
 
