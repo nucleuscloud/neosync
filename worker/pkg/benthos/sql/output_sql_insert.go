@@ -190,12 +190,13 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
-	retryAttempts, err := conf.FieldInt("max_retry_attempts")
+	retryAttemptsConf, err := conf.FieldInt("max_retry_attempts")
 	if err != nil {
 		return nil, err
 	}
-	if retryAttempts < 1 {
-		retryAttempts = 1
+	retryAttempts := uint(1)
+	if retryAttemptsConf > 1 {
+		retryAttempts = uint(retryAttemptsConf)
 	}
 	retryAttemptDelay, err := conf.FieldString("retry_attempt_delay")
 	if err != nil {
@@ -225,7 +226,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		prefix:                   prefix,
 		suffix:                   suffix,
 		isRetry:                  isRetry,
-		maxRetryAttempts:         uint(retryAttempts),
+		maxRetryAttempts:         retryAttempts,
 		retryDelay:               retryDelay,
 	}
 	return output, nil
