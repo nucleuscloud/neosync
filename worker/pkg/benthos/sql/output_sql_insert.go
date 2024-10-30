@@ -12,7 +12,6 @@ import (
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/lib/pq"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -21,8 +20,6 @@ import (
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 func sqlInsertOutputSpec() *service.ConfigSpec {
@@ -350,78 +347,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	return nil
 }
 
-const (
-	// MySQL error codes
-	// 1213 - Deadlock found when trying to get lock
-	mysqlDeadlock = 1213
-	// 1205 - Lock wait timeout exceeded
-	mysqlLockTimeout = 1205
-
-	// PostgreSQL error codes
-	pqDeadlockDetected = "40P01"
-)
-
-func isDeadlockError(err error) bool {
-	if err == nil {
-		return false
-	}
-	return isMysqlDeadlockError(err) || isPostgresDeadlock(err) || isMSSQLDeadlock(err)
-}
-
-func isMysqlDeadlockError(err error) bool {
-	if err == nil {
-		return false
-	}
-	mysqlErr, ok := err.(*mysql.MySQLError)
-	if ok {
-		return mysqlErr.Number == mysqlDeadlock || mysqlErr.Number == mysqlLockTimeout
-	}
-	return false
-}
-
-func isPostgresDeadlock(err error) bool {
-	if err == nil {
-		return false
-	}
-	pqErr, ok := err.(*pq.Error)
-	if ok {
-		return pqErr.Code == pqDeadlockDetected
-	}
-	return false
-}
-
-// isMSSQLDeadlock checks specifically for SQL Server deadlock errors
-func isMSSQLDeadlock(err error) bool {
-	if err == nil {
-		return false
-	}
-	// SQL Server deadlocks can be detected in two ways:
-	// 1. Error number 1205
-	// 2. Error message containing specific text
-
-	// First check for specific error number in message
-	if strings.Contains(err.Error(), "Error 1205") {
-		return true
-	}
-
-	// Also check for common deadlock message patterns
-	deadlockPatterns := []string{
-		"deadlock victim",
-		"Transaction (Process ID",
-		"was deadlocked",
-		"has been chosen as the deadlock victim",
-	}
-
-	msg := strings.ToLower(err.Error())
-	for _, pattern := range deadlockPatterns {
-		if strings.Contains(msg, strings.ToLower(pattern)) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
 	for _, d := range columnDefaults {
 		if !d.HasDefaultTransformer && d.NeedsOverride {
@@ -466,35 +391,19 @@ func (s *pooledInsertOutput) execWithRetry(
 	query string,
 	args []any,
 ) error {
-	var err error
-	for attempt := uint(0); attempt < s.maxRetryAttempts; attempt++ {
-		_, err = s.db.ExecContext(ctx, query, args...)
-		if err == nil {
-			return nil
-		}
-		if !isDeadlockError(err) {
-			return err
-		}
-		s.logger.Warnf("deadlock detected, (%d/%d). Retrying in %v...", attempt+1, s.maxRetryAttempts, s.retryDelay)
-		err = sleepContext(ctx, s.retryDelay)
-		if err != nil {
-			return fmt.Errorf("encountered error while sleeping during retry delay: %w", err)
-		}
-	}
-	return fmt.Errorf("max retry attempts reached while attempting to exec db query: %w", err)
-}
-
-func sleepContext(ctx context.Context, d time.Duration) error {
-	if d <= 0 {
-		return nil
+	config := &retryConfig{
+		MaxAttempts: s.maxRetryAttempts,
+		RetryDelay:  s.retryDelay,
+		Logger:      s.logger,
+		ShouldRetry: isDeadlockError,
 	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(d):
-		return nil
+	operation := func(ctx context.Context) error {
+		_, err := s.db.ExecContext(ctx, query, args...)
+		return err
 	}
+
+	return retryWithConfig(ctx, config, operation)
 }
 
 func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any) (columns []string, rows [][]any) {

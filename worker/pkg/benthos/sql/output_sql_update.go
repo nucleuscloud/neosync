@@ -268,20 +268,17 @@ func (s *pooledUpdateOutput) execWithRetry(
 	ctx context.Context,
 	query string,
 ) error {
-	var err error
-	for attempt := uint(0); attempt < s.maxRetryAttempts; attempt++ {
-		_, err = s.db.ExecContext(ctx, query)
-		if err == nil {
-			return nil
-		}
-		if !isDeadlockError(err) {
-			return err
-		}
-		s.logger.Warnf("deadlock detected, (%d/%d). Retrying in %v...", attempt+1, s.maxRetryAttempts, s.retryDelay)
-		err = sleepContext(ctx, s.retryDelay)
-		if err != nil {
-			return fmt.Errorf("encountered error while sleeping during retry delay: %w", err)
-		}
+	config := &retryConfig{
+		MaxAttempts: s.maxRetryAttempts,
+		RetryDelay:  s.retryDelay,
+		Logger:      s.logger,
+		ShouldRetry: isDeadlockError,
 	}
-	return fmt.Errorf("max retry attempts reached while attempting to exec db query: %w", err)
+
+	operation := func(ctx context.Context) error {
+		_, err := s.db.ExecContext(ctx, query)
+		return err
+	}
+
+	return retryWithConfig(ctx, config, operation)
 }
