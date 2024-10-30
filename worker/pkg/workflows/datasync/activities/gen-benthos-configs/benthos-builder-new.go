@@ -51,7 +51,10 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 			metrics.TemporalRunId:      withEnvInterpolation(metrics.TemporalRunIdEnvKey),
 		},
 	}
-	benthosManager := benthosbuilder.NewWorkerBenthosConfigManager(benthosManagerConfig)
+	benthosManager, err := benthosbuilder.NewWorkerBenthosConfigManager(benthosManagerConfig)
+	if err != nil {
+		return nil, err
+	}
 	responses, err := benthosManager.GenerateBenthosConfigs(ctx)
 	if err != nil {
 		return nil, err

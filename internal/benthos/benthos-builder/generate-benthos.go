@@ -73,6 +73,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		b.logger.Debug(fmt.Sprintf("applied destination to %d source configs", len(sourceConfigs)))
 	}
 
+	// test metrics. broken
 	if b.metricsEnabled {
 		b.logger.Debug("metrics enabled. applying metric labels")
 		labels := metrics.MetricLabels{

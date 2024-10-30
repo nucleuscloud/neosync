@@ -16,15 +16,15 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
-type ConnectionType string
+// type ConnectionType string
 
-const (
-	awsS3Connection           ConnectionType = "awsS3"
-	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
-	postgresConnection        ConnectionType = "postgres"
-	mysqlConnection           ConnectionType = "mysql"
-	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
-)
+// const (
+// 	awsS3Connection           ConnectionType = "awsS3"
+// 	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
+// 	postgresConnection        ConnectionType = "postgres"
+// 	mysqlConnection           ConnectionType = "mysql"
+// 	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
+// )
 
 type neosyncConnectionDataBuilder struct {
 	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
@@ -32,6 +32,7 @@ type neosyncConnectionDataBuilder struct {
 	sourceJobRunId        *string
 	syncConfigs           []*tabledependency.RunConfig
 	destinationConnection *mgmtv1alpha1.Connection
+	sourceConnectionType  bb_internal.ConnectionType
 }
 
 func NewNeosyncConnectionDataSyncBuilder(
@@ -40,6 +41,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 	sourceJobRunId *string,
 	syncConfigs []*tabledependency.RunConfig,
 	destinationConnection *mgmtv1alpha1.Connection,
+	sourceConnectionType bb_internal.ConnectionType,
 ) bb_internal.ConnectionBenthosBuilder {
 	return &neosyncConnectionDataBuilder{
 		connectiondataclient:  connectiondataclient,
@@ -47,6 +49,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 		sourceJobRunId:        sourceJobRunId,
 		syncConfigs:           syncConfigs,
 		destinationConnection: destinationConnection,
+		sourceConnectionType:  sourceConnectionType,
 	}
 }
 
@@ -55,10 +58,6 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 	job := params.Job
 	logger := params.Logger
 	configs := []*bb_internal.BenthosSourceConfig{}
-	connectionType, err := getConnectionType(sourceConnection)
-	if err != nil {
-		return nil, err
-	}
 
 	tableColumnDefaults, err := b.getSqlDestinationColumnDefaultsByTable(ctx, logger, job)
 	if err != nil {
@@ -79,7 +78,7 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 					Inputs: neosync_benthos.Inputs{
 						NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
 							ConnectionId:   sourceConnection.GetId(),
-							ConnectionType: string(connectionType),
+							ConnectionType: string(b.sourceConnectionType),
 							JobId:          &job.Id,
 							JobRunId:       b.sourceJobRunId,
 							Schema:         schema,
@@ -158,23 +157,4 @@ func (b *neosyncConnectionDataBuilder) getSqlDestinationColumnDefaultsByTable(
 
 func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
 	return nil, errors.ErrUnsupported
-}
-
-func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
-	if connection.ConnectionConfig.GetAwsS3Config() != nil {
-		return awsS3Connection, nil
-	}
-	if connection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
-		return gcpCloudStorageConnection, nil
-	}
-	if connection.ConnectionConfig.GetMysqlConfig() != nil {
-		return mysqlConnection, nil
-	}
-	if connection.ConnectionConfig.GetPgConfig() != nil {
-		return postgresConnection, nil
-	}
-	if connection.ConnectionConfig.GetDynamodbConfig() != nil {
-		return awsDynamoDBConnection, nil
-	}
-	return "", errors.New("unsupported connection type")
 }

@@ -18,17 +18,20 @@ type generateBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient  sqlmanager.SqlManagerClient
 	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
+	driver            string
 }
 
 func NewGenerateBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	driver string,
 ) bb_internal.ConnectionBenthosBuilder {
 	return &generateBuilder{
 		transformerclient: transformerclient,
 		sqlmanagerclient:  sqlmanagerclient,
 		connectionclient:  connectionclient,
+		driver:            driver,
 	}
 }
 
@@ -165,6 +168,58 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 
 func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
+
+	benthosConfig := params.SourceConfig
+	destOpts := getDestinationOptions(params.DestinationOpts)
+
+	processorConfigs := []neosync_benthos.ProcessorConfig{}
+	for _, pc := range benthosConfig.Processors {
+		processorConfigs = append(processorConfigs, *pc)
+	}
+
+	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
+		Fallback: []neosync_benthos.Outputs{
+			{
+				// retry processor and output several times
+				Retry: &neosync_benthos.RetryConfig{
+					InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+						MaxRetries: 10,
+					},
+					Output: neosync_benthos.OutputConfig{
+						Outputs: neosync_benthos.Outputs{
+							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+								Driver: b.driver,
+								Dsn:    params.DSN,
+
+								Schema:                  benthosConfig.TableSchema,
+								Table:                   benthosConfig.TableName,
+								Columns:                 benthosConfig.Columns,
+								ColumnDefaultProperties: benthosConfig.ColumnDefaultProperties,
+								OnConflictDoNothing:     destOpts.OnConflictDoNothing,
+								TruncateOnRetry:         destOpts.Truncate,
+
+								ArgsMapping: buildPlainInsertArgs(benthosConfig.Columns),
+
+								Batching: &neosync_benthos.Batching{
+									Period: "5s",
+									Count:  100,
+								},
+							},
+						},
+						Processors: processorConfigs,
+					},
+				},
+			},
+			// kills activity depending on error
+			{Error: &neosync_benthos.ErrorOutputConfig{
+				ErrorMsg: `${! meta("fallback_error")}`,
+				Batching: &neosync_benthos.Batching{
+					Period: "5s",
+					Count:  100,
+				},
+			}},
+		},
+	})
 
 	return config, nil
 }

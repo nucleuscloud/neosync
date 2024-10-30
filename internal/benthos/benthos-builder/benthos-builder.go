@@ -109,9 +109,10 @@ func (b *BuilderProvider) registerStandardBuilders(
 	destinationConnections []*mgmtv1alpha1.Connection,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	redisConfig *shared.RedisConfig,
 	postgresDriverOverride *string,
-) {
+) error {
 	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
 	jobType := bb_internal.GetJobType(job)
 	connectionTypes := []bb_internal.ConnectionType{sourceConnectionType}
@@ -143,9 +144,31 @@ func (b *BuilderProvider) registerStandardBuilders(
 				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMongo, bb_conns.NewMongoDbSyncBuilder(transformerclient))
 			case bb_internal.ConnectionTypeGCP:
 				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeGCP, bb_conns.NewGcpCloudStorageSyncBuilder())
+			default:
+				return fmt.Errorf("unsupport connection type for sync job: %s", connectionType)
 			}
 		}
 	}
+
+	if jobType == bb_internal.JobTypeAIGenerate {
+		for _, connectionType := range connectionTypes {
+			driver, err := bb_internal.GetSqlDriverByConnectionType(connectionType)
+			if err != nil {
+				return err
+			}
+			b.Register(bb_internal.JobTypeAIGenerate, connectionType, bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
+		}
+	}
+	if jobType == bb_internal.JobTypeGenerate {
+		for _, connectionType := range connectionTypes {
+			driver, err := bb_internal.GetSqlDriverByConnectionType(connectionType)
+			if err != nil {
+				return err
+			}
+			b.Register(bb_internal.JobTypeAIGenerate, connectionType, bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
+		}
+	}
+	return nil
 }
 
 func withBenthosConfigLoggerTags(
@@ -188,23 +211,28 @@ type WorkerBenthosConfig struct {
 	Logger                 *slog.Logger
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
 	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
+	Connectionclient       mgmtv1alpha1connect.ConnectionServiceClient
 	RedisConfig            *shared.RedisConfig
 	MetricsEnabled         bool
 }
 
 func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
-) *BenthosConfigManager {
+) (*BenthosConfigManager, error) {
 	provider := NewBuilderProvider(config.Logger)
-	provider.registerStandardBuilders(
+	err := provider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		config.DestinationConnections,
 		config.Sqlmanagerclient,
 		config.Transformerclient,
+		config.Connectionclient,
 		config.RedisConfig,
 		nil,
 	)
+	if err != nil {
+		return nil, err
+	}
 	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
 		sourceProvider:         provider,
@@ -216,7 +244,7 @@ func NewWorkerBenthosConfigManager(
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: config.DestinationConnections,
 		runId:                  config.RunId,
-	}
+	}, nil
 }
 
 type CliBenthosConfig struct {
@@ -238,17 +266,21 @@ type CliBenthosConfig struct {
 
 func NewCliBenthosConfigManager(
 	config *CliBenthosConfig,
-) *BenthosConfigManager {
+) (*BenthosConfigManager, error) {
 	destinationProvider := NewBuilderProvider(config.Logger)
-	destinationProvider.registerStandardBuilders(
+	err := destinationProvider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		[]*mgmtv1alpha1.Connection{config.DestinationConnection},
 		config.Sqlmanagerclient,
 		config.Transformerclient,
+		nil,
 		config.RedisConfig,
 		config.PostgresDriverOverride,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	sourceProvider := NewCliSourceBuilderProvider(config)
 
@@ -262,7 +294,7 @@ func NewCliBenthosConfigManager(
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: []*mgmtv1alpha1.Connection{config.DestinationConnection},
 		runId:                  config.RunId,
-	}
+	}, nil
 }
 
 // NewCliSourceBuilderProvider creates a specialized provider for CLI source operations
@@ -271,16 +303,17 @@ func NewCliSourceBuilderProvider(
 ) *BuilderProvider {
 	provider := NewBuilderProvider(config.Logger)
 
+	sourceConnectionType := bb_internal.GetConnectionType(config.SourceConnection)
+	jobType := bb_internal.GetJobType(config.Job)
+
 	builder := bb_conns.NewNeosyncConnectionDataSyncBuilder(
 		config.Connectiondataclient,
 		config.Sqlmanagerclient,
 		config.SourceJobRunId,
 		config.SyncConfigs,
 		config.SourceConnection,
+		sourceConnectionType,
 	)
-
-	sourceConnectionType := bb_internal.GetConnectionType(config.SourceConnection)
-	jobType := bb_internal.GetJobType(config.Job)
 
 	if jobType == bb_internal.JobTypeSync {
 		switch sourceConnectionType {

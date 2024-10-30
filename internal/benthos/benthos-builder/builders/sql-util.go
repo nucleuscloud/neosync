@@ -523,3 +523,37 @@ func getSqlJobSourceOpts(
 		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
 	}
 }
+
+type destinationOptions struct {
+	OnConflictDoNothing      bool
+	Truncate                 bool
+	TruncateCascade          bool
+	SkipForeignKeyViolations bool
+}
+
+func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) *destinationOptions {
+	if destOpts.Config == nil {
+		return &destinationOptions{}
+	}
+	switch config := destOpts.Config.(type) {
+	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+		return &destinationOptions{
+			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			TruncateCascade:          config.PostgresOptions.GetTruncateTable().GetCascade(),
+			SkipForeignKeyViolations: config.PostgresOptions.GetSkipForeignKeyViolations(),
+		}
+	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
+		return &destinationOptions{
+			OnConflictDoNothing:      config.MysqlOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			SkipForeignKeyViolations: config.MysqlOptions.GetSkipForeignKeyViolations(),
+		}
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &destinationOptions{
+			SkipForeignKeyViolations: config.MssqlOptions.GetSkipForeignKeyViolations(),
+		}
+	default:
+		return &destinationOptions{}
+	}
+}

@@ -2,10 +2,12 @@ package benthosbuilder_internal
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -50,6 +52,19 @@ func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 		return ConnectionTypeOpenAI
 	default:
 		return "unknown"
+	}
+}
+
+func GetSqlDriverByConnectionType(connectionType ConnectionType) (string, error) {
+	switch connectionType {
+	case ConnectionTypePostgres:
+		return sqlmanager_shared.PostgresDriver, nil
+	case ConnectionTypeMysql:
+		return sqlmanager_shared.MysqlDriver, nil
+	case ConnectionTypeMssql:
+		return sqlmanager_shared.MssqlDriver, nil
+	default:
+		return "", fmt.Errorf("unsupported SQL connection type: %s", connectionType)
 	}
 }
 

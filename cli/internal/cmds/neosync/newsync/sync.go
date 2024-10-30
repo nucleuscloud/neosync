@@ -387,7 +387,10 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 		MetricsEnabled:         false,
 		PostgresDriverOverride: databaseDriver,
 	}
-	bm := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
+	bm, err := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
+	if err != nil {
+		return nil, err
+	}
 	configs, err := bm.GenerateBenthosConfigs(c.ctx)
 	if err != nil {
 		c.logger.Error("unable to build benthos configs")
