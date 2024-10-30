@@ -15766,6 +15766,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "trial_expires_at",
+              "description": "The time when the trial expires",
+              "label": "optional",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_trial_expires_at",
+              "defaultValue": ""
             }
           ]
         },
