@@ -7,10 +7,12 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/lib/pq"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -19,6 +21,8 @@ import (
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 func sqlInsertOutputSpec() *service.ConfigSpec {
@@ -37,7 +41,9 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional())
+		Field(service.NewStringField("suffix").Optional()).
+		Field(service.NewStringField("max_retry_attempts").Default(3)).
+		Field(service.NewStringField("retry_attempt_delay").Default("300ms"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -88,6 +94,9 @@ type pooledInsertOutput struct {
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
 	isRetry     bool
+
+	maxRetryAttempts uint
+	retryDelay       time.Duration
 }
 
 func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
@@ -184,6 +193,22 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
+	retryAttempts, err := conf.FieldInt("max_retry_attempts")
+	if err != nil {
+		return nil, err
+	}
+	if retryAttempts < 1 {
+		retryAttempts = 1
+	}
+	retryAttemptDelay, err := conf.FieldString("retry_attempt_delay")
+	if err != nil {
+		return nil, err
+	}
+	retryDelay, err := time.ParseDuration(retryAttemptDelay)
+	if err != nil {
+		return nil, err
+	}
+
 	output := &pooledInsertOutput{
 		driver:                   driver,
 		dsn:                      dsn,
@@ -203,6 +228,8 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		prefix:                   prefix,
 		suffix:                   suffix,
 		isRetry:                  isRetry,
+		maxRetryAttempts:         uint(retryAttempts),
+		retryDelay:               retryDelay,
 	}
 	return output, nil
 }
@@ -312,7 +339,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
-		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+		if !isDeadlockError(err) || !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
 		}
 		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows, columnDefaults)
@@ -321,6 +348,78 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		}
 	}
 	return nil
+}
+
+const (
+	// MySQL error codes
+	// 1213 - Deadlock found when trying to get lock
+	mysqlDeadlock = 1213
+	// 1205 - Lock wait timeout exceeded
+	mysqlLockTimeout = 1205
+
+	// PostgreSQL error codes
+	pqDeadlockDetected = "40P01"
+)
+
+func isDeadlockError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return isMysqlDeadlockError(err) || isPostgresDeadlock(err) || isMSSQLDeadlock(err)
+}
+
+func isMysqlDeadlockError(err error) bool {
+	if err == nil {
+		return false
+	}
+	mysqlErr, ok := err.(*mysql.MySQLError)
+	if ok {
+		return mysqlErr.Number == mysqlDeadlock || mysqlErr.Number == mysqlLockTimeout
+	}
+	return false
+}
+
+func isPostgresDeadlock(err error) bool {
+	if err == nil {
+		return false
+	}
+	pqErr, ok := err.(*pq.Error)
+	if ok {
+		return pqErr.Code == pqDeadlockDetected
+	}
+	return false
+}
+
+// isMSSQLDeadlock checks specifically for SQL Server deadlock errors
+func isMSSQLDeadlock(err error) bool {
+	if err == nil {
+		return false
+	}
+	// SQL Server deadlocks can be detected in two ways:
+	// 1. Error number 1205
+	// 2. Error message containing specific text
+
+	// First check for specific error number in message
+	if strings.Contains(err.Error(), "Error 1205") {
+		return true
+	}
+
+	// Also check for common deadlock message patterns
+	deadlockPatterns := []string{
+		"deadlock victim",
+		"Transaction (Process ID",
+		"was deadlocked",
+		"has been chosen as the deadlock victim",
+	}
+
+	msg := strings.ToLower(err.Error())
+	for _, pattern := range deadlockPatterns {
+		if strings.Contains(msg, strings.ToLower(pattern)) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
@@ -338,7 +437,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	rows [][]any,
 	columnDefaults []*neosync_benthos.ColumnDefaultProperties,
 ) error {
-	errorCount := 0
+	fkErrorCount := 0
 	insertCount := 0
 	for _, row := range rows {
 		insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing, columnDefaults)
@@ -348,9 +447,9 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 		if s.driver != sqlmanager_shared.PostgresDriver {
 			insertQuery = s.buildQuery(insertQuery)
 		}
-		_, err = s.db.ExecContext(ctx, insertQuery, args...)
+		err = s.execWithRetry(ctx, insertQuery, args)
 		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			errorCount++
+			fkErrorCount++
 		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
 		}
@@ -358,8 +457,44 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 			insertCount++
 		}
 	}
-	s.logger.Infof("Completed batch insert with %d foreign key violations. Skipped rows: %d, Successfully inserted: %d", errorCount, errorCount, insertCount)
+	s.logger.Infof("Completed batch insert with %d foreign key violations. Skipped rows: %d, Successfully inserted: %d", fkErrorCount, fkErrorCount, insertCount)
 	return nil
+}
+
+func (s *pooledInsertOutput) execWithRetry(
+	ctx context.Context,
+	query string,
+	args []any,
+) error {
+	var err error
+	for attempt := uint(0); attempt < s.maxRetryAttempts; attempt++ {
+		_, err = s.db.ExecContext(ctx, query, args...)
+		if err == nil {
+			return nil
+		}
+		if !isDeadlockError(err) {
+			return err
+		}
+		s.logger.Warnf("deadlock detected, (%d/%d). Retrying in %v...", attempt+1, s.maxRetryAttempts, s.retryDelay)
+		err = sleepContext(ctx, s.retryDelay)
+		if err != nil {
+			return fmt.Errorf("encountered error while sleeping during retry delay: %w", err)
+		}
+	}
+	return fmt.Errorf("max retry attempts reached while attempting to exec db query: %w", err)
+}
+
+func sleepContext(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		return nil
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
+	}
 }
 
 func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any) (columns []string, rows [][]any) {

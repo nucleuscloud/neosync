@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -38,7 +39,9 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching"))
+		Field(service.NewBatchPolicyField("batching")).
+		Field(service.NewStringField("max_retry_attempts").Default(3)).
+		Field(service.NewStringField("retry_attempt_delay").Default("300ms"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -82,6 +85,9 @@ type pooledUpdateOutput struct {
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
+
+	maxRetryAttempts uint
+	retryDelay       time.Duration
 }
 
 func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledUpdateOutput, error) {
@@ -126,6 +132,22 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
+	retryAttempts, err := conf.FieldInt("max_retry_attempts")
+	if err != nil {
+		return nil, err
+	}
+	if retryAttempts < 1 {
+		retryAttempts = 1
+	}
+	retryAttemptDelay, err := conf.FieldString("retry_attempt_delay")
+	if err != nil {
+		return nil, err
+	}
+	retryDelay, err := time.ParseDuration(retryAttemptDelay)
+	if err != nil {
+		return nil, err
+	}
+
 	output := &pooledUpdateOutput{
 		driver:                   driver,
 		dsn:                      dsn,
@@ -138,6 +160,8 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		columns:                  columns,
 		whereCols:                whereCols,
 		skipForeignKeyViolations: skipForeignKeyViolations,
+		maxRetryAttempts:         uint(retryAttempts),
+		retryDelay:               retryDelay,
 	}
 	return output, nil
 }
@@ -215,7 +239,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if err != nil {
 			return err
 		}
-		if _, err := s.db.ExecContext(ctx, query); err != nil {
+		if err := s.execWithRetry(ctx, query); err != nil {
 			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				return err
 			}
@@ -238,4 +262,26 @@ func (s *pooledUpdateOutput) Close(ctx context.Context) error {
 		return ctx.Err()
 	}
 	return nil
+}
+
+func (s *pooledUpdateOutput) execWithRetry(
+	ctx context.Context,
+	query string,
+) error {
+	var err error
+	for attempt := uint(0); attempt < s.maxRetryAttempts; attempt++ {
+		_, err = s.db.ExecContext(ctx, query)
+		if err == nil {
+			return nil
+		}
+		if !isDeadlockError(err) {
+			return err
+		}
+		s.logger.Warnf("deadlock detected, (%d/%d). Retrying in %v...", attempt+1, s.maxRetryAttempts, s.retryDelay)
+		err = sleepContext(ctx, s.retryDelay)
+		if err != nil {
+			return fmt.Errorf("encountered error while sleeping during retry delay: %w", err)
+		}
+	}
+	return fmt.Errorf("max retry attempts reached while attempting to exec db query: %w", err)
 }
