@@ -36,7 +36,9 @@ export function AccountStatusHandler(props: Props) {
     data?.trialExpiresAt?.toDate() ?? Date.now()
   ).getTime();
 
-  const daysRemaining = differenceInDays(Math.max(trialEndDate), Date.now());
+  const daysRemaining = Math.max(
+    differenceInDays(Math.max(trialEndDate), Date.now())
+  );
 
   return (
     <div className="flex flex-row items-center gap-2">
