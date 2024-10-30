@@ -37,8 +37,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -367,16 +367,22 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	if c.cmd.Source.ConnectionOpts != nil {
 		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
 	}
-	bm := benthosbuilder.NewCliBenthosConfigManager(c.connectiondataclient, c.sqlmanagerclient, c.transformerclient, nil, jobRunId, syncConfigs, c.destinationConnection)
-	configs, err := bm.GenerateBenthosConfigs(
-		c.ctx,
-		job,
-		c.sourceConnection,
-		[]*mgmtv1alpha1.Connection{c.destinationConnection},
-		"cli-sync",
-		nil,
-		c.logger,
-	)
+	benthosManagerConfig := &benthosbuilder.CliBenthosConfig{
+		Job:                   job,
+		SourceConnection:      c.sourceConnection,
+		SourceJobRunId:        jobRunId,
+		DestinationConnection: c.destinationConnection,
+		SyncConfigs:           syncConfigs,
+		RunId:                 "cli-sync",
+		Logger:                c.logger,
+		Sqlmanagerclient:      c.sqlmanagerclient,
+		Transformerclient:     c.transformerclient,
+		Connectiondataclient:  c.connectiondataclient,
+		RedisConfig:           nil,
+		MetricsEnabled:        false,
+	}
+	bm := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
+	configs, err := bm.GenerateBenthosConfigs(c.ctx)
 	if err != nil {
 		c.logger.Error("unable to build benthos configs")
 		return nil, err

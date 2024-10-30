@@ -3,7 +3,6 @@ package benthosbuilder
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -13,30 +12,18 @@ import (
 
 func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	ctx context.Context,
-	job *mgmtv1alpha1.Job,
-	sourceConnection *mgmtv1alpha1.Connection,
-	destinationConnections []*mgmtv1alpha1.Connection,
-	runId string,
-	metricLabelKeyVals map[string]string,
-	logger *slog.Logger,
 ) ([]*BenthosConfigResponse, error) {
-	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
-	jobType := bb_internal.GetJobType(job)
-	logger = logger.With(
-		"sourceConnectionType", sourceConnectionType,
-		"jobType", jobType,
-	)
-	dbBuilder, err := b.sourceProvider.GetBuilder(sourceConnectionType, jobType)
+	dbBuilder, err := b.sourceProvider.GetBuilder(b.job, b.sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create benthos builder: %w", err)
 	}
-	logger.Debug(fmt.Sprintf("created source benthos builder for %s", sourceConnectionType))
+	b.logger.Debug("created source benthos builder")
 
 	sourceParams := &bb_internal.SourceParams{
-		Job:              job,
-		RunId:            runId,
-		SourceConnection: sourceConnection,
-		Logger:           logger,
+		Job:              b.job,
+		RunId:            b.runId,
+		SourceConnection: b.sourceConnection,
+		Logger:           b.logger,
 	}
 
 	// also builds processors
@@ -44,20 +31,19 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("built %d source configs", len(sourceConfigs)))
+	b.logger.Debug(fmt.Sprintf("built %d source configs", len(sourceConfigs)))
 
-	destinationOpts := buildDestinationOptionsMap(job.GetDestinations())
+	destinationOpts := buildDestinationOptionsMap(b.job.GetDestinations())
 
-	logger.Debug(fmt.Sprintf("building %d destination configs", len(destinationConnections)))
+	b.logger.Debug(fmt.Sprintf("building %d destination configs", len(b.destinationConnections)))
 	responses := []*BenthosConfigResponse{}
-	for destIdx, destConnection := range destinationConnections {
+	for destIdx, destConnection := range b.destinationConnections {
 		// Create destination builder
-		destConnectionType := bb_internal.GetConnectionType(destConnection)
-		destBuilder, err := b.destinationProvider.GetBuilder(destConnectionType, jobType)
+		destBuilder, err := b.destinationProvider.GetBuilder(b.job, destConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
 		}
-		logger.Debug(fmt.Sprintf("created destination benthos builder for %s", destConnectionType))
+		b.logger.Debug("created destination benthos builder for destination")
 
 		destOpts, ok := destinationOpts[destConnection.GetId()]
 		if !ok {
@@ -65,14 +51,17 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		}
 
 		for _, sourceConfig := range sourceConfigs {
+			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
+			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 			destParams := &bb_internal.DestinationParams{
 				SourceConfig:    sourceConfig,
-				Job:             job,
-				RunId:           runId,
-				DestinationIdx:  destIdx,
+				Job:             b.job,
+				RunId:           b.runId,
 				DestinationOpts: destOpts,
 				DestConnection:  destConnection,
-				Logger:          logger,
+				DestEnvVarKey:   dstEnvVarKey,
+				DSN:             dsn,
+				Logger:          b.logger,
 			}
 
 			destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
@@ -82,21 +71,21 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			sourceConfig.Config.Output.Broker.Outputs = append(sourceConfig.Config.Output.Broker.Outputs, destConfig.Outputs...)
 			sourceConfig.BenthosDsns = append(sourceConfig.BenthosDsns, destConfig.BenthosDsns...)
 		}
-		logger.Debug(fmt.Sprintf("applied destination (%s) to %d source configs", destConnectionType, len(sourceConfigs)))
+		b.logger.Debug(fmt.Sprintf("applied destination to %d source configs", len(sourceConfigs)))
 	}
 
 	// pass in all the labels??
 	if b.metricsEnabled {
-		logger.Debug("metrics enabled. applying metric labels")
+		b.logger.Debug("metrics enabled. applying metric labels")
 		labels := metrics.MetricLabels{
-			metrics.NewEqLabel(metrics.AccountIdLabel, job.AccountId),
-			metrics.NewEqLabel(metrics.JobIdLabel, job.Id),
+			metrics.NewEqLabel(metrics.AccountIdLabel, b.job.AccountId),
+			metrics.NewEqLabel(metrics.JobIdLabel, b.job.Id),
 			// need to pass these in
 			// metrics.NewEqLabel(metrics.TemporalWorkflowId, withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey)),
 			// metrics.NewEqLabel(metrics.TemporalRunId, withEnvInterpolation(metrics.TemporalRunIdEnvKey)),
 			metrics.NewEqLabel(metrics.NeosyncDateLabel, withEnvInterpolation(metrics.NeosyncDateEnvKey)),
 		}
-		for key, val := range metricLabelKeyVals {
+		for key, val := range b.metricLabelKeyVals {
 			labels = append(labels, metrics.NewEqLabel(key, val))
 		}
 		for _, resp := range sourceConfigs {
@@ -109,7 +98,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	}
 
 	for _, sourceConfig := range sourceConfigs {
-		response := convertToResponse(sourceConfig, sourceConnectionType)
+		response := convertToResponse(sourceConfig)
 		responses = append(responses, response)
 	}
 
@@ -127,7 +116,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	// 	return nil, fmt.Errorf("unable to set run contexts: %w", err)
 	// }
 
-	logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
+	b.logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil
 }
 
@@ -144,37 +133,16 @@ func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[str
 	return destOpts
 }
 
-func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig, sourceConnectionType bb_internal.ConnectionType) *BenthosConfigResponse {
+func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig) *BenthosConfigResponse {
 	return &BenthosConfigResponse{
-		Name:      sourceConfig.Name,
-		Config:    sourceConfig.Config,
-		DependsOn: sourceConfig.DependsOn,
-		// RunType:        sourceConfig.RunType,
+		Name:           sourceConfig.Name,
+		Config:         sourceConfig.Config,
+		DependsOn:      sourceConfig.DependsOn,
 		TableSchema:    sourceConfig.TableSchema,
 		TableName:      sourceConfig.TableName,
 		Columns:        sourceConfig.Columns,
 		RedisDependsOn: sourceConfig.RedisDependsOn,
-		// ColumnDefaultProperties: sourceConfig.ColumnDefaultProperties,
-		// Processors:              sourceConfig.Processors,
-		BenthosDsns: sourceConfig.BenthosDsns,
-		RedisConfig: sourceConfig.RedisConfig,
-		// SourceConnectionType:    string(sourceConnectionType),
-		// metriclabels:            sourceConfig.Metriclabels,
+		BenthosDsns:    sourceConfig.BenthosDsns,
+		RedisConfig:    sourceConfig.RedisConfig,
 	}
 }
-
-/*
-
-benthosbuilder.registersource(job sourceConnection)
-benthosbuilder.registerdestionation(job, destinationConnection)
-benthosbuilder.generateconfigs
-
-registersource
-	newpostgressyncbuilder
-
-registerdestination
-	newmysqlsyncbuilder
-
-
-
-*/

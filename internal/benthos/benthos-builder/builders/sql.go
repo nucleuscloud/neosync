@@ -279,9 +279,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	// fmt.Println()
 
 	destOpts := params.DestinationOpts
-	dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", params.DestinationIdx)
-	dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
 		args = append(args, benthosConfig.PrimaryKeys...)
@@ -290,7 +288,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
 						Driver: driver, // TODO
-						Dsn:    dsn,
+						Dsn:    params.DSN,
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -361,7 +359,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 						Driver: driver,
-						Dsn:    dsn,
+						Dsn:    params.DSN,
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -439,10 +437,10 @@ func getSqlSchemaColumnMap(
 	slogger *slog.Logger,
 ) map[string]map[string]*sqlmanager_shared.ColumnInfo {
 	schemaColMap := sourceSchemaColumnInfoMap
-	destOpts, err := shared.GetSqlJobDestinationOpts(destinationOpts)
-	if err != nil || destOpts.InitSchema {
-		return schemaColMap
-	}
+	// destOpts, err := shared.GetSqlJobDestinationOpts(destinationOpts)
+	// if err != nil || destOpts.InitSchema {
+	// 	return schemaColMap
+	// }
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)

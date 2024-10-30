@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"gopkg.in/yaml.v3"
@@ -34,8 +35,24 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		}
 		destConnections = append(destConnections, destinationConnection)
 	}
-	benthosManager := benthosbuilder.NewWorkerBenthosConfigManager(b.sqlmanagerclient, b.transformerclient, b.redisConfig, false)
-	responses, err := benthosManager.GenerateBenthosConfigs(ctx, job, sourceConnection, destConnections, wfmetadata.WorkflowId, nil, slogger)
+
+	benthosManagerConfig := &benthosbuilder.WorkerBenthosConfig{
+		Job:                    job,
+		SourceConnection:       sourceConnection,
+		DestinationConnections: destConnections,
+		RunId:                  wfmetadata.WorkflowId,
+		Logger:                 slogger,
+		Sqlmanagerclient:       b.sqlmanagerclient,
+		Transformerclient:      b.transformerclient,
+		RedisConfig:            b.redisConfig,
+		MetricsEnabled:         true,
+		MetricLabelKeyVals: map[string]string{
+			metrics.TemporalWorkflowId: withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
+			metrics.TemporalRunId:      withEnvInterpolation(metrics.TemporalRunIdEnvKey),
+		},
+	}
+	benthosManager := benthosbuilder.NewWorkerBenthosConfigManager(benthosManagerConfig)
+	responses, err := benthosManager.GenerateBenthosConfigs(ctx)
 	if err != nil {
 		return nil, err
 	}

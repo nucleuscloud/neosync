@@ -18,7 +18,7 @@ const (
 	ConnectionTypePostgres    ConnectionType = "postgres"
 	ConnectionTypeMysql       ConnectionType = "mysql"
 	ConnectionTypeMssql       ConnectionType = "mssql"
-	ConnectionTypeS3          ConnectionType = "aws-s3"
+	ConnectionTypeAwsS3       ConnectionType = "aws-s3"
 	ConnectionTypeGCP         ConnectionType = "gcp-cloud-storage"
 	ConnectionTypeMongo       ConnectionType = "mongodb"
 	ConnectionTypeDynamodb    ConnectionType = "aws-dynamodb"
@@ -37,7 +37,7 @@ func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		return ConnectionTypeMssql
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		return ConnectionTypeS3
+		return ConnectionTypeAwsS3
 	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 		return ConnectionTypeGCP
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
@@ -114,9 +114,10 @@ type DestinationParams struct {
 	SourceConfig    *BenthosSourceConfig
 	Job             *mgmtv1alpha1.Job
 	RunId           string
-	DestinationIdx  int
 	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
 	DestConnection  *mgmtv1alpha1.Connection
+	DestEnvVarKey   string
+	DSN             string
 	Logger          *slog.Logger
 }
 
