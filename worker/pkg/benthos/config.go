@@ -383,6 +383,8 @@ type PooledSqlUpdate struct {
 	SkipForeignKeyViolations bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
 	ArgsMapping              string    `json:"args_mapping" yaml:"args_mapping"`
 	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	MaxRetryAttempts         *uint     `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
+	RetryAttemptDelay        *string   `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
 }
 
 type ColumnDefaultProperties struct {
@@ -406,6 +408,8 @@ type PooledSqlInsert struct {
 	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
+	MaxRetryAttempts         *uint                               `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
+	RetryAttemptDelay        *string                             `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
 }
 
 type SqlInsert struct {
