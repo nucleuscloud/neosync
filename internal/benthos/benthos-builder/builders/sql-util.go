@@ -446,19 +446,6 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_in
 	return redisDependsOnMap
 }
 
-func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
-	switch conn.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return sqlmanager_shared.PostgresDriver, nil
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return sqlmanager_shared.MysqlDriver, nil
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return sqlmanager_shared.MssqlDriver, nil
-	default:
-		return "", fmt.Errorf("unsupported sql connection config")
-	}
-}
-
 func getSqlJobSourceOpts(
 	source *mgmtv1alpha1.JobSource,
 ) (*sqlJobSourceOpts, error) {

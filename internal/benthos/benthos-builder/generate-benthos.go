@@ -2,6 +2,7 @@ package benthosbuilder
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -26,7 +27,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		Logger:           b.logger,
 	}
 
-	// also builds processors
 	sourceConfigs, err := dbBuilder.BuildSourceConfigs(ctx, sourceParams)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	b.logger.Debug(fmt.Sprintf("building %d destination configs", len(b.destinationConnections)))
 	responses := []*BenthosConfigResponse{}
 	for destIdx, destConnection := range b.destinationConnections {
-		// Create destination builder
 		destBuilder, err := b.destinationProvider.GetBuilder(b.job, destConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
@@ -74,15 +73,11 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		b.logger.Debug(fmt.Sprintf("applied destination to %d source configs", len(sourceConfigs)))
 	}
 
-	// pass in all the labels??
 	if b.metricsEnabled {
 		b.logger.Debug("metrics enabled. applying metric labels")
 		labels := metrics.MetricLabels{
 			metrics.NewEqLabel(metrics.AccountIdLabel, b.job.AccountId),
 			metrics.NewEqLabel(metrics.JobIdLabel, b.job.Id),
-			// need to pass these in
-			// metrics.NewEqLabel(metrics.TemporalWorkflowId, withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey)),
-			// metrics.NewEqLabel(metrics.TemporalRunId, withEnvInterpolation(metrics.TemporalRunIdEnvKey)),
 			metrics.NewEqLabel(metrics.NeosyncDateLabel, withEnvInterpolation(metrics.NeosyncDateEnvKey)),
 		}
 		for key, val := range b.metricLabelKeyVals {
@@ -102,19 +97,8 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		responses = append(responses, response)
 	}
 
-	// TODO should this be in benthos builder? how to handle this
-	// // Set post table sync run context
-	// postTableSyncRunCtx := buildPostTableSyncRunCtx(responses, job.Destinations)
-	// err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to set post table sync run contexts: %w", err)
-	// }
-
-	// // Set run contexts
-	// responses, err = b.setRunContexts(ctx, responses, job.GetAccountId())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to set run contexts: %w", err)
-	// }
+	jsonF, _ := json.MarshalIndent(responses, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 
 	b.logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil

@@ -364,7 +364,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 
 func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool, err error) {
 	switch driver {
-	case sqlmanager_shared.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver, "postgres":
 		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MysqlDriver:

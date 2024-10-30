@@ -45,7 +45,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
 		RedisConfig:            b.redisConfig,
-		MetricsEnabled:         true,
+		MetricsEnabled:         false,
 		MetricLabelKeyVals: map[string]string{
 			metrics.TemporalWorkflowId: withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
 			metrics.TemporalRunId:      withEnvInterpolation(metrics.TemporalRunIdEnvKey),

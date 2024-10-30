@@ -37,7 +37,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -367,19 +366,26 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	if c.cmd.Source.ConnectionOpts != nil {
 		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
 	}
+	var databaseDriver *string
+	if c.cmd.Destination.Driver == postgresDriver {
+		d := string(c.cmd.Destination.Driver)
+		databaseDriver = &d
+	}
+
 	benthosManagerConfig := &benthosbuilder.CliBenthosConfig{
-		Job:                   job,
-		SourceConnection:      c.sourceConnection,
-		SourceJobRunId:        jobRunId,
-		DestinationConnection: c.destinationConnection,
-		SyncConfigs:           syncConfigs,
-		RunId:                 "cli-sync",
-		Logger:                c.logger,
-		Sqlmanagerclient:      c.sqlmanagerclient,
-		Transformerclient:     c.transformerclient,
-		Connectiondataclient:  c.connectiondataclient,
-		RedisConfig:           nil,
-		MetricsEnabled:        false,
+		Job:                    job,
+		SourceConnection:       c.sourceConnection,
+		SourceJobRunId:         jobRunId,
+		DestinationConnection:  c.destinationConnection,
+		SyncConfigs:            syncConfigs,
+		RunId:                  "cli-sync",
+		Logger:                 c.logger,
+		Sqlmanagerclient:       c.sqlmanagerclient,
+		Transformerclient:      c.transformerclient,
+		Connectiondataclient:   c.connectiondataclient,
+		RedisConfig:            nil,
+		MetricsEnabled:         false,
+		PostgresDriverOverride: databaseDriver,
 	}
 	bm := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
 	configs, err := bm.GenerateBenthosConfigs(c.ctx)

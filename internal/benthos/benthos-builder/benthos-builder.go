@@ -7,6 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
@@ -109,6 +110,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	redisConfig *shared.RedisConfig,
+	postgresDriverOverride *string,
 ) {
 	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
 	jobType := bb_internal.GetJobType(job)
@@ -120,8 +122,18 @@ func (b *BuilderProvider) registerStandardBuilders(
 	if jobType == bb_internal.JobTypeSync {
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
-			case bb_internal.ConnectionTypePostgres, bb_internal.ConnectionTypeMysql, bb_internal.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig)
+			case bb_internal.ConnectionTypePostgres:
+				driver := sqlmanager_shared.PostgresDriver
+				if postgresDriverOverride != nil && *postgresDriverOverride != "" {
+					driver = *postgresDriverOverride
+				}
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver)
+				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
+			case bb_internal.ConnectionTypeMysql:
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver)
+				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
+			case bb_internal.ConnectionTypeMssql:
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeAwsS3:
 				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
@@ -191,6 +203,7 @@ func NewWorkerBenthosConfigManager(
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		config.RedisConfig,
+		nil,
 	)
 	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
@@ -207,19 +220,20 @@ func NewWorkerBenthosConfigManager(
 }
 
 type CliBenthosConfig struct {
-	Job                   *mgmtv1alpha1.Job
-	SourceConnection      *mgmtv1alpha1.Connection
-	DestinationConnection *mgmtv1alpha1.Connection
-	SourceJobRunId        *string // for use when AWS S3 is the source
-	SyncConfigs           []*tabledependency.RunConfig
-	RunId                 string
-	MetricLabelKeyVals    map[string]string
-	Logger                *slog.Logger
-	Sqlmanagerclient      sqlmanager.SqlManagerClient
-	Transformerclient     mgmtv1alpha1connect.TransformersServiceClient
-	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
-	RedisConfig           *shared.RedisConfig
-	MetricsEnabled        bool
+	Job                    *mgmtv1alpha1.Job
+	SourceConnection       *mgmtv1alpha1.Connection
+	DestinationConnection  *mgmtv1alpha1.Connection
+	SourceJobRunId         *string // for use when AWS S3 is the source
+	PostgresDriverOverride *string // optional driver override. used for postgres
+	SyncConfigs            []*tabledependency.RunConfig
+	RunId                  string
+	MetricLabelKeyVals     map[string]string
+	Logger                 *slog.Logger
+	Sqlmanagerclient       sqlmanager.SqlManagerClient
+	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
+	Connectiondataclient   mgmtv1alpha1connect.ConnectionDataServiceClient
+	RedisConfig            *shared.RedisConfig
+	MetricsEnabled         bool
 }
 
 func NewCliBenthosConfigManager(
@@ -233,6 +247,7 @@ func NewCliBenthosConfigManager(
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		config.RedisConfig,
+		config.PostgresDriverOverride,
 	)
 
 	sourceProvider := NewCliSourceBuilderProvider(config)

@@ -28,6 +28,7 @@ type sqlSyncBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient  sqlmanager.SqlManagerClient
 	redisConfig       *shared.RedisConfig
+	driver            string
 	// reverse of table dependency
 	// map of foreign key to source table + column
 
@@ -42,11 +43,13 @@ func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	redisConfig *shared.RedisConfig,
+	databaseDriver string,
 ) bb_internal.ConnectionBenthosBuilder {
 	return &sqlSyncBuilder{
 		transformerclient: transformerclient,
 		sqlmanagerclient:  sqlmanagerclient,
 		redisConfig:       redisConfig,
+		driver:            databaseDriver,
 	}
 }
 
@@ -74,7 +77,11 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
+	fmt.Println()
+	fmt.Println("column info count", len(groupedColumnInfo))
+	fmt.Println()
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
+	fmt.Println("source sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
 	if !areMappingsSubsetOfSchemas(groupedColumnInfo, job.Mappings) {
 		return nil, errors.New(jobmappingSubsetErrMsg)
 	}
@@ -123,6 +130,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 
 	// map of table constraints that have transformers
 	transformedForeignKeyToSourceMap := getTransformedFksMap(filteredForeignKeysMap, colTransformerMap)
+	fmt.Println("source sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
 
 	for _, config := range runConfigs {
 		mappings, ok := groupedTableMapping[config.Table()]
@@ -233,11 +241,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
 
 	config := &bb_internal.BenthosDestinationConfig{}
-	// should this be configured
-	driver, err := getSqlDriverFromConnection(params.DestConnection)
-	if err != nil {
-		return nil, err
-	}
 
 	// this is very inefficient
 	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
@@ -267,7 +270,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	tableColTransformers := colTransformerMap[tableKey]
 
-	columnDefaultProperties, err := getColumnDefaultProperties(logger, driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
+	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +290,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: driver, // TODO
+						Driver: b.driver,
 						Dsn:    params.DSN,
 
 						Schema:                   benthosConfig.TableSchema,
@@ -353,12 +356,12 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			}
 		}
 
-		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
+		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-						Driver: driver,
+						Driver: b.driver,
 						Dsn:    params.DSN,
 
 						Schema:                   benthosConfig.TableSchema,
@@ -426,6 +429,7 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 	return false
 }
 
+// this should really be a merge
 // tries to get destination schema column info map
 // if not uses source destination schema column info map
 func getSqlSchemaColumnMap(
@@ -454,51 +458,33 @@ func getSqlSchemaColumnMap(
 			return schemaColMap
 		}
 		if len(destColMap) != 0 {
-			schemaColMap = destColMap
+			return mergeSourceDestinationColumnInfo(sourceSchemaColumnInfoMap, destColMap)
 		}
 		destDb.Db.Close()
 	}
 	return schemaColMap
 }
 
-/*
-	Generate
-*/
+// Merges source db column info with destination db col info
+// Destination db col info take precedence
+func mergeSourceDestinationColumnInfo(
+	sourceCols map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	destCols map[string]map[string]*sqlmanager_shared.ColumnInfo,
+) map[string]map[string]*sqlmanager_shared.ColumnInfo {
+	mergedCols := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
 
-type postgresGenerateBuilder struct {
-}
+	for schemaTable, tableCols := range sourceCols {
+		mergedCols[schemaTable] = tableCols
+	}
 
-func NewPostgresGenerateBuilder() bb_internal.ConnectionBenthosBuilder {
-	return &postgresGenerateBuilder{}
-}
+	for schemaTable, tableCols := range destCols {
+		if _, ok := mergedCols[schemaTable]; !ok {
+			mergedCols[schemaTable] = make(map[string]*sqlmanager_shared.ColumnInfo)
+		}
+		for colName, colInfo := range tableCols {
+			mergedCols[schemaTable][colName] = colInfo
+		}
+	}
 
-func (b *postgresGenerateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
-	return []*bb_internal.BenthosSourceConfig{}, nil
-}
-
-func (b *postgresGenerateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
-	config := &bb_internal.BenthosDestinationConfig{}
-
-	return config, nil
-}
-
-/*
-	AI Generate
-*/
-
-type postgresAIGenerateBuilder struct {
-}
-
-func NewPostgresAIGenerateBuilder() bb_internal.ConnectionBenthosBuilder {
-	return &postgresGenerateBuilder{}
-}
-
-func (b *postgresAIGenerateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
-	return []*bb_internal.BenthosSourceConfig{}, nil
-}
-
-func (b *postgresAIGenerateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
-	config := &bb_internal.BenthosDestinationConfig{}
-
-	return config, nil
+	return mergedCols
 }
