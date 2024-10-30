@@ -14,10 +14,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-/*
-	Sync
-*/
-
 type mongodbSyncBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 }

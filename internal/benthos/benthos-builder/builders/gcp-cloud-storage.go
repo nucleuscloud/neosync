@@ -11,10 +11,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-/*
-	Sync
-*/
-
 type gcpCloudStorageSyncBuilder struct {
 }
 

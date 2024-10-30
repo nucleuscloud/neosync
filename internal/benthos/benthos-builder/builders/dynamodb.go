@@ -17,10 +17,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-/*
-	Sync
-*/
-
 type dyanmodbSyncBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 }

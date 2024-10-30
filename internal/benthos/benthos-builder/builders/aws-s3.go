@@ -13,10 +13,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
-/*
-	Sync
-*/
-
 type awsS3SyncBuilder struct {
 }
 
