@@ -77,11 +77,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
-	fmt.Println()
-	fmt.Println("column info count", len(groupedColumnInfo))
-	fmt.Println()
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
-	fmt.Println("source sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
 	if !areMappingsSubsetOfSchemas(groupedColumnInfo, job.Mappings) {
 		return nil, errors.New(jobmappingSubsetErrMsg)
 	}
@@ -130,7 +126,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 
 	// map of table constraints that have transformers
 	transformedForeignKeyToSourceMap := getTransformedFksMap(filteredForeignKeysMap, colTransformerMap)
-	fmt.Println("source sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
 
 	for _, config := range runConfigs {
 		mappings, ok := groupedTableMapping[config.Table()]
@@ -171,7 +166,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table()]
 		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table()]
 		colInfoMap := groupedColumnInfo[config.Table()]
-		// tableColTransformers := colTransformerMap[config.Table()]
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
@@ -194,11 +188,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		// columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, config.InsertColumns(), colInfoMap, tableColTransformers)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
 			Name:           fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
 			Config:         bc,
@@ -211,7 +200,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
 			Columns:     config.InsertColumns(),
-			// ColumnDefaultProperties: columnDefaultProperties,
 			PrimaryKeys: config.PrimaryKeys(),
 
 			Metriclabels: metrics.MetricLabels{
@@ -222,20 +210,10 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		})
 	}
 
-	fmt.Println()
-	fmt.Println("source sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
-	fmt.Println("source sqlDestinationSchemaColumnInfoMap", len(b.sqlDestinationSchemaColumnInfoMap))
-	fmt.Println()
-
 	return configs, nil
 }
 
 func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
-	fmt.Println()
-	fmt.Println(params.SourceConfig.Name)
-	fmt.Println("destination sqlSourceSchemaColumnInfoMap", len(b.sqlSourceSchemaColumnInfoMap))
-	fmt.Println("destination sqlDestinationSchemaColumnInfoMap", len(b.sqlDestinationSchemaColumnInfoMap))
-	fmt.Println()
 	logger := params.Logger
 	benthosConfig := params.SourceConfig
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
@@ -244,7 +222,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	// this is very inefficient
 	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestinationOpts, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
 	}
 
@@ -263,23 +241,11 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		colTransformerMap = colTMap
 	}
 
-	// fmt.Println()
-	// fmt.Println()
-	// jsonF, _ := json.MarshalIndent(colInfoMap, "", " ")
-	// fmt.Printf("%s \n", string(jsonF))
-
 	tableColTransformers := colTransformerMap[tableKey]
-
 	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
 	if err != nil {
 		return nil, err
 	}
-
-	// fmt.Println(benthosConfig.Name)
-	// jsonF, _ = json.MarshalIndent(columnDefaultProperties, "", " ")
-	// fmt.Printf("columnDefaultProperties: %s \n", string(jsonF))
-	// fmt.Println()
-	// fmt.Println()
 
 	destOpts := params.DestinationOpts
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
@@ -429,22 +395,16 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 	return false
 }
 
-// this should really be a merge
 // tries to get destination schema column info map
 // if not uses source destination schema column info map
 func getSqlSchemaColumnMap(
 	ctx context.Context,
-	destinationOpts *mgmtv1alpha1.JobDestinationOptions,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	slogger *slog.Logger,
 ) map[string]map[string]*sqlmanager_shared.ColumnInfo {
 	schemaColMap := sourceSchemaColumnInfoMap
-	// destOpts, err := shared.GetSqlJobDestinationOpts(destinationOpts)
-	// if err != nil || destOpts.InitSchema {
-	// 	return schemaColMap
-	// }
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)

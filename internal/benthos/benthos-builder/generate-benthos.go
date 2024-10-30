@@ -2,11 +2,11 @@ package benthosbuilder
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
@@ -92,13 +92,22 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		}
 	}
 
-	for _, sourceConfig := range sourceConfigs {
-		response := convertToResponse(sourceConfig)
-		responses = append(responses, response)
+	var outputConfigs []*bb_internal.BenthosSourceConfig
+	if isOnlyBucketDestinations(b.job.Destinations) {
+		for _, sc := range sourceConfigs {
+			if sc.RunType == tabledependency.RunTypeInsert {
+				sc.DependsOn = []*tabledependency.DependsOn{}
+				outputConfigs = append(outputConfigs, sc)
+			}
+		}
+	} else {
+		outputConfigs = sourceConfigs
 	}
 
-	jsonF, _ := json.MarshalIndent(responses, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
+	for _, config := range outputConfigs {
+		response := convertToResponse(config)
+		responses = append(responses, response)
+	}
 
 	b.logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil
@@ -129,4 +138,13 @@ func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig) *BenthosCo
 		BenthosDsns:    sourceConfig.BenthosDsns,
 		RedisConfig:    sourceConfig.RedisConfig,
 	}
+}
+
+func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {
+	for _, dest := range destinations {
+		if dest.GetOptions().GetAwsS3Options() == nil && dest.GetOptions().GetGcpCloudstorageOptions() == nil {
+			return false
+		}
+	}
+	return true
 }
