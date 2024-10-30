@@ -403,12 +403,10 @@ func Test_CreateJob(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 		},
 		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
@@ -462,12 +460,10 @@ func Test_CreateJob(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 			WorkflowOptions: &mgmtv1alpha1.WorkflowOptions{},
@@ -548,12 +544,10 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 		},
 		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
@@ -609,12 +603,10 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 			WorkflowOptions: &mgmtv1alpha1.WorkflowOptions{},
@@ -697,12 +689,10 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 		},
 		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
@@ -758,12 +748,10 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 			WorkflowOptions: &mgmtv1alpha1.WorkflowOptions{},
@@ -1001,8 +989,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 		},
 		UpdatedByID: userUuid,
@@ -1047,8 +1034,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1089,8 +1075,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &pg_models.TransformerConfigs{},
+				Config: &pg_models.TransformerConfig{Passthrough: &pg_models.PassthroughConfig{}},
 			}},
 		},
 		UpdatedByID: userUuid,
@@ -1133,8 +1118,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1190,8 +1174,7 @@ func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1248,8 +1231,7 @@ func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1306,8 +1288,7 @@ func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1829,28 +1810,22 @@ func Test_ValidateJobMappings_NoValidationErrors(t *testing.T) {
 			ConnectionId: connId,
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "public", Table: "orders", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_1", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_1", Column: "table2_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_2", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_2", Column: "table1_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},
@@ -1904,28 +1879,22 @@ func Test_ValidateJobMappings_ValidationErrors(t *testing.T) {
 			ConnectionId: connId,
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "public", Table: "orders", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "account", Table: "accounts", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_1", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_1", Column: "table2_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_2", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 				{Schema: "circle", Table: "table_2", Column: "table1_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-					Config: &mgmtv1alpha1.TransformerConfig{},
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{}},
 				}},
 			},
 		},

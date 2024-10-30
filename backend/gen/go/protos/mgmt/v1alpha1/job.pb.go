@@ -3261,6 +3261,7 @@ type JobMappingTransformer struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// @deprecated - This is no longer used in favor just providing the TransformerConfig
 	Source TransformerSource  `protobuf:"varint,1,opt,name=source,proto3,enum=mgmt.v1alpha1.TransformerSource" json:"source,omitempty"`
 	Config *TransformerConfig `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
 }

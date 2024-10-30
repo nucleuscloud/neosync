@@ -30,6 +30,7 @@ import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
   EditDestinationOptionsFormValues,
+  JobMappingFormValues,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -84,6 +85,7 @@ import {
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { useOnImportMappings } from './useOnImportMappings';
 import {
   getConnectionIdFromSource,
   getDestinationDetailsRecord,
@@ -362,12 +364,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  async function validateMappings() {
+  async function validateMappings(
+    mappings: JobMappingFormValues[] = formMappings
+  ) {
     try {
       setIsValidatingMappings(true);
       const res = await validateJobMapping(
         sourceConnectionId || '',
-        formMappings,
+        mappings,
         account?.id || '',
         formVirtualForeignKeys,
         validateJobMappingsAsync
@@ -459,6 +463,37 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     },
     []
   );
+
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    async triggerUpdate() {
+      await form.trigger('mappings');
+      setTimeout(() => {
+        // using form.getvalues instead of formMappings as it is more up to date for some reason (bug?)
+        validateMappings(form.getValues('mappings'));
+      }, 0);
+    },
+    setSelectedTables: setSelectedTables,
+  });
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
@@ -696,6 +731,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 source ?? new Connection(),
                 dynamoDBDestinations.length > 0
               )}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
 
@@ -718,6 +754,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               onValidate={validateMappings}
               addVirtualForeignKey={addVirtualForeignKey}
               removeVirtualForeignKey={removeVirtualForeignKey}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">

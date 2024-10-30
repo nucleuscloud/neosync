@@ -2439,6 +2439,8 @@ type IsAccountStatusValidResponse struct {
 	AllowedRecordCount *uint64 `protobuf:"varint,5,opt,name=allowed_record_count,json=allowedRecordCount,proto3,oneof" json:"allowed_record_count,omitempty"`
 	// The current status of the account. Default is valid.
 	AccountStatus AccountStatus `protobuf:"varint,6,opt,name=account_status,json=accountStatus,proto3,enum=mgmt.v1alpha1.AccountStatus" json:"account_status,omitempty"`
+	// The time when the trial expires
+	TrialExpiresAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=trial_expires_at,json=trialExpiresAt,proto3,oneof" json:"trial_expires_at,omitempty"`
 }
 
 func (x *IsAccountStatusValidResponse) Reset() {
@@ -2511,6 +2513,13 @@ func (x *IsAccountStatusValidResponse) GetAccountStatus() AccountStatus {
 		return x.AccountStatus
 	}
 	return AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED
+}
+
+func (x *IsAccountStatusValidResponse) GetTrialExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.TrialExpiresAt
+	}
+	return nil
 }
 
 type GetAccountBillingCheckoutSessionRequest struct {
@@ -3195,7 +3204,7 @@ var file_mgmt_v1alpha1_user_account_proto_rawDesc = []byte{
 	0x28, 0x04, 0x48, 0x00, 0x52, 0x14, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x52,
 	0x65, 0x63, 0x6f, 0x72, 0x64, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x88, 0x01, 0x01, 0x42, 0x19, 0x0a,
 	0x17, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x63, 0x6f,
-	0x72, 0x64, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0xc3, 0x02, 0x0a, 0x1c, 0x49, 0x73, 0x41,
+	0x72, 0x64, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0xa3, 0x03, 0x0a, 0x1c, 0x49, 0x73, 0x41,
 	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x56, 0x61, 0x6c, 0x69,
 	0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x69, 0x73, 0x5f,
 	0x76, 0x61, 0x6c, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x69, 0x73, 0x56,
@@ -3213,9 +3222,15 @@ var file_mgmt_v1alpha1_user_account_proto_rawDesc = []byte{
 	0x5f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1c, 0x2e,
 	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x63,
 	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x0d, 0x61, 0x63, 0x63,
-	0x6f, 0x75, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x09, 0x0a, 0x07, 0x5f, 0x72,
-	0x65, 0x61, 0x73, 0x6f, 0x6e, 0x42, 0x17, 0x0a, 0x15, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65,
-	0x64, 0x5f, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x52,
+	0x6f, 0x75, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x49, 0x0a, 0x10, 0x74, 0x72,
+	0x69, 0x61, 0x6c, 0x5f, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x5f, 0x61, 0x74, 0x18, 0x07,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
+	0x48, 0x02, 0x52, 0x0e, 0x74, 0x72, 0x69, 0x61, 0x6c, 0x45, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73,
+	0x41, 0x74, 0x88, 0x01, 0x01, 0x42, 0x09, 0x0a, 0x07, 0x5f, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e,
+	0x42, 0x17, 0x0a, 0x15, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x13, 0x0a, 0x11, 0x5f, 0x74, 0x72,
+	0x69, 0x61, 0x6c, 0x5f, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x5f, 0x61, 0x74, 0x22, 0x52,
 	0x0a, 0x27, 0x47, 0x65, 0x74, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x69, 0x6c, 0x6c,
 	0x69, 0x6e, 0x67, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x53, 0x65, 0x73, 0x73, 0x69,
 	0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63,
@@ -3586,60 +3601,61 @@ var file_mgmt_v1alpha1_user_account_proto_depIdxs = []int32{
 	43, // 15: mgmt.v1alpha1.SetAccountOnboardingConfigResponse.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
 	1,  // 16: mgmt.v1alpha1.GetAccountStatusResponse.subscription_status:type_name -> mgmt.v1alpha1.BillingStatus
 	2,  // 17: mgmt.v1alpha1.IsAccountStatusValidResponse.account_status:type_name -> mgmt.v1alpha1.AccountStatus
-	9,  // 18: mgmt.v1alpha1.GetBillingAccountsResponse.accounts:type_name -> mgmt.v1alpha1.UserAccount
-	3,  // 19: mgmt.v1alpha1.UserAccountService.GetUser:input_type -> mgmt.v1alpha1.GetUserRequest
-	5,  // 20: mgmt.v1alpha1.UserAccountService.SetUser:input_type -> mgmt.v1alpha1.SetUserRequest
-	7,  // 21: mgmt.v1alpha1.UserAccountService.GetUserAccounts:input_type -> mgmt.v1alpha1.GetUserAccountsRequest
-	12, // 22: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:input_type -> mgmt.v1alpha1.SetPersonalAccountRequest
-	10, // 23: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:input_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest
-	21, // 24: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:input_type -> mgmt.v1alpha1.CreateTeamAccountRequest
-	14, // 25: mgmt.v1alpha1.UserAccountService.IsUserInAccount:input_type -> mgmt.v1alpha1.IsUserInAccountRequest
-	16, // 26: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:input_type -> mgmt.v1alpha1.GetAccountTemporalConfigRequest
-	18, // 27: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:input_type -> mgmt.v1alpha1.SetAccountTemporalConfigRequest
-	24, // 28: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:input_type -> mgmt.v1alpha1.GetTeamAccountMembersRequest
-	26, // 29: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:input_type -> mgmt.v1alpha1.RemoveTeamAccountMemberRequest
-	28, // 30: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:input_type -> mgmt.v1alpha1.InviteUserToTeamAccountRequest
-	31, // 31: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:input_type -> mgmt.v1alpha1.GetTeamAccountInvitesRequest
-	33, // 32: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:input_type -> mgmt.v1alpha1.RemoveTeamAccountInviteRequest
-	35, // 33: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:input_type -> mgmt.v1alpha1.AcceptTeamAccountInviteRequest
-	37, // 34: mgmt.v1alpha1.UserAccountService.GetSystemInformation:input_type -> mgmt.v1alpha1.GetSystemInformationRequest
-	39, // 35: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.GetAccountOnboardingConfigRequest
-	41, // 36: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.SetAccountOnboardingConfigRequest
-	44, // 37: mgmt.v1alpha1.UserAccountService.GetAccountStatus:input_type -> mgmt.v1alpha1.GetAccountStatusRequest
-	46, // 38: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:input_type -> mgmt.v1alpha1.IsAccountStatusValidRequest
-	48, // 39: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:input_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest
-	50, // 40: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:input_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
-	52, // 41: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:input_type -> mgmt.v1alpha1.GetBillingAccountsRequest
-	54, // 42: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:input_type -> mgmt.v1alpha1.SetBillingMeterEventRequest
-	4,  // 43: mgmt.v1alpha1.UserAccountService.GetUser:output_type -> mgmt.v1alpha1.GetUserResponse
-	6,  // 44: mgmt.v1alpha1.UserAccountService.SetUser:output_type -> mgmt.v1alpha1.SetUserResponse
-	8,  // 45: mgmt.v1alpha1.UserAccountService.GetUserAccounts:output_type -> mgmt.v1alpha1.GetUserAccountsResponse
-	13, // 46: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:output_type -> mgmt.v1alpha1.SetPersonalAccountResponse
-	11, // 47: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:output_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse
-	22, // 48: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:output_type -> mgmt.v1alpha1.CreateTeamAccountResponse
-	15, // 49: mgmt.v1alpha1.UserAccountService.IsUserInAccount:output_type -> mgmt.v1alpha1.IsUserInAccountResponse
-	17, // 50: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:output_type -> mgmt.v1alpha1.GetAccountTemporalConfigResponse
-	19, // 51: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:output_type -> mgmt.v1alpha1.SetAccountTemporalConfigResponse
-	25, // 52: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:output_type -> mgmt.v1alpha1.GetTeamAccountMembersResponse
-	27, // 53: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:output_type -> mgmt.v1alpha1.RemoveTeamAccountMemberResponse
-	30, // 54: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:output_type -> mgmt.v1alpha1.InviteUserToTeamAccountResponse
-	32, // 55: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:output_type -> mgmt.v1alpha1.GetTeamAccountInvitesResponse
-	34, // 56: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:output_type -> mgmt.v1alpha1.RemoveTeamAccountInviteResponse
-	36, // 57: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:output_type -> mgmt.v1alpha1.AcceptTeamAccountInviteResponse
-	38, // 58: mgmt.v1alpha1.UserAccountService.GetSystemInformation:output_type -> mgmt.v1alpha1.GetSystemInformationResponse
-	40, // 59: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.GetAccountOnboardingConfigResponse
-	42, // 60: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.SetAccountOnboardingConfigResponse
-	45, // 61: mgmt.v1alpha1.UserAccountService.GetAccountStatus:output_type -> mgmt.v1alpha1.GetAccountStatusResponse
-	47, // 62: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:output_type -> mgmt.v1alpha1.IsAccountStatusValidResponse
-	49, // 63: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:output_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse
-	51, // 64: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:output_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
-	53, // 65: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:output_type -> mgmt.v1alpha1.GetBillingAccountsResponse
-	55, // 66: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:output_type -> mgmt.v1alpha1.SetBillingMeterEventResponse
-	43, // [43:67] is the sub-list for method output_type
-	19, // [19:43] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	56, // 18: mgmt.v1alpha1.IsAccountStatusValidResponse.trial_expires_at:type_name -> google.protobuf.Timestamp
+	9,  // 19: mgmt.v1alpha1.GetBillingAccountsResponse.accounts:type_name -> mgmt.v1alpha1.UserAccount
+	3,  // 20: mgmt.v1alpha1.UserAccountService.GetUser:input_type -> mgmt.v1alpha1.GetUserRequest
+	5,  // 21: mgmt.v1alpha1.UserAccountService.SetUser:input_type -> mgmt.v1alpha1.SetUserRequest
+	7,  // 22: mgmt.v1alpha1.UserAccountService.GetUserAccounts:input_type -> mgmt.v1alpha1.GetUserAccountsRequest
+	12, // 23: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:input_type -> mgmt.v1alpha1.SetPersonalAccountRequest
+	10, // 24: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:input_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest
+	21, // 25: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:input_type -> mgmt.v1alpha1.CreateTeamAccountRequest
+	14, // 26: mgmt.v1alpha1.UserAccountService.IsUserInAccount:input_type -> mgmt.v1alpha1.IsUserInAccountRequest
+	16, // 27: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:input_type -> mgmt.v1alpha1.GetAccountTemporalConfigRequest
+	18, // 28: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:input_type -> mgmt.v1alpha1.SetAccountTemporalConfigRequest
+	24, // 29: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:input_type -> mgmt.v1alpha1.GetTeamAccountMembersRequest
+	26, // 30: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:input_type -> mgmt.v1alpha1.RemoveTeamAccountMemberRequest
+	28, // 31: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:input_type -> mgmt.v1alpha1.InviteUserToTeamAccountRequest
+	31, // 32: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:input_type -> mgmt.v1alpha1.GetTeamAccountInvitesRequest
+	33, // 33: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:input_type -> mgmt.v1alpha1.RemoveTeamAccountInviteRequest
+	35, // 34: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:input_type -> mgmt.v1alpha1.AcceptTeamAccountInviteRequest
+	37, // 35: mgmt.v1alpha1.UserAccountService.GetSystemInformation:input_type -> mgmt.v1alpha1.GetSystemInformationRequest
+	39, // 36: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.GetAccountOnboardingConfigRequest
+	41, // 37: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.SetAccountOnboardingConfigRequest
+	44, // 38: mgmt.v1alpha1.UserAccountService.GetAccountStatus:input_type -> mgmt.v1alpha1.GetAccountStatusRequest
+	46, // 39: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:input_type -> mgmt.v1alpha1.IsAccountStatusValidRequest
+	48, // 40: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:input_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest
+	50, // 41: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:input_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
+	52, // 42: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:input_type -> mgmt.v1alpha1.GetBillingAccountsRequest
+	54, // 43: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:input_type -> mgmt.v1alpha1.SetBillingMeterEventRequest
+	4,  // 44: mgmt.v1alpha1.UserAccountService.GetUser:output_type -> mgmt.v1alpha1.GetUserResponse
+	6,  // 45: mgmt.v1alpha1.UserAccountService.SetUser:output_type -> mgmt.v1alpha1.SetUserResponse
+	8,  // 46: mgmt.v1alpha1.UserAccountService.GetUserAccounts:output_type -> mgmt.v1alpha1.GetUserAccountsResponse
+	13, // 47: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:output_type -> mgmt.v1alpha1.SetPersonalAccountResponse
+	11, // 48: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:output_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse
+	22, // 49: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:output_type -> mgmt.v1alpha1.CreateTeamAccountResponse
+	15, // 50: mgmt.v1alpha1.UserAccountService.IsUserInAccount:output_type -> mgmt.v1alpha1.IsUserInAccountResponse
+	17, // 51: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:output_type -> mgmt.v1alpha1.GetAccountTemporalConfigResponse
+	19, // 52: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:output_type -> mgmt.v1alpha1.SetAccountTemporalConfigResponse
+	25, // 53: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:output_type -> mgmt.v1alpha1.GetTeamAccountMembersResponse
+	27, // 54: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:output_type -> mgmt.v1alpha1.RemoveTeamAccountMemberResponse
+	30, // 55: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:output_type -> mgmt.v1alpha1.InviteUserToTeamAccountResponse
+	32, // 56: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:output_type -> mgmt.v1alpha1.GetTeamAccountInvitesResponse
+	34, // 57: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:output_type -> mgmt.v1alpha1.RemoveTeamAccountInviteResponse
+	36, // 58: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:output_type -> mgmt.v1alpha1.AcceptTeamAccountInviteResponse
+	38, // 59: mgmt.v1alpha1.UserAccountService.GetSystemInformation:output_type -> mgmt.v1alpha1.GetSystemInformationResponse
+	40, // 60: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.GetAccountOnboardingConfigResponse
+	42, // 61: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.SetAccountOnboardingConfigResponse
+	45, // 62: mgmt.v1alpha1.UserAccountService.GetAccountStatus:output_type -> mgmt.v1alpha1.GetAccountStatusResponse
+	47, // 63: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:output_type -> mgmt.v1alpha1.IsAccountStatusValidResponse
+	49, // 64: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:output_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse
+	51, // 65: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:output_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
+	53, // 66: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:output_type -> mgmt.v1alpha1.GetBillingAccountsResponse
+	55, // 67: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:output_type -> mgmt.v1alpha1.SetBillingMeterEventResponse
+	44, // [44:68] is the sub-list for method output_type
+	20, // [20:44] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_user_account_proto_init() }

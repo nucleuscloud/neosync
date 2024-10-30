@@ -51,6 +51,7 @@ import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
+import { useOnImportMappings } from '../../../jobs/[id]/source/components/useOnImportMappings';
 import {
   getDestinationDetailsRecord,
   getOnSelectedTableToggle,
@@ -378,6 +379,33 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     []
   );
 
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+    setSelectedTables: setSelectedTables,
+  });
+
   if (isConnectionLoading || isSchemaMapLoading) {
     return <SkeletonForm />;
   }
@@ -580,6 +608,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 dynamoDbDestinationConnections.length > 0
               )}
               destinationOptions={form.watch('destinationOptions')}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
 
@@ -602,6 +631,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               virtualForeignKeys={formVirtualForeignKeys}
               addVirtualForeignKey={addVirtualForeignKey}
               removeVirtualForeignKey={removeVirtualForeignKey}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">

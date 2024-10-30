@@ -5,24 +5,21 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { Row } from '@tanstack/react-table';
 import { ReactElement } from 'react';
-import { SchemaConstraintHandler } from './schema-constraint-handler';
+import {
+  ColumnKey,
+  SchemaConstraintHandler,
+} from './schema-constraint-handler';
 
 interface Props {
-  row: Row<{ schema: string; table: string; column: string }>;
+  rowKey: ColumnKey;
   handler: SchemaConstraintHandler;
   onRemoveClick(): void;
 }
 
 export default function SchemaRowAlert(props: Props): ReactElement {
-  const { row, handler, onRemoveClick } = props;
-  const key = {
-    schema: row.getValue<string>('schema'),
-    table: row.getValue<string>('table'),
-    column: row.getValue<string>('column'),
-  };
-  const isInSchema = handler.getIsInSchema(key);
+  const { rowKey, handler, onRemoveClick } = props;
+  const isInSchema = handler.getIsInSchema(rowKey);
 
   const messages: string[] = [];
 

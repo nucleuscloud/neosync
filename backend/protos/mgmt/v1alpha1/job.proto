@@ -352,6 +352,7 @@ message CreateJobResponse {
 }
 
 message JobMappingTransformer {
+  // @deprecated - This is no longer used in favor just providing the TransformerConfig
   TransformerSource source = 1;
   TransformerConfig config = 3;
 }

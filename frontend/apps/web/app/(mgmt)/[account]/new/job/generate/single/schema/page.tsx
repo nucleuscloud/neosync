@@ -1,6 +1,7 @@
 'use client';
 
 import FormPersist from '@/app/(mgmt)/FormPersist';
+import { useOnImportMappings } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/useOnImportMappings';
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
@@ -254,6 +255,33 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading]);
 
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+    setSelectedTables: setSelectedTables,
+  });
+
   return (
     <div className="flex flex-col gap-5">
       <FormPersist formKey={formKey} form={form} />
@@ -317,6 +345,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               )}
               onValidate={validateMappings}
               isJobMappingsValidating={isValidatingMappings}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
           {form.formState.errors.root && (

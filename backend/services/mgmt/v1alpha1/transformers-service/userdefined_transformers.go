@@ -91,7 +91,7 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		AccountID:         *accountUuid,
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
-		TransformerConfig: &pg_models.TransformerConfigs{},
+		TransformerConfig: &pg_models.TransformerConfig{},
 		Source:            int32(req.Msg.Source),
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
@@ -173,7 +173,7 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 	updateParams := &db_queries.UpdateUserDefinedTransformerParams{
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
-		TransformerConfig: &pg_models.TransformerConfigs{},
+		TransformerConfig: &pg_models.TransformerConfig{},
 		UpdatedByID:       *userUuid,
 		ID:                tUuid,
 	}

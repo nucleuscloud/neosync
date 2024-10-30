@@ -101,12 +101,19 @@ type dynamoDbDestinationConfig struct {
 }
 
 type sqlDestinationConfig struct {
-	ConnectionUrl        string           `yaml:"connection-url"`
-	Driver               DriverType       `yaml:"driver"`
-	InitSchema           bool             `yaml:"init-schema,omitempty"`
-	TruncateBeforeInsert bool             `yaml:"truncate-before-insert,omitempty"`
-	TruncateCascade      bool             `yaml:"truncate-cascade,omitempty"`
-	OnConflict           onConflictConfig `yaml:"on-conflict,omitempty"`
+	ConnectionUrl        string               `yaml:"connection-url"`
+	Driver               DriverType           `yaml:"driver"`
+	InitSchema           bool                 `yaml:"init-schema,omitempty"`
+	TruncateBeforeInsert bool                 `yaml:"truncate-before-insert,omitempty"`
+	TruncateCascade      bool                 `yaml:"truncate-cascade,omitempty"`
+	OnConflict           onConflictConfig     `yaml:"on-conflict,omitempty"`
+	ConnectionOpts       sqlConnectionOptions `yaml:"connection-opts,omitempty"`
+}
+type sqlConnectionOptions struct {
+	OpenLimit    *int32  `yaml:"open-limit,omitempty"`
+	IdleLimit    *int32  `yaml:"idle-limit,omitempty"`
+	IdleDuration *string `yaml:"idle-duration,omitempty"`
+	OpenDuration *string `yaml:"open-duration,omitempty"`
 }
 
 type AwsCredConfig struct {
@@ -155,6 +162,11 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
 	cmd.Flags().Bool("on-conflict-do-nothing", false, "If there is a conflict when inserting data do not insert")
+
+	cmd.Flags().Int32("destination-open-limit", 0, "Maximum number of open connections")
+	cmd.Flags().Int32("destination-idle-limit", 0, "Maximum number of idle connections")
+	cmd.Flags().String("destination-idle-duration", "", "Maximum amount of time a connection may be idle (e.g. '5m')")
+	cmd.Flags().String("destination-open-duration", "", "Maximum amount of time a connection may be open (e.g. '30s')")
 
 	// dynamo flags
 	cmd.Flags().String("aws-access-key-id", "", "AWS Access Key ID for DynamoDB")
@@ -529,6 +541,27 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfig
 	return nil
 }
 
+func toSqlConnectionOptions(cfg sqlConnectionOptions) *mgmtv1alpha1.SqlConnectionOptions {
+	outputOptions := &mgmtv1alpha1.SqlConnectionOptions{
+		MaxConnectionLimit: shared.Ptr(int32(25)),
+	}
+
+	if cfg.OpenLimit != nil {
+		outputOptions.MaxConnectionLimit = cfg.OpenLimit
+	}
+	if cfg.IdleLimit != nil {
+		outputOptions.MaxIdleConnections = cfg.IdleLimit
+	}
+	if cfg.OpenDuration != nil {
+		outputOptions.MaxOpenDuration = cfg.OpenDuration
+	}
+	if cfg.IdleDuration != nil {
+		outputOptions.MaxIdleDuration = cfg.IdleDuration
+	}
+
+	return outputOptions
+}
+
 func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 	destId := uuid.NewString()
 	if cmd.Destination != nil {
@@ -543,9 +576,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 							ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
 							},
-							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
-								MaxConnectionLimit: shared.Ptr(int32(25)),
-							},
+							ConnectionOptions: toSqlConnectionOptions(cmd.Destination.ConnectionOpts),
 						},
 					},
 				},
@@ -560,9 +591,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 							ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
 							},
-							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
-								MaxConnectionLimit: shared.Ptr(int32(25)),
-							},
+							ConnectionOptions: toSqlConnectionOptions(cmd.Destination.ConnectionOpts),
 						},
 					},
 				},
@@ -577,9 +606,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 							ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
 							},
-							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
-								MaxConnectionLimit: shared.Ptr(int32(25)),
-							},
+							ConnectionOptions: toSqlConnectionOptions(cmd.Destination.ConnectionOpts),
 						},
 					},
 				},

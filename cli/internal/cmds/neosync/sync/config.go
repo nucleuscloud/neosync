@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
@@ -148,6 +149,42 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 		return nil, err
 	}
 	config.Debug = debug
+
+	if cmd.Flags().Changed("destination-open-limit") {
+		openLimit, err := cmd.Flags().GetInt32("destination-open-limit")
+		if err != nil {
+			return nil, err
+		}
+		config.Destination.ConnectionOpts.OpenLimit = &openLimit
+	}
+
+	if cmd.Flags().Changed("destination-idle-limit") {
+		idleLimit, err := cmd.Flags().GetInt32("destination-idle-limit")
+		if err != nil {
+			return nil, err
+		}
+		config.Destination.ConnectionOpts.IdleLimit = &idleLimit
+	}
+	if cmd.Flags().Changed("destination-open-duration") {
+		openDuration, err := cmd.Flags().GetString("destination-open-duration")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := time.ParseDuration(openDuration); err != nil {
+			return nil, fmt.Errorf("unable to parse destination-open-duration as a valid duration string: %w", err)
+		}
+		config.Destination.ConnectionOpts.OpenDuration = &openDuration
+	}
+	if cmd.Flags().Changed("destination-idle-duration") {
+		idleDuration, err := cmd.Flags().GetString("destination-idle-duration")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := time.ParseDuration(idleDuration); err != nil {
+			return nil, fmt.Errorf("unable to parse destination-idle-duration as valid duration string: %w", err)
+		}
+		config.Destination.ConnectionOpts.IdleDuration = &idleDuration
+	}
 	return config, nil
 }
 
