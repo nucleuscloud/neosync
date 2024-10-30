@@ -42,7 +42,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 	syncConfigs []*tabledependency.RunConfig,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceConnectionType bb_internal.ConnectionType,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &neosyncConnectionDataBuilder{
 		connectiondataclient:  connectiondataclient,
 		sqlmanagerclient:      sqlmanagerclient,

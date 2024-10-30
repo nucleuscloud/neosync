@@ -16,45 +16,22 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-/* this should really be
-
-type BenthosConfigResponse struct {
-
-	Name: "schema.table_b.insert"
-	DependsOn: []string{"schema.table_a.insert"}
-
-}
-*/
-
+// BenthosConfigResponse represents a complete Benthos data pipeline configuration for a specific table,
 type BenthosConfigResponse struct {
 	Name      string
 	DependsOn []*tabledependency.DependsOn
-	// RunType                 tabledependency.RunType
+
+	// TODO refactor these out
 	Config         *neosync_benthos.BenthosConfig
 	TableSchema    string
 	TableName      string
 	Columns        []string
 	RedisDependsOn map[string][]string
-	// ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
-	// SourceConnectionType    string // used for logging
-
-	// Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*bb_shared.BenthosDsn
-	RedisConfig []*bb_shared.BenthosRedisConfig
-
-	// primaryKeys []string
-
-	// metriclabels metrics.MetricLabels
+	BenthosDsns    []*bb_shared.BenthosDsn
+	RedisConfig    []*bb_shared.BenthosRedisConfig
 }
 
-// Creates a ConnectionBenthosBuilder
-type BenthosBuilders func(
-	jobType bb_internal.JobType,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	redisConfig *shared.RedisConfig,
-) (bb_internal.ConnectionBenthosBuilder, error)
-
+// Combines a connection type and job type to uniquely identify a builder configuration
 type BuilderKey struct {
 	ConnType bb_internal.ConnectionType
 	JobType  bb_internal.JobType
@@ -64,22 +41,23 @@ func (b *BuilderKey) String() string {
 	return fmt.Sprintf("%s.%s", b.JobType, b.ConnType)
 }
 
-// BuilderRegistry maintains a mapping of connection types to benthos builders
+// Manages and provides access to different Benthos builders based on connection and job types
 type BuilderProvider struct {
-	builders map[string]bb_internal.ConnectionBenthosBuilder
+	builders map[string]bb_internal.BenthosBuilder
 	logger   *slog.Logger
 }
 
-// Creates a new BuilderRegistry with default builders registered
+// Creates a new BuilderProvider for managing builders
 func NewBuilderProvider(logger *slog.Logger) *BuilderProvider {
 	r := &BuilderProvider{
-		builders: make(map[string]bb_internal.ConnectionBenthosBuilder),
+		builders: make(map[string]bb_internal.BenthosBuilder),
 		logger:   logger,
 	}
 	return r
 }
 
-func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_internal.ConnectionType, builder bb_internal.ConnectionBenthosBuilder) {
+// Handles registering new builders
+func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_internal.ConnectionType, builder bb_internal.BenthosBuilder) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 	_, exists := r.builders[key.String()]
 	if !exists {
@@ -88,11 +66,11 @@ func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_inte
 	}
 }
 
-// Creates a new builder for the given connection and job type
+// Handles getting builder based on job and connection type
 func (r *BuilderProvider) GetBuilder(
 	job *mgmtv1alpha1.Job,
 	connection *mgmtv1alpha1.Connection,
-) (bb_internal.ConnectionBenthosBuilder, error) {
+) (bb_internal.BenthosBuilder, error) {
 	connectionType := bb_internal.GetConnectionType(connection)
 	jobType := bb_internal.GetJobType(job)
 	key := BuilderKey{ConnType: connectionType, JobType: jobType}
@@ -103,6 +81,7 @@ func (r *BuilderProvider) GetBuilder(
 	return builder, nil
 }
 
+// Handles registering what is considered standard builders
 func (b *BuilderProvider) registerStandardBuilders(
 	job *mgmtv1alpha1.Job,
 	sourceConnection *mgmtv1alpha1.Connection,
@@ -172,6 +151,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	return nil
 }
 
+// Adds builder logger tags
 func withBenthosConfigLoggerTags(
 	job *mgmtv1alpha1.Job,
 	sourceConnection *mgmtv1alpha1.Connection,
@@ -191,6 +171,7 @@ func withBenthosConfigLoggerTags(
 	return keyvals
 }
 
+// Manages the creation and management of Benthos configurations
 type BenthosConfigManager struct {
 	sourceProvider         *BuilderProvider
 	destinationProvider    *BuilderProvider
@@ -203,6 +184,8 @@ type BenthosConfigManager struct {
 	runId                  string
 }
 
+// Manages all necessary configuration parameters for creating
+// a worker-based Benthos configuration manager
 type WorkerBenthosConfig struct {
 	Job                    *mgmtv1alpha1.Job
 	SourceConnection       *mgmtv1alpha1.Connection
@@ -218,6 +201,7 @@ type WorkerBenthosConfig struct {
 	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
 }
 
+// Creates a new BenthosConfigManager configured for worker
 func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
 ) (*BenthosConfigManager, error) {
@@ -250,6 +234,8 @@ func NewWorkerBenthosConfigManager(
 	}, nil
 }
 
+// Manages all necessary configuration parameters for creating
+// a CLI-based Benthos configuration manager
 type CliBenthosConfig struct {
 	Job                    *mgmtv1alpha1.Job
 	SourceConnection       *mgmtv1alpha1.Connection
@@ -267,6 +253,7 @@ type CliBenthosConfig struct {
 	MetricsEnabled         bool
 }
 
+// Creates a new BenthosConfigManager configured for CLI
 func NewCliBenthosConfigManager(
 	config *CliBenthosConfig,
 ) (*BenthosConfigManager, error) {

@@ -29,7 +29,7 @@ const (
 	ConnectionTypeNeosyncData ConnectionType = "neosync-data-stream"
 )
 
-// Determines type fo connection from Connection
+// Determines type of connection from Connection
 func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -55,6 +55,7 @@ func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
 	}
 }
 
+// Determines SQL driver from connection type
 func GetSqlDriverByConnectionType(connectionType ConnectionType) (string, error) {
 	switch connectionType {
 	case ConnectionTypePostgres:
@@ -96,19 +97,15 @@ func GetJobType(job *mgmtv1alpha1.Job) JobType {
 	}
 }
 
-// source: pg - PgConnectionBenthosBUIlder (I know how to calcualte pg source data, and I support destionaation PG, Mysql, S3, etc.)
-// source: mysql
-// source: mssql
-
-type ConnectionBenthosBuilder interface {
-	// Builds benthos source configs
-	BuildSourceConfigs(ctx context.Context, params *SourceParams) ([]*BenthosSourceConfig, error) // benthos input
-
-	// BuildProcessors?
-
-	// Builds a benthos destination config
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error) // benthos output
-
+// Handles both source (input) and destination (output) configurations for different
+// connection types (postgres, mysql...) and job types (e.g., sync, generate...).
+type BenthosBuilder interface {
+	// BuildSourceConfigs generates Benthos source configurations for reading and processing data.
+	// Returns a config for each schema.table in job mappings
+	BuildSourceConfigs(ctx context.Context, params *SourceParams) ([]*BenthosSourceConfig, error)
+	// BuildDestinationConfig creates a Benthos destination configuration for writing processed data.
+	// Returns single config for a schema.table configuration
+	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
 }
 
 // SourceParams contains all parameters needed to build a source benthos configuration

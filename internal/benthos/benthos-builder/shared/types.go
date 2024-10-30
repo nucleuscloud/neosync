@@ -12,6 +12,7 @@ type BenthosDsn struct {
 	ConnectionId string
 }
 
+// Keeps track of redis keys for clean up after syncing a table
 type BenthosRedisConfig struct {
 	Key    string
 	Table  string // schema.table

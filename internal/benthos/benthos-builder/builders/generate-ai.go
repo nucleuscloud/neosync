@@ -29,7 +29,7 @@ func NewGenerateAIBuilder(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	driver string,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &generateAIBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,

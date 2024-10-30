@@ -24,7 +24,7 @@ type mongodbSyncBuilder struct {
 
 func NewMongoDbSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &mongodbSyncBuilder{
 		transformerclient: transformerclient,
 	}

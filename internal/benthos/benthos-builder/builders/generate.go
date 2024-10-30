@@ -26,7 +26,7 @@ func NewGenerateBuilder(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	driver string,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &generateBuilder{
 		transformerclient: transformerclient,
 		sqlmanagerclient:  sqlmanagerclient,

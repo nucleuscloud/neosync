@@ -18,7 +18,7 @@ import (
 type gcpCloudStorageSyncBuilder struct {
 }
 
-func NewGcpCloudStorageSyncBuilder() bb_internal.ConnectionBenthosBuilder {
+func NewGcpCloudStorageSyncBuilder() bb_internal.BenthosBuilder {
 	return &gcpCloudStorageSyncBuilder{}
 }
 

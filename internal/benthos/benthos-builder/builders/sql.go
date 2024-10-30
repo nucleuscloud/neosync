@@ -19,10 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-/*
-	Sync
-*/
-
 type sqlSyncBuilder struct {
 	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient   sqlmanager.SqlManagerClient
@@ -45,7 +41,7 @@ func NewSqlSyncBuilder(
 	redisConfig *shared.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &sqlSyncBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,
@@ -324,7 +320,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			}
 		}
 
-		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
+		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{

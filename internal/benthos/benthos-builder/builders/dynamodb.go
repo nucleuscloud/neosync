@@ -27,7 +27,7 @@ type dyanmodbSyncBuilder struct {
 
 func NewDynamoDbSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-) bb_internal.ConnectionBenthosBuilder {
+) bb_internal.BenthosBuilder {
 	return &dyanmodbSyncBuilder{
 		transformerclient: transformerclient,
 	}

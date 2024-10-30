@@ -20,7 +20,7 @@ import (
 type awsS3SyncBuilder struct {
 }
 
-func NewAwsS3SyncBuilder() bb_internal.ConnectionBenthosBuilder {
+func NewAwsS3SyncBuilder() bb_internal.BenthosBuilder {
 	return &awsS3SyncBuilder{}
 }
 

@@ -2,7 +2,6 @@ package benthosbuilder
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -110,9 +109,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		response := convertToResponse(config)
 		responses = append(responses, response)
 	}
-
-	jsonF, _ := json.MarshalIndent(responses, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	b.logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil
