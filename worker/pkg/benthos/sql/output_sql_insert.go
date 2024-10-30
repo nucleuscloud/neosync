@@ -337,9 +337,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
-		if !isDeadlockError(err) || !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+		shouldRetry := isDeadlockError(err) || (s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()))
+		if !shouldRetry {
 			return err
 		}
+
 		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows, columnDefaults)
 		if err != nil {
 			return err
