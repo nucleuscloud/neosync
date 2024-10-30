@@ -8,6 +8,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"gopkg.in/yaml.v3"
 )
@@ -45,7 +46,8 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
 		RedisConfig:            b.redisConfig,
-		MetricsEnabled:         false,
+		SelectQueryBuilder:     &querybuilder2.QueryMapBuilderWrapper{},
+		MetricsEnabled:         b.metricsEnabled,
 		MetricLabelKeyVals: map[string]string{
 			metrics.TemporalWorkflowId: withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
 			metrics.TemporalRunId:      withEnvInterpolation(metrics.TemporalRunIdEnvKey),

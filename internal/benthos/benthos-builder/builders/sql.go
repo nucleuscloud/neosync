@@ -16,7 +16,6 @@ import (
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -25,10 +24,11 @@ import (
 */
 
 type sqlSyncBuilder struct {
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient
-	sqlmanagerclient  sqlmanager.SqlManagerClient
-	redisConfig       *shared.RedisConfig
-	driver            string
+	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient   sqlmanager.SqlManagerClient
+	redisConfig        *shared.RedisConfig
+	driver             string
+	selectQueryBuilder bb_shared.SelectQueryMapBuilder
 	// reverse of table dependency
 	// map of foreign key to source table + column
 
@@ -44,12 +44,14 @@ func NewSqlSyncBuilder(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	redisConfig *shared.RedisConfig,
 	databaseDriver string,
+	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) bb_internal.ConnectionBenthosBuilder {
 	return &sqlSyncBuilder{
-		transformerclient: transformerclient,
-		sqlmanagerclient:  sqlmanagerclient,
-		redisConfig:       redisConfig,
-		driver:            databaseDriver,
+		transformerclient:  transformerclient,
+		sqlmanagerclient:   sqlmanagerclient,
+		redisConfig:        redisConfig,
+		driver:             databaseDriver,
+		selectQueryBuilder: selectQueryBuilder,
 	}
 }
 
@@ -115,7 +117,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}

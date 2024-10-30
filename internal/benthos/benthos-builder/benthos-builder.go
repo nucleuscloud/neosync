@@ -112,6 +112,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	redisConfig *shared.RedisConfig,
 	postgresDriverOverride *string,
+	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) error {
 	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
 	jobType := bb_internal.GetJobType(job)
@@ -128,13 +129,13 @@ func (b *BuilderProvider) registerStandardBuilders(
 				if postgresDriverOverride != nil && *postgresDriverOverride != "" {
 					driver = *postgresDriverOverride
 				}
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeMysql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeAwsS3:
 				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
@@ -214,6 +215,7 @@ type WorkerBenthosConfig struct {
 	Connectionclient       mgmtv1alpha1connect.ConnectionServiceClient
 	RedisConfig            *shared.RedisConfig
 	MetricsEnabled         bool
+	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
 }
 
 func NewWorkerBenthosConfigManager(
@@ -229,6 +231,7 @@ func NewWorkerBenthosConfigManager(
 		config.Connectionclient,
 		config.RedisConfig,
 		nil,
+		config.SelectQueryBuilder,
 	)
 	if err != nil {
 		return nil, err
@@ -277,6 +280,7 @@ func NewCliBenthosConfigManager(
 		nil,
 		config.RedisConfig,
 		config.PostgresDriverOverride,
+		nil,
 	)
 	if err != nil {
 		return nil, err
