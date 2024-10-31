@@ -186,6 +186,7 @@ func buildBenthosSqlSourceConfigResponses(
 		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table()]
 		colInfoMap := groupedColumnInfo[config.Table()]
 
+		slogger.Debug("building processors")
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			transformerclient,

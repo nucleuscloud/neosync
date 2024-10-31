@@ -304,7 +304,7 @@ func NewCliSourceBuilderProvider(
 		config.Sqlmanagerclient,
 		config.SourceJobRunId,
 		config.SyncConfigs,
-		config.SourceConnection,
+		config.DestinationConnection,
 		sourceConnectionType,
 	)
 

@@ -78,6 +78,12 @@ func Test_Sync(t *testing.T) {
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
+
+			rows := postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.employees;")
+			var rowCount int
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
 		})
 
 		t.Cleanup(func() {
@@ -130,6 +136,11 @@ func Test_Sync(t *testing.T) {
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
+			rows := mysql.Target.DB.QueryRowContext(ctx, "select count(*) from humanresources.locations;")
+			var rowCount int
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
 		})
 
 		t.Cleanup(func() {

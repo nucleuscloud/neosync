@@ -303,11 +303,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
-	if s.driver == sqlmanager_shared.PostgresDriver && shouldOverrideColumnDefault(s.columnDefaultProperties) {
+	if isSupportedPostgresDriver(s.driver) && shouldOverrideColumnDefault(s.columnDefaultProperties) {
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
-	if s.driver != sqlmanager_shared.PostgresDriver {
+	if !isSupportedPostgresDriver(s.driver) {
 		insertQuery = s.buildQuery(insertQuery)
 	}
 
@@ -321,6 +321,10 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		}
 	}
 	return nil
+}
+
+func isSupportedPostgresDriver(driver string) bool {
+	return driver == sqlmanager_shared.PostgresDriver || driver == "postgres"
 }
 
 func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
@@ -345,7 +349,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 		if err != nil {
 			return err
 		}
-		if s.driver != sqlmanager_shared.PostgresDriver {
+		if !isSupportedPostgresDriver(s.driver) {
 			insertQuery = s.buildQuery(insertQuery)
 		}
 		_, err = s.db.ExecContext(ctx, insertQuery, args...)
