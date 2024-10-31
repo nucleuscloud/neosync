@@ -82,6 +82,15 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings) {
 		return nil, errors.New(haltOnSchemaAdditionErrMsg)
 	}
+	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
+		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, func(key string) (schema string, table string, err error) {
+			return "", "", nil // todo
+		}, logger)
+		if err != nil {
+			return nil, err
+		}
+		job.Mappings = append(job.Mappings, extraMappings...)
+	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
 	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
