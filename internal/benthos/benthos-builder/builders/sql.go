@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -84,10 +85,17 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
 		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, func(key string) (schema string, table string, err error) {
-			return "", "", nil // todo
+			pieces := strings.SplitN(key, ".", 2)
+			if len(pieces) != 2 {
+				return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
+			}
+			return pieces[0], pieces[1], nil
 		}, logger)
 		if err != nil {
 			return nil, err
+		}
+		if len(extraMappings) > 0 {
+			logger.Info(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
 		}
 		job.Mappings = append(job.Mappings, extraMappings...)
 	}

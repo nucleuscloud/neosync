@@ -708,7 +708,7 @@ func getAdditionalJobMappings(
 					return nil, err
 				}
 				// we found a column that is not present in the mappings, let's create a mapping for it
-				if info.ColumnDefault != "" {
+				if info.ColumnDefault != "" || info.IdentityGeneration != nil || info.GeneratedType != nil {
 					output = append(output, &mgmtv1alpha1.JobMapping{
 						Schema: schema,
 						Table:  table,
@@ -721,8 +721,6 @@ func getAdditionalJobMappings(
 							},
 						},
 					})
-				} else if info.IdentityGeneration != nil {
-					// maybe need to do something special here?
 				} else if info.IsNullable {
 					output = append(output, &mgmtv1alpha1.JobMapping{
 						Schema: schema,
