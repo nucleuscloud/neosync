@@ -1051,6 +1051,8 @@ export class DynamoDBSourceTableOption extends Message<DynamoDBSourceTableOption
  */
 export class PostgresSourceConnectionOptions extends Message<PostgresSourceConnectionOptions> {
   /**
+   * @deprecated - Use new_column_addition_strategy instead
+   *
    * @generated from field: bool halt_on_new_column_addition = 1;
    */
   haltOnNewColumnAddition = false;
@@ -1070,6 +1072,11 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
    */
   subsetByForeignKeyConstraints = false;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy new_column_addition_strategy = 5;
+   */
+  newColumnAdditionStrategy?: PostgresSourceConnectionOptions_NewColumnAdditionStrategy;
+
   constructor(data?: PartialMessage<PostgresSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1082,6 +1089,7 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
     { no: 2, name: "schemas", kind: "message", T: PostgresSourceSchemaOption, repeated: true },
     { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "subset_by_foreign_key_constraints", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "new_column_addition_strategy", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions {
@@ -1098,6 +1106,62 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
 
   static equals(a: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined, b: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(PostgresSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.strategy
+   */
+  strategy: {
+    /**
+     * halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
+     *
+     * @generated from field: bool halt_job = 1;
+     */
+    value: boolean;
+    case: "haltJob";
+  } | {
+    /**
+     * neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy
+     *
+     * space for more discrete strategies in the future
+     *
+     * @generated from field: bool use_auto_map = 2;
+     */
+    value: boolean;
+    case: "useAutoMap";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_job", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strategy" },
+    { no: 2, name: "use_auto_map", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strategy" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy, a, b);
   }
 }
 

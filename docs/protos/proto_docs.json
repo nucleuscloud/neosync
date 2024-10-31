@@ -12722,7 +12722,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "",
+              "description": "@deprecated - Use new_column_addition_strategy instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12766,6 +12766,54 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "use_auto_map",
+              "description": "neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy\n\nspace for more discrete strategies in the future",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
               "defaultValue": ""
             }
           ]

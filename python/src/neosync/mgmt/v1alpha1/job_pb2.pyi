@@ -229,16 +229,25 @@ class DynamoDBSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class PostgresSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
+    class NewColumnAdditionStrategy(_message.Message):
+        __slots__ = ("halt_job", "use_auto_map")
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        USE_AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        halt_job: bool
+        use_auto_map: bool
+        def __init__(self, halt_job: bool = ..., use_auto_map: bool = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[PostgresSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ...) -> None: ...
+    new_column_addition_strategy: PostgresSourceConnectionOptions.NewColumnAdditionStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
 
 class PostgresSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
