@@ -246,6 +246,11 @@ export enum TransformerSource {
    * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
    */
   TRANSFORM_PII_TEXT = 47,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
+   */
+  GENERATE_BUSINESS_NAME = 48,
 }
 // Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
 proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
@@ -296,6 +301,7 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
   { no: 45, name: "TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT" },
   { no: 46, name: "TRANSFORMER_SOURCE_GENERATE_COUNTRY" },
   { no: 47, name: "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT" },
+  { no: 48, name: "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME" },
 ]);
 
 /**
@@ -1543,6 +1549,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: TransformPiiText;
     case: "transformPiiTextConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateBusinessName generate_business_name_config = 45;
+     */
+    value: GenerateBusinessName;
+    case: "generateBusinessNameConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1597,6 +1609,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 42, name: "generate_javascript_config", kind: "message", T: GenerateJavascript, oneof: "config" },
     { no: 43, name: "generate_country_config", kind: "message", T: GenerateCountry, oneof: "config" },
     { no: 44, name: "transform_pii_text_config", kind: "message", T: TransformPiiText, oneof: "config" },
+    { no: 45, name: "generate_business_name_config", kind: "message", T: GenerateBusinessName, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3844,6 +3857,37 @@ export class GetTransformPiiEntitiesResponse extends Message<GetTransformPiiEnti
 
   static equals(a: GetTransformPiiEntitiesResponse | PlainMessage<GetTransformPiiEntitiesResponse> | undefined, b: GetTransformPiiEntitiesResponse | PlainMessage<GetTransformPiiEntitiesResponse> | undefined): boolean {
     return proto3.util.equals(GetTransformPiiEntitiesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateBusinessName
+ */
+export class GenerateBusinessName extends Message<GenerateBusinessName> {
+  constructor(data?: PartialMessage<GenerateBusinessName>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateBusinessName";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateBusinessName {
+    return new GenerateBusinessName().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateBusinessName {
+    return new GenerateBusinessName().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateBusinessName {
+    return new GenerateBusinessName().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateBusinessName | PlainMessage<GenerateBusinessName> | undefined, b: GenerateBusinessName | PlainMessage<GenerateBusinessName> | undefined): boolean {
+    return proto3.util.equals(GenerateBusinessName, a, b);
   }
 }
 
