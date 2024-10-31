@@ -1788,11 +1788,11 @@ func Test_ValidateJobMappings_NoValidationErrors(t *testing.T) {
 
 	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	m.SqlDbMock.On("Close").Return(nil)
-	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"public.users":   {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
-		"public.orders":  {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
-		"circle.table_1": {"id": &sqlmanager_shared.ColumnInfo{}, "table2_id": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
-		"circle.table_2": {"id": &sqlmanager_shared.ColumnInfo{}, "table1_id": &sqlmanager_shared.ColumnInfo{}},
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"public.users":   {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "name": &sqlmanager_shared.DatabaseSchemaRow{IsNullable: true}},
+		"public.orders":  {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "buyer_id": &sqlmanager_shared.DatabaseSchemaRow{IsNullable: true}},
+		"circle.table_1": {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "table2_id": &sqlmanager_shared.DatabaseSchemaRow{IsNullable: true}},
+		"circle.table_2": {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "table1_id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}, nil)
 	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -1857,11 +1857,11 @@ func Test_ValidateJobMappings_ValidationErrors(t *testing.T) {
 
 	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	m.SqlDbMock.On("Close").Return(nil)
-	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"public.users":   {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
-		"public.orders":  {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{}},
-		"circle.table_1": {"id": &sqlmanager_shared.ColumnInfo{}, "table2_id": &sqlmanager_shared.ColumnInfo{}},
-		"circle.table_2": {"id": &sqlmanager_shared.ColumnInfo{}, "table1_id": &sqlmanager_shared.ColumnInfo{}},
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"public.users":   {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "name": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"public.orders":  {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "buyer_id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"circle.table_1": {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "table2_id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"circle.table_2": {"id": &sqlmanager_shared.DatabaseSchemaRow{}, "table1_id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}, nil)
 	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
