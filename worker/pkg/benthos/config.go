@@ -383,6 +383,7 @@ type PooledSqlUpdate struct {
 	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 	MaxRetryAttempts         *uint     `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
 	RetryAttemptDelay        *string   `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
+	MaxInFlight              int       `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type ColumnDefaultProperties struct {
@@ -408,6 +409,7 @@ type PooledSqlInsert struct {
 	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
 	MaxRetryAttempts         *uint                               `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
 	RetryAttemptDelay        *string                             `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
+	MaxInFlight              int                                 `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type SqlInsert struct {

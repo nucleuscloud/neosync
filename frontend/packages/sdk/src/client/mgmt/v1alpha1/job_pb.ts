@@ -1777,6 +1777,20 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<PostgresDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1789,6 +1803,8 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: PostgresOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresDestinationConnectionOptions {
@@ -1914,6 +1930,20 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<MysqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1926,6 +1956,8 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MysqlOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlDestinationConnectionOptions {
@@ -2049,6 +2081,20 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<MssqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2061,6 +2107,8 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MssqlOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlDestinationConnectionOptions {

@@ -214,7 +214,10 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	destOpts := getDestinationOptions(params.DestinationOpts)
+	destOpts, err := getDestinationOptions(params.DestinationOpts)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse destination options: %w", err)
+	}
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
 
 	cols, ok := b.aiGroupedTableCols[tableKey]
@@ -251,9 +254,10 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 								ArgsMapping: buildPlainInsertArgs(cols),
 
 								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  100,
+									Period: destOpts.BatchPeriod,
+									Count:  destOpts.BatchCount,
 								},
+								MaxInFlight: int(destOpts.MaxInFlight),
 							},
 						},
 						Processors: processorConfigs,
@@ -264,8 +268,8 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 			{Error: &neosync_benthos.ErrorOutputConfig{
 				ErrorMsg: `${! meta("fallback_error")}`,
 				Batching: &neosync_benthos.Batching{
-					Period: "5s",
-					Count:  100,
+					Period: destOpts.BatchPeriod,
+					Count:  destOpts.BatchCount,
 				},
 			}},
 		},

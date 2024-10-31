@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -547,31 +548,106 @@ type destinationOptions struct {
 	Truncate                 bool
 	TruncateCascade          bool
 	SkipForeignKeyViolations bool
+	MaxInFlight              uint32
+	BatchCount               int
+	BatchPeriod              string
 }
 
-func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) *destinationOptions {
-	if destOpts.Config == nil {
-		return &destinationOptions{}
+func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) (*destinationOptions, error) {
+	if destOpts.GetConfig() == nil {
+		return &destinationOptions{}, nil
 	}
-	switch config := destOpts.Config.(type) {
+	switch config := destOpts.GetConfig().(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+		if config.PostgresOptions == nil {
+			return &destinationOptions{}, nil
+		}
+		batchingConfig, err := getParsedBatchingConfig(config.PostgresOptions)
+		if err != nil {
+			return nil, err
+		}
 		return &destinationOptions{
 			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
 			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			TruncateCascade:          config.PostgresOptions.GetTruncateTable().GetCascade(),
 			SkipForeignKeyViolations: config.PostgresOptions.GetSkipForeignKeyViolations(),
-		}
+			MaxInFlight:              batchingConfig.MaxInFlight,
+			BatchCount:               batchingConfig.BatchCount,
+			BatchPeriod:              batchingConfig.BatchPeriod,
+		}, nil
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
+		if config.MysqlOptions == nil {
+			return &destinationOptions{}, nil
+		}
+		batchingConfig, err := getParsedBatchingConfig(config.MysqlOptions)
+		if err != nil {
+			return nil, err
+		}
 		return &destinationOptions{
 			OnConflictDoNothing:      config.MysqlOptions.GetOnConflict().GetDoNothing(),
 			Truncate:                 config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			SkipForeignKeyViolations: config.MysqlOptions.GetSkipForeignKeyViolations(),
-		}
+			MaxInFlight:              batchingConfig.MaxInFlight,
+			BatchCount:               batchingConfig.BatchCount,
+			BatchPeriod:              batchingConfig.BatchPeriod,
+		}, nil
 	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		if config.MssqlOptions == nil {
+			return &destinationOptions{}, nil
+		}
+		batchingConfig, err := getParsedBatchingConfig(config.MssqlOptions)
+		if err != nil {
+			return nil, err
+		}
 		return &destinationOptions{
 			SkipForeignKeyViolations: config.MssqlOptions.GetSkipForeignKeyViolations(),
-		}
+			MaxInFlight:              batchingConfig.MaxInFlight,
+			BatchCount:               batchingConfig.BatchCount,
+			BatchPeriod:              batchingConfig.BatchPeriod,
+		}, nil
 	default:
-		return &destinationOptions{}
+		return &destinationOptions{}, nil
 	}
+}
+
+type batchingConfig struct {
+	MaxInFlight uint32
+	BatchPeriod string
+	BatchCount  int
+}
+type batchDestinationOption interface {
+	GetMaxInFlight() uint32
+	GetBatch() *mgmtv1alpha1.BatchConfig
+}
+
+func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, error) {
+	output := batchingConfig{
+		MaxInFlight: 64,
+		BatchPeriod: "5s",
+		BatchCount:  100,
+	}
+	if destOpt == nil {
+		return output, nil
+	}
+	if destOpt.GetMaxInFlight() > 0 {
+		output.MaxInFlight = destOpt.GetMaxInFlight()
+	}
+
+	batchConfig := destOpt.GetBatch()
+	if batchConfig != nil {
+		output.BatchCount = int(batchConfig.GetCount())
+
+		if batchConfig.GetPeriod() != "" {
+			_, err := time.ParseDuration(batchConfig.GetPeriod())
+			if err != nil {
+				return batchingConfig{}, fmt.Errorf("unable to parse batch period for s3 destination config: %w", err)
+			}
+		}
+		output.BatchPeriod = batchConfig.GetPeriod()
+	}
+
+	if output.BatchCount == 0 && output.BatchPeriod == "" {
+		return batchingConfig{}, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
+	}
+	return output, nil
 }
