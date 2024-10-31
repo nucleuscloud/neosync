@@ -71,8 +71,6 @@ type Inputs struct {
 }
 
 type NeosyncConnectionData struct {
-	ApiKey         *string `json:"api_key,omitempty" yaml:"api_key,omitempty"`
-	ApiUrl         string  `json:"api_url" yaml:"api_url"`
 	ConnectionId   string  `json:"connection_id" yaml:"connection_id"`
 	ConnectionType string  `json:"connection_type" yaml:"connection_type"`
 	JobId          *string `json:"job_id,omitempty" yaml:"job_id,omitempty"`

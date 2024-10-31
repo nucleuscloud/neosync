@@ -1,40 +1,37 @@
-package genbenthosconfigs_activity
+package benthosbuilder_builders
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
-	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-type mongoSyncResp struct {
-	BenthosConfigs []*BenthosConfigResponse
+type mongodbSyncBuilder struct {
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 }
 
-func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
-	ctx context.Context,
-	job *mgmtv1alpha1.Job,
-	slogger *slog.Logger,
-) (*mongoSyncResp, error) {
-	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
+func NewMongoDbSyncBuilder(
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+) bb_internal.BenthosBuilder {
+	return &mongodbSyncBuilder{
+		transformerclient: transformerclient,
 	}
-	sourceConnectionType := shared.GetConnectionType(sourceConnection)
-	slogger = slogger.With(
-		"sourceConnectionType", sourceConnectionType,
-	)
-	_ = slogger
+}
 
+func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+	sourceConnection := params.SourceConnection
+	job := params.Job
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
-	benthosConfigs := []*BenthosConfigResponse{}
+	benthosConfigs := []*bb_internal.BenthosSourceConfig{}
 	for _, tableMapping := range groupedMappings {
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
@@ -53,7 +50,12 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 					Processors: []neosync_benthos.ProcessorConfig{},
 				},
 				Output: &neosync_benthos.OutputConfig{
-					Outputs: neosync_benthos.Outputs{},
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
 				},
 			},
 		}
@@ -68,10 +70,10 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			ctx,
 			b.transformerclient,
 			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
-			map[string][]*referenceKey{},
-			map[string][]*referenceKey{},
-			b.jobId,
-			b.runId,
+			map[string][]*bb_internal.ReferenceKey{},
+			map[string][]*bb_internal.ReferenceKey{},
+			params.Job.Id,
+			params.RunId,
 			&shared.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.ColumnInfo{},
@@ -85,7 +87,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		benthosConfigs = append(benthosConfigs, &BenthosConfigResponse{
+		benthosConfigs = append(benthosConfigs, &bb_internal.BenthosSourceConfig{
 			Config:      bc,
 			Name:        fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table), // todo
 			TableSchema: tableMapping.Schema,
@@ -93,10 +95,9 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			RunType:     tabledependency.RunTypeInsert,
 			DependsOn:   []*tabledependency.DependsOn{},
 			Columns:     columns,
-			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			SourceConnectionType: sourceConnectionType,
-			metriclabels: metrics.MetricLabels{
+			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
@@ -104,7 +105,33 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 		})
 	}
 
-	return &mongoSyncResp{
-		BenthosConfigs: benthosConfigs,
-	}, nil
+	return benthosConfigs, nil
+}
+
+func (b *mongodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+	config := &bb_internal.BenthosDestinationConfig{}
+
+	benthosConfig := params.SourceConfig
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.GetId()})
+	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
+		Url: params.DSN,
+
+		Database:   benthosConfig.TableSchema,
+		Collection: benthosConfig.TableName,
+		Operation:  "update-one",
+		Upsert:     true,
+		DocumentMap: `
+						  root = {
+								"$set": this
+							}
+						`,
+		FilterMap: `
+						  root._id = this._id
+						`,
+		WriteConcern: &neosync_benthos.MongoWriteConcern{
+			W: "1",
+		},
+	},
+	})
+	return config, nil
 }

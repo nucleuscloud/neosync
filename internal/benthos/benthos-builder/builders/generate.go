@@ -1,39 +1,57 @@
-package genbenthosconfigs_activity
+package benthosbuilder_builders
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-func (b *benthosBuilder) getGenerateBenthosConfigResponses(
-	ctx context.Context,
-	job *mgmtv1alpha1.Job,
-	slogger *slog.Logger,
-) ([]*BenthosConfigResponse, error) {
+type generateBuilder struct {
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient  sqlmanager.SqlManagerClient
+	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
+	driver            string
+}
+
+func NewGenerateBuilder(
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	driver string,
+) bb_internal.BenthosBuilder {
+	return &generateBuilder{
+		transformerclient: transformerclient,
+		sqlmanagerclient:  sqlmanagerclient,
+		connectionclient:  connectionclient,
+		driver:            driver,
+	}
+}
+
+func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+	logger := params.Logger
+	job := params.Job
+	configs := []*bb_internal.BenthosSourceConfig{}
+
 	jobSource := job.GetSource()
-	sourceOptions := job.GetSource().GetOptions().GetGenerate()
+	sourceOptions := jobSource.GetOptions().GetGenerate()
 	if sourceOptions == nil {
 		return nil, fmt.Errorf("job does not have Generate source options, has: %T", jobSource.GetOptions().Config)
 	}
-	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
+	sourceConnection, err := shared.GetJobSourceConnection(ctx, jobSource, b.connectionclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
-	sourceConnectionType := shared.GetConnectionType(sourceConnection)
-	slogger = slogger.With(
-		"sourceConnectionType", sourceConnectionType,
-	)
 
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -48,32 +66,7 @@ func (b *benthosBuilder) getGenerateBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosGenerateSourceConfigResponses(slogger, ctx, b.transformerclient, groupedMappings, sourceTableOpts, groupedSchemas, colTransformerMap, db.Driver, sourceConnectionType)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
-	}
-
-	return sourceResponses, nil
-}
-
-type generateSourceTableOptions struct {
-	Count int
-}
-
-func buildBenthosGenerateSourceConfigResponses(
-	slogger *slog.Logger,
-	ctx context.Context,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	mappings []*tableMapping,
-	sourceTableOpts map[string]*generateSourceTableOptions,
-	groupedcolumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
-	groupedColTransformers map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
-	driver string,
-	sourceConnectionType string,
-) ([]*BenthosConfigResponse, error) {
-	responses := []*BenthosConfigResponse{}
-
-	for _, tableMapping := range mappings {
+	for _, tableMapping := range groupedMappings {
 		tableName := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
 		var count = 0
 		tableOpt := sourceTableOpts[tableName]
@@ -81,21 +74,21 @@ func buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		tableColInfo, ok := groupedcolumnInfo[tableName]
+		tableColInfo, ok := groupedSchemas[tableName]
 		if !ok {
 			return nil, fmt.Errorf("missing table column info")
 		}
-		tableColTransformers, ok := groupedColTransformers[tableName]
+		tableColTransformers, ok := colTransformerMap[tableName]
 		if !ok {
 			return nil, fmt.Errorf("missing table column transformers mapping")
 		}
 
-		jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, tableMapping.Mappings)
+		jsCode, err := extractJsFunctionsAndOutputs(ctx, b.transformerclient, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
 
-		mutations, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, tableColInfo, false)
+		mutations, err := buildMutationConfigs(ctx, b.transformerclient, tableMapping.Mappings, tableColInfo, false)
 		if err != nil {
 			return nil, err
 		}
@@ -146,12 +139,12 @@ func buildBenthosGenerateSourceConfigResponses(
 		}
 
 		columns := buildPlainColumns(tableMapping.Mappings)
-		columnDefaultProperties, err := getColumnDefaultProperties(slogger, driver, columns, tableColInfo, tableColTransformers)
+		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, columns, tableColInfo, tableColTransformers)
 		if err != nil {
 			return nil, err
 		}
 
-		responses = append(responses, &BenthosConfigResponse{
+		configs = append(configs, &bb_internal.BenthosSourceConfig{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []*tabledependency.DependsOn{},
@@ -163,8 +156,7 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			Processors: processors,
 
-			SourceConnectionType: sourceConnectionType,
-			metriclabels: metrics.MetricLabels{
+			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "generate"),
@@ -172,24 +164,22 @@ func buildBenthosGenerateSourceConfigResponses(
 		})
 	}
 
-	return responses, nil
+	return configs, nil
 }
 
-func (b *benthosBuilder) getSqlGenerateOutput(
-	driver string,
-	benthosConfig *BenthosConfigResponse,
-	destination *mgmtv1alpha1.JobDestination,
-	dsn string,
-) []neosync_benthos.Outputs {
-	outputs := []neosync_benthos.Outputs{}
-	destOpts := getDestinationOptions(destination)
+func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+	config := &bb_internal.BenthosDestinationConfig{}
+
+	benthosConfig := params.SourceConfig
+	destOpts := getDestinationOptions(params.DestinationOpts)
 
 	processorConfigs := []neosync_benthos.ProcessorConfig{}
 	for _, pc := range benthosConfig.Processors {
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
-	outputs = append(outputs, neosync_benthos.Outputs{
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
 			{
 				// retry processor and output several times
@@ -200,8 +190,8 @@ func (b *benthosBuilder) getSqlGenerateOutput(
 					Output: neosync_benthos.OutputConfig{
 						Outputs: neosync_benthos.Outputs{
 							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-								Driver: driver,
-								Dsn:    dsn,
+								Driver: b.driver,
+								Dsn:    params.DSN,
 
 								Schema:                  benthosConfig.TableSchema,
 								Table:                   benthosConfig.TableName,
@@ -233,72 +223,28 @@ func (b *benthosBuilder) getSqlGenerateOutput(
 		},
 	})
 
-	return outputs
+	return config, nil
 }
 
-func (b *benthosBuilder) getSqlAiGenerateOutput(
-	driver string,
-	benthosConfig *BenthosConfigResponse,
-	destination *mgmtv1alpha1.JobDestination,
-	dsn string,
-	aiGroupedTableCols map[string][]string,
-) ([]neosync_benthos.Outputs, error) {
-	outputs := []neosync_benthos.Outputs{}
-	destOpts := getDestinationOptions(destination)
-	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
+type generateSourceTableOptions struct {
+	Count int
+}
 
-	cols, ok := aiGroupedTableCols[tableKey]
-	if !ok {
-		return nil, fmt.Errorf("unable to find table columns for key (%s) when building destination connection", tableKey)
+func groupGenerateSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.GenerateSourceSchemaOption,
+) map[string]*generateSourceTableOptions {
+	groupedMappings := map[string]*generateSourceTableOptions{}
+
+	for idx := range schemaOptions {
+		schemaOpt := schemaOptions[idx]
+		for tidx := range schemaOpt.Tables {
+			tableOpt := schemaOpt.Tables[tidx]
+			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+			groupedMappings[key] = &generateSourceTableOptions{
+				Count: int(tableOpt.RowCount), // todo: probably need to update rowcount int64 to int32
+			}
+		}
 	}
 
-	processorConfigs := []neosync_benthos.ProcessorConfig{}
-	for _, pc := range benthosConfig.Processors {
-		processorConfigs = append(processorConfigs, *pc)
-	}
-
-	outputs = append(outputs, neosync_benthos.Outputs{
-		Fallback: []neosync_benthos.Outputs{
-			{
-				// retry processor and output several times
-				Retry: &neosync_benthos.RetryConfig{
-					InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-						MaxRetries: 10,
-					},
-					Output: neosync_benthos.OutputConfig{
-						Outputs: neosync_benthos.Outputs{
-							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-								Driver: driver,
-								Dsn:    dsn,
-
-								Schema:              benthosConfig.TableSchema,
-								Table:               benthosConfig.TableName,
-								Columns:             cols,
-								OnConflictDoNothing: destOpts.OnConflictDoNothing,
-								TruncateOnRetry:     destOpts.Truncate,
-
-								ArgsMapping: buildPlainInsertArgs(cols),
-
-								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  100,
-								},
-							},
-						},
-						Processors: processorConfigs,
-					},
-				},
-			},
-			// kills activity depending on error
-			{Error: &neosync_benthos.ErrorOutputConfig{
-				ErrorMsg: `${! meta("fallback_error")}`,
-				Batching: &neosync_benthos.Batching{
-					Period: "5s",
-					Count:  100,
-				},
-			}},
-		},
-	})
-
-	return outputs, nil
+	return groupedMappings
 }

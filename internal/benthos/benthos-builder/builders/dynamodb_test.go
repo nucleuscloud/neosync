@@ -1,4 +1,4 @@
-package genbenthosconfigs_activity
+package benthosbuilder_builders
 
 import (
 	"reflect"

@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -71,7 +73,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	)
 
 	if actOptResp.RequestedRecordCount != nil && *actOptResp.RequestedRecordCount > 0 {
-		logger.Info("requested record count of %d", *actOptResp.RequestedRecordCount)
+		logger.Info(fmt.Sprintf("requested record count of %d", *actOptResp.RequestedRecordCount))
 	}
 	var initialCheckAccountStatusResponse *accountstatus_activity.CheckAccountStatusResponse
 	var a *accountstatus_activity.Activity
@@ -130,7 +132,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger.Info("completed RunSqlInitTableStatements.")
 
 	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
-	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
+	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
 	for _, cfg := range bcResp.BenthosConfigs {
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
@@ -212,7 +214,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	started := sync.Map{}
 	completed := sync.Map{}
 
-	executeSyncActivity := func(bc *genbenthosconfigs_activity.BenthosConfigResponse, logger log.Logger) {
+	executeSyncActivity := func(bc *benthosbuilder.BenthosConfigResponse, logger log.Logger) {
 		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			var result sync_activity.SyncResponse
@@ -360,7 +362,7 @@ func runRedisCleanUpActivity(
 	logger log.Logger,
 	dependsOnMap map[string]map[string][]string,
 	jobId string,
-	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
+	redisConfigs map[string]*benthosbuilder_shared.BenthosRedisConfig,
 ) error {
 	if len(redisConfigs) > 0 {
 		for k, cfg := range redisConfigs {
@@ -402,7 +404,7 @@ func isReadyForCleanUp(table, col string, dependsOnMap map[string]map[string][]s
 	return true
 }
 
-func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosConfigResponse) []any {
+func withBenthosConfigResponseLoggerTags(bc *benthosbuilder.BenthosConfigResponse) []any {
 	keyvals := []any{}
 
 	if bc.Name != "" {
@@ -414,19 +416,16 @@ func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosC
 	if bc.TableName != "" {
 		keyvals = append(keyvals, "table", bc.TableName)
 	}
-	if bc.SourceConnectionType != "" {
-		keyvals = append(keyvals, "sourceConnectionType", bc.SourceConnectionType)
-	}
 
 	return keyvals
 }
 
-func getSyncMetadata(config *genbenthosconfigs_activity.BenthosConfigResponse) *sync_activity.SyncMetadata {
+func getSyncMetadata(config *benthosbuilder.BenthosConfigResponse) *sync_activity.SyncMetadata {
 	return &sync_activity.SyncMetadata{Schema: config.TableSchema, Table: config.TableName}
 }
 
 func invokeSync(
-	config *genbenthosconfigs_activity.BenthosConfigResponse,
+	config *benthosbuilder.BenthosConfigResponse,
 	ctx workflow.Context,
 	started, completed *sync.Map,
 	logger log.Logger,
@@ -487,7 +486,7 @@ func updateCompletedMap(tableName string, completed *sync.Map, columns []string)
 	return nil
 }
 
-func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, completed *sync.Map) (bool, error) {
+func isConfigReady(config *benthosbuilder.BenthosConfigResponse, completed *sync.Map) (bool, error) {
 	if config == nil {
 		return false, nil
 	}
@@ -516,14 +515,14 @@ func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, com
 }
 
 type SplitConfigs struct {
-	Root       []*genbenthosconfigs_activity.BenthosConfigResponse
-	Dependents []*genbenthosconfigs_activity.BenthosConfigResponse
+	Root       []*benthosbuilder.BenthosConfigResponse
+	Dependents []*benthosbuilder.BenthosConfigResponse
 }
 
-func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResponse) *SplitConfigs {
+func splitBenthosConfigs(configs []*benthosbuilder.BenthosConfigResponse) *SplitConfigs {
 	out := &SplitConfigs{
-		Root:       []*genbenthosconfigs_activity.BenthosConfigResponse{},
-		Dependents: []*genbenthosconfigs_activity.BenthosConfigResponse{},
+		Root:       []*benthosbuilder.BenthosConfigResponse{},
+		Dependents: []*benthosbuilder.BenthosConfigResponse{},
 	}
 	for _, cfg := range configs {
 		if len(cfg.DependsOn) == 0 {

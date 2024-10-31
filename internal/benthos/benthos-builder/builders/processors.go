@@ -1,4 +1,4 @@
-package genbenthosconfigs_activity
+package benthosbuilder_builders
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -22,11 +23,58 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func buildProcessorConfigsByRunType(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	config *tabledependency.RunConfig,
+	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
+	jobId, runId string,
+	redisConfig *shared.RedisConfig,
+	mappings []*mgmtv1alpha1.JobMapping,
+	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
+	mappedKeys []string,
+) ([]*neosync_benthos.ProcessorConfig, error) {
+	if config.RunType() == tabledependency.RunTypeUpdate {
+		// sql update processor configs
+		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, transformedFktoPkMap)
+		if err != nil {
+			return nil, err
+		}
+		return processorConfigs, nil
+	} else {
+		// sql insert processor configs
+		fkSourceCols := []string{}
+		for col := range columnForeignKeysMap {
+			fkSourceCols = append(fkSourceCols, col)
+		}
+		processorConfigs, err := buildProcessorConfigs(
+			ctx,
+			transformerclient,
+			mappings,
+			columnInfoMap,
+			transformedFktoPkMap,
+			fkSourceCols,
+			jobId,
+			runId,
+			redisConfig,
+			config,
+			jobSourceOptions,
+			mappedKeys,
+		)
+		if err != nil {
+			return nil, err
+		}
+		return processorConfigs, nil
+	}
+}
+
 func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
-	transformedFktoPkMap map[string][]*referenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	for fkCol, pks := range transformedFktoPkMap {
@@ -76,7 +124,7 @@ func buildProcessorConfigs(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
-	transformedFktoPkMap map[string][]*referenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
@@ -279,7 +327,7 @@ func generateSha1Hash(input string) string {
 
 func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
-	transformedFktoPkMap map[string][]*referenceKey,
+	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
@@ -707,5 +755,27 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		return opts.BuildBloblangString(), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
+	}
+}
+
+func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig,
+		nil:
+		return false
+	default:
+		return true
+	}
+}
+
+func shouldProcessStrict(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	switch t.GetConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig,
+		*mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig,
+		*mgmtv1alpha1.TransformerConfig_Nullconfig,
+		nil:
+		return false
+	default:
+		return true
 	}
 }

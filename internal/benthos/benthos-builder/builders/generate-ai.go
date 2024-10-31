@@ -1,19 +1,44 @@
-package genbenthosconfigs_activity
+package benthosbuilder_builders
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
+
+type generateAIBuilder struct {
+	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient   sqlmanager.SqlManagerClient
+	connectionclient   mgmtv1alpha1connect.ConnectionServiceClient
+	driver             string
+	aiGroupedTableCols map[string][]string
+}
+
+func NewGenerateAIBuilder(
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	driver string,
+) bb_internal.BenthosBuilder {
+	return &generateAIBuilder{
+		transformerclient:  transformerclient,
+		sqlmanagerclient:   sqlmanagerclient,
+		connectionclient:   connectionclient,
+		driver:             driver,
+		aiGroupedTableCols: map[string][]string{},
+	}
+}
 
 type aiGenerateMappings struct {
 	Schema  string
@@ -26,41 +51,31 @@ type aiGenerateColumn struct {
 	DataType string
 }
 
-func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
-	ctx context.Context,
-	job *mgmtv1alpha1.Job,
-	slogger *slog.Logger,
-) ([]*BenthosConfigResponse, map[string][]string, error) {
-	jobSource := job.GetSource()
-	sourceOptions := job.GetSource().GetOptions().GetAiGenerate()
+func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+	jobSource := params.Job.GetSource()
+	sourceOptions := jobSource.GetOptions().GetAiGenerate()
 	if sourceOptions == nil {
-		return nil, nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
+		return nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
 	}
-	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
-	if err != nil {
-		return nil, nil, err
-	}
-	sourceConnectionType := shared.GetConnectionType(sourceConnection)
-	slogger = slogger.With(
-		"sourceConnectionType", sourceConnectionType,
-	)
+	sourceConnection := params.SourceConnection
+
 	openaiConfig := sourceConnection.GetConnectionConfig().GetOpenaiConfig()
 	if openaiConfig == nil {
-		return nil, nil, errors.New("configured source connection is not an openai configuration")
+		return nil, errors.New("configured source connection is not an openai configuration")
 	}
-	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.connclient, shared.GetConnectionById)
+	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.connectionclient, shared.GetConnectionById)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, constraintConnection)
+	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, params.Logger, constraintConnection)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to create new sql db: %w", err)
+		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
 	defer db.Db.Close()
 
 	groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get database schema for connection: %w", err)
+		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
 
 	mappings := []*aiGenerateMappings{}
@@ -70,7 +85,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 
 			tableColsMap, ok := groupedSchemas[sqlmanager_shared.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
-				return nil, nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
+				return nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
 			}
 			for col, info := range tableColsMap {
 				columns = append(columns, &aiGenerateColumn{
@@ -88,7 +103,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		}
 	}
 	if len(mappings) == 0 {
-		return nil, nil, fmt.Errorf("did not generate any mapping configs during AI Generate build for connection: %s", constraintConnection.GetId())
+		return nil, fmt.Errorf("did not generate any mapping configs during AI Generate build for connection: %s", constraintConnection.GetId())
 	}
 
 	var userPrompt *string
@@ -107,7 +122,6 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		sourceOptions.GetModelName(),
 		userPrompt,
 		userBatchSize,
-		sourceConnectionType,
 	)
 
 	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
@@ -118,8 +132,9 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 			aiGroupedTableCols[key] = append(aiGroupedTableCols[key], col.Column)
 		}
 	}
+	b.aiGroupedTableCols = aiGroupedTableCols
 
-	return sourceResponses, aiGroupedTableCols, nil
+	return sourceResponses, nil
 }
 
 func buildBenthosAiGenerateSourceConfigResponses(
@@ -128,9 +143,8 @@ func buildBenthosAiGenerateSourceConfigResponses(
 	model string,
 	userPrompt *string,
 	userBatchSize *int,
-	sourceConnectionType string,
-) []*BenthosConfigResponse {
-	responses := []*BenthosConfigResponse{}
+) []*bb_internal.BenthosSourceConfig {
+	responses := []*bb_internal.BenthosSourceConfig{}
 
 	for _, tableMapping := range mappings {
 		columns := []string{}
@@ -177,7 +191,7 @@ func buildBenthosAiGenerateSourceConfigResponses(
 			},
 		}
 
-		responses = append(responses, &BenthosConfigResponse{
+		responses = append(responses, &bb_internal.BenthosSourceConfig{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []*tabledependency.DependsOn{},
@@ -185,8 +199,7 @@ func buildBenthosAiGenerateSourceConfigResponses(
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
 
-			SourceConnectionType: sourceConnectionType,
-			metriclabels: metrics.MetricLabels{
+			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "ai-generate"),
@@ -195,6 +208,70 @@ func buildBenthosAiGenerateSourceConfigResponses(
 	}
 
 	return responses
+}
+
+func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+	config := &bb_internal.BenthosDestinationConfig{}
+
+	benthosConfig := params.SourceConfig
+	destOpts := getDestinationOptions(params.DestinationOpts)
+	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
+
+	cols, ok := b.aiGroupedTableCols[tableKey]
+	if !ok {
+		return nil, fmt.Errorf("unable to find table columns for key (%s) when building destination connection", tableKey)
+	}
+
+	processorConfigs := []neosync_benthos.ProcessorConfig{}
+	for _, pc := range benthosConfig.Processors {
+		processorConfigs = append(processorConfigs, *pc)
+	}
+
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
+		Fallback: []neosync_benthos.Outputs{
+			{
+				// retry processor and output several times
+				Retry: &neosync_benthos.RetryConfig{
+					InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+						MaxRetries: 10,
+					},
+					Output: neosync_benthos.OutputConfig{
+						Outputs: neosync_benthos.Outputs{
+							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+								Driver: b.driver,
+								Dsn:    params.DSN,
+
+								Schema:              benthosConfig.TableSchema,
+								Table:               benthosConfig.TableName,
+								Columns:             cols,
+								OnConflictDoNothing: destOpts.OnConflictDoNothing,
+								TruncateOnRetry:     destOpts.Truncate,
+
+								ArgsMapping: buildPlainInsertArgs(cols),
+
+								Batching: &neosync_benthos.Batching{
+									Period: "5s",
+									Count:  100,
+								},
+							},
+						},
+						Processors: processorConfigs,
+					},
+				},
+			},
+			// kills activity depending on error
+			{Error: &neosync_benthos.ErrorOutputConfig{
+				ErrorMsg: `${! meta("fallback_error")}`,
+				Batching: &neosync_benthos.Batching{
+					Period: "5s",
+					Count:  100,
+				},
+			}},
+		},
+	})
+
+	return config, nil
 }
 
 func getConstraintConnection(

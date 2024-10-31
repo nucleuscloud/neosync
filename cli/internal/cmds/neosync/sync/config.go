@@ -148,8 +148,8 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.Debug = debug
 
+	config.Debug = debug
 	if cmd.Flags().Changed("destination-open-limit") {
 		openLimit, err := cmd.Flags().GetInt32("destination-open-limit")
 		if err != nil {
@@ -194,6 +194,10 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 	}
 	if sourceConnectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+	}
+
+	if (sourceConnectionType == awsS3Connection || sourceConnectionType == gcpCloudStorageConnection) && cmd.Destination.InitSchema {
+		return errors.New("init schema is only supported when source is a SQL Database")
 	}
 
 	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {

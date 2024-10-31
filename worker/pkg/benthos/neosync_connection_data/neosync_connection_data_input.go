@@ -15,8 +15,6 @@ import (
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Summary("Streams Neosync connection data").
-	Field(service.NewStringField("api_key").Optional()).
-	Field(service.NewStringField("api_url")).
 	Field(service.NewStringField("connection_id")).
 	Field(service.NewStringField("connection_type")).
 	Field(service.NewStringField("schema")).
@@ -107,7 +105,7 @@ type neosyncInput struct {
 func (g *neosyncInput) Connect(ctx context.Context) error {
 	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
 
-	if g.connectionType == "awsS3" {
+	if g.connectionType == "aws-s3" {
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
 			if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
@@ -121,7 +119,7 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 				AwsS3Config: awsS3Cfg,
 			},
 		}
-	} else if g.connectionType == "gcpCloudStorage" {
+	} else if g.connectionType == "gcp-cloud-storage" {
 		if g.connectionOpts != nil {
 			gcpCfg := &mgmtv1alpha1.GcpCloudStorageStreamConfig{}
 			if g.connectionOpts != nil {
