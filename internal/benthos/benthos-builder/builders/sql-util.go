@@ -797,11 +797,6 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
 						Precision: intPtrToInt64Ptr(colInfo.NumericPrecision), // todo: we need to expose scale...
-						// Min: shared.Ptr(float64(1)),
-						// Max: shared.Ptr(float64(1)),
-						// Precision: shared.Ptr(int64(*colInfo.NumericPrecision)),
-						// // Min: shared.Ptr(int64(-9223372036854775808)),
-						// // Max: shared.Ptr(int64(9223372036854775807)),
 					},
 				},
 			},
@@ -812,11 +807,6 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
 						Precision: intPtrToInt64Ptr(colInfo.NumericPrecision),
-						// Min: shared.Ptr(float64(1)),
-						// Max: shared.Ptr(float64(1)),
-						// Precision: shared.Ptr(int64(*colInfo.NumericPrecision)),
-						// // Min: shared.Ptr(int64(-9223372036854775808)),
-						// // Max: shared.Ptr(int64(9223372036854775807)),
 					},
 				},
 			},
@@ -852,25 +842,46 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 			},
 		}
 	// case "bytea": // todo https://www.postgresql.org/docs/current/datatype-binary.html
-	case "date":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "date":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
 
-	case "time without time zone":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "time without time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
 
-	case "time with time zone":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "time with time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
 
-	case "interval":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "interval":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
 
-	case "timestamp without time zone":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "timestamp without time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
 
-	case "timestamp with time zone":
-		return &mgmtv1alpha1.JobMappingTransformer{}
+	// case "timestamp with time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	case "boolean":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			},
+		}
+	case "uuid":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{IncludeHyphens: shared.Ptr(true)},
+				},
+			},
+		}
 	default:
-		return &mgmtv1alpha1.JobMappingTransformer{}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{PassthroughConfig: &mgmtv1alpha1.Passthrough{}},
+			},
+		}
 	}
 }
 
