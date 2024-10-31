@@ -633,8 +633,6 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 		output.MaxInFlight = destOpt.GetMaxInFlight()
 	}
 
-	batchCount := 100
-	batchPeriod := "5s"
 	batchConfig := destOpt.GetBatch()
 	if batchConfig != nil {
 		output.BatchCount = int(batchConfig.GetCount())
@@ -648,7 +646,7 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 		output.BatchPeriod = batchConfig.GetPeriod()
 	}
 
-	if batchCount == 0 && batchPeriod == "" {
+	if output.BatchCount == 0 && output.BatchPeriod == "" {
 		return batchingConfig{}, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
 	}
 	return output, nil
