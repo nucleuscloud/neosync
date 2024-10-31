@@ -1403,6 +1403,7 @@ components:
         maxInFlight:
           type: integer
           title: max_in_flight
+          minimum: 1
           description: The maximum number of batched messages to have in flight at a given time. Increase this to improve throughput.
         timeout:
           type: string
@@ -3196,6 +3197,21 @@ components:
       description: MongoDB connection options for a job source
     mgmt.v1alpha1.MssqlDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -3214,6 +3230,16 @@ components:
           type: boolean
           title: skip_foreign_key_violations
           description: Insert all valid records, skipping any that violate foreign key constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: Configure batching options to handle how much data is sent to your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: MssqlDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlOnConflictConfig:
@@ -3303,6 +3329,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.MysqlDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -3319,6 +3360,16 @@ components:
           type: boolean
           title: skip_foreign_key_violations
           description: Insert all valid records, skipping any that violate foreign key constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: Configure batching options to handle how much data is sent to your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: MysqlDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MysqlOnConflictConfig:
@@ -3659,6 +3710,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -3675,6 +3741,16 @@ components:
           type: boolean
           title: skip_foreign_key_violations
           description: Insert all valid records, skipping any that violate foreign key constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: Configure batching options to handle how much data is sent to your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: PostgresDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.PostgresOnConflictConfig:
