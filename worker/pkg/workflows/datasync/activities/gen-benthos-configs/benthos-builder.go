@@ -100,6 +100,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Logger:                 slogger,
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
+		Connectionclient:       b.connclient,
 		RedisConfig:            b.redisConfig,
 		SelectQueryBuilder:     &querybuilder2.QueryMapBuilderWrapper{},
 		MetricsEnabled:         b.metricsEnabled,
@@ -117,6 +118,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		return nil, err
 	}
 
+	// TODO move run context logic into benthos builder
 	postTableSyncRunCtx := buildPostTableSyncRunCtx(responses, job.Destinations)
 	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
 	if err != nil {

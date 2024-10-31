@@ -147,7 +147,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 			if err != nil {
 				return err
 			}
-			b.Register(bb_internal.JobTypeAIGenerate, connectionType, bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
+			b.Register(bb_internal.JobTypeGenerate, connectionType, bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
 		}
 	}
 	return nil
