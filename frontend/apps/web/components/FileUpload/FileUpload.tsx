@@ -235,7 +235,7 @@ function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
         <div className="mt-4 space-y-2">
           {files.map((file, index) => (
             <div key={index} className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-0">
+              <div className="flex items-center justify-between p-3 dark:bg-gray-700 rounded-lg border dark:border-0">
                 <div className="flex items-center">
                   <LuFileJson className="w-6 h-6" />
                   <div className="ml-2">
