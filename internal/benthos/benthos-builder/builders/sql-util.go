@@ -678,7 +678,7 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 // Based on the source schema and the provided mappings, we find the missing columns (if any) and generate job mappings for them automatically
 func getAdditionalJobMappings(
 	driver string,
-	groupedSchemas map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
 	getTableFromKey func(key string) (schema, table string, err error),
 	logger *slog.Logger,
@@ -756,7 +756,7 @@ func getAdditionalJobMappings(
 
 	return output, nil
 }
-func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *mgmtv1alpha1.JobMappingTransformer {
+func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) *mgmtv1alpha1.JobMappingTransformer {
 	switch colInfo.DataType {
 	case "smallint":
 		return &mgmtv1alpha1.JobMappingTransformer{
@@ -792,21 +792,31 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 			},
 		}
 	case "decimal", "numeric":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-						Precision: intPtrToInt64Ptr(colInfo.NumericPrecision), // todo: we need to expose scale...
+						Precision: precision, // todo: we need to expose scale...
 					},
 				},
 			},
 		}
 	case "real", "double precision":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-						Precision: intPtrToInt64Ptr(colInfo.NumericPrecision),
+						Precision: precision,
 					},
 				},
 			},
@@ -821,12 +831,17 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 			},
 		}
 	case "money":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
 						// todo: to adequately support money, we need to know the scale which is set via the lc_monetary setting (but may be properly populated via our query..)
-						Precision: intPtrToInt64Ptr(colInfo.NumericPrecision),
+						Precision: precision,
 						Min:       shared.Ptr(float64(-92233720368547758.08)),
 						Max:       shared.Ptr(float64(92233720368547758.07)),
 					},
@@ -883,12 +898,4 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.ColumnInfo) *
 			},
 		}
 	}
-}
-
-func intPtrToInt64Ptr(input *int) *int64 {
-	if input == nil {
-		return nil
-	}
-	out := int64(*input)
-	return &out
 }
