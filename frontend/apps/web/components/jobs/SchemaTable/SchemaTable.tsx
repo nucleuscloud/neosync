@@ -23,18 +23,21 @@ import {
 } from '@/yup-validations/jobs';
 import {
   GetConnectionSchemaResponse,
+  JobMapping,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
+import { ImportMappingsConfig } from './ImportJobMappingsButton';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
 import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
+import { useOnExportMappings } from './useOnExportMappings';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -52,6 +55,10 @@ interface Props {
   onValidate?(): void;
 
   formErrors: FormError[];
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    importConfig: ImportMappingsConfig
+  ): void;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -68,6 +75,7 @@ export function SchemaTable(props: Props): ReactElement {
     formErrors,
     isJobMappingsValidating,
     onValidate,
+    onImportMappingsClick,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -91,6 +99,10 @@ export function SchemaTable(props: Props): ReactElement {
     () => getDualListBoxOptions(new Set(Object.keys(schema)), data),
     [schema, data]
   );
+
+  const { onClick: onExportMappingsClick } = useOnExportMappings({
+    jobMappings: data,
+  });
 
   if (isLoading || !data) {
     return <SkeletonTable />;
@@ -144,6 +156,8 @@ export function SchemaTable(props: Props): ReactElement {
               transformerHandler={handler}
               constraintHandler={constraintHandler}
               jobType={jobType}
+              onExportMappingsClick={onExportMappingsClick}
+              onImportMappingsClick={onImportMappingsClick}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -168,6 +182,8 @@ export function SchemaTable(props: Props): ReactElement {
           transformerHandler={handler}
           constraintHandler={constraintHandler}
           jobType={jobType}
+          onExportMappingsClick={onExportMappingsClick}
+          onImportMappingsClick={onImportMappingsClick}
         />
       )}
     </div>

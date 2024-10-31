@@ -2615,6 +2615,8 @@ export class CreateJobResponse extends Message<CreateJobResponse> {
  */
 export class JobMappingTransformer extends Message<JobMappingTransformer> {
   /**
+   * @deprecated - This is no longer used in favor just providing the TransformerConfig
+   *
    * @generated from field: mgmt.v1alpha1.TransformerSource source = 1;
    */
   source = TransformerSource.UNSPECIFIED;

@@ -648,7 +648,6 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	for _, m := range jobmappings {
 		if m.Table == "countries" && m.Column == "country_id" {
 			m.Transformer = &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `if (value == 'US') { return 'SU'; } return value;`},
@@ -1173,7 +1172,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1184,7 +1182,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1205,7 +1202,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1216,7 +1212,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1239,7 +1234,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1250,7 +1244,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1260,13 +1253,11 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			JobOptions: &workflow_testdata.TestJobOptions{
 				DefaultTransformers: &workflow_testdata.DefaultTransformers{
 					Boolean: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 						},
 					},
 					Number: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: gotypeutil.ToPtr(int64(10)), RandomizationRangeMax: gotypeutil.ToPtr(int64(1000))},
@@ -1274,7 +1265,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 					String: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{},
@@ -1282,8 +1272,9 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 					Byte: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 			},
@@ -1471,7 +1462,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1482,7 +1472,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "bool",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1502,7 +1491,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{
@@ -1517,7 +1505,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "embedded_document.name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -1530,7 +1517,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "decimal128",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
@@ -1546,7 +1532,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "int64",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
@@ -1562,7 +1547,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "timestamp",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
@@ -1637,11 +1621,9 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 					},
 					Mappings: []*mgmtv1alpha1.JobMapping{
 						{Schema: schema, Table: table, Column: "region_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							Config: &mgmtv1alpha1.TransformerConfig{},
+							Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
 						}},
 						{Schema: schema, Table: table, Column: "region_name", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 									GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},

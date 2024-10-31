@@ -228,10 +228,16 @@ class ClientTlsConfig(_message.Message):
     def __init__(self, root_cert: _Optional[str] = ..., client_cert: _Optional[str] = ..., client_key: _Optional[str] = ...) -> None: ...
 
 class SqlConnectionOptions(_message.Message):
-    __slots__ = ("max_connection_limit",)
+    __slots__ = ("max_connection_limit", "max_idle_connections", "max_idle_duration", "max_open_duration")
     MAX_CONNECTION_LIMIT_FIELD_NUMBER: _ClassVar[int]
+    MAX_IDLE_CONNECTIONS_FIELD_NUMBER: _ClassVar[int]
+    MAX_IDLE_DURATION_FIELD_NUMBER: _ClassVar[int]
+    MAX_OPEN_DURATION_FIELD_NUMBER: _ClassVar[int]
     max_connection_limit: int
-    def __init__(self, max_connection_limit: _Optional[int] = ...) -> None: ...
+    max_idle_connections: int
+    max_idle_duration: str
+    max_open_duration: str
+    def __init__(self, max_connection_limit: _Optional[int] = ..., max_idle_connections: _Optional[int] = ..., max_idle_duration: _Optional[str] = ..., max_open_duration: _Optional[str] = ...) -> None: ...
 
 class SSHTunnel(_message.Message):
     __slots__ = ("host", "port", "user", "known_host_public_key", "authentication")

@@ -8,14 +8,12 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
@@ -46,7 +44,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 				{
@@ -54,7 +54,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 			},
@@ -130,8 +132,11 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+								PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+							},
+						},
 					},
 				},
 				{
@@ -139,7 +144,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
@@ -207,7 +211,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		nil,
 		"postgres",
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
@@ -344,19 +348,21 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+		}}},
 	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
@@ -368,7 +374,6 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -397,7 +402,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 	require.Equal(t, `root."email" = transform_email(value:this."email",preserve_length:false,preserve_domain:true,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`, *output[0].Mutation)
@@ -405,10 +410,9 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
-				Nullconfig: &mgmtv1alpha1.Null{},
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 			},
 		},
 	}
@@ -419,7 +423,6 @@ func Test_ShouldProcessColumnTrue(t *testing.T) {
 
 func Test_ShouldProcessColumnFalse(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
@@ -436,7 +439,6 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -448,7 +450,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 
 	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})
 
 	require.NoError(t, err)
@@ -486,7 +488,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}), nil)
 
 	jmt := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
 				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
@@ -512,13 +513,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	resp, err := convertUserDefinedFunctionConfig(ctx, mockTransformerClient, jmt)
 	require.NoError(t, err)
 	require.Equal(t, resp, expected)
-}
-
-func MockJobMappingTransformer(source int32, transformerId string) db_queries.NeosyncApiTransformer {
-	return db_queries.NeosyncApiTransformer{
-		Source:            source,
-		TransformerConfig: &pg_models.TransformerConfigs{},
-	}
 }
 
 func Test_buildPlainInsertArgs(t *testing.T) {
@@ -611,7 +605,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
+				Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
 			},
 		}, &sqlmanager_shared.ColumnInfo{}, false)
 	require.NoError(t, err)
@@ -1010,7 +1004,6 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: transformer.Source,
 						Config: transformer.Config,
 					},
 				}, emailColInfo, false)
@@ -1026,160 +1019,121 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testing.T) {
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
 		},
 		{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY,
-			Config: &mgmtv1alpha1.TransformerConfig{},
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{}},
 		},
 	}
 
@@ -1199,7 +1153,6 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: transformer.Source,
 						Config: transformer.Config,
 					},
 				}, emailColInfo, false)
@@ -1220,7 +1173,6 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	}
 	jm := &mgmtv1alpha1.JobMapping{
 		Transformer: &mgmtv1alpha1.JobMappingTransformer{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{

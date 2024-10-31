@@ -47,7 +47,7 @@ sql:
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
               package: pg_models
-              type: TransformerConfigs
+              type: TransformerConfig
               pointer: true
           - column: neosync_api.accounts.temporal_config
             go_type:
