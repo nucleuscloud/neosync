@@ -73,7 +73,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	)
 
 	if actOptResp.RequestedRecordCount != nil && *actOptResp.RequestedRecordCount > 0 {
-		logger.Info("requested record count of %d", *actOptResp.RequestedRecordCount)
+		logger.Info(fmt.Sprintf("requested record count of %d", *actOptResp.RequestedRecordCount))
 	}
 	var initialCheckAccountStatusResponse *accountstatus_activity.CheckAccountStatusResponse
 	var a *accountstatus_activity.Activity

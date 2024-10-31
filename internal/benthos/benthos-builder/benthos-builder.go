@@ -133,13 +133,17 @@ func (b *BuilderProvider) registerStandardBuilders(
 	}
 
 	if jobType == bb_internal.JobTypeAIGenerate {
-		for _, connectionType := range connectionTypes {
-			driver, err := bb_internal.GetSqlDriverByConnectionType(connectionType)
-			if err != nil {
-				return err
-			}
-			b.Register(bb_internal.JobTypeAIGenerate, connectionType, bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
+		if len(destinationConnections) != 1 {
+			return fmt.Errorf("unsupported destination count for AI generate job: %d", len(destinationConnections))
 		}
+		destConnType := bb_internal.GetConnectionType(destinationConnections[0])
+		driver, err := bb_internal.GetSqlDriverByConnectionType(destConnType)
+		if err != nil {
+			return err
+		}
+		builder := bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver)
+		b.Register(bb_internal.JobTypeAIGenerate, bb_internal.ConnectionTypeOpenAI, builder)
+		b.Register(bb_internal.JobTypeAIGenerate, destConnType, builder)
 	}
 	if jobType == bb_internal.JobTypeGenerate {
 		for _, connectionType := range connectionTypes {
