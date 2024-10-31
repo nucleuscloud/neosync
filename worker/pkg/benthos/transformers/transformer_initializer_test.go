@@ -1613,6 +1613,34 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.Equal(t, mockText, result)
 	})
 
+	t.Run("GenerateBusinessNameConfig_Empty", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
+				GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateBusinessNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("UnsupportedConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: nil,

@@ -52,6 +52,7 @@ type TransformerConfig struct {
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 	GenerateCountry            *GenerateCountryConfig           `json:"generateCountryConfig,omitempty"`
+	GenerateBusinessName       *GenerateBusinessNameConfig      `json:"generateBusinessNameConfig,omitempty"`
 }
 
 type GenerateEmailConfig struct {
@@ -203,6 +204,8 @@ type GenerateJavascript struct {
 type GenerateCountryConfig struct {
 	GenerateFullName *bool `json:"generateFullName,omitempty"`
 }
+
+type GenerateBusinessNameConfig struct{}
 
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 	if tr == nil {
@@ -374,6 +377,8 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		t.GenerateCountry = &GenerateCountryConfig{
 			GenerateFullName: tr.GetGenerateCountryConfig().GenerateFullName,
 		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
+		t.GenerateBusinessName = &GenerateBusinessNameConfig{}
 	default:
 		t = &TransformerConfig{}
 	}
@@ -712,6 +717,12 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 				GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
 					GenerateFullName: t.GenerateCountry.GenerateFullName,
 				},
+			},
+		}
+	case t.GenerateBusinessName != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
+				GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
 			},
 		}
 	default:

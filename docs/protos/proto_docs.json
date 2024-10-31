@@ -409,6 +409,11 @@
               "name": "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT",
               "number": "47",
               "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text"
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME",
+              "number": "48",
+              "description": ""
             }
           ]
         }
@@ -562,6 +567,17 @@
           "name": "GenerateBool",
           "longName": "GenerateBool",
           "fullName": "mgmt.v1alpha1.GenerateBool",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "GenerateBusinessName",
+          "longName": "GenerateBusinessName",
+          "fullName": "mgmt.v1alpha1.GenerateBusinessName",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -2704,6 +2720,18 @@
               "type": "TransformPiiText",
               "longType": "TransformPiiText",
               "fullType": "mgmt.v1alpha1.TransformPiiText",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_business_name_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateBusinessName",
+              "longType": "GenerateBusinessName",
+              "fullType": "mgmt.v1alpha1.GenerateBusinessName",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

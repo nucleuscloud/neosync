@@ -68,7 +68,7 @@ func main() {
 
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
-		if len(trimmedLine) == 0 || strings.ContainsAny(trimmedLine, " -_") {
+		if len(trimmedLine) == 0 || strings.ContainsAny(trimmedLine, "-_") {
 			continue
 		}
 		filteredLines = append(filteredLines, line)

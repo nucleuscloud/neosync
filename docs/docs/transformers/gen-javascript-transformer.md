@@ -470,6 +470,37 @@ const newValue = neosync.generateBool({
 
 
 <!--
+source: generate_business_name.go
+-->
+
+### generateBusinessName
+
+Generates a random business name between 2 and 35 characters long.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateBusinessName({ 
+	maxLength: 100, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
 source: generate_card_number.go
 -->
 

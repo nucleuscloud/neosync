@@ -432,6 +432,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateJavascriptConfig: JavascriptConfig,
   generateStateConfig: generateStateConfig,
   generateCountryConfig: generateCountryConfig,
+  generateBusinessNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;

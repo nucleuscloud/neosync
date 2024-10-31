@@ -138,6 +138,7 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_GENERATE_COUNTRY = 46;
   // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
   TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
+  TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
 }
 
 enum TransformerDataType {
@@ -217,6 +218,7 @@ message TransformerConfig {
     GenerateCountry generate_country_config = 43;
     // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
     TransformPiiText transform_pii_text_config = 44;
+    GenerateBusinessName generate_business_name_config = 45;
   }
 }
 
@@ -510,6 +512,8 @@ message GetTransformPiiEntitiesResponse {
   // The list of built-in entities that are enabled for the provided account id.
   repeated string entities = 1;
 }
+
+message GenerateBusinessName {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
