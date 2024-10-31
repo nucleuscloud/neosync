@@ -6,6 +6,7 @@ import { cn } from '@/libs/utils';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
+  TrashIcon,
   UploadIcon,
 } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
@@ -17,7 +18,8 @@ import {
   useCallback,
   useState,
 } from 'react';
-import { IoAlertCircleOutline, IoCloseCircle } from 'react-icons/io5';
+import { IoAlertCircleOutline } from 'react-icons/io5';
+import { LuFileJson } from 'react-icons/lu';
 
 interface FileValidation {
   validateType(file: File): boolean;
@@ -163,8 +165,10 @@ export function FileUpload<T>({
     <div className="flex flex-col gap-2">
       <div
         className={cn(
-          'border-2 border-dashed',
-          isDragging ? 'border-blue-500' : 'border-gray-300'
+          'border-2 border-dashed rounded-lg bg-gray-100 dark:bg-transparent',
+          isDragging
+            ? 'border-blue-500 bg-blue-100 dark:bg-blue-700/10'
+            : 'border-gray-300 dark:border-gray-500'
         )}
       >
         <div
@@ -174,7 +178,7 @@ export function FileUpload<T>({
           className="flex flex-col items-center justify-center p-8 text-center cursor-pointer"
           onClick={() => document.getElementById(fileUploadInputId)?.click()}
         >
-          <UploadIcon className="w-12 h-12 mb-4 text-gray-400" />
+          <UploadIcon className="w-12 h-12 mb-4 text-gray-400 dark:text-gray-600" />
           <h3 className="mb-2 text-lg font-semibold">Drop Files Here</h3>
           <p className="mb-4 text-sm text-gray-500">or click to browse</p>
           {validation.maxSizeDisplay && (
@@ -231,8 +235,9 @@ function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
         <div className="mt-4 space-y-2">
           {files.map((file, index) => (
             <div key={index} className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+              <div className="flex items-center justify-between p-3 dark:bg-gray-700 rounded-lg border dark:border-0">
                 <div className="flex items-center">
+                  <LuFileJson className="w-6 h-6" />
                   <div className="ml-2">
                     <p className="text-sm font-medium">{file.name}</p>
                     <div className="flex flex-row gap-2">
@@ -258,15 +263,14 @@ function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
                   {!processing[file.name] &&
                     !errors[file.name] &&
                     renderFileExtra?.(file.name, processedData[file.name])}
-
                   <div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(file)}
-                      className="text-gray-500 hover:text-red-500 p-0 px-1"
+                      className="text-red-500  hover:text-red-500 px-1"
                     >
-                      <IoCloseCircle className="w-4 h-4" />
+                      <TrashIcon className="w-4 h-4 mt-[1px]" />
                     </Button>
                   </div>
                 </div>
