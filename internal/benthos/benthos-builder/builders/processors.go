@@ -32,7 +32,7 @@ func buildProcessorConfigsByRunType(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
-	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
+	columnInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -123,7 +123,7 @@ func buildProcessorConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
+	tableColumnInfo map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
@@ -262,7 +262,7 @@ func buildMutationConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
+	tableColumnInfo map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	splitColumnPaths bool,
 ) (string, error) {
 	mutations := []string{}
@@ -485,10 +485,10 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
-func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_shared.ColumnInfo, splitColumnPath bool) (string, error) {
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_shared.DatabaseSchemaRow, splitColumnPath bool) (string, error) {
 	var maxLen int64 = 10000
-	if colInfo != nil && colInfo.CharacterMaximumLength != nil && *colInfo.CharacterMaximumLength > 0 {
-		maxLen = int64(*colInfo.CharacterMaximumLength)
+	if colInfo != nil && colInfo.CharacterMaximumLength > 0 {
+		maxLen = int64(colInfo.CharacterMaximumLength)
 	}
 
 	formattedColPath := getBenthosColumnKey(col.Column, splitColumnPath)
@@ -550,8 +550,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			precision = &userDefinedPrecision
 			cfg.GenerateFloat64Config.Precision = &userDefinedPrecision
 		}
-		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
-			newPrecision := transformer_utils.Ceil(*precision, int64(*colInfo.NumericPrecision))
+		if colInfo != nil && colInfo.NumericPrecision > 0 {
+			newPrecision := transformer_utils.Ceil(*precision, int64(colInfo.NumericPrecision))
 			precision = &newPrecision
 		}
 		if precision != nil {
@@ -559,8 +559,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		}
 
 		var scale *int64
-		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
-			newScale := int64(*colInfo.NumericScale)
+		if colInfo != nil && colInfo.NumericScale >= 0 {
+			newScale := int64(colInfo.NumericScale)
 			scale = &newScale
 		}
 
@@ -686,13 +686,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		return opts.BuildBloblangString(formattedColPath), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
 		var precision *int64
-		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
-			newPrecision := int64(*colInfo.NumericPrecision)
+		if colInfo != nil && colInfo.NumericPrecision > 0 {
+			newPrecision := int64(colInfo.NumericPrecision)
 			precision = &newPrecision
 		}
 		var scale *int64
-		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
-			newScale := int64(*colInfo.NumericScale)
+		if colInfo != nil && colInfo.NumericScale >= 0 {
+			newScale := int64(colInfo.NumericScale)
 			scale = &newScale
 		}
 		opts, err := transformers.NewTransformFloat64OptsFromConfig(cfg.TransformFloat64Config, scale, precision)

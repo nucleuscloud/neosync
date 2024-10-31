@@ -46,7 +46,7 @@ type tableMapping struct {
 }
 
 func areMappingsSubsetOfSchemas(
-	groupedSchemas map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -99,7 +99,7 @@ func getUniqueColMappingsMap(
 }
 
 func shouldHaltOnSchemaAddition(
-	groupedSchemas map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -184,7 +184,7 @@ func groupSqlJobSourceOptionsByTable(
 func mergeVirtualForeignKeys(
 	dbForeignKeys map[string][]*sqlmanager_shared.ForeignConstraint,
 	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
-	colInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	colInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
 	fks := map[string][]*sqlmanager_shared.ForeignConstraint{}
 
@@ -411,7 +411,7 @@ func getColumnDefaultProperties(
 	slogger *slog.Logger,
 	driver string,
 	cols []string,
-	colInfo map[string]*sqlmanager_shared.ColumnInfo,
+	colInfo map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	colTransformers map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
 	colDefaults := map[string]*neosync_benthos.ColumnDefaultProperties{}

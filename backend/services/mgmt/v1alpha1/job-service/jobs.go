@@ -1819,7 +1819,7 @@ func validateVirtualForeignKeys(
 	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
 	jobColMappings map[string]map[string]*mgmtv1alpha1.JobMapping,
 	tc *sqlmanager_shared.TableConstraints,
-	colMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	colMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) *validateVirtualForeignKeysResponse {
 	dbErrors := []string{}
 	colErrorsMap := map[string]map[string][]string{}

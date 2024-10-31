@@ -513,7 +513,7 @@ func (s *Service) GetConnectionSchema(
 				Table:              col.TableName,
 				Column:             col.ColumnName,
 				DataType:           col.DataType,
-				IsNullable:         col.IsNullable,
+				IsNullable:         col.NullableString(),
 				ColumnDefault:      defaultColumn,
 				GeneratedType:      col.GeneratedType,
 				IdentityGeneration: col.IdentityGeneration,

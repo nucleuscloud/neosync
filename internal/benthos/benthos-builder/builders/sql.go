@@ -28,10 +28,10 @@ type sqlSyncBuilder struct {
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	primaryKeyToForeignKeysMap        map[string]map[string][]*bb_internal.ReferenceKey         // schema.table -> column -> ForeignKey
-	colTransformerMap                 map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table -> column -> transformer
-	sqlSourceSchemaColumnInfoMap      map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
-	sqlDestinationSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo       // schema.table -> column -> column info struct
+	primaryKeyToForeignKeysMap        map[string]map[string][]*bb_internal.ReferenceKey          // schema.table -> column -> ForeignKey
+	colTransformerMap                 map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
+	sqlSourceSchemaColumnInfoMap      map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	sqlDestinationSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 }
 
 func NewSqlSyncBuilder(
@@ -134,7 +134,7 @@ func buildBenthosSqlSourceConfigResponses(
 	dsnConnectionId string,
 	driver string,
 	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
-	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
@@ -245,7 +245,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
 	}
 
-	var colInfoMap map[string]*sqlmanager_shared.ColumnInfo
+	var colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow
 	colMap, ok := b.sqlDestinationSchemaColumnInfoMap[tableKey]
 	if ok {
 		colInfoMap = colMap
@@ -426,10 +426,10 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 func getSqlSchemaColumnMap(
 	ctx context.Context,
 	destinationConnection *mgmtv1alpha1.Connection,
-	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	slogger *slog.Logger,
-) map[string]map[string]*sqlmanager_shared.ColumnInfo {
+) map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow {
 	schemaColMap := sourceSchemaColumnInfoMap
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
@@ -454,10 +454,10 @@ func getSqlSchemaColumnMap(
 // Merges source db column info with destination db col info
 // Destination db col info take precedence
 func mergeSourceDestinationColumnInfo(
-	sourceCols map[string]map[string]*sqlmanager_shared.ColumnInfo,
-	destCols map[string]map[string]*sqlmanager_shared.ColumnInfo,
-) map[string]map[string]*sqlmanager_shared.ColumnInfo {
-	mergedCols := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
+	sourceCols map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	destCols map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+) map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow {
+	mergedCols := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{}
 
 	for schemaTable, tableCols := range sourceCols {
 		mergedCols[schemaTable] = tableCols
@@ -465,7 +465,7 @@ func mergeSourceDestinationColumnInfo(
 
 	for schemaTable, tableCols := range destCols {
 		if _, ok := mergedCols[schemaTable]; !ok {
-			mergedCols[schemaTable] = make(map[string]*sqlmanager_shared.ColumnInfo)
+			mergedCols[schemaTable] = make(map[string]*sqlmanager_shared.DatabaseSchemaRow)
 		}
 		for colName, colInfo := range tableCols {
 			mergedCols[schemaTable][colName] = colInfo
