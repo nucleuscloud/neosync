@@ -268,7 +268,11 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 	params.SourceConfig.ColumnDefaultProperties = columnDefaultProperties
 
-	destOpts := params.DestinationOpts
+	destOpts, err := getDestinationOptions(params.DestinationOpts)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse destination options: %w", err)
+	}
+
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
@@ -283,13 +287,14 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
-						SkipForeignKeyViolations: destOpts.GetPostgresOptions().GetSkipForeignKeyViolations(),
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						MaxInFlight:              int(destOpts.MaxInFlight),
 						WhereColumns:             benthosConfig.PrimaryKeys,
 						ArgsMapping:              buildPlainInsertArgs(args),
 
 						Batching: &neosync_benthos.Batching{
-							Period: "5s",
-							Count:  100,
+							Period: destOpts.BatchPeriod,
+							Count:  destOpts.BatchCount,
 						},
 					},
 				},
@@ -297,8 +302,8 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				{Error: &neosync_benthos.ErrorOutputConfig{
 					ErrorMsg: `${! meta("fallback_error")}`,
 					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
+						Period: destOpts.BatchPeriod,
+						Count:  destOpts.BatchCount,
 					},
 				}},
 			},
@@ -356,16 +361,16 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Columns:                  benthosConfig.Columns,
 						ColumnsDataTypes:         columnTypes,
 						ColumnDefaultProperties:  columnDefaultProperties,
-						OnConflictDoNothing:      destOpts.GetPostgresOptions().GetOnConflict().GetDoNothing(),
-						SkipForeignKeyViolations: destOpts.GetPostgresOptions().GetSkipForeignKeyViolations(),
-						TruncateOnRetry:          destOpts.GetPostgresOptions().GetTruncateTable().GetTruncateBeforeInsert(),
+						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						TruncateOnRetry:          destOpts.Truncate,
 						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
 						Prefix:                   prefix,
 						Suffix:                   suffix,
 
 						Batching: &neosync_benthos.Batching{
-							Period: "5s",
-							Count:  100,
+							Period: destOpts.BatchPeriod,
+							Count:  destOpts.BatchCount,
 						},
 					},
 				},
@@ -373,8 +378,8 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				{Error: &neosync_benthos.ErrorOutputConfig{
 					ErrorMsg: `${! meta("fallback_error")}`,
 					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
+						Period: destOpts.BatchPeriod,
+						Count:  destOpts.BatchCount,
 					},
 				}},
 			},
