@@ -94,9 +94,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		if err != nil {
 			return nil, err
 		}
-		if len(extraMappings) > 0 {
-			logger.Info(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
-		}
+		logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
 		job.Mappings = append(job.Mappings, extraMappings...)
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)

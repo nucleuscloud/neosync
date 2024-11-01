@@ -686,10 +686,6 @@ func getAdditionalJobMappings(
 	output := []*mgmtv1alpha1.JobMapping{}
 
 	tableColMappings := getUniqueColMappingsMap(mappings)
-	// The mappings are equivalent to the grouped schemas, no work needs to be done
-	if len(tableColMappings) == len(groupedSchemas) {
-		return output, nil
-	}
 
 	for schematable, cols := range groupedSchemas {
 		mappedCols, ok := tableColMappings[schematable]

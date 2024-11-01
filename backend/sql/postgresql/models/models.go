@@ -1011,7 +1011,7 @@ type MysqlSourceOptions struct {
 }
 type PostgresSourceOptions struct {
 	// @deprecated
-	HaltOnNewColumnAddition       bool                               `json:"haltOnNewColumnAddition"`
+	HaltOnNewColumnAddition       bool                               `json:"haltOnNewColumnAddition,omitempty"`
 	SubsetByForeignKeyConstraints bool                               `json:"subsetByForeignKeyConstraints"`
 	Schemas                       []*PostgresSourceSchemaOption      `json:"schemas"`
 	ConnectionId                  string                             `json:"connectionId"`
@@ -1124,7 +1124,6 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 	return dto
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
-	// s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
