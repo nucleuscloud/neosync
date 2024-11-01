@@ -285,7 +285,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		executor = batch.BloblangExecutor(s.argsMapping)
 	}
 
-	rows := [][]interface{}{} //nolint:gofmt
+	rows := [][]any{}
 	for i := range batch {
 		if s.argsMapping == nil {
 			continue
@@ -318,6 +318,18 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			columnDefaults[idx] = defaults
 		}
 	}
+
+	builder, err := querybuilder.GetInsertBuilder(s.driver, s.slogger)
+	if err != nil {
+		return err
+	}
+
+	insertQuery, args, err := builder.BuildInsertQuery(
+		s.schema,
+		s.table,
+		s.columns,
+		rows,
+	)
 
 	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
 	if err != nil {

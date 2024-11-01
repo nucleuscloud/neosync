@@ -22,6 +22,153 @@ import (
 
 const defaultStr = "DEFAULT"
 
+func GetInsertBuilder(driver string, logger *slog.Logger) (InsertQueryBuilder, error) {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver, "postgres":
+		return &PostgresDriver{
+			driver: driver,
+			logger: logger,
+		}, nil
+	case sqlmanager_shared.MysqlDriver:
+		return &MysqlDriver{
+			driver: driver,
+			logger: logger,
+		}, nil
+	case sqlmanager_shared.MssqlDriver:
+		return &MssqlDriver{
+			driver: driver,
+			logger: logger,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported driver: %s", driver)
+	}
+}
+
+type InsertQueryBuilder interface {
+	BuildInsertQuery(schema, table string, columns []string, rows [][]any, opts ...InsertOption) (string, []any, error)
+}
+
+type InsertOption func(*InsertOptions)
+type InsertOptions struct {
+	rawInsertMode          bool
+	overrideColumnDefaults bool
+	excludeColumnDefaults  bool
+	includePrefixSuffix    bool
+	onConflictDoNothing    bool
+	columnDataTypes        []string
+	columnDefaults         []*neosync_benthos.ColumnDefaultProperties
+}
+
+// WithRawInsertMode inserts data as is
+func WithRawInsertMode() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.rawInsertMode = true
+	}
+}
+
+// WithOverrideColumnDefaults updates insert query to support override column defaults
+func WithOverrideColumnDefaults() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.overrideColumnDefaults = true
+	}
+}
+
+// WithExcludeColumnDefault removes columns with defaults from insert
+func WithExcludeColumnDefault() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.excludeColumnDefaults = true
+	}
+}
+
+// WithIncludePrefixSuffix adds prefix and suffix to insert query
+func WithIncludePrefixSuffix() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.includePrefixSuffix = true
+	}
+}
+
+// WithOnConflictDoNothing adds on conflict do nothing to insert query
+func WithOnConflictDoNothing() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.onConflictDoNothing = true
+	}
+}
+
+func WithColumnDataTypes(types []string) InsertOption {
+	return func(o *InsertOptions) {
+		o.columnDataTypes = types
+	}
+}
+
+func WithColumnDefaults(defaults []*neosync_benthos.ColumnDefaultProperties) InsertOption {
+	return func(o *InsertOptions) {
+		o.columnDefaults = defaults
+	}
+}
+
+type PostgresDriver struct {
+	driver string
+	logger *slog.Logger
+}
+
+func (d *PostgresDriver) BuildInsertQuery(config *InsertBuilder, opts ...InsertOption) (string, []any, error) {
+	options := InsertOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	return sql, args, nil
+}
+
+func (d *PostgresDriver) getPostgresVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaults []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
+	gval := goqu.Vals{}
+
+	return gval
+}
+
+type MysqlDriver struct {
+	driver string
+	logger *slog.Logger
+}
+
+func (d *MysqlDriver) BuildInsertQuery(config *InsertBuilder, opts ...InsertOption) (string, []any, error) {
+	options := InsertOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	return BuildInsertQuery(config.driver, config.schema, config.table, config.columns, config.values, options.onConflictDoNothing)
+}
+
+func (d *MysqlDriver) getMysqlVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaults []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
+	options := InsertOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	return sql, args, nil
+}
+
+type MssqlDriver struct {
+	driver string
+	logger *slog.Logger
+}
+
+func (d *MssqlDriver) BuildInsertQuery(config *InsertBuilder, opts ...InsertOption) (string, []any, error) {
+	options := InsertOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	return sql, args, nil
+}
+
+func (d *MssqlDriver) getMssqlVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaults []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
+	gval := goqu.Vals{}
+
+	return gval
+}
+
 type SubsetReferenceKey struct {
 	Table         string
 	Columns       []string
@@ -178,14 +325,43 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, col
 	return gval
 }
 
+// func BuildInsertQuery(
+// 	logger *slog.Logger,
+// 	driver, schema, table string,
+// 	columns []string,
+// 	columnDataTypes []string,
+// 	values [][]any,
+// 	onConflictDoNothing *bool,
+// 	columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
+// ) (sql string, args []any, err error) {
+// 	builder := getGoquDialect(driver)
+// 	sqltable := goqu.S(schema).Table(table)
+// 	insertCols := make([]any, len(columns))
+// 	for i, col := range columns {
+// 		insertCols[i] = col
+// 	}
+// 	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
+// 	for _, row := range values {
+// 		gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+// 		insert = insert.Vals(gval)
+// 	}
+// 	// adds on conflict do nothing to insert query
+// 	if *onConflictDoNothing {
+// 		insert = insert.OnConflict(goqu.DoNothing())
+// 	}
+
+// 	query, args, err := insert.ToSQL()
+// 	if err != nil {
+// 		return "", nil, err
+// 	}
+// 	return query, args, nil
+// }
+
 func BuildInsertQuery(
-	logger *slog.Logger,
 	driver, schema, table string,
 	columns []string,
-	columnDataTypes []string,
-	values [][]any,
+	values []goqu.Vals,
 	onConflictDoNothing *bool,
-	columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
 ) (sql string, args []any, err error) {
 	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
@@ -195,8 +371,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
-		insert = insert.Vals(gval)
+		insert = insert.Vals(row)
 	}
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {
