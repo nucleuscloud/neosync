@@ -94,6 +94,15 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 		storageClass = convertToS3StorageClass(destinationOpts.GetStorageClass()).String()
 	}
 
+	processors := []*neosync_benthos.BatchProcessor{
+		{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
+		{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+	}
+
+	if benthosConfig.Config.Input.PooledSqlRaw != nil {
+		processors = append(processors, &neosync_benthos.BatchProcessor{SqlToJson: &neosync_benthos.SqlToJsonConfig{}})
+	}
+
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
 			{
@@ -105,12 +114,9 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 					Path:         strings.Join(s3pathpieces, "/"),
 					ContentType:  "application/gzip",
 					Batching: &neosync_benthos.Batching{
-						Count:  batchCount,
-						Period: batchPeriod,
-						Processors: []*neosync_benthos.BatchProcessor{
-							{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
-							{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
-						},
+						Count:      batchCount,
+						Period:     batchPeriod,
+						Processors: processors,
 					},
 					Credentials: buildBenthosS3Credentials(connAwsS3Config.Credentials),
 					Region:      connAwsS3Config.GetRegion(),

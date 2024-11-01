@@ -34,15 +34,41 @@ type SqlDBTX interface {
 	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
+type SqlConnectorOption func(*sqlConnectorOptions)
+
+type sqlConnectorOptions struct {
+	mysqlDisableParseTime bool
+	postgresDriver        *string
+}
+
+// WithMysqlDisableParseTime disables MySQL time parsing
+func WithMysqlDisableParseTime(disable bool) SqlConnectorOption {
+	return func(opts *sqlConnectorOptions) {
+		opts.mysqlDisableParseTime = disable
+	}
+}
+
+// WithPostgresDriver overrides default postgres driver
+func WithPostgresDriver(postgresDriver string) SqlConnectorOption {
+	return func(opts *sqlConnectorOptions) {
+		opts.postgresDriver = &postgresDriver
+	}
+}
+
 type SqlConnector interface {
-	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error)
+	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
+func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
 	if cc == nil {
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
+
+	options := sqlConnectorOptions{}
+	for _, opt := range opts {
+		opt(&options)
 	}
 
 	dbconnopts, err := getConnectionOptsFromConnectionConfig(cc)
@@ -52,6 +78,11 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		postgresDriver := "pgx"
+		if options.postgresDriver != nil && *options.postgresDriver != "" {
+			postgresDriver = *options.postgresDriver
+		}
+		fmt.Println("POSTGRES DRIVER", postgresDriver)
 		if config.PgConfig.GetClientTls() != nil {
 			_, err := clienttls.UpsertCLientTlsFiles(config.PgConfig.GetClientTls())
 			if err != nil {
@@ -76,10 +107,10 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		} else {
-			return newStdlibContainer("pgx", dsn, dbconnopts), nil
+			return newStdlibContainer(postgresDriver, dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger)
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger, options.mysqlDisableParseTime)
 		if err != nil {
 			return nil, err
 		}

@@ -287,7 +287,9 @@ func (c *clisync) configureAndRunSync() error {
 			case <-ctx.Done():
 				return
 			case <-stopChan:
+				c.logger.Error("Sync Failed.")
 				cancel()
+				os.Exit(0)
 				return
 			}
 		}
@@ -359,6 +361,8 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	if syncConfigs == nil {
 		return nil, nil
 	}
+
+	// TODO move this after benthos builder
 	c.logger.Info("Running table init statements...")
 	err = c.runDestinationInitStatements(syncConfigs, schemaConfig)
 	if err != nil {
@@ -368,7 +372,7 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	syncConfigCount := len(syncConfigs)
 	c.logger.Info(fmt.Sprintf("Generating %d sync configs...", syncConfigCount))
 
-	job, err := createJob(c.cmd, c.sourceConnection, c.destinationConnection, schemaConfig.Schemas)
+	job, err := toJob(c.cmd, c.sourceConnection, c.destinationConnection, schemaConfig.Schemas)
 	if err != nil {
 		c.logger.Error("unable to create job")
 		return nil, err

@@ -123,14 +123,15 @@ type ReferenceKey struct {
 
 // DestinationParams contains all parameters needed to build a destination benthos configuration
 type DestinationParams struct {
-	SourceConfig    *BenthosSourceConfig
-	Job             *mgmtv1alpha1.Job
-	RunId           string
-	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
-	DestConnection  *mgmtv1alpha1.Connection
-	DestEnvVarKey   string
-	DSN             string
-	Logger          *slog.Logger
+	SourceConfig     *BenthosSourceConfig
+	Job              *mgmtv1alpha1.Job
+	RunId            string
+	DestinationOpts  *mgmtv1alpha1.JobDestinationOptions
+	DestConnection   *mgmtv1alpha1.Connection
+	SourceConnection *mgmtv1alpha1.Connection
+	DestEnvVarKey    string
+	DSN              string
+	Logger           *slog.Logger
 }
 
 // BenthosSourceConfig represents a Benthos source configuration

@@ -35,6 +35,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -56,6 +57,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -80,6 +82,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -101,6 +104,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -122,6 +126,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -146,6 +151,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -167,6 +173,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
+				true,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
