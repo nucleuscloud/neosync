@@ -1073,6 +1073,8 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
   subsetByForeignKeyConstraints = false;
 
   /**
+   * Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+   *
    * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy new_column_addition_strategy = 5;
    */
   newColumnAdditionStrategy?: PostgresSourceConnectionOptions_NewColumnAdditionStrategy;
@@ -1118,7 +1120,7 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
    */
   strategy: {
     /**
-     * halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
+     * halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
      *
      * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob halt_job = 1;
      */
@@ -1126,9 +1128,9 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
     case: "haltJob";
   } | {
     /**
-     * neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy
-     *
-     * space for more discrete strategies in the future
+     * automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+     * If this doesn't exist, will fall back to configuring generators for supported datatypes.
+     * If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
      *
      * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap auto_map = 2;
      */
@@ -1166,6 +1168,8 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
 }
 
 /**
+ * Configuration for the HaltJob strategy
+ *
  * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
  */
 export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> {
@@ -1197,6 +1201,8 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob e
 }
 
 /**
+ * Configuration for the AutoMap strategy
+ *
  * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
  */
 export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> {

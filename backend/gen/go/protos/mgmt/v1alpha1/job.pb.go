@@ -1408,11 +1408,12 @@ type PostgresSourceConnectionOptions struct {
 	unknownFields protoimpl.UnknownFields
 
 	// @deprecated - Use new_column_addition_strategy instead
-	HaltOnNewColumnAddition       *bool                                                      `protobuf:"varint,1,opt,name=halt_on_new_column_addition,json=haltOnNewColumnAddition,proto3,oneof" json:"halt_on_new_column_addition,omitempty"`
-	Schemas                       []*PostgresSourceSchemaOption                              `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
-	ConnectionId                  string                                                     `protobuf:"bytes,3,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
-	SubsetByForeignKeyConstraints bool                                                       `protobuf:"varint,4,opt,name=subset_by_foreign_key_constraints,json=subsetByForeignKeyConstraints,proto3" json:"subset_by_foreign_key_constraints,omitempty"`
-	NewColumnAdditionStrategy     *PostgresSourceConnectionOptions_NewColumnAdditionStrategy `protobuf:"bytes,5,opt,name=new_column_addition_strategy,json=newColumnAdditionStrategy,proto3" json:"new_column_addition_strategy,omitempty"`
+	HaltOnNewColumnAddition       *bool                         `protobuf:"varint,1,opt,name=halt_on_new_column_addition,json=haltOnNewColumnAddition,proto3,oneof" json:"halt_on_new_column_addition,omitempty"`
+	Schemas                       []*PostgresSourceSchemaOption `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
+	ConnectionId                  string                        `protobuf:"bytes,3,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	SubsetByForeignKeyConstraints bool                          `protobuf:"varint,4,opt,name=subset_by_foreign_key_constraints,json=subsetByForeignKeyConstraints,proto3" json:"subset_by_foreign_key_constraints,omitempty"`
+	// Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+	NewColumnAdditionStrategy *PostgresSourceConnectionOptions_NewColumnAdditionStrategy `protobuf:"bytes,5,opt,name=new_column_addition_strategy,json=newColumnAdditionStrategy,proto3" json:"new_column_addition_strategy,omitempty"`
 }
 
 func (x *PostgresSourceConnectionOptions) Reset() {
@@ -7703,13 +7704,15 @@ type isPostgresSourceConnectionOptions_NewColumnAdditionStrategy_Strategy interf
 }
 
 type PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_ struct {
-	// halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
+	// halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
 	HaltJob *PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob `protobuf:"bytes,1,opt,name=halt_job,json=haltJob,proto3,oneof"`
 }
 
 type PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_ struct {
-	// neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy
-	AutoMap *PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap `protobuf:"bytes,2,opt,name=auto_map,json=autoMap,proto3,oneof"` // space for more discrete strategies in the future
+	// automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+	// If this doesn't exist, will fall back to configuring generators for supported datatypes.
+	// If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+	AutoMap *PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap `protobuf:"bytes,2,opt,name=auto_map,json=autoMap,proto3,oneof"`
 }
 
 func (*PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_) isPostgresSourceConnectionOptions_NewColumnAdditionStrategy_Strategy() {
@@ -7718,6 +7721,7 @@ func (*PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_) isPos
 func (*PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_) isPostgresSourceConnectionOptions_NewColumnAdditionStrategy_Strategy() {
 }
 
+// Configuration for the HaltJob strategy
 type PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -7754,6 +7758,7 @@ func (*PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob) Descri
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{16, 0, 0}
 }
 
+// Configuration for the AutoMap strategy
 type PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
