@@ -202,7 +202,7 @@ func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logge
 		}
 		return parsedCfg.GetUser(), nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		parsedCfg, err := dbconnectconfig.NewFromMysqlConnection(typedconfig, nil, logger)
+		parsedCfg, err := dbconnectconfig.NewFromMysqlConnection(typedconfig, nil, logger, false)
 		if err != nil {
 			return "", fmt.Errorf("unable to parse mysql connection: %w", err)
 		}

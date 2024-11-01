@@ -3,6 +3,7 @@ package benthosbuilder
 import (
 	"fmt"
 	"log/slog"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -45,6 +46,7 @@ func (b *BuilderKey) String() string {
 
 // Manages and provides access to different Benthos builders based on connection and job types
 type BuilderProvider struct {
+	mu       sync.RWMutex
 	builders map[string]bb_internal.BenthosBuilder
 	logger   *slog.Logger
 }
@@ -61,6 +63,10 @@ func NewBuilderProvider(logger *slog.Logger) *BuilderProvider {
 // Handles registering new builders
 func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_internal.ConnectionType, builder bb_internal.BenthosBuilder) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	_, exists := r.builders[key.String()]
 	if !exists {
 		r.logger.Debug(fmt.Sprintf("registering benthos builder for job type %s and connection type %s", jobType, connType))
@@ -76,9 +82,12 @@ func (r *BuilderProvider) GetBuilder(
 	connectionType := bb_internal.GetConnectionType(connection)
 	jobType := bb_internal.GetJobType(job)
 	key := BuilderKey{ConnType: connectionType, JobType: jobType}
+
+	r.mu.RLock()
 	builder, exists := r.builders[key.String()]
+	r.mu.RUnlock()
 	if !exists {
-		return nil, fmt.Errorf("unsupported connection type: %s", connectionType)
+		return nil, fmt.Errorf("builder not registered for connection type (%s) and job type (%s)", connectionType, jobType)
 	}
 	return builder, nil
 }

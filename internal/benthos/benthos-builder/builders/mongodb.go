@@ -121,13 +121,13 @@ func (b *mongodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params 
 		Operation:  "update-one",
 		Upsert:     true,
 		DocumentMap: `
-						  root = {
-								"$set": this
-							}
-						`,
+			root = {
+				"$set": this
+			}
+		`,
 		FilterMap: `
-						  root._id = this._id
-						`,
+			root._id = this._id
+		`,
 		WriteConcern: &neosync_benthos.MongoWriteConcern{
 			W: "1",
 		},

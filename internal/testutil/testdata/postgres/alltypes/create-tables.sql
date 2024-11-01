@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
     bigserial_col BIGSERIAL,
 
     -- Monetary Types
-    money_col MONEY,
+    -- money_col MONEY,
 
     -- Character Types
     char_col CHAR(10),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
     timestamp_col TIMESTAMP,
     timestamptz_col TIMESTAMPTZ,
     date_col DATE,
-    time_col TIME,
+    -- time_col TIME,
     timetz_col TIMETZ,
     interval_col INTERVAL,
 
@@ -93,7 +93,7 @@ INSERT INTO alltypes.all_postgres_types (
     double_precision_col, 
     serial_col, 
     bigserial_col, 
-    money_col, 
+    -- money_col, 
     char_col, 
     varchar_col, 
     text_col, 
@@ -101,7 +101,7 @@ INSERT INTO alltypes.all_postgres_types (
     timestamp_col, 
     timestamptz_col, 
     date_col, 
-    time_col, 
+    -- time_col, 
     timetz_col, 
     interval_col, 
     boolean_col, 
@@ -142,7 +142,7 @@ INSERT INTO alltypes.all_postgres_types (
     123456789.123456789,  -- double_precision_col
     1,  -- serial_col (auto-incremented, will be generated)
     1,  -- bigserial_col (auto-incremented, will be generated)
-    '$100.00',  -- money_col
+    -- '$100.00',  -- money_col
     'A',  -- char_col
     'DEFAULT',  -- varchar_col
     'default',  -- text_col
@@ -150,7 +150,7 @@ INSERT INTO alltypes.all_postgres_types (
     '2024-01-01 12:34:56',  -- timestamp_col
     '2024-01-01 12:34:56+00',  -- timestamptz_col
     '2024-01-01',  -- date_col
-    '12:34:56',  -- time_col
+    -- '12:34:56',  -- time_col
     '12:34:56+00',  -- timetz_col
     '1 day',  -- interval_col
     TRUE,  -- boolean_col

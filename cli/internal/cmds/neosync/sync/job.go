@@ -7,7 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func createJob(
+func toJob(
 	cmd *cmdConfig,
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnection *mgmtv1alpha1.Connection,
