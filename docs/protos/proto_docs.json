@@ -12796,27 +12796,49 @@
               "name": "halt_job",
               "description": "halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "HaltJob",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
             },
             {
-              "name": "use_auto_map",
+              "name": "auto_map",
               "description": "neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy\n\nspace for more discrete strategies in the future",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "AutoMap",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "PostgresSourceSchemaOption",

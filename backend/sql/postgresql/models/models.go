@@ -1010,11 +1010,49 @@ type MysqlSourceOptions struct {
 	ConnectionId                  string                     `json:"connectionId"`
 }
 type PostgresSourceOptions struct {
-	HaltOnNewColumnAddition       bool                          `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                          `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*PostgresSourceSchemaOption `json:"schemas"`
-	ConnectionId                  string                        `json:"connectionId"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                               `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                               `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*PostgresSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                             `json:"connectionId"`
+	NewColumnAdditionStrategy     *PostgresNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type PostgresNewColumnAdditionStrategy struct {
+	HaltJob *PostgresHaltJobStrategy `json:"haltJob,omitempty"`
+	AutoMap *PostgresAutoMapStrategy `json:"autoMap,omitempty"`
+}
+
+func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+	if p.HaltJob != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	} else if p.AutoMap != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
+				AutoMap: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	}
+	return nil
+}
+func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
+	}
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+		p.AutoMap = &PostgresAutoMapStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+		p.HaltJob = &PostgresHaltJobStrategy{}
+	}
+}
+
+type PostgresHaltJobStrategy struct{}
+type PostgresAutoMapStrategy struct{}
 
 type GenerateSourceOptions struct {
 	Schemas              []*GenerateSourceSchemaOption `json:"schemas"`
@@ -1071,6 +1109,19 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 		}
 	}
 
+	if s.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = s.NewColumnAdditionStrategy.ToDto()
+	}
+
+	if dto.NewColumnAdditionStrategy == nil && s.HaltOnNewColumnAddition {
+		// HaltOnNewColumnAddition is deprecated, so we are also populating the new strategy automatically to move the api forward
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+
 	return dto
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
@@ -1078,6 +1129,16 @@ func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnecti
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{}
+		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if dto.GetHaltOnNewColumnAddition() {
+		// halt on new column addition is deprecated, so if the new column strat is nil but the deprecated value is true,
+		// we are going to store it in the new strategy format.
+		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{
+			HaltJob: &PostgresHaltJobStrategy{},
+		}
+	}
 }
 
 func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {

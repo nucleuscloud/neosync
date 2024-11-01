@@ -140,11 +140,13 @@ message PostgresSourceConnectionOptions {
   message NewColumnAdditionStrategy {
     oneof strategy {
       // halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
-      bool halt_job = 1;
+      HaltJob halt_job = 1;
       // neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy
-      bool use_auto_map = 2;
+      AutoMap auto_map = 2;
       // space for more discrete strategies in the future
     }
+    message HaltJob {}
+    message AutoMap {}
   }
 }
 

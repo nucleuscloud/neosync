@@ -231,12 +231,18 @@ class DynamoDBSourceTableOption(_message.Message):
 class PostgresSourceConnectionOptions(_message.Message):
     __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
     class NewColumnAdditionStrategy(_message.Message):
-        __slots__ = ("halt_job", "use_auto_map")
+        __slots__ = ("halt_job", "auto_map")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class AutoMap(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
         HALT_JOB_FIELD_NUMBER: _ClassVar[int]
-        USE_AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
-        halt_job: bool
-        use_auto_map: bool
-        def __init__(self, halt_job: bool = ..., use_auto_map: bool = ...) -> None: ...
+        AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]

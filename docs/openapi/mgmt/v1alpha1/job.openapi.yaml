@@ -3796,36 +3796,46 @@ components:
       allOf:
         - anyOf:
             - required:
-                - haltJob
+                - autoMap
             - required:
-                - useAutoMap
+                - haltJob
             - not:
                 anyOf:
                   - required:
-                      - haltJob
+                      - autoMap
                   - required:
-                      - useAutoMap
+                      - haltJob
       anyOf:
         - required:
-            - haltJob
+            - autoMap
         - required:
-            - useAutoMap
+            - haltJob
         - not:
             anyOf:
               - required:
-                  - haltJob
+                  - autoMap
               - required:
-                  - useAutoMap
+                  - haltJob
       properties:
         haltJob:
-          type: boolean
-          title: halt_job
-          description: halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
-        useAutoMap:
-          type: boolean
-          title: use_auto_map
-          description: neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy space for more discrete strategies in the future
+          allOf:
+            - title: halt_job
+              description: halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob'
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: neosync will automatically anonymize unmapped columns. View the docs page for details on this strategy space for more discrete strategies in the future
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap'
       title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object

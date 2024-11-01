@@ -1120,9 +1120,9 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
     /**
      * halt job if a new column is detected. This is equiavlent to the old halt_on_new_column_addition
      *
-     * @generated from field: bool halt_job = 1;
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob halt_job = 1;
      */
-    value: boolean;
+    value: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob;
     case: "haltJob";
   } | {
     /**
@@ -1130,10 +1130,10 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
      *
      * space for more discrete strategies in the future
      *
-     * @generated from field: bool use_auto_map = 2;
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap auto_map = 2;
      */
-    value: boolean;
-    case: "useAutoMap";
+    value: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap;
+    case: "autoMap";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy>) {
@@ -1144,8 +1144,8 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "halt_job", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strategy" },
-    { no: 2, name: "use_auto_map", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strategy" },
+    { no: 1, name: "halt_job", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob, oneof: "strategy" },
+    { no: 2, name: "auto_map", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap, oneof: "strategy" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
@@ -1162,6 +1162,68 @@ export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends M
 
   static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined): boolean {
     return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> {
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> {
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap, a, b);
   }
 }
 
