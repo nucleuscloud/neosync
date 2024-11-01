@@ -762,7 +762,8 @@ func getAdditionalJobMappings(
 	return output, nil
 }
 func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
-	switch colInfo.DataType {
+	cleanedDataType := cleanPostgresType(colInfo.DataType)
+	switch cleanedDataType {
 	case "smallint":
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -901,4 +902,12 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
 		)
 	}
+}
+
+func cleanPostgresType(dataType string) string {
+	parenIndex := strings.Index(dataType, "(")
+	if parenIndex == -1 {
+		return dataType
+	}
+	return strings.TrimSpace(dataType[:parenIndex])
 }
