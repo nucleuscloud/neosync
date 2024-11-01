@@ -12717,19 +12717,19 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "halt_on_new_column_addition",
               "description": "@deprecated - Use new_column_addition_strategy instead",
-              "label": "",
+              "label": "optional",
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_halt_on_new_column_addition",
               "defaultValue": ""
             },
             {

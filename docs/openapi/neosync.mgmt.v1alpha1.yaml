@@ -10340,6 +10340,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltOnNewColumnAddition
+            - not:
+                anyOf:
+                  - required:
+                      - haltOnNewColumnAddition
+      anyOf:
+        - required:
+            - haltOnNewColumnAddition
+        - not:
+            anyOf:
+              - required:
+                  - haltOnNewColumnAddition
       properties:
         haltOnNewColumnAddition:
           type: boolean

@@ -1053,9 +1053,9 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
   /**
    * @deprecated - Use new_column_addition_strategy instead
    *
-   * @generated from field: bool halt_on_new_column_addition = 1;
+   * @generated from field: optional bool halt_on_new_column_addition = 1;
    */
-  haltOnNewColumnAddition = false;
+  haltOnNewColumnAddition?: boolean;
 
   /**
    * @generated from field: repeated mgmt.v1alpha1.PostgresSourceSchemaOption schemas = 2;
@@ -1085,7 +1085,7 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
     { no: 2, name: "schemas", kind: "message", T: PostgresSourceSchemaOption, repeated: true },
     { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "subset_by_foreign_key_constraints", kind: "scalar", T: 8 /* ScalarType.BOOL */ },

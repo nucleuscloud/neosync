@@ -1088,7 +1088,7 @@ type AiGenerateSourceTableOption struct {
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
 	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
-		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
+		// HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
@@ -1112,7 +1112,6 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 	if s.NewColumnAdditionStrategy != nil {
 		dto.NewColumnAdditionStrategy = s.NewColumnAdditionStrategy.ToDto()
 	}
-
 	if dto.NewColumnAdditionStrategy == nil && s.HaltOnNewColumnAddition {
 		// HaltOnNewColumnAddition is deprecated, so we are also populating the new strategy automatically to move the api forward
 		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
@@ -1125,7 +1124,7 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 	return dto
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	// s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId

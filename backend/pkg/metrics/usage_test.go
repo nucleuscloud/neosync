@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"slices"
 	"testing"
@@ -178,4 +179,9 @@ func Test_GetTotalUsageFromProm(t *testing.T) {
 
 		mockapi.AssertExpectations(t)
 	})
+}
+
+// Formats the day into the Neosync Date Format of YYYY-DD-MM
+func formatDate(d *mgmtv1alpha1.Date) string {
+	return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Day)
 }

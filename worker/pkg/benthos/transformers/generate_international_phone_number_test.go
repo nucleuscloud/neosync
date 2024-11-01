@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,4 +89,11 @@ func Test_ValidateE164FalseTooshort(t *testing.T) {
 	res := validateE164(val)
 
 	assert.Equal(t, res, false, "The e164 number should  be 10 < x")
+}
+
+func validateE164(p string) bool {
+	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
+		return true
+	}
+	return false
 }

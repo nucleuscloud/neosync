@@ -131,7 +131,7 @@ message DynamoDBSourceTableOption {
 
 message PostgresSourceConnectionOptions {
   // @deprecated - Use new_column_addition_strategy instead
-  bool halt_on_new_column_addition = 1;
+  optional bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;

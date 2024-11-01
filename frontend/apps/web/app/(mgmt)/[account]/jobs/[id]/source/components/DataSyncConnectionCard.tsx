@@ -994,7 +994,8 @@ function getJobSource(
         sourceOptions: {
           postgres: {
             haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
+              job?.source?.options?.config.value.haltOnNewColumnAddition ??
+              false,
           },
         },
       };
