@@ -60,6 +60,8 @@ import {
   MssqlSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -773,18 +775,30 @@ function toJobSourceOptions(
   newSourceId: string
 ): JobSourceOptions {
   switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig':
+    case 'pgConfig': {
+      let newColAddStrat =
+        new PostgresSourceConnectionOptions_NewColumnAdditionStrategy();
+      if (values.sourceOptions.postgres?.haltOnNewColumnAddition) {
+        newColAddStrat =
+          new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
+            strategy: {
+              case: 'haltJob',
+              value:
+                new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob(),
+            },
+          });
+      }
       return new JobSourceOptions({
         config: {
           case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.postgres?.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: newColAddStrat,
           }),
         },
       });
+    }
     case 'mysqlConfig':
       return new JobSourceOptions({
         config: {
@@ -988,14 +1002,18 @@ function getJobSource(
 
   switch (job?.source?.options?.config.case) {
     case 'postgres':
+      let halt = job.source.options.config.value.haltOnNewColumnAddition;
+      if (halt == null) {
+        halt =
+          job.source.options.config.value.newColumnAdditionStrategy?.strategy
+            .case === 'haltJob';
+      }
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition ??
-              false,
+            haltOnNewColumnAddition: halt,
           },
         },
       };
