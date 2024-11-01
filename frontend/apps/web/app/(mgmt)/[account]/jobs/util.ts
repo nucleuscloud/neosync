@@ -1125,12 +1125,19 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'postgres': {
+      let halt = false;
+      if (
+        job.source.options.config.value.haltOnNewColumnAddition ||
+        job.source.options.config.value.newColumnAdditionStrategy?.strategy
+          .case === 'haltJob'
+      ) {
+        halt = true;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            haltOnNewColumnAddition: halt,
           },
         },
         destinations: job.destinations.map((dest) =>
