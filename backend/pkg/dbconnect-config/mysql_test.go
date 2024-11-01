@@ -35,13 +35,36 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
 			assert.Equal(
 				t,
 				"test-user:test-pass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+
+		t.Run("ok_disable_parse_time", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+							Connection: mysqlconnectionFixture,
+						},
+					},
+				},
+				&testConnectionTimeout,
+				discardLogger,
+				true,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:test-pass@tcp(localhost:3309)/mydb?multiStatements=true&timeout=5s",
 				actual.String(),
 			)
 			assert.Equal(t, "test-user", actual.GetUser())
@@ -57,7 +80,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -82,7 +105,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -104,7 +127,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -126,7 +149,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -151,7 +174,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				&testConnectionTimeout,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
@@ -173,7 +196,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				},
 				nil,
 				discardLogger,
-				true,
+				false,
 			)
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
