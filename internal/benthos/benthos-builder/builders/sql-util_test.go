@@ -1,6 +1,14 @@
 package benthosbuilder_builders
 
-import "testing"
+import (
+	"io"
+	"log/slog"
+	"testing"
+
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/stretchr/testify/require"
+)
 
 func Test_cleanPostgresType(t *testing.T) {
 	t.Run("simple type without params", func(t *testing.T) {
@@ -132,4 +140,69 @@ func BenchmarkCleanPostgresType(b *testing.B) {
 			cleanPostgresType(input)
 		}
 	}
+}
+
+var (
+	discardLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
+)
+
+func Test_getAdditionalMappings(t *testing.T) {
+	t.Run("postgres", func(t *testing.T) {
+		t.Run("none", func(t *testing.T) {
+			actual, err := getAdditionalJobMappings(
+				"postgres",
+				map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+					"public.users": {
+						"id": {},
+					},
+				},
+				[]*mgmtv1alpha1.JobMapping{{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{PassthroughConfig: &mgmtv1alpha1.Passthrough{}}},
+					},
+				}},
+				splitKeyToTablePieces,
+				discardLogger,
+			)
+			require.NoError(t, err)
+			require.Empty(t, actual)
+		})
+		t.Run("fallbacks", func(t *testing.T) {
+			actual, err := getAdditionalJobMappings(
+				"postgres",
+				map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+					"public.users": {
+						"id": {},
+						"first_name": {
+							IsNullable: true,
+						},
+						"last_name": {
+							ColumnDefault: "FOO",
+						},
+						"full_name": {
+							GeneratedType: sqlmanager_shared.Ptr("first_name + last_name"),
+						},
+						"income": {
+							DataType: "numeric",
+						},
+					},
+				},
+				[]*mgmtv1alpha1.JobMapping{{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{PassthroughConfig: &mgmtv1alpha1.Passthrough{}}},
+					},
+				}},
+				splitKeyToTablePieces,
+				discardLogger,
+			)
+			require.NoError(t, err)
+			require.Len(t, actual, 4)
+		})
+	})
 }

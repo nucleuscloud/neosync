@@ -84,13 +84,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, errors.New(haltOnSchemaAdditionErrMsg)
 	}
 	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
-		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, func(key string) (schema string, table string, err error) {
-			pieces := strings.SplitN(key, ".", 2)
-			if len(pieces) != 2 {
-				return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
-			}
-			return pieces[0], pieces[1], nil
-		}, logger)
+		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, splitKeyToTablePieces, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -138,6 +132,14 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 
 	return configs, nil
+}
+
+func splitKeyToTablePieces(key string) (schema, table string, err error) {
+	pieces := strings.SplitN(key, ".", 2)
+	if len(pieces) != 2 {
+		return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
+	}
+	return pieces[0], pieces[1], nil
 }
 
 func buildBenthosSqlSourceConfigResponses(
