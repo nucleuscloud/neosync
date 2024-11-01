@@ -55,15 +55,14 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 			destParams := &bb_internal.DestinationParams{
-				SourceConfig:     sourceConfig,
-				Job:              b.job,
-				RunId:            b.runId,
-				DestinationOpts:  destOpts,
-				DestConnection:   destConnection,
-				SourceConnection: b.sourceConnection,
-				DestEnvVarKey:    dstEnvVarKey,
-				DSN:              dsn,
-				Logger:           b.logger,
+				SourceConfig:    sourceConfig,
+				Job:             b.job,
+				RunId:           b.runId,
+				DestinationOpts: destOpts,
+				DestConnection:  destConnection,
+				DestEnvVarKey:   dstEnvVarKey,
+				DSN:             dsn,
+				Logger:          b.logger,
 			}
 
 			destConfig, err := destBuilder.BuildDestinationConfig(ctx, destParams)
