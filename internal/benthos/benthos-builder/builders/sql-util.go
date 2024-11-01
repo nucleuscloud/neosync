@@ -1,6 +1,7 @@
 package benthosbuilder_builders
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -737,15 +738,21 @@ func getAdditionalJobMappings(
 				} else {
 					switch driver {
 					case "postgres":
+						transformer, err := getJmTransformerByPostgresDataType(info)
+						if err != nil {
+							return nil, err
+						}
 						output = append(output, &mgmtv1alpha1.JobMapping{
 							Schema:      schema,
 							Table:       table,
 							Column:      col,
-							Transformer: getJmTransformerByPostgresDataType(info),
+							Transformer: transformer,
 						})
 					default:
 						logger.Warn("this driver is not currently supported for additional job mapping by data type")
-						continue
+						return nil, fmt.Errorf("this driver %q does not currently support additional job mappings by data type. Please provide discrete job mappings for %q.%q.%q to continue: %w",
+							driver, info.TableSchema, info.TableName, info.ColumnName, errors.ErrUnsupported,
+						)
 					}
 				}
 			}
@@ -754,7 +761,7 @@ func getAdditionalJobMappings(
 
 	return output, nil
 }
-func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) *mgmtv1alpha1.JobMappingTransformer {
+func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
 	switch colInfo.DataType {
 	case "smallint":
 		return &mgmtv1alpha1.JobMappingTransformer{
@@ -766,7 +773,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 	case "integer":
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -777,7 +784,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 	case "bigint":
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -788,7 +795,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 	case "decimal", "numeric":
 		var precision *int64
 		if colInfo.NumericPrecision > 0 {
@@ -803,7 +810,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 	case "real", "double precision":
 		var precision *int64
 		if colInfo.NumericPrecision > 0 {
@@ -818,7 +825,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 
 	case "smallserial", "serial", "bigserial":
 		return &mgmtv1alpha1.JobMappingTransformer{
@@ -827,7 +834,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
 				},
 			},
-		}
+		}, nil
 	case "money":
 		var precision *int64
 		if colInfo.NumericPrecision > 0 {
@@ -845,7 +852,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					},
 				},
 			},
-		}
+		}, nil
 	case "text", "bpchar", "character", "character varying": // todo: test to see if this works when (n) has been specified
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -853,7 +860,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{}, // todo?
 				},
 			},
-		}
+		}, nil
 	// case "bytea": // todo https://www.postgresql.org/docs/current/datatype-binary.html
 	// case "date":
 	// 	return &mgmtv1alpha1.JobMappingTransformer{}
@@ -880,7 +887,7 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
 				},
 			},
-		}
+		}, nil
 	case "uuid":
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -888,12 +895,10 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{IncludeHyphens: shared.Ptr(true)},
 				},
 			},
-		}
+		}, nil
 	default:
-		return &mgmtv1alpha1.JobMappingTransformer{
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{PassthroughConfig: &mgmtv1alpha1.Passthrough{}},
-			},
-		}
+		return nil, fmt.Errorf("uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
+			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
+		)
 	}
 }
