@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
-	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
-		"columns found in the source connection for the selected schemas and tables"
+	jobmappingSubsetErrMsg     = "unable to continue: job mappings contain schemas, tables, or columns that were not found in the source connection"
+	haltOnSchemaAdditionErrMsg = "unable to continue: HaltOnNewColumnAddition: job mappings are missing columns for the mapped tables found in the source connection"
 )
 
 type sqlJobSourceOpts struct {
