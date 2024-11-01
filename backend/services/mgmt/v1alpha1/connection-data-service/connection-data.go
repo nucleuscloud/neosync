@@ -88,7 +88,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger, sqlconnect.WithMysqlDisableParseTime(true))
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger, sqlconnect.WithMysqlParseTimeDisabled())
 		if err != nil {
 			return err
 		}
@@ -149,7 +149,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger, sqlconnect.WithPostgresDriver("postgres"))
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger, sqlconnect.WithDefaultPostgresDriver())
 		if err != nil {
 			return err
 		}

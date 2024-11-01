@@ -299,7 +299,7 @@ func (c *clisync) configureAndRunSync() error {
 			case <-stopChan:
 				c.logger.Error("Sync Failed.")
 				cancel()
-				os.Exit(0)
+				os.Exit(1)
 				return
 			}
 		}

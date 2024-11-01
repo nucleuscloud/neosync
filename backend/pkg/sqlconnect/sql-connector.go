@@ -38,20 +38,20 @@ type SqlConnectorOption func(*sqlConnectorOptions)
 
 type sqlConnectorOptions struct {
 	mysqlDisableParseTime bool
-	postgresDriver        *string
+	postgresDriver        string
 }
 
-// WithMysqlDisableParseTime disables MySQL time parsing
-func WithMysqlDisableParseTime(disable bool) SqlConnectorOption {
+// WithMysqlParseTimeDisabled disables MySQL time parsing
+func WithMysqlParseTimeDisabled() SqlConnectorOption {
 	return func(opts *sqlConnectorOptions) {
-		opts.mysqlDisableParseTime = disable
+		opts.mysqlDisableParseTime = true
 	}
 }
 
 // WithPostgresDriver overrides default postgres driver
-func WithPostgresDriver(postgresDriver string) SqlConnectorOption {
+func WithDefaultPostgresDriver() SqlConnectorOption {
 	return func(opts *sqlConnectorOptions) {
-		opts.postgresDriver = &postgresDriver
+		opts.postgresDriver = "postgres"
 	}
 }
 
@@ -66,7 +66,9 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	options := sqlConnectorOptions{}
+	options := sqlConnectorOptions{
+		postgresDriver: "pgx",
+	}
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -78,10 +80,6 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		postgresDriver := "pgx"
-		if options.postgresDriver != nil && *options.postgresDriver != "" {
-			postgresDriver = *options.postgresDriver
-		}
 		if config.PgConfig.GetClientTls() != nil {
 			_, err := clienttls.UpsertCLientTlsFiles(config.PgConfig.GetClientTls())
 			if err != nil {
@@ -106,7 +104,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		} else {
-			return newStdlibContainer(postgresDriver, dsn, dbconnopts), nil
+			return newStdlibContainer(options.postgresDriver, dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger, options.mysqlDisableParseTime)
