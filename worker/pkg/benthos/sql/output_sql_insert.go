@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"strings"
 	"sync"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -310,6 +308,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
 
+	// Move
 	// keep same index and order of columns slice
 	columnDefaults := make([]*neosync_benthos.ColumnDefaultProperties, len(processedCols))
 	for idx, cName := range processedCols {
@@ -324,29 +323,28 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 
+	// insertOptions := []querybuilder.InsertOption{
+	// 	querybuilder.WithColumnDataTypes(s.columnDataTypes),
+	// 	querybuilder.WithColumnDefaults(columnDefaults),
+	// }
+
+	// // move
+	// if shouldOverrideColumnDefault(s.columnDefaultProperties) {
+	// 	insertOptions = append(insertOptions, querybuilder.WithOverrideColumnDefaults())
+	// }
+
+	// if !isSupportedPostgresDriver(s.driver) {
+	// 	insertOptions = append(insertOptions, querybuilder.WithIncludePrefixSuffix(s.prefix, s.suffix))
+	// }
+
 	insertQuery, args, err := builder.BuildInsertQuery(
 		s.schema,
 		s.table,
 		s.columns,
 		rows,
+		querybuilder.WithColumnDataTypes(s.columnDataTypes),
+		querybuilder.WithColumnDefaults(columnDefaults),
 	)
-
-	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
-	if err != nil {
-		return err
-	}
-
-	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
-		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
-	}
-
-	if isSupportedPostgresDriver(s.driver) && shouldOverrideColumnDefault(s.columnDefaultProperties) {
-		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
-	}
-
-	if !isSupportedPostgresDriver(s.driver) {
-		insertQuery = s.buildQuery(insertQuery)
-	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := isDeadlockError(err) || (s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()))
@@ -364,15 +362,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 func isSupportedPostgresDriver(driver string) bool {
 	return driver == sqlmanager_shared.PostgresDriver || driver == "postgres"
-}
-
-func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
-	for _, d := range columnDefaults {
-		if !d.HasDefaultTransformer && d.NeedsOverride {
-			return true
-		}
-	}
-	return false
 }
 
 func (s *pooledInsertOutput) RetryInsertRowByRow(
@@ -439,20 +428,6 @@ func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any)
 	default:
 		return columnNames, dataRows
 	}
-}
-
-func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
-	var query string
-	if s.prefix != nil {
-		query = *s.prefix
-	}
-
-	query += strings.TrimSuffix(insertQuery, ";") + ";"
-
-	if s.suffix != nil {
-		query += *s.suffix
-	}
-	return query
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {
