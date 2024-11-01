@@ -107,6 +107,13 @@ type sqlDestinationConfig struct {
 	TruncateCascade      bool                 `yaml:"truncate-cascade,omitempty"`
 	OnConflict           onConflictConfig     `yaml:"on-conflict,omitempty"`
 	ConnectionOpts       sqlConnectionOptions `yaml:"connection-opts,omitempty"`
+	MaxInFlight          *uint32              `yaml:"max-in-flight,omitempty" json:"max-in-flight,omitempty"`
+	Batch                *batchConfig         `yaml:"batch,omitempty" json:"batch,omitempty"`
+}
+
+type batchConfig struct {
+	Count  *uint32 `yaml:"count,omitempty" json:"count,omitempty"`
+	Period *string `yaml:"period,omitempty" json:"period,omitempty"`
 }
 
 type sqlConnectionOptions struct {
@@ -167,6 +174,9 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Int32("destination-idle-limit", 0, "Maximum number of idle connections")
 	cmd.Flags().String("destination-idle-duration", "", "Maximum amount of time a connection may be idle (e.g. '5m')")
 	cmd.Flags().String("destination-open-duration", "", "Maximum amount of time a connection may be open (e.g. '30s')")
+	cmd.Flags().Uint32("destination-max-in-flight", 0, "Maximum allowed batched rows to sync. If not provided, uses server default of 64")
+	cmd.Flags().Uint32("destination-batch-count", 0, "Batch size of rows that will be sent to the destination. If not provided, uses server default of 100.")
+	cmd.Flags().String("destination-batch-period", "", "Duration of time that a batch of rows will be sent. If not provided, uses server default fo 5s. (e.g. 5s, 1m)")
 
 	// dynamo flags
 	cmd.Flags().String("aws-access-key-id", "", "AWS Access Key ID for DynamoDB")
@@ -694,6 +704,8 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDe
 						OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
 							DoNothing: cmd.Destination.OnConflict.DoNothing,
 						},
+						MaxInFlight: cmd.Destination.MaxInFlight,
+						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
 					},
 				},
 			}
@@ -708,6 +720,8 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDe
 						OnConflict: &mgmtv1alpha1.MysqlOnConflictConfig{
 							DoNothing: cmd.Destination.OnConflict.DoNothing,
 						},
+						MaxInFlight: cmd.Destination.MaxInFlight,
+						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
 					},
 				},
 			}
@@ -720,6 +734,19 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDe
 		}
 	}
 	return &mgmtv1alpha1.JobDestinationOptions{}
+}
+
+func cmdConfigSqlDestinationToBatch(input *sqlDestinationConfig) *mgmtv1alpha1.BatchConfig {
+	if input == nil {
+		input = &sqlDestinationConfig{}
+	}
+	if input.Batch == nil || input.Batch.Count == nil || input.Batch.Period == nil {
+		return nil
+	}
+	return &mgmtv1alpha1.BatchConfig{
+		Count:  input.Batch.Count,
+		Period: input.Batch.Period,
+	}
 }
 
 func (c *clisync) runDestinationInitStatements(
@@ -1108,7 +1135,7 @@ func (c *clisync) getDestinationSchemas() ([]*mgmtv1alpha1.DatabaseColumn, error
 			Table:              col.TableName,
 			Column:             col.ColumnName,
 			DataType:           col.DataType,
-			IsNullable:         col.IsNullable,
+			IsNullable:         col.NullableString(),
 			ColumnDefault:      defaultColumn,
 			GeneratedType:      col.GeneratedType,
 			IdentityGeneration: col.IdentityGeneration,

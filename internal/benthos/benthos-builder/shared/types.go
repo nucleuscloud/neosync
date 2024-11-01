@@ -28,7 +28,7 @@ type SelectQueryMapBuilder interface {
 		tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
-		groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	) (map[string]map[tabledependency.RunType]string, error)
 }
 

@@ -7,32 +7,19 @@ import (
 
 func GetUniqueSchemaColMappings(
 	schemas []*DatabaseSchemaRow,
-) map[string]map[string]*ColumnInfo {
-	groupedSchemas := map[string]map[string]*ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+) map[string]map[string]*DatabaseSchemaRow {
+	groupedSchemas := map[string]map[string]*DatabaseSchemaRow{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	for _, record := range schemas {
 		key := BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = toColumnInfo(record)
+			groupedSchemas[key][record.ColumnName] = record
 		} else {
-			groupedSchemas[key] = map[string]*ColumnInfo{
-				record.ColumnName: toColumnInfo(record),
+			groupedSchemas[key] = map[string]*DatabaseSchemaRow{
+				record.ColumnName: record,
 			}
 		}
 	}
 	return groupedSchemas
-}
-
-func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
-	return &ColumnInfo{
-		OrdinalPosition:        row.OrdinalPosition,
-		ColumnDefault:          row.ColumnDefault,
-		IsNullable:             ConvertNullableTextToBool(row.IsNullable),
-		DataType:               row.DataType,
-		CharacterMaximumLength: Ptr(row.CharacterMaximumLength),
-		NumericPrecision:       Ptr(row.NumericPrecision),
-		NumericScale:           Ptr(row.NumericScale),
-		IdentityGeneration:     row.IdentityGeneration,
-	}
 }
 
 func ConvertNullableTextToBool(isNullableStr string) bool {

@@ -11885,7 +11885,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -11934,6 +11934,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
               "defaultValue": ""
             }
           ]
@@ -12149,7 +12173,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -12198,6 +12222,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
               "defaultValue": ""
             }
           ]
@@ -12533,7 +12581,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -12582,6 +12630,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
               "defaultValue": ""
             }
           ]

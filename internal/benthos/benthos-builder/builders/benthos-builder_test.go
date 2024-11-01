@@ -61,25 +61,25 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"public.users": {
-			"id": &sqlmanager_shared.ColumnInfo{
+			"id": &sqlmanager_shared.DatabaseSchemaRow{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
 				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
+				CharacterMaximumLength: 0,
+				NumericPrecision:       0,
+				NumericScale:           0,
 			},
-			"name": &sqlmanager_shared.ColumnInfo{
+			"name": &sqlmanager_shared.DatabaseSchemaRow{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
 				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
+				CharacterMaximumLength: 0,
+				NumericPrecision:       0,
+				NumericScale:           0,
 			},
 		},
 	}
@@ -152,25 +152,25 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"public.users": {
-			"id": &sqlmanager_shared.ColumnInfo{
+			"id": &sqlmanager_shared.DatabaseSchemaRow{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
 				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
+				CharacterMaximumLength: 0,
+				NumericPrecision:       0,
+				NumericScale:           0,
 			},
-			"name": &sqlmanager_shared.ColumnInfo{
+			"name": &sqlmanager_shared.DatabaseSchemaRow{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
 				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
+				CharacterMaximumLength: 0,
+				NumericPrecision:       0,
+				NumericScale:           0,
 			},
 		},
 	}
@@ -214,14 +214,14 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id":         &sqlmanager_shared.ColumnInfo{},
-				"created_by": &sqlmanager_shared.ColumnInfo{},
-				"updated_by": &sqlmanager_shared.ColumnInfo{},
+				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
+				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
+				"updated_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 			"neosync_api.accounts": {
-				"id": &sqlmanager_shared.ColumnInfo{},
+				"id": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -232,9 +232,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id": &sqlmanager_shared.ColumnInfo{},
+				"id": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -244,9 +244,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id": &sqlmanager_shared.ColumnInfo{},
+				"id": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -259,10 +259,10 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id":         &sqlmanager_shared.ColumnInfo{},
-				"created_by": &sqlmanager_shared.ColumnInfo{},
+				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
+				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -273,13 +273,13 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id":         &sqlmanager_shared.ColumnInfo{},
-				"created_by": &sqlmanager_shared.ColumnInfo{},
+				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
+				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 			"neosync_api.accounts": {
-				"id": &sqlmanager_shared.ColumnInfo{},
+				"id": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -290,10 +290,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id":         &sqlmanager_shared.ColumnInfo{},
-				"created_by": &sqlmanager_shared.ColumnInfo{},
+				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
+				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -303,10 +303,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
-				"id":         &sqlmanager_shared.ColumnInfo{},
-				"created_by": &sqlmanager_shared.ColumnInfo{},
+				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
+				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -323,24 +323,24 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	ctx := context.Background()
 
 	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*tabledependency.DependsOn{}, false)
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -348,7 +348,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 		}}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -364,7 +364,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 
@@ -384,16 +384,16 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	emailLength := 40
 
-	groupedSchemas := map[string]*sqlmanager_shared.ColumnInfo{
+	groupedSchemas := map[string]*sqlmanager_shared.DatabaseSchemaRow{
 
 		"email": {
 			OrdinalPosition:        2,
 			ColumnDefault:          "",
 			IsNullable:             true,
 			DataType:               "timestamptz",
-			CharacterMaximumLength: &emailLength,
-			NumericPrecision:       nil,
-			NumericScale:           nil,
+			CharacterMaximumLength: emailLength,
+			NumericPrecision:       0,
+			NumericScale:           0,
 		},
 	}
 
@@ -447,7 +447,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 
 	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})
 
 	require.NoError(t, err)
@@ -604,7 +604,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
 			},
-		}, &sqlmanager_shared.ColumnInfo{}, false)
+		}, &sqlmanager_shared.DatabaseSchemaRow{}, false)
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -985,14 +985,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 		},
 	}
 
-	emailColInfo := &sqlmanager_shared.ColumnInfo{
+	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
 		OrdinalPosition:        2,
 		ColumnDefault:          "",
 		IsNullable:             true,
 		DataType:               "timestamptz",
-		CharacterMaximumLength: shared.Ptr(40),
-		NumericPrecision:       nil,
-		NumericScale:           nil,
+		CharacterMaximumLength: 40,
+		NumericPrecision:       0,
+		NumericScale:           0,
 	}
 
 	for _, transformer := range transformers {
@@ -1134,14 +1134,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 		},
 	}
 
-	emailColInfo := &sqlmanager_shared.ColumnInfo{
+	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
 		OrdinalPosition:        2,
 		ColumnDefault:          "",
 		IsNullable:             true,
 		DataType:               "timestamptz",
-		CharacterMaximumLength: shared.Ptr(40),
-		NumericPrecision:       nil,
-		NumericScale:           nil,
+		CharacterMaximumLength: 40,
+		NumericPrecision:       0,
+		NumericScale:           0,
 	}
 
 	for _, transformer := range transformers {
@@ -1165,7 +1165,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	type testcase struct {
 		jm       *mgmtv1alpha1.JobMapping
-		ci       *sqlmanager_shared.ColumnInfo
+		ci       *sqlmanager_shared.DatabaseSchemaRow
 		expected string
 	}
 	jm := &mgmtv1alpha1.JobMapping{
@@ -1183,48 +1183,48 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	testcases := []testcase{
 		{
 			jm:       jm,
-			ci:       &sqlmanager_shared.ColumnInfo{},
+			ci:       &sqlmanager_shared.DatabaseSchemaRow{},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: nil,
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: 0,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(-1),
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: -1,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(0),
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: 0,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(10),
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: 10,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(3),
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: 3,
 			},
 			expected: "generate_string(min:2,max:3)",
 		},
 		{
 			jm: jm,
-			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(1),
+			ci: &sqlmanager_shared.DatabaseSchemaRow{
+				CharacterMaximumLength: 1,
 			},
 			expected: "generate_string(min:1,max:1)",
 		},

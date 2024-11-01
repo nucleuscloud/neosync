@@ -325,23 +325,23 @@ func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) RunAndReturn(run func(cont
 }
 
 // GetSchemaColumnMap provides a mock function with given fields: ctx
-func (_m *MockSqlDatabase) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (_m *MockSqlDatabase) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSchemaColumnMap")
 	}
 
-	var r0 map[string]map[string]*sqlmanager_shared.ColumnInfo
+	var r0 map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string]*sqlmanager_shared.ColumnInfo); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]map[string]*sqlmanager_shared.ColumnInfo)
+			r0 = ret.Get(0).(map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow)
 		}
 	}
 
@@ -372,12 +372,12 @@ func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Return(_a0 map[string]map[string]*sqlmanager_shared.ColumnInfo, _a1 error) *MockSqlDatabase_GetSchemaColumnMap_Call {
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Return(_a0 map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, _a1 error) *MockSqlDatabase_GetSchemaColumnMap_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error)) *MockSqlDatabase_GetSchemaColumnMap_Call {
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error)) *MockSqlDatabase_GetSchemaColumnMap_Call {
 	_c.Call.Return(run)
 	return _c
 }

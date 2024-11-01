@@ -185,6 +185,36 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 		}
 		config.Destination.ConnectionOpts.IdleDuration = &idleDuration
 	}
+	if cmd.Flags().Changed("destination-max-in-flight") {
+		mif, err := cmd.Flags().GetUint32("destination-max-in-flight")
+		if err != nil {
+			return nil, err
+		}
+		config.Destination.MaxInFlight = &mif
+	}
+	if cmd.Flags().Changed("destination-batch-count") {
+		batchcount, err := cmd.Flags().GetUint32("destination-batch-count")
+		if err != nil {
+			return nil, err
+		}
+		if config.Destination.Batch == nil {
+			config.Destination.Batch = &batchConfig{}
+		}
+		config.Destination.Batch.Count = &batchcount
+	}
+	if cmd.Flags().Changed("destination-batch-period") {
+		batchperiod, err := cmd.Flags().GetString("destination-batch-period")
+		if err != nil {
+			return nil, err
+		}
+		if config.Destination.Batch == nil {
+			config.Destination.Batch = &batchConfig{}
+		}
+		if _, err := time.ParseDuration(batchperiod); err != nil {
+			return nil, fmt.Errorf("unable to parse destination-batch-period as valid duration string: %w", err)
+		}
+		config.Destination.Batch.Period = &batchperiod
+	}
 	return config, nil
 }
 

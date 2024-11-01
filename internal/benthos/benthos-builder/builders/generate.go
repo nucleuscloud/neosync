@@ -171,7 +171,10 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	destOpts := getDestinationOptions(params.DestinationOpts)
+	destOpts, err := getDestinationOptions(params.DestinationOpts)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse destination options: %w", err)
+	}
 
 	processorConfigs := []neosync_benthos.ProcessorConfig{}
 	for _, pc := range benthosConfig.Processors {
@@ -203,9 +206,10 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 								ArgsMapping: buildPlainInsertArgs(benthosConfig.Columns),
 
 								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  100,
+									Period: destOpts.BatchPeriod,
+									Count:  destOpts.BatchCount,
 								},
+								MaxInFlight: int(destOpts.MaxInFlight),
 							},
 						},
 						Processors: processorConfigs,
@@ -216,8 +220,8 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 			{Error: &neosync_benthos.ErrorOutputConfig{
 				ErrorMsg: `${! meta("fallback_error")}`,
 				Batching: &neosync_benthos.Batching{
-					Period: "5s",
-					Count:  100,
+					Period: destOpts.BatchPeriod,
+					Count:  destOpts.BatchCount,
 				},
 			}},
 		},

@@ -107,7 +107,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			params.RunId,
 			&shared.RedisConfig{},
 			tableMapping.Mappings,
-			map[string]*sqlmanager_shared.ColumnInfo{},
+			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),
 			mappedKeys,
 		)

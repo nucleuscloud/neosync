@@ -13,7 +13,7 @@ func BuildSelectQueryMap(
 	tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
-	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) (map[string]map[tabledependency.RunType]string, error) {
 	tableDependencies := map[string]*TableConstraints{}
 	for tableName, fkConstraints := range tableFkConstraints {
@@ -71,7 +71,7 @@ type TableConstraints struct {
 }
 
 func NewQueryBuilderFromSchemaDefinition(
-	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string]*TableConstraints,
 	defaultSchema string,
 	driver string,

@@ -56,28 +56,9 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 		`records-${!count("files")}-${!timestamp_unix_nano()}.jsonl.gz`,
 	)
 
-	maxInFlight := 64
-	if destinationOpts.GetMaxInFlight() > 0 {
-		maxInFlight = int(destinationOpts.GetMaxInFlight())
-	}
-
-	batchCount := 100
-	batchPeriod := "5s"
-	batchConfig := destinationOpts.GetBatch()
-	if batchConfig != nil {
-		batchCount = int(batchConfig.GetCount())
-
-		if batchConfig.GetPeriod() != "" {
-			_, err := time.ParseDuration(batchConfig.GetPeriod())
-			if err != nil {
-				return nil, fmt.Errorf("unable to parse batch period for s3 destination config: %w", err)
-			}
-		}
-		batchPeriod = batchConfig.GetPeriod()
-	}
-
-	if batchCount == 0 && batchPeriod == "" {
-		return nil, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
+	batchingConfig, err := getParsedBatchingConfig(destinationOpts)
+	if err != nil {
+		return nil, err
 	}
 
 	timeout := ""
@@ -108,14 +89,14 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 			{
 				AwsS3: &neosync_benthos.AwsS3Insert{
 					Bucket:       connAwsS3Config.Bucket,
-					MaxInFlight:  maxInFlight,
+					MaxInFlight:  int(batchingConfig.MaxInFlight),
 					Timeout:      timeout,
 					StorageClass: storageClass,
 					Path:         strings.Join(s3pathpieces, "/"),
 					ContentType:  "application/gzip",
 					Batching: &neosync_benthos.Batching{
-						Count:      batchCount,
-						Period:     batchPeriod,
+						Count:      batchingConfig.BatchCount,
+						Period:     batchingConfig.BatchPeriod,
 						Processors: processors,
 					},
 					Credentials: buildBenthosS3Credentials(connAwsS3Config.Credentials),
@@ -127,8 +108,8 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 			{Error: &neosync_benthos.ErrorOutputConfig{
 				ErrorMsg: `${! meta("fallback_error")}`,
 				Batching: &neosync_benthos.Batching{
-					Period: batchPeriod,
-					Count:  batchCount,
+					Period: batchingConfig.BatchPeriod,
+					Count:  batchingConfig.BatchCount,
 				},
 			}},
 		},
