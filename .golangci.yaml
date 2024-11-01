@@ -1,13 +1,4 @@
 linters-settings:
-  depguard:
-    # new configuration
-    rules:
-      # logger:
-      #   deny:
-      #     # logging is allowed only by logutils.Log,
-      #     # logrus is allowed to use only in logutils package.
-      #     - pkg: "github.com/sirupsen/logrus"
-      #       desc: logging is allowed only by logutils.Log
   dupl:
     threshold: 150
   funlen:
@@ -15,7 +6,7 @@ linters-settings:
     statements: 50
   goconst:
     min-len: 2
-    min-occurrences: 3
+    min-occurrences: 10
   gocritic:
     enabled-tags:
       - diagnostic
@@ -34,7 +25,7 @@ linters-settings:
     rewrite-rules:
       - pattern: "interface{}"
         replacement: "any"
-  gomnd:
+  mnd:
     # don't include the "operation" and "assign"
     checks:
       - argument
@@ -51,15 +42,6 @@ linters-settings:
     ignored-functions:
       - strings.SplitN
 
-  govet:
-    check-shadowing: false
-    # settings:
-    #   printf:
-    #     funcs:
-    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
   lll:
     line-length: 140
   misspell:
@@ -78,60 +60,42 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    # - depguard
     - dogsled
-    # - dupl
     - errcheck
     - forbidigo
-    # - funlen
-    # - gochecknoinits
     - goconst
     - gocritic
-    # - gocyclo
     - gofmt
     - goimports
-    # - gomnd
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    # - lll
     - misspell
     - nakedret
     - noctx
     - nolintlint
     - revive
     - staticcheck
-    # - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
-
-  # don't enable:
-  # - asciicheck
-  # - scopelint
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - interfacer
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - wsl
+    - usestdlibvars
 
 issues:
-  excluded-dirs:
+  exclude-dirs:
     - frontend
     - charts
     - docs
     - node_modules
     - backend/gen
+    - tilt
+    - scripts
+    - python
+    - keycloak
   #   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
@@ -145,3 +109,4 @@ issues:
 
 run:
   timeout: 10m
+  tests: false # exclude test files

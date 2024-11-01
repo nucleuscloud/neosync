@@ -219,14 +219,14 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 
 	// handles multi-dimensional slices
 	subSize := 1
-	for _, dim := range dims[1:] { //nolint:gosec
+	for _, dim := range dims[1:] {
 		subSize *= dim
 	}
 
 	for i := 0; i < firstDim; i++ {
 		start := i * subSize
 		end := start + subSize
-		subSlice := CreateMultiDimSlice(dims[1:], elements[start:end]) //nolint:gosec
+		subSlice := CreateMultiDimSlice(dims[1:], elements[start:end])
 		slice.Index(i).Set(reflect.ValueOf(subSlice))
 	}
 

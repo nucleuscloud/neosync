@@ -438,7 +438,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				DataType:      record.DataType,
 				IsNullable:    record.IsNullable == "YES",
 				GeneratedType: record.GeneratedType,
-				IsSerial:      record.SequenceType == "SERIAL", //nolint:goconst
+				IsSerial:      record.SequenceType == "SERIAL",
 				Sequence:      seqConfig,
 				IdentityType:  &record.IdentityGeneration,
 			}))
