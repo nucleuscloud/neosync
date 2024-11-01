@@ -82,7 +82,6 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		if options.postgresDriver != nil && *options.postgresDriver != "" {
 			postgresDriver = *options.postgresDriver
 		}
-		fmt.Println("POSTGRES DRIVER", postgresDriver)
 		if config.PgConfig.GetClientTls() != nil {
 			_, err := clienttls.UpsertCLientTlsFiles(config.PgConfig.GetClientTls())
 			if err != nil {

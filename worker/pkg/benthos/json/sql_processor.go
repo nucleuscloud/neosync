@@ -16,10 +16,7 @@ func RegisterSqlToJsonProcessor(env *service.Environment) error {
 		"sql_to_json",
 		sqlToJsonProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			proc, err := newMysqlToJsonProcessor(conf, mgr)
-			if err != nil {
-				return nil, err
-			}
+			proc := newMysqlToJsonProcessor(conf, mgr)
 			return proc, nil
 		})
 }
@@ -28,10 +25,10 @@ type sqlToJsonProcessor struct {
 	logger *service.Logger
 }
 
-func newMysqlToJsonProcessor(_ *service.ParsedConfig, mgr *service.Resources) (*sqlToJsonProcessor, error) {
+func newMysqlToJsonProcessor(_ *service.ParsedConfig, mgr *service.Resources) *sqlToJsonProcessor {
 	return &sqlToJsonProcessor{
 		logger: mgr.Logger(),
-	}, nil
+	}
 }
 
 func (m *sqlToJsonProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
