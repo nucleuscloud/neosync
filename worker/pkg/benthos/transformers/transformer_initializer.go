@@ -608,6 +608,20 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			},
 		}, nil
 
+	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
+		config := transformerConfig.GetGenerateBusinessNameConfig()
+		opts, err := NewGenerateBusinessNameOptsFromConfig(config, &maxLength)
+		if err != nil {
+			return nil, err
+		}
+		generate := NewGenerateBusinessName().Generate
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return generate(opts)
+			},
+		}, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
 	}
