@@ -183,9 +183,8 @@ func (s *Service) GetJobStatuses(
 	}
 
 	scheduleIds := make([]string, 0, len(jobs))
-
-	for _, job := range jobs {
-		scheduleIds = append(scheduleIds, neosyncdb.UUIDString(job.ID))
+	for idx := range jobs {
+		scheduleIds = append(scheduleIds, neosyncdb.UUIDString(jobs[idx].ID))
 	}
 
 	responses, err := s.temporalmgr.DescribeSchedules(
@@ -764,11 +763,6 @@ func (s *Service) PauseJob(
 	if err != nil {
 		return nil, err
 	}
-
-	// scheduleHandle, err := s.temporalmgr.GetScheduleHandleClientByAccount(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	if req.Msg.Pause {
 		logger.Info("pausing job")
