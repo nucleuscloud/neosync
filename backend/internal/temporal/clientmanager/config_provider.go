@@ -25,7 +25,6 @@ type DBConfigProvider struct {
 }
 
 func NewDBConfigProvider(defaultConfig *TemporalConfig, db DB, dbtx db_queries.DBTX) *DBConfigProvider {
-	defaultConfig.isDefault = true
 	return &DBConfigProvider{
 		defaultConfig: defaultConfig,
 		db:            db,
@@ -52,7 +51,6 @@ func (p *DBConfigProvider) GetConfig(ctx context.Context, accountID string) (*Te
 	// Otherwise, merge with defaults and mark as non-default
 	accountConfig := dbConfigToTemporalConfig(dbConfig)
 	mergedConfig := p.defaultConfig.Override(accountConfig)
-	mergedConfig.isDefault = false
 	return mergedConfig, nil
 }
 

@@ -11,7 +11,6 @@ type TemporalConfig struct {
 	Namespace        string
 	SyncJobQueueName string
 	TLSConfig        *tls.Config
-	isDefault        bool
 }
 
 // Combines default and account-specific configs, with account taking precedence
@@ -36,10 +35,6 @@ func (c *TemporalConfig) Equals(other TemporalConfig) bool {
 	return c.Url == other.Url &&
 		c.Namespace == other.Namespace &&
 		c.SyncJobQueueName == other.SyncJobQueueName
-}
-
-func (c *TemporalConfig) IsDefault() bool {
-	return c.isDefault
 }
 
 func (c *TemporalConfig) ToDto() *mgmtv1alpha1.AccountTemporalConfig {
