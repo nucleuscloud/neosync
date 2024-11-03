@@ -4,10 +4,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	temporalmocks "go.temporal.io/sdk/mocks"
 )
 
 func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
@@ -26,29 +24,23 @@ func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
 	srcconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "source", "test")
 	destconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "dest", "test2")
 
-	mockScheduleClient := temporalmocks.NewScheduleClient(s.T())
-	mockScheduleHandle := temporalmocks.NewScheduleHandle(s.T())
 	s.Mocks.TemporalClientManager.
 		On(
-			"DoesAccountHaveTemporalWorkspace", mock.Anything, mock.Anything, mock.Anything,
+			"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
 		).
 		Return(true, nil).
 		Once()
 	s.Mocks.TemporalClientManager.
-		On("GetScheduleClientByAccount", mock.Anything, mock.Anything, mock.Anything).
-		Return(mockScheduleClient, nil).
+		On(
+			"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return("sync-job", nil).
 		Once()
 	s.Mocks.TemporalClientManager.
-		On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
-		Return(&pg_models.TemporalConfig{}, nil).
-		Once()
-	mockScheduleClient.
-		On("Create", mock.Anything, mock.Anything).
-		Return(mockScheduleHandle, nil).
-		Once()
-	mockScheduleHandle.
-		On("GetID").
-		Return("test-id").
+		On(
+			"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return("test-id", nil).
 		Once()
 
 	resp, err := s.UnauthdClients.Jobs.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{

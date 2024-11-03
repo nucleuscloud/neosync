@@ -87,7 +87,7 @@ var (
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
 	resp, err := s.UnauthdClients.Users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
@@ -136,7 +136,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
 	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId, Config: nil}))
@@ -154,7 +154,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig(
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
 	// kind of a bad test since we are mocking this client wholesale, but it at least verifies we can write the config
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
 	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
