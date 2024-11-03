@@ -16,6 +16,9 @@ type TemporalConfig struct {
 // Combines default and account-specific configs, with account taking precedence
 func (c *TemporalConfig) Override(config *TemporalConfig) *TemporalConfig {
 	result := *c
+	if config == nil {
+		config = &TemporalConfig{}
+	}
 	if config.Url != "" {
 		result.Url = config.Url
 	}
@@ -31,7 +34,7 @@ func (c *TemporalConfig) Override(config *TemporalConfig) *TemporalConfig {
 	return &result
 }
 
-func (c *TemporalConfig) Equals(other TemporalConfig) bool {
+func (c *TemporalConfig) Equals(other *TemporalConfig) bool {
 	return c.Url == other.Url &&
 		c.Namespace == other.Namespace &&
 		c.SyncJobQueueName == other.SyncJobQueueName
