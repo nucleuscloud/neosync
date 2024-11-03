@@ -4,17 +4,17 @@ import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/internal/billing"
 )
 
 type Service struct {
-	cfg                   *Config
-	db                    *neosyncdb.NeosyncDb
-	temporalClientManager clientmanager.TemporalClientManagerClient
-	authclient            auth_client.Interface
-	authadminclient       authmgmt.Interface
-	billingclient         billing.Interface
+	cfg                    *Config
+	db                     *neosyncdb.NeosyncDb
+	temporalConfigProvider clientmanager.ConfigProvider
+	authclient             auth_client.Interface
+	authadminclient        authmgmt.Interface
+	billingclient          billing.Interface
 }
 
 type Config struct {
@@ -26,17 +26,17 @@ type Config struct {
 func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
-	temporalClientManager clientmanager.TemporalClientManagerClient,
+	temporalConfigProvider clientmanager.ConfigProvider,
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
 	billingclient billing.Interface,
 ) *Service {
 	return &Service{
-		cfg:                   cfg,
-		db:                    db,
-		temporalClientManager: temporalClientManager,
-		authclient:            authclient,
-		authadminclient:       authadminclient,
-		billingclient:         billingclient,
+		cfg:                    cfg,
+		db:                     db,
+		temporalConfigProvider: temporalConfigProvider,
+		authclient:             authclient,
+		authadminclient:        authadminclient,
+		billingclient:          billingclient,
 	}
 }

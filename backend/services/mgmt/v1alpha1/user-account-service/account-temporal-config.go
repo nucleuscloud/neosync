@@ -22,7 +22,7 @@ func (s *Service) GetAccountTemporalConfig(
 		return nil, err
 	}
 
-	tc, err := s.temporalClientManager.GetTemporalConfigByAccount(ctx, req.Msg.GetAccountId())
+	tc, err := s.temporalConfigProvider.GetConfig(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +60,12 @@ func (s *Service) SetAccountTemporalConfig(
 		return nil, err
 	}
 
-	tc, err = s.temporalClientManager.GetTemporalConfigByAccount(ctx, req.Msg.GetAccountId())
+	updatedConfig, err := s.temporalConfigProvider.GetConfig(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetAccountTemporalConfigResponse{
-		Config: tc.ToDto(),
+		Config: updatedConfig.ToDto(),
 	}), nil
 }

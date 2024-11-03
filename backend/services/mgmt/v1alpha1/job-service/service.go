@@ -3,7 +3,7 @@ package v1alpha1_jobservice
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 )
 
@@ -14,7 +14,7 @@ type Service struct {
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 	sqlmanager         sql_manager.SqlManagerClient
 
-	temporalWfManager clientmanager.TemporalClientManagerClient
+	temporalmgr clientmanager.Interface
 }
 
 type RunLogType string
@@ -54,7 +54,7 @@ type RunLogConfig struct {
 func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
-	temporalWfManager clientmanager.TemporalClientManagerClient,
+	temporalWfManager clientmanager.Interface,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
@@ -62,7 +62,7 @@ func New(
 	return &Service{
 		cfg:                cfg,
 		db:                 db,
-		temporalWfManager:  temporalWfManager,
+		temporalmgr:        temporalWfManager,
 		connectionService:  connectionService,
 		useraccountService: useraccountService,
 		sqlmanager:         sqlmanager,
