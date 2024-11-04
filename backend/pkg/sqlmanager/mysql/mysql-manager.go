@@ -85,7 +85,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			DataType:               row.DataType,
 			ColumnDefault:          columnDefaultStr,
 			ColumnDefaultType:      columnDefaultType,
-			IsNullable:             row.IsNullable,
+			IsNullable:             row.IsNullable != "NO",
 			GeneratedType:          generatedType,
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
@@ -98,7 +98,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 }
 
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -841,7 +841,7 @@ func EscapeMysqlDefaultColumn(defaultColumnValue string, defaultColumnType *stri
 	return fmt.Sprintf("(%s)", defaultColumnValue), fmt.Errorf("unsupported default column type: %s, currently supported types are: %v", *defaultColumnType, defaultColumnTypes)
 }
 
-func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
 	needsOverride = false
 	needsReset = false
 	return

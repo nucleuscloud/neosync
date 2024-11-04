@@ -25,7 +25,7 @@ import (
 
 type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
-	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
@@ -362,9 +362,9 @@ func (s *SqlManager) NewSqlDbFromUrl(
 	}, nil
 }
 
-func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool, err error) {
+func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {
 	switch driver {
-	case sqlmanager_shared.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver, "postgres":
 		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MysqlDriver:

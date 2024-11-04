@@ -93,7 +93,7 @@ func (c *Client) GetTokenResponse(
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", tokenurl, payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenurl, payload)
 	if err != nil {
 		return nil, fmt.Errorf("unable to request oauth authorization code: %w", err)
 	}
@@ -154,7 +154,7 @@ func (c *Client) GetRefreshedAccessToken(
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", tokenurl, payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenurl, payload)
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initiate refresh token request: %w", err)
@@ -208,7 +208,7 @@ func (c *Client) GetUserInfo(
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", userinfourl, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, userinfourl, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ type openIdConfiguration struct {
 func (c *Client) getOpenIdConfiguration(ctx context.Context) (*openIdConfiguration, error) {
 	configUrl := fmt.Sprintf("%s/.well-known/openid-configuration", strings.TrimSuffix(c.authBaseUrl, "/"))
 
-	req, err := http.NewRequestWithContext(ctx, "GET", configUrl, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configUrl, http.NoBody)
 	if err != nil {
 		return nil, err
 	}

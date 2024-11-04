@@ -260,6 +260,10 @@ components:
       type: object
       title: GenerateBool
       additionalProperties: false
+    mgmt.v1alpha1.GenerateBusinessName:
+      type: object
+      title: GenerateBusinessName
+      additionalProperties: false
     mgmt.v1alpha1.GenerateCardNumber:
       type: object
       allOf:
@@ -1207,6 +1211,8 @@ components:
             - required:
                 - generateBoolConfig
             - required:
+                - generateBusinessNameConfig
+            - required:
                 - generateCardNumberConfig
             - required:
                 - generateCategoricalConfig
@@ -1297,6 +1303,8 @@ components:
                   - required:
                       - generateBoolConfig
                   - required:
+                      - generateBusinessNameConfig
+                  - required:
                       - generateCardNumberConfig
                   - required:
                       - generateCategoricalConfig
@@ -1385,6 +1393,8 @@ components:
       anyOf:
         - required:
             - generateBoolConfig
+        - required:
+            - generateBusinessNameConfig
         - required:
             - generateCardNumberConfig
         - required:
@@ -1475,6 +1485,8 @@ components:
             anyOf:
               - required:
                   - generateBoolConfig
+              - required:
+                  - generateBusinessNameConfig
               - required:
                   - generateCardNumberConfig
               - required:
@@ -1739,6 +1751,10 @@ components:
             - title: transform_pii_text_config
               description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPiiText'
+        generateBusinessNameConfig:
+          allOf:
+            - title: generate_business_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.TransformerMapping:

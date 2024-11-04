@@ -12,6 +12,8 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toJobSourcePostgresNewColumnAdditionStrategy,
+  toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { Struct, Value } from '@bufbuild/protobuf';
 import {
@@ -619,9 +621,10 @@ function toJobSourceOptions(
           case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.postgres?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourcePostgresNewColumnAdditionStrategy(
+                values.connect.sourceOptions.postgres?.newColumnAdditionStrategy
+              ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -1129,8 +1132,9 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>

@@ -130,10 +130,28 @@ message DynamoDBSourceTableOption {
 }
 
 message PostgresSourceConnectionOptions {
-  bool halt_on_new_column_addition = 1;
+  // @deprecated - Use new_column_addition_strategy instead
+  optional bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
+  // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+  NewColumnAdditionStrategy new_column_addition_strategy = 5;
+
+  message NewColumnAdditionStrategy {
+    oneof strategy {
+      // halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
+      HaltJob halt_job = 1;
+      // automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+      // If this doesn't exist, will fall back to configuring generators for supported datatypes.
+      // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+      AutoMap auto_map = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the AutoMap strategy
+    message AutoMap {}
+  }
 }
 
 message PostgresSourceSchemaOption {
@@ -222,6 +240,10 @@ message PostgresDestinationConnectionOptions {
   PostgresOnConflictConfig on_conflict = 3;
   // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
+  // Configure batching options to handle how much data is sent to your database at once.
+  BatchConfig batch = 5;
+  // Determines the maximum number of parallel batched inserts.
+  optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
 }
 
 message PostgresOnConflictConfig {
@@ -239,6 +261,10 @@ message MysqlDestinationConnectionOptions {
   MysqlOnConflictConfig on_conflict = 3;
   // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
+  // Configure batching options to handle how much data is sent to your database at once.
+  BatchConfig batch = 5;
+  // Determines the maximum number of parallel batched inserts.
+  optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
 }
 message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
@@ -255,6 +281,10 @@ message MssqlDestinationConnectionOptions {
   MssqlOnConflictConfig on_conflict = 3;
   // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
+  // Configure batching options to handle how much data is sent to your database at once.
+  BatchConfig batch = 5;
+  // Determines the maximum number of parallel batched inserts.
+  optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
 }
 message MssqlTruncateTableConfig {
   bool truncate_before_insert = 1;
@@ -267,7 +297,7 @@ message AwsS3DestinationConnectionOptions {
   // The storage class that will be used when objects are written to S3
   StorageClass storage_class = 1;
   // The maximum number of batched messages to have in flight at a given time. Increase this to improve throughput.
-  optional uint32 max_in_flight = 2;
+  optional uint32 max_in_flight = 2 [(buf.validate.field).uint32 = {gte: 1}];
   // The maximum period (duration string) to wait on an upload before abandoning it and reattempting.
   optional string timeout = 3;
   // Configure batching options to more efficiently store records in S3

@@ -51,7 +51,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
 			ColumnDefault:          row.ColumnDefault,
-			IsNullable:             row.IsNullable,
+			IsNullable:             row.IsNullable != "NO",
 			CharacterMaximumLength: int(row.CharacterMaximumLength),
 			NumericPrecision:       int(row.NumericPrecision),
 			NumericScale:           int(row.NumericScale),
@@ -64,7 +64,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 }
 
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := p.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -438,7 +438,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				DataType:      record.DataType,
 				IsNullable:    record.IsNullable == "YES",
 				GeneratedType: record.GeneratedType,
-				IsSerial:      record.SequenceType == "SERIAL", //nolint:goconst
+				IsSerial:      record.SequenceType == "SERIAL",
 				Sequence:      seqConfig,
 				IdentityType:  &record.IdentityGeneration,
 			}))
@@ -933,7 +933,7 @@ func BuildPgResetSequenceSql(sequenceName string) string {
 	return fmt.Sprintf("ALTER SEQUENCE %s RESTART;", sequenceName)
 }
 
-func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
 	needsOverride = false
 	needsReset = false
 

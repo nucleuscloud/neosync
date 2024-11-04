@@ -22,7 +22,7 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -57,12 +57,13 @@ type UnauthdClients struct {
 }
 
 type Mocks struct {
-	TemporalClientManager *clientmanager.MockTemporalClientManagerClient
-	Authclient            *auth_client.MockInterface
-	Authmanagerclient     *authmgmt.MockInterface
-	Prometheusclient      *promapiv1mock.MockAPI
-	Billingclient         *billing.MockInterface
-	Presidio              Presidiomocks
+	TemporalClientManager  *clientmanager.MockInterface
+	TemporalConfigProvider *clientmanager.MockConfigProvider
+	Authclient             *auth_client.MockInterface
+	Authmanagerclient      *authmgmt.MockInterface
+	Prometheusclient       *promapiv1mock.MockAPI
+	Billingclient          *billing.MockInterface
+	Presidio               Presidiomocks
 }
 
 type Presidiomocks struct {
@@ -150,11 +151,12 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	s.systemQuerier = pg_queries.New()
 
 	s.Mocks = &Mocks{
-		TemporalClientManager: clientmanager.NewMockTemporalClientManagerClient(t),
-		Authclient:            auth_client.NewMockInterface(t),
-		Authmanagerclient:     authmgmt.NewMockInterface(t),
-		Prometheusclient:      promapiv1mock.NewMockAPI(t),
-		Billingclient:         billing.NewMockInterface(t),
+		TemporalClientManager:  clientmanager.NewMockInterface(t),
+		TemporalConfigProvider: clientmanager.NewMockConfigProvider(t),
+		Authclient:             auth_client.NewMockInterface(t),
+		Authmanagerclient:      authmgmt.NewMockInterface(t),
+		Prometheusclient:       promapiv1mock.NewMockAPI(t),
+		Billingclient:          billing.NewMockInterface(t),
 		Presidio: Presidiomocks{
 			Analyzer:   presidioapi.NewMockAnalyzeInterface(t),
 			Anonymizer: presidioapi.NewMockAnonymizeInterface(t),
@@ -166,7 +168,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	unauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false, DefaultMaxAllowedRecords: &maxAllowed},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		s.Mocks.TemporalClientManager,
+		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
 		nil,
@@ -175,7 +177,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	authdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		s.Mocks.TemporalClientManager,
+		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
 		nil,
@@ -196,7 +198,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		s.Mocks.TemporalClientManager,
+		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
 		s.Mocks.Billingclient,

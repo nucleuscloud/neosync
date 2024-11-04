@@ -30,7 +30,9 @@ func NewFromMysqlConnection(
 	config *mgmtv1alpha1.ConnectionConfig_MysqlConfig,
 	connectionTimeout *uint32,
 	logger *slog.Logger,
+	mysqlDisableParseTime bool,
 ) (DbConnectConfig, error) {
+	parseTime := !mysqlDisableParseTime
 	switch cc := config.MysqlConfig.GetConnectionConfig().(type) {
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 		cfg := mysql.NewConfig()
@@ -46,7 +48,7 @@ func NewFromMysqlConnection(
 		}
 		cfg.Net = cc.Connection.GetProtocol()
 		cfg.MultiStatements = true
-		cfg.ParseTime = true
+		cfg.ParseTime = parseTime
 
 		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
@@ -76,7 +78,7 @@ func NewFromMysqlConnection(
 				cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
 			}
 			cfg.MultiStatements = true
-			cfg.ParseTime = true
+			cfg.ParseTime = parseTime
 			for k, values := range uriConfig.Query() {
 				for _, value := range values {
 					cfg.Params[k] = value
@@ -89,7 +91,7 @@ func NewFromMysqlConnection(
 			cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
 		}
 		cfg.MultiStatements = true
-		cfg.ParseTime = true
+		cfg.ParseTime = parseTime
 		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	default:
 		return nil, fmt.Errorf("unsupported mysql connection config: %T", cc)

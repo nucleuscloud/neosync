@@ -148,8 +148,8 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.Debug = debug
 
+	config.Debug = debug
 	if cmd.Flags().Changed("destination-open-limit") {
 		openLimit, err := cmd.Flags().GetInt32("destination-open-limit")
 		if err != nil {
@@ -185,6 +185,36 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 		}
 		config.Destination.ConnectionOpts.IdleDuration = &idleDuration
 	}
+	if cmd.Flags().Changed("destination-max-in-flight") {
+		mif, err := cmd.Flags().GetUint32("destination-max-in-flight")
+		if err != nil {
+			return nil, err
+		}
+		config.Destination.MaxInFlight = &mif
+	}
+	if cmd.Flags().Changed("destination-batch-count") {
+		batchcount, err := cmd.Flags().GetUint32("destination-batch-count")
+		if err != nil {
+			return nil, err
+		}
+		if config.Destination.Batch == nil {
+			config.Destination.Batch = &batchConfig{}
+		}
+		config.Destination.Batch.Count = &batchcount
+	}
+	if cmd.Flags().Changed("destination-batch-period") {
+		batchperiod, err := cmd.Flags().GetString("destination-batch-period")
+		if err != nil {
+			return nil, err
+		}
+		if config.Destination.Batch == nil {
+			config.Destination.Batch = &batchConfig{}
+		}
+		if _, err := time.ParseDuration(batchperiod); err != nil {
+			return nil, fmt.Errorf("unable to parse destination-batch-period as valid duration string: %w", err)
+		}
+		config.Destination.Batch.Period = &batchperiod
+	}
 	return config, nil
 }
 
@@ -194,6 +224,10 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 	}
 	if sourceConnectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+	}
+
+	if (sourceConnectionType == awsS3Connection || sourceConnectionType == gcpCloudStorageConnection) && cmd.Destination.InitSchema {
+		return errors.New("init schema is only supported when source is a SQL Database")
 	}
 
 	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {

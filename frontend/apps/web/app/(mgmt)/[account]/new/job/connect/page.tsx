@@ -148,7 +148,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <div />
       </OverviewContainer>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
           >
@@ -252,7 +252,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     postgres: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                     },
                                   },
                                   {

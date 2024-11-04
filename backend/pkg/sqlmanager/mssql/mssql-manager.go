@@ -67,7 +67,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
-			IsNullable:             row.IsNullable,
+			IsNullable:             row.IsNullable != "NO",
 			GeneratedType:          generatedType,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			CharacterMaximumLength: charMaxLength,
@@ -80,7 +80,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 	return output, nil
 }
 
-func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -309,7 +309,7 @@ func BuildMssqlSetIdentityInsertStatement(
 	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
 }
 
-func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
 	needsOverride = false
 	needsReset = false
 

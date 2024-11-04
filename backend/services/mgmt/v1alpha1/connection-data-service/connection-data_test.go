@@ -151,10 +151,11 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 	expected := []*mgmtv1alpha1.DatabaseColumn{}
 	for _, col := range mockColumns {
 		expected = append(expected, &mgmtv1alpha1.DatabaseColumn{
-			Schema:   col.TableSchema,
-			Table:    col.TableName,
-			Column:   col.ColumnName,
-			DataType: col.DataType,
+			Schema:     col.TableSchema,
+			Table:      col.TableName,
+			Column:     col.ColumnName,
+			DataType:   col.DataType,
+			IsNullable: "NO",
 		})
 	}
 

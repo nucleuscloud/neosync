@@ -409,6 +409,11 @@
               "name": "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT",
               "number": "47",
               "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text"
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME",
+              "number": "48",
+              "description": ""
             }
           ]
         }
@@ -562,6 +567,17 @@
           "name": "GenerateBool",
           "longName": "GenerateBool",
           "fullName": "mgmt.v1alpha1.GenerateBool",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "GenerateBusinessName",
+          "longName": "GenerateBusinessName",
+          "fullName": "mgmt.v1alpha1.GenerateBusinessName",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -2704,6 +2720,18 @@
               "type": "TransformPiiText",
               "longType": "TransformPiiText",
               "fullType": "mgmt.v1alpha1.TransformPiiText",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_business_name_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateBusinessName",
+              "longType": "GenerateBusinessName",
+              "fullType": "mgmt.v1alpha1.GenerateBusinessName",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -11885,7 +11913,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -11934,6 +11962,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
               "defaultValue": ""
             }
           ]
@@ -12149,7 +12201,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -12198,6 +12250,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
               "defaultValue": ""
             }
           ]
@@ -12533,7 +12609,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -12583,6 +12659,30 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to handle how much data is sent to your database at once.",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "Determines the maximum number of parallel batched inserts.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
+              "defaultValue": ""
             }
           ]
         },
@@ -12617,19 +12717,19 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "",
-              "label": "",
+              "description": "@deprecated - Use new_column_addition_strategy instead",
+              "label": "optional",
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_halt_on_new_column_addition",
               "defaultValue": ""
             },
             {
@@ -12667,8 +12767,78 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "automatically handle unmapped columns. It handles this by using the DBs default/nullable values.\nIf this doesn't exist, will fall back to configuring generators for supported datatypes.\nIf none of the criteria above can be met, the job run will fail to prevent leaking of PII.",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "description": "Configuration for the AutoMap strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "PostgresSourceSchemaOption",

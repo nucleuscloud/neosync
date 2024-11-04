@@ -42,12 +42,12 @@ func Test_Sync(t *testing.T) {
 			panic(err)
 		}
 
-		testdataFolder := "../../../../../internal/testutil/testdata/postgres/humanresources"
-		err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+		testdataFolder := "../../../../../internal/testutil/testdata/postgres"
+		err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-tables.sql"})
 		if err != nil {
 			panic(err)
 		}
-		err = postgres.Target.RunSqlFiles(ctx, &testdataFolder, []string{"create-schema.sql"})
+		err = postgres.Target.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-schema.sql"})
 		if err != nil {
 			panic(err)
 		}
@@ -78,6 +78,17 @@ func Test_Sync(t *testing.T) {
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
+
+			rows := postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.employees;")
+			var rowCount int
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
+
+			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.generated_table;")
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
 		})
 
 		t.Cleanup(func() {
@@ -95,12 +106,12 @@ func Test_Sync(t *testing.T) {
 			panic(err)
 		}
 
-		testdataFolder := "../../../../../internal/testutil/testdata/mysql/humanresources"
-		err = mysql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+		testdataFolder := "../../../../../internal/testutil/testdata/mysql"
+		err = mysql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-tables.sql", "alltypes/create-tables.sql"})
 		if err != nil {
 			panic(err)
 		}
-		err = mysql.Target.RunSqlFiles(ctx, &testdataFolder, []string{"create-schema.sql"})
+		err = mysql.Target.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-schema.sql", "alltypes/create-schema.sql"})
 		if err != nil {
 			panic(err)
 		}
@@ -130,6 +141,22 @@ func Test_Sync(t *testing.T) {
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
+
+			rows := mysql.Target.DB.QueryRowContext(ctx, "select count(*) from humanresources.locations;")
+			var rowCount int
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
+
+			rows = mysql.Target.DB.QueryRowContext(ctx, "select count(*) from humanresources.generated_table;")
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
+
+			rows = mysql.Target.DB.QueryRowContext(ctx, "select count(*) from alltypes.all_data_types;")
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
 		})
 
 		t.Cleanup(func() {

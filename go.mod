@@ -28,7 +28,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.2
-	github.com/charmbracelet/lipgloss v0.13.1
+	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/go-connections v0.5.0
 	github.com/dop251/goja v0.0.0-20240220182346-e401ed450204
@@ -78,9 +78,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.31.0
 	go.opentelemetry.io/otel/trace v1.31.0
 	go.temporal.io/api v1.40.0
-	go.temporal.io/sdk v1.29.1
+	go.temporal.io/sdk v1.30.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0
-	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.28.0
 	golang.org/x/net v0.30.0
 	golang.org/x/sync v0.8.0
@@ -179,7 +178,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/charmbracelet/x/ansi v0.4.0 // indirect
+	github.com/charmbracelet/x/ansi v0.4.2 // indirect
 	github.com/charmbracelet/x/term v0.2.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
@@ -335,7 +334,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/nakagami/firebirdsql v0.0.0-20190310045651-3c02a58cfed8 // indirect
 	github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba // indirect
-	github.com/nexus-rpc/sdk-go v0.0.10 // indirect
+	github.com/nexus-rpc/sdk-go v0.0.11 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -416,6 +415,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.31.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/mod v0.21.0 // indirect

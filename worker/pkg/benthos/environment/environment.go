@@ -9,6 +9,7 @@ import (
 	neosync_benthos_defaulttransform "github.com/nucleuscloud/neosync/worker/pkg/benthos/default_transform"
 	neosync_benthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
+	neosync_benthos_json "github.com/nucleuscloud/neosync/worker/pkg/benthos/json"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
@@ -166,6 +167,11 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 	err = neosync_benthos_defaulttransform.ReisterDefaultTransformerProcessor(env)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register default mapping processor to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_json.RegisterSqlToJsonProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register SQL to JSON processor to benthos instance: %w", err)
 	}
 
 	if config.blobEnv != nil {

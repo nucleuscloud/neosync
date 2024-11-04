@@ -24,6 +24,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -87,7 +88,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger, sqlconnect.WithMysqlParseTimeDisabled())
 		if err != nil {
 			return err
 		}
@@ -148,7 +149,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger, sqlconnect.WithDefaultPostgresDriver())
 		if err != nil {
 			return err
 		}
@@ -513,7 +514,7 @@ func (s *Service) GetConnectionSchema(
 				Table:              col.TableName,
 				Column:             col.ColumnName,
 				DataType:           col.DataType,
-				IsNullable:         col.IsNullable,
+				IsNullable:         col.NullableString(),
 				ColumnDefault:      defaultColumn,
 				GeneratedType:      col.GeneratedType,
 				IdentityGeneration: col.IdentityGeneration,

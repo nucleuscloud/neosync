@@ -204,6 +204,19 @@ declare namespace neosync {
 	declare function generateBool(options: GenerateBoolOptions): any;
 	
 	
+	export interface GenerateBusinessNameOptions {
+		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
+		maxLength?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+
+  /**
+   * Generates a random business name between 2 and 35 characters long.
+   */
+	declare function generateBusinessName(options: GenerateBusinessNameOptions): any;
+	
+	
 	export interface GenerateCardNumberOptions {
 		/** A boolean indicating whether the generated value should pass the Luhn algorithm check. */
 		validLuhn?: boolean;

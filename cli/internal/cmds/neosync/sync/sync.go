@@ -27,18 +27,17 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -108,7 +107,15 @@ type sqlDestinationConfig struct {
 	TruncateCascade      bool                 `yaml:"truncate-cascade,omitempty"`
 	OnConflict           onConflictConfig     `yaml:"on-conflict,omitempty"`
 	ConnectionOpts       sqlConnectionOptions `yaml:"connection-opts,omitempty"`
+	MaxInFlight          *uint32              `yaml:"max-in-flight,omitempty" json:"max-in-flight,omitempty"`
+	Batch                *batchConfig         `yaml:"batch,omitempty" json:"batch,omitempty"`
 }
+
+type batchConfig struct {
+	Count  *uint32 `yaml:"count,omitempty" json:"count,omitempty"`
+	Period *string `yaml:"period,omitempty" json:"period,omitempty"`
+}
+
 type sqlConnectionOptions struct {
 	OpenLimit    *int32  `yaml:"open-limit,omitempty"`
 	IdleLimit    *int32  `yaml:"idle-limit,omitempty"`
@@ -167,6 +174,9 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Int32("destination-idle-limit", 0, "Maximum number of idle connections")
 	cmd.Flags().String("destination-idle-duration", "", "Maximum amount of time a connection may be idle (e.g. '5m')")
 	cmd.Flags().String("destination-open-duration", "", "Maximum amount of time a connection may be open (e.g. '30s')")
+	cmd.Flags().Uint32("destination-max-in-flight", 0, "Maximum allowed batched rows to sync. If not provided, uses server default of 64")
+	cmd.Flags().Uint32("destination-batch-count", 0, "Batch size of rows that will be sent to the destination. If not provided, uses server default of 100.")
+	cmd.Flags().String("destination-batch-period", "", "Duration of time that a batch of rows will be sent. If not provided, uses server default fo 5s. (e.g. 5s, 1m)")
 
 	// dynamo flags
 	cmd.Flags().String("aws-access-key-id", "", "AWS Access Key ID for DynamoDB")
@@ -183,14 +193,17 @@ func NewCmd() *cobra.Command {
 }
 
 type clisync struct {
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
-	connectionclient     mgmtv1alpha1connect.ConnectionServiceClient
-	sqlmanagerclient     *sqlmanager.SqlManager
-	sqlconnector         *sqlconnect.SqlOpenConnector
-	benv                 *service.Environment
-	cmd                  *cmdConfig
-	logger               *slog.Logger
-	ctx                  context.Context
+	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
+	connectionclient      mgmtv1alpha1connect.ConnectionServiceClient
+	transformerclient     mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient      *sqlmanager.SqlManager
+	sqlconnector          *sqlconnect.SqlOpenConnector
+	benv                  *service.Environment
+	sourceConnection      *mgmtv1alpha1.Connection
+	destinationConnection *mgmtv1alpha1.Connection
+	cmd                   *cmdConfig
+	logger                *slog.Logger
+	ctx                   context.Context
 }
 
 func sync(
@@ -219,6 +232,7 @@ func sync(
 	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 
 	pgpoolmap := &syncmap.Map{}
 	mysqlpoolmap := &syncmap.Map{}
@@ -232,6 +246,7 @@ func sync(
 	sync := &clisync{
 		connectiondataclient: connectiondataclient,
 		connectionclient:     connectionclient,
+		transformerclient:    transformerclient,
 		sqlmanagerclient:     sqlmanagerclient,
 		sqlconnector:         sqlConnector,
 		cmd:                  cmd,
@@ -243,6 +258,16 @@ func sync(
 }
 
 func (c *clisync) configureAndRunSync() error {
+	c.logger.Debug("Retrieving neosync connection")
+	connResp, err := c.connectionclient.GetConnection(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: c.cmd.Source.ConnectionId,
+	}))
+	if err != nil {
+		return err
+	}
+	sourceConnection := connResp.Msg.GetConnection()
+	c.sourceConnection = sourceConnection
+
 	connectionprovider := providers.NewProvider(
 		mongoprovider.NewProvider(),
 		sqlprovider.NewProvider(c.sqlconnector),
@@ -261,6 +286,8 @@ func (c *clisync) configureAndRunSync() error {
 		sqlDsn = c.cmd.Destination.ConnectionUrl
 	}
 	dsnToConnIdMap.Store(sqlDsn, destConnection.Id)
+	dsnToConnIdMap.Store(sourceConnection.Id, sourceConnection.Id)
+	dsnToConnIdMap.Store(destConnection.Id, destConnection.Id)
 	stopChan := make(chan error, 3)
 	ctx, cancel := context.WithCancel(c.ctx)
 	defer cancel()
@@ -270,7 +297,9 @@ func (c *clisync) configureAndRunSync() error {
 			case <-ctx.Done():
 				return
 			case <-stopChan:
+				c.logger.Error("Sync Failed.")
 				cancel()
+				os.Exit(1)
 				return
 			}
 		}
@@ -282,7 +311,8 @@ func (c *clisync) configureAndRunSync() error {
 				tunnelmanager,
 				dsnToConnIdMap,
 				map[string]*mgmtv1alpha1.Connection{
-					destConnection.Id: destConnection,
+					destConnection.Id:   destConnection,
+					sourceConnection.Id: sourceConnection,
 				},
 				session,
 				c.logger,
@@ -299,6 +329,7 @@ func (c *clisync) configureAndRunSync() error {
 		return err
 	}
 	c.benv = benthosEnv
+	c.destinationConnection = destConnection
 
 	groupedConfigs, err := c.configureSync()
 	if err != nil {
@@ -311,134 +342,28 @@ func (c *clisync) configureAndRunSync() error {
 	return runSync(c.ctx, *c.cmd.OutputType, c.benv, groupedConfigs, c.logger)
 }
 
-func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
-	c.logger.Debug("Retrieving neosync connection")
-	connResp, err := c.connectionclient.GetConnection(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: c.cmd.Source.ConnectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-	sourceConnection := connResp.Msg.GetConnection()
-	sourceConnectionType, err := getConnectionType(sourceConnection)
+func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, error) {
+	sourceConnectionType, err := getConnectionType(c.sourceConnection)
 	if err != nil {
 		return nil, err
 	}
 	c.logger.Debug(fmt.Sprintf("Source connection type: %s", sourceConnectionType))
 
-	err = isConfigValid(c.cmd, c.logger, sourceConnection, sourceConnectionType)
+	err = isConfigValid(c.cmd, c.logger, c.sourceConnection, sourceConnectionType)
 	if err != nil {
 		return nil, err
 	}
 	c.logger.Debug("Validated config")
 
 	c.logger.Info("Retrieving connection schema...")
-	var schemaConfig *schemaConfig
-	switch sourceConnectionType {
-	case awsS3Connection:
-		c.logger.Info("Building schema and table constraints...")
-		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
-		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-		}
-		s3Config := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
-				AwsS3Config: cfg,
-			},
-		}
 
-		schemaCfg, err := c.getDestinationSchemaConfig(sourceConnection, s3Config)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from s3.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case gcpCloudStorageConnection:
-		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
-		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
-		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
-		}
-
-		gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
-				GcpCloudstorageConfig: cfg,
-			},
-		}
-
-		schemaCfg, err := c.getDestinationSchemaConfig(sourceConnection, gcpConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from gcp cloud storage.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case mysqlConnection:
-		c.logger.Info("Building schema and table constraints...")
-		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
-				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, mysqlCfg)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from mysql.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case postgresConnection:
-		c.logger.Info("Building schema and table constraints...")
-		postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, postgresConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from postgres.")
-			return nil, nil
-		}
-		schemaConfig = schemaCfg
-	case awsDynamoDBConnection:
-		dynamoConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
-				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
-			},
-		}
-		schemaCfg, err := c.getConnectionSchemaConfig(sourceConnection, dynamoConfig)
-		if err != nil {
-			return nil, err
-		}
-		if len(schemaCfg.Schemas) == 0 {
-			c.logger.Warn("No tables found when building destination schema from dynamodb.")
-			return nil, nil
-		}
-		tableMap := map[string]struct{}{}
-		for _, s := range schemaCfg.Schemas {
-			tableMap[s.Table] = struct{}{}
-		}
-		configs := []*benthosConfigResponse{}
-		for t := range tableMap {
-			benthosConfig := generateDynamoDbBenthosConfig(c.cmd, t)
-			configs = append(configs, benthosConfig)
-		}
-		return [][]*benthosConfigResponse{configs}, nil
-	default:
-		return nil, fmt.Errorf("this connection type is not currently supported: %T", sourceConnectionType)
+	schemaConfig, err := c.getConnectionSchemaConfig()
+	if err != nil {
+		return nil, err
+	}
+	if len(schemaConfig.Schemas) == 0 {
+		c.logger.Warn("No tables found when building schema from source")
+		return nil, nil
 	}
 
 	c.logger.Debug("Building sync configs")
@@ -446,6 +371,8 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 	if syncConfigs == nil {
 		return nil, nil
 	}
+
+	// TODO move this after benthos builder
 	c.logger.Info("Running table init statements...")
 	err = c.runDestinationInitStatements(syncConfigs, schemaConfig)
 	if err != nil {
@@ -454,10 +381,47 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 
 	syncConfigCount := len(syncConfigs)
 	c.logger.Info(fmt.Sprintf("Generating %d sync configs...", syncConfigCount))
-	configs := []*benthosConfigResponse{}
-	for _, cfg := range syncConfigs {
-		benthosConfig := generateBenthosConfig(c.cmd, sourceConnectionType, cfg)
-		configs = append(configs, benthosConfig)
+
+	job, err := toJob(c.cmd, c.sourceConnection, c.destinationConnection, schemaConfig.Schemas)
+	if err != nil {
+		c.logger.Error("unable to create job")
+		return nil, err
+	}
+
+	var jobRunId *string
+	if c.cmd.Source.ConnectionOpts != nil {
+		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
+	}
+	var databaseDriver *string
+	if c.cmd.Destination.Driver == postgresDriver {
+		d := string(c.cmd.Destination.Driver)
+		databaseDriver = &d
+	}
+
+	// TODO move more logic to builders
+	benthosManagerConfig := &benthosbuilder.CliBenthosConfig{
+		Job:                    job,
+		SourceConnection:       c.sourceConnection,
+		SourceJobRunId:         jobRunId,
+		DestinationConnection:  c.destinationConnection,
+		SyncConfigs:            syncConfigs,
+		RunId:                  "cli-sync",
+		Logger:                 c.logger,
+		Sqlmanagerclient:       c.sqlmanagerclient,
+		Transformerclient:      c.transformerclient,
+		Connectiondataclient:   c.connectiondataclient,
+		RedisConfig:            nil,
+		MetricsEnabled:         false,
+		PostgresDriverOverride: databaseDriver,
+	}
+	bm, err := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
+	if err != nil {
+		return nil, err
+	}
+	configs, err := bm.GenerateBenthosConfigs(c.ctx)
+	if err != nil {
+		c.logger.Error("unable to build benthos configs")
+		return nil, err
 	}
 
 	// order configs in run order by dependency
@@ -467,12 +431,61 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 	return groupedConfigs, nil
 }
 
+func (c *clisync) getConnectionSchemaConfigByConnectionType(connection *mgmtv1alpha1.Connection) (*mgmtv1alpha1.ConnectionSchemaConfig, error) {
+	switch conn := connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
+				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+		}
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: cfg,
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
+		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
+		} else if c.cmd.Source.ConnectionOpts.JobId != nil && *c.cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *c.cmd.Source.ConnectionOpts.JobId}}
+		}
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
+				AwsS3Config: cfg,
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
+}
+
 var (
 	// Hack that locks the instanced bento stream builder build step that causes data races if done in parallel
 	streamBuilderMu syncmap.Mutex
 )
 
-func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
+func syncData(ctx context.Context, benv *service.Environment, cfg *benthosbuilder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -510,12 +523,20 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfig
 		return fmt.Errorf("failed to create StreamBuilder")
 	}
 	if outputType == output.PlainOutput {
-		streambldr.SetLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType))
+		streambldr.SetLogger(logger.With("benthos", "true", "schema", cfg.TableSchema, "table", cfg.TableName, "runType", runType))
 	}
 	if benv == nil {
 		return fmt.Errorf("benthos env is nil")
 	}
 
+	envKeyDsnSyncMap := syncmap.Map{}
+	for _, bdsn := range cfg.BenthosDsns {
+		envKeyDsnSyncMap.Store(bdsn.EnvVarKey, bdsn.ConnectionId)
+	}
+
+	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
+	// This must come before SetYaml as otherwise it will not be invoked
+	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
 		return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -635,6 +656,97 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 		}
 	}
 	return &mgmtv1alpha1.Connection{}
+}
+
+func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {
+	return func(key string) (string, bool) {
+		if input == nil {
+			return "", false
+		}
+		out, ok := input[key]
+		return out, ok
+	}
+}
+
+func syncMapToStringMap(incoming *syncmap.Map) map[string]string {
+	out := map[string]string{}
+	if incoming == nil {
+		return out
+	}
+
+	incoming.Range(func(key, value any) bool {
+		keyStr, ok := key.(string)
+		if !ok {
+			return true
+		}
+		valStr, ok := value.(string)
+		if !ok {
+			return true
+		}
+		out[keyStr] = valStr
+		return true
+	})
+	return out
+}
+
+func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDestinationOptions {
+	if cmd.Destination != nil {
+		switch cmd.Destination.Driver {
+		case postgresDriver:
+			return &mgmtv1alpha1.JobDestinationOptions{
+				Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+					PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+						TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+							TruncateBeforeInsert: cmd.Destination.TruncateBeforeInsert,
+							Cascade:              cmd.Destination.TruncateCascade,
+						},
+						InitTableSchema: cmd.Destination.InitSchema,
+						OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+							DoNothing: cmd.Destination.OnConflict.DoNothing,
+						},
+						MaxInFlight: cmd.Destination.MaxInFlight,
+						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
+					},
+				},
+			}
+		case mysqlDriver:
+			return &mgmtv1alpha1.JobDestinationOptions{
+				Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+					MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+						TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
+							TruncateBeforeInsert: cmd.Destination.TruncateBeforeInsert,
+						},
+						InitTableSchema: cmd.Destination.InitSchema,
+						OnConflict: &mgmtv1alpha1.MysqlOnConflictConfig{
+							DoNothing: cmd.Destination.OnConflict.DoNothing,
+						},
+						MaxInFlight: cmd.Destination.MaxInFlight,
+						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
+					},
+				},
+			}
+		}
+	} else if cmd.AwsDynamoDbDestination != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
+				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+			},
+		}
+	}
+	return &mgmtv1alpha1.JobDestinationOptions{}
+}
+
+func cmdConfigSqlDestinationToBatch(input *sqlDestinationConfig) *mgmtv1alpha1.BatchConfig {
+	if input == nil {
+		input = &sqlDestinationConfig{}
+	}
+	if input.Batch == nil || input.Batch.Count == nil || input.Batch.Period == nil {
+		return nil
+	}
+	return &mgmtv1alpha1.BatchConfig{
+		Count:  input.Batch.Count,
+		Period: input.Batch.Period,
+	}
 }
 
 func (c *clisync) runDestinationInitStatements(
@@ -784,103 +896,6 @@ func getTableInitStatementMap(
 	return nil, nil
 }
 
-type benthosConfigResponse struct {
-	Name      string
-	DependsOn []*tabledependency.DependsOn
-	Config    *neosync_benthos.BenthosConfig
-	Table     string
-	Columns   []string
-}
-
-func generateBenthosConfig(
-	cmd *cmdConfig,
-	connectionType ConnectionType,
-	syncConfig *tabledependency.RunConfig,
-) *benthosConfigResponse {
-	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table())
-
-	var jobId, jobRunId *string
-	if cmd.Source.ConnectionOpts != nil {
-		jobRunId = cmd.Source.ConnectionOpts.JobRunId
-		jobId = cmd.Source.ConnectionOpts.JobId
-	}
-
-	bc := &neosync_benthos.BenthosConfig{
-		StreamConfig: neosync_benthos.StreamConfig{
-			Logger: &neosync_benthos.LoggerConfig{
-				Level:        "ERROR",
-				AddTimestamp: true,
-			},
-			Input: &neosync_benthos.InputConfig{
-				Inputs: neosync_benthos.Inputs{
-					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
-						ConnectionId:   cmd.Source.ConnectionId,
-						ConnectionType: string(connectionType),
-						JobId:          jobId,
-						JobRunId:       jobRunId,
-						Schema:         schema,
-						Table:          table,
-					},
-				},
-			},
-			Pipeline: &neosync_benthos.PipelineConfig{},
-			Output:   &neosync_benthos.OutputConfig{},
-		},
-	}
-
-	if syncConfig.RunType() == tabledependency.RunTypeUpdate {
-		args := syncConfig.InsertColumns()
-		args = append(args, syncConfig.PrimaryKeys()...)
-		bc.Output = &neosync_benthos.OutputConfig{
-			Outputs: neosync_benthos.Outputs{
-				PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-					Driver: string(cmd.Destination.Driver),
-					Dsn:    cmd.Destination.ConnectionUrl,
-
-					Schema:       schema,
-					Table:        table,
-					Columns:      syncConfig.InsertColumns(),
-					WhereColumns: syncConfig.PrimaryKeys(),
-					ArgsMapping:  buildPlainInsertArgs(args),
-
-					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
-					},
-				},
-			},
-		}
-	} else {
-		bc.Output = &neosync_benthos.OutputConfig{
-			Outputs: neosync_benthos.Outputs{
-				PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-					Driver: string(cmd.Destination.Driver),
-					Dsn:    cmd.Destination.ConnectionUrl,
-
-					Schema:              schema,
-					Table:               table,
-					Columns:             syncConfig.SelectColumns(),
-					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
-					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns()),
-
-					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
-					},
-				},
-			},
-		}
-	}
-
-	return &benthosConfigResponse{
-		Name:      fmt.Sprintf("%s.%s", syncConfig.Table(), syncConfig.RunType()),
-		Config:    bc,
-		DependsOn: syncConfig.DependsOn(),
-		Table:     syncConfig.Table(),
-		Columns:   syncConfig.InsertColumns(),
-	}
-}
-
 type schemaConfig struct {
 	Schemas                    []*mgmtv1alpha1.DatabaseColumn
 	TableConstraints           map[string][]*sql_manager.ForeignConstraint
@@ -890,7 +905,22 @@ type schemaConfig struct {
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
 
-func (c *clisync) getConnectionSchemaConfig(
+func (c *clisync) getConnectionSchemaConfig() (*schemaConfig, error) {
+	connSchemaCfg, err := c.getConnectionSchemaConfigByConnectionType(c.sourceConnection)
+	if err != nil {
+		return nil, err
+	}
+	switch conn := c.sourceConnection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return c.getSourceConnectionSchemaConfig(c.sourceConnection, connSchemaCfg)
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return c.getDestinationSchemaConfig(c.sourceConnection, connSchemaCfg)
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
+}
+
+func (c *clisync) getSourceConnectionSchemaConfig(
 	connection *mgmtv1alpha1.Connection,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 ) (*schemaConfig, error) {
@@ -967,25 +997,47 @@ func (c *clisync) getConnectionSchemaConfig(
 }
 
 func (c *clisync) getDestinationSchemaConfig(
-	connection *mgmtv1alpha1.Connection,
+	sourceConnection *mgmtv1alpha1.Connection,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 ) (*schemaConfig, error) {
 	schemaResp, err := c.connectiondataclient.GetConnectionSchema(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		ConnectionId: connection.Id,
+		ConnectionId: sourceConnection.Id,
 		SchemaConfig: sc,
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve connection schema for connection: %w", err)
 	}
+	sourceSchemas := schemaResp.Msg.GetSchemas()
 
-	tableColMap := getTableColMap(schemaResp.Msg.GetSchemas())
+	destSchemas, err := c.getDestinationSchemas()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve destination connection schema for connection: %w", err)
+	}
+
+	tableColMap := getTableColMap(sourceSchemas)
 	if len(tableColMap) == 0 {
 		c.logger.Warn("no tables found after retrieving connection schema.")
 		return &schemaConfig{}, nil
 	}
 
+	hydratedSchemas := sourceSchemas
+	if len(destSchemas) != 0 {
+		hydratedSchemas = []*mgmtv1alpha1.DatabaseColumn{}
+		destColMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
+		for _, col := range destSchemas {
+			destColMap[fmt.Sprintf("%s.%s.%s", col.Schema, col.Table, col.Column)] = col
+		}
+		for _, col := range sourceSchemas {
+			destCol, ok := destColMap[fmt.Sprintf("%s.%s.%s", col.Schema, col.Table, col.Column)]
+			if ok {
+				col = destCol
+			}
+			hydratedSchemas = append(hydratedSchemas, col)
+		}
+	}
+
 	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp.Msg.GetSchemas() {
+	for _, s := range sourceSchemas {
 		schemaMap[s.Schema] = struct{}{}
 	}
 	schemas := []string{}
@@ -996,7 +1048,7 @@ func (c *clisync) getDestinationSchemaConfig(
 	c.logger.Info(fmt.Sprintf("Building table constraints for %d schemas...", len(schemas)))
 	tableConstraints, err := c.getDestinationTableConstraints(schemas)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build destination tablle constraints: %w", err)
+		return nil, fmt.Errorf("unable to build destination table constraints: %w", err)
 	}
 
 	primaryKeys := map[string]*mgmtv1alpha1.PrimaryConstraint{}
@@ -1033,7 +1085,7 @@ func (c *clisync) getDestinationSchemaConfig(
 	}
 
 	return &schemaConfig{
-		Schemas:                    schemaResp.Msg.GetSchemas(),
+		Schemas:                    hydratedSchemas,
 		TableConstraints:           tableConstraints.ForeignKeyConstraints,
 		TablePrimaryKeys:           primaryKeys,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
@@ -1055,4 +1107,40 @@ func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager
 	}
 
 	return constraints, nil
+}
+
+func (c *clisync) getDestinationSchemas() ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
+	defer cancel()
+	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(cctx, string(c.cmd.Destination.Driver), c.cmd.Destination.ConnectionUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	dbschema, err := db.Db.GetDatabaseSchema(cctx)
+	if err != nil {
+		return nil, err
+	}
+	schemas := []*mgmtv1alpha1.DatabaseColumn{}
+	for _, col := range dbschema {
+		col := col
+		var defaultColumn *string
+		if col.ColumnDefault != "" {
+			defaultColumn = &col.ColumnDefault
+		}
+
+		schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+			Schema:             col.TableSchema,
+			Table:              col.TableName,
+			Column:             col.ColumnName,
+			DataType:           col.DataType,
+			IsNullable:         col.NullableString(),
+			ColumnDefault:      defaultColumn,
+			GeneratedType:      col.GeneratedType,
+			IdentityGeneration: col.IdentityGeneration,
+		})
+	}
+
+	return schemas, nil
 }

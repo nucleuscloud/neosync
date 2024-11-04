@@ -1051,9 +1051,11 @@ export class DynamoDBSourceTableOption extends Message<DynamoDBSourceTableOption
  */
 export class PostgresSourceConnectionOptions extends Message<PostgresSourceConnectionOptions> {
   /**
-   * @generated from field: bool halt_on_new_column_addition = 1;
+   * @deprecated - Use new_column_addition_strategy instead
+   *
+   * @generated from field: optional bool halt_on_new_column_addition = 1;
    */
-  haltOnNewColumnAddition = false;
+  haltOnNewColumnAddition?: boolean;
 
   /**
    * @generated from field: repeated mgmt.v1alpha1.PostgresSourceSchemaOption schemas = 2;
@@ -1070,6 +1072,13 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
    */
   subsetByForeignKeyConstraints = false;
 
+  /**
+   * Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+   *
+   * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy new_column_addition_strategy = 5;
+   */
+  newColumnAdditionStrategy?: PostgresSourceConnectionOptions_NewColumnAdditionStrategy;
+
   constructor(data?: PartialMessage<PostgresSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1078,10 +1087,11 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
     { no: 2, name: "schemas", kind: "message", T: PostgresSourceSchemaOption, repeated: true },
     { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "subset_by_foreign_key_constraints", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "new_column_addition_strategy", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions {
@@ -1098,6 +1108,128 @@ export class PostgresSourceConnectionOptions extends Message<PostgresSourceConne
 
   static equals(a: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined, b: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(PostgresSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.strategy
+   */
+  strategy: {
+    /**
+     * halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
+     *
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob halt_job = 1;
+     */
+    value: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob;
+    case: "haltJob";
+  } | {
+    /**
+     * automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+     * If this doesn't exist, will fall back to configuring generators for supported datatypes.
+     * If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+     *
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap auto_map = 2;
+     */
+    value: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap;
+    case: "autoMap";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_job", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob, oneof: "strategy" },
+    { no: 2, name: "auto_map", kind: "message", T: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap, oneof: "strategy" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy, a, b);
+  }
+}
+
+/**
+ * Configuration for the HaltJob strategy
+ *
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> {
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob, a, b);
+  }
+}
+
+/**
+ * Configuration for the AutoMap strategy
+ *
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+ */
+export class PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap extends Message<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> {
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap {
+    return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> | undefined, b: PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap | PlainMessage<PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap, a, b);
   }
 }
 
@@ -1777,6 +1909,20 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<PostgresDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1789,6 +1935,8 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: PostgresOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresDestinationConnectionOptions {
@@ -1914,6 +2062,20 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<MysqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1926,6 +2088,8 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MysqlOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlDestinationConnectionOptions {
@@ -2049,6 +2213,20 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
    */
   skipForeignKeyViolations = false;
 
+  /**
+   * Configure batching options to handle how much data is sent to your database at once.
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 5;
+   */
+  batch?: BatchConfig;
+
+  /**
+   * Determines the maximum number of parallel batched inserts.
+   *
+   * @generated from field: optional uint32 max_in_flight = 6;
+   */
+  maxInFlight?: number;
+
   constructor(data?: PartialMessage<MssqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2061,6 +2239,8 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MssqlOnConflictConfig },
     { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "batch", kind: "message", T: BatchConfig },
+    { no: 6, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlDestinationConnectionOptions {

@@ -43,6 +43,9 @@ The following options can be passed using the `neosync sync` command:
 - `--destination-idle-limit` - Maximum number of idle connections
 - `--destination-open-duration` - Maximum amount of time a connection may be open (e.g. '30s')
 - `--destination-open-limit` - Maximum number of open connections
+- `--destination-max-in-flight` - Maximum allowed batched rows to sync. If not provided, uses server default of 64
+- `--destination-batch-count` - Batch size of rows that will be sent to the destination.
+- `--destination-batch-period` - Duration of tim e that a batch of rows will be sent.
 
 ## Yaml Config File
 
@@ -72,6 +75,10 @@ destination:
     idle-limit: 2 # remove to unset and use system default
     idle-duration: 30s # remove to unset and use system default
     open-duration: 5m # remove to unset and use system default
+  max-in-flight: 10
+  batch:
+    count: 100
+    period: 5s
 ```
 
 ## Circular Dependencies

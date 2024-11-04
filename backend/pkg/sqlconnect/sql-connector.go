@@ -34,15 +34,43 @@ type SqlDBTX interface {
 	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
+type SqlConnectorOption func(*sqlConnectorOptions)
+
+type sqlConnectorOptions struct {
+	mysqlDisableParseTime bool
+	postgresDriver        string
+}
+
+// WithMysqlParseTimeDisabled disables MySQL time parsing
+func WithMysqlParseTimeDisabled() SqlConnectorOption {
+	return func(opts *sqlConnectorOptions) {
+		opts.mysqlDisableParseTime = true
+	}
+}
+
+// WithPostgresDriver overrides default postgres driver
+func WithDefaultPostgresDriver() SqlConnectorOption {
+	return func(opts *sqlConnectorOptions) {
+		opts.postgresDriver = "postgres"
+	}
+}
+
 type SqlConnector interface {
-	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error)
+	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
+func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
 	if cc == nil {
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
+
+	options := sqlConnectorOptions{
+		postgresDriver: "pgx",
+	}
+	for _, opt := range opts {
+		opt(&options)
 	}
 
 	dbconnopts, err := getConnectionOptsFromConnectionConfig(cc)
@@ -76,10 +104,10 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		} else {
-			return newStdlibContainer("pgx", dsn, dbconnopts), nil
+			return newStdlibContainer(options.postgresDriver, dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger)
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger, options.mysqlDisableParseTime)
 		if err != nil {
 			return nil, err
 		}

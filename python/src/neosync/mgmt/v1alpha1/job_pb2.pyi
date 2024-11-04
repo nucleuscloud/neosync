@@ -229,16 +229,31 @@ class DynamoDBSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class PostgresSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
+    class NewColumnAdditionStrategy(_message.Message):
+        __slots__ = ("halt_job", "auto_map")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class AutoMap(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[PostgresSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ...) -> None: ...
+    new_column_addition_strategy: PostgresSourceConnectionOptions.NewColumnAdditionStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
 
 class PostgresSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -359,16 +374,20 @@ class DynamoDBDestinationTableMapping(_message.Message):
     def __init__(self, source_table: _Optional[str] = ..., destination_table: _Optional[str] = ...) -> None: ...
 
 class PostgresDestinationConnectionOptions(_message.Message):
-    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations")
+    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations", "batch", "max_in_flight")
     TRUNCATE_TABLE_FIELD_NUMBER: _ClassVar[int]
     INIT_TABLE_SCHEMA_FIELD_NUMBER: _ClassVar[int]
     ON_CONFLICT_FIELD_NUMBER: _ClassVar[int]
     SKIP_FOREIGN_KEY_VIOLATIONS_FIELD_NUMBER: _ClassVar[int]
+    BATCH_FIELD_NUMBER: _ClassVar[int]
+    MAX_IN_FLIGHT_FIELD_NUMBER: _ClassVar[int]
     truncate_table: PostgresTruncateTableConfig
     init_table_schema: bool
     on_conflict: PostgresOnConflictConfig
     skip_foreign_key_violations: bool
-    def __init__(self, truncate_table: _Optional[_Union[PostgresTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[PostgresOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ...) -> None: ...
+    batch: BatchConfig
+    max_in_flight: int
+    def __init__(self, truncate_table: _Optional[_Union[PostgresTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[PostgresOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ..., batch: _Optional[_Union[BatchConfig, _Mapping]] = ..., max_in_flight: _Optional[int] = ...) -> None: ...
 
 class PostgresOnConflictConfig(_message.Message):
     __slots__ = ("do_nothing",)
@@ -385,16 +404,20 @@ class PostgresTruncateTableConfig(_message.Message):
     def __init__(self, truncate_before_insert: bool = ..., cascade: bool = ...) -> None: ...
 
 class MysqlDestinationConnectionOptions(_message.Message):
-    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations")
+    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations", "batch", "max_in_flight")
     TRUNCATE_TABLE_FIELD_NUMBER: _ClassVar[int]
     INIT_TABLE_SCHEMA_FIELD_NUMBER: _ClassVar[int]
     ON_CONFLICT_FIELD_NUMBER: _ClassVar[int]
     SKIP_FOREIGN_KEY_VIOLATIONS_FIELD_NUMBER: _ClassVar[int]
+    BATCH_FIELD_NUMBER: _ClassVar[int]
+    MAX_IN_FLIGHT_FIELD_NUMBER: _ClassVar[int]
     truncate_table: MysqlTruncateTableConfig
     init_table_schema: bool
     on_conflict: MysqlOnConflictConfig
     skip_foreign_key_violations: bool
-    def __init__(self, truncate_table: _Optional[_Union[MysqlTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[MysqlOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ...) -> None: ...
+    batch: BatchConfig
+    max_in_flight: int
+    def __init__(self, truncate_table: _Optional[_Union[MysqlTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[MysqlOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ..., batch: _Optional[_Union[BatchConfig, _Mapping]] = ..., max_in_flight: _Optional[int] = ...) -> None: ...
 
 class MysqlTruncateTableConfig(_message.Message):
     __slots__ = ("truncate_before_insert",)
@@ -409,16 +432,20 @@ class MysqlOnConflictConfig(_message.Message):
     def __init__(self, do_nothing: bool = ...) -> None: ...
 
 class MssqlDestinationConnectionOptions(_message.Message):
-    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations")
+    __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations", "batch", "max_in_flight")
     TRUNCATE_TABLE_FIELD_NUMBER: _ClassVar[int]
     INIT_TABLE_SCHEMA_FIELD_NUMBER: _ClassVar[int]
     ON_CONFLICT_FIELD_NUMBER: _ClassVar[int]
     SKIP_FOREIGN_KEY_VIOLATIONS_FIELD_NUMBER: _ClassVar[int]
+    BATCH_FIELD_NUMBER: _ClassVar[int]
+    MAX_IN_FLIGHT_FIELD_NUMBER: _ClassVar[int]
     truncate_table: MssqlTruncateTableConfig
     init_table_schema: bool
     on_conflict: MssqlOnConflictConfig
     skip_foreign_key_violations: bool
-    def __init__(self, truncate_table: _Optional[_Union[MssqlTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[MssqlOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ...) -> None: ...
+    batch: BatchConfig
+    max_in_flight: int
+    def __init__(self, truncate_table: _Optional[_Union[MssqlTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[MssqlOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ..., batch: _Optional[_Union[BatchConfig, _Mapping]] = ..., max_in_flight: _Optional[int] = ...) -> None: ...
 
 class MssqlTruncateTableConfig(_message.Message):
     __slots__ = ("truncate_before_insert",)

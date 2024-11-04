@@ -71,8 +71,6 @@ type Inputs struct {
 }
 
 type NeosyncConnectionData struct {
-	ApiKey         *string `json:"api_key,omitempty" yaml:"api_key,omitempty"`
-	ApiUrl         string  `json:"api_url" yaml:"api_url"`
 	ConnectionId   string  `json:"connection_id" yaml:"connection_id"`
 	ConnectionType string  `json:"connection_type" yaml:"connection_type"`
 	JobId          *string `json:"job_id,omitempty" yaml:"job_id,omitempty"`
@@ -383,6 +381,9 @@ type PooledSqlUpdate struct {
 	SkipForeignKeyViolations bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
 	ArgsMapping              string    `json:"args_mapping" yaml:"args_mapping"`
 	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	MaxRetryAttempts         *uint     `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
+	RetryAttemptDelay        *string   `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
+	MaxInFlight              int       `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type ColumnDefaultProperties struct {
@@ -406,6 +407,9 @@ type PooledSqlInsert struct {
 	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
+	MaxRetryAttempts         *uint                               `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
+	RetryAttemptDelay        *string                             `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
+	MaxInFlight              int                                 `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type SqlInsert struct {
@@ -469,9 +473,12 @@ type Batching struct {
 }
 
 type BatchProcessor struct {
-	Archive  *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
-	Compress *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
+	Archive   *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress  *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
+	SqlToJson *SqlToJsonConfig   `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
 }
+
+type SqlToJsonConfig struct{}
 
 type ArchiveProcessor struct {
 	Format string  `json:"format" yaml:"format"`

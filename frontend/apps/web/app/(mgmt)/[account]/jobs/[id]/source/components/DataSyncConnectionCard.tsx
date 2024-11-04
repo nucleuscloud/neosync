@@ -34,6 +34,8 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toJobSourcePostgresNewColumnAdditionStrategy,
+  toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { PartialMessage } from '@bufbuild/protobuf';
 import {
@@ -519,7 +521,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-8">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="sourceId"
@@ -773,18 +775,21 @@ function toJobSourceOptions(
   newSourceId: string
 ): JobSourceOptions {
   switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig':
+    case 'pgConfig': {
       return new JobSourceOptions({
         config: {
           case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.postgres?.haltOnNewColumnAddition,
+            newColumnAdditionStrategy:
+              toJobSourcePostgresNewColumnAdditionStrategy(
+                values.sourceOptions.postgres?.newColumnAdditionStrategy
+              ),
           }),
         },
       });
+    }
     case 'mysqlConfig':
       return new JobSourceOptions({
         config: {
@@ -993,8 +998,9 @@ function getJobSource(
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
           },
         },
       };
@@ -1104,7 +1110,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
           },
         },
       };

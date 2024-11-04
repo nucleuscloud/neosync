@@ -13,6 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -82,13 +83,18 @@ var (
 		SyncJobQueueName: "bar",
 		Url:              "http://localhost:7070",
 	}
+	validTemporalConfig = &clientmanager.TemporalConfig{
+		Url:              validTemporalConfigModel.Url,
+		Namespace:        validTemporalConfigModel.Namespace,
+		SyncJobQueueName: validTemporalConfigModel.SyncJobQueueName,
+	}
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
-		Return(validTemporalConfigModel, nil)
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
+		Return(validTemporalConfig, nil)
 
 	resp, err := s.UnauthdClients.Users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
 	requireNoErrResp(s.T(), resp, err)
@@ -96,9 +102,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig(
 	tc := resp.Msg.GetConfig()
 	require.NotNil(s.T(), tc)
 
-	require.Equal(s.T(), validTemporalConfigModel.Namespace, tc.GetNamespace())
-	require.Equal(s.T(), validTemporalConfigModel.SyncJobQueueName, tc.GetSyncJobQueueName())
-	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
+	require.Equal(s.T(), validTemporalConfig.Namespace, tc.GetNamespace())
+	require.Equal(s.T(), validTemporalConfig.SyncJobQueueName, tc.GetSyncJobQueueName())
+	require.Equal(s.T(), validTemporalConfig.Url, tc.GetUrl())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NoAccount() {
@@ -136,8 +142,8 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
-		Return(validTemporalConfigModel, nil)
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
+		Return(validTemporalConfig, nil)
 
 	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId, Config: nil}))
 	requireNoErrResp(s.T(), resp, err)
@@ -145,17 +151,17 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 	tc := resp.Msg.GetConfig()
 	require.NotNil(s.T(), tc)
 
-	require.Equal(s.T(), validTemporalConfigModel.Namespace, tc.GetNamespace())
-	require.Equal(s.T(), validTemporalConfigModel.SyncJobQueueName, tc.GetSyncJobQueueName())
-	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
+	require.Equal(s.T(), validTemporalConfig.Namespace, tc.GetNamespace())
+	require.Equal(s.T(), validTemporalConfig.SyncJobQueueName, tc.GetSyncJobQueueName())
+	require.Equal(s.T(), validTemporalConfig.Url, tc.GetUrl())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
 	// kind of a bad test since we are mocking this client wholesale, but it at least verifies we can write the config
-	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
-		Return(validTemporalConfigModel, nil)
+	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
+		Return(validTemporalConfig, nil)
 
 	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountTemporalConfig{
@@ -168,9 +174,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig(
 	tc := resp.Msg.GetConfig()
 	require.NotNil(s.T(), tc)
 
-	require.Equal(s.T(), validTemporalConfigModel.Namespace, tc.GetNamespace())
-	require.Equal(s.T(), validTemporalConfigModel.SyncJobQueueName, tc.GetSyncJobQueueName())
-	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
+	require.Equal(s.T(), validTemporalConfig.Namespace, tc.GetNamespace())
+	require.Equal(s.T(), validTemporalConfig.SyncJobQueueName, tc.GetSyncJobQueueName())
+	require.Equal(s.T(), validTemporalConfig.Url, tc.GetUrl())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {

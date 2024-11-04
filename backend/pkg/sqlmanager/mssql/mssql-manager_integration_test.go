@@ -21,7 +21,7 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
 			ColumnName:             "id",
 			DataType:               "int",
 			ColumnDefault:          "",
-			IsNullable:             "NO",
+			IsNullable:             false,
 			CharacterMaximumLength: -1,
 			NumericPrecision:       10,
 			NumericScale:           0,

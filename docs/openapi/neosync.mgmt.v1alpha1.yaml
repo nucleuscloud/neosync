@@ -3907,6 +3907,10 @@ components:
       type: object
       title: GenerateBool
       additionalProperties: false
+    mgmt.v1alpha1.GenerateBusinessName:
+      type: object
+      title: GenerateBusinessName
+      additionalProperties: false
     mgmt.v1alpha1.GenerateCardNumber:
       type: object
       allOf:
@@ -4881,6 +4885,8 @@ components:
             - required:
                 - generateBoolConfig
             - required:
+                - generateBusinessNameConfig
+            - required:
                 - generateCardNumberConfig
             - required:
                 - generateCategoricalConfig
@@ -4971,6 +4977,8 @@ components:
                   - required:
                       - generateBoolConfig
                   - required:
+                      - generateBusinessNameConfig
+                  - required:
                       - generateCardNumberConfig
                   - required:
                       - generateCategoricalConfig
@@ -5059,6 +5067,8 @@ components:
       anyOf:
         - required:
             - generateBoolConfig
+        - required:
+            - generateBusinessNameConfig
         - required:
             - generateCardNumberConfig
         - required:
@@ -5149,6 +5159,8 @@ components:
             anyOf:
               - required:
                   - generateBoolConfig
+              - required:
+                  - generateBusinessNameConfig
               - required:
                   - generateCardNumberConfig
               - required:
@@ -5415,6 +5427,10 @@ components:
                 NeosyncCloud/Enterprise only transformer for anonymizing PII
                 Text
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPiiText'
+        generateBusinessNameConfig:
+          allOf:
+            - title: generate_business_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.TransformerMapping:
@@ -8318,6 +8334,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
         - TRANSFORMER_SOURCE_GENERATE_COUNTRY
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
+        - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
     mgmt.v1alpha1.ActivityFailure:
       type: object
       properties:
@@ -8515,6 +8532,7 @@ components:
         maxInFlight:
           type: integer
           title: max_in_flight
+          minimum: 1
           description: >-
             The maximum number of batched messages to have in flight at a given
             time. Increase this to improve throughput.
@@ -9940,6 +9958,21 @@ components:
       description: MongoDB connection options for a job source
     mgmt.v1alpha1.MssqlDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -9962,6 +9995,18 @@ components:
           description: >-
             Insert all valid records, skipping any that violate foreign key
             constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: >-
+                Configure batching options to handle how much data is sent to
+                your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: MssqlDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlOnConflictConfig:
@@ -10051,6 +10096,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.MysqlDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -10069,6 +10129,18 @@ components:
           description: >-
             Insert all valid records, skipping any that violate foreign key
             constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: >-
+                Configure batching options to handle how much data is sent to
+                your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: MysqlDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MysqlOnConflictConfig:
@@ -10228,6 +10300,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresDestinationConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxInFlight
+            - not:
+                anyOf:
+                  - required:
+                      - maxInFlight
+      anyOf:
+        - required:
+            - maxInFlight
+        - not:
+            anyOf:
+              - required:
+                  - maxInFlight
       properties:
         truncateTable:
           allOf:
@@ -10246,6 +10333,18 @@ components:
           description: >-
             Insert all valid records, skipping any that violate foreign key
             constraints.
+        batch:
+          allOf:
+            - title: batch
+              description: >-
+                Configure batching options to handle how much data is sent to
+                your database at once.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+        maxInFlight:
+          type: integer
+          title: max_in_flight
+          minimum: 1
+          description: Determines the maximum number of parallel batched inserts.
       title: PostgresDestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.PostgresOnConflictConfig:
@@ -10258,10 +10357,26 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltOnNewColumnAddition
+            - not:
+                anyOf:
+                  - required:
+                      - haltOnNewColumnAddition
+      anyOf:
+        - required:
+            - haltOnNewColumnAddition
+        - not:
+            anyOf:
+              - required:
+                  - haltOnNewColumnAddition
       properties:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
+          description: '@deprecated - Use new_column_addition_strategy instead'
         schemas:
           type: array
           items:
@@ -10274,8 +10389,72 @@ components:
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+        newColumnAdditionStrategy:
+          allOf:
+            - title: new_column_addition_strategy
+              description: >-
+                Provide a strategy of what to do in the event Neosync encounters
+                an unmapped column for the job's mapped tables.
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy
       title: PostgresSourceConnectionOptions
       additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - title: halt_job
+              description: >-
+                halt job if a new column is detected. This is equiavlent to the
+                deprecated halt_on_new_column_addition
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: >-
+                automatically handle unmapped columns. It handles this by using
+                the DBs default/nullable values.
+                 If this doesn't exist, will fall back to configuring generators for supported datatypes.
+                 If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object
       properties:
@@ -11834,6 +12013,13 @@ components:
                 anyOf:
                   - required:
                       - reason
+        - anyOf:
+            - required:
+                - trialExpiresAt
+            - not:
+                anyOf:
+                  - required:
+                      - trialExpiresAt
       properties:
         isValid:
           type: boolean
@@ -11871,6 +12057,11 @@ components:
             - title: account_status
               description: The current status of the account. Default is valid.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountStatus'
+        trialExpiresAt:
+          allOf:
+            - title: trial_expires_at
+              description: The time when the trial expires
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
       title: IsAccountStatusValidResponse
       additionalProperties: false
     mgmt.v1alpha1.IsUserInAccountRequest:
