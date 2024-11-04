@@ -34,6 +34,8 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toJobSourcePostgresNewColumnAdditionStrategy,
+  toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { PartialMessage } from '@bufbuild/protobuf';
 import {
@@ -60,8 +62,6 @@ import {
   MssqlSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
-  PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
-  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -521,7 +521,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-8">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="sourceId"
@@ -776,25 +776,16 @@ function toJobSourceOptions(
 ): JobSourceOptions {
   switch (connection.connectionConfig?.config.case) {
     case 'pgConfig': {
-      let newColAddStrat =
-        new PostgresSourceConnectionOptions_NewColumnAdditionStrategy();
-      if (values.sourceOptions.postgres?.haltOnNewColumnAddition) {
-        newColAddStrat =
-          new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
-            strategy: {
-              case: 'haltJob',
-              value:
-                new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob(),
-            },
-          });
-      }
       return new JobSourceOptions({
         config: {
           case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
-            newColumnAdditionStrategy: newColAddStrat,
+            newColumnAdditionStrategy:
+              toJobSourcePostgresNewColumnAdditionStrategy(
+                values.sourceOptions.postgres?.newColumnAdditionStrategy
+              ),
           }),
         },
       });
@@ -1002,18 +993,14 @@ function getJobSource(
 
   switch (job?.source?.options?.config.case) {
     case 'postgres':
-      let halt = job.source.options.config.value.haltOnNewColumnAddition;
-      if (halt == null) {
-        halt =
-          job.source.options.config.value.newColumnAdditionStrategy?.strategy
-            .case === 'haltJob';
-      }
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition: halt,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
           },
         },
       };
@@ -1123,7 +1110,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
           },
         },
       };
