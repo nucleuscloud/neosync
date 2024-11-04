@@ -1088,7 +1088,6 @@ type AiGenerateSourceTableOption struct {
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
 	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
-		// HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
