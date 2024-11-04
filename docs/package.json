@@ -42,10 +42,10 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.5.2",
     "@docusaurus/types": "^3.5.2",
-    "@redocly/cli": "^1.25.9",
+    "@redocly/cli": "^1.25.11",
     "@tsconfig/docusaurus": "^2.0.3",
-    "cspell": "^8.15.4",
-    "knip": "^5.34.1",
+    "cspell": "^8.15.7",
+    "knip": "^5.36.2",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.1",
     "prettier": "^3.3.3",
