@@ -461,6 +461,8 @@ column_defaults AS (
         CASE
             WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
                 a.atttypmod - 4
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character(%' THEN
+                a.atttypmod - 4
             ELSE
                 -1
         END AS character_maximum_length,
@@ -655,6 +657,8 @@ column_defaults AS (
         CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
         CASE
             WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character(%' THEN
                 a.atttypmod - 4
             ELSE
                 -1

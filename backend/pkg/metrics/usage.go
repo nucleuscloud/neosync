@@ -156,8 +156,3 @@ func timeToDate(t time.Time) mgmtv1alpha1.Date {
 		Day:   uint32(t.Day()),   //nolint:gosec // Ignoring for now
 	}
 }
-
-// Formats the day into the Neosync Date Format of YYYY-DD-MM
-func formatDate(d *mgmtv1alpha1.Date) string {
-	return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Day)
-}

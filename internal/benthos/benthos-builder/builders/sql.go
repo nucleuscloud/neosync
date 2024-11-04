@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -82,6 +83,14 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings) {
 		return nil, errors.New(haltOnSchemaAdditionErrMsg)
 	}
+	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
+		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, splitKeyToTablePieces, logger)
+		if err != nil {
+			return nil, err
+		}
+		logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
+		job.Mappings = append(job.Mappings, extraMappings...)
+	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
 	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
@@ -123,6 +132,14 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 
 	return configs, nil
+}
+
+func splitKeyToTablePieces(key string) (schema, table string, err error) {
+	pieces := strings.SplitN(key, ".", 2)
+	if len(pieces) != 2 {
+		return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
+	}
+	return pieces[0], pieces[1], nil
 }
 
 func buildBenthosSqlSourceConfigResponses(

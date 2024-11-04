@@ -1,6 +1,7 @@
 package benthosbuilder_builders
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -13,16 +14,19 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 const (
-	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
-	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
-		"columns found in the source connection for the selected schemas and tables"
+	jobmappingSubsetErrMsg     = "unable to continue: job mappings contain schemas, tables, or columns that were not found in the source connection"
+	haltOnSchemaAdditionErrMsg = "unable to continue: HaltOnNewColumnAddition: job mappings are missing columns for the mapped tables found in the source connection"
 )
 
 type sqlJobSourceOpts struct {
-	HaltOnNewColumnAddition       bool
+	// Determines if the job should halt if a new column is detected that is not present in the job mappings
+	HaltOnNewColumnAddition bool
+	// Newly detected columns are automatically transformed
+	GenerateNewColumnTransformers bool
 	SubsetByForeignKeyConstraints bool
 	SchemaOpt                     []*schemaOptions
 }
@@ -45,6 +49,8 @@ type tableMapping struct {
 	Mappings []*mgmtv1alpha1.JobMapping
 }
 
+// Based on the source schema and the provided job mappings, the job mappings must be at least a subset of the source schema
+// Otherwise, the sync is doomed for failure
 func areMappingsSubsetOfSchemas(
 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
@@ -81,6 +87,7 @@ func areMappingsSubsetOfSchemas(
 	return true
 }
 
+// Builds a map of <schema.table>->column
 func getUniqueColMappingsMap(
 	mappings []*mgmtv1alpha1.JobMapping,
 ) map[string]map[string]struct{} {
@@ -98,6 +105,8 @@ func getUniqueColMappingsMap(
 	return tableColMappings
 }
 
+// Based on the source schema, we check each mapped table for newly added columns that are not present in the mappings,
+// but are present in the source. If so, halt because this means PII may be leaked.
 func shouldHaltOnSchemaAddition(
 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
@@ -487,8 +496,22 @@ func getSqlJobSourceOpts(
 				Tables: tableOpts,
 			})
 		}
+		shouldHalt := false
+		shouldGenerateNewColTransforms := false
+		switch jobSourceConfig.Postgres.GetNewColumnAdditionStrategy().GetStrategy().(type) {
+		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			shouldHalt = true
+		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+			shouldGenerateNewColTransforms = true
+		}
+		// deprecated fallback if no strategy has been defined
+		if !shouldHalt && !shouldGenerateNewColTransforms {
+			shouldHalt = jobSourceConfig.Postgres.GetHaltOnNewColumnAddition()
+		}
+
 		return &sqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Postgres.HaltOnNewColumnAddition,
+			HaltOnNewColumnAddition:       shouldHalt,
+			GenerateNewColumnTransformers: shouldGenerateNewColTransforms,
 			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil
@@ -650,4 +673,236 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 		return batchingConfig{}, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
 	}
 	return output, nil
+}
+
+// Based on the source schema and the provided mappings, we find the missing columns (if any) and generate job mappings for them automatically
+func getAdditionalJobMappings(
+	driver string,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	mappings []*mgmtv1alpha1.JobMapping,
+	getTableFromKey func(key string) (schema, table string, err error),
+	logger *slog.Logger,
+) ([]*mgmtv1alpha1.JobMapping, error) {
+	output := []*mgmtv1alpha1.JobMapping{}
+
+	tableColMappings := getUniqueColMappingsMap(mappings)
+
+	for schematable, cols := range groupedSchemas {
+		mappedCols, ok := tableColMappings[schematable]
+		if !ok {
+			// todo: we may want to generate mappings for this entire table? However this may be dead code as we get the grouped schemas based on the mappings
+			logger.Warn("table found in schema data that is not present in job mappings", "table", schematable)
+			continue
+		}
+		if len(cols) == len(mappedCols) {
+			continue
+		}
+		for col, info := range cols {
+			if _, ok := mappedCols[col]; !ok {
+				schema, table, err := getTableFromKey(schematable)
+				if err != nil {
+					return nil, err
+				}
+				// we found a column that is not present in the mappings, let's create a mapping for it
+				if info.ColumnDefault != "" || info.IdentityGeneration != nil || info.GeneratedType != nil {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+								},
+							},
+						},
+					})
+				} else if info.IsNullable {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+									Nullconfig: &mgmtv1alpha1.Null{},
+								},
+							},
+						},
+					})
+				} else {
+					switch driver {
+					case "postgres":
+						transformer, err := getJmTransformerByPostgresDataType(info)
+						if err != nil {
+							return nil, err
+						}
+						output = append(output, &mgmtv1alpha1.JobMapping{
+							Schema:      schema,
+							Table:       table,
+							Column:      col,
+							Transformer: transformer,
+						})
+					default:
+						logger.Warn("this driver is not currently supported for additional job mapping by data type")
+						return nil, fmt.Errorf("this driver %q does not currently support additional job mappings by data type. Please provide discrete job mappings for %q.%q.%q to continue: %w",
+							driver, info.TableSchema, info.TableName, info.ColumnName, errors.ErrUnsupported,
+						)
+					}
+				}
+			}
+		}
+	}
+
+	return output, nil
+}
+func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
+	cleanedDataType := cleanPostgresType(colInfo.DataType)
+	switch cleanedDataType {
+	case "smallint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(-32768)),
+						Max: shared.Ptr(int64(32767)),
+					},
+				},
+			},
+		}, nil
+	case "integer":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(-2147483648)),
+						Max: shared.Ptr(int64(2147483647)),
+					},
+				},
+			},
+		}, nil
+	case "bigint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(-9223372036854775808)),
+						Max: shared.Ptr(int64(9223372036854775807)),
+					},
+				},
+			},
+		}, nil
+	case "decimal", "numeric":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						Precision: precision, // todo: we need to expose scale...
+					},
+				},
+			},
+		}, nil
+	case "real", "double precision":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						Precision: precision,
+					},
+				},
+			},
+		}, nil
+
+	case "smallserial", "serial", "bigserial":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+					GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+				},
+			},
+		}, nil
+	case "money":
+		var precision *int64
+		if colInfo.NumericPrecision > 0 {
+			np := int64(colInfo.NumericPrecision)
+			precision = &np
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						// todo: to adequately support money, we need to know the scale which is set via the lc_monetary setting (but may be properly populated via our query..)
+						Precision: precision,
+						Min:       shared.Ptr(float64(-92233720368547758.08)),
+						Max:       shared.Ptr(float64(92233720368547758.07)),
+					},
+				},
+			},
+		}, nil
+	case "text", "bpchar", "character", "character varying": // todo: test to see if this works when (n) has been specified
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{}, // todo?
+				},
+			},
+		}, nil
+	// case "bytea": // todo https://www.postgresql.org/docs/current/datatype-binary.html
+	// case "date":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	// case "time without time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	// case "time with time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	// case "interval":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	// case "timestamp without time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	// case "timestamp with time zone":
+	// 	return &mgmtv1alpha1.JobMappingTransformer{}
+
+	case "boolean":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			},
+		}, nil
+	case "uuid":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{IncludeHyphens: shared.Ptr(true)},
+				},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
+			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
+		)
+	}
+}
+
+func cleanPostgresType(dataType string) string {
+	parenIndex := strings.Index(dataType, "(")
+	if parenIndex == -1 {
+		return dataType
+	}
+	return strings.TrimSpace(dataType[:parenIndex])
 }

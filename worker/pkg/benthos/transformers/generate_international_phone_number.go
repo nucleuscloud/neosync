@@ -3,7 +3,6 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -94,11 +93,4 @@ func generateInternationalPhoneNumber(randomizer rng.Rand, minValue, maxValue in
 	}
 
 	return fmt.Sprintf("+%d", val), nil
-}
-
-func validateE164(p string) bool {
-	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
-		return true
-	}
-	return false
 }

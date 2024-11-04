@@ -3907,6 +3907,10 @@ components:
       type: object
       title: GenerateBool
       additionalProperties: false
+    mgmt.v1alpha1.GenerateBusinessName:
+      type: object
+      title: GenerateBusinessName
+      additionalProperties: false
     mgmt.v1alpha1.GenerateCardNumber:
       type: object
       allOf:
@@ -4881,6 +4885,8 @@ components:
             - required:
                 - generateBoolConfig
             - required:
+                - generateBusinessNameConfig
+            - required:
                 - generateCardNumberConfig
             - required:
                 - generateCategoricalConfig
@@ -4971,6 +4977,8 @@ components:
                   - required:
                       - generateBoolConfig
                   - required:
+                      - generateBusinessNameConfig
+                  - required:
                       - generateCardNumberConfig
                   - required:
                       - generateCategoricalConfig
@@ -5059,6 +5067,8 @@ components:
       anyOf:
         - required:
             - generateBoolConfig
+        - required:
+            - generateBusinessNameConfig
         - required:
             - generateCardNumberConfig
         - required:
@@ -5149,6 +5159,8 @@ components:
             anyOf:
               - required:
                   - generateBoolConfig
+              - required:
+                  - generateBusinessNameConfig
               - required:
                   - generateCardNumberConfig
               - required:
@@ -5415,6 +5427,10 @@ components:
                 NeosyncCloud/Enterprise only transformer for anonymizing PII
                 Text
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPiiText'
+        generateBusinessNameConfig:
+          allOf:
+            - title: generate_business_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.TransformerMapping:
@@ -8318,6 +8334,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
         - TRANSFORMER_SOURCE_GENERATE_COUNTRY
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
+        - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
     mgmt.v1alpha1.ActivityFailure:
       type: object
       properties:
@@ -10340,10 +10357,26 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltOnNewColumnAddition
+            - not:
+                anyOf:
+                  - required:
+                      - haltOnNewColumnAddition
+      anyOf:
+        - required:
+            - haltOnNewColumnAddition
+        - not:
+            anyOf:
+              - required:
+                  - haltOnNewColumnAddition
       properties:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
+          description: '@deprecated - Use new_column_addition_strategy instead'
         schemas:
           type: array
           items:
@@ -10356,8 +10389,72 @@ components:
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+        newColumnAdditionStrategy:
+          allOf:
+            - title: new_column_addition_strategy
+              description: >-
+                Provide a strategy of what to do in the event Neosync encounters
+                an unmapped column for the job's mapped tables.
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy
       title: PostgresSourceConnectionOptions
       additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - title: halt_job
+              description: >-
+                halt job if a new column is detected. This is equiavlent to the
+                deprecated halt_on_new_column_addition
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: >-
+                automatically handle unmapped columns. It handles this by using
+                the DBs default/nullable values.
+                 If this doesn't exist, will fall back to configuring generators for supported datatypes.
+                 If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object
       properties:

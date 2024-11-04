@@ -34,7 +34,7 @@ func (c *tokenProviderClient) GetToken(ctx context.Context) (*auth_client.AuthTo
 	payload := strings.NewReader(
 		values.Encode(),
 	)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.tokenurl, payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.tokenurl, payload)
 	if err != nil {
 		return nil, fmt.Errorf("unable to request oauth authorization code: %w", err)
 	}
