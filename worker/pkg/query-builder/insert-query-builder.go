@@ -65,10 +65,14 @@ func GetInsertBuilder(
 	}
 }
 
+// InsertQueryBuilder provides an interface for building SQL insert queries across different database drivers.
 type InsertQueryBuilder interface {
-	BuildInsertQuery(rows [][]any) (string, []any, error)
+	// BuildInsertQuery generates a complete SQL insert statement for multiple rows of data.
+	BuildInsertQuery(rows [][]any) (query string, args []any, err error)
 
-	BuildPreparedInsertQuerySingleRow() (string, error)
+	// BuildPreparedInsertQuerySingleRow generates a prepared SQL insert statement for a single row.
+	BuildPreparedInsertQuerySingleRow() (query string, err error)
+	// BuildPreparedInsertArgs processes the input rows and returns properly formatted arguments for use with a prepared statement
 	BuildPreparedInsertArgs(rows [][]any) [][]any
 }
 

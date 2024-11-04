@@ -226,6 +226,7 @@ type WorkerBenthosConfig struct {
 func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
 ) (*BenthosConfigManager, error) {
+	rawInsertMode := false
 	provider := NewBuilderProvider(config.Logger)
 	err := provider.registerStandardBuilders(
 		config.Job,
@@ -237,7 +238,7 @@ func NewWorkerBenthosConfigManager(
 		config.RedisConfig,
 		nil,
 		config.SelectQueryBuilder,
-		false,
+		rawInsertMode,
 	)
 	if err != nil {
 		return nil, err
@@ -279,6 +280,7 @@ type CliBenthosConfig struct {
 func NewCliBenthosConfigManager(
 	config *CliBenthosConfig,
 ) (*BenthosConfigManager, error) {
+	rawInsertMode := true
 	destinationProvider := NewBuilderProvider(config.Logger)
 	err := destinationProvider.registerStandardBuilders(
 		config.Job,
@@ -290,7 +292,7 @@ func NewCliBenthosConfigManager(
 		config.RedisConfig,
 		config.PostgresDriverOverride,
 		nil,
-		true,
+		rawInsertMode,
 	)
 	if err != nil {
 		return nil, err
