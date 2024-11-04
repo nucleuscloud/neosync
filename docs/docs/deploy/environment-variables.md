@@ -4,7 +4,7 @@ description: A listing of the environment variables that Neosync uses to work lo
 id: env-vars
 hide_title: false
 slug: /deploy/environment-variables
-# cSpell:words PODCONFIG,APPNAME,LOKICONFIG,LABELSQUERY,KEEPLABELS
+# cSpell:words PODCONFIG,APPNAME,LOKICONFIG,LABELSQUERY,KEEPLABELS,NEXTAUTH
 ---
 
 ## Overview
