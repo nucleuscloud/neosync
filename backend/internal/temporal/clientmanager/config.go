@@ -1,7 +1,9 @@
 package clientmanager
 
 import (
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
@@ -46,4 +48,14 @@ func (c *TemporalConfig) ToDto() *mgmtv1alpha1.AccountTemporalConfig {
 		Namespace:        c.Namespace,
 		SyncJobQueueName: c.SyncJobQueueName,
 	}
+}
+
+func (c *TemporalConfig) Hash() string {
+	h := sha256.New()
+	h.Write([]byte(c.Url))
+	h.Write([]byte(c.Namespace))
+	h.Write([]byte(c.SyncJobQueueName))
+	// Note: We don't include TLSConfig in the hash as it's not easily comparable
+	// If TLS config changes, clients should be manually cleared
+	return hex.EncodeToString(h.Sum(nil))
 }

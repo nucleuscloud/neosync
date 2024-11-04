@@ -50,6 +50,7 @@ var _ Interface = (*ClientManager)(nil)
 type ClientManager struct {
 	configProvider ConfigProvider
 	clientFactory  ClientFactory
+	clientCache    *ClientCache
 }
 
 func NewClientManager(
@@ -59,7 +60,21 @@ func NewClientManager(
 	return &ClientManager{
 		configProvider: configProvider,
 		clientFactory:  clientFactory,
+		clientCache:    NewClientCache(),
 	}
+}
+
+func (m *ClientManager) getClients(ctx context.Context, accountId string, logger *slog.Logger) (*clientHandle, error) {
+	config, err := m.configProvider.GetConfig(ctx, accountId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temporal config: %w", err)
+	}
+
+	if config.Namespace == "" {
+		return nil, fmt.Errorf("temporal namespace not configured")
+	}
+
+	return m.clientCache.getOrCreateClient(ctx, config, m.clientFactory, logger)
 }
 
 func (m *ClientManager) DoesAccountHaveNamespace(
@@ -67,23 +82,13 @@ func (m *ClientManager) DoesAccountHaveNamespace(
 	accountID string,
 	logger *slog.Logger,
 ) (bool, error) {
-	config, err := m.configProvider.GetConfig(ctx, accountID)
+	clients, err := m.getClients(ctx, accountID, logger)
 	if err != nil {
-		return false, fmt.Errorf("failed to get temporal config: %w", err)
+		return false, err
 	}
+	defer clients.Release()
 
-	if config.Namespace == "" {
-		logger.Warn("temporal namespace not configured")
-		return false, nil
-	}
-
-	nsClient, err := m.createNamespaceClient(ctx, accountID, logger)
-	if err != nil {
-		return false, fmt.Errorf("failed to create namespace client: %w", err)
-	}
-	defer nsClient.Close()
-
-	_, err = nsClient.Describe(ctx, config.Namespace)
+	_, err = clients.NamespaceClient().Describe(ctx, clients.config.Namespace)
 	if err != nil {
 		if _, ok := err.(*serviceerror.NamespaceNotFound); ok {
 			logger.Warn("temporal namespace not found")
@@ -238,32 +243,28 @@ func (m *ClientManager) DeleteSchedule(
 	id string,
 	logger *slog.Logger,
 ) error {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
-	if err != nil {
-		return err
-	}
+	defer clients.Release()
 
 	logger.Debug(fmt.Sprintf("removing schedule %q workflow executions", id))
 	err = m.deleteWorkflows(
 		ctx,
-		wfclient,
-		namespace,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
 		func(ctx context.Context, namespace string) ([]*workflowpb.WorkflowExecutionInfo, error) {
-			return getWorfklowsByScheduleIds(ctx, wfclient, namespace, []string{id})
+			return getWorfklowsByScheduleIds(ctx, clients.WorkflowClient(), namespace, []string{id})
 		},
 	)
 	if err != nil {
 		return fmt.Errorf("unable to delete all workflows when removing schedule: %w", err)
 	}
 
-	svc := wfclient.WorkflowService()
+	svc := clients.WorkflowClient().WorkflowService()
 	logger.Debug(fmt.Sprintf("removing schedule %q", id))
-	_, err = svc.DeleteSchedule(ctx, &workflowservice.DeleteScheduleRequest{Namespace: namespace, ScheduleId: id})
+	_, err = svc.DeleteSchedule(ctx, &workflowservice.DeleteScheduleRequest{Namespace: clients.config.Namespace, ScheduleId: id})
 	if err != nil && isGrpcNotFoundError(err) {
 		logger.Debug("schedule was not found when issuing delete")
 		return nil
@@ -277,16 +278,13 @@ func (m *ClientManager) GetWorkflowExecutionsByScheduleIds(
 	scheduleIds []string,
 	logger *slog.Logger,
 ) ([]*workflowpb.WorkflowExecutionInfo, error) {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
-	if err != nil {
-		return nil, err
-	}
-	return getWorfklowsByScheduleIds(ctx, wfclient, namespace, scheduleIds)
+	defer clients.Release()
+
+	return getWorfklowsByScheduleIds(ctx, clients.WorkflowClient(), clients.config.Namespace, scheduleIds)
 }
 
 func (m *ClientManager) GetWorkflowExecutionById(
@@ -295,17 +293,13 @@ func (m *ClientManager) GetWorkflowExecutionById(
 	workflowId string,
 	logger *slog.Logger,
 ) (*workflowpb.WorkflowExecutionInfo, error) {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
-	if err != nil {
-		return nil, err
-	}
+	defer clients.Release()
 
-	return getLatestWorfkow(ctx, wfclient, namespace, workflowId)
+	return getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 }
 
 func getLatestWorfkow(
@@ -335,20 +329,17 @@ func (m *ClientManager) DescribeWorklowExecution(
 	workflowId string,
 	logger *slog.Logger,
 ) (*workflowservice.DescribeWorkflowExecutionResponse, error) {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
+	defer clients.Release()
+
+	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return nil, err
 	}
-	wf, err := getLatestWorfkow(ctx, wfclient, namespace, workflowId)
-	if err != nil {
-		return nil, err
-	}
-	return wfclient.DescribeWorkflowExecution(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
+	return clients.WorkflowClient().DescribeWorkflowExecution(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
 }
 
 func (m *ClientManager) DeleteWorkflowExecution(
@@ -357,23 +348,19 @@ func (m *ClientManager) DeleteWorkflowExecution(
 	workflowId string,
 	logger *slog.Logger,
 ) error {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
-	if err != nil {
-		return err
-	}
+	defer clients.Release()
 
 	err = m.deleteWorkflows(
 		ctx,
-		wfclient,
-		namespace,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
 		func(ctx context.Context, namespace string) ([]*workflowpb.WorkflowExecutionInfo, error) {
 			// todo: should technically paginate this, but the amount of workflows + unique run ids should be only ever 1
-			resp, err := wfclient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+			resp, err := clients.WorkflowClient().ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
 				Namespace: namespace,
 				Query:     fmt.Sprintf("WorkflowId = %q", workflowId),
 			})
@@ -424,20 +411,17 @@ func (m *ClientManager) CancelWorkflow(
 	workflowId string,
 	logger *slog.Logger,
 ) error {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
+	defer clients.Release()
+
+	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return err
 	}
-	wf, err := getLatestWorfkow(ctx, wfclient, namespace, workflowId)
-	if err != nil {
-		return err
-	}
-	return wfclient.CancelWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
+	return clients.WorkflowClient().CancelWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
 }
 
 func (m *ClientManager) TerminateWorkflow(
@@ -446,20 +430,17 @@ func (m *ClientManager) TerminateWorkflow(
 	workflowId string,
 	logger *slog.Logger,
 ) error {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
+	defer clients.Release()
+
+	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return err
 	}
-	wf, err := getLatestWorfkow(ctx, wfclient, namespace, workflowId)
-	if err != nil {
-		return err
-	}
-	return wfclient.TerminateWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId(), "terminated by user")
+	return clients.WorkflowClient().TerminateWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId(), "terminated by user")
 }
 
 func (m *ClientManager) GetWorkflowHistory(
@@ -468,20 +449,17 @@ func (m *ClientManager) GetWorkflowHistory(
 	workflowId string,
 	logger *slog.Logger,
 ) (temporalclient.HistoryEventIterator, error) {
-	wfclient, err := m.createWorkflowClient(ctx, accountId, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
-	defer wfclient.Close()
-	namespace, err := m.getNamespace(ctx, accountId)
+	defer clients.Release()
+
+	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return nil, err
 	}
-	wf, err := getLatestWorfkow(ctx, wfclient, namespace, workflowId)
-	if err != nil {
-		return nil, err
-	}
-	return wfclient.GetWorkflowHistory(
+	return clients.WorkflowClient().GetWorkflowHistory(
 		ctx,
 		wf.GetExecution().GetWorkflowId(),
 		wf.GetExecution().GetRunId(),
@@ -529,33 +507,17 @@ func getScheduleIdsForQuery(scheduleIds []string) string {
 
 func (m *ClientManager) createScheduleClient(
 	ctx context.Context,
-	accountID string,
+	accountId string,
 	logger *slog.Logger,
 ) (temporalclient.ScheduleClient, func(), error) {
-	wfclient, err := m.createWorkflowClient(ctx, accountID, logger)
+	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	return wfclient.ScheduleClient(), func() {
-		wfclient.Close()
+
+	return clients.WorkflowClient().ScheduleClient(), func() {
+		clients.WorkflowClient().Close()
 	}, nil
-}
-
-func (m *ClientManager) createWorkflowClient(
-	ctx context.Context,
-	accountID string,
-	logger *slog.Logger,
-) (temporalclient.Client, error) {
-	config, err := m.configProvider.GetConfig(ctx, accountID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get temporal config: %w", err)
-	}
-
-	if config.Namespace == "" {
-		return nil, errors.New("temporal namespace not configured")
-	}
-
-	return m.clientFactory.CreateWorkflowClient(ctx, config, logger)
 }
 
 func (m *ClientManager) getNamespace(
@@ -571,23 +533,6 @@ func (m *ClientManager) getNamespace(
 		return "", errors.New("temporal namespace not configured")
 	}
 	return config.Namespace, nil
-}
-
-func (m *ClientManager) createNamespaceClient(
-	ctx context.Context,
-	accountID string,
-	logger *slog.Logger,
-) (temporalclient.NamespaceClient, error) {
-	config, err := m.configProvider.GetConfig(ctx, accountID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get temporal config: %w", err)
-	}
-
-	if config.Namespace == "" {
-		return nil, errors.New("temporal namespace not configured")
-	}
-
-	return m.clientFactory.CreateNamespaceClient(ctx, config, logger)
 }
 
 func isGrpcNotFoundError(err error) bool {
