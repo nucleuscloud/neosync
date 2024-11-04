@@ -317,9 +317,6 @@ func (s *Service) GetConnectionDataStream(
 								byteValue = nil
 							}
 						}
-						if tableName == "neosync.json_data" {
-							fmt.Printf("col: %s  val: %s \n", key, string(byteValue))
-						}
 						rowMap[key] = byteValue
 					}
 					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: rowMap}); err != nil {

@@ -106,18 +106,21 @@ func toBit(v bool) int {
 
 func FilterOutSqlServerDefaultIdentityColumns(
 	driver string,
-	defaultIdentityCols, columnNames []string,
+	columnNames []string,
 	argRows [][]any,
 	colDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
 ) (columns []string, rows [][]any, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) {
-	if len(defaultIdentityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
-		return columnNames, argRows, columnDefaultProperties
-	}
-
 	// build map of identity columns
 	defaultIdentityColMap := map[string]bool{}
-	for _, id := range defaultIdentityCols {
-		defaultIdentityColMap[id] = true
+	for idx, d := range colDefaultProperties {
+		cName := columnNames[idx]
+		if d != nil && d.HasDefaultTransformer && d.NeedsOverride && d.NeedsReset {
+			defaultIdentityColMap[cName] = true
+		}
+	}
+
+	if driver != sqlmanager_shared.MssqlDriver || len(defaultIdentityColMap) == 0 {
+		return columnNames, argRows, colDefaultProperties
 	}
 
 	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns

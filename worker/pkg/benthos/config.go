@@ -403,6 +403,7 @@ type PooledSqlInsert struct {
 	OnConflictDoNothing      bool                                `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
 	TruncateOnRetry          bool                                `json:"truncate_on_retry" yaml:"truncate_on_retry"`
 	SkipForeignKeyViolations bool                                `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
+	RawInsertMode            bool                                `json:"raw_insert_mode" yaml:"raw_insert_mode"`
 	ArgsMapping              string                              `json:"args_mapping" yaml:"args_mapping"`
 	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`

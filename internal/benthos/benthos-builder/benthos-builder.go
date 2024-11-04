@@ -103,12 +103,18 @@ func (b *BuilderProvider) registerStandardBuilders(
 	redisConfig *shared.RedisConfig,
 	postgresDriverOverride *string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	rawSqlInsertMode bool,
 ) error {
 	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
 	jobType := bb_internal.GetJobType(job)
 	connectionTypes := []bb_internal.ConnectionType{sourceConnectionType}
 	for _, dest := range destinationConnections {
 		connectionTypes = append(connectionTypes, bb_internal.GetConnectionType(dest))
+	}
+
+	sqlSyncOptions := []bb_conns.SqlSyncOption{}
+	if rawSqlInsertMode {
+		sqlSyncOptions = append(sqlSyncOptions, bb_conns.WithRawInsertMode())
 	}
 
 	if jobType == bb_internal.JobTypeSync {
@@ -119,13 +125,13 @@ func (b *BuilderProvider) registerStandardBuilders(
 				if postgresDriverOverride != nil && *postgresDriverOverride != "" {
 					driver = *postgresDriverOverride
 				}
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver, selectQueryBuilder, sqlSyncOptions...)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeMysql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder, sqlSyncOptions...)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder, sqlSyncOptions...)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeAwsS3:
 				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
@@ -231,6 +237,7 @@ func NewWorkerBenthosConfigManager(
 		config.RedisConfig,
 		nil,
 		config.SelectQueryBuilder,
+		false,
 	)
 	if err != nil {
 		return nil, err
@@ -283,6 +290,7 @@ func NewCliBenthosConfigManager(
 		config.RedisConfig,
 		config.PostgresDriverOverride,
 		nil,
+		true,
 	)
 	if err != nil {
 		return nil, err

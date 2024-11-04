@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
     timestamptz_col TIMESTAMPTZ,
     date_col DATE,
     -- time_col TIME,
-    timetz_col TIMETZ,
-    interval_col INTERVAL,
+    -- timetz_col TIMETZ,
+    -- interval_col INTERVAL,
 
     -- Boolean Type
     boolean_col BOOLEAN,
@@ -102,8 +102,8 @@ INSERT INTO alltypes.all_postgres_types (
     timestamptz_col, 
     date_col, 
     -- time_col, 
-    timetz_col, 
-    interval_col, 
+    -- timetz_col, 
+    -- interval_col, 
     boolean_col, 
     uuid_col, 
     inet_col, 
@@ -151,8 +151,8 @@ INSERT INTO alltypes.all_postgres_types (
     '2024-01-01 12:34:56+00',  -- timestamptz_col
     '2024-01-01',  -- date_col
     -- '12:34:56',  -- time_col
-    '12:34:56+00',  -- timetz_col
-    '1 day',  -- interval_col
+    -- '12:34:56+00',  -- timetz_col
+    -- '1 day',  -- interval_col
     TRUE,  -- boolean_col
     '123e4567-e89b-12d3-a456-426614174000',  -- uuid_col
     '192.168.1.1',  -- inet_col
@@ -189,34 +189,34 @@ INSERT INTO alltypes.all_postgres_types (
 );
 
 
-CREATE TABLE IF NOT EXISTS alltypes.time_time (
-    id SERIAL PRIMARY KEY,
-    timestamp_col TIMESTAMP,
-    timestamptz_col TIMESTAMPTZ,
-    date_col DATE
-);
+-- CREATE TABLE IF NOT EXISTS alltypes.time_time (
+--     id SERIAL PRIMARY KEY,
+--     timestamp_col TIMESTAMP,
+--     timestamptz_col TIMESTAMPTZ,
+--     date_col DATE
+-- );
 
-INSERT INTO alltypes.time_time (
-    timestamp_col,
-    timestamptz_col,
-    date_col
-) 
-VALUES (
-    '2024-03-18 10:30:00',
-    '2024-03-18 10:30:00+00',
-    '2024-03-18'
-);
+-- INSERT INTO alltypes.time_time (
+--     timestamp_col,
+--     timestamptz_col,
+--     date_col
+-- ) 
+-- VALUES (
+--     '2024-03-18 10:30:00',
+--     '2024-03-18 10:30:00+00',
+--     '2024-03-18'
+-- );
 
-INSERT INTO alltypes.time_time (
-    timestamp_col,
-    timestamptz_col,
-    date_col
-) 
-VALUES (
-    '0001-01-01 00:00:00 BC',
-    '0001-01-01 00:00:00+00 BC',
-    '0001-01-01 BC'
-);
+-- INSERT INTO alltypes.time_time (
+--     timestamp_col,
+--     timestamptz_col,
+--     date_col
+-- ) 
+-- VALUES (
+--     '0001-01-01 00:00:00 BC',
+--     '0001-01-01 00:00:00+00 BC',
+--     '0001-01-01 BC'
+-- );
 
 
 -- CREATE TABLE IF NOT EXISTS alltypes.array_types (

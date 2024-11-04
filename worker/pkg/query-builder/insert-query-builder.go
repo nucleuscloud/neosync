@@ -109,12 +109,14 @@ func WithOnConflictDoNothing() InsertOption {
 	}
 }
 
+// WithColumnDataTypes adds column datatypes
 func WithColumnDataTypes(types []string) InsertOption {
 	return func(opts *InsertOptions) {
 		opts.columnDataTypes = types
 	}
 }
 
+// WithColumnDefaults adds ColumnDefaultProperties
 func WithColumnDefaults(defaults []*neosync_benthos.ColumnDefaultProperties) InsertOption {
 	return func(opts *InsertOptions) {
 		opts.columnDefaults = defaults
@@ -132,7 +134,7 @@ type PostgresDriver struct {
 func (d *PostgresDriver) BuildInsertQuery(rows [][]any) (query string, queryargs []any, err error) {
 	var goquRows []exp.Vals
 	if d.options.rawInsertMode {
-		goquRows = toGoquVals(rows)
+		goquRows = toGoquVals(updateDefaultVals(rows, d.options.columnDefaults))
 	} else {
 		goquRows = toGoquVals(getPostgresVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults))
 	}
@@ -228,7 +230,7 @@ type MysqlDriver struct {
 func (d *MysqlDriver) BuildInsertQuery(rows [][]any) (query string, queryargs []any, err error) {
 	var goquRows []exp.Vals
 	if d.options.rawInsertMode {
-		goquRows = toGoquVals(rows)
+		goquRows = toGoquVals(updateDefaultVals(rows, d.options.columnDefaults))
 	} else {
 		goquRows = toGoquVals(getMysqlVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults))
 	}
@@ -364,7 +366,6 @@ func getMssqlVals(logger *slog.Logger, rows [][]any, columnDefaultProperties []*
 	for _, row := range rows {
 		newRow := []any{}
 		for idx, a := range row {
-			fmt.Println("a", a)
 			var colDefaults *neosync_benthos.ColumnDefaultProperties
 			if idx < len(columnDefaultProperties) {
 				colDefaults = columnDefaultProperties[idx]
@@ -380,12 +381,10 @@ func getMssqlVals(logger *slog.Logger, rows [][]any, columnDefaultProperties []*
 					newRow = append(newRow, bits)
 				}
 			} else {
-				fmt.Println("aa", a)
 				newRow = append(newRow, a)
 			}
 		}
 
-		fmt.Println("newRow", newRow)
 		newVals = append(newVals, newRow)
 	}
 	return newVals
@@ -396,15 +395,8 @@ func (d *MssqlDriver) filterOutDefaultIdentityColumns(
 	dataRows [][]any,
 	colDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
 ) (columns []string, rows [][]any, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) {
-	defaultIdentityCols := []string{}
-	for idx, d := range colDefaultProperties {
-		cName := columnsNames[idx]
-		if d != nil && d.HasDefaultTransformer && d.NeedsOverride && d.NeedsReset {
-			defaultIdentityCols = append(defaultIdentityCols, cName)
-		}
-	}
 	newDataRows := sqlserverutil.GoTypeToSqlServerType(dataRows)
-	return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(d.driver, defaultIdentityCols, columnsNames, newDataRows, colDefaultProperties)
+	return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(d.driver, columnsNames, newDataRows, colDefaultProperties)
 }
 
 func addPrefix(insertQuery, prefix string) string {
@@ -425,4 +417,24 @@ func toGoquVals(rows [][]any) []goqu.Vals {
 		gvals = append(gvals, gval)
 	}
 	return gvals
+}
+
+func updateDefaultVals(rows [][]any, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) [][]any {
+	newVals := [][]any{}
+	for _, row := range rows {
+		newRow := []any{}
+		for i, a := range row {
+			var colDefaults *neosync_benthos.ColumnDefaultProperties
+			if i < len(columnDefaultProperties) {
+				colDefaults = columnDefaultProperties[i]
+			}
+			if colDefaults != nil && colDefaults.HasDefaultTransformer {
+				newRow = append(newRow, goqu.Literal(defaultStr))
+			} else {
+				newRow = append(newRow, a)
+			}
+		}
+		newVals = append(newVals, newRow)
+	}
+	return newVals
 }

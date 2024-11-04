@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/nucleuscloud/neosync/internal/sqlscanners"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -71,6 +72,10 @@ func transform(root any) any {
 		return newSlice
 	case time.Time:
 		return v.Format(time.DateTime)
+	case []uint8:
+		return string(v)
+	case *sqlscanners.BitString:
+		return v.String()
 	default:
 		return v
 	}

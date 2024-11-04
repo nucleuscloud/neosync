@@ -30,6 +30,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
+		Field(service.NewBoolField("raw_insert_mode").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
@@ -80,6 +81,7 @@ type pooledInsertOutput struct {
 	columnDefaultProperties  map[string]*neosync_benthos.ColumnDefaultProperties
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
+	rawInsertMode            bool
 	truncateOnRetry          bool
 	prefix                   *string
 	suffix                   *string
@@ -156,6 +158,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	rawInsertMode, err := conf.FieldBool("raw_insert_mode")
+	if err != nil {
+		return nil, err
+	}
+
 	truncateOnRetry, err := conf.FieldBool("truncate_on_retry")
 	if err != nil {
 		return nil, err
@@ -218,6 +225,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		columnDefaultProperties:  columnDefaultProperties,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
+		rawInsertMode:            rawInsertMode,
 		truncateOnRetry:          truncateOnRetry,
 		prefix:                   prefix,
 		suffix:                   suffix,
@@ -324,6 +332,9 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if s.onConflictDoNothing {
 		options = append(options, querybuilder.WithOnConflictDoNothing())
 	}
+	if s.rawInsertMode {
+		options = append(options, querybuilder.WithRawInsertMode())
+	}
 	builder, err := querybuilder.GetInsertBuilder(
 		s.slogger,
 		s.driver,
@@ -340,11 +351,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return err
 	}
-	fmt.Println()
-	fmt.Println(insertQuery)
-	fmt.Println()
-	fmt.Println(args)
-	fmt.Println()
+
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := isDeadlockError(err) || (s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()))
 		if !shouldRetry {

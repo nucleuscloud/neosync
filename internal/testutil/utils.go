@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"testing"
@@ -37,7 +36,7 @@ func (tw testWriter) Write(p []byte) (n int, err error) {
 }
 
 func GetTestCharmSlogger() *slog.Logger {
-	charmlogger := charmlog.NewWithOptions(io.Discard, charmlog.Options{
+	charmlogger := charmlog.NewWithOptions(os.Stdout, charmlog.Options{
 		Level: charmlog.DebugLevel,
 	})
 	return slog.New(charmlogger)
