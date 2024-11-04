@@ -2,7 +2,6 @@ package clientmanager
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -518,21 +517,6 @@ func (m *ClientManager) createScheduleClient(
 	return clients.WorkflowClient().ScheduleClient(), func() {
 		clients.WorkflowClient().Close()
 	}, nil
-}
-
-func (m *ClientManager) getNamespace(
-	ctx context.Context,
-	accountId string,
-) (string, error) {
-	config, err := m.configProvider.GetConfig(ctx, accountId)
-	if err != nil {
-		return "", fmt.Errorf("failed to get temporal config: %w", err)
-	}
-
-	if config.Namespace == "" {
-		return "", errors.New("temporal namespace not configured")
-	}
-	return config.Namespace, nil
 }
 
 func isGrpcNotFoundError(err error) bool {
