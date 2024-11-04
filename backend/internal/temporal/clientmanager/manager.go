@@ -298,10 +298,10 @@ func (m *ClientManager) GetWorkflowExecutionById(
 	}
 	defer clients.Release()
 
-	return getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	return getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 }
 
-func getLatestWorfkow(
+func getLatestWorkflow(
 	ctx context.Context,
 	client temporalclient.Client,
 	namespace string,
@@ -334,7 +334,7 @@ func (m *ClientManager) DescribeWorklowExecution(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +416,7 @@ func (m *ClientManager) CancelWorkflow(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return err
 	}
@@ -435,7 +435,7 @@ func (m *ClientManager) TerminateWorkflow(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return err
 	}
@@ -454,7 +454,7 @@ func (m *ClientManager) GetWorkflowHistory(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorfkow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
 	if err != nil {
 		return nil, err
 	}
