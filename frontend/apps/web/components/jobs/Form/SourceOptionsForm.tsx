@@ -6,6 +6,7 @@ import { SourceOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import DynamoDBSourceOptionsForm from './DynamoDBSourceOptionsForm';
+import PostgresDBSourceOptionsForm from './PostgresDBSourceOptionsForm';
 
 interface SourceOptionsProps {
   connection?: Connection;
@@ -29,23 +30,17 @@ export default function SourceOptionsForm(
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       return (
-        <div className="flex flex-col gap-2">
-          <div>
-            <SwitchCard
-              isChecked={value.postgres?.haltOnNewColumnAddition ?? false}
-              onCheckedChange={(checked) => {
-                setValue({
-                  postgres: {
-                    ...(value.postgres ?? { haltOnNewColumnAddition: false }),
-                    haltOnNewColumnAddition: checked,
-                  },
-                });
-              }}
-              title="Halt Job on new column addition"
-              description="Stops job runs if new column is detected"
-            />
-          </div>
-        </div>
+        <PostgresDBSourceOptionsForm
+          value={value.postgres ?? { newColumnAdditionStrategy: 'continue' }}
+          setValue={(newval) => {
+            setValue({
+              postgres: {
+                ...(value.postgres ?? {}),
+                ...newval,
+              },
+            });
+          }}
+        />
       );
     case 'mysqlConfig':
       return (

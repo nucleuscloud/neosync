@@ -1,5 +1,11 @@
 import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
-import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
+import {
+  JobMappingTransformer,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob,
+  TransformerConfig,
+} from '@neosync/sdk';
 import * as Yup from 'yup';
 import { getDurationValidateFn } from './number';
 
@@ -86,9 +92,18 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-const PostgresSourceOptionsFormValues = Yup.object({
-  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+
+export const PostgresSourceOptionsFormValues = Yup.object({
+  newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
+    .oneOf(['continue', 'halt', 'automap'])
+    .optional()
+    .default('continue'),
 });
+export type PostgresSourceOptionsFormValues = Yup.InferType<
+  typeof PostgresSourceOptionsFormValues
+>;
+
 const MysqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
 });
@@ -303,3 +318,49 @@ export const DefaultTransformerFormValues = Yup.object({
 export type DefaultTransformerFormValues = Yup.InferType<
   typeof DefaultTransformerFormValues
 >;
+
+export function toJobSourcePostgresNewColumnAdditionStrategy(
+  strategy?: NewColumnAdditionStrategy
+): PostgresSourceConnectionOptions_NewColumnAdditionStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return undefined;
+    }
+    case 'automap': {
+      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
+        strategy: {
+          case: 'autoMap',
+          value:
+            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap(),
+        },
+      });
+    }
+    case 'halt': {
+      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
+        strategy: {
+          case: 'haltJob',
+          value:
+            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob(),
+        },
+      });
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+export function toNewColumnAdditionStrategy(
+  input: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | undefined
+): NewColumnAdditionStrategy {
+  switch (input?.strategy.case) {
+    case 'haltJob': {
+      return 'halt';
+    }
+    case 'autoMap': {
+      return 'automap';
+    }
+    default: {
+      return 'continue';
+    }
+  }
+}
