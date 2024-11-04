@@ -1024,6 +1024,25 @@ components:
         - GENERATE_EMAIL_TYPE_UNSPECIFIED
         - GENERATE_EMAIL_TYPE_UUID_V4
         - GENERATE_EMAIL_TYPE_FULLNAME
+    mgmt.v1alpha1.GenerateIpAddressClass:
+      type: string
+      title: GenerateIpAddressClass
+      enum:
+        - GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_CLASS_PUBLIC
+        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_A
+        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_B
+        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_C
+        - GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL
+        - GENERATE_IP_ADDRESS_CLASS_MULTICAST
+        - GENERATE_IP_ADDRESS_CLASS_LOOPBACK
+    mgmt.v1alpha1.GenerateIpAddressVersion:
+      type: string
+      title: GenerateIpAddressVersion
+      enum:
+        - GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_VERSION_V4
+        - GENERATE_IP_ADDRESS_VERSION_V6
     mgmt.v1alpha1.InvalidEmailAction:
       type: string
       title: InvalidEmailAction
@@ -1133,6 +1152,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_COUNTRY
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
+        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -2070,6 +2090,34 @@ components:
     mgmt.v1alpha1.GenerateInt64PhoneNumber:
       type: object
       title: GenerateInt64PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateIpAddress:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - class
+            - not:
+                anyOf:
+                  - required:
+                      - class
+        - anyOf:
+            - required:
+                - version
+            - not:
+                anyOf:
+                  - required:
+                      - version
+      properties:
+        version:
+          allOf:
+            - title: version
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressVersion'
+        class:
+          allOf:
+            - title: class
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressClass'
+      title: GenerateIpAddress
       additionalProperties: false
     mgmt.v1alpha1.GenerateJavascript:
       type: object
@@ -4406,6 +4454,8 @@ components:
             - required:
                 - generateInt64PhoneNumberConfig
             - required:
+                - generateIpAddressConfig
+            - required:
                 - generateJavascriptConfig
             - required:
                 - generateLastNameConfig
@@ -4498,6 +4548,8 @@ components:
                   - required:
                       - generateInt64PhoneNumberConfig
                   - required:
+                      - generateIpAddressConfig
+                  - required:
                       - generateJavascriptConfig
                   - required:
                       - generateLastNameConfig
@@ -4588,6 +4640,8 @@ components:
             - generateInt64Config
         - required:
             - generateInt64PhoneNumberConfig
+        - required:
+            - generateIpAddressConfig
         - required:
             - generateJavascriptConfig
         - required:
@@ -4680,6 +4734,8 @@ components:
                   - generateInt64Config
               - required:
                   - generateInt64PhoneNumberConfig
+              - required:
+                  - generateIpAddressConfig
               - required:
                   - generateJavascriptConfig
               - required:
@@ -4920,6 +4976,10 @@ components:
           allOf:
             - title: generate_business_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
+        generateIpAddressConfig:
+          allOf:
+            - title: generate_ip_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobDestinationConnectionRequest:

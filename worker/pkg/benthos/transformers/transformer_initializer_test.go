@@ -1641,6 +1641,40 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateIpAddressConfig_Empty", func(t *testing.T) {
+
+		version := mgmtv1alpha1.GenerateIpAddressVersion_GENERATE_IP_ADDRESS_VERSION_V4
+		class := mgmtv1alpha1.GenerateIpAddressClass_GENERATE_IP_ADDRESS_CLASS_PUBLIC
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+					Class:   &class,
+					Version: &version,
+				},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateIpAddressConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("UnsupportedConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: nil,

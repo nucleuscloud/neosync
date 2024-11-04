@@ -33,6 +33,77 @@
           ]
         },
         {
+          "name": "GenerateIpAddressClass",
+          "longName": "GenerateIpAddressClass",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddressClass",
+          "description": "",
+          "values": [
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to public"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_PUBLIC",
+              "number": "1",
+              "description": "Generates a random ipv4 public address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A",
+              "number": "2",
+              "description": "Generates a random ipv4 private-a ip address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B",
+              "number": "3",
+              "description": "Generates a random ipv4 private-b ip address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_C",
+              "number": "4",
+              "description": "Generates a random ipv4 private-c ip address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL",
+              "number": "5",
+              "description": "Generates a random ipv4 link-local ip address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_MULTICAST",
+              "number": "6",
+              "description": "Generates a random ipv4 multicast ip address"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_CLASS_LOOPBACK",
+              "number": "7",
+              "description": "Generates a random ipv4 loopback address"
+            }
+          ]
+        },
+        {
+          "name": "GenerateIpAddressVersion",
+          "longName": "GenerateIpAddressVersion",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddressVersion",
+          "description": "",
+          "values": [
+            {
+              "name": "GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to ipv4"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_VERSION_V4",
+              "number": "1",
+              "description": "Generates a random ipv4"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_VERSION_V6",
+              "number": "2",
+              "description": "Generates a random ipv6"
+            }
+          ]
+        },
+        {
           "name": "InvalidEmailAction",
           "longName": "InvalidEmailAction",
           "fullName": "mgmt.v1alpha1.InvalidEmailAction",
@@ -413,6 +484,11 @@
             {
               "name": "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME",
               "number": "48",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS",
+              "number": "49",
               "description": ""
             }
           ]
@@ -914,6 +990,42 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GenerateIpAddress",
+          "longName": "GenerateIpAddress",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddress",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "version",
+              "description": "",
+              "label": "optional",
+              "type": "GenerateIpAddressVersion",
+              "longType": "GenerateIpAddressVersion",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddressVersion",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_version",
+              "defaultValue": ""
+            },
+            {
+              "name": "class",
+              "description": "",
+              "label": "optional",
+              "type": "GenerateIpAddressClass",
+              "longType": "GenerateIpAddressClass",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddressClass",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_class",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateJavascript",
@@ -2732,6 +2844,18 @@
               "type": "GenerateBusinessName",
               "longType": "GenerateBusinessName",
               "fullType": "mgmt.v1alpha1.GenerateBusinessName",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_ip_address_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateIpAddress",
+              "longType": "GenerateIpAddress",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddress",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

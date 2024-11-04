@@ -53,6 +53,7 @@ type TransformerConfig struct {
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 	GenerateCountry            *GenerateCountryConfig           `json:"generateCountryConfig,omitempty"`
 	GenerateBusinessName       *GenerateBusinessNameConfig      `json:"generateBusinessNameConfig,omitempty"`
+	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
 }
 
 type GenerateEmailConfig struct {
@@ -206,6 +207,11 @@ type GenerateCountryConfig struct {
 }
 
 type GenerateBusinessNameConfig struct{}
+
+type GenerateIpAddressConfig struct {
+	Version *int32 `json:"version,omitempty"`
+	Class   *int32 `json:"class,omitempty"`
+}
 
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 	if tr == nil {
@@ -379,6 +385,11 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
 		t.GenerateBusinessName = &GenerateBusinessNameConfig{}
+	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
+		t.GenerateIpAddress = &GenerateIpAddressConfig{
+			Class:   (*int32)(tr.GetGenerateIpAddressConfig().Class),
+			Version: (*int32)(tr.GetGenerateIpAddressConfig().Version),
+		}
 	default:
 		t = &TransformerConfig{}
 	}
@@ -723,6 +734,15 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
 				GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
+			},
+		}
+	case t.GenerateIpAddress != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+					Class:   (*mgmtv1alpha1.GenerateIpAddressClass)(t.GenerateIpAddress.Class),
+					Version: (*mgmtv1alpha1.GenerateIpAddressVersion)(t.GenerateIpAddress.Version),
+				},
 			},
 		}
 	default:

@@ -920,6 +920,39 @@ const newValue = neosync.generateInternationalPhoneNumber({
 
 
 <!--
+source: generate_ip_address.go
+-->
+
+### generateIpAddress
+
+Generates IPv4 or IPv6 addresses with support for different network classes.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| version | string | string(IpVersion_V4) | false | IP version to generate: 'ipv4' or 'ipv6'
+| class | string | string(IpV4Class_Public) | false | IP class: 'public', 'private', 'home', 'business', 'link_local', 'multicast', 'loopback'
+| seed | int64 |  | false | Optional seed for deterministic generation
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateIpAddress({ 
+	version: string(IpVersion_V4), 
+	class: string(IpV4Class_Public), 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
 source: generate_last_name.go
 -->
 

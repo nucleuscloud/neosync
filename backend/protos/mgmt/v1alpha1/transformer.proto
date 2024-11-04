@@ -139,6 +139,7 @@ enum TransformerSource {
   // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
   TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
   TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
+  TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
 }
 
 enum TransformerDataType {
@@ -219,6 +220,7 @@ message TransformerConfig {
     // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
     TransformPiiText transform_pii_text_config = 44;
     GenerateBusinessName generate_business_name_config = 45;
+    GenerateIpAddress generate_ip_address_config = 46;
   }
 }
 
@@ -293,7 +295,7 @@ message PiiAnonymizer {
       HASH_TYPE_UNSPECIFIED = 0;
       // The MD5 Hash Algorithm
       HASH_TYPE_MD5 = 1;
-      // The SHA256 Hash Algorithm
+    // The SHA256 Hash Algorithm
       HASH_TYPE_SHA256 = 2;
       // The SHA512 Hash Algorithm
       HASH_TYPE_SHA512 = 3;
@@ -514,6 +516,39 @@ message GetTransformPiiEntitiesResponse {
 }
 
 message GenerateBusinessName {}
+
+enum GenerateIpAddressVersion {
+  // Unspecified defaults to ipv4
+  GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED = 0;
+  // Generates a random ipv4
+  GENERATE_IP_ADDRESS_VERSION_V4 = 1;
+  // Generates a random ipv6
+  GENERATE_IP_ADDRESS_VERSION_V6 = 2;
+}
+
+enum GenerateIpAddressClass {
+  // Unspecified defaults to public
+  GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED = 0;
+  // Generates a random ipv4 public address
+  GENERATE_IP_ADDRESS_CLASS_PUBLIC = 1;
+  // Generates a random ipv4 private-a ip address
+  GENERATE_IP_ADDRESS_CLASS_PRIVATE_A = 2;
+  // Generates a random ipv4 private-b ip address
+  GENERATE_IP_ADDRESS_CLASS_PRIVATE_B = 3;
+  // Generates a random ipv4 private-c ip address
+  GENERATE_IP_ADDRESS_CLASS_PRIVATE_C = 4;
+  // Generates a random ipv4 link-local ip address
+  GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL = 5;
+  // Generates a random ipv4 multicast ip address
+  GENERATE_IP_ADDRESS_CLASS_MULTICAST = 6;
+  // Generates a random ipv4 loopback address
+  GENERATE_IP_ADDRESS_CLASS_LOOPBACK = 7;
+}
+
+message GenerateIpAddress {
+  optional GenerateIpAddressVersion version = 1;
+  optional GenerateIpAddressClass class = 2;
+}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

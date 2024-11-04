@@ -402,6 +402,21 @@ declare namespace neosync {
 	declare function generateInternationalPhoneNumber(options: GenerateInternationalPhoneNumberOptions): any;
 	
 	
+	export interface GenerateIpAddressOptions {
+		/** IP version to generate: 'ipv4' or 'ipv6' */
+		version?: string;
+		/** IP class: 'public', 'private', 'home', 'business', 'link_local', 'multicast', 'loopback' */
+		class?: string;
+		/** Optional seed for deterministic generation */
+		seed?: number;
+	}
+
+  /**
+   * Generates IPv4 or IPv6 addresses with support for different network classes.
+   */
+	declare function generateIpAddress(options: GenerateIpAddressOptions): any;
+	
+	
 	export interface GenerateLastNameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
