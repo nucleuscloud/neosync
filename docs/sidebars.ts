@@ -255,6 +255,11 @@ const sidebars: SidebarsConfig = {
       label: 'Incremental Data Syncs',
     },
     {
+      type: 'doc',
+      id: 'guides/new-column-addition-strategies',
+      label: 'New Column Addition Strategies',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
