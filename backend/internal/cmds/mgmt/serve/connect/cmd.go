@@ -43,7 +43,7 @@ import (
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -375,14 +375,24 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	tfwfmgr := clientmanager.New(&clientmanager.Config{
-		AuthCertificates: authcerts,
-		DefaultTemporalConfig: &clientmanager.DefaultTemporalConfig{
-			Url:              getDefaultTemporalUrl(),
-			Namespace:        getDefaultTemporalNamespace(),
-			SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
-		},
+
+	var temporalTlsConfig *tls.Config
+	if len(authcerts) > 0 {
+		temporalTlsConfig = &tls.Config{
+			Certificates: authcerts,
+			MinVersion:   tls.VersionTLS13,
+		}
+	}
+	temporalConfigProvider := clientmanager.NewDBConfigProvider(&clientmanager.TemporalConfig{
+		Url:              getDefaultTemporalUrl(),
+		Namespace:        getDefaultTemporalNamespace(),
+		SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		TLSConfig:        temporalTlsConfig,
 	}, db.Q, db.Db)
+	tfwfmgr := clientmanager.NewClientManager(
+		temporalConfigProvider,
+		clientmanager.NewTemporalClientFactory(),
+	)
 
 	authadminclient, err := getAuthAdminClient(ctx, authclient, slogger)
 	if err != nil {
@@ -411,7 +421,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, billingClient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

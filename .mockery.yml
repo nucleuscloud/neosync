@@ -40,11 +40,11 @@ packages:
       ConnectionServiceClient:
       AuthServiceClient:
       TransformersServiceClient:
-  github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
+  github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager:
     interfaces:
       DB:
-      # this is broken. it uses the wrong package. after running mockery change internal to client in mock
-      # TemporalClientManagerClient:
+      Interface:
+      ConfigProvider:
   github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql:
     # config:
     interfaces:
