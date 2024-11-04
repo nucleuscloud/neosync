@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"testing"
 
 	charmlog "github.com/charmbracelet/log"
 )
@@ -19,8 +20,20 @@ func ShouldRunIntegrationTest() bool {
 	return true
 }
 
-func GetTestSlogger() *slog.Logger {
-	return slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
+func GetTestLogger(t *testing.T) *slog.Logger {
+	testHandler := slog.NewTextHandler(testWriter{t}, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})
+	return slog.New(testHandler)
+}
+
+type testWriter struct {
+	t *testing.T
+}
+
+func (tw testWriter) Write(p []byte) (n int, err error) {
+	tw.t.Log(string(p))
+	return len(p), nil
 }
 
 func GetTestCharmSlogger() *slog.Logger {

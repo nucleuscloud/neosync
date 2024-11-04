@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
 func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
@@ -107,9 +108,10 @@ func FilterOutSqlServerDefaultIdentityColumns(
 	driver string,
 	defaultIdentityCols, columnNames []string,
 	argRows [][]any,
-) (columns []string, rows [][]any) {
+	colDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
+) (columns []string, rows [][]any, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) {
 	if len(defaultIdentityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
-		return columnNames, argRows
+		return columnNames, argRows, columnDefaultProperties
 	}
 
 	// build map of identity columns
@@ -132,14 +134,18 @@ func FilterOutSqlServerDefaultIdentityColumns(
 			newRow = append(newRow, arg)
 			nonIdentityColumnMap[col] = struct{}{}
 		}
-		newRows = append(newRows, newRow)
-	}
-	newColumns := []string{}
-	// build new columns list while maintaining same order
-	for _, col := range columnNames {
-		if _, ok := nonIdentityColumnMap[col]; ok {
-			newColumns = append(newColumns, col)
+		if len(newRow) != 0 {
+			newRows = append(newRows, newRow)
 		}
 	}
-	return newColumns, newRows
+	newColumns := []string{}
+	newDefaultProperites := []*neosync_benthos.ColumnDefaultProperties{}
+	// build new columns list while maintaining same order
+	for idx, col := range columnNames {
+		if _, ok := nonIdentityColumnMap[col]; ok {
+			newColumns = append(newColumns, col)
+			newDefaultProperites = append(newDefaultProperites, colDefaultProperties[idx])
+		}
+	}
+	return newColumns, newRows, newDefaultProperites
 }
