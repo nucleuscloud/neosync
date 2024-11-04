@@ -514,8 +514,8 @@ func (m *ClientManager) createScheduleClient(
 		return nil, nil, err
 	}
 
-	return clients.WorkflowClient().ScheduleClient(), func() {
-		clients.WorkflowClient().Close()
+	return clients.client.scheduleClient, func() {
+		clients.Release()
 	}, nil
 }
 

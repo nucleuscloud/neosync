@@ -19,6 +19,7 @@ type ClientCache struct {
 type cachedClient struct {
 	workflowClient  temporalclient.Client
 	namespaceClient temporalclient.NamespaceClient
+	scheduleClient  temporalclient.ScheduleClient
 	referenceCount  int
 	config          *TemporalConfig
 }
@@ -60,9 +61,12 @@ func (c *ClientCache) getOrCreateClient(
 		return nil, fmt.Errorf("failed to create namespace client: %w", err)
 	}
 
+	scheduleClient := workflowClient.ScheduleClient()
+
 	client := &cachedClient{
 		workflowClient:  workflowClient,
 		namespaceClient: namespaceClient,
+		scheduleClient:  scheduleClient,
 		referenceCount:  1,
 		config:          config,
 	}
