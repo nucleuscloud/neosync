@@ -2,6 +2,8 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { NewColumnAdditionStrategy } from '@/yup-validations/jobs';
+import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 
 interface Props {
@@ -17,9 +19,19 @@ export default function NewColumnAdditionStrategyOptionsForm(
   return (
     <div className="flex flex-col gap-2">
       <FormLabel>New Column Addition Strategy</FormLabel>
-      <FormDescription>
-        Determine what happens when a new column is detected during a job run.
-      </FormDescription>
+      <div className="flex flex-row gap-1">
+        <FormDescription>
+          Determine what happens when a new column is detected during a job run.
+        </FormDescription>
+        <Link
+          href="https://docs.neosync.dev/guides/new-column-addition-strategies"
+          target="_blank"
+          className="hover:underline inline-flex gap-1 flex-row items-center tracking-tight text-[0.8rem] text-muted-foreground"
+        >
+          Learn More
+          <ExternalLinkIcon className="w-3 h-3" />
+        </Link>
+      </div>
       <RadioGroup
         onValueChange={(newval) => {
           setValue(newval as NewColumnAdditionStrategy);
