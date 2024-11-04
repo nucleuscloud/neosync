@@ -36,7 +36,7 @@ export default function NewColumnAdditionStrategyOptionsForm(
         />
         <StrategyRadioItem
           value="continue"
-          label="Continue - Proceed with existing config"
+          label="Continue - Ignores new columns; may fail if column doesn't have default"
         />
       </RadioGroup>
     </div>
