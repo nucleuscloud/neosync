@@ -41,6 +41,8 @@ import (
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	temporalclient "go.temporal.io/sdk/client"
+	"go.temporal.io/server/temporaltest"
 )
 
 var (
@@ -80,6 +82,9 @@ type NeosyncApiTestClient struct {
 	migrationsDir string
 
 	httpsrv *httptest.Server
+
+	temporalServer  *temporaltest.TestServer
+	temporalManager *clientmanager.ClientManager
 
 	UnauthdClients      *UnauthdClients
 	NeosyncCloudClients *NeosyncCloudClients
@@ -149,6 +154,16 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	s.Pgcontainer = pgcontainer
 	s.NeosyncQuerier = db_queries.New()
 	s.systemQuerier = pg_queries.New()
+
+	s.temporalServer = temporaltest.NewServer(
+		temporaltest.WithT(t),
+	)
+
+	temporalConfigProvider := clientmanager.NewDBConfigProvider(&clientmanager.TemporalConfig{
+		Namespace: s.temporalServer.GetDefaultNamespace(),
+	}, s.NeosyncQuerier, pgcontainer.DB)
+	temporalFactory := NewTemporalTestClientFactory(s.temporalServer)
+	s.temporalManager = clientmanager.NewClientManager(temporalConfigProvider, temporalFactory)
 
 	s.Mocks = &Mocks{
 		TemporalClientManager:  clientmanager.NewMockInterface(t),
@@ -430,6 +445,9 @@ func (s *NeosyncApiTestClient) TearDown(ctx context.Context) error {
 			}
 		}
 	}
+	if s.temporalServer != nil {
+		s.temporalServer.Stop()
+	}
 	return nil
 }
 
@@ -449,4 +467,33 @@ func NewTestSqlManagerClient() *sqlmanager.SqlManager {
 		&sync.Map{}, mssql_queries.New(),
 		&sqlconnect.SqlOpenConnector{},
 	)
+}
+
+type TemporalTestClientFactory struct {
+	server *temporaltest.TestServer
+}
+
+func NewTemporalTestClientFactory(server *temporaltest.TestServer) *TemporalTestClientFactory {
+	return &TemporalTestClientFactory{server: server}
+}
+
+var _ clientmanager.ClientFactory = (*TemporalTestClientFactory)(nil)
+
+func (f *TemporalTestClientFactory) CreateNamespaceClient(
+	ctx context.Context,
+	config *clientmanager.TemporalConfig,
+	logger *slog.Logger,
+) (temporalclient.NamespaceClient, error) {
+	return temporalclient.NewNamespaceClient(temporalclient.Options{
+		Namespace: f.server.GetDefaultNamespace(),
+		// HostPort: , // todo
+	})
+}
+
+func (f *TemporalTestClientFactory) CreateWorkflowClient(
+	ctx context.Context,
+	config *clientmanager.TemporalConfig,
+	logger *slog.Logger,
+) (temporalclient.Client, error) {
+	return f.server.GetDefaultClient(), nil
 }
