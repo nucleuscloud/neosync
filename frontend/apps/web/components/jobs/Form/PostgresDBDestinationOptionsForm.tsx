@@ -100,56 +100,62 @@ export default function PostgresDBDestinationOptionsForm(
         <FormErrorMessage message={errors?.skipForeignKeyViolations?.message} />
       </FormItemContainer>
 
-      <FormItemContainer>
-        <FormHeader
-          title="Max in Flight"
-          description="The max number of batched records to have in flight at a given time. Increase to improve throughput."
-          isErrored={!!errors?.maxInFlight}
-        />
-        <div>
-          <NumberedInput
-            value={value.maxInFlight ?? 64}
-            onChange={(val) => setValue({ ...value, maxInFlight: val })}
+      <FormItemBorder>
+        <FormItemContainer>
+          <FormHeader
+            title="Max in Flight"
+            description="The max number of batched records to have in flight at a given time. Increase to improve throughput."
+            isErrored={!!errors?.maxInFlight}
           />
-          <FormErrorMessage message={errors?.maxInFlight?.message} />
-        </div>
-      </FormItemContainer>
+          <div>
+            <NumberedInput
+              value={value.maxInFlight ?? 64}
+              onChange={(val) => setValue({ ...value, maxInFlight: val })}
+            />
+            <FormErrorMessage message={errors?.maxInFlight?.message} />
+          </div>
+        </FormItemContainer>
+      </FormItemBorder>
 
-      <FormItemContainer>
-        <FormHeader
-          title="Batch Count"
-          description="The max allowed per batch before flushing to S3. 0 to disable count-based batching."
-          isErrored={!!errors?.batch?.count}
-        />
-        <FormInputContainer>
-          <NumberedInput
-            value={value.batch?.count ?? 100}
-            onChange={(val) =>
-              setValue({ ...value, batch: { ...value.batch, count: val } })
-            }
+      <FormItemBorder>
+        <FormItemContainer>
+          <FormHeader
+            title="Batch Count"
+            description="The max allowed per batch before flushing to S3. 0 to disable count-based batching."
+            isErrored={!!errors?.batch?.count}
           />
-          <FormErrorMessage message={errors?.batch?.count?.message} />
-        </FormInputContainer>
-      </FormItemContainer>
-      <FormItemContainer>
-        <FormHeader
-          title="Batch Period"
-          description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable time-based batching (not recommended)."
-          isErrored={!!errors?.batch?.period}
-        />
-        <FormInputContainer>
-          <Input
-            value={value.batch?.period ?? '5s'}
-            onChange={(e) =>
-              setValue({
-                ...value,
-                batch: { ...value.batch, period: e.target.value },
-              })
-            }
+          <FormInputContainer>
+            <NumberedInput
+              value={value.batch?.count ?? 100}
+              onChange={(val) =>
+                setValue({ ...value, batch: { ...value.batch, count: val } })
+              }
+            />
+            <FormErrorMessage message={errors?.batch?.count?.message} />
+          </FormInputContainer>
+        </FormItemContainer>
+      </FormItemBorder>
+      <FormItemBorder>
+        <FormItemContainer>
+          <FormHeader
+            title="Batch Period"
+            description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable time-based batching (not recommended)."
+            isErrored={!!errors?.batch?.period}
           />
-          <FormErrorMessage message={errors?.batch?.period?.message} />
-        </FormInputContainer>
-      </FormItemContainer>
+          <FormInputContainer>
+            <Input
+              value={value.batch?.period ?? '5s'}
+              onChange={(e) =>
+                setValue({
+                  ...value,
+                  batch: { ...value.batch, period: e.target.value },
+                })
+              }
+            />
+            <FormErrorMessage message={errors?.batch?.period?.message} />
+          </FormInputContainer>
+        </FormItemContainer>
+      </FormItemBorder>
     </div>
   );
 }
@@ -168,4 +174,12 @@ interface FormInputContainerProps {
 function FormInputContainer(props: FormInputContainerProps): ReactElement {
   const { children } = props;
   return <div className="flex flex-col gap-1">{children}</div>;
+}
+
+interface FormItemBorderProps {
+  children: ReactNode;
+}
+function FormItemBorder(props: FormItemBorderProps): ReactElement {
+  const { children } = props;
+  return <div className="rounded-lg border p-3 shadow-sm">{children}</div>;
 }

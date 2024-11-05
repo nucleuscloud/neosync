@@ -474,9 +474,9 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mysql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mysql?.skipForeignKeyViolations,
-            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            maxInFlight: values.destinationOptions.mysql?.maxInFlight,
             batch: new BatchConfig({
-              ...values.destinationOptions.postgres?.batch,
+              ...values.destinationOptions.mysql?.batch,
             }),
           }),
         },
@@ -546,9 +546,9 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mssql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mssql?.skipForeignKeyViolations,
-            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            maxInFlight: values.destinationOptions.mssql?.maxInFlight,
             batch: new BatchConfig({
-              ...values.destinationOptions.postgres?.batch,
+              ...values.destinationOptions.mssql?.batch,
             }),
           }),
         },
@@ -1382,7 +1382,7 @@ export function getDefaultDestinationFormValues(
   d: JobDestination
 ): NewDestinationFormValues {
   switch (d.options?.config.case) {
-    case 'postgresOptions':
+    case 'postgresOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1397,10 +1397,16 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
-    case 'mysqlOptions':
+    }
+    case 'mysqlOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1413,9 +1419,15 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
+    }
     case 'dynamodbOptions': {
       return {
         connectionId: d.connectionId,
@@ -1429,7 +1441,7 @@ export function getDefaultDestinationFormValues(
         },
       };
     }
-    case 'mssqlOptions':
+    case 'mssqlOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1442,9 +1454,15 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
+    }
     case 'awsS3Options': {
       return {
         connectionId: d.connectionId,
