@@ -119,6 +119,9 @@ export function getConnectionComponentDetails(
               url: typeof pgConfig === 'string' ? pgConfig : '',
               options: {
                 maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
+                maxIdleDuration: value.connectionOptions?.maxIdleDuration,
+                maxIdleLimit: value.connectionOptions?.maxIdleConnections,
+                maxOpenDuration: value.connectionOptions?.maxOpenDuration,
               },
               clientTls: {
                 rootCert: value.clientTls?.rootCert
@@ -215,6 +218,9 @@ export function getConnectionComponentDetails(
               options: {
                 maxConnectionLimit:
                   mysqlValue.connectionOptions?.maxConnectionLimit,
+                maxIdleDuration: mysqlValue.connectionOptions?.maxIdleDuration,
+                maxIdleLimit: mysqlValue.connectionOptions?.maxIdleConnections,
+                maxOpenDuration: mysqlValue.connectionOptions?.maxOpenDuration,
               },
               tunnel: {
                 host: mysqlValue.tunnel?.host ?? '',
@@ -518,6 +524,9 @@ export function getConnectionComponentDetails(
               options: {
                 maxConnectionLimit:
                   mssqlValue.connectionOptions?.maxConnectionLimit,
+                maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
+                maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
+                maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
               },
               tunnel: {
                 host: mssqlValue.tunnel?.host ?? '',
