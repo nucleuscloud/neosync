@@ -403,9 +403,11 @@ declare namespace neosync {
 	
 	
 	export interface GenerateIpAddressOptions {
+		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
+		maxLength?: number;
 		/** IP version to generate: 'ipv4' or 'ipv6' */
 		version?: string;
-		/** IP class: 'public', 'private', 'home', 'business', 'link_local', 'multicast', 'loopback' */
+		/** IP class: 'public', 'private-a', 'private-b', 'private-c', 'link_local', 'multicast', 'loopback' */
 		class?: string;
 		/** Optional seed for deterministic generation */
 		seed?: number;

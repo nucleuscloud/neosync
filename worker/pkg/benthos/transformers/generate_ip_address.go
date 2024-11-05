@@ -17,20 +17,20 @@ import (
 type IpVersion string
 
 const (
-	IpVersion_V4 IpVersion = "ipv4"
-	IpVersion_V6 IpVersion = "ipv6"
+	IpVersion_V4 IpVersion = "GENERATE_IP_ADDRESS_VERSION_V4"
+	IpVersion_V6 IpVersion = "GENERATE_IP_ADDRESS_VERSION_V6"
 )
 
 type IpV4Class string
 
 const (
-	IpV4Class_Public    IpV4Class = "public"
-	IpV4Class_PrivateA  IpV4Class = "private-a"
-	IpV4Class_PrivateB  IpV4Class = "private-b"
-	IpV4Class_PrivateC  IpV4Class = "private-c"
-	IpV4Class_LinkLocal IpV4Class = "link_local"
-	IpV4Class_Multicast IpV4Class = "multicast"
-	IpV4Class_Loopback  IpV4Class = "loopback"
+	IpV4Class_Public    IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PUBLIC"
+	IpV4Class_PrivateA  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
+	IpV4Class_PrivateB  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B"
+	IpV4Class_PrivateC  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_C"
+	IpV4Class_LinkLocal IpV4Class = "GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL"
+	IpV4Class_Multicast IpV4Class = "GENERATE_IP_ADDRESS_CLASS_MULTICAST"
+	IpV4Class_Loopback  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_LOOPBACK"
 )
 
 // Defined here -> https://www.meridianoutpost.com/resources/articles/IP-classes.php
@@ -82,8 +82,13 @@ func init() {
 
 		randomizer := rng.New(seed)
 
+		versionStr := IpVersion(version)
+		classStr := IpV4Class(class)
+
+		fmt.Println("version adn class", versionStr, classStr)
+
 		return func() (any, error) {
-			return generateIpAddress(randomizer, IpVersion(version), IpV4Class(class), maxLength)
+			return generateIpAddress(randomizer, versionStr, classStr, maxLength)
 		}, nil
 	})
 
