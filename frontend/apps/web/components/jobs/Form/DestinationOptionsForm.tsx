@@ -1,5 +1,4 @@
 'use client';
-import SwitchCard from '@/components/switches/SwitchCard';
 import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
@@ -9,6 +8,8 @@ import TableMappingsCard, {
   Props as TableMappingsCardProps,
 } from '../NosqlTable/TableMappings/TableMappingsCard';
 import AwsS3DestinationOptionsForm from './AwsS3DestinationOptionsForm';
+import MssqlDBDestinationOptionsForm from './MssqlDBDestinationOptionsForm';
+import MysqlDBDestinationOptionsForm from './MysqlDBDestinationOptionsForm';
 import PostgresDBDestinationOptionsForm from './PostgresDBDestinationOptionsForm';
 
 interface DestinationOptionsProps {
@@ -60,98 +61,24 @@ export default function DestinationOptionsForm(
       );
     }
 
-    case 'mysqlConfig':
+    case 'mysqlConfig': {
       return (
-        <div className="flex flex-col gap-2">
-          <div>
-            <SwitchCard
-              isChecked={value.mysql?.truncateBeforeInsert ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mysql: {
-                    ...(value.mysql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      skipForeignKeyViolations: false,
-                    }),
-
-                    truncateBeforeInsert: newVal,
-                  },
-                });
-              }}
-              title="Truncate Before Insert"
-              description="Truncates table before inserting data"
-            />
-          </div>
-          <div>
-            <SwitchCard
-              isChecked={value.mysql?.initTableSchema ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mysql: {
-                    ...(value.mysql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      skipForeignKeyViolations: false,
-                    }),
-                    initTableSchema: newVal,
-                  },
-                });
-              }}
-              title="Init Table Schema"
-              description="Creates table(s) and their constraints. The database schema must already exist. "
-            />
-          </div>
-          <div>
-            <SwitchCard
-              isChecked={value.mysql?.onConflictDoNothing ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mysql: {
-                    ...(value.mysql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      skipForeignKeyViolations: false,
-                    }),
-                    onConflictDoNothing: newVal,
-                  },
-                });
-              }}
-              title="On Conflict Do Nothing"
-              description="If there is a conflict when inserting data do not insert"
-            />
-          </div>
-          <div>
-            <SwitchCard
-              isChecked={value.mysql?.skipForeignKeyViolations ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mysql: {
-                    ...(value.mysql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      truncateCascade: false,
-                      skipForeignKeyViolations: false,
-                    }),
-
-                    skipForeignKeyViolations: newVal,
-                  },
-                });
-              }}
-              title="Skip Foreign Key Violations"
-              description="Insert all valid records, bypassing any that violate foreign key constraints."
-            />
-          </div>
-        </div>
+        <MysqlDBDestinationOptionsForm
+          value={
+            value.mysql ?? {
+              initTableSchema: false,
+              onConflictDoNothing: false,
+              skipForeignKeyViolations: false,
+              truncateBeforeInsert: false,
+            }
+          }
+          setValue={(val) => setValue({ ...value, mysql: { ...val } })}
+          hideInitTableSchema={hideInitTableSchema}
+          errors={errors?.mysql}
+        />
       );
+    }
+
     case 'awsS3Config': {
       return (
         <AwsS3DestinationOptionsForm
@@ -206,93 +133,19 @@ export default function DestinationOptionsForm(
       );
     case 'mssqlConfig': {
       return (
-        <div className="flex flex-col gap-2">
-          <div>
-            <SwitchCard
-              isChecked={value.mssql?.truncateBeforeInsert ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mssql: {
-                    ...(value.mssql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      skipForeignKeyViolations: false,
-                    }),
-
-                    truncateBeforeInsert: newVal,
-                  },
-                });
-              }}
-              title="Truncate Before Insert"
-              description="Truncates table before inserting data"
-            />
-          </div>
-          <div>
-            {/* <SwitchCard
-              isChecked={value.mssql?.initTableSchema ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mssql: {
-                    ...(value.mssql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                    }),
-                    initTableSchema: newVal,
-                  },
-                });
-              }}
-              title="Init Table Schema"
-              description="Creates table(s) and their constraints. The database schema must already exist. "
-            /> */}
-          </div>
-          <div>
-            {/* <SwitchCard
-              isChecked={value.mssql?.onConflictDoNothing ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mssql: {
-                    ...(value.mssql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                    }),
-                    onConflictDoNothing: newVal,
-                  },
-                });
-              }}
-              title="On Conflict Do Nothing"
-              description="If there is a conflict when inserting data do not insert"
-            /> */}
-          </div>
-          <div>
-            <SwitchCard
-              isChecked={value.mssql?.skipForeignKeyViolations ?? false}
-              onCheckedChange={(newVal) => {
-                setValue({
-                  ...value,
-                  mssql: {
-                    ...(value.mssql ?? {
-                      initTableSchema: false,
-                      onConflictDoNothing: false,
-                      truncateBeforeInsert: false,
-                      truncateCascade: false,
-                      skipForeignKeyViolations: false,
-                    }),
-
-                    skipForeignKeyViolations: newVal,
-                  },
-                });
-              }}
-              title="Skip Foreign Key Violations"
-              description="Insert all valid records, bypassing any that violate foreign key constraints."
-            />
-          </div>
-        </div>
+        <MssqlDBDestinationOptionsForm
+          value={
+            value.mssql ?? {
+              initTableSchema: false,
+              onConflictDoNothing: false,
+              skipForeignKeyViolations: false,
+              truncateBeforeInsert: false,
+            }
+          }
+          setValue={(val) => setValue({ ...value, mssql: { ...val } })}
+          hideInitTableSchema={hideInitTableSchema}
+          errors={errors?.mssql}
+        />
       );
     }
     default:

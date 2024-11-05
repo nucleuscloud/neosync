@@ -450,6 +450,10 @@ export function toJobDestinationOptions(
               values.destinationOptions.postgres?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.postgres?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.postgres?.batch,
+            }),
           }),
         },
       });
@@ -470,6 +474,10 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mysql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mysql?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.postgres?.batch,
+            }),
           }),
         },
       });
@@ -538,6 +546,10 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mssql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mssql?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.postgres?.batch,
+            }),
           }),
         },
       });
