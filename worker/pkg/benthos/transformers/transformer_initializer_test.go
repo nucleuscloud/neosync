@@ -1643,13 +1643,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 
 	t.Run("GenerateIpAddressConfig_Empty", func(t *testing.T) {
 
-		version := mgmtv1alpha1.GenerateIpAddressVersion_GENERATE_IP_ADDRESS_VERSION_V4
-		class := mgmtv1alpha1.GenerateIpAddressClass_GENERATE_IP_ADDRESS_CLASS_PUBLIC
+		ipType := mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
 				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
-					Class:   &class,
-					Version: &version,
+					IpType: &ipType,
 				},
 			},
 		}

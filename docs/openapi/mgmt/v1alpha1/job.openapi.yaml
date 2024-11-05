@@ -1024,25 +1024,19 @@ components:
         - GENERATE_EMAIL_TYPE_UNSPECIFIED
         - GENERATE_EMAIL_TYPE_UUID_V4
         - GENERATE_EMAIL_TYPE_FULLNAME
-    mgmt.v1alpha1.GenerateIpAddressClass:
+    mgmt.v1alpha1.GenerateIpAddressType:
       type: string
-      title: GenerateIpAddressClass
+      title: GenerateIpAddressType
       enum:
-        - GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED
-        - GENERATE_IP_ADDRESS_CLASS_PUBLIC
-        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_A
-        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_B
-        - GENERATE_IP_ADDRESS_CLASS_PRIVATE_C
-        - GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL
-        - GENERATE_IP_ADDRESS_CLASS_MULTICAST
-        - GENERATE_IP_ADDRESS_CLASS_LOOPBACK
-    mgmt.v1alpha1.GenerateIpAddressVersion:
-      type: string
-      title: GenerateIpAddressVersion
-      enum:
-        - GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED
-        - GENERATE_IP_ADDRESS_VERSION_V4
-        - GENERATE_IP_ADDRESS_VERSION_V6
+        - GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C
+        - GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL
+        - GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST
+        - GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK
+        - GENERATE_IP_ADDRESS_TYPE_V6
     mgmt.v1alpha1.InvalidEmailAction:
       type: string
       title: InvalidEmailAction
@@ -2096,27 +2090,23 @@ components:
       allOf:
         - anyOf:
             - required:
-                - class
+                - ipType
             - not:
                 anyOf:
                   - required:
-                      - class
-        - anyOf:
-            - required:
-                - version
-            - not:
-                anyOf:
-                  - required:
-                      - version
+                      - ipType
+      anyOf:
+        - required:
+            - ipType
+        - not:
+            anyOf:
+              - required:
+                  - ipType
       properties:
-        version:
+        ipType:
           allOf:
-            - title: version
-            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressVersion'
-        class:
-          allOf:
-            - title: class
-            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressClass'
+            - title: ip_type
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
       title: GenerateIpAddress
       additionalProperties: false
     mgmt.v1alpha1.GenerateJavascript:

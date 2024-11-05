@@ -18,8 +18,7 @@ type GenerateIpAddressOpts struct {
 	randomizer     rng.Rand
 	
 	maxLength int64
-	version string
-	class string
+	ipType string
 }
 
 func NewGenerateIpAddress() *GenerateIpAddress {
@@ -28,8 +27,7 @@ func NewGenerateIpAddress() *GenerateIpAddress {
 
 func NewGenerateIpAddressOpts(
 	maxLengthArg *int64,
-	versionArg *string,
-	classArg *string,
+	ipTypeArg *string,
   seedArg *int64,
 ) (*GenerateIpAddressOpts, error) {
 	maxLength := int64(100000)
@@ -37,14 +35,9 @@ func NewGenerateIpAddressOpts(
 		maxLength = *maxLengthArg
 	}
 	
-	version := string(string(IpVersion_V4))
-	if versionArg != nil {
-		version = *versionArg
-	}
-	
-	class := string(string(IpV4Class_Public))
-	if classArg != nil {
-		class = *classArg
+	ipType := string(string(IpV4_Public))
+	if ipTypeArg != nil {
+		ipType = *ipTypeArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -54,8 +47,7 @@ func NewGenerateIpAddressOpts(
 	
 	return &GenerateIpAddressOpts{
 		maxLength: maxLength,
-		version: version,
-		class: class,
+		ipType: ipType,
 		randomizer: rng.New(seed),	
 	}, nil
 }
@@ -64,14 +56,12 @@ func (o *GenerateIpAddressOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{ 
 		"max_length:%v", 
-		"version:%q", 
-		"class:%q",
+		"ip_type:%q",
 	}
 
 	params := []any{
 	 	o.maxLength,
-	 	o.version,
-	 	o.class,
+	 	o.ipType,
 	}
 
 	
@@ -97,17 +87,11 @@ func (t *GenerateIpAddress) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	version, ok := opts["version"].(string)
+	ipType, ok := opts["ipType"].(string)
 	if !ok {
-		version = string(IpVersion_V4)
+		ipType = string(IpV4_Public)
 	}
-	transformerOpts.version = version
-
-	class, ok := opts["class"].(string)
-	if !ok {
-		class = string(IpV4Class_Public)
-	}
-	transformerOpts.class = class
+	transformerOpts.ipType = ipType
 
 	var seedArg *int64
 	if seedValue, ok := opts["seed"].(int64); ok {

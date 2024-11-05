@@ -17,9 +17,7 @@ var (
 
 	defaultInvalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
 
-	defaultGeneratePublicIp = mgmtv1alpha1.GenerateIpAddressClass_GENERATE_IP_ADDRESS_CLASS_PUBLIC
-
-	defaultGenerateIpv4 = mgmtv1alpha1.GenerateIpAddressVersion_GENERATE_IP_ADDRESS_VERSION_V4
+	defaultGenerateIpv4 = mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
 
 	// base transformers
 	baseSystemTransformers = []*mgmtv1alpha1.SystemTransformer{
@@ -653,8 +651,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
 					GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
-						Class:   &defaultGeneratePublicIp,
-						Version: &defaultGenerateIpv4,
+						IpType: &defaultGenerateIpv4,
 					},
 				},
 			},

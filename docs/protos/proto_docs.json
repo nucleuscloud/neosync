@@ -33,72 +33,54 @@
           ]
         },
         {
-          "name": "GenerateIpAddressClass",
-          "longName": "GenerateIpAddressClass",
-          "fullName": "mgmt.v1alpha1.GenerateIpAddressClass",
+          "name": "GenerateIpAddressType",
+          "longName": "GenerateIpAddressType",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddressType",
           "description": "",
           "values": [
             {
-              "name": "GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED",
-              "number": "0",
-              "description": "Unspecified defaults to public"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_PUBLIC",
-              "number": "1",
-              "description": "Generates a random ipv4 public address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A",
-              "number": "2",
-              "description": "Generates a random ipv4 private-a ip address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B",
-              "number": "3",
-              "description": "Generates a random ipv4 private-b ip address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_PRIVATE_C",
-              "number": "4",
-              "description": "Generates a random ipv4 private-c ip address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL",
-              "number": "5",
-              "description": "Generates a random ipv4 link-local ip address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_MULTICAST",
-              "number": "6",
-              "description": "Generates a random ipv4 multicast ip address"
-            },
-            {
-              "name": "GENERATE_IP_ADDRESS_CLASS_LOOPBACK",
-              "number": "7",
-              "description": "Generates a random ipv4 loopback address"
-            }
-          ]
-        },
-        {
-          "name": "GenerateIpAddressVersion",
-          "longName": "GenerateIpAddressVersion",
-          "fullName": "mgmt.v1alpha1.GenerateIpAddressVersion",
-          "description": "",
-          "values": [
-            {
-              "name": "GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED",
+              "name": "GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED",
               "number": "0",
               "description": "Unspecified defaults to ipv4"
             },
             {
-              "name": "GENERATE_IP_ADDRESS_VERSION_V4",
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC",
               "number": "1",
-              "description": "Generates a random ipv4"
+              "description": "Generates a random ipv4_public"
             },
             {
-              "name": "GENERATE_IP_ADDRESS_VERSION_V6",
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A",
               "number": "2",
+              "description": "Generates a random ipv4_private_a"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B",
+              "number": "3",
+              "description": "Generates a random ipv4_private_b"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C",
+              "number": "4",
+              "description": "Generates a random ipv4_private_c"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL",
+              "number": "5",
+              "description": "Generates a random ipv4_linklocal"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST",
+              "number": "6",
+              "description": "Generates a random ipv4_multicast"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK",
+              "number": "7",
+              "description": "Generates a random ipv4_loopback"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V6",
+              "number": "8",
               "description": "Generates a random ipv6"
             }
           ]
@@ -1002,27 +984,15 @@
           "extensions": [],
           "fields": [
             {
-              "name": "version",
+              "name": "ip_type",
               "description": "",
               "label": "optional",
-              "type": "GenerateIpAddressVersion",
-              "longType": "GenerateIpAddressVersion",
-              "fullType": "mgmt.v1alpha1.GenerateIpAddressVersion",
+              "type": "GenerateIpAddressType",
+              "longType": "GenerateIpAddressType",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddressType",
               "ismap": false,
               "isoneof": true,
-              "oneofdecl": "_version",
-              "defaultValue": ""
-            },
-            {
-              "name": "class",
-              "description": "",
-              "label": "optional",
-              "type": "GenerateIpAddressClass",
-              "longType": "GenerateIpAddressClass",
-              "fullType": "mgmt.v1alpha1.GenerateIpAddressClass",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_class",
+              "oneofdecl": "_ip_type",
               "defaultValue": ""
             }
           ]

@@ -14,45 +14,38 @@ import (
 
 // +neosyncTransformerBuilder:generate:generateIpAddress
 
-type IpVersion string
+type IpType string
 
 const (
-	IpVersion_V4 IpVersion = "GENERATE_IP_ADDRESS_VERSION_V4"
-	IpVersion_V6 IpVersion = "GENERATE_IP_ADDRESS_VERSION_V6"
-)
-
-type IpV4Class string
-
-const (
-	IpV4Class_Public    IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PUBLIC"
-	IpV4Class_PrivateA  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
-	IpV4Class_PrivateB  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B"
-	IpV4Class_PrivateC  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_PRIVATE_C"
-	IpV4Class_LinkLocal IpV4Class = "GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL"
-	IpV4Class_Multicast IpV4Class = "GENERATE_IP_ADDRESS_CLASS_MULTICAST"
-	IpV4Class_Loopback  IpV4Class = "GENERATE_IP_ADDRESS_CLASS_LOOPBACK"
+	IpV4_Public    IpType = "GENERATE_IP_ADDRESS_VERSION_V4_PUBLIC"
+	IpV4_PrivateA  IpType = "GENERATE_IP_ADDRESS_VERSION_V4_PRIVATE_A"
+	IpV4_PrivateB  IpType = "GENERATE_IP_ADDRESS_VERSION_V4_PRIVATE_B"
+	IpV4_PrivateC  IpType = "GENERATE_IP_ADDRESS_VERSION_V4_PRIVATE_C"
+	IpV4_LinkLocal IpType = "GENERATE_IP_ADDRESS_VERSION_V4_LINK_LOCAL"
+	IpV4_Multicast IpType = "GENERATE_IP_ADDRESS_VERSION_V4_MULTICAST"
+	IpV4_Loopback  IpType = "GENERATE_IP_ADDRESS_VERSION_V4_LOOPBACK"
+	IpV4_V6        IpType = "GENERATE_IP_ADDRESS_VERSION_V6"
 )
 
 // Defined here -> https://www.meridianoutpost.com/resources/articles/IP-classes.php
 // And here -> https://www.techtarget.com/whatis/definition/private-IP-addresshttps://www.techtarget.com/whatis/definition/private-IP-address
-var ipv4Ranges = map[IpV4Class]struct {
+var ipv4Ranges = map[IpType]struct {
 	start net.IP
 	end   net.IP
 }{
-	IpV4Class_PrivateA:  {net.ParseIP("10.0.0.0"), net.ParseIP("10.255.255.255")},
-	IpV4Class_PrivateB:  {net.ParseIP("172.16.0.0"), net.ParseIP("172.31.255.255")},
-	IpV4Class_PrivateC:  {net.ParseIP("192.168.0.0"), net.ParseIP("192.168.255.255")},
-	IpV4Class_LinkLocal: {net.ParseIP("169.254.0.0"), net.ParseIP("169.254.255.255")},
-	IpV4Class_Multicast: {net.ParseIP("224.0.0.0"), net.ParseIP("239.255.255.255")},
-	IpV4Class_Loopback:  {net.ParseIP("127.0.0.0"), net.ParseIP("127.255.255.255")},
+	IpV4_PrivateA:  {net.ParseIP("10.0.0.0"), net.ParseIP("10.255.255.255")},
+	IpV4_PrivateB:  {net.ParseIP("172.16.0.0"), net.ParseIP("172.31.255.255")},
+	IpV4_PrivateC:  {net.ParseIP("192.168.0.0"), net.ParseIP("192.168.255.255")},
+	IpV4_LinkLocal: {net.ParseIP("169.254.0.0"), net.ParseIP("169.254.255.255")},
+	IpV4_Multicast: {net.ParseIP("224.0.0.0"), net.ParseIP("239.255.255.255")},
+	IpV4_Loopback:  {net.ParseIP("127.0.0.0"), net.ParseIP("127.255.255.255")},
 }
 
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates IPv4 or IPv6 addresses with support for different network classes.").
 		Param(bloblang.NewInt64Param("max_length").Default(100000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
-		Param(bloblang.NewStringParam("version").Default(string(IpVersion_V4)).Description("IP version to generate: 'ipv4' or 'ipv6'")).
-		Param(bloblang.NewStringParam("class").Default(string(IpV4Class_Public)).Description("IP class: 'public', 'private-a', 'private-b', 'private-c', 'link_local', 'multicast', 'loopback'")).
+		Param(bloblang.NewStringParam("ip_type").Default(string(IpV4_Public)).Description("IP type to generate.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("Optional seed for deterministic generation"))
 
 	err := bloblang.RegisterFunctionV2("generate_ip", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -60,12 +53,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		version, err := args.GetString("version")
-		if err != nil {
-			return nil, err
-		}
-
-		class, err := args.GetString("class")
+		ipType, err := args.GetString("ip_type")
 		if err != nil {
 			return nil, err
 		}
@@ -82,11 +70,8 @@ func init() {
 
 		randomizer := rng.New(seed)
 
-		versionStr := IpVersion(version)
-		classStr := IpV4Class(class)
-
 		return func() (any, error) {
-			return generateIpAddress(randomizer, versionStr, classStr, maxLength)
+			return generateIpAddress(randomizer, IpType(ipType), maxLength)
 		}, nil
 	})
 
@@ -97,26 +82,19 @@ func init() {
 
 func NewGenerateIpAddressOptsFromConfig(config *mgmtv1alpha1.GenerateIpAddress, maxlength *int64) (*GenerateIpAddressOpts, error) {
 	if config == nil {
-		return NewGenerateIpAddressOpts(nil, nil, nil, nil)
+		return NewGenerateIpAddressOpts(nil, nil, nil)
 	}
 
-	var version, class *string
+	var ipType *string
 
-	defaultVersion := string(IpVersion_V4)
-	version = &defaultVersion
-	if config.Version != nil {
-		v := config.Version.String()
-		version = &v
+	defaultIpType := string(IpV4_Public)
+	ipType = &defaultIpType
+	if config.IpType != nil {
+		v := config.IpType.String()
+		ipType = &v
 	}
 
-	defaultClass := string(IpV4Class_Public)
-	class = &defaultClass
-	if config.Class != nil {
-		c := config.Class.String()
-		class = &c
-	}
-
-	return NewGenerateIpAddressOpts(maxlength, version, class, nil)
+	return NewGenerateIpAddressOpts(maxlength, ipType, nil)
 }
 
 func (t *GenerateIpAddress) Generate(opts any) (any, error) {
@@ -124,20 +102,17 @@ func (t *GenerateIpAddress) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-	return generateIpAddress(parsedOpts.randomizer, IpVersion(parsedOpts.version), IpV4Class(parsedOpts.class), parsedOpts.maxLength)
+	return generateIpAddress(parsedOpts.randomizer, IpType(parsedOpts.ipType), parsedOpts.maxLength)
 }
 
-func generateIpAddress(randomizer rng.Rand, version IpVersion, class IpV4Class, maxLength int64) (string, error) {
+func generateIpAddress(randomizer rng.Rand, ipType IpType, maxLength int64) (string, error) {
 	var ip string
 	var err error
 
-	switch version {
-	case IpVersion_V4:
-		ip, err = generateIPv4Address(randomizer, class)
-	case IpVersion_V6:
+	if ipType == IpV4_V6 {
 		ip = generateIPv6Address(randomizer)
-	default:
-		return "", fmt.Errorf("unsupported IP version: %s", version)
+	} else {
+		ip, err = generateIPv4Address(randomizer, ipType)
 	}
 
 	if err != nil {
@@ -155,21 +130,20 @@ func generateIpAddress(randomizer rng.Rand, version IpVersion, class IpV4Class, 
 	return ip, nil
 }
 
-func generateIPv4Address(randomizer rng.Rand, class IpV4Class) (string, error) {
-	if class == IpV4Class_Public {
+func generateIPv4Address(randomizer rng.Rand, ipType IpType) (string, error) {
+	if ipType == IpV4_Public {
 		return generatePublicIPv4(randomizer)
 	}
 
-	ipRange, exists := ipv4Ranges[class]
+	ipRange, exists := ipv4Ranges[ipType]
 	if !exists {
-		return "", fmt.Errorf("unsupported IPv4 class: %s", class)
+		return "", fmt.Errorf("unsupported IPv4 type: %s", ipType)
 	}
 
 	return generateIPInRange(randomizer, ipRange.start, ipRange.end), nil
 }
 
 func generateIPv6Address(randomizer rng.Rand) string {
-	// Generate regular IPv6 address
 	groups := make([]string, 8)
 	for i := 0; i < 8; i++ {
 		groups[i] = fmt.Sprintf("%04x", randomizer.Intn(65536))
@@ -178,28 +152,26 @@ func generateIPv6Address(randomizer rng.Rand) string {
 }
 
 func generatePublicIPv4(randomizer rng.Rand) (string, error) {
-	maxAttempts := 1000 // Prevent infinite loop
+	maxAttempts := 1000
 	for i := 0; i < maxAttempts; i++ {
 		ip := make(net.IP, 4)
 		for i := range ip {
 			ip[i] = byte(randomizer.Intn(256))
 		}
 
-		// Check if the IP falls within any reserved range
 		if !isReservedIP(ip) {
 			return ip.String(), nil
 		}
 	}
 	return "", fmt.Errorf("failed to generate public IP after %d attempts", maxAttempts)
 }
-
 func isReservedIP(ip net.IP) bool {
 	for _, ipRange := range ipv4Ranges {
 		if inRange(ip, ipRange.start, ipRange.end) {
 			return true
 		}
 	}
-	// Also check for experimental/reserved range (240.0.0.0/4)
+	// Check experimental/reserved range (240.0.0.0/4)
 	experimentalStart := net.ParseIP("240.0.0.0")
 	experimentalEnd := net.ParseIP("255.255.255.255")
 	return inRange(ip, experimentalStart, experimentalEnd)

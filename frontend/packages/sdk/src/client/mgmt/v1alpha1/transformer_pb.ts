@@ -481,107 +481,83 @@ proto3.util.setEnumType(InvalidEmailAction, "mgmt.v1alpha1.InvalidEmailAction", 
 ]);
 
 /**
- * @generated from enum mgmt.v1alpha1.GenerateIpAddressVersion
+ * @generated from enum mgmt.v1alpha1.GenerateIpAddressType
  */
-export enum GenerateIpAddressVersion {
+export enum GenerateIpAddressType {
   /**
    * Unspecified defaults to ipv4
    *
-   * @generated from enum value: GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED = 0;
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
-   * Generates a random ipv4
+   * Generates a random ipv4_public
    *
-   * @generated from enum value: GENERATE_IP_ADDRESS_VERSION_V4 = 1;
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC = 1;
    */
-  V4 = 1,
+  V4_PUBLIC = 1,
+
+  /**
+   * Generates a random ipv4_private_a
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A = 2;
+   */
+  V4_PRIVATE_A = 2,
+
+  /**
+   * Generates a random ipv4_private_b
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B = 3;
+   */
+  V4_PRIVATE_B = 3,
+
+  /**
+   * Generates a random ipv4_private_c
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C = 4;
+   */
+  V4_PRIVATE_C = 4,
+
+  /**
+   * Generates a random ipv4_linklocal
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL = 5;
+   */
+  V4_LINK_LOCAL = 5,
+
+  /**
+   * Generates a random ipv4_multicast
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST = 6;
+   */
+  V4_MULTICAST = 6,
+
+  /**
+   * Generates a random ipv4_loopback
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK = 7;
+   */
+  V4_LOOPBACK = 7,
 
   /**
    * Generates a random ipv6
    *
-   * @generated from enum value: GENERATE_IP_ADDRESS_VERSION_V6 = 2;
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V6 = 8;
    */
-  V6 = 2,
+  V6 = 8,
 }
-// Retrieve enum metadata with: proto3.getEnumType(GenerateIpAddressVersion)
-proto3.util.setEnumType(GenerateIpAddressVersion, "mgmt.v1alpha1.GenerateIpAddressVersion", [
-  { no: 0, name: "GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED" },
-  { no: 1, name: "GENERATE_IP_ADDRESS_VERSION_V4" },
-  { no: 2, name: "GENERATE_IP_ADDRESS_VERSION_V6" },
-]);
-
-/**
- * @generated from enum mgmt.v1alpha1.GenerateIpAddressClass
- */
-export enum GenerateIpAddressClass {
-  /**
-   * Unspecified defaults to public
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * Generates a random ipv4 public address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_PUBLIC = 1;
-   */
-  PUBLIC = 1,
-
-  /**
-   * Generates a random ipv4 private-a ip address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_PRIVATE_A = 2;
-   */
-  PRIVATE_A = 2,
-
-  /**
-   * Generates a random ipv4 private-b ip address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_PRIVATE_B = 3;
-   */
-  PRIVATE_B = 3,
-
-  /**
-   * Generates a random ipv4 private-c ip address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_PRIVATE_C = 4;
-   */
-  PRIVATE_C = 4,
-
-  /**
-   * Generates a random ipv4 link-local ip address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL = 5;
-   */
-  LINK_LOCAL = 5,
-
-  /**
-   * Generates a random ipv4 multicast ip address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_MULTICAST = 6;
-   */
-  MULTICAST = 6,
-
-  /**
-   * Generates a random ipv4 loopback address
-   *
-   * @generated from enum value: GENERATE_IP_ADDRESS_CLASS_LOOPBACK = 7;
-   */
-  LOOPBACK = 7,
-}
-// Retrieve enum metadata with: proto3.getEnumType(GenerateIpAddressClass)
-proto3.util.setEnumType(GenerateIpAddressClass, "mgmt.v1alpha1.GenerateIpAddressClass", [
-  { no: 0, name: "GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED" },
-  { no: 1, name: "GENERATE_IP_ADDRESS_CLASS_PUBLIC" },
-  { no: 2, name: "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A" },
-  { no: 3, name: "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B" },
-  { no: 4, name: "GENERATE_IP_ADDRESS_CLASS_PRIVATE_C" },
-  { no: 5, name: "GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL" },
-  { no: 6, name: "GENERATE_IP_ADDRESS_CLASS_MULTICAST" },
-  { no: 7, name: "GENERATE_IP_ADDRESS_CLASS_LOOPBACK" },
+// Retrieve enum metadata with: proto3.getEnumType(GenerateIpAddressType)
+proto3.util.setEnumType(GenerateIpAddressType, "mgmt.v1alpha1.GenerateIpAddressType", [
+  { no: 0, name: "GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED" },
+  { no: 1, name: "GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC" },
+  { no: 2, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A" },
+  { no: 3, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B" },
+  { no: 4, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C" },
+  { no: 5, name: "GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL" },
+  { no: 6, name: "GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST" },
+  { no: 7, name: "GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK" },
+  { no: 8, name: "GENERATE_IP_ADDRESS_TYPE_V6" },
 ]);
 
 /**
@@ -4013,14 +3989,9 @@ export class GenerateBusinessName extends Message<GenerateBusinessName> {
  */
 export class GenerateIpAddress extends Message<GenerateIpAddress> {
   /**
-   * @generated from field: optional mgmt.v1alpha1.GenerateIpAddressVersion version = 1;
+   * @generated from field: optional mgmt.v1alpha1.GenerateIpAddressType ip_type = 1;
    */
-  version?: GenerateIpAddressVersion;
-
-  /**
-   * @generated from field: optional mgmt.v1alpha1.GenerateIpAddressClass class = 2;
-   */
-  class?: GenerateIpAddressClass;
+  ipType?: GenerateIpAddressType;
 
   constructor(data?: PartialMessage<GenerateIpAddress>) {
     super();
@@ -4030,8 +4001,7 @@ export class GenerateIpAddress extends Message<GenerateIpAddress> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateIpAddress";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "version", kind: "enum", T: proto3.getEnumType(GenerateIpAddressVersion), opt: true },
-    { no: 2, name: "class", kind: "enum", T: proto3.getEnumType(GenerateIpAddressClass), opt: true },
+    { no: 1, name: "ip_type", kind: "enum", T: proto3.getEnumType(GenerateIpAddressType), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateIpAddress {

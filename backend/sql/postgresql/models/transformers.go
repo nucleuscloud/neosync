@@ -209,8 +209,7 @@ type GenerateCountryConfig struct {
 type GenerateBusinessNameConfig struct{}
 
 type GenerateIpAddressConfig struct {
-	Version *int32 `json:"version,omitempty"`
-	Class   *int32 `json:"class,omitempty"`
+	IpType *int32 `json:"ipType,omitempty"`
 }
 
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
@@ -387,8 +386,7 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		t.GenerateBusinessName = &GenerateBusinessNameConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
 		t.GenerateIpAddress = &GenerateIpAddressConfig{
-			Class:   (*int32)(tr.GetGenerateIpAddressConfig().Class),
-			Version: (*int32)(tr.GetGenerateIpAddressConfig().Version),
+			IpType: (*int32)(tr.GetGenerateIpAddressConfig().IpType),
 		}
 	default:
 		t = &TransformerConfig{}
@@ -740,8 +738,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
 				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
-					Class:   (*mgmtv1alpha1.GenerateIpAddressClass)(t.GenerateIpAddress.Class),
-					Version: (*mgmtv1alpha1.GenerateIpAddressVersion)(t.GenerateIpAddress.Version),
+					IpType: (*mgmtv1alpha1.GenerateIpAddressType)(t.GenerateIpAddress.IpType),
 				},
 			},
 		}

@@ -92,22 +92,17 @@ class InvalidEmailAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     INVALID_EMAIL_ACTION_PASSTHROUGH: _ClassVar[InvalidEmailAction]
     INVALID_EMAIL_ACTION_GENERATE: _ClassVar[InvalidEmailAction]
 
-class GenerateIpAddressVersion(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+class GenerateIpAddressType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED: _ClassVar[GenerateIpAddressVersion]
-    GENERATE_IP_ADDRESS_VERSION_V4: _ClassVar[GenerateIpAddressVersion]
-    GENERATE_IP_ADDRESS_VERSION_V6: _ClassVar[GenerateIpAddressVersion]
-
-class GenerateIpAddressClass(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_PUBLIC: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_PRIVATE_A: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_PRIVATE_B: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_PRIVATE_C: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_MULTICAST: _ClassVar[GenerateIpAddressClass]
-    GENERATE_IP_ADDRESS_CLASS_LOOPBACK: _ClassVar[GenerateIpAddressClass]
+    GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V6: _ClassVar[GenerateIpAddressType]
 TRANSFORMER_SOURCE_UNSPECIFIED: TransformerSource
 TRANSFORMER_SOURCE_PASSTHROUGH: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_DEFAULT: TransformerSource
@@ -177,17 +172,15 @@ INVALID_EMAIL_ACTION_REJECT: InvalidEmailAction
 INVALID_EMAIL_ACTION_NULL: InvalidEmailAction
 INVALID_EMAIL_ACTION_PASSTHROUGH: InvalidEmailAction
 INVALID_EMAIL_ACTION_GENERATE: InvalidEmailAction
-GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED: GenerateIpAddressVersion
-GENERATE_IP_ADDRESS_VERSION_V4: GenerateIpAddressVersion
-GENERATE_IP_ADDRESS_VERSION_V6: GenerateIpAddressVersion
-GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_PUBLIC: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_PRIVATE_A: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_PRIVATE_B: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_PRIVATE_C: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_MULTICAST: GenerateIpAddressClass
-GENERATE_IP_ADDRESS_CLASS_LOOPBACK: GenerateIpAddressClass
+GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V6: GenerateIpAddressType
 
 class GetSystemTransformersRequest(_message.Message):
     __slots__ = ()
@@ -800,8 +793,7 @@ class GenerateBusinessName(_message.Message):
     def __init__(self) -> None: ...
 
 class GenerateIpAddress(_message.Message):
-    __slots__ = ("version",)
-    VERSION_FIELD_NUMBER: _ClassVar[int]
-    CLASS_FIELD_NUMBER: _ClassVar[int]
-    version: GenerateIpAddressVersion
-    def __init__(self, version: _Optional[_Union[GenerateIpAddressVersion, str]] = ..., **kwargs) -> None: ...
+    __slots__ = ("ip_type",)
+    IP_TYPE_FIELD_NUMBER: _ClassVar[int]
+    ip_type: GenerateIpAddressType
+    def __init__(self, ip_type: _Optional[_Union[GenerateIpAddressType, str]] = ...) -> None: ...

@@ -517,37 +517,29 @@ message GetTransformPiiEntitiesResponse {
 
 message GenerateBusinessName {}
 
-enum GenerateIpAddressVersion {
+enum GenerateIpAddressType {
   // Unspecified defaults to ipv4
-  GENERATE_IP_ADDRESS_VERSION_UNSPECIFIED = 0;
-  // Generates a random ipv4
-  GENERATE_IP_ADDRESS_VERSION_V4 = 1;
+  GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED = 0;
+  // Generates a random ipv4_public
+  GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC = 1;
+  // Generates a random ipv4_private_a
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A = 2;
+  // Generates a random ipv4_private_b
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B = 3;
+  // Generates a random ipv4_private_c
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C = 4;
+  // Generates a random ipv4_linklocal
+  GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL = 5;
+  // Generates a random ipv4_multicast
+  GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST = 6;
+  // Generates a random ipv4_loopback
+  GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK = 7;
   // Generates a random ipv6
-  GENERATE_IP_ADDRESS_VERSION_V6 = 2;
-}
-
-enum GenerateIpAddressClass {
-  // Unspecified defaults to public
-  GENERATE_IP_ADDRESS_CLASS_UNSPECIFIED = 0;
-  // Generates a random ipv4 public address
-  GENERATE_IP_ADDRESS_CLASS_PUBLIC = 1;
-  // Generates a random ipv4 private-a ip address
-  GENERATE_IP_ADDRESS_CLASS_PRIVATE_A = 2;
-  // Generates a random ipv4 private-b ip address
-  GENERATE_IP_ADDRESS_CLASS_PRIVATE_B = 3;
-  // Generates a random ipv4 private-c ip address
-  GENERATE_IP_ADDRESS_CLASS_PRIVATE_C = 4;
-  // Generates a random ipv4 link-local ip address
-  GENERATE_IP_ADDRESS_CLASS_LINK_LOCAL = 5;
-  // Generates a random ipv4 multicast ip address
-  GENERATE_IP_ADDRESS_CLASS_MULTICAST = 6;
-  // Generates a random ipv4 loopback address
-  GENERATE_IP_ADDRESS_CLASS_LOOPBACK = 7;
+  GENERATE_IP_ADDRESS_TYPE_V6 = 8;
 }
 
 message GenerateIpAddress {
-  optional GenerateIpAddressVersion version = 1;
-  optional GenerateIpAddressClass class = 2;
+  optional GenerateIpAddressType ip_type = 1;
 }
 
 service TransformersService {

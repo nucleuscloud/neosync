@@ -14,7 +14,7 @@ import (
 
 func TestPublicIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_Public, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_Public, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -25,7 +25,7 @@ func TestPublicIPv4Generation(t *testing.T) {
 
 func TestPrivateAIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_PrivateA, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_PrivateA, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -35,7 +35,7 @@ func TestPrivateAIPv4Generation(t *testing.T) {
 
 func TestPrivateBIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_PrivateB, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_PrivateB, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -49,7 +49,7 @@ func TestPrivateBIPv4Generation(t *testing.T) {
 
 func TestPrivateCIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_PrivateC, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_PrivateC, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -59,7 +59,7 @@ func TestPrivateCIPv4Generation(t *testing.T) {
 
 func TestLinkLocalIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_LinkLocal, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_LinkLocal, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -69,7 +69,7 @@ func TestLinkLocalIPv4Generation(t *testing.T) {
 
 func TestMulticastIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_Multicast, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_Multicast, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -81,7 +81,7 @@ func TestMulticastIPv4Generation(t *testing.T) {
 
 func TestLoopbackIPv4Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	ip, err := generateIpAddress(randomizer, IpVersion_V4, IpV4Class_Loopback, maxLength)
+	ip, err := generateIpAddress(randomizer, IpV4_Loopback, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -91,8 +91,7 @@ func TestLoopbackIPv4Generation(t *testing.T) {
 
 func TestIPv6Generation(t *testing.T) {
 	randomizer := rng.New(1234)
-	maxL := int64(100)
-	ip, err := generateIpAddress(randomizer, IpVersion_V6, IpV4Class_Public, maxL) // class is ignored for IPv6
+	ip, err := generateIpAddress(randomizer, IpV4_V6, 100)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
 
@@ -109,18 +108,11 @@ func TestIPv6Generation(t *testing.T) {
 	}
 }
 
-func TestInvalidVersionError(t *testing.T) {
+func TestInvalidIPTypeError(t *testing.T) {
 	randomizer := rng.New(1234)
-	_, err := generateIpAddress(randomizer, "invalid", IpV4Class_Public, maxLength)
+	_, err := generateIpAddress(randomizer, IpType("invalid"), 100)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported IP version")
-}
-
-func TestInvalidClassError(t *testing.T) {
-	randomizer := rng.New(1234)
-	_, err := generateIpAddress(randomizer, IpVersion_V4, "invalid", maxLength)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported IPv4 class")
+	assert.Contains(t, err.Error(), "unsupported IPv4 type")
 }
 
 func TestIPConversion(t *testing.T) {
@@ -195,9 +187,9 @@ func Test_IpV4Public_NoOptions(t *testing.T) {
 	assert.False(t, isReservedIP(parsedIP), "should not be reserved IP")
 }
 
-func Test_IpV4PrivateA_Class(t *testing.T) {
-	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
-	mapping := fmt.Sprintf(`root = generate_ip(class:%q)`, class)
+func Test_IpV4PrivateA(t *testing.T) {
+	ipType := string(IpV4_PrivateA)
+	mapping := fmt.Sprintf(`root = generate_ip(ip_type:%q)`, ipType)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
@@ -207,7 +199,6 @@ func Test_IpV4PrivateA_Class(t *testing.T) {
 	require.NotEmpty(t, res)
 
 	resStr, ok := res.(string)
-
 	require.True(t, ok)
 	require.NotEmpty(t, resStr)
 
@@ -216,11 +207,9 @@ func Test_IpV4PrivateA_Class(t *testing.T) {
 	assert.True(t, isReservedIP(parsedIP), "should be reserved IP since it's private")
 }
 
-func Test_IpV6(t *testing.T) {
-	// the class is ignored here since the version is set to ipv6
-	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
-	version := "GENERATE_IP_ADDRESS_VERSION_V6"
-	mapping := fmt.Sprintf(`root = generate_ip(class:%q,version:%q)`, class, version)
+func Test_IpV6_Generation(t *testing.T) {
+	ipType := string(IpV4_V6)
+	mapping := fmt.Sprintf(`root = generate_ip(ip_type:%q)`, ipType)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
@@ -230,7 +219,6 @@ func Test_IpV6(t *testing.T) {
 	require.NotEmpty(t, res)
 
 	resStr, ok := res.(string)
-
 	require.True(t, ok)
 	require.NotEmpty(t, resStr)
 
@@ -238,20 +226,17 @@ func Test_IpV6(t *testing.T) {
 	require.NotNil(t, parsedIP, "should be valid IP")
 
 	groups := strings.Split(resStr, ":")
-
 	assert.Equal(t, 8, len(groups), "should have 8 groups")
 	for _, group := range groups {
 		assert.Len(t, group, 4, "each group should be 4 characters")
-		// Verify each group is valid hexadecimal
 		_, err := parseHexGroup(group)
 		assert.NoError(t, err, "each group should be valid hexadecimal")
 	}
 }
 
-func Test_IpV4PrivateB_Class_Version(t *testing.T) {
-	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B"
-	version := "GENERATE_IP_ADDRESS_VERSION_V4"
-	mapping := fmt.Sprintf(`root = generate_ip(class:%q,version:%q)`, class, version)
+func Test_IpV4PrivateB(t *testing.T) {
+	ipType := string(IpV4_PrivateB)
+	mapping := fmt.Sprintf(`root = generate_ip(ip_type:%q)`, ipType)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
 	require.NotEmpty(t, ip)
@@ -261,7 +246,6 @@ func Test_IpV4PrivateB_Class_Version(t *testing.T) {
 	require.NotEmpty(t, res)
 
 	resStr, ok := res.(string)
-
 	require.True(t, ok)
 	require.NotEmpty(t, resStr)
 
