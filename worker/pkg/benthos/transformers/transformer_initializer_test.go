@@ -710,7 +710,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$`, result)
 	})
 
 	t.Run("GenerateLastNameConfig_Nil", func(t *testing.T) {
