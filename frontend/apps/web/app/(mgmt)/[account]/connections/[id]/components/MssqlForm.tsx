@@ -61,7 +61,7 @@ export default function MssqlForm(props: Props): ReactElement {
   const form = useForm<MssqlFormValues, MssqlEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(MssqlFormValues),
-    values: defaultValues,
+    defaultValues: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
@@ -93,7 +93,7 @@ export default function MssqlForm(props: Props): ReactElement {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="connectionName"
@@ -148,7 +148,7 @@ export default function MssqlForm(props: Props): ReactElement {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Max Connection Limit</FormLabel>
+                <FormLabel>Max Open Connection Limit</FormLabel>
                 <FormDescription>
                   The maximum number of concurrent database connections allowed.
                   If set to 0 then there is no limit on the number of open
@@ -163,6 +163,91 @@ export default function MssqlForm(props: Props): ReactElement {
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
                     field.onChange(event.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="options.maxIdleLimit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Idle Connection Limit</FormLabel>
+                <FormDescription>
+                  The maximum number of idle database connections allowed. If
+                  set to 0 then there is no limit on the number of idle
+                  connections.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  type="number"
+                  value={field.value ? field.value.toString() : 0}
+                  onChange={(event) => {
+                    field.onChange(event.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="options.maxIdleDuration"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Idle Duration</FormLabel>
+                <FormDescription>
+                  The maximum amount of time a connection may be idle. Expired
+                  connections may be closed laizly before reuse. Ex: 1s, 1m,
+                  500ms
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  value={field.value ? field.value : ''}
+                  onChange={(event) => {
+                    field.onChange(event.target.value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="options.maxOpenDuration"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Idle Duration</FormLabel>
+                <FormDescription>
+                  The maximum amount of time a connection may be reused. Expired
+                  connections may be closed laizly before reuse. Ex: 1s, 1m,
+                  500ms
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  value={field.value ? field.value : ''}
+                  onChange={(event) => {
+                    field.onChange(event.target.value);
                   }}
                 />
               </FormControl>

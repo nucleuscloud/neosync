@@ -9,6 +9,7 @@ import {
   MysqlFormValues,
   OpenAiFormValues,
   PostgresFormValues,
+  SqlOptionsFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import { PlainMessage } from '@bufbuild/protobuf';
@@ -471,15 +472,34 @@ function buildMysqlConnectionConfig(
   return mysqlconfig;
 }
 
+function getSqlConnectionOptions(
+  values: SqlOptionsFormValues
+): SqlConnectionOptions {
+  return new SqlConnectionOptions({
+    maxConnectionLimit:
+      values.maxConnectionLimit != null && values.maxConnectionLimit >= 0
+        ? values.maxConnectionLimit
+        : undefined,
+    maxIdleConnections:
+      values.maxIdleLimit != null && values.maxIdleLimit >= 0
+        ? values.maxIdleLimit
+        : undefined,
+    maxIdleDuration: values.maxIdleDuration
+      ? values.maxIdleDuration
+      : undefined,
+    maxOpenDuration: values.maxOpenDuration
+      ? values.maxOpenDuration
+      : undefined,
+  });
+}
+
 function buildPostgresConnectionConfig(
   values: PostgresFormValues
 ): PostgresConnectionConfig {
   const pgconfig = new PostgresConnectionConfig({
     clientTls: getClientTlsConfig(values.clientTls),
     tunnel: getTunnelConfig(values.tunnel),
-    connectionOptions: new SqlConnectionOptions({
-      ...values.options,
-    }),
+    connectionOptions: getSqlConnectionOptions(values.options),
   });
 
   if (values.url) {
