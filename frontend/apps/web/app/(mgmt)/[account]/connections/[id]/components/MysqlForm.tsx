@@ -320,7 +320,7 @@ export default function MysqlForm(props: Props) {
               <FormItem>
                 <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Max Connection Limit</FormLabel>
+                    <FormLabel>Max Open Connection Limit</FormLabel>
                     <FormDescription>
                       The maximum number of concurrent database connections
                       allowed. If set to 0 then there is no limit on the number

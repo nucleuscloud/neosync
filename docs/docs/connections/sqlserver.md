@@ -80,9 +80,9 @@ sqlserver://sa:YourStrong@Passw0rd@test-prod-db-mssql:1433?database=master
 
 Due to MSSQL's design, it is possible to have two separate databases within the same physical database instance and sync between the two. They will simply need to be configured as two separate Neosync connections.
 
-### Max Connection Limit
+### Max Open Connection Limit
 
-This is by default set to 80, but it's important to look into this and set this value to the appropriate size given the size of your database as it changes based on the machine type. 80 may be too high, or too low! Ultimately, this will affect how quickly Neosync is able to sync to or from your database as it takes advantage of parallelization where it can.
+This is by default set to 50, but it's important to look into this and set this value to the appropriate size given the size of your database as it changes based on the machine type. 50 may be too high, or too low! Ultimately, this will affect how quickly Neosync is able to sync to or from your database as it takes advantage of parallelization where it can.
 
 ### Bastion Host Configuration
 

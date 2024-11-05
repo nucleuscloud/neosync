@@ -99,8 +99,11 @@ export type SshTunnelFormValues = Yup.InferType<typeof SshTunnelFormValues>;
 
 const SqlOptionsFormValues = Yup.object({
   maxConnectionLimit: Yup.number()
-    .min(-1, 'The Max Connection Limit cannot be less than -1')
-    .max(1000, 'The Max Connection limit must be less than or equal to 1000.')
+    .min(-1, 'The Max Open Connection Limit cannot be less than -1')
+    .max(
+      1000,
+      'The Max Open Connection limit must be less than or equal to 1000.'
+    )
     .optional(),
   maxIdleLimit: Yup.number()
     .min(-1, 'The Max Idle Connection Limit cannot be less than -1')
