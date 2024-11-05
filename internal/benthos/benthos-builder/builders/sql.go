@@ -374,14 +374,21 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			}
 		}
 
-		columnTypes := []string{}
+		columnTypes := []string{} // use map going forward
+		columnDataTypes := map[string]string{}
 		for _, c := range benthosConfig.Columns {
 			colType, ok := colInfoMap[c]
 			if ok {
+				columnDataTypes[c] = colType.DataType
 				columnTypes = append(columnTypes, colType.DataType)
 			} else {
 				columnTypes = append(columnTypes, "")
 			}
+		}
+
+		batchProcessors := []*neosync_benthos.BatchProcessor{}
+		if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
@@ -406,8 +413,9 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Suffix:                   suffix,
 
 						Batching: &neosync_benthos.Batching{
-							Period: destOpts.BatchPeriod,
-							Count:  destOpts.BatchCount,
+							Period:     destOpts.BatchPeriod,
+							Count:      destOpts.BatchCount,
+							Processors: batchProcessors,
 						},
 					},
 				},
