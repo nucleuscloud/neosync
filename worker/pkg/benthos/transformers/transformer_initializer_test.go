@@ -445,6 +445,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFirstNameConfig_Nil", func(t *testing.T) {
@@ -458,6 +459,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFloat64Config", func(t *testing.T) {
@@ -554,6 +556,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFullNameConfig_Nil", func(t *testing.T) {
@@ -567,6 +570,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateGenderConfig", func(t *testing.T) {
@@ -710,7 +714,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateLastNameConfig_Nil", func(t *testing.T) {
@@ -724,7 +728,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateSha256HashConfig_Empty", func(t *testing.T) {
