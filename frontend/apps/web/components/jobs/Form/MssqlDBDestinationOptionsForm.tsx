@@ -160,5 +160,9 @@ interface FormItemBorderProps {
 }
 function FormItemBorder(props: FormItemBorderProps): ReactElement {
   const { children } = props;
-  return <div className="rounded-lg border p-3 shadow-sm">{children}</div>;
+  return (
+    <div className="rounded-lg border p-3 shadow-sm dark:border-gray-700">
+      {children}
+    </div>
+  );
 }
