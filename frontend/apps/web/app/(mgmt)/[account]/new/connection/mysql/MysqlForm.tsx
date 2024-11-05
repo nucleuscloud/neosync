@@ -88,7 +88,10 @@ export default function MysqlForm() {
       },
       url: '',
       options: {
-        maxConnectionLimit: 80,
+        maxConnectionLimit: 50,
+        maxIdleDuration: '',
+        maxIdleLimit: 2,
+        maxOpenDuration: '',
       },
       tunnel: {
         host: '',

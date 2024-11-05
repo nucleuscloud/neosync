@@ -88,7 +88,10 @@ export default function PostgresForm() {
         },
         url: '',
         options: {
-          maxConnectionLimit: 80,
+          maxConnectionLimit: 50,
+          maxIdleDuration: '',
+          maxIdleLimit: 2,
+          maxOpenDuration: '',
         },
         tunnel: {
           host: '',
@@ -221,7 +224,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           url: typeof pgConfig === 'string' ? pgConfig : '',
           options: {
             maxConnectionLimit:
-              config.connectionOptions?.maxConnectionLimit ?? 80,
+              config.connectionOptions?.maxConnectionLimit ?? 50,
+            maxIdleDuration: config.connectionOptions?.maxIdleDuration ?? '',
+            maxIdleLimit: config.connectionOptions?.maxIdleConnections ?? 2,
+            maxOpenDuration: config.connectionOptions?.maxOpenDuration ?? '',
           },
           tunnel: {
             host: config.tunnel?.host ?? '',
