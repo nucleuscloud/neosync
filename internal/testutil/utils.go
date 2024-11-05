@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
-
-	charmlog "github.com/charmbracelet/log"
 )
 
 func ShouldRunIntegrationTest() bool {
@@ -31,13 +30,8 @@ type testWriter struct {
 }
 
 func (tw testWriter) Write(p []byte) (n int, err error) {
-	tw.t.Log(string(p))
+	// removes extra line between log statements
+	msg := strings.TrimSuffix(string(p), "\n")
+	tw.t.Log(msg)
 	return len(p), nil
-}
-
-func GetTestCharmSlogger() *slog.Logger {
-	charmlogger := charmlog.NewWithOptions(os.Stdout, charmlog.Options{
-		Level: charmlog.DebugLevel,
-	})
-	return slog.New(charmlogger)
 }
