@@ -4,6 +4,8 @@ import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   AwsS3DestinationConnectionOptions_StorageClass,
   GenerateEmailType,
+  GenerateIpAddressClass,
+  GenerateIpAddressVersion,
   InvalidEmailAction,
   SupportedJobType,
   SystemTransformer,
@@ -190,4 +192,18 @@ export function getFilterdTransformersByType(
     dataType: datatype,
     jobType: SupportedJobType.SYNC,
   });
+}
+
+export function getGenerateIpAddressVersionString(
+  version: GenerateIpAddressVersion
+): string {
+  const value = GenerateIpAddressVersion[version];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+export function getGenerateIpAddressClassString(
+  ipClass: GenerateIpAddressClass
+): string {
+  const value = GenerateIpAddressClass[ipClass];
+  return value ? value.toLowerCase() : 'unknown';
 }

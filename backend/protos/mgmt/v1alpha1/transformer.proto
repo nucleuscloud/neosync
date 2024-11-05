@@ -295,7 +295,7 @@ message PiiAnonymizer {
       HASH_TYPE_UNSPECIFIED = 0;
       // The MD5 Hash Algorithm
       HASH_TYPE_MD5 = 1;
-    // The SHA256 Hash Algorithm
+  // The SHA256 Hash Algorithm
       HASH_TYPE_SHA256 = 2;
       // The SHA512 Hash Algorithm
       HASH_TYPE_SHA512 = 3;
