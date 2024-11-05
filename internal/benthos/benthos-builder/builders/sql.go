@@ -26,6 +26,7 @@ type sqlSyncBuilder struct {
 	redisConfig        *shared.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
+	options            *SqlSyncOptions
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
@@ -35,19 +36,37 @@ type sqlSyncBuilder struct {
 	sqlDestinationSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 }
 
+type SqlSyncOption func(*SqlSyncOptions)
+type SqlSyncOptions struct {
+	rawInsertMode bool
+}
+
+// WithRawInsertMode inserts data as is
+func WithRawInsertMode() SqlSyncOption {
+	return func(opts *SqlSyncOptions) {
+		opts.rawInsertMode = true
+	}
+}
+
 func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	redisConfig *shared.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	opts ...SqlSyncOption,
 ) bb_internal.BenthosBuilder {
+	options := &SqlSyncOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
 	return &sqlSyncBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,
 		redisConfig:        redisConfig,
 		driver:             databaseDriver,
 		selectQueryBuilder: selectQueryBuilder,
+		options:            options,
 	}
 }
 
@@ -380,6 +399,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						ColumnDefaultProperties:  columnDefaultProperties,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						RawInsertMode:            b.options.rawInsertMode,
 						TruncateOnRetry:          destOpts.Truncate,
 						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
 						Prefix:                   prefix,

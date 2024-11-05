@@ -2,13 +2,12 @@ package querybuilder
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/stretchr/testify/require"
 )
@@ -102,7 +101,6 @@ func Test_BuildUpdateQuery(t *testing.T) {
 }
 
 func Test_BuildInsertQuery(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	tests := []struct {
 		name                    string
 		driver                  string
@@ -125,7 +123,8 @@ func Test_BuildInsertQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, args, err := BuildInsertQuery(logger, tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing, tt.columnDefaultProperties)
+			goquvals := toGoquVals(tt.values)
+			actual, args, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, goquvals, &tt.onConflictDoNothing)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 			require.Equal(t, tt.expectedArgs, args)
@@ -134,7 +133,7 @@ func Test_BuildInsertQuery(t *testing.T) {
 }
 
 func Test_BuildInsertQuery_JsonArray(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	driver := sqlmanager_shared.PostgresDriver
 	schema := "public"
 	table := "test_table"
@@ -146,15 +145,16 @@ func Test_BuildInsertQuery_JsonArray(t *testing.T) {
 		{2, "Jane", []map[string]any{{"tag": "smart"}, {"tag": "clever"}}},
 	}
 	onConflictDoNothing := false
+	goquvals := toGoquVals(getPostgresVals(logger, values, columnDataTypes, columnDefaultProperties))
 
-	query, _, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing, columnDefaultProperties)
+	query, _, err := BuildInsertQuery(driver, schema, table, columns, goquvals, &onConflictDoNothing)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, ARRAY['{"tag":"cool"}','{"tag":"awesome"}']::jsonb[]), ($3, $4, ARRAY['{"tag":"smart"}','{"tag":"clever"}']::jsonb[])`
 	require.Equal(t, expectedQuery, query)
 }
 
 func Test_BuildInsertQuery_Json(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	driver := sqlmanager_shared.PostgresDriver
 	schema := "public"
 	table := "test_table"
@@ -167,7 +167,8 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 	}
 	onConflictDoNothing := false
 
-	query, args, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing, columnDefaultProperties)
+	goquvals := toGoquVals(getPostgresVals(logger, values, columnDataTypes, columnDefaultProperties))
+	query, args, err := BuildInsertQuery(driver, schema, table, columns, goquvals, &onConflictDoNothing)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, $3), ($4, $5, $6)`
 	require.Equal(t, expectedQuery, query)
@@ -176,96 +177,95 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 
 func TestGetGoquVals(t *testing.T) {
 	t.Run("Postgres", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.PostgresDriver
-		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}}
 		columnDataTypes := []string{"text", "integer", "boolean", "jsonb", "integer[]"}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, nil, nil}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getPostgresVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
-		require.Len(t, result, 5)
-		require.Equal(t, "value1", result[0])
-		require.Equal(t, 42, result[1])
-		require.Equal(t, true, result[2])
-		require.JSONEq(t, `{"key":"value"}`, string(result[3].([]byte)))
-		require.Equal(t, pq.Array([]any{1, 2, 3}), result[4])
+		require.Len(t, result, 1)
+		row := result[0]
+		require.Equal(t, "value1", row[0])
+		require.Equal(t, 42, row[1])
+		require.Equal(t, true, row[2])
+		require.JSONEq(t, `{"key":"value"}`, string(row[3].([]byte)))
+		require.Equal(t, pq.Array([]any{1, 2, 3}), row[4])
 	})
 
 	t.Run("Postgres JSON", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.PostgresDriver
-		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}}
 		columnDataTypes := []string{"jsonb", "jsonb", "jsonb", "jsonb", "json"}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, nil, nil}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getPostgresVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
-		require.Equal(t, goqu.Vals{
+		require.Len(t, result, 1)
+		require.Equal(t, []any{
 			[]byte(`"value1"`),
 			[]byte(`42`),
 			[]byte(`true`),
 			[]byte(`{"key":"value"}`),
 			[]byte(`[1,2,3]`),
-		}, result)
+		}, result[0])
 	})
 
 	t.Run("Postgres Empty Column DataTypes", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.MysqlDriver
-		row := []any{"value1", 42, true, "DEFAULT"}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{{"value1", 42, true, "DEFAULT"}}
 		columnDataTypes := []string{}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, {HasDefaultTransformer: true}}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getPostgresVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
-		require.Len(t, result, 4)
-		require.Equal(t, "value1", result[0])
-		require.Equal(t, 42, result[1])
-		require.Equal(t, true, result[2])
-		require.Equal(t, goqu.L("DEFAULT"), result[3])
+		require.Len(t, result, 1)
+		row := result[0]
+		require.Equal(t, "value1", row[0])
+		require.Equal(t, 42, row[1])
+		require.Equal(t, true, row[2])
+		require.Equal(t, goqu.L("DEFAULT"), row[3])
 	})
 
 	t.Run("Mysql", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.MysqlDriver
-		row := []any{"value1", 42, true, "DEFAULT"}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{{"value1", 42, true, "DEFAULT"}}
 		columnDataTypes := []string{}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, {HasDefaultTransformer: true}}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getMysqlVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
-		require.Len(t, result, 4)
-		require.Equal(t, "value1", result[0])
-		require.Equal(t, 42, result[1])
-		require.Equal(t, true, result[2])
-		require.Equal(t, goqu.L("DEFAULT"), result[3])
+		require.Len(t, result, 1)
+		row := result[0]
+		require.Equal(t, "value1", row[0])
+		require.Equal(t, 42, row[1])
+		require.Equal(t, true, row[2])
+		require.Equal(t, goqu.L("DEFAULT"), row[3])
 	})
 
 	t.Run("EmptyRow", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.PostgresDriver
-		row := []any{}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{}
 		columnDataTypes := []string{}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getMysqlVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
 		require.Empty(t, result)
 	})
 
 	t.Run("Mismatch length ColumnDataTypes and Row Values", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		driver := sqlmanager_shared.PostgresDriver
-		row := []any{"text", 42, true}
+		logger := testutil.GetTestLogger(t)
+		rows := [][]any{{"text", 42, true}}
 		columnDataTypes := []string{"text"}
 		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+		result := getMysqlVals(logger, rows, columnDataTypes, columnDefaultProperties)
 
-		require.Len(t, result, 3)
-		require.Equal(t, "text", result[0])
-		require.Equal(t, 42, result[1])
-		require.Equal(t, true, result[2])
+		require.Len(t, result, 1)
+		row := result[0]
+		require.Equal(t, "text", row[0])
+		require.Equal(t, 42, row[1])
+		require.Equal(t, true, row[2])
 	})
 }
