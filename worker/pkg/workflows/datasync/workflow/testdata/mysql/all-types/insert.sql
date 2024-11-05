@@ -5,7 +5,7 @@ INSERT INTO all_data_types (
     decimal_col, float_col, double_col, 
     bit_col,
     date_col,
-    time_col, datetime_col, timestamp_col, year_col,
+    time_col, datetime_col, year_col,
     char_col, varchar_col,binary_col, varbinary_col,
     tinyblob_col, tinytext_col, blob_col, text_col,
     mediumblob_col, mediumtext_col, longblob_col, longtext_col,
