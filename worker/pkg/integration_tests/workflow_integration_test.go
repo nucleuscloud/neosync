@@ -46,6 +46,11 @@ import (
 
 const neosyncDbMigrationsPath = "../../../backend/sql/postgresql/schema"
 
+/*
+ TODO update worker to use one system logger so that we can use the new test logger
+ right now we have temporal and benthos and slog
+*/
+
 func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 	drTests := testdata_doublereference.GetSyncTests()
