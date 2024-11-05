@@ -36,14 +36,12 @@ func Test_convertStringToBit(t *testing.T) {
 	})
 
 	t.Run("invalid binary string", func(t *testing.T) {
-		_, err := convertStringToBit("102") // should panic
+		_, err := convertStringToBit("102")
 		require.Error(t, err)
 	})
 
 	t.Run("empty string", func(t *testing.T) {
-		got, err := convertStringToBit("")
-		require.NoError(t, err)
-		expected := []byte{0}
-		require.Equalf(t, expected, got, "got %v, want %v", got, expected)
+		_, err := convertStringToBit("")
+		require.Error(t, err)
 	})
 }
