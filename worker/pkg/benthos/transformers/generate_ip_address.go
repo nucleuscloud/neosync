@@ -206,31 +206,23 @@ func isReservedIP(ip net.IP) bool {
 }
 
 func generateIPInRange(randomizer rng.Rand, start, end net.IP) string {
-	startInt := ipToUint32(start)
-	endInt := ipToUint32(end)
-
-	// Calculate range safely using uint64 to avoid overflow
-	rangeSize := uint64(endInt) - uint64(startInt) + 1
-
-	// Generate random offset within range
-	offset := uint32(randomizer.Int63n(int64(rangeSize)))
-
-	// Calculate final IP address
-	resultInt := startInt + offset
-
-	return uint32ToIP(resultInt).String()
+	startInt := ipToInt64(start)
+	endInt := ipToInt64(end)
+	rangeSize := endInt - startInt + 1
+	random := startInt + randomizer.Int63n(rangeSize)
+	return int64ToIP(random).String()
 }
 
 func inRange(ip, start, end net.IP) bool {
 	return bytes.Compare(ip, start) >= 0 && bytes.Compare(ip, end) <= 0
 }
 
-func ipToUint32(ip net.IP) uint32 {
+func ipToInt64(ip net.IP) int64 {
 	ip = ip.To4()
-	return uint32(ip[0])<<24 | uint32(ip[1])<<16 | uint32(ip[2])<<8 | uint32(ip[3])
+	return int64(ip[0])<<24 | int64(ip[1])<<16 | int64(ip[2])<<8 | int64(ip[3])
 }
 
-func uint32ToIP(n uint32) net.IP {
+func int64ToIP(n int64) net.IP {
 	ip := make(net.IP, 4)
 	ip[0] = byte(n >> 24)
 	ip[1] = byte(n >> 16)

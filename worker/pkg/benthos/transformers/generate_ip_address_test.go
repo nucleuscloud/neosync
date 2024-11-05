@@ -138,8 +138,8 @@ func TestIPConversion(t *testing.T) {
 			originalIP := net.ParseIP(ipStr)
 			require.NotNil(t, originalIP)
 
-			intIP := ipToUint32(originalIP)
-			convertedIP := uint32ToIP(intIP)
+			intIP := ipToInt64(originalIP)
+			convertedIP := int64ToIP(intIP)
 
 			assert.Equal(t, originalIP.To4().String(), convertedIP.String())
 		})
