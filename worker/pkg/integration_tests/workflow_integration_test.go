@@ -22,11 +22,11 @@ import (
 
 	// testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 
-	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	testdata_pgtypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/all-types"
+	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 
 	// testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
-	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
+
 	// testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	// testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	// testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
@@ -100,6 +100,22 @@ func Test_Workflow(t *testing.T) {
 		destConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-dest", postgres.Target.URL)
 		tests := getAllPostgresSyncTests()
 
+		neosyncApi.Mocks.TemporalClientManager.
+			On(
+				"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
+			).
+			Return(true, nil)
+		neosyncApi.Mocks.TemporalClientManager.
+			On(
+				"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
+			).
+			Return("sync-job", nil)
+		neosyncApi.Mocks.TemporalClientManager.
+			On(
+				"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			).
+			Return("test-id", nil)
+
 		for groupName, group := range tests {
 			group := group
 			t.Run(groupName, func(t *testing.T) {
@@ -152,31 +168,6 @@ func Test_Workflow(t *testing.T) {
 								},
 							}
 						}
-
-						mockScheduleClient := temporalmocks.NewScheduleClient(t)
-						mockScheduleHandle := temporalmocks.NewScheduleHandle(t)
-						neosyncApi.Mocks.TemporalClientManager.
-							On(
-								"DoesAccountHaveTemporalWorkspace", mock.Anything, mock.Anything, mock.Anything,
-							).
-							Return(true, nil).
-							Once()
-						neosyncApi.Mocks.TemporalClientManager.
-							On("GetScheduleClientByAccount", mock.Anything, mock.Anything, mock.Anything).
-							Return(mockScheduleClient, nil).
-							Once()
-						neosyncApi.Mocks.TemporalClientManager.
-							On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
-							Return(&pg_models.TemporalConfig{}, nil).
-							Once()
-						mockScheduleClient.
-							On("Create", mock.Anything, mock.Anything).
-							Return(mockScheduleHandle, nil).
-							Once()
-						mockScheduleHandle.
-							On("GetID").
-							Return(tt.Name).
-							Once()
 
 						job, err := jobclient.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 							AccountId: accountId,
