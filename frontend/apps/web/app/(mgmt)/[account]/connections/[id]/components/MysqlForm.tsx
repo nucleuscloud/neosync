@@ -76,7 +76,7 @@ export default function MysqlForm(props: Props) {
   const form = useForm<MysqlFormValues, MysqlEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(MysqlFormValues),
-    values: defaultValues,
+    defaultValues: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',

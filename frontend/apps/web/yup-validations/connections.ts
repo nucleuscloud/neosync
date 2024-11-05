@@ -108,10 +108,10 @@ const SqlOptionsFormValues = Yup.object({
     .optional(),
   maxOpenDuration: Yup.string()
     .optional()
-    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+    .test('duration', getDurationValidateFn()),
   maxIdleDuration: Yup.string()
     .optional()
-    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+    .test('duration', getDurationValidateFn()),
 });
 export type SqlOptionsFormValues = Yup.InferType<typeof SqlOptionsFormValues>;
 

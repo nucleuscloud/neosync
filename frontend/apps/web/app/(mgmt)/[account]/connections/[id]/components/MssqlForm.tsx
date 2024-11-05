@@ -61,7 +61,7 @@ export default function MssqlForm(props: Props): ReactElement {
   const form = useForm<MssqlFormValues, MssqlEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(MssqlFormValues),
-    values: defaultValues,
+    defaultValues: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',

@@ -76,7 +76,7 @@ export default function PostgresForm(props: Props): ReactElement {
   const form = useForm<PostgresFormValues, PostgresEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
-    values: defaultValues,
+    defaultValues: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
