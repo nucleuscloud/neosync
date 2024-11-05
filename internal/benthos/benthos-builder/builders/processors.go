@@ -506,7 +506,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("string*********", opts.BuildBloblangString())
 		return opts.BuildBloblangString(), nil
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		opts, err := transformers.NewTransformEmailOptsFromConfig(cfg.TransformEmailConfig, &maxLen)
@@ -765,8 +764,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		if err != nil {
 			return "", err
 		}
-
-		fmt.Println("string*********", opts.BuildBloblangString())
 		return opts.BuildBloblangString(), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)

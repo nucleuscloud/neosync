@@ -85,8 +85,6 @@ func init() {
 		versionStr := IpVersion(version)
 		classStr := IpV4Class(class)
 
-		fmt.Println("version adn class", versionStr, classStr)
-
 		return func() (any, error) {
 			return generateIpAddress(randomizer, versionStr, classStr, maxLength)
 		}, nil
