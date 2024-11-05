@@ -196,7 +196,7 @@ func Test_IpV4Public_NoOptions(t *testing.T) {
 }
 
 func Test_IpV4PrivateA_Class(t *testing.T) {
-	class := "private-a"
+	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
 	mapping := fmt.Sprintf(`root = generate_ip(class:%q)`, class)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
@@ -218,8 +218,8 @@ func Test_IpV4PrivateA_Class(t *testing.T) {
 
 func Test_IpV6(t *testing.T) {
 	// the class is ignored here since the version is set to ipv6
-	class := "private-a"
-	version := "ipv6"
+	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_A"
+	version := "GENERATE_IP_ADDRESS_VERSION_V6"
 	mapping := fmt.Sprintf(`root = generate_ip(class:%q,version:%q)`, class, version)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
@@ -249,8 +249,8 @@ func Test_IpV6(t *testing.T) {
 }
 
 func Test_IpV4PrivateB_Class_Version(t *testing.T) {
-	class := "private-b"
-	version := "ipv4"
+	class := "GENERATE_IP_ADDRESS_CLASS_PRIVATE_B"
+	version := "GENERATE_IP_ADDRESS_VERSION_V4"
 	mapping := fmt.Sprintf(`root = generate_ip(class:%q,version:%q)`, class, version)
 	ip, err := bloblang.Parse(mapping)
 	require.NoError(t, err)

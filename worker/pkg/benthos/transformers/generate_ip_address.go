@@ -135,7 +135,7 @@ func generateIpAddress(randomizer rng.Rand, version IpVersion, class IpV4Class, 
 	case IpVersion_V4:
 		ip, err = generateIPv4Address(randomizer, class)
 	case IpVersion_V6:
-		ip, err = generateIPv6Address(randomizer)
+		ip = generateIPv6Address(randomizer)
 	default:
 		return "", fmt.Errorf("unsupported IP version: %s", version)
 	}
@@ -168,13 +168,13 @@ func generateIPv4Address(randomizer rng.Rand, class IpV4Class) (string, error) {
 	return generateIPInRange(randomizer, ipRange.start, ipRange.end), nil
 }
 
-func generateIPv6Address(randomizer rng.Rand) (string, error) {
+func generateIPv6Address(randomizer rng.Rand) string {
 	// Generate regular IPv6 address
 	groups := make([]string, 8)
 	for i := 0; i < 8; i++ {
 		groups[i] = fmt.Sprintf("%04x", randomizer.Intn(65536))
 	}
-	return strings.Join(groups, ":"), nil
+	return strings.Join(groups, ":")
 }
 
 func generatePublicIPv4(randomizer rng.Rand) (string, error) {
@@ -208,8 +208,17 @@ func isReservedIP(ip net.IP) bool {
 func generateIPInRange(randomizer rng.Rand, start, end net.IP) string {
 	startInt := ipToUint32(start)
 	endInt := ipToUint32(end)
-	random := startInt + uint32(randomizer.Int63n(int64(endInt-startInt+1)))
-	return uint32ToIP(random).String()
+
+	// Calculate range safely using uint64 to avoid overflow
+	rangeSize := uint64(endInt) - uint64(startInt) + 1
+
+	// Generate random offset within range
+	offset := uint32(randomizer.Int63n(int64(rangeSize)))
+
+	// Calculate final IP address
+	resultInt := startInt + offset
+
+	return uint32ToIP(resultInt).String()
 }
 
 func inRange(ip, start, end net.IP) bool {
