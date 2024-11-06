@@ -7,5 +7,5 @@ app:
   enabled: true
 
 worker:
-  # -- Enable ro Disable Neosync Worker
+  # -- Enable or Disable Neosync Worker
   enabled: true
