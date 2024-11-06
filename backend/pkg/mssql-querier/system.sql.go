@@ -96,6 +96,81 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) 
 	return items, nil
 }
 
+const getDatabaseTableSchemasBySchemasAndTables = `-- name: getDatabaseTableSchemasBySchemasAndTables :many
+SELECT
+    s.name AS table_schema,
+    t.name AS table_name,
+    c.name AS column_name,
+    c.column_id AS ordinal_position,
+    ISNULL(dc.definition, '') AS column_default,
+    CASE WHEN c.is_nullable = 1 THEN 'YES' ELSE 'NO' END AS is_nullable,
+    tp.name AS data_type,
+    CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
+         WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
+         ELSE NULL
+    END AS character_maximum_length,
+    c.precision AS numeric_precision,
+    c.scale AS numeric_scale,
+    c.is_identity,
+    c.is_computed,
+    CASE
+        WHEN c.is_computed = 1 THEN cc.definition
+        ELSE NULL
+    END AS generation_expression
+FROM
+    sys.schemas s
+    INNER JOIN sys.tables t ON s.schema_id = t.schema_id
+    INNER JOIN sys.columns c ON t.object_id = c.object_id
+    INNER JOIN sys.types tp ON c.user_type_id = tp.user_type_id
+    LEFT JOIN sys.default_constraints dc ON c.default_object_id = dc.object_id
+    LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
+WHERE
+    CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+    AND t.type = 'U'
+ORDER BY
+    s.name, t.name, c.column_id;
+`
+
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseSchemaRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+
+	rows, err := db.QueryContext(ctx, getDatabaseTableSchemasBySchemasAndTables, sql.Named("schematables", schematablesList))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetDatabaseSchemaRow
+	for rows.Next() {
+		var i GetDatabaseSchemaRow
+		if err := rows.Scan(
+			&i.TableSchema,
+			&i.TableName,
+			&i.ColumnName,
+			&i.OrdinalPosition,
+			&i.ColumnDefault,
+			&i.IsNullable,
+			&i.DataType,
+			&i.CharacterMaximumLength,
+			&i.NumericPrecision,
+			&i.NumericScale,
+			&i.IsIdentity,
+			&i.IsComputed,
+			&i.GenerationExpression,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRolePermissions = `--- name: GetRolePermissions :many
 WITH object_list AS (
     SELECT
@@ -321,6 +396,399 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_que
 			&i.ReferencedColumns,
 			&i.FKActions,
 			&i.CheckClause,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getIndicesBySchemasAndTable = `--- name: GetIndicesBySchemaAndTables :many
+SELECT 
+    SCHEMA_NAME(t.schema_id) AS schema_name,
+    t.name AS table_name,
+    i.name AS index_name,
+    SUBSTRING(
+        (
+            SELECT CASE 
+                -- Clustered index
+                WHEN i.type = 1 THEN 'CREATE CLUSTERED INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ' ('
+                -- Nonclustered index
+                WHEN i.type = 2 THEN 'CREATE NONCLUSTERED INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ' ('
+                -- XML index
+                WHEN i.type = 3 THEN 'CREATE XML INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
+                -- Primary XML index
+                WHEN i.type = 4 THEN 'CREATE PRIMARY XML INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
+                -- Columnstore index
+                WHEN i.type = 5 THEN 'CREATE CLUSTERED COLUMNSTORE INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
+                -- Nonclustered columnstore index
+                WHEN i.type = 6 THEN 'CREATE NONCLUSTERED COLUMNSTORE INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ' ('
+            END +
+            -- Key columns
+            CASE WHEN i.type IN (1,2) THEN
+                STUFF((
+                    SELECT ', ' + QUOTENAME(c.name) + 
+                        CASE WHEN ic.is_descending_key = 1 
+                            THEN ' DESC' 
+                            ELSE ' ASC' 
+                        END
+                    FROM sys.index_columns ic
+                    JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+                    WHERE ic.object_id = i.object_id 
+                        AND ic.index_id = i.index_id
+                        AND ic.is_included_column = 0
+                    ORDER BY ic.key_ordinal
+                    FOR XML PATH('')
+                ), 1, 2, '')
+            WHEN i.type = 6 THEN  -- For columnstore
+                STUFF((
+                    SELECT ', ' + QUOTENAME(c.name)
+                    FROM sys.index_columns ic
+                    JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+                    WHERE ic.object_id = i.object_id 
+                        AND ic.index_id = i.index_id
+                    ORDER BY ic.index_column_id
+                    FOR XML PATH('')
+                ), 1, 2, '')
+            ELSE ''
+            END + ')' +
+            -- Included columns
+            CASE WHEN EXISTS (
+                SELECT 1
+                FROM sys.index_columns ic2
+                WHERE ic2.object_id = i.object_id 
+                    AND ic2.index_id = i.index_id
+                    AND ic2.is_included_column = 1
+            ) THEN 
+                ' INCLUDE (' + 
+                STUFF((
+                    SELECT ', ' + QUOTENAME(c.name)
+                    FROM sys.index_columns ic
+                    JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+                    WHERE ic.object_id = i.object_id 
+                        AND ic.index_id = i.index_id
+                        AND ic.is_included_column = 1
+                    ORDER BY c.name
+                    FOR XML PATH('')
+                ), 1, 2, '') + ')'
+            ELSE ''
+            END +
+            -- Where clause for filtered indexes
+            CASE WHEN i.has_filter = 1 
+                THEN ' WHERE ' + i.filter_definition
+                ELSE ''
+            END +
+            -- Index options
+            CASE WHEN i.fill_factor <> 0 OR i.is_padded = 1
+                THEN ' WITH ('
+                    + CASE WHEN i.fill_factor <> 0 
+                        THEN 'FILLFACTOR = ' + CAST(i.fill_factor AS varchar(3))
+                        ELSE ''
+                    END
+                    + CASE WHEN i.fill_factor <> 0 AND i.is_padded = 1 THEN ', ' ELSE '' END
+                    + CASE WHEN i.is_padded = 1 
+                        THEN 'PAD_INDEX = ON'
+                        ELSE ''
+                    END
+                    + ')'
+                ELSE ''
+            END
+        ), 1, 8000) AS index_definition 
+FROM sys.indexes i
+INNER JOIN sys.tables t ON i.object_id = t.object_id
+WHERE i.type > 0  -- Exclude heaps
+    AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+ORDER BY i.index_id;
+`
+
+type GetIndicesBySchemasAndTablesRow struct {
+	SchemaName      string
+	TableName       string
+	IndexName       string
+	IndexDefinition string
+}
+
+func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+
+	rows, err := db.QueryContext(ctx, getIndicesBySchemasAndTable, sql.Named("schematables", schematablesList))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetIndicesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetIndicesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.IndexName,
+			&i.IndexDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomFunctionsBySchemasAndTables = `-- name: GetCustomFunctionsBySchemasAndTables :many
+SELECT
+   SCHEMA_NAME(o.schema_id) as schema_name,
+   o.name AS function_name,
+   sm.definition
+FROM sys.sql_modules AS sm
+LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
+WHERE o.type != 'TR' AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+ORDER BY o.type;
+`
+
+type GetCustomFunctionsBySchemasAndTablesRow struct {
+	SchemaName   string
+	FunctionName string
+	Definition   string
+}
+
+func (q *Queries) GetCustomFunctionsBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomFunctionsBySchemasAndTablesRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemasAndTables, schematablesList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomFunctionsBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetCustomFunctionsBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.FunctionName,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomSequencesBySchemasAndTables = `-- name: GetCustomSequencesBySchemasAndTables :many
+SELECT 
+    SCHEMA_NAME(seq.schema_id) AS schema_name,
+    seq.name AS sequence_name,
+    -- Build CREATE SEQUENCE statement with proper CASTing
+    CONCAT(
+        'CREATE SEQUENCE ', QUOTENAME(SCHEMA_NAME(seq.schema_id)), '.', QUOTENAME(seq.name), 
+        ' AS ', TYPE_NAME(seq.system_type_id),
+        ' START WITH ', CAST(CAST(seq.start_value AS bigint) AS varchar(20)),
+        ' INCREMENT BY ', CAST(CAST(seq.increment AS bigint) AS varchar(20)),
+        ' MINVALUE ', CAST(CAST(seq.minimum_value AS bigint) AS varchar(20)),
+        ' MAXVALUE ', CAST(CAST(seq.maximum_value AS bigint) AS varchar(20)),
+        CASE 
+            WHEN seq.is_cycling = 1 THEN ' CYCLE' 
+            ELSE ' NO CYCLE'
+        END,
+        CASE 
+            WHEN seq.is_cached = 1 THEN ' CACHE ' + CAST(seq.cache_size AS varchar(20))
+            ELSE ' NO CACHE'
+        END,
+        ';'
+    ) AS definition
+FROM sys.sequences seq
+WHERE CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+ORDER BY seq.schema_id, seq.name;
+`
+
+type GetCustomSequencesBySchemasAndTablesRow struct {
+	SchemaName   string
+	SequenceName string
+	Definition   string
+}
+
+func (q *Queries) GetCustomSequencesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomSequencesBySchemasAndTablesRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemasAndTables, schematablesList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomSequencesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetCustomSequencesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.SequenceName,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomTriggersBySchemasAndTables = `-- name: GetCustomTriggersBySchemasAndTables :many
+SELECT
+   SCHEMA_NAME(o.schema_id) as schema_name,
+   oo.name AS table_name,
+   o.name AS trigger_name,
+   sm.definition
+FROM sys.sql_modules AS sm
+LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
+LEFT join sys.objects as oo on o.parent_object_id = oo.object_id
+WHERE o.type = 'TR' AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+ORDER BY o.type;
+`
+
+type GetCustomTriggersBySchemasAndTablesRow struct {
+	SchemaName  string
+	TableName   string
+	TriggerName string
+	Definition  string
+}
+
+func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemasAndTables, schematablesList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomTriggersBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetCustomTriggersBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.TriggerName,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDataTypesBySchemasAndTables = `-- name: GetDataTypesBySchemasAndTables :many
+SELECT 
+    SCHEMA_NAME(t.schema_id) AS schema_name,
+    t.name AS type_name,
+    'domain' as type,
+    'CREATE TYPE [' + SCHEMA_NAME(t.schema_id) + '].[' + t.name + '] FROM ' + 
+    typ.name + 
+    CASE 
+        WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
+            THEN '(' + CASE WHEN t.max_length = -1 THEN 'MAX' 
+                           ELSE CAST(CASE WHEN typ.name LIKE 'n%' 
+                                         THEN t.max_length/2 
+                                         ELSE t.max_length END AS VARCHAR(10)) 
+                      END + ')'
+        WHEN typ.name IN ('decimal', 'numeric') 
+            THEN '(' + CAST(t.[precision] AS VARCHAR(10)) + ',' + CAST(t.scale AS VARCHAR(10)) + ')'
+        ELSE ''
+    END + 
+    ' ' + CASE WHEN t.is_nullable = 1 THEN 'NULL' ELSE 'NOT NULL' END + ';' AS definition
+FROM sys.types t
+JOIN sys.types typ ON t.system_type_id = typ.system_type_id
+    AND typ.system_type_id = typ.user_type_id
+WHERE t.is_user_defined = 1
+AND t.is_table_type = 0
+
+UNION ALL
+
+SELECT 
+    SCHEMA_NAME(tt.schema_id) AS schema_name,
+    tt.name AS type_name,
+    'table' as type,
+    'CREATE TYPE [' + SCHEMA_NAME(tt.schema_id) + '].[' + tt.name + '] AS TABLE (' + 
+    STUFF((
+        SELECT ', ' + c.name + ' ' + 
+            CASE 
+                WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
+                    THEN typ.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' 
+                                               ELSE CAST(CASE WHEN typ.name LIKE 'n%' 
+                                                             THEN c.max_length/2 
+                                                             ELSE c.max_length END AS VARCHAR(10)) 
+                                          END + ')'
+                WHEN typ.name IN ('decimal', 'numeric') 
+                    THEN typ.name + '(' + CAST(c.[precision] AS VARCHAR(10)) + ',' + CAST(c.scale AS VARCHAR(10)) + ')'
+                ELSE typ.name
+            END + 
+            CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END
+        FROM sys.columns c
+        JOIN sys.types typ ON c.system_type_id = typ.system_type_id
+            AND typ.system_type_id = typ.user_type_id
+        WHERE c.object_id = tt.type_table_object_id
+        ORDER BY c.column_id
+        FOR XML PATH('')
+    ), 1, 2, '') + ');' AS definition
+FROM sys.table_types tt
+WHERE tt.is_user_defined = 1 AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','));
+`
+
+type GetDataTypesBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetDataTypesBySchemasAndTablesRow struct {
+	SchemaName string
+	TypeName   string
+	Type       string
+	Definition string
+}
+
+func (q *Queries) GetDataTypesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasAndTablesRow, error) {
+	// Join schemas into a comma-separated string
+	schematablesList := strings.Join(schematables, ",")
+	rows, err := db.QueryContext(ctx, getDataTypesBySchemasAndTables, schematablesList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetDataTypesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetDataTypesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TypeName,
+			&i.Type,
+			&i.Definition,
 		); err != nil {
 			return nil, err
 		}

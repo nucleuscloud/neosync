@@ -14,6 +14,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"golang.org/x/sync/errgroup"
 )
 
 type Manager struct {
@@ -182,7 +183,123 @@ func splitAndStrip(input, delim string) []string {
 }
 
 func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
-	return []*sqlmanager_shared.TableInitStatement{}, nil
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.TableInitStatement{}, nil
+	}
+
+	combined := []string{}
+	schemaset := map[string]struct{}{}
+	for _, table := range tables {
+		combined = append(combined, table.String())
+		schemaset[table.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for schema := range schemaset {
+		schemas = append(schemas, schema)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+
+	colDefMap := map[string][]*mssql_queries.GetDatabaseSchemaRow{}
+	errgrp.Go(func() error {
+		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.db, combined)
+		if err != nil {
+			return err
+		}
+		for _, columnDefinition := range columnDefs {
+			key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+			colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
+		}
+		return nil
+	})
+
+	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
+	errgrp.Go(func() error {
+		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		if err != nil {
+			return err
+		}
+		for _, constraint := range constraints {
+			key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
+			constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
+		}
+		return nil
+	})
+
+	indexmap := map[string][]string{}
+	errgrp.Go(func() error {
+		idxrecords, err := p.querier.GetIndicesBySchemasAndTables(errctx, p.db, combined)
+		if err != nil {
+			return err
+		}
+		for _, record := range idxrecords {
+			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			indexmap[key.String()] = append(indexmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
+		}
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*sqlmanager_shared.TableInitStatement{}
+	// using input here causes the output to always be consistent
+	for _, schematable := range tables {
+		key := schematable.String()
+		tableData, ok := colDefMap[key]
+		if !ok {
+			continue
+		}
+		columns := make([]string, 0, len(tableData))
+		for _, record := range tableData {
+			record := record
+			var seqConfig *SequenceConfiguration
+			if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
+				record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
+				seqConfig = &SequenceConfiguration{
+					StartValue:  record.SeqStartValue.Int64,
+					MinValue:    record.SeqMinValue.Int64,
+					MaxValue:    record.SeqMaxValue.Int64,
+					IncrementBy: record.SeqIncrementBy.Int64,
+					CycleOption: record.SeqCycleOption.Bool,
+					CacheValue:  record.SeqCacheValue.Int64,
+				}
+			}
+			columns = append(columns, buildTableCol(&buildTableColRequest{
+				ColumnName:    record.ColumnName,
+				ColumnDefault: record.ColumnDefault,
+				DataType:      record.DataType,
+				IsNullable:    record.IsNullable == "YES",
+				GeneratedType: record.GeneratedType,
+				IsSerial:      record.SequenceType == "SERIAL",
+				Sequence:      seqConfig,
+				IdentityType:  &record.IdentityGeneration,
+			}))
+		}
+
+		info := &sqlmanager_shared.TableInitStatement{
+			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
+			IndexStatements:      indexmap[key],
+		}
+		for _, constraint := range constraintmap[key] {
+			stmt, err := buildAlterStatementByConstraint(constraint)
+			if err != nil {
+				return nil, err
+			}
+			constraintType, err := sqlmanager_shared.ToConstraintType(constraint.ConstraintType)
+			if err != nil {
+				return nil, err
+			}
+			info.AlterTableStatements = append(info.AlterTableStatements, &sqlmanager_shared.AlterTableStatement{
+				Statement:      wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt),
+				ConstraintType: constraintType,
+			})
+		}
+		output = append(output, info)
+	}
+	return output, nil
 }
 
 func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
