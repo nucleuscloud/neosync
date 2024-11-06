@@ -759,6 +759,12 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
+	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
+		opts, err := transformers.NewGenerateIpAddressOptsFromConfig(cfg.GenerateIpAddressConfig, &maxLen)
+		if err != nil {
+			return "", err
+		}
+		return opts.BuildBloblangString(), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}

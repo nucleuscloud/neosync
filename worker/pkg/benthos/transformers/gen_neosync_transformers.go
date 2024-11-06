@@ -36,6 +36,7 @@ func GetNeosyncGenerators() []NeosyncGenerator {
 			NewGenerateInt64(),
 			NewGenerateInt64PhoneNumber(),
 			NewGenerateInternationalPhoneNumber(),
+			NewGenerateIpAddress(),
 			NewGenerateLastName(),
 			NewGenerateRandomString(),
 			NewGenerateSHA256Hash(),

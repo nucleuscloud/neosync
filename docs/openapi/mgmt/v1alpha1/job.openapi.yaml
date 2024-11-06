@@ -1024,6 +1024,19 @@ components:
         - GENERATE_EMAIL_TYPE_UNSPECIFIED
         - GENERATE_EMAIL_TYPE_UUID_V4
         - GENERATE_EMAIL_TYPE_FULLNAME
+    mgmt.v1alpha1.GenerateIpAddressType:
+      type: string
+      title: GenerateIpAddressType
+      enum:
+        - GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C
+        - GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL
+        - GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST
+        - GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK
+        - GENERATE_IP_ADDRESS_TYPE_V6
     mgmt.v1alpha1.InvalidEmailAction:
       type: string
       title: InvalidEmailAction
@@ -1133,6 +1146,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_COUNTRY
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
+        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -2070,6 +2084,30 @@ components:
     mgmt.v1alpha1.GenerateInt64PhoneNumber:
       type: object
       title: GenerateInt64PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateIpAddress:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - ipType
+            - not:
+                anyOf:
+                  - required:
+                      - ipType
+      anyOf:
+        - required:
+            - ipType
+        - not:
+            anyOf:
+              - required:
+                  - ipType
+      properties:
+        ipType:
+          allOf:
+            - title: ip_type
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
+      title: GenerateIpAddress
       additionalProperties: false
     mgmt.v1alpha1.GenerateJavascript:
       type: object
@@ -4478,6 +4516,8 @@ components:
             - required:
                 - generateInt64PhoneNumberConfig
             - required:
+                - generateIpAddressConfig
+            - required:
                 - generateJavascriptConfig
             - required:
                 - generateLastNameConfig
@@ -4570,6 +4610,8 @@ components:
                   - required:
                       - generateInt64PhoneNumberConfig
                   - required:
+                      - generateIpAddressConfig
+                  - required:
                       - generateJavascriptConfig
                   - required:
                       - generateLastNameConfig
@@ -4660,6 +4702,8 @@ components:
             - generateInt64Config
         - required:
             - generateInt64PhoneNumberConfig
+        - required:
+            - generateIpAddressConfig
         - required:
             - generateJavascriptConfig
         - required:
@@ -4752,6 +4796,8 @@ components:
                   - generateInt64Config
               - required:
                   - generateInt64PhoneNumberConfig
+              - required:
+                  - generateIpAddressConfig
               - required:
                   - generateJavascriptConfig
               - required:
@@ -4992,6 +5038,10 @@ components:
           allOf:
             - title: generate_business_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
+        generateIpAddressConfig:
+          allOf:
+            - title: generate_ip_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobDestinationConnectionRequest:

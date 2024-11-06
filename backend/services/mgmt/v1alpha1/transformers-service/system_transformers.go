@@ -17,6 +17,8 @@ var (
 
 	defaultInvalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
 
+	defaultGenerateIpv4 = mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+
 	// base transformers
 	baseSystemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
@@ -636,6 +638,21 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
 					GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
+				},
+			},
+		},
+		{
+			Name:              "Generate IP Address",
+			Description:       "Generates a random IP address.",
+			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
+			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_GENERATE, mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
+			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+					GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+						IpType: &defaultGenerateIpv4,
+					},
 				},
 			},
 		},
