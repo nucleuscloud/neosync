@@ -1,0 +1,11 @@
+api:
+  # -- Enable or Disable Neoysnc Api
+  enabled: true
+
+app:
+  # -- Enable or Disable Neoysnc App
+  enabled: true
+
+worker:
+  # -- Enable or Disable Neosync Worker
+  enabled: true

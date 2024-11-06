@@ -26,9 +26,12 @@ dependencies:
   - name: api
     repository: file://../../backend/charts/api
     version: "v0"
+    condition: api.enabled
   - name: app
     repository: file://../../frontend/apps/web/charts/app
     version: "v0"
+    condition: app.enabled
   - name: worker
     repository: file://../../worker/charts/worker
     version: "v0"
+    condition: worker.enabled
