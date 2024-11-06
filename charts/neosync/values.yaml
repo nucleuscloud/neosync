@@ -1,0 +1,8 @@
+api:
+  enabled: true
+
+app:
+  enabled: true
+
+worker:
+  enabled: true
