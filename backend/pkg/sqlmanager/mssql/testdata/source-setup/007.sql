@@ -1,25 +1,20 @@
-CREATE TRIGGER trg_UpdateOrderTotal
-ON sqlmanagermssql2.OrderItems
-AFTER INSERT, UPDATE, DELETE
+CREATE VIEW vw_OrderSummary
 AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    UPDATE o
-    SET TotalAmount = (
-        SELECT SUM(Subtotal)
-        FROM OrderItems
-        WHERE OrderID = o.OrderID
-    )
-    FROM Orders o
-    WHERE EXISTS (
-        SELECT 1 
-        FROM inserted i 
-        WHERE i.OrderID = o.OrderID
-    )
-    OR EXISTS (
-        SELECT 1 
-        FROM deleted d 
-        WHERE d.OrderID = o.OrderID
-    );
-END;
+SELECT 
+    o.OrderID,
+    o.OrderNumber,
+    c.FullName AS CustomerName,
+    o.OrderDate,
+    o.TotalAmount,
+    o.Status,
+    COUNT(oi.OrderItemID) AS TotalItems
+FROM mssqlinit.Orders o
+JOIN mssqlinit.Customers c ON o.CustomerID = c.CustomerID
+JOIN mssqlinit.OrderItems oi ON o.OrderID = oi.OrderID
+GROUP BY 
+    o.OrderID, 
+    o.OrderNumber,
+    c.FullName,
+    o.OrderDate,
+    o.TotalAmount,
+    o.Status;

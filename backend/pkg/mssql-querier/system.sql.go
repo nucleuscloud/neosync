@@ -121,8 +121,11 @@ SELECT
         ELSE NULL 
     END AS identity_increment,
     c.is_computed,
+    CASE
+    	WHEN cc.is_persisted = 1 THEN 1
+    	ELSE 0
+    END as is_persisted,
     cc.definition as generation_expression,
-    cc.is_persisted,
     CASE 
         WHEN c.generated_always_type = 1 THEN 'GENERATED ALWAYS AS ROW START'
         WHEN c.generated_always_type = 2 THEN 'GENERATED ALWAYS AS ROW END'
@@ -189,8 +192,12 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.NumericPrecision,
 			&i.NumericScale,
 			&i.IsIdentity,
+			&i.IdentitySeed,
+			&i.IdentityIncrement,
 			&i.IsComputed,
+			&i.IsPersisted,
 			&i.GenerationExpression,
+			&i.GeneratedAlwaysType,
 		); err != nil {
 			return nil, err
 		}

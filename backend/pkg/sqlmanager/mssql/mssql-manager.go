@@ -292,7 +292,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		datatypeCfg, err := m.GetSchemaTableDataTypes(errctx, tables)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+			return fmt.Errorf("unable to retrieve mssql schema table data types: %w", err)
 		}
 		dataTypeStmts = datatypeCfg.GetStatements()
 		return nil
@@ -302,7 +302,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		tableTriggers, err := m.GetSchemaTableTriggers(ctx, tables)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+			return fmt.Errorf("unable to retrieve mssql schema table triggers: %w", err)
 		}
 		for _, ttrig := range tableTriggers {
 			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
@@ -317,7 +317,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		initStatementCfgs, err := m.GetTableInitStatements(ctx, tables)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
+			return fmt.Errorf("unable to retrieve mssql schema table create statements: %w", err)
 		}
 		for _, stmtCfg := range initStatementCfgs {
 			createTables = append(createTables, stmtCfg.CreateTableStatement)
@@ -372,7 +372,7 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		seqs, err := m.getSequencesBySchemas(errctx, schemas)
 		if err != nil {
-			return fmt.Errorf("unable to get sqlserver sequences by tables: %w", err)
+			return fmt.Errorf("unable to get mssql sequences by tables: %w", err)
 		}
 		output.Sequences = seqs
 		return nil
@@ -380,7 +380,7 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		funcs, err := m.getFunctionsBySchemas(errctx, schemas)
 		if err != nil {
-			return fmt.Errorf("unable to get sqlserver functions by tables: %w", err)
+			return fmt.Errorf("unable to get mssql functions by tables: %w", err)
 		}
 		output.Functions = funcs
 		return nil
@@ -388,7 +388,7 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 	errgrp.Go(func() error {
 		datatypes, err := m.getDataTypesBySchemas(errctx, schemas)
 		if err != nil {
-			return fmt.Errorf("unable to get sqlserver data types by tables: %w", err)
+			return fmt.Errorf("unable to get mssql data types by tables: %w", err)
 		}
 		output.Composites = datatypes.Composites
 		output.Domains = datatypes.Domains

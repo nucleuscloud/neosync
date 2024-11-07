@@ -41,7 +41,6 @@ func Test_MssqlManager(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("Successfully setup source and target databases")
-
 	manager := NewManager(mssql_queries.New(), source.DB, func() {})
 
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
@@ -169,6 +168,21 @@ func Test_MssqlManager(t *testing.T) {
 			require.Equalf(t, expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
 			require.Equalf(t, expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
 		}
+	})
+
+	t.Run("GetSchemaInitStatements", func(t *testing.T) {
+		t.Parallel()
+		schema := "mssqlinit"
+		tables := []string{"Invoices", "Customers", "Orders", "Products", "OrderItems"}
+
+		schematables := []*sqlmanager_shared.SchemaTable{}
+		for _, t := range tables {
+			schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: t})
+		}
+
+		statements, err := manager.GetSchemaInitStatements(context.Background(), schematables)
+		require.NoError(t, err)
+		require.NotEmpty(t, statements)
 	})
 
 	t.Log("Finished running mssql manager integration tests")
