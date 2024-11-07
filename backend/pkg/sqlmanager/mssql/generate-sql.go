@@ -26,24 +26,44 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		tableSchema, tableName))
 	sb.WriteString(fmt.Sprintf("CREATE TABLE [%s].[%s] (\n", tableSchema, tableName))
 
+	var periodDefinition *string
+	var temporalDefinition *string
 	// Process each column
 	for i, row := range rows {
-		sb.WriteString(fmt.Sprintf("    [%s] %s", row.ColumnName, row.DataType))
+		if row.PeriodDefinition.Valid {
+			periodDefinition = &row.PeriodDefinition.String
+		}
+		for row.TemporalDefinition.Valid {
+			temporalDefinition = &row.TemporalDefinition.String
+		}
+
+		sb.WriteString(fmt.Sprintf("    [%s] ", row.ColumnName))
 
 		// Add length/precision/scale specifications
 		switch {
+		case row.IsComputed && row.GenerationExpression.Valid:
+			break
+		case strings.EqualFold(row.DataType, "DATETIME2"):
+			sb.WriteString(row.DataType)
 		case row.CharacterMaximumLength.Valid:
 			if row.CharacterMaximumLength.Int32 == -1 {
-				sb.WriteString("(MAX)")
+				sb.WriteString(fmt.Sprintf("%s(MAX)", row.DataType))
 			} else {
-				sb.WriteString(fmt.Sprintf("(%d)", row.CharacterMaximumLength.Int32))
+				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.CharacterMaximumLength.Int32))
 			}
 		case strings.EqualFold(row.DataType, "FLOAT") && row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("(%d)", row.NumericScale.Int16))
+			sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
 		case row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0 && row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("(%d,%d)", row.NumericPrecision.Int16, row.NumericScale.Int16))
+			sb.WriteString(fmt.Sprintf("%s(%d,%d)", row.DataType, row.NumericPrecision.Int16, row.NumericScale.Int16))
 		case row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("(%d)", row.NumericScale.Int16))
+			sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
+		default:
+			sb.WriteString(row.DataType)
+		}
+
+		// Add primary
+		if row.IsPrimary {
+			sb.WriteString(" PRIMARY KEY ")
 		}
 
 		// Add identity specification
@@ -73,10 +93,12 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		}
 
 		// Add nullability
-		if row.IsNullable {
-			sb.WriteString(" NULL")
-		} else {
-			sb.WriteString(" NOT NULL")
+		if !row.IsComputed {
+			if row.IsNullable {
+				sb.WriteString(" NULL")
+			} else {
+				sb.WriteString(" NOT NULL")
+			}
 		}
 
 		// Add default constraint
@@ -91,8 +113,18 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		sb.WriteString("\n")
 	}
 
+	if periodDefinition != nil && *periodDefinition != "" {
+		sb.WriteString(fmt.Sprintf(", \n %s", *periodDefinition))
+	}
+	if temporalDefinition != nil && *temporalDefinition != "" {
+		sb.WriteString(fmt.Sprintf(") \n WITH (SYSTEM_VERSIONING = ON)"))
+	} else {
+		sb.WriteString(")")
+
+	}
+
 	// Close the CREATE TABLE statement
-	sb.WriteString(")\nEND")
+	sb.WriteString("\nEND")
 
 	return sb.String()
 }
@@ -118,6 +150,7 @@ END`, record.IndexName, record.SchemaName, record.TableName, record.IndexDefinit
 // Creates idempotent create trigger statement
 func generateCreateTriggerStatement(record *mssql_queries.GetCustomTriggersBySchemasAndTablesRow) string {
 	var sb strings.Builder
+	def := strings.ReplaceAll(record.Definition, "'", "''")
 
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
@@ -127,8 +160,8 @@ IF NOT EXISTS (
 	AND object_id = OBJECT_ID(N'[%s].[%s]')
 )
 BEGIN
-	%s
-END`, record.TriggerName, record.SchemaName, record.TableName, record.Definition))
+	Exec('%s')
+END`, record.TriggerName, record.SchemaName, record.TableName, def))
 
 	return sb.String()
 }
@@ -154,17 +187,17 @@ END`, record.SequenceName, record.SchemaName, record.Definition))
 // Creates idempotent create function statement
 func generateCreateFunctionStatement(record *mssql_queries.GetCustomFunctionsBySchemasRow) string {
 	var sb strings.Builder
-
+	def := strings.ReplaceAll(record.Definition, "'", "''")
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
 	SELECT * 
-	FROM sys.sql_modules 
-	WHERE name = N'%s' 
-	AND object_id = OBJECT_ID(N'[%s]')
+	FROM sys.objects 
+  WHERE name = '%s'
+  AND schema_id = SCHEMA_ID('%s')
 )
 BEGIN
-	%s
-END`, record.FunctionName, record.SchemaName, record.Definition))
+  Exec('%s')
+END`, record.FunctionName, record.SchemaName, def))
 
 	return sb.String()
 }
@@ -222,8 +255,9 @@ BEGIN
 
 	case "FOREIGN KEY":
 		sb.WriteString(fmt.Sprintf("FOREIGN KEY (%s) ", escapeColumnList(constraint.ConstraintColumns)))
-		if constraint.ReferencedTable.Valid && constraint.ReferencedColumns.Valid {
-			sb.WriteString(fmt.Sprintf("REFERENCES [%s] (%s)",
+		if constraint.ReferencedSchema.Valid && constraint.ReferencedTable.Valid && constraint.ReferencedColumns.Valid {
+			sb.WriteString(fmt.Sprintf("REFERENCES [%s].[%s] (%s)",
+				constraint.ReferencedSchema.String,
 				constraint.ReferencedTable.String,
 				escapeColumnList(constraint.ReferencedColumns.String)))
 		}

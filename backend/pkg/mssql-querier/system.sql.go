@@ -134,7 +134,25 @@ SELECT
         WHEN c.generated_always_type = 7 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_START'
         WHEN c.generated_always_type = 8 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_END'
         ELSE NULL
-    END AS generated_always_type
+    END AS generated_always_type,
+    CASE WHEN c.generated_always_type != 0 THEN
+       (SELECT 
+            CONCAT('PERIOD FOR SYSTEM_TIME (', 
+                  start_column.name, ', ',
+                  end_column.name, ')')
+         FROM sys.periods p
+         JOIN sys.columns start_column ON p.start_column_id = start_column.column_id 
+            AND p.object_id = start_column.object_id
+         JOIN sys.columns end_column ON p.end_column_id = end_column.column_id 
+            AND p.object_id = end_column.object_id
+         WHERE p.object_id = t.object_id)
+   		ELSE NULL
+    END AS period_definition,
+    CASE WHEN c.generated_always_type != 0 AND t.temporal_type = 2
+		THEN 'SYSTEM_VERSIONING = ON'
+   		ELSE NULL
+    END AS temporal_definition,
+    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -143,6 +161,17 @@ FROM
     LEFT JOIN sys.default_constraints dc ON c.default_object_id = dc.object_id
     LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
     LEFT JOIN sys.periods p ON t.object_id = p.object_id
+    LEFT JOIN (
+        SELECT 
+            ic.object_id,
+            ic.column_id
+        FROM sys.index_columns ic
+        INNER JOIN sys.indexes i 
+            ON ic.object_id = i.object_id 
+            AND ic.index_id = i.index_id
+        WHERE i.is_primary_key = 1
+    ) pk ON c.object_id = pk.object_id 
+        AND c.column_id = pk.column_id
 WHERE t.type = 'U' AND CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY
     s.name, t.name, c.column_id;
@@ -162,8 +191,11 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	IsIdentity             bool
 	IsComputed             bool
 	IsPersisted            bool
+	IsPrimary              bool
 	GenerationExpression   sql.NullString
 	GeneratedAlwaysType    sql.NullString
+	PeriodDefinition       sql.NullString
+	TemporalDefinition     sql.NullString
 	IdentitySeed           sql.NullInt32
 	IdentityIncrement      sql.NullInt32
 }
@@ -198,6 +230,9 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.IsPersisted,
 			&i.GenerationExpression,
 			&i.GeneratedAlwaysType,
+			&i.PeriodDefinition,
+			&i.TemporalDefinition,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}
@@ -365,7 +400,11 @@ SELECT
     cc.columns AS constraint_columns,
     cc.nullability AS constraint_columns_nullability,
     CASE WHEN o.type = 'F'
-        THEN OBJECT_SCHEMA_NAME(fk.referenced_object_id) + '.' + OBJECT_NAME(fk.referenced_object_id)
+        THEN OBJECT_SCHEMA_NAME(fk.referenced_object_id)
+        ELSE NULL
+    END AS referenced_schema,
+    CASE WHEN o.type = 'F'
+        THEN OBJECT_NAME(fk.referenced_object_id)
         ELSE NULL
     END AS referenced_table,
     CASE WHEN o.type = 'F'
@@ -375,8 +414,23 @@ SELECT
               WHERE fc.constraint_object_id = o.object_id)
         ELSE NULL
     END AS referenced_columns,
-    CASE WHEN o.type = 'F'
-        THEN 'ON UPDATE ' + UPPER(fk.update_referential_action_desc) + ', ON DELETE ' + UPPER(fk.delete_referential_action_desc)
+     CASE WHEN o.type = 'F'
+        THEN 'ON UPDATE ' + 
+             CASE LOWER(fk.update_referential_action_desc)
+                 WHEN 'no_action' THEN 'no action'
+                 WHEN 'cascade' THEN 'cascade'
+                 WHEN 'set_null' THEN 'set null'
+                 WHEN 'set_default' THEN 'set default'
+                 ELSE fk.update_referential_action_desc
+             END +
+             ' ON DELETE ' + 
+             CASE LOWER(fk.delete_referential_action_desc)
+                 WHEN 'no_action' THEN 'no action'
+                 WHEN 'cascade' THEN 'cascade'
+                 WHEN 'set_null' THEN 'set null'
+                 WHEN 'set_default' THEN 'set default'
+                 ELSE fk.delete_referential_action_desc
+             END
         ELSE NULL
     END AS fk_actions,
     CASE WHEN o.type = 'C' THEN cc_def.definition ELSE NULL END AS check_clause
@@ -406,6 +460,7 @@ type GetTableConstraintsBySchemasRow struct {
 	ConstraintType               string
 	ConstraintColumns            string
 	ConstraintColumnsNullability string
+	ReferencedSchema             sql.NullString
 	ReferencedTable              sql.NullString
 	ReferencedColumns            sql.NullString
 	FKActions                    sql.NullString
@@ -433,6 +488,7 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_que
 			&i.ConstraintType,
 			&i.ConstraintColumns,
 			&i.ConstraintColumnsNullability,
+			&i.ReferencedSchema,
 			&i.ReferencedTable,
 			&i.ReferencedColumns,
 			&i.FKActions,

@@ -256,6 +256,9 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 			IndexStatements:      indexmap[key],
 		}
 		for _, constraint := range constraintmap[key] {
+			if constraint.ConstraintType == "PRIMARY KEY" {
+				continue
+			}
 			stmt := generateAddConstraintStatement(constraint)
 			constraintType, err := sqlmanager_shared.ToConstraintType(toStandardConstraintType(constraint.ConstraintType))
 			if err != nil {

@@ -180,9 +180,37 @@ func Test_MssqlManager(t *testing.T) {
 			schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: t})
 		}
 
-		statements, err := manager.GetSchemaInitStatements(context.Background(), schematables)
-		require.NoError(t, err)
+		statements, err := manager.GetSchemaInitStatements(ctx, schematables)
+		require.NoErrorf(t, err, "failed to get schema init statements")
 		require.NotEmpty(t, statements)
+		lableStmtMap := map[string][]string{}
+		for _, st := range statements {
+			lableStmtMap[st.Label] = append(lableStmtMap[st.Label], st.Statements...)
+		}
+		for _, stmt := range lableStmtMap["data types"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create data type in target db: %s", stmt)
+		}
+		for _, stmt := range lableStmtMap["create table"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create tables in target db: %s", stmt)
+		}
+		for _, stmt := range lableStmtMap["table triggers"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create table triggers in target db: %s", stmt)
+		}
+		for _, stmt := range lableStmtMap["table index"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create table indexes in target db: %s", stmt)
+		}
+		for _, stmt := range lableStmtMap["non-fk alter table"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create non-fk constraints in target db: %s", stmt)
+		}
+		for _, stmt := range lableStmtMap["fk alter table"] {
+			_, err = target.DB.ExecContext(ctx, stmt)
+			require.NoErrorf(t, err, "failed to create fk constraints in target db: %s", stmt)
+		}
 	})
 
 	t.Log("Finished running mssql manager integration tests")
@@ -310,80 +338,6 @@ func Test_MssqlManager(t *testing.T) {
 // 		Prefix: &stmt,
 // 	})
 // 	require.NoError(s.T(), err)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{
-// 		{Schema: schema, Table: "parent1"},
-// 		{Schema: schema, Table: "child1"},
-// 		{Schema: schema, Table: "custom_table"},
-// 		{Schema: schema, Table: "unique_emails_and_usernames"},
-// 		{Schema: schema, Table: "t1"},
-// 		{Schema: schema, Table: "t2"},
-// 		{Schema: schema, Table: "t3"},
-// 		{Schema: schema, Table: "t4"},
-// 		{Schema: schema, Table: "t5"},
-// 		{Schema: schema, Table: "employee_log"},
-// 		{Schema: schema, Table: "users"},
-// 	})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), statements)
-// 	lableStmtMap := map[string][]string{}
-// 	for _, st := range statements {
-// 		lableStmtMap[st.Label] = append(lableStmtMap[st.Label], st.Statements...)
-// 	}
-// 	for _, stmt := range lableStmtMap["create table"] {
-// 		_, err = s.target.pool.ExecContext(context.Background(), stmt)
-// 		require.NoError(s.T(), err)
-// 	}
-// 	for _, stmt := range lableStmtMap["table triggers"] {
-// 		_, err = s.target.pool.ExecContext(context.Background(), stmt)
-// 		require.NoError(s.T(), err)
-// 	}
-// 	for _, stmt := range lableStmtMap["table index"] {
-// 		_, err = s.target.pool.ExecContext(context.Background(), stmt)
-// 		require.NoError(s.T(), err)
-// 	}
-// 	for _, stmt := range lableStmtMap["non-fk alter table"] {
-// 		_, err = s.target.pool.ExecContext(context.Background(), stmt)
-// 		require.NoError(s.T(), err)
-// 	}
-// 	for _, stmt := range lableStmtMap["fk alter table"] {
-// 		_, err = s.target.pool.ExecContext(context.Background(), stmt)
-// 		require.NoError(s.T(), err)
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), statements)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	triggers, err := manager.GetSchemaTableTriggers(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employee_log"}})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), triggers)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})
-// 	require.NoError(s.T(), err)
-// 	require.NotNil(s.T(), resp)
-// 	require.NotEmptyf(s.T(), resp.GetStatements(), "statements")
-// 	require.NotEmptyf(s.T(), resp.Functions, "functions")
 // }
 
 func containsSubset[T any](t testing.TB, array, subset []T) {
