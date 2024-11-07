@@ -626,7 +626,7 @@ func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db mysql_quer
 	return items, nil
 }
 
-const getCustomSequencesBySchemasAndTables = `-- name: GetCustomSequencesBySchemasAndTables :many
+const getCustomSequencesBySchemas = `-- name: GetCustomSequencesBySchemasAndTables :many
 SELECT 
     SCHEMA_NAME(seq.schema_id) AS schema_name,
     seq.name AS sequence_name,
@@ -653,23 +653,23 @@ WHERE SCHEMA_NAME(seq.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ',
 ORDER BY seq.schema_id, seq.name;
 `
 
-type GetCustomSequencesBySchemasAndTablesRow struct {
+type GetCustomSequencesBySchemasRow struct {
 	SchemaName   string
 	SequenceName string
 	Definition   string
 }
 
-func (q *Queries) GetCustomSequencesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasAndTablesRow, error) {
+func (q *Queries) GetCustomSequencesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasRow, error) {
 	// Join schemas into a comma-separated string
 	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemasAndTables, sql.Named("schemas", schemasList))
+	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemas, sql.Named("schemas", schemasList))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetCustomSequencesBySchemasAndTablesRow
+	var items []*GetCustomSequencesBySchemasRow
 	for rows.Next() {
-		var i GetCustomSequencesBySchemasAndTablesRow
+		var i GetCustomSequencesBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.SequenceName,
@@ -768,7 +768,7 @@ UNION ALL
 SELECT 
     SCHEMA_NAME(tt.schema_id) AS schema_name,
     tt.name AS type_name,
-    'table' as type,
+    'composite' as type,
     'CREATE TYPE [' + SCHEMA_NAME(tt.schema_id) + '].[' + tt.name + '] AS TABLE (' + 
     STUFF((
         SELECT ', ' + c.name + ' ' + 

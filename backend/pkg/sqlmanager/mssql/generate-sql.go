@@ -134,7 +134,7 @@ END`, record.TriggerName, record.SchemaName, record.TableName, record.Definition
 }
 
 // Creates idempotent create sequence statement
-func generateCreateSequenceStatement(record *mssql_queries.GetCustomSequencesBySchemasAndTablesRow) string {
+func generateCreateSequenceStatement(record *mssql_queries.GetCustomSequencesBySchemasRow) string {
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf(`
@@ -165,6 +165,25 @@ IF NOT EXISTS (
 BEGIN
 	%s
 END`, record.FunctionName, record.SchemaName, record.Definition))
+
+	return sb.String()
+}
+
+// Creates idempotent create type statement
+func generateCreateDataTypeStatement(record *mssql_queries.GetDataTypesBySchemasRow) string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf(`
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.types t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+    WHERE t.name = N'%s' 
+    AND s.name = N'%s'
+)
+BEGIN
+	%s
+END`, record.TypeName, record.SchemaName, record.Definition))
 
 	return sb.String()
 }

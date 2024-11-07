@@ -6,91 +6,183 @@ import (
 	"testing"
 
 	_ "github.com/microsoft/go-mssqldb"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
+
 	"github.com/stretchr/testify/require"
 )
 
-func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
-	manager := NewManager(s.source.querier, s.source.testDb, func() {})
-
-	var expectedIdentityGeneration = "IDENTITY(1,1)"
-	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
-		{
-			TableSchema:            "sqlmanagermssql3",
-			TableName:              "users",
-			ColumnName:             "id",
-			DataType:               "int",
-			ColumnDefault:          "",
-			IsNullable:             false,
-			CharacterMaximumLength: -1,
-			NumericPrecision:       10,
-			NumericScale:           0,
-			OrdinalPosition:        1,
-			GeneratedType:          nil,
-			IdentityGeneration:     &expectedIdentityGeneration,
-		},
-	}
-
-	actual, err := manager.GetDatabaseSchema(s.ctx)
-	require.NoError(s.T(), err)
-	containsSubset(s.T(), actual, expectedSubset)
+type testColumnProperties struct {
+	needsOverride bool
+	needsReset    bool
 }
 
-func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
-	manager := NewManager(s.source.querier, s.source.testDb, func() {})
-
-	actual, err := manager.GetSchemaColumnMap(s.ctx)
-	require.NoError(s.T(), err)
-
-	usersKey := fmt.Sprintf("%s.%s", "sqlmanagermssql3", "users")
-
-	usersMap, ok := actual[usersKey]
-	require.True(s.T(), ok, fmt.Sprintf("%s map should exist", usersKey))
-	require.NotEmpty(s.T(), usersMap)
-	_, ok = usersMap["id"]
-	require.True(s.T(), ok, "users map should have id column")
-}
-
-func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
-	manager := NewManager(s.source.querier, s.source.testDb, func() {})
-
-	expected := &sqlmanager_shared.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
-			"sqlmanagermssql2.child1": {
-				{Columns: []string{"parent_id1", "parent_id2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   "sqlmanagermssql2.parent1",
-					Columns: []string{"id1", "id2"},
-				}},
-			},
-
-			"sqlmanagermssql2.TableA": {
-				{Columns: []string{"IdB1", "IdB2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   "sqlmanagermssql2.TableB",
-					Columns: []string{"IdB1", "IdB2"},
-				}},
-			},
-			"sqlmanagermssql2.TableB": {
-				{Columns: []string{"IdA1", "IdA2"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   "sqlmanagermssql2.TableA",
-					Columns: []string{"IdA1", "IdA2"},
-				}},
-			},
-		},
-		PrimaryKeyConstraints: map[string][]string{
-			"sqlmanagermssql2.parent1": {"id1", "id2"},
-			"sqlmanagermssql2.child1":  {"id"},
-
-			"sqlmanagermssql2.TableA": {"IdA1", "IdA2"},
-			"sqlmanagermssql2.TableB": {"IdB1", "IdB2"},
-
-			"sqlmanagermssql2.defaults_table": {"id"},
-		},
+func Test_MssqlManager(t *testing.T) {
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
+		return
 	}
+	t.Log("Running integration tests for Mssql Manager")
+	t.Parallel()
 
-	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"sqlmanagermssql2"})
-	require.NoError(s.T(), err)
-	require.Equal(s.T(), expected.ForeignKeyConstraints, actual.ForeignKeyConstraints)
-	require.Equal(s.T(), expected.PrimaryKeyConstraints, actual.PrimaryKeyConstraints)
+	ctx := context.Background()
+	containers, err := tcmssql.NewMssqlTestSyncContainer(ctx, []tcmssql.Option{}, []tcmssql.Option{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := containers.Source
+	target := containers.Target
+	t.Log("Successfully created source and target mssql test containers")
+
+	err = setup(ctx, containers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("Successfully setup source and target databases")
+
+	manager := NewManager(mssql_queries.New(), source.DB, func() {})
+
+	t.Run("GetDatabaseSchema", func(t *testing.T) {
+		t.Parallel()
+		var expectedIdentityGeneration = "IDENTITY(1,1)"
+		expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
+			{
+				TableSchema:            "sqlmanagermssql3",
+				TableName:              "users",
+				ColumnName:             "id",
+				DataType:               "int",
+				ColumnDefault:          "",
+				IsNullable:             false,
+				CharacterMaximumLength: -1,
+				NumericPrecision:       10,
+				NumericScale:           0,
+				OrdinalPosition:        1,
+				GeneratedType:          nil,
+				IdentityGeneration:     &expectedIdentityGeneration,
+			},
+		}
+
+		actual, err := manager.GetDatabaseSchema(ctx)
+		require.NoError(t, err)
+		containsSubset(t, actual, expectedSubset)
+	})
+
+	t.Run("GetSchemaColumnMap", func(t *testing.T) {
+		t.Parallel()
+		actual, err := manager.GetSchemaColumnMap(ctx)
+		require.NoError(t, err)
+
+		usersKey := fmt.Sprintf("%s.%s", "sqlmanagermssql3", "users")
+
+		usersMap, ok := actual[usersKey]
+		require.True(t, ok, fmt.Sprintf("%s map should exist", usersKey))
+		require.NotEmpty(t, usersMap)
+		_, ok = usersMap["id"]
+		require.True(t, ok, "users map should have id column")
+	})
+
+	t.Run("GetTableConstraintsBySchema", func(t *testing.T) {
+		t.Parallel()
+		expected := &sqlmanager_shared.TableConstraints{
+			ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"sqlmanagermssql2.child1": {
+					{Columns: []string{"parent_id1", "parent_id2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "sqlmanagermssql2.parent1",
+						Columns: []string{"id1", "id2"},
+					}},
+				},
+
+				"sqlmanagermssql2.TableA": {
+					{Columns: []string{"IdB1", "IdB2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "sqlmanagermssql2.TableB",
+						Columns: []string{"IdB1", "IdB2"},
+					}},
+				},
+				"sqlmanagermssql2.TableB": {
+					{Columns: []string{"IdA1", "IdA2"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "sqlmanagermssql2.TableA",
+						Columns: []string{"IdA1", "IdA2"},
+					}},
+				},
+			},
+			PrimaryKeyConstraints: map[string][]string{
+				"sqlmanagermssql2.parent1": {"id1", "id2"},
+				"sqlmanagermssql2.child1":  {"id"},
+
+				"sqlmanagermssql2.TableA": {"IdA1", "IdA2"},
+				"sqlmanagermssql2.TableB": {"IdB1", "IdB2"},
+
+				"sqlmanagermssql2.defaults_table": {"id"},
+			},
+		}
+
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{"sqlmanagermssql2"})
+		require.NoError(t, err)
+		require.Equal(t, expected.ForeignKeyConstraints, actual.ForeignKeyConstraints)
+		require.Equal(t, expected.PrimaryKeyConstraints, actual.PrimaryKeyConstraints)
+	})
+
+	t.Run("GetRolePermissionMap", func(t *testing.T) {
+		t.Parallel()
+		schema := "sqlmanagermssql3"
+
+		actual, err := manager.GetRolePermissionsMap(context.Background())
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		usersKey := buildTable(schema, "users")
+
+		usersRecord, ok := actual[usersKey]
+		require.True(t, ok, "map should have users perms")
+		require.Contains(t, usersRecord, "INSERT")
+		require.Contains(t, usersRecord, "UPDATE")
+		require.Contains(t, usersRecord, "SELECT")
+		require.Contains(t, usersRecord, "DELETE")
+	})
+
+	t.Run("GetMssqlColumnOverrideAndResetProperties", func(t *testing.T) {
+		t.Parallel()
+		colInfoMap, err := manager.GetSchemaColumnMap(context.Background())
+		require.NoError(t, err)
+
+		testDefaultTable := colInfoMap["testdb.sqlmanagermssql2.defaults_table"]
+
+		var expectedProperties = map[string]testColumnProperties{
+			"description":       {needsOverride: false, needsReset: false},
+			"registration_date": {needsOverride: false, needsReset: false},
+			"score":             {needsOverride: false, needsReset: false},
+			"status":            {needsOverride: false, needsReset: false},
+			"id":                {needsOverride: true, needsReset: true},
+			"last_login":        {needsOverride: false, needsReset: false},
+			"age":               {needsOverride: false, needsReset: false},
+			"is_active":         {needsOverride: false, needsReset: false},
+			"created_at":        {needsOverride: false, needsReset: false},
+			"uuid":              {needsOverride: false, needsReset: false},
+		}
+
+		for col, colInfo := range testDefaultTable {
+			needsOverride, needsReset := GetMssqlColumnOverrideAndResetProperties(colInfo)
+			expected, ok := expectedProperties[col]
+			require.Truef(t, ok, "Missing expected column %q", col)
+			require.Equalf(t, expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
+			require.Equalf(t, expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
+		}
+	})
+
+	t.Log("Finished running mssql manager integration tests")
+	t.Cleanup(func() {
+		t.Log("Cleaning up source and target mssql containers")
+		err := source.TearDown(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = target.TearDown(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
 // func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
@@ -133,24 +225,6 @@ func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 // 		},
 // 	})
 // }
-
-func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
-	manager := NewManager(s.source.querier, s.source.testDb, func() {})
-	schema := "sqlmanagermssql3"
-
-	actual, err := manager.GetRolePermissionsMap(context.Background())
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), actual)
-
-	usersKey := buildTable(schema, "users")
-
-	usersRecord, ok := actual[usersKey]
-	require.True(s.T(), ok, "map should have users perms")
-	require.Contains(s.T(), usersRecord, "INSERT")
-	require.Contains(s.T(), usersRecord, "UPDATE")
-	require.Contains(s.T(), usersRecord, "SELECT")
-	require.Contains(s.T(), usersRecord, "DELETE")
-}
 
 // func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
 // 	manager := NewManager(s.source.querier, s.source.pool, func() {})
@@ -302,40 +376,5 @@ func containsSubset[T any](t testing.TB, array, subset []T) {
 	t.Helper()
 	for _, elem := range subset {
 		require.Contains(t, array, elem)
-	}
-}
-
-type testColumnProperties struct {
-	needsOverride bool
-	needsReset    bool
-}
-
-func (s *IntegrationTestSuite) Test_GetMssqlColumnOverrideAndResetProperties() {
-	manager := NewManager(s.source.querier, s.source.testDb, func() {})
-
-	colInfoMap, err := manager.GetSchemaColumnMap(context.Background())
-	require.NoError(s.T(), err)
-
-	testDefaultTable := colInfoMap["testdb.sqlmanagermssql2.defaults_table"]
-
-	var expectedProperties = map[string]testColumnProperties{
-		"description":       {needsOverride: false, needsReset: false},
-		"registration_date": {needsOverride: false, needsReset: false},
-		"score":             {needsOverride: false, needsReset: false},
-		"status":            {needsOverride: false, needsReset: false},
-		"id":                {needsOverride: true, needsReset: true},
-		"last_login":        {needsOverride: false, needsReset: false},
-		"age":               {needsOverride: false, needsReset: false},
-		"is_active":         {needsOverride: false, needsReset: false},
-		"created_at":        {needsOverride: false, needsReset: false},
-		"uuid":              {needsOverride: false, needsReset: false},
-	}
-
-	for col, colInfo := range testDefaultTable {
-		needsOverride, needsReset := GetMssqlColumnOverrideAndResetProperties(colInfo)
-		expected, ok := expectedProperties[col]
-		require.Truef(s.T(), ok, "Missing expected column %q", col)
-		require.Equalf(s.T(), expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
-		require.Equalf(s.T(), expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
 	}
 }

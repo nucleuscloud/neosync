@@ -287,7 +287,64 @@ func toStandardConstraintType(constraintType string) string {
 }
 
 func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return []*sqlmanager_shared.InitSchemaStatements{}, nil
+	errgrp, errctx := errgroup.WithContext(ctx)
+	dataTypeStmts := []string{}
+	errgrp.Go(func() error {
+		datatypeCfg, err := m.GetSchemaTableDataTypes(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+		}
+		dataTypeStmts = datatypeCfg.GetStatements()
+		return nil
+	})
+
+	tableTriggerStmts := []string{}
+	errgrp.Go(func() error {
+		tableTriggers, err := m.GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+		}
+		for _, ttrig := range tableTriggers {
+			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+		}
+		return nil
+	})
+
+	createTables := []string{}
+	nonFkAlterStmts := []string{}
+	fkAlterStmts := []string{}
+	idxStmts := []string{}
+	errgrp.Go(func() error {
+		initStatementCfgs, err := m.GetTableInitStatements(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
+		}
+		for _, stmtCfg := range initStatementCfgs {
+			createTables = append(createTables, stmtCfg.CreateTableStatement)
+			for _, alter := range stmtCfg.AlterTableStatements {
+				if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
+					fkAlterStmts = append(fkAlterStmts, alter.Statement)
+				} else {
+					nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+				}
+			}
+			idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+		}
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: dataTypeStmts},
+		{Label: "create table", Statements: createTables},
+		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
+		{Label: "table index", Statements: idxStmts},
+		{Label: "table triggers", Statements: tableTriggerStmts},
+	}, nil
 }
 
 func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
@@ -295,13 +352,53 @@ func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table str
 }
 
 func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
-	return &sqlmanager_shared.SchemaTableDataTypeResponse{
-		Sequences:  []*sqlmanager_shared.DataType{},
-		Functions:  []*sqlmanager_shared.DataType{},
-		Composites: []*sqlmanager_shared.DataType{},
-		Enums:      []*sqlmanager_shared.DataType{},
-		Domains:    []*sqlmanager_shared.DataType{},
-	}, nil
+	if len(tables) == 0 {
+		return &sqlmanager_shared.SchemaTableDataTypeResponse{}, nil
+	}
+
+	schemasMap := map[string]struct{}{}
+	for _, t := range tables {
+		schemasMap[t.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for schema := range schemasMap {
+		schemas = append(schemas, schema)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3) // Limit this to effectively one set per schema
+
+	output := &sqlmanager_shared.SchemaTableDataTypeResponse{}
+	errgrp.Go(func() error {
+		seqs, err := m.getSequencesBySchemas(errctx, schemas)
+		if err != nil {
+			return fmt.Errorf("unable to get sqlserver sequences by tables: %w", err)
+		}
+		output.Sequences = seqs
+		return nil
+	})
+	errgrp.Go(func() error {
+		funcs, err := m.getFunctionsBySchemas(errctx, schemas)
+		if err != nil {
+			return fmt.Errorf("unable to get sqlserver functions by tables: %w", err)
+		}
+		output.Functions = funcs
+		return nil
+	})
+	errgrp.Go(func() error {
+		datatypes, err := m.getDataTypesBySchemas(errctx, schemas)
+		if err != nil {
+			return fmt.Errorf("unable to get sqlserver data types by tables: %w", err)
+		}
+		output.Composites = datatypes.Composites
+		output.Domains = datatypes.Domains
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
@@ -333,13 +430,28 @@ func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanag
 	return output, nil
 }
 
-func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
-	combined := make([]string, 0, len(tables))
-	for _, t := range tables {
-		key := &sqlmanager_shared.SchemaTable{Schema: schema, Table: t}
-		combined = append(combined, key.String())
+func (m *Manager) getSequencesBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetCustomSequencesBySchemas(ctx, m.db, schemas)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DataType{}, nil
 	}
-	rows, err := m.querier.GetCustomSequencesBySchemasAndTables(ctx, m.db, combined)
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.SequenceName,
+			Definition: generateCreateSequenceStatement(row),
+		})
+	}
+	return output, nil
+}
+
+// todo remove this
+func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetCustomSequencesBySchemas(ctx, m.db, []string{schema})
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -378,12 +490,11 @@ func (m *Manager) getFunctionsBySchemas(ctx context.Context, schemas []string) (
 
 type datatypes struct {
 	Composites []*sqlmanager_shared.DataType
-	Enums      []*sqlmanager_shared.DataType
 	Domains    []*sqlmanager_shared.DataType
 }
 
-func (m *Manager) getDataTypesByTables(ctx context.Context, schemas []string) (*datatypes, error) {
-	rows, err := m.querier.GetDataTypesBySchemasAndTables(ctx, m.db, schemas)
+func (m *Manager) getDataTypesBySchemas(ctx context.Context, schemas []string) (*datatypes, error) {
+	rows, err := m.querier.GetDataTypesBySchemas(ctx, m.db, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -396,15 +507,13 @@ func (m *Manager) getDataTypesByTables(ctx context.Context, schemas []string) (*
 		dt := &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
 			Name:       row.TypeName,
-			Definition: wrapPgIdempotentDataType(row.SchemaName, row.TypeName, row.Definition),
+			Definition: generateCreateDataTypeStatement(row),
 		}
 		switch row.Type {
 		case "composite":
 			output.Composites = append(output.Composites, dt)
 		case "domain":
 			output.Domains = append(output.Domains, dt)
-		case "enum":
-			output.Enums = append(output.Enums, dt)
 		}
 	}
 	return output, nil

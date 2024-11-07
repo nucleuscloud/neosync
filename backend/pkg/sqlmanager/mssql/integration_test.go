@@ -17,6 +17,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
 	"github.com/stretchr/testify/suite"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 )
@@ -307,4 +308,49 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 func buildTable(schema, tableName string) string {
 	return fmt.Sprintf("%s.%s", schema, tableName)
+}
+
+type Schema struct {
+	Name string
+}
+
+func setup(ctx context.Context, containers *tcmssql.MssqlTestSyncContainer) error {
+	baseDir := "testdata"
+
+	sourceSetupContents, err := readSqlFiles(filepath.Join(baseDir, "source-setup"))
+	if err != nil {
+		return fmt.Errorf("unable to read source setup files: %w", err)
+	}
+
+	destSetupContents, err := readSqlFiles(filepath.Join(baseDir, "dest-setup"))
+	if err != nil {
+		return fmt.Errorf("unable to read dest setup files: %w", err)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		for i, stmt := range sourceSetupContents {
+			_, err := containers.Source.DB.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing source setup statement %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		for i, stmt := range destSetupContents {
+			_, err := containers.Target.DB.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing dest setup statement: %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+
+	err = errgrp.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
