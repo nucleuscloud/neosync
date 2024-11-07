@@ -7,12 +7,12 @@ import (
 )
 
 type Querier interface {
-	GetCustomFunctionsBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomFunctionsBySchemasAndTablesRow, error)
+	GetCustomFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomFunctionsBySchemasRow, error)
 	GetCustomSequencesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomSequencesBySchemasAndTablesRow, error)
 	GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error)
-	GetDataTypesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasAndTablesRow, error)
+	GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasRow, error)
 	GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) ([]*GetDatabaseSchemaRow, error)
-	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseSchemaRow, error)
+	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
 	GetIndicesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error)
 	GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error)

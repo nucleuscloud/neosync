@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -200,22 +198,22 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	colDefMap := map[string][]*mssql_queries.GetDatabaseSchemaRow{}
+	colDefMap := map[string][]*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
 	errgrp.Go(func() error {
 		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.db, combined)
 		if err != nil {
 			return err
 		}
 		for _, columnDefinition := range columnDefs {
-			key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+			key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.TableSchema, Table: columnDefinition.TableName}
 			colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
 		}
 		return nil
 	})
 
-	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
+	constraintmap := map[string][]*mssql_queries.GetTableConstraintsBySchemasRow{}
 	errgrp.Go(func() error {
-		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		constraints, err := m.querier.GetTableConstraintsBySchemas(errctx, m.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
 		if err != nil {
 			return err
 		}
@@ -228,13 +226,13 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 
 	indexmap := map[string][]string{}
 	errgrp.Go(func() error {
-		idxrecords, err := p.querier.GetIndicesBySchemasAndTables(errctx, p.db, combined)
+		idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.db, combined)
 		if err != nil {
 			return err
 		}
 		for _, record := range idxrecords {
 			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-			indexmap[key.String()] = append(indexmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
+			indexmap[key.String()] = append(indexmap[key.String()], generateCreateIndexStatement(record))
 		}
 		return nil
 	})
@@ -251,55 +249,49 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 		if !ok {
 			continue
 		}
-		columns := make([]string, 0, len(tableData))
-		for _, record := range tableData {
-			record := record
-			var seqConfig *SequenceConfiguration
-			if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
-				record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
-				seqConfig = &SequenceConfiguration{
-					StartValue:  record.SeqStartValue.Int64,
-					MinValue:    record.SeqMinValue.Int64,
-					MaxValue:    record.SeqMaxValue.Int64,
-					IncrementBy: record.SeqIncrementBy.Int64,
-					CycleOption: record.SeqCycleOption.Bool,
-					CacheValue:  record.SeqCacheValue.Int64,
-				}
-			}
-			columns = append(columns, buildTableCol(&buildTableColRequest{
-				ColumnName:    record.ColumnName,
-				ColumnDefault: record.ColumnDefault,
-				DataType:      record.DataType,
-				IsNullable:    record.IsNullable == "YES",
-				GeneratedType: record.GeneratedType,
-				IsSerial:      record.SequenceType == "SERIAL",
-				Sequence:      seqConfig,
-				IdentityType:  &record.IdentityGeneration,
-			}))
-		}
 
 		info := &sqlmanager_shared.TableInitStatement{
-			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			CreateTableStatement: generateCreateTableStatement(tableData),
 			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
 			IndexStatements:      indexmap[key],
 		}
 		for _, constraint := range constraintmap[key] {
-			stmt, err := buildAlterStatementByConstraint(constraint)
-			if err != nil {
-				return nil, err
-			}
-			constraintType, err := sqlmanager_shared.ToConstraintType(constraint.ConstraintType)
+			stmt := generateAddConstraintStatement(constraint)
+			constraintType, err := sqlmanager_shared.ToConstraintType(toStandardConstraintType(constraint.ConstraintType))
 			if err != nil {
 				return nil, err
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, &sqlmanager_shared.AlterTableStatement{
-				Statement:      wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt),
+				Statement:      stmt,
 				ConstraintType: constraintType,
 			})
 		}
 		output = append(output, info)
 	}
 	return output, nil
+}
+
+func toStandardConstraintType(constraintType string) string {
+	switch constraintType {
+	case "PRIMARY KEY":
+		return "p"
+	case "UNIQUE":
+		return "u"
+	case "FOREIGN KEY":
+		return "f"
+	case "CHECK":
+		return "c"
+	default:
+		return ""
+	}
+}
+
+func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	return []*sqlmanager_shared.InitSchemaStatements{}, nil
+}
+
+func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
+	return "", errors.ErrUnsupported
 }
 
 func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
@@ -313,15 +305,109 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 }
 
 func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
-	return []*sqlmanager_shared.TableTrigger{}, nil
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.TableTrigger{}, nil
+	}
+
+	combined := make([]string, 0, len(tables))
+	for _, t := range tables {
+		combined = append(combined, t.String())
+	}
+
+	rows, err := m.querier.GetCustomTriggersBySchemasAndTables(ctx, m.db, combined)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.TableTrigger{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.TableTrigger, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.TableTrigger{
+			Schema:      row.SchemaName,
+			Table:       row.TableName,
+			TriggerName: row.TriggerName,
+			Definition:  generateCreateTriggerStatement(row),
+		})
+	}
+	return output, nil
 }
 
-func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return []*sqlmanager_shared.InitSchemaStatements{}, nil
+func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	combined := make([]string, 0, len(tables))
+	for _, t := range tables {
+		key := &sqlmanager_shared.SchemaTable{Schema: schema, Table: t}
+		combined = append(combined, key.String())
+	}
+	rows, err := m.querier.GetCustomSequencesBySchemasAndTables(ctx, m.db, combined)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.SequenceName,
+			Definition: generateCreateSequenceStatement(row),
+		})
+	}
+	return output, nil
 }
 
-func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	return "", errors.ErrUnsupported
+func (m *Manager) getFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.db, schemas)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.FunctionName,
+			Definition: generateCreateFunctionStatement(row),
+		})
+	}
+	return output, nil
+}
+
+type datatypes struct {
+	Composites []*sqlmanager_shared.DataType
+	Enums      []*sqlmanager_shared.DataType
+	Domains    []*sqlmanager_shared.DataType
+}
+
+func (m *Manager) getDataTypesByTables(ctx context.Context, schemas []string) (*datatypes, error) {
+	rows, err := m.querier.GetDataTypesBySchemasAndTables(ctx, m.db, schemas)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return &datatypes{}, nil
+	}
+
+	output := &datatypes{}
+
+	for _, row := range rows {
+		dt := &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.TypeName,
+			Definition: wrapPgIdempotentDataType(row.SchemaName, row.TypeName, row.Definition),
+		}
+		switch row.Type {
+		case "composite":
+			output.Composites = append(output.Composites, dt)
+		case "domain":
+			output.Domains = append(output.Domains, dt)
+		case "enum":
+			output.Enums = append(output.Enums, dt)
+		}
+	}
+	return output, nil
 }
 
 func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
@@ -360,10 +446,6 @@ func (m *Manager) GetTableRowCount(
 	return count, err
 }
 
-func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
-	return nil, errors.ErrUnsupported
-}
-
 func (m *Manager) Exec(ctx context.Context, statement string) error {
 	_, err := m.db.ExecContext(ctx, statement)
 	return err
@@ -373,57 +455,6 @@ func (m *Manager) Close() {
 	if m.db != nil && m.close != nil {
 		m.close()
 	}
-}
-
-func BuildMssqlDeleteStatement(
-	schema, table string,
-) (string, error) {
-	dialect := goqu.Dialect("sqlserver")
-	ds := dialect.Delete(goqu.S(schema).Table(table))
-	sql, _, err := ds.ToSQL()
-	if err != nil {
-		return "", err
-	}
-	return sql + ";", nil
-}
-
-// Resets current identity value back to the initial count
-func BuildMssqlIdentityColumnResetStatement(
-	schema, table, identityGeneration string,
-) string {
-	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
-	match := re.FindStringSubmatch(identityGeneration)
-	if len(match) > 1 {
-		StartValue, err := strconv.Atoi(match[1])
-		if err != nil {
-			StartValue = 0
-		}
-		if StartValue > 0 {
-			StartValue--
-		}
-		return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
-	}
-	return BuildMssqlIdentityColumnResetCurrent(schema, table)
-}
-
-// If the current identity value for a table is less than the maximum identity value stored in the identity column
-// It is reset using the maximum value in the identity column.
-func BuildMssqlIdentityColumnResetCurrent(
-	schema, table string,
-) string {
-	return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED)", schema, table)
-}
-
-// Allows explicit values to be inserted into the identity column of a table.
-func BuildMssqlSetIdentityInsertStatement(
-	schema, table string,
-	enable bool,
-) string {
-	enabledKeyword := "OFF"
-	if enable {
-		enabledKeyword = "ON"
-	}
-	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
 }
 
 func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {

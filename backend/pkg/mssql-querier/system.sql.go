@@ -102,8 +102,8 @@ SELECT
     t.name AS table_name,
     c.name AS column_name,
     c.column_id AS ordinal_position,
-    ISNULL(dc.definition, '') AS column_default,
-    CASE WHEN c.is_nullable = 1 THEN 'YES' ELSE 'NO' END AS is_nullable,
+	dc.definition as column_default,
+    c.is_nullable,
     tp.name AS data_type,
     CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
          WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
@@ -112,11 +112,26 @@ SELECT
     c.precision AS numeric_precision,
     c.scale AS numeric_scale,
     c.is_identity,
+    CASE 
+        WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
+        ELSE NULL 
+    END AS identity_seed,
+    CASE 
+        WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
+        ELSE NULL 
+    END AS identity_increment,
     c.is_computed,
-    CASE
-        WHEN c.is_computed = 1 THEN cc.definition
+    cc.definition as generation_expression,
+    cc.is_persisted,
+    CASE 
+        WHEN c.generated_always_type = 1 THEN 'GENERATED ALWAYS AS ROW START'
+        WHEN c.generated_always_type = 2 THEN 'GENERATED ALWAYS AS ROW END'
+        WHEN c.generated_always_type = 5 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_START'
+        WHEN c.generated_always_type = 6 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_END'
+        WHEN c.generated_always_type = 7 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_START'
+        WHEN c.generated_always_type = 8 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_END'
         ELSE NULL
-    END AS generation_expression
+    END AS generated_always_type
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -124,14 +139,33 @@ FROM
     INNER JOIN sys.types tp ON c.user_type_id = tp.user_type_id
     LEFT JOIN sys.default_constraints dc ON c.default_object_id = dc.object_id
     LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
-WHERE
-    CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
-    AND t.type = 'U'
+    LEFT JOIN sys.periods p ON t.object_id = p.object_id
+WHERE t.type = 'U' AND CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY
     s.name, t.name, c.column_id;
 `
 
-func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseSchemaRow, error) {
+type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
+	TableSchema            string
+	TableName              string
+	ColumnName             string
+	OrdinalPosition        int32
+	ColumnDefault          sql.NullString
+	IsNullable             bool
+	DataType               string
+	CharacterMaximumLength sql.NullInt32
+	NumericPrecision       sql.NullInt16
+	NumericScale           sql.NullInt16
+	IsIdentity             bool
+	IsComputed             bool
+	IsPersisted            bool
+	GenerationExpression   sql.NullString
+	GeneratedAlwaysType    sql.NullString
+	IdentitySeed           sql.NullInt32
+	IdentityIncrement      sql.NullInt32
+}
+
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
 	// Join schemas into a comma-separated string
 	schematablesList := strings.Join(schematables, ",")
 
@@ -140,9 +174,9 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetDatabaseSchemaRow
+	var items []*GetDatabaseTableSchemasBySchemasAndTablesRow
 	for rows.Next() {
-		var i GetDatabaseSchemaRow
+		var i GetDatabaseTableSchemasBySchemasAndTablesRow
 		if err := rows.Scan(
 			&i.TableSchema,
 			&i.TableName,
@@ -503,7 +537,7 @@ SELECT
         ), 1, 8000) AS index_definition 
 FROM sys.indexes i
 INNER JOIN sys.tables t ON i.object_id = t.object_id
-WHERE i.type > 0  -- Exclude heaps
+WHERE i.is_primary_key =0 AND i.type > 0 AND is_unique_constraint = 0
     AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY i.index_id;
 `
@@ -553,27 +587,27 @@ SELECT
    sm.definition
 FROM sys.sql_modules AS sm
 LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
-WHERE o.type != 'TR' AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE o.type != 'TR' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
 ORDER BY o.type;
 `
 
-type GetCustomFunctionsBySchemasAndTablesRow struct {
+type GetCustomFunctionsBySchemasRow struct {
 	SchemaName   string
 	FunctionName string
 	Definition   string
 }
 
-func (q *Queries) GetCustomFunctionsBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomFunctionsBySchemasAndTablesRow, error) {
+func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
 	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
-	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemasAndTables, schematablesList)
+	schemasList := strings.Join(schemas, ",")
+	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemasAndTables, sql.Named("schemas", schemasList))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetCustomFunctionsBySchemasAndTablesRow
+	var items []*GetCustomFunctionsBySchemasRow
 	for rows.Next() {
-		var i GetCustomFunctionsBySchemasAndTablesRow
+		var i GetCustomFunctionsBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.FunctionName,
@@ -615,7 +649,7 @@ SELECT
         ';'
     ) AS definition
 FROM sys.sequences seq
-WHERE CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE SCHEMA_NAME(seq.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
 ORDER BY seq.schema_id, seq.name;
 `
 
@@ -625,10 +659,10 @@ type GetCustomSequencesBySchemasAndTablesRow struct {
 	Definition   string
 }
 
-func (q *Queries) GetCustomSequencesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomSequencesBySchemasAndTablesRow, error) {
+func (q *Queries) GetCustomSequencesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasAndTablesRow, error) {
 	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
-	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemasAndTables, schematablesList)
+	schemasList := strings.Join(schemas, ",")
+	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemasAndTables, sql.Named("schemas", schemasList))
 	if err != nil {
 		return nil, err
 	}
@@ -663,7 +697,7 @@ SELECT
 FROM sys.sql_modules AS sm
 LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
 LEFT join sys.objects as oo on o.parent_object_id = oo.object_id
-WHERE o.type = 'TR' AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE o.type = 'TR' AND CONCAT(SCHEMA_NAME(o.schema_id), '.', oo.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY o.type;
 `
 
@@ -677,7 +711,7 @@ type GetCustomTriggersBySchemasAndTablesRow struct {
 func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
 	// Join schemas into a comma-separated string
 	schematablesList := strings.Join(schematables, ",")
-	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemasAndTables, schematablesList)
+	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemasAndTables, sql.Named("schematables", schematablesList))
 	if err != nil {
 		return nil, err
 	}
@@ -758,32 +792,27 @@ SELECT
         FOR XML PATH('')
     ), 1, 2, '') + ');' AS definition
 FROM sys.table_types tt
-WHERE tt.is_user_defined = 1 AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','));
+WHERE tt.is_user_defined = 1 AND SCHEMA_NAME(tt.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','));
 `
 
-type GetDataTypesBySchemasAndTablesParams struct {
-	Schema string
-	Tables []string
-}
-
-type GetDataTypesBySchemasAndTablesRow struct {
+type GetDataTypesBySchemasRow struct {
 	SchemaName string
 	TypeName   string
 	Type       string
 	Definition string
 }
 
-func (q *Queries) GetDataTypesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasAndTablesRow, error) {
+func (q *Queries) GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetDataTypesBySchemasRow, error) {
 	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
-	rows, err := db.QueryContext(ctx, getDataTypesBySchemasAndTables, schematablesList)
+	schemasList := strings.Join(schemas, ",")
+	rows, err := db.QueryContext(ctx, getDataTypesBySchemasAndTables, sql.Named("schemas", schemasList))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetDataTypesBySchemasAndTablesRow
+	var items []*GetDataTypesBySchemasRow
 	for rows.Next() {
-		var i GetDataTypesBySchemasAndTablesRow
+		var i GetDataTypesBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TypeName,
