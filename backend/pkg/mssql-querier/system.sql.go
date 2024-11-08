@@ -38,7 +38,7 @@ FROM
     LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
 WHERE
     s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
-    AND t.type = 'U'
+    AND t.type = 'U' AND t.temporal_type != 1
 ORDER BY
     s.name, t.name, c.column_id;
 `
@@ -105,6 +105,7 @@ SELECT
 	dc.definition as column_default,
     c.is_nullable,
     tp.name AS data_type,
+    tp.is_user_defined as is_user_defined_data_type,
     CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
          WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
          ELSE NULL
@@ -172,7 +173,7 @@ FROM
         WHERE i.is_primary_key = 1
     ) pk ON c.object_id = pk.object_id 
         AND c.column_id = pk.column_id
-WHERE t.type = 'U' AND CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY
     s.name, t.name, c.column_id;
 `
@@ -185,6 +186,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	ColumnDefault          sql.NullString
 	IsNullable             bool
 	DataType               string
+	IsUserDefinedDataType  bool
 	CharacterMaximumLength sql.NullInt32
 	NumericPrecision       sql.NullInt16
 	NumericScale           sql.NullInt16
@@ -220,6 +222,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.ColumnDefault,
 			&i.IsNullable,
 			&i.DataType,
+			&i.IsUserDefinedDataType,
 			&i.CharacterMaximumLength,
 			&i.NumericPrecision,
 			&i.NumericScale,
@@ -523,7 +526,7 @@ SELECT
                 WHEN i.type = 3 THEN 'CREATE XML INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
                 -- Primary XML index
                 WHEN i.type = 4 THEN 'CREATE PRIMARY XML INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
-                -- Columnstore index
+                -- Clustered columnstore index
                 WHEN i.type = 5 THEN 'CREATE CLUSTERED COLUMNSTORE INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name)
                 -- Nonclustered columnstore index
                 WHEN i.type = 6 THEN 'CREATE NONCLUSTERED COLUMNSTORE INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ' ('
@@ -556,8 +559,8 @@ SELECT
                 ), 1, 2, '')
             ELSE ''
             END + ')' +
-            -- Included columns
-            CASE WHEN EXISTS (
+            -- Included columns - only for regular nonclustered indexes
+            CASE WHEN i.type = 2 AND EXISTS (
                 SELECT 1
                 FROM sys.index_columns ic2
                 WHERE ic2.object_id = i.object_id 
@@ -600,7 +603,9 @@ SELECT
         ), 1, 8000) AS index_definition 
 FROM sys.indexes i
 INNER JOIN sys.tables t ON i.object_id = t.object_id
-WHERE i.is_primary_key =0 AND i.type > 0 AND is_unique_constraint = 0
+WHERE i.is_primary_key = 0 
+    AND i.type > 0 
+    AND is_unique_constraint = 0
     AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
 ORDER BY i.index_id;
 `

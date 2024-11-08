@@ -39,32 +39,40 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 
 		sb.WriteString(fmt.Sprintf("    [%s] ", row.ColumnName))
 
-		// Add length/precision/scale specifications
 		if !(row.IsComputed && row.GenerationExpression.Valid) {
 			switch {
-			case strings.EqualFold(row.DataType, "DATETIME2"):
-				sb.WriteString(row.DataType)
 			case row.CharacterMaximumLength.Valid:
 				if row.CharacterMaximumLength.Int32 == -1 {
 					sb.WriteString(fmt.Sprintf("%s(MAX)", row.DataType))
 				} else {
 					sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.CharacterMaximumLength.Int32))
 				}
-			case strings.EqualFold(row.DataType, "FLOAT") && row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0:
+				// Types with precision only (float)
+			case strings.EqualFold(row.DataType, "float") && row.NumericPrecision.Valid:
+				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericPrecision.Int16))
+
+			// Types with scale only (datetime2, datetimeoffset, time)
+			case (strings.EqualFold(row.DataType, "datetime2") ||
+				strings.EqualFold(row.DataType, "datetimeoffset") ||
+				strings.EqualFold(row.DataType, "time")) &&
+				row.NumericScale.Valid:
 				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
-			case row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0 && row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-				sb.WriteString(fmt.Sprintf("%s(%d,%d)", row.DataType, row.NumericPrecision.Int16, row.NumericScale.Int16))
-			case row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
+
+			// Types with both precision and scale (decimal, numeric)
+			case (strings.EqualFold(row.DataType, "decimal") ||
+				strings.EqualFold(row.DataType, "numeric")) &&
+				row.NumericPrecision.Valid && row.NumericScale.Valid:
+				sb.WriteString(fmt.Sprintf("%s(%d,%d)", row.DataType,
+					row.NumericPrecision.Int16, row.NumericScale.Int16))
 			default:
 				sb.WriteString(row.DataType)
 			}
 		}
 
 		// Add primary
-		// if row.IsPrimary {
-		// 	sb.WriteString(" PRIMARY KEY ")
-		// }
+		if row.IsPrimary {
+			sb.WriteString(" PRIMARY KEY ")
+		}
 
 		// Add identity specification
 		if row.IsIdentity {
@@ -153,14 +161,15 @@ func generateCreateTriggerStatement(record *mssql_queries.GetCustomTriggersBySch
 
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
-	SELECT * 
-	FROM sys.triggers 
-	WHERE name = N'%s' 
-	AND object_id = OBJECT_ID(N'[%s].[%s]')
+	SELECT *
+	FROM
+		sys.triggers t
+	JOIN sys.objects o ON o.object_id = t.object_id
+	where t.name = N'%s' AND SCHEMA_NAME(o.schema_id) = N'%s'
 )
 BEGIN
 	Exec('%s')
-END`, record.TriggerName, record.SchemaName, record.TableName, def))
+END`, record.TriggerName, record.SchemaName, def))
 
 	return sb.String()
 }
@@ -174,7 +183,7 @@ IF NOT EXISTS (
 	SELECT * 
 	FROM sys.sequences 
 	WHERE name = N'%s' 
-	AND object_id = OBJECT_ID(N'[%s]')
+	AND SCHEMA_NAME(schema_id) = N'%s'
 )
 BEGIN
 	%s
@@ -191,12 +200,30 @@ func generateCreateFunctionStatement(record *mssql_queries.GetCustomFunctionsByS
 IF NOT EXISTS (
 	SELECT * 
 	FROM sys.objects 
-  WHERE name = '%s'
-  AND schema_id = SCHEMA_ID('%s')
+  WHERE name = N'%s'
+  AND schema_id = SCHEMA_ID(N'%s')
 )
 BEGIN
   Exec('%s')
 END`, record.FunctionName, record.SchemaName, def))
+
+	return sb.String()
+}
+
+// Creates idempotent create view statement
+func generateCreateViewStatement(record *mssql_queries.GetCustomViewsBySchemasRow) string {
+	var sb strings.Builder
+	def := strings.ReplaceAll(record.Definition, "'", "''")
+	sb.WriteString(fmt.Sprintf(`
+IF NOT EXISTS (
+	SELECT * 
+	FROM sys.objects 
+  WHERE name = N'%s'
+  AND schema_id = SCHEMA_ID(N'%s')
+)
+BEGIN
+  Exec('%s')
+END`, record.ViewName, record.SchemaName, def))
 
 	return sb.String()
 }
@@ -229,7 +256,7 @@ func generateAddConstraintStatement(constraint *mssql_queries.GetTableConstraint
 IF NOT EXISTS (
 	SELECT * FROM sys.objects o
 	JOIN sys.objects oo ON oo.object_id = o.parent_object_id 
-	WHERE SCHEMA_NAME(oo.schema_id) = '%s' AND oo.name = '%s' AND o.type = '%s'
+	WHERE SCHEMA_NAME(oo.schema_id) = N'%s' AND oo.name = N'%s' AND o.type = '%s'
 )
 BEGIN
   ALTER TABLE [%s].[%s]

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -188,9 +189,6 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 	combined := []string{}
 	schemaset := map[string]struct{}{}
 	for _, table := range tables {
-		if strings.Contains(table.Table, "MSSQL_TemporalHistoryFor") {
-			continue
-		}
 		combined = append(combined, table.String())
 		schemaset[table.Schema] = struct{}{}
 	}
@@ -259,9 +257,10 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 			IndexStatements:      indexmap[key],
 		}
 		for _, constraint := range constraintmap[key] {
-			// if constraint.ConstraintType == "PRIMARY KEY" {
-			// 	continue
-			// }
+			if constraint.ConstraintType == "PRIMARY KEY" {
+				// primary keys must be defined in create table statement
+				continue
+			}
 			stmt := generateAddConstraintStatement(constraint)
 			constraintType, err := sqlmanager_shared.ToConstraintType(toStandardConstraintType(constraint.ConstraintType))
 			if err != nil {
@@ -293,6 +292,15 @@ func toStandardConstraintType(constraintType string) string {
 }
 
 func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	schemasMap := map[string]struct{}{}
+	for _, t := range tables {
+		schemasMap[t.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for schema := range schemasMap {
+		schemas = append(schemas, schema)
+	}
+
 	errgrp, errctx := errgroup.WithContext(ctx)
 	dataTypeStmts := []string{}
 	errgrp.Go(func() error {
@@ -338,6 +346,19 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 		}
 		return nil
 	})
+
+	tableViewsStmts := []string{}
+	errgrp.Go(func() error {
+		views, err := m.getViewsBySchemas(ctx, schemas)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve mssql schema table triggers: %w", err)
+		}
+		for _, v := range views {
+			tableViewsStmts = append(tableViewsStmts, v.Definition)
+		}
+		return nil
+	})
+
 	err := errgrp.Wait()
 	if err != nil {
 		return nil, err
@@ -345,7 +366,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: "create table", Statements: createTables},
+		{Label: "create table", Statements: slices.Concat(createTables, tableViewsStmts)},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
@@ -494,6 +515,25 @@ func (m *Manager) getFunctionsBySchemas(ctx context.Context, schemas []string) (
 	return output, nil
 }
 
+func (m *Manager) getViewsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetCustomViewsBySchemas(ctx, m.db, schemas)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.ViewName,
+			Definition: generateCreateViewStatement(row),
+		})
+	}
+	return output, nil
+}
+
 type datatypes struct {
 	Composites []*sqlmanager_shared.DataType
 	Domains    []*sqlmanager_shared.DataType
@@ -529,12 +569,8 @@ func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []str
 	// mssql does not support batching statements
 	total := len(statements)
 	for idx, stmt := range statements {
-		fmt.Println()
-		fmt.Println(stmt)
-		fmt.Println()
 		err := m.Exec(ctx, stmt)
 		if err != nil {
-			fmt.Println(err.Error())
 			return fmt.Errorf("failed to execute batch statement %d/%d: %w", idx+1, total, err)
 		}
 	}

@@ -2,7 +2,6 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -290,14 +289,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 
-				fmt.Println("before get schema init statements")
 				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
 				if err != nil {
 					return nil, err
 				}
-
-				jsonF, _ := json.MarshalIndent(initblocks, "", " ")
-				fmt.Printf("initblocks: %s \n", string(jsonF))
 
 				for _, block := range initblocks {
 					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
