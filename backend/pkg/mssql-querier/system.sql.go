@@ -643,14 +643,14 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_que
 	return items, nil
 }
 
-const getCustomFunctionsBySchemasAndTables = `-- name: GetCustomFunctionsBySchemasAndTables :many
+const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
 SELECT
    SCHEMA_NAME(o.schema_id) as schema_name,
    o.name AS function_name,
    sm.definition
 FROM sys.sql_modules AS sm
 LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
-WHERE o.type != 'TR' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
+WHERE o.type = 'P' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
 ORDER BY o.type;
 `
 
@@ -663,7 +663,7 @@ type GetCustomFunctionsBySchemasRow struct {
 func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
 	// Join schemas into a comma-separated string
 	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemasAndTables, sql.Named("schemas", schemasList))
+	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemas, sql.Named("schemas", schemasList))
 	if err != nil {
 		return nil, err
 	}
@@ -674,6 +674,52 @@ func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db mysql_quer
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.FunctionName,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomViewsBySchemas = `-- name: GetCustomViewsBySchemas :many
+SELECT
+   SCHEMA_NAME(o.schema_id) as schema_name,
+   o.name AS function_name,
+   sm.definition
+FROM sys.sql_modules AS sm
+LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
+WHERE o.type = 'V' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
+ORDER BY o.type;
+`
+
+type GetCustomViewsBySchemasRow struct {
+	SchemaName string
+	ViewName   string
+	Definition string
+}
+
+func (q *Queries) GetCustomViewsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomViewsBySchemasRow, error) {
+	// Join schemas into a comma-separated string
+	schemasList := strings.Join(schemas, ",")
+	rows, err := db.QueryContext(ctx, getCustomViewsBySchemas, sql.Named("schemas", schemasList))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomViewsBySchemasRow
+	for rows.Next() {
+		var i GetCustomViewsBySchemasRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.ViewName,
 			&i.Definition,
 		); err != nil {
 			return nil, err

@@ -188,6 +188,9 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 	combined := []string{}
 	schemaset := map[string]struct{}{}
 	for _, table := range tables {
+		if strings.Contains(table.Table, "MSSQL_TemporalHistoryFor") {
+			continue
+		}
 		combined = append(combined, table.String())
 		schemaset[table.Schema] = struct{}{}
 	}

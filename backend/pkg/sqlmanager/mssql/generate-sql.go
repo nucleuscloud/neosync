@@ -33,32 +33,32 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		if row.PeriodDefinition.Valid {
 			periodDefinition = &row.PeriodDefinition.String
 		}
-		for row.TemporalDefinition.Valid {
+		if row.TemporalDefinition.Valid {
 			temporalDefinition = &row.TemporalDefinition.String
 		}
 
 		sb.WriteString(fmt.Sprintf("    [%s] ", row.ColumnName))
 
 		// Add length/precision/scale specifications
-		switch {
-		case row.IsComputed && row.GenerationExpression.Valid:
-			break
-		case strings.EqualFold(row.DataType, "DATETIME2"):
-			sb.WriteString(row.DataType)
-		case row.CharacterMaximumLength.Valid:
-			if row.CharacterMaximumLength.Int32 == -1 {
-				sb.WriteString(fmt.Sprintf("%s(MAX)", row.DataType))
-			} else {
-				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.CharacterMaximumLength.Int32))
+		if !(row.IsComputed && row.GenerationExpression.Valid) {
+			switch {
+			case strings.EqualFold(row.DataType, "DATETIME2"):
+				sb.WriteString(row.DataType)
+			case row.CharacterMaximumLength.Valid:
+				if row.CharacterMaximumLength.Int32 == -1 {
+					sb.WriteString(fmt.Sprintf("%s(MAX)", row.DataType))
+				} else {
+					sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.CharacterMaximumLength.Int32))
+				}
+			case strings.EqualFold(row.DataType, "FLOAT") && row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0:
+				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
+			case row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0 && row.NumericScale.Valid && row.NumericScale.Int16 != 0:
+				sb.WriteString(fmt.Sprintf("%s(%d,%d)", row.DataType, row.NumericPrecision.Int16, row.NumericScale.Int16))
+			case row.NumericScale.Valid && row.NumericScale.Int16 != 0:
+				sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
+			default:
+				sb.WriteString(row.DataType)
 			}
-		case strings.EqualFold(row.DataType, "FLOAT") && row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
-		case row.NumericPrecision.Valid && row.NumericPrecision.Int16 != 0 && row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("%s(%d,%d)", row.DataType, row.NumericPrecision.Int16, row.NumericScale.Int16))
-		case row.NumericScale.Valid && row.NumericScale.Int16 != 0:
-			sb.WriteString(fmt.Sprintf("%s(%d)", row.DataType, row.NumericScale.Int16))
-		default:
-			sb.WriteString(row.DataType)
 		}
 
 		// Add primary
