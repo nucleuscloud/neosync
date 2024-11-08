@@ -62,9 +62,9 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		}
 
 		// Add primary
-		if row.IsPrimary {
-			sb.WriteString(" PRIMARY KEY ")
-		}
+		// if row.IsPrimary {
+		// 	sb.WriteString(" PRIMARY KEY ")
+		// }
 
 		// Add identity specification
 		if row.IsIdentity {
@@ -117,10 +117,9 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		sb.WriteString(fmt.Sprintf(", \n %s", *periodDefinition))
 	}
 	if temporalDefinition != nil && *temporalDefinition != "" {
-		sb.WriteString(fmt.Sprintf(") \n WITH (SYSTEM_VERSIONING = ON)"))
+		sb.WriteString(") \n WITH (SYSTEM_VERSIONING = ON)")
 	} else {
 		sb.WriteString(")")
-
 	}
 
 	// Close the CREATE TABLE statement
@@ -228,16 +227,15 @@ func generateAddConstraintStatement(constraint *mssql_queries.GetTableConstraint
 	// Start IF NOT EXISTS check
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
-  SELECT * 
-  FROM sys.objects 
-  WHERE object_id = OBJECT_ID(N'[%s].[%s]') 
-  AND type = '%s'
+	SELECT * FROM sys.objects o
+	JOIN sys.objects oo ON oo.object_id = o.parent_object_id 
+	WHERE SCHEMA_NAME(oo.schema_id) = '%s' AND oo.name = '%s' AND o.type = '%s'
 )
 BEGIN
   ALTER TABLE [%s].[%s]
   ADD CONSTRAINT [%s] `,
 		constraint.SchemaName,
-		constraint.ConstraintName,
+		constraint.TableName,
 		getConstraintTypeCode(constraint.ConstraintType),
 		constraint.SchemaName,
 		constraint.TableName,

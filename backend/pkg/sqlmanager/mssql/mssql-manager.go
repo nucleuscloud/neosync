@@ -128,7 +128,7 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					Columns:     constraintCols,
 					NotNullable: notNullable,
 					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   row.ReferencedTable.String,
+						Table:   sqlmanager_shared.BuildTable(row.ReferencedSchema.String, row.ReferencedTable.String),
 						Columns: fkCols,
 					},
 				})
@@ -256,9 +256,9 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 			IndexStatements:      indexmap[key],
 		}
 		for _, constraint := range constraintmap[key] {
-			if constraint.ConstraintType == "PRIMARY KEY" {
-				continue
-			}
+			// if constraint.ConstraintType == "PRIMARY KEY" {
+			// 	continue
+			// }
 			stmt := generateAddConstraintStatement(constraint)
 			constraintType, err := sqlmanager_shared.ToConstraintType(toStandardConstraintType(constraint.ConstraintType))
 			if err != nil {
@@ -526,8 +526,12 @@ func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []str
 	// mssql does not support batching statements
 	total := len(statements)
 	for idx, stmt := range statements {
+		fmt.Println()
+		fmt.Println(stmt)
+		fmt.Println()
 		err := m.Exec(ctx, stmt)
 		if err != nil {
+			fmt.Println(err.Error())
 			return fmt.Errorf("failed to execute batch statement %d/%d: %w", idx+1, total, err)
 		}
 	}

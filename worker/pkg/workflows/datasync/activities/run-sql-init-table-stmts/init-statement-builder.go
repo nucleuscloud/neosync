@@ -281,6 +281,32 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			// init statements
+			if sqlopts.InitSchema {
+				tables := []*sqlmanager_shared.SchemaTable{}
+				for tableKey := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(tableKey)
+					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+				}
+
+				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, block := range initblocks {
+					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+					if len(block.Statements) == 0 {
+						continue
+					}
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+					}
+				}
+			}
+			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
 				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
