@@ -1839,6 +1839,9 @@ func (a *AwsS3DestinationOptions) FromDto(dto *mgmtv1alpha1.AwsS3DestinationConn
 }
 
 func (b *BatchConfig) ToDto() *mgmtv1alpha1.BatchConfig {
+	if b.Count == nil && b.Period == nil {
+		return nil
+	}
 	return &mgmtv1alpha1.BatchConfig{
 		Count:  b.Count,
 		Period: b.Period,
