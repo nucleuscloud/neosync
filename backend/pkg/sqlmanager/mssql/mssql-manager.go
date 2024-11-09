@@ -571,6 +571,9 @@ func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []str
 	for idx, stmt := range statements {
 		err := m.Exec(ctx, stmt)
 		if err != nil {
+			fmt.Println()
+			fmt.Println(stmt)
+			fmt.Println()
 			return fmt.Errorf("failed to execute batch statement %d/%d: %w", idx+1, total, err)
 		}
 	}

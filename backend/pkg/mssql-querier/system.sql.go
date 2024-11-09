@@ -153,7 +153,8 @@ SELECT
 		THEN 'SYSTEM_VERSIONING = ON'
    		ELSE NULL
     END AS temporal_definition,
-    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary
+    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary,
+    c.collation_name
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -200,6 +201,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	TemporalDefinition     sql.NullString
 	IdentitySeed           sql.NullInt32
 	IdentityIncrement      sql.NullInt32
+	CollationName          sql.NullString
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -236,6 +238,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.PeriodDefinition,
 			&i.TemporalDefinition,
 			&i.IsPrimary,
+			&i.CollationName,
 		); err != nil {
 			return nil, err
 		}

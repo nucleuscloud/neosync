@@ -26,10 +26,14 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 		tableSchema, tableName))
 	sb.WriteString(fmt.Sprintf("CREATE TABLE [%s].[%s] (\n", tableSchema, tableName))
 
+	primaryKeys := []string{}
 	var periodDefinition *string
 	var temporalDefinition *string
 	// Process each column
 	for i, row := range rows {
+		if row.IsPrimary {
+			primaryKeys = append(primaryKeys, row.ColumnName)
+		}
 		if row.PeriodDefinition.Valid {
 			periodDefinition = &row.PeriodDefinition.String
 		}
@@ -67,11 +71,6 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 			default:
 				sb.WriteString(row.DataType)
 			}
-		}
-
-		// Add primary
-		if row.IsPrimary {
-			sb.WriteString(" PRIMARY KEY ")
 		}
 
 		// Add identity specification
@@ -114,11 +113,20 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 			sb.WriteString(fmt.Sprintf(" DEFAULT %s", row.ColumnDefault.String))
 		}
 
+		// todo remove this
+		if !row.IsUserDefinedDataType && row.CollationName.Valid {
+			sb.WriteString(fmt.Sprintf(" COLLATE %s ", row.CollationName.String))
+		}
+
 		// Add comma if not last column
 		if i < len(rows)-1 {
 			sb.WriteString(",")
 		}
 		sb.WriteString("\n")
+	}
+
+	if len(primaryKeys) > 0 {
+		sb.WriteString(fmt.Sprintf("CONSTRAINT pk_%s PRIMARY KEY (%s)", tableName, strings.Join(primaryKeys, ",")))
 	}
 
 	if periodDefinition != nil && *periodDefinition != "" {
