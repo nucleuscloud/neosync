@@ -258,6 +258,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             );
                             if (!destId) {
                               form.setValue('destination.connectionId', value);
+                              const destConnection = connections.find(
+                                (c) => c.id === value
+                              );
+                              const destConnType = getConnectionType(
+                                destConnection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              const newOpts =
+                                getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                  destConnType,
+                                  () => new Set()
+                                );
+                              form.setValue(
+                                'destination.destinationOptions',
+                                newOpts
+                              );
                             }
                           }}
                           value={field.value}
