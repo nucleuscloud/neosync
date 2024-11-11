@@ -1,6 +1,9 @@
 'use client';
 import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
-import { Connection } from '@neosync/sdk';
+import {
+  AwsS3DestinationConnectionOptions_StorageClass,
+  Connection,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import { DestinationDetails } from '../NosqlTable/TableMappings/Columns';
@@ -52,6 +55,11 @@ export default function DestinationOptionsForm(
               skipForeignKeyViolations: false,
               truncateBeforeInsert: false,
               truncateCascade: false,
+              batch: {
+                count: 100,
+                period: '5s',
+              },
+              maxInFlight: 64,
             }
           }
           setValue={(val) => setValue({ ...value, postgres: { ...val } })}
@@ -70,6 +78,11 @@ export default function DestinationOptionsForm(
               onConflictDoNothing: false,
               skipForeignKeyViolations: false,
               truncateBeforeInsert: false,
+              batch: {
+                count: 100,
+                period: '5s',
+              },
+              maxInFlight: 64,
             }
           }
           setValue={(val) => setValue({ ...value, mysql: { ...val } })}
@@ -82,7 +95,18 @@ export default function DestinationOptionsForm(
     case 'awsS3Config': {
       return (
         <AwsS3DestinationOptionsForm
-          value={value.awss3 ?? {}}
+          value={
+            value.awss3 ?? {
+              batch: {
+                count: 100,
+                period: '5s',
+              },
+              maxInFlight: 64,
+              storageClass:
+                AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+              timeout: '5s',
+            }
+          }
           setValue={(val) => setValue({ ...value, awss3: { ...val } })}
           errors={errors?.awss3}
         />
@@ -140,6 +164,11 @@ export default function DestinationOptionsForm(
               onConflictDoNothing: false,
               skipForeignKeyViolations: false,
               truncateBeforeInsert: false,
+              batch: {
+                count: 100,
+                period: '5s',
+              },
+              maxInFlight: 64,
             }
           }
           setValue={(val) => setValue({ ...value, mssql: { ...val } })}
