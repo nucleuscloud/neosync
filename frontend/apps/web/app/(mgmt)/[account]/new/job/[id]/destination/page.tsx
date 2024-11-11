@@ -205,7 +205,12 @@ export default function Page({ params }: PageProps): ReactElement {
                                       );
                                     form.setValue(
                                       `destinations.${index}.destinationOptions`,
-                                      newOpts
+                                      newOpts,
+                                      {
+                                        shouldDirty: true,
+                                        shouldTouch: true,
+                                        shouldValidate: true,
+                                      }
                                     );
                                   }}
                                   value={field.value}
