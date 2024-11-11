@@ -5,7 +5,10 @@ import {
   getDestinationDetailsRecord,
   isDynamoDBConnection,
 } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
-import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
+import {
+  getDefaultDestinationFormValueOptionsFromConnectionCase,
+  toJobDestinationOptions,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -190,36 +193,20 @@ export default function Page({ params }: PageProps): ReactElement {
                                   onValueChange={(value: string) => {
                                     field.onChange(value);
                                     const newDest = connRecord[value];
-                                    if (
-                                      newDest &&
-                                      isDynamoDBConnection(newDest) &&
-                                      sourceConnection &&
-                                      isDynamoDBConnection(sourceConnection)
-                                    ) {
-                                      const uniqueTables = new Set(
-                                        data?.job?.mappings.map(
-                                          (mapping) => mapping.table
-                                        )
+                                    const newOpts =
+                                      getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                        newDest.connectionConfig?.config.case,
+                                        () =>
+                                          new Set(
+                                            data?.job?.mappings.map(
+                                              (mapping) => mapping.table
+                                            )
+                                          )
                                       );
-                                      form.setValue(
-                                        `destinations.${index}.destinationOptions`,
-                                        {
-                                          dynamodb: {
-                                            tableMappings: Array.from(
-                                              uniqueTables
-                                            ).map((table) => ({
-                                              sourceTable: table,
-                                              destinationTable: '',
-                                            })),
-                                          },
-                                        }
-                                      );
-                                    } else {
-                                      form.setValue(
-                                        `destinations.${index}.destinationOptions`,
-                                        {}
-                                      );
-                                    }
+                                    form.setValue(
+                                      `destinations.${index}.destinationOptions`,
+                                      newOpts
+                                    );
                                   }}
                                   value={field.value}
                                 >

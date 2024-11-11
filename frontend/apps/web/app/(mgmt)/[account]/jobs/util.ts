@@ -4,6 +4,7 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  DestinationOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
   NewDestinationFormValues,
@@ -22,6 +23,7 @@ import {
   AiGenerateSourceSchemaOption,
   AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
+  AwsS3DestinationConnectionOptions_StorageClass,
   BatchConfig,
   Connection,
   CreateJobRequest,
@@ -79,6 +81,7 @@ import {
   VirtualForeignKey,
   WorkflowOptions,
 } from '@neosync/sdk';
+import { ConnectionConfigCase } from '../connections/util';
 import {
   ActivityOptionsSchema,
   ConnectFormValues,
@@ -1045,7 +1048,9 @@ function setDefaultConnectFormValues(
           job.source.options.config.value.fkSourceConnectionId ?? '',
         destination:
           job.destinations.length > 0
-            ? getDefaultDestinationFormValues(job.destinations[0])
+            ? getDestinationFormValuesOrDefaultFromDestination(
+                job.destinations[0]
+              )
             : {
                 connectionId: '',
                 destinationOptions: {},
@@ -1060,7 +1065,9 @@ function setDefaultConnectFormValues(
           job.source.options.config.value.fkSourceConnectionId ?? '',
         destination:
           job.destinations.length > 0
-            ? getDefaultDestinationFormValues(job.destinations[0])
+            ? getDestinationFormValuesOrDefaultFromDestination(
+                job.destinations[0]
+              )
             : {
                 connectionId: '',
                 destinationOptions: {},
@@ -1075,7 +1082,7 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {},
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1116,7 +1123,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
@@ -1132,7 +1139,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1150,7 +1157,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1167,7 +1174,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1378,7 +1385,100 @@ export function getSingleTableGenerateNumRows(
   return 0;
 }
 
-export function getDefaultDestinationFormValues(
+export function getDefaultDestinationFormValueOptionsFromConnectionCase(
+  destCase: ConnectionConfigCase | null | undefined,
+  getUniqueTables: () => Set<string>
+): DestinationOptionsFormValues {
+  switch (destCase) {
+    case 'pgConfig': {
+      return {
+        postgres: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          truncateCascade: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'mysqlConfig': {
+      return {
+        mysql: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'mssqlConfig': {
+      return {
+        mssql: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'awsS3Config': {
+      return {
+        awss3: {
+          storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+          timeout: '5s',
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'dynamodbConfig': {
+      return {
+        dynamodb: {
+          tableMappings: Array.from(getUniqueTables()).map((table) => ({
+            sourceTable: table,
+            destinationTable: '',
+          })),
+        },
+      };
+    }
+    case 'mongoConfig': {
+      return {};
+    }
+    case 'gcpCloudstorageConfig': {
+      return {};
+    }
+    case 'localDirConfig': {
+      return {};
+    }
+    case 'openaiConfig': {
+      return {};
+    }
+    default: {
+      return {};
+    }
+  }
+}
+
+// Based on the job destiation type, returns the form values, or their default equivalent
+export function getDestinationFormValuesOrDefaultFromDestination(
   d: JobDestination
 ): NewDestinationFormValues {
   switch (d.options?.config.case) {

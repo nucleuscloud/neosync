@@ -1,7 +1,10 @@
 'use client';
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
-import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
+import {
+  getDefaultDestinationFormValueOptionsFromConnectionCase,
+  getNewJobSessionKeys,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -340,7 +343,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             field.onChange(value);
-                            form.setValue('destination.destinationOptions', {});
+                            const destConnection = connections.find(
+                              (c) => c.id === value
+                            );
+                            const destConnType = getConnectionType(
+                              destConnection?.connectionConfig ??
+                                new ConnectionConfig()
+                            );
+                            const newOpts =
+                              getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                destConnType,
+                                () => new Set()
+                              );
+                            form.setValue(
+                              'destination.destinationOptions',
+                              newOpts
+                            );
                           }}
                           value={field.value}
                         >
