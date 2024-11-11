@@ -37,6 +37,11 @@ neosyncCloud:
   # -- Whether or not this is NeosyncCloud
   enabled: false
 
+# Configure Neosync Enterprise
+ee:
+  # -- Neosync Enterprise-Edition License Key
+  license:
+
 # -- Will eventually allow sending traces.
 # The worker does emit record-based metrics, but does not currently listen to otel.enabled.
 # Must provide the OTEL_SDK_DISABLED=false environment variable separately today.

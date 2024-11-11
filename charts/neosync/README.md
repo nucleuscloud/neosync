@@ -169,6 +169,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.containerPort | int | `8080` | The container port |
 | worker.datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | worker.deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
+| worker.ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
 | worker.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | worker.fullnameOverride | string | `nil` | Fully overrides the chart name |
 | worker.host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |

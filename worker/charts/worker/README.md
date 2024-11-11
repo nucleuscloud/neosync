@@ -19,6 +19,7 @@ A Helm chart for the Neosync Temporal Worker
 | containerPort | int | `8080` | The container port |
 | datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
+| ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
 | extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | fullnameOverride | string | `nil` | Fully overrides the chart name |
 | host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
