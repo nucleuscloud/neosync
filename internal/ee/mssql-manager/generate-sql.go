@@ -1,12 +1,9 @@
-package sqlmanager_mssql
+package ee_sqlmanager_mssql
 
 import (
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/doug-martin/goqu/v9"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 )
 
@@ -329,55 +326,4 @@ func getConstraintTypeCode(constraintType string) string {
 	default:
 		return ""
 	}
-}
-
-func BuildMssqlDeleteStatement(
-	schema, table string,
-) (string, error) {
-	dialect := goqu.Dialect("sqlserver")
-	ds := dialect.Delete(goqu.S(schema).Table(table))
-	sql, _, err := ds.ToSQL()
-	if err != nil {
-		return "", err
-	}
-	return sql + ";", nil
-}
-
-// Resets current identity value back to the initial count
-func BuildMssqlIdentityColumnResetStatement(
-	schema, table, identityGeneration string,
-) string {
-	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
-	match := re.FindStringSubmatch(identityGeneration)
-	if len(match) > 1 {
-		StartValue, err := strconv.Atoi(match[1])
-		if err != nil {
-			StartValue = 0
-		}
-		if StartValue > 0 {
-			StartValue--
-		}
-		return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
-	}
-	return BuildMssqlIdentityColumnResetCurrent(schema, table)
-}
-
-// If the current identity value for a table is less than the maximum identity value stored in the identity column
-// It is reset using the maximum value in the identity column.
-func BuildMssqlIdentityColumnResetCurrent(
-	schema, table string,
-) string {
-	return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED)", schema, table)
-}
-
-// Allows explicit values to be inserted into the identity column of a table.
-func BuildMssqlSetIdentityInsertStatement(
-	schema, table string,
-	enable bool,
-) string {
-	enabledKeyword := "OFF"
-	if enable {
-		enabledKeyword = "ON"
-	}
-	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
 }
