@@ -537,6 +537,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
                                                 skipForeignKeyViolations: false,
+                                                batch: {
+                                                  count: 100,
+                                                  period: '5s',
+                                                },
+                                                maxInFlight: 64,
                                               },
                                             },
                                             {
@@ -556,6 +561,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
                                                 skipForeignKeyViolations: false,
+                                                batch: {
+                                                  count: 100,
+                                                  period: '5s',
+                                                },
+                                                maxInFlight: 64,
                                               },
                                             },
                                             {
@@ -591,6 +601,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
                                                 skipForeignKeyViolations: false,
+                                                batch: {
+                                                  count: 100,
+                                                  period: '5s',
+                                                },
+                                                maxInFlight: 64,
                                               },
                                             },
                                             {
