@@ -185,7 +185,32 @@ func generateIPInRange(randomizer rng.Rand, start, end net.IP) string {
 	return int64ToIP(random).String()
 }
 
+// normalizes IPs into the same format
+func normalizeIP(ip net.IP) net.IP {
+	if ipv4 := ip.To4(); ipv4 != nil {
+		// return ipv4 as 4 bytes
+		return ipv4
+	}
+	// format for ipv6
+	return ip.To16()
+}
+
 func inRange(ip, start, end net.IP) bool {
+	// Normalize all IPs to ensure consistent comparison
+	ip = normalizeIP(ip)
+	start = normalizeIP(start)
+	end = normalizeIP(end)
+
+	// Ensure all IPs are in the same format (either all IPv4 or all IPv6)
+	if ip == nil || start == nil || end == nil {
+		return false
+	}
+
+	// Ensure we're comparing IPs of the same version
+	if len(ip) != len(start) || len(ip) != len(end) {
+		return false
+	}
+
 	return bytes.Compare(ip, start) >= 0 && bytes.Compare(ip, end) <= 0
 }
 
