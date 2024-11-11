@@ -20,6 +20,9 @@ A Helm chart for Neosync that contains the api, app, and worker
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| api.enabled | bool | `true` | Enable or Disable Neoysnc Api |
+| app.enabled | bool | `true` | Enable or Disable Neoysnc App |
+| worker.enabled | bool | `true` | Enable or Disable Neosync Worker |
 | api.auth.api.baseUrl | string | `nil` | The base url to the auth service's admin url |
 | api.auth.api.clientId | string | `nil` | The service account client id |
 | api.auth.api.clientSecret | string | `nil` | The service account client secret |

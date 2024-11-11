@@ -477,6 +477,11 @@ type BatchProcessor struct {
 	Archive   *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
 	Compress  *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
 	SqlToJson *SqlToJsonConfig   `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
+	JsonToSql *JsonToSqlConfig   `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
+}
+
+type JsonToSqlConfig struct {
+	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
 }
 
 type SqlToJsonConfig struct{}

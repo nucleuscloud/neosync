@@ -31,7 +31,6 @@ func Test_Sync(t *testing.T) {
 	conndataclient := neosyncApi.UnauthdClients.ConnectionData
 	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
 
-	discardLogger := testutil.GetTestCharmSlogger()
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	outputType := output.PlainOutput
 
@@ -54,6 +53,7 @@ func Test_Sync(t *testing.T) {
 		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "postgres-source", postgres.Source.URL)
 
 		t.Run("sync", func(t *testing.T) {
+			discardLogger := testutil.GetTestLogger(t)
 			cmdConfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,
@@ -123,6 +123,7 @@ func Test_Sync(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateMysqlConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "mysql-source", mysql.Source.URL)
 
 		t.Run("sync", func(t *testing.T) {
+			discardLogger := testutil.GetTestLogger(t)
 			cmdConfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,

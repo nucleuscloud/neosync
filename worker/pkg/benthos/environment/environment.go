@@ -174,6 +174,11 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 		return nil, fmt.Errorf("unable to register SQL to JSON processor to benthos instance: %w", err)
 	}
 
+	err = neosync_benthos_sql.RegisterJsonToSqlProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to regigster JSON to SQL processor to benthos instance: %w", err)
+	}
+
 	if config.blobEnv != nil {
 		env.UseBloblangEnvironment(config.blobEnv)
 	}

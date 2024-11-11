@@ -33,6 +33,59 @@
           ]
         },
         {
+          "name": "GenerateIpAddressType",
+          "longName": "GenerateIpAddressType",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddressType",
+          "description": "",
+          "values": [
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to ipv4"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC",
+              "number": "1",
+              "description": "Generates a random ipv4_public"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A",
+              "number": "2",
+              "description": "Generates a random ipv4_private_a"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B",
+              "number": "3",
+              "description": "Generates a random ipv4_private_b"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C",
+              "number": "4",
+              "description": "Generates a random ipv4_private_c"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL",
+              "number": "5",
+              "description": "Generates a random ipv4_linklocal"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST",
+              "number": "6",
+              "description": "Generates a random ipv4_multicast"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK",
+              "number": "7",
+              "description": "Generates a random ipv4_loopback"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V6",
+              "number": "8",
+              "description": "Generates a random ipv6"
+            }
+          ]
+        },
+        {
           "name": "InvalidEmailAction",
           "longName": "InvalidEmailAction",
           "fullName": "mgmt.v1alpha1.InvalidEmailAction",
@@ -413,6 +466,11 @@
             {
               "name": "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME",
               "number": "48",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS",
+              "number": "49",
               "description": ""
             }
           ]
@@ -914,6 +972,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GenerateIpAddress",
+          "longName": "GenerateIpAddress",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddress",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "ip_type",
+              "description": "",
+              "label": "optional",
+              "type": "GenerateIpAddressType",
+              "longType": "GenerateIpAddressType",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddressType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_ip_type",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateJavascript",
@@ -2732,6 +2814,18 @@
               "type": "GenerateBusinessName",
               "longType": "GenerateBusinessName",
               "fullType": "mgmt.v1alpha1.GenerateBusinessName",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_ip_address_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateIpAddress",
+              "longType": "GenerateIpAddress",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddress",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

@@ -10,6 +10,7 @@ import GenerateFloat64Form from './GenerateFloat64Form';
 import GenerateGenderForm from './GenerateGenderForm';
 import GenerateInt64Form from './GenerateInt64Form';
 import GenerateInternationalPhoneNumberForm from './GenerateInternationalPhoneNumberForm';
+import GenerateIpAddressForm from './GenerateIpAddressForm';
 import GenerateJavascriptForm from './GenerateJavascriptForm';
 import GenerateStateForm from './GenerateStateForm';
 import GenerateStringForm from './GenerateStringForm';
@@ -406,6 +407,21 @@ export default function TransformerForm(props: Props): ReactElement {
     case 'generateCountryConfig':
       return (
         <GenerateCountryForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateIpAddressConfig':
+      return (
+        <GenerateIpAddressForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
