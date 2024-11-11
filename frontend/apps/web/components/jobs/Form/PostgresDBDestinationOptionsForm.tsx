@@ -109,7 +109,7 @@ export default function PostgresDBDestinationOptionsForm(
           />
           <div>
             <NumberedInput
-              value={value.maxInFlight ?? 64}
+              value={value.maxInFlight ?? -1}
               onChange={(val) => setValue({ ...value, maxInFlight: val })}
             />
             <FormErrorMessage message={errors?.maxInFlight?.message} />
@@ -126,7 +126,7 @@ export default function PostgresDBDestinationOptionsForm(
           />
           <FormInputContainer>
             <NumberedInput
-              value={value.batch?.count ?? 100}
+              value={value.batch?.count ?? -1}
               onChange={(val) =>
                 setValue({ ...value, batch: { ...value.batch, count: val } })
               }
@@ -144,7 +144,7 @@ export default function PostgresDBDestinationOptionsForm(
           />
           <FormInputContainer>
             <Input
-              value={value.batch?.period ?? '5s'}
+              value={value.batch?.period ?? ''}
               onChange={(e) =>
                 setValue({
                   ...value,
