@@ -280,11 +280,18 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
 	}
+	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for destination: %s", params.DestConnection.Name)
+	}
 
 	var colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow
 	colMap, ok := b.sqlDestinationSchemaColumnInfoMap[tableKey]
 	if ok {
 		colInfoMap = colMap
+	}
+
+	if len(colInfoMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for destination: %s table: %s", params.DestConnection.Name, tableKey)
 	}
 
 	colTransformerMap := b.colTransformerMap
@@ -298,6 +305,10 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	tableColTransformers := colTransformerMap[tableKey]
+	if len(tableColTransformers) == 0 {
+		return nil, fmt.Errorf("column transformer mappings not found for table: %s", tableKey)
+	}
+
 	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
 	if err != nil {
 		return nil, err
