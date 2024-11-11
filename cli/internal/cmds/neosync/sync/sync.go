@@ -27,6 +27,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
@@ -139,22 +140,11 @@ func NewCmd() *cobra.Command {
 		Use:   "sync",
 		Short: "One off sync job to local resource",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			apiKeyStr, err := cmd.Flags().GetString("api-key")
+			sync, err := newCliSyncFromCmd(cmd)
 			if err != nil {
 				return err
 			}
-			cmd.SilenceUsage = true
-			var apiKey *string
-			if apiKeyStr != "" {
-				apiKey = &apiKeyStr
-			}
-
-			config, err := buildCmdConfig(cmd)
-			if err != nil {
-				return err
-			}
-
-			return sync(cmd.Context(), apiKey, config)
+			return sync.configureAndRunSync()
 		},
 	}
 
@@ -206,33 +196,83 @@ type clisync struct {
 	ctx                   context.Context
 }
 
-func sync(
-	ctx context.Context,
-	apiKey *string,
-	cmd *cmdConfig,
-) error {
+func newCliSyncFromCmd(
+	cmd *cobra.Command,
+) (*clisync, error) {
+	apiKeyStr, err := cmd.Flags().GetString("api-key")
+	if err != nil {
+		return nil, err
+	}
+	var apiKey *string
+	if apiKeyStr != "" {
+		apiKey = &apiKeyStr
+	}
+
 	logLevel := charmlog.InfoLevel
-	if cmd.Debug {
+	debug, err := cmd.Flags().GetBool("debug")
+	if err != nil {
+		return nil, err
+	}
+	if debug {
 		logLevel = charmlog.DebugLevel
 	}
+
 	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
 		ReportTimestamp: true,
 		Level:           logLevel,
 	})
 	logger := slog.New(charmlogger)
 
-	logger.Info("Starting sync")
+	ctx := cmd.Context()
 
 	connectInterceptors := []connect.Interceptor{}
 	neosyncurl := auth.GetNeosyncUrl()
 	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+
+	cmdCfg, err := newCobraCmdConfig(
+		cmd,
+		func(accountIdFlag string) (string, error) {
+			if accountIdFlag != "" {
+				logger.Debug(fmt.Sprintf("provided account id %q set from flag", accountIdFlag))
+				return accountIdFlag, nil
+			}
+			if apiKey != nil && *apiKey != "" {
+				logger.Debug("api key detected, attempting to resolve account id from key.")
+				uaResp, err := userclient.GetUserAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
+				if err != nil {
+					return "", fmt.Errorf("unable to resolve account id from api key: %w", err)
+				}
+				apiKeyAccounts := uaResp.Msg.GetAccounts()
+				if len(apiKeyAccounts) == 0 {
+					return "", errors.New("api key is not associated with any neosync accounts")
+				}
+				accountId := apiKeyAccounts[0].GetId()
+				logger.Debug(fmt.Sprintf("provided api key resolved to account %q", accountId))
+				return accountId, nil
+			}
+			accountId, err := userconfig.GetAccountId()
+			if err != nil {
+				return "", fmt.Errorf(`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context.`)
+			}
+			logger.Debug(fmt.Sprintf("account id %q resolved from user config", accountId))
+			return accountId, nil
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	cmd.SilenceUsage = true
+	logger = logger.With("accountId", cmdCfg.AccountId)
+
+	logger.Info("Starting sync")
 
 	pgpoolmap := &syncmap.Map{}
 	mysqlpoolmap := &syncmap.Map{}
@@ -249,12 +289,12 @@ func sync(
 		transformerclient:    transformerclient,
 		sqlmanagerclient:     sqlmanagerclient,
 		sqlconnector:         sqlConnector,
-		cmd:                  cmd,
+		cmd:                  cmdCfg,
 		logger:               logger,
 		ctx:                  ctx,
 	}
 
-	return sync.configureAndRunSync()
+	return sync, nil
 }
 
 func (c *clisync) configureAndRunSync() error {
