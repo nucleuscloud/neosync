@@ -1,6 +1,5 @@
 import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
 import {
-  JobDestinationOptions,
   JobMappingTransformer,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap,
@@ -9,14 +8,6 @@ import {
 } from '@neosync/sdk';
 import * as Yup from 'yup';
 import { getDurationValidateFn } from './number';
-
-// Helper function to extract the 'case' property from a config type
-type ExtractCase<T> = T extends { case: infer U } ? U : never;
-
-// Computed type that extracts all case types from the config union
-export type DestinationOptionsCase = NonNullable<
-  ExtractCase<JobDestinationOptions['config']>
->;
 
 // Yup schema form JobMappingTransformers
 export const JobMappingTransformerForm = Yup.object({
