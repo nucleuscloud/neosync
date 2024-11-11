@@ -93,8 +93,8 @@ var (
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
-		Return(validTemporalConfig, nil)
+	// s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
+	// 	Return(validTemporalConfig, nil)
 
 	resp, err := s.UnauthdClients.Users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
 	requireNoErrResp(s.T(), resp, err)

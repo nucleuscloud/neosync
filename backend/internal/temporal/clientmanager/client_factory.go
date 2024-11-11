@@ -14,6 +14,8 @@ type ClientFactory interface {
 
 type TemporalClientFactory struct{}
 
+var _ ClientFactory = (*TemporalClientFactory)(nil)
+
 func NewTemporalClientFactory() *TemporalClientFactory {
 	return &TemporalClientFactory{}
 }
