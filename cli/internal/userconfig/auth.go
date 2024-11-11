@@ -28,7 +28,7 @@ func SetAccessToken(token string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(getFullAccessTokenFileName(dirpath), []byte(token), 0644) //nolint
+	return os.WriteFile(getFullAccessTokenFileName(dirpath), []byte(token), 0600)
 }
 
 func RemoveAccessToken() error {
@@ -57,7 +57,7 @@ func SetRefreshToken(token string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(getFullRefreshTokenFileName(dirpath), []byte(token), 0644) //nolint
+	return os.WriteFile(getFullRefreshTokenFileName(dirpath), []byte(token), 0600)
 }
 
 func RemoveRefreshToken() error {

@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -66,7 +65,6 @@ func (m *jsonToSqlProcessor) Close(context.Context) error {
 	return nil
 }
 
-// [bigint binary blob char date datetime decimal double enum float int int json longblob longtext mediumblob mediumint mediumtext set set smallint text time timestamp tinyblob tinyint tinytext varbinary varchar year]
 func (p *jsonToSqlProcessor) transform(path string, root any) any {
 	switch v := root.(type) {
 	case map[string]any:
@@ -83,20 +81,24 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
-		if strings.EqualFold(datatype, "bit") {
+		switch datatype {
+		case "bit":
 			bit, err := convertStringToBit(string(v))
 			if err != nil {
 				p.logger.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
 				return v
 			}
 			return bit
-		} else if strings.EqualFold(datatype, "json") {
+		case "json":
 			validJson, err := getValidJson(v)
 			if err != nil {
 				p.logger.Errorf("unable to get valid json: %w", err)
 				return v
 			}
 			return validJson
+		case "uuid":
+			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
+			return string(v)
 		}
 		return v
 	default:

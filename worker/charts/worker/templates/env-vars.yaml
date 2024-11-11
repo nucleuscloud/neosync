@@ -64,7 +64,7 @@ stringData:
     {{- if .Values.redis.url }}
     REDIS_URL: {{ .Values.redis.url }}
     {{- end }}
-    
+
     {{- if .Values.redis.kind }}
     REDIS_KIND: {{ .Values.redis.kind }}
     {{- end }}
@@ -72,7 +72,7 @@ stringData:
     {{- if .Values.redis.master }}
     REDIS_MASTER: {{ .Values.redis.master }}
     {{- end }}
-    
+
     {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enabled }}
     REDIS_TLS_ENABLED: {{ .Values.redis.tls.enabled | default "false" | quote }}
     {{- end }}
@@ -84,11 +84,17 @@ stringData:
     {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enableRenegotiation }}
     REDIS_TLS_ENABLE_RENEGOTIATION: {{ .Values.redis.tls.enableRenegotiation | default "false" | quote }}
     {{- end }}
-    
+
     {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthority }}
     REDIS_TLS_ROOT_CERT_AUTHORITY: {{ .Values.redis.tls.rootCertAuthority }}
     {{- end }}
 
     {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthorityFile }}
     REDIS_TLS_ROOT_CERT_AUTHORITY_FILE: {{ .Values.redis.tls.rootCertAuthorityFile }}
+    {{- end }}
+
+    NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
+
+    {{- if and .Values.ee .Values.ee.license }}
+    EE_LICENSE: {{ .Values.ee.license | quote }}
     {{- end }}
