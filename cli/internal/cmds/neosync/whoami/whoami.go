@@ -8,10 +8,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -33,22 +30,20 @@ func NewCmd() *cobra.Command {
 }
 
 func whoami(ctx context.Context, apiKey *string) error {
-	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(true))
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err
 	}
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http_client.NewWithHeaders(version.Get().Headers()),
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
+		httpclient,
+		auth.GetNeosyncUrl(),
 	)
 	resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return err
 	}
 	// todo: layer in account data and access/id token information for even more goodness
-	fmt.Println("UserId:", resp.Msg.UserId) //nolint:forbidigo
+	logger.Info(fmt.Sprintf("UserId: %q", resp.Msg.GetUserId()))
 	return nil
 }

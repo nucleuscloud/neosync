@@ -12,11 +12,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/cobra"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -73,24 +70,23 @@ func newSwitchCmd() *cobra.Command {
 
 func switchAccount(
 	ctx context.Context,
-	apiKey, accountIdOrName *string,
+	apiKey,
+	accountIdOrName *string,
 ) error {
-	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(true))
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err
 	}
 
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http_client.NewWithHeaders(version.Get().Headers()),
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
+		httpclient,
+		auth.GetNeosyncUrl(),
 	)
 
 	accountsResp, err := userclient.GetUserAccounts(
 		ctx,
-		connect.NewRequest[mgmtv1alpha1.GetUserAccountsRequest](&mgmtv1alpha1.GetUserAccountsRequest{}),
+		connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}),
 	)
 	if err != nil {
 		return err
@@ -98,7 +94,7 @@ func switchAccount(
 
 	currentAccountId, _ := userconfig.GetAccountId()
 
-	accounts := accountsResp.Msg.Accounts
+	accounts := accountsResp.Msg.GetAccounts()
 	if len(accounts) == 0 {
 		return errors.New("unable to find accounts for user")
 	}
@@ -168,8 +164,7 @@ func switchAccount(
 
 	err = userconfig.SetAccountId(account.Id)
 	if err != nil {
-		fmt.Println("unable to switch accounts") //nolint:forbidigo
-		return err
+		return fmt.Errorf("unable to set account context: %w", err)
 	}
 
 	fmt.Println(itemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) //nolint:forbidigo

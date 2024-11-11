@@ -15,8 +15,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
@@ -36,26 +35,29 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
+			logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debugMode))
+
 			if apiKey != "" {
-				slog.Info(`found api key, no need to log in. run "neosync whoami" to verify that the api key is valid`)
+				logger.Info(`found api key, no need to log in. run "neosync whoami" to verify that the api key is valid`)
 				return nil
 			}
-			return login(cmd.Context())
+			return login(cmd.Context(), logger)
 		},
 	}
 	return cmd
 }
 
-func login(ctx context.Context) error {
+func login(ctx context.Context, logger *slog.Logger) error {
 	httpclient := http_client.NewWithHeaders(version.Get().Headers())
-	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, serverconfig.GetApiBaseUrl())
-	authEnabledResp, err := authclient.GetAuthStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}))
-	if err != nil {
-		return err
-	}
-	if !authEnabledResp.Msg.IsEnabled {
-		slog.Info("auth is not enabled server-side, exiting")
+	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, auth.GetNeosyncUrl())
+	isAuthEnabled, err := auth.GetAuthEnabled(ctx, authclient)
+	if !isAuthEnabled {
+		logger.Info("auth is not enabled server-side, exiting")
 		return nil
 	}
 	err = oAuthLogin(ctx, authclient)
@@ -63,19 +65,19 @@ func login(ctx context.Context) error {
 		return err
 	}
 
-	var nokey *string
-	isAuthEnabled := true
+	httpclient, err = auth.GetNeosyncHttpClient(ctx, logger)
+	if err != nil {
+		return err
+	}
+
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		httpclient,
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(nokey)),
-		),
+		auth.GetNeosyncUrl(),
 	)
 
 	accountsResp, err := userclient.GetUserAccounts(
 		ctx,
-		connect.NewRequest[mgmtv1alpha1.GetUserAccountsRequest](&mgmtv1alpha1.GetUserAccountsRequest{}),
+		connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}),
 	)
 	if err != nil {
 		return err
@@ -86,10 +88,9 @@ func login(ctx context.Context) error {
 			// set account to personal
 			err = userconfig.SetAccountId(a.Id)
 			if err != nil {
-				fmt.Println("unable to switch accounts") //nolint:forbidigo
-				return err
+				return fmt.Errorf("unable to set account id in context: %w", err)
 			}
-			fmt.Printf("  Account set to %s \n", a.Name) //nolint:forbidigo
+			logger.Info(fmt.Sprintf("  Account set to %q", a.Name))
 		}
 	}
 	return nil

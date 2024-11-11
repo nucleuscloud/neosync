@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	charmlog "github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -26,8 +25,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
-	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
@@ -208,26 +207,18 @@ func newCliSyncFromCmd(
 		apiKey = &apiKeyStr
 	}
 
-	logLevel := charmlog.InfoLevel
 	debug, err := cmd.Flags().GetBool("debug")
 	if err != nil {
 		return nil, err
 	}
-	if debug {
-		logLevel = charmlog.DebugLevel
-	}
 
-	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-		Level:           logLevel,
-	})
-	logger := slog.New(charmlogger)
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
 
 	ctx := cmd.Context()
 
 	connectInterceptors := []connect.Interceptor{}
 	neosyncurl := auth.GetNeosyncUrl()
-	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return nil, err
 	}
@@ -240,30 +231,7 @@ func newCliSyncFromCmd(
 	cmdCfg, err := newCobraCmdConfig(
 		cmd,
 		func(accountIdFlag string) (string, error) {
-			if accountIdFlag != "" {
-				logger.Debug(fmt.Sprintf("provided account id %q set from flag", accountIdFlag))
-				return accountIdFlag, nil
-			}
-			if apiKey != nil && *apiKey != "" {
-				logger.Debug("api key detected, attempting to resolve account id from key.")
-				uaResp, err := userclient.GetUserAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
-				if err != nil {
-					return "", fmt.Errorf("unable to resolve account id from api key: %w", err)
-				}
-				apiKeyAccounts := uaResp.Msg.GetAccounts()
-				if len(apiKeyAccounts) == 0 {
-					return "", errors.New("api key is not associated with any neosync accounts")
-				}
-				accountId := apiKeyAccounts[0].GetId()
-				logger.Debug(fmt.Sprintf("provided api key resolved to account %q", accountId))
-				return accountId, nil
-			}
-			accountId, err := userconfig.GetAccountId()
-			if err != nil {
-				return "", fmt.Errorf(`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context.`)
-			}
-			logger.Debug(fmt.Sprintf("account id %q resolved from user config", accountId))
-			return accountId, nil
+			return auth.ResolveAccountIdFromFlag(ctx, userclient, &accountIdFlag, apiKey, logger)
 		},
 	)
 	if err != nil {
