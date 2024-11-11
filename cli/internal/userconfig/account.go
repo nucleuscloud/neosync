@@ -27,7 +27,7 @@ func SetAccountId(id string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(getFullAccountIdFileName(dirpath), []byte(id), 0644) //nolint
+	return os.WriteFile(getFullAccountIdFileName(dirpath), []byte(id), 0600)
 }
 
 func getFullAccountIdFileName(dirpath string) string {
