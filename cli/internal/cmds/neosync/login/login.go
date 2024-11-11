@@ -56,6 +56,9 @@ func login(ctx context.Context, logger *slog.Logger) error {
 	httpclient := http_client.NewWithHeaders(version.Get().Headers())
 	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, auth.GetNeosyncUrl())
 	isAuthEnabled, err := auth.GetAuthEnabled(ctx, authclient)
+	if err != nil {
+		return err
+	}
 	if !isAuthEnabled {
 		logger.Info("auth is not enabled server-side, exiting")
 		return nil
