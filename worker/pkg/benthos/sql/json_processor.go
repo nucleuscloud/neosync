@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -83,20 +82,23 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
-		if strings.EqualFold(datatype, "bit") {
+		switch datatype {
+		case "bit":
 			bit, err := convertStringToBit(string(v))
 			if err != nil {
 				p.logger.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
 				return v
 			}
 			return bit
-		} else if strings.EqualFold(datatype, "json") {
+		case "json":
 			validJson, err := getValidJson(v)
 			if err != nil {
 				p.logger.Errorf("unable to get valid json: %w", err)
 				return v
 			}
 			return validJson
+		case "money", "timetz":
+			return string(v)
 		}
 		return v
 	default:
