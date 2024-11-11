@@ -27,7 +27,6 @@ import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  AwsS3DestinationConnectionOptions_StorageClass,
   CheckConnectionConfigResponse,
   Code,
   ConnectError,
@@ -51,6 +50,7 @@ import {
   getConnectionType,
 } from '../../../connections/util';
 import {
+  getDefaultDestinationFormValueOptionsFromConnectionCase,
   getDefaultUnmappedTransformConfig,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
@@ -527,97 +527,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           setIsSourceValidating(false);
                                         }
 
-                                        if (destConnType === 'pgConfig') {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              postgres: {
-                                                truncateBeforeInsert: false,
-                                                truncateCascade: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
+                                        const newOpts =
+                                          getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                            destConnType,
+                                            () => new Set()
                                           );
-                                        } else if (
-                                          destConnType === 'mysqlConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              mysql: {
-                                                truncateBeforeInsert: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        } else if (
-                                          destConnType === 'dynamodbConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              dynamodb: {
-                                                tableMappings: [],
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        } else if (
-                                          destConnType === 'mssqlConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              mssql: {
-                                                truncateBeforeInsert: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        } else if (
-                                          destConnType === 'awsS3Config'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              awss3: {
-                                                storageClass:
-                                                  AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
-                                                maxInFlight: 64,
-                                                timeout: '5s',
-                                                batch: {
-                                                  count: 100,
-                                                  period: '5s',
-                                                },
-                                              },
-                                            }
-                                          );
-                                        }
+                                        form.setValue(
+                                          `destinations.${index}.destinationOptions`,
+                                          newOpts,
+                                          {
+                                            shouldDirty: true,
+                                            shouldTouch: true,
+                                            shouldValidate: true,
+                                          }
+                                        );
                                       }}
                                       value={field.value}
                                     >
