@@ -113,11 +113,6 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 			sb.WriteString(fmt.Sprintf(" DEFAULT %s", row.ColumnDefault.String))
 		}
 
-		// todo remove this
-		if !row.IsUserDefinedDataType && row.CollationName.Valid {
-			sb.WriteString(fmt.Sprintf(" COLLATE %s ", row.CollationName.String))
-		}
-
 		// Add comma if not last column
 		if i < len(rows)-1 {
 			sb.WriteString(",")

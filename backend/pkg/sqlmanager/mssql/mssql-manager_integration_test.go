@@ -3,6 +3,11 @@ package sqlmanager_mssql
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"sync"
 	"testing"
 
 	_ "github.com/microsoft/go-mssqldb"
@@ -10,6 +15,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/stretchr/testify/require"
 )
@@ -345,4 +351,100 @@ func containsSubset[T any](t testing.TB, array, subset []T) {
 	for _, elem := range subset {
 		require.Contains(t, array, elem)
 	}
+}
+
+func buildTable(schema, tableName string) string {
+	return fmt.Sprintf("%s.%s", schema, tableName)
+}
+
+type Schema struct {
+	Name string
+}
+
+func setup(ctx context.Context, containers *tcmssql.MssqlTestSyncContainer) error {
+	baseDir := "testdata"
+
+	sourceSetupContents, err := readSqlFiles(filepath.Join(baseDir, "source-setup"))
+	if err != nil {
+		return fmt.Errorf("unable to read source setup files: %w", err)
+	}
+
+	destSetupContents, err := readSqlFiles(filepath.Join(baseDir, "dest-setup"))
+	if err != nil {
+		return fmt.Errorf("unable to read dest setup files: %w", err)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		for i, stmt := range sourceSetupContents {
+			_, err := containers.Source.DB.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing source setup statement %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		for i, stmt := range destSetupContents {
+			_, err := containers.Target.DB.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing dest setup statement: %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+
+	err = errgrp.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readSqlFiles(dir string) ([]string, error) {
+	// Read all files in the directory
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("error reading directory %s: %v", dir, err)
+	}
+
+	// Filter and sort SQL files
+	var sqlFiles []string
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".sql") {
+			sqlFiles = append(sqlFiles, file.Name())
+		}
+	}
+	sort.Strings(sqlFiles)
+
+	// Prepare a slice to store results
+	sqlContents := make([]string, len(sqlFiles))
+
+	// Use errgroup for concurrent file reading
+	var eg errgroup.Group
+	var mu sync.Mutex
+
+	for i, file := range sqlFiles {
+		i, file := i, file
+		eg.Go(func() error {
+			content, err := os.ReadFile(filepath.Join(dir, file))
+			if err != nil {
+				return fmt.Errorf("error reading file %s: %w", file, err)
+			}
+
+			mu.Lock()
+			sqlContents[i] = string(content)
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	// Wait for all goroutines to complete and check for errors
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return sqlContents, nil
 }

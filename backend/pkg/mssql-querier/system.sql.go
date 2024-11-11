@@ -105,7 +105,6 @@ SELECT
 	dc.definition as column_default,
     c.is_nullable,
     tp.name AS data_type,
-    tp.is_user_defined as is_user_defined_data_type,
     CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
          WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
          ELSE NULL
@@ -153,8 +152,7 @@ SELECT
 		THEN 'SYSTEM_VERSIONING = ON'
    		ELSE NULL
     END AS temporal_definition,
-    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary,
-    c.collation_name
+    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -187,7 +185,6 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	ColumnDefault          sql.NullString
 	IsNullable             bool
 	DataType               string
-	IsUserDefinedDataType  bool
 	CharacterMaximumLength sql.NullInt32
 	NumericPrecision       sql.NullInt16
 	NumericScale           sql.NullInt16
@@ -201,7 +198,6 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	TemporalDefinition     sql.NullString
 	IdentitySeed           sql.NullInt32
 	IdentityIncrement      sql.NullInt32
-	CollationName          sql.NullString
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -224,7 +220,6 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.ColumnDefault,
 			&i.IsNullable,
 			&i.DataType,
-			&i.IsUserDefinedDataType,
 			&i.CharacterMaximumLength,
 			&i.NumericPrecision,
 			&i.NumericScale,
@@ -238,7 +233,6 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.PeriodDefinition,
 			&i.TemporalDefinition,
 			&i.IsPrimary,
-			&i.CollationName,
 		); err != nil {
 			return nil, err
 		}
