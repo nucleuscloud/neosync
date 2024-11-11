@@ -45,15 +45,15 @@ func GetNeosyncUrl() string {
 	return baseurl
 }
 
-type HttpClientConfig struct {
+type httpClientConfig struct {
 	apiKey       *string
 	extraHeaders map[string]string
 }
 
-type HttpOption func(cfg *HttpClientConfig)
+type HttpOption func(cfg *httpClientConfig)
 
 func WithApiKey(apiKey *string) HttpOption {
-	return func(cfg *HttpClientConfig) {
+	return func(cfg *httpClientConfig) {
 		cfg.apiKey = apiKey
 	}
 }
@@ -61,14 +61,14 @@ func WithApiKey(apiKey *string) HttpOption {
 // If desired, append any extra headers.
 // Note: version headers are already appended to the client when calling GetNeosyncHttpClient
 func WithExtraHeaders(headers map[string]string) HttpOption {
-	return func(cfg *HttpClientConfig) {
+	return func(cfg *httpClientConfig) {
 		cfg.extraHeaders = headers
 	}
 }
 
 // Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
 func GetNeosyncHttpClient(ctx context.Context, logger *slog.Logger, opts ...HttpOption) (*http.Client, error) {
-	cfg := &HttpClientConfig{}
+	cfg := &httpClientConfig{}
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -94,6 +94,9 @@ func GetNeosyncHttpClient(ctx context.Context, logger *slog.Logger, opts ...Http
 	return http_client.NewWithHeaders(headers), nil
 }
 
+// Method that handles retrieving the user's access token from the file system
+// This method automatically handles checking to see if the token is valid.
+// If it's invalid for any reason, will attempt to refresh and get + set a new access token
 func getAccessToken(ctx context.Context, headers map[string]string, logger *slog.Logger) (string, error) {
 	httpclient := http_client.NewWithHeaders(headers)
 	neosyncurl := GetNeosyncUrl()
@@ -108,6 +111,7 @@ func getAccessToken(ctx context.Context, headers map[string]string, logger *slog
 		neosyncurl,
 	)
 	logger.Debug("found existing access token, checking if still valid")
+	// TODO: NEOS-566 - allow token refreshing if only refresh token exists, but no access token
 	_, err = authedAuthClient.CheckToken(ctx, connect.NewRequest(&mgmtv1alpha1.CheckTokenRequest{}))
 	if err != nil {
 		if err := userconfig.RemoveAccessToken(); err != nil {
