@@ -21,16 +21,20 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return whoami(cmd.Context(), &apiKey)
+			return whoami(cmd.Context(), &apiKey, debugMode)
 		},
 	}
 
 	return cmd
 }
 
-func whoami(ctx context.Context, apiKey *string) error {
-	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(true))
+func whoami(ctx context.Context, apiKey *string, debug bool) error {
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
 	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err

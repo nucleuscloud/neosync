@@ -61,8 +61,13 @@ func newSwitchCmd() *cobra.Command {
 				accountIdOrName = &args[0]
 			}
 
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
+
 			cmd.SilenceUsage = true
-			return switchAccount(cmd.Context(), &apiKey, accountIdOrName)
+			return switchAccount(cmd.Context(), &apiKey, accountIdOrName, debugMode)
 		},
 	}
 	return cmd
@@ -72,8 +77,9 @@ func switchAccount(
 	ctx context.Context,
 	apiKey,
 	accountIdOrName *string,
+	debug bool,
 ) error {
-	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(true))
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
 	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err

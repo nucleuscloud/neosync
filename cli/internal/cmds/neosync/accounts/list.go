@@ -25,8 +25,12 @@ func newListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return listAccounts(cmd.Context(), &apiKey)
+			return listAccounts(cmd.Context(), &apiKey, debugMode)
 		},
 	}
 }
@@ -34,8 +38,9 @@ func newListCmd() *cobra.Command {
 func listAccounts(
 	ctx context.Context,
 	apiKey *string,
+	debug bool,
 ) error {
-	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(true)) // todo: make debug global
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
 	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err
