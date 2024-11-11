@@ -37,10 +37,10 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 )
 
 var (

@@ -11,7 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"github.com/spf13/viper"
 )
 
