@@ -15,6 +15,8 @@ If you need help configuring a Bastion Host, check out the [Connect Postgres via
 
 Generally, it's good practice to limit inbound connections into a private network.
 
+> **NB:** If you're operating in the EU, you'll still need to include the US IP ranges at the moment as transient non-customer data still flows through this region to power the frontend app and CLI.
+
 The following IP addresses are for Neosync Cloud's available regions.
 
 ## AWS
