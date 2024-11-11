@@ -232,7 +232,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   );
                                 form.setValue(
                                   'destination.destinationOptions',
-                                  newOpts
+                                  newOpts,
+                                  {
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                    shouldValidate: true,
+                                  }
                                 );
                               }
 
@@ -362,7 +367,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                               form.setValue(
                                 'destination.destinationOptions',
-                                newOpts
+                                newOpts,
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
                               );
                               setIsDestinationValidating(true);
                               try {
