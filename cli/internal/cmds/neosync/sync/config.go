@@ -9,12 +9,15 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
-	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
+// Builds the sync command config by pulling from the cobra command flags
+func newCobraCmdConfig(
+	cmd *cobra.Command,
+	getAccountId func(accountIdFlag string) (string, error),
+) (*cmdConfig, error) {
 	config := &cmdConfig{
 		Source: &sourceConfig{
 			ConnectionOpts: &connectionOpts{},
@@ -124,19 +127,11 @@ func buildCmdConfig(cmd *cobra.Command) (*cmdConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	accountId := accountIdFlag
-	if accountId == "" {
-		aId, err := userconfig.GetAccountId()
-		if err != nil {
-			return nil, errors.New("Unable to retrieve account id. Please use account switch command to set account.")
-		}
-		accountId = aId
+	accountId, err := getAccountId(accountIdFlag)
+	if err != nil {
+		return nil, err
 	}
 	config.AccountId = &accountId
-
-	if accountId == "" {
-		return nil, errors.New("Account Id not found. Please use account switch command to set account.")
-	}
 
 	outputType, err := output.ValidateAndRetrieveOutputFlag(cmd)
 	if err != nil {

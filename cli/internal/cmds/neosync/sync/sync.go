@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	charmlog "github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -26,6 +25,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
@@ -139,22 +139,11 @@ func NewCmd() *cobra.Command {
 		Use:   "sync",
 		Short: "One off sync job to local resource",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			apiKeyStr, err := cmd.Flags().GetString("api-key")
+			sync, err := newCliSyncFromCmd(cmd)
 			if err != nil {
 				return err
 			}
-			cmd.SilenceUsage = true
-			var apiKey *string
-			if apiKeyStr != "" {
-				apiKey = &apiKeyStr
-			}
-
-			config, err := buildCmdConfig(cmd)
-			if err != nil {
-				return err
-			}
-
-			return sync(cmd.Context(), apiKey, config)
+			return sync.configureAndRunSync()
 		},
 	}
 
@@ -206,33 +195,52 @@ type clisync struct {
 	ctx                   context.Context
 }
 
-func sync(
-	ctx context.Context,
-	apiKey *string,
-	cmd *cmdConfig,
-) error {
-	logLevel := charmlog.InfoLevel
-	if cmd.Debug {
-		logLevel = charmlog.DebugLevel
+func newCliSyncFromCmd(
+	cmd *cobra.Command,
+) (*clisync, error) {
+	apiKeyStr, err := cmd.Flags().GetString("api-key")
+	if err != nil {
+		return nil, err
 	}
-	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-		Level:           logLevel,
-	})
-	logger := slog.New(charmlogger)
+	var apiKey *string
+	if apiKeyStr != "" {
+		apiKey = &apiKeyStr
+	}
 
-	logger.Info("Starting sync")
+	debug, err := cmd.Flags().GetBool("debug")
+	if err != nil {
+		return nil, err
+	}
+
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
+
+	ctx := cmd.Context()
 
 	connectInterceptors := []connect.Interceptor{}
 	neosyncurl := auth.GetNeosyncUrl()
-	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+
+	cmdCfg, err := newCobraCmdConfig(
+		cmd,
+		func(accountIdFlag string) (string, error) {
+			return auth.ResolveAccountIdFromFlag(ctx, userclient, &accountIdFlag, apiKey, logger)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	cmd.SilenceUsage = true
+	logger = logger.With("accountId", cmdCfg.AccountId)
+
+	logger.Info("Starting sync")
 
 	pgpoolmap := &syncmap.Map{}
 	mysqlpoolmap := &syncmap.Map{}
@@ -249,12 +257,12 @@ func sync(
 		transformerclient:    transformerclient,
 		sqlmanagerclient:     sqlmanagerclient,
 		sqlconnector:         sqlConnector,
-		cmd:                  cmd,
+		cmd:                  cmdCfg,
 		logger:               logger,
 		ctx:                  ctx,
 	}
 
-	return sync.configureAndRunSync()
+	return sync, nil
 }
 
 func (c *clisync) configureAndRunSync() error {
