@@ -50,6 +50,7 @@ interface Props {
   availableConnections: Connection[];
   mutate: () => {};
   isDeleteDisabled?: boolean;
+  isEnterpriseAccount: boolean;
 }
 
 export default function DestinationConnectionCard({
@@ -60,6 +61,7 @@ export default function DestinationConnectionCard({
   mutate,
   isDeleteDisabled,
   jobSourceId,
+  isEnterpriseAccount,
 }: Props): ReactElement {
   const { mutateAsync: setJobDestConnection } = useMutation(
     updateJobDestinationConnection
@@ -186,6 +188,7 @@ export default function DestinationConnectionCard({
                   });
                 }}
                 hideInitTableSchema={shouldHideInitTableSchema}
+                isEnterpriseAccount={isEnterpriseAccount}
                 hideDynamoDbTableMappings={true}
                 destinationDetailsRecord={{}} // not used because we are hiding dynamodb table mappings
                 errors={form.formState.errors?.destinationOptions}

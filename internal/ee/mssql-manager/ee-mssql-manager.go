@@ -23,8 +23,6 @@ func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer fun
 	return &Manager{querier: querier, db: db, close: closer}
 }
 
-const defaultIdentity string = "IDENTITY(1,1)"
-
 func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableInitStatement{}, nil

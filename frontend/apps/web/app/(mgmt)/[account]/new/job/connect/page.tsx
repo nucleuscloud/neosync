@@ -32,6 +32,7 @@ import {
   ConnectError,
   Connection,
   ConnectionConfig,
+  UserAccountType,
 } from '@neosync/sdk';
 import {
   checkConnectionConfigById,
@@ -637,6 +638,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 field.onChange(newOpts);
                               }}
                               hideDynamoDbTableMappings={true}
+                              isEnterpriseAccount={
+                                account?.type === UserAccountType.ENTERPRISE
+                              }
                               destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
                               errors={destErrs[index]?.destinationOptions}
                             />

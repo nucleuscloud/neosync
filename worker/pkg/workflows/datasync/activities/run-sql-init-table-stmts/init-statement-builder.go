@@ -15,6 +15,7 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -23,20 +24,26 @@ const (
 )
 
 type initStatementBuilder struct {
-	sqlmanager sql_manager.SqlManagerClient
-	jobclient  mgmtv1alpha1connect.JobServiceClient
-	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	sqlmanager     sql_manager.SqlManagerClient
+	jobclient      mgmtv1alpha1connect.JobServiceClient
+	connclient     mgmtv1alpha1connect.ConnectionServiceClient
+	eelicense      *license.EELicense
+	isNeosyncCloud bool
 }
 
 func newInitStatementBuilder(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	eelicense *license.EELicense,
+	isNeosyncCloud bool,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager: sqlmanager,
-		jobclient:  jobclient,
-		connclient: connclient,
+		sqlmanager:     sqlmanager,
+		jobclient:      jobclient,
+		connclient:     connclient,
+		eelicense:      eelicense,
+		isNeosyncCloud: isNeosyncCloud,
 	}
 }
 
@@ -283,6 +290,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 			// init statements
 			if sqlopts.InitSchema {
+				if !b.isNeosyncCloud && !b.eelicense.IsValid() {
+					return nil, fmt.Errorf("Invalid license, Neosync Cloud not detected. SQL Server schema init requires Enterprise license.")
+				}
 				tables := []*sqlmanager_shared.SchemaTable{}
 				for tableKey := range uniqueTables {
 					schema, table := sqlmanager_shared.SplitTableKey(tableKey)
@@ -305,6 +315,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
 					}
 				}
+
 			}
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {

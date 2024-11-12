@@ -29,7 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfig } from '@neosync/sdk';
+import { ConnectionConfig, UserAccountType } from '@neosync/sdk';
 import { getConnections } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -411,6 +411,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   (c) => c.id === form.getValues().destination.connectionId
                 )}
                 hideInitTableSchema={shouldHideInitTableSchema}
+                isEnterpriseAccount={
+                  account?.type === UserAccountType.ENTERPRISE
+                }
                 value={destOpts}
                 setValue={(newOpts) => {
                   form.setValue('destination.destinationOptions', newOpts, {

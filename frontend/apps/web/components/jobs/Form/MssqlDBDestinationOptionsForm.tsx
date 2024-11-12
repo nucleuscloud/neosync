@@ -3,6 +3,7 @@ import FormHeader from '@/components/FormHeader';
 import NumberedInput from '@/components/NumberedInput';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Input } from '@/components/ui/input';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { MssqlDbDestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { ReactElement, ReactNode } from 'react';
 import { FieldErrors } from 'react-hook-form';
@@ -12,11 +13,14 @@ interface Props {
   setValue(newVal: MssqlDbDestinationOptionsFormValues): void;
   errors?: FieldErrors<MssqlDbDestinationOptionsFormValues>;
   hideInitTableSchema?: boolean;
+  isEnterpriseAccount: boolean;
 }
 
 export default function MssqlDBDestinationOptionsForm(
   props: Props
 ): ReactElement {
+  const { data: systemAppConfig } = useGetSystemAppConfig();
+
   const { value, setValue, errors } = props;
   return (
     <div className="flex flex-col gap-2">
@@ -34,22 +38,23 @@ export default function MssqlDBDestinationOptionsForm(
         />
         <FormErrorMessage message={errors?.truncateBeforeInsert?.message} />
       </FormItemContainer>
-      {!props.hideInitTableSchema && (
-        <FormItemContainer>
-          <SwitchCard
-            isChecked={value.initTableSchema ?? false}
-            onCheckedChange={(newVal) => {
-              setValue({
-                ...value,
-                initTableSchema: newVal ?? false,
-              });
-            }}
-            title="Init Table Schema"
-            description="Creates table(s) and their constraints. The database schema must already exist. "
-          />
-          <FormErrorMessage message={errors?.initTableSchema?.message} />
-        </FormItemContainer>
-      )}
+      {!props.hideInitTableSchema &&
+        (systemAppConfig?.isNeosyncCloud || props.isEnterpriseAccount) && (
+          <FormItemContainer>
+            <SwitchCard
+              isChecked={value.initTableSchema ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  initTableSchema: newVal ?? false,
+                });
+              }}
+              title="Init Table Schema"
+              description="Creates table(s) and their constraints. The database schema must already exist. "
+            />
+            <FormErrorMessage message={errors?.initTableSchema?.message} />
+          </FormItemContainer>
+        )}
       {/* <FormItemContainer>
         <SwitchCard
           isChecked={value.onConflictDoNothing ?? false}

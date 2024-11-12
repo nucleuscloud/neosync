@@ -1539,7 +1539,7 @@ func executeWorkflow(
 	disableReaper := true
 	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, nil, true)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)

@@ -38,6 +38,7 @@ import {
   Connection,
   GetConnectionSchemaMapsResponse,
   JobDestination,
+  UserAccountType,
 } from '@neosync/sdk';
 import {
   createJobDestinationConnections,
@@ -271,6 +272,9 @@ export default function Page({ params }: PageProps): ReactElement {
                         !isDynamoDBConnection(
                           destConnection ?? new Connection()
                         )
+                      }
+                      isEnterpriseAccount={
+                        account?.type === UserAccountType.ENTERPRISE
                       }
                       destinationDetailsRecord={getDestinationDetailsRecord(
                         fields.map((field) => ({

@@ -6,7 +6,7 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
-import { Connection } from '@neosync/sdk';
+import { Connection, UserAccountType } from '@neosync/sdk';
 import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
@@ -98,6 +98,9 @@ export default function Page({ params }: PageProps): ReactElement {
                   );
                 })}
                 isDeleteDisabled={data?.job?.destinations.length === 1}
+                isEnterpriseAccount={
+                  account?.type === UserAccountType.ENTERPRISE
+                }
               />
             );
           })}
