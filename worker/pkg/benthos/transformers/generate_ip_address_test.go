@@ -185,6 +185,7 @@ func Test_IpV4Public_NoOptions(t *testing.T) {
 	parsedIP := net.ParseIP(resStr)
 	require.NotNil(t, parsedIP, "should be valid IP")
 	assert.False(t, isReservedIP(parsedIP), "should not be reserved IP")
+
 }
 
 func Test_IpV4PrivateA(t *testing.T) {
