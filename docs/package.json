@@ -30,7 +30,7 @@
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.0",
     "docusaurus-protobuffet": "^0.3.3",
-    "postcss": "^8.4.48",
+    "postcss": "^8.4.49",
     "posthog-docusaurus": "^2.0.1",
     "prism-react-renderer": "^2.4.0",
     "react": "^18.3.1",
