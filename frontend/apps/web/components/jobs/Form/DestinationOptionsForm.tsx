@@ -22,8 +22,6 @@ interface DestinationOptionsProps {
   hideDynamoDbTableMappings?: boolean;
   destinationDetailsRecord: Record<string, DestinationDetails>;
   errors?: FieldErrors<DestinationOptionsFormValues>;
-
-  isEnterpriseAccount: boolean;
 }
 
 export default function DestinationOptionsForm(
@@ -37,7 +35,6 @@ export default function DestinationOptionsForm(
     hideDynamoDbTableMappings,
     destinationDetailsRecord,
     errors,
-    isEnterpriseAccount,
   } = props;
 
   if (!connection) {
@@ -147,7 +144,6 @@ export default function DestinationOptionsForm(
           }
           setValue={(val) => setValue({ ...value, mssql: { ...val } })}
           hideInitTableSchema={hideInitTableSchema}
-          isEnterpriseAccount={isEnterpriseAccount}
           errors={errors?.mssql}
         />
       );

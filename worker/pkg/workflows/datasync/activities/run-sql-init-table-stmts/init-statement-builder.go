@@ -315,7 +315,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
 					}
 				}
-
 			}
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
