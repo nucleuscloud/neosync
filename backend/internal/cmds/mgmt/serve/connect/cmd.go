@@ -174,7 +174,7 @@ func serve(ctx context.Context) error {
 	if viper.GetBool("DB_AUTO_MIGRATE") {
 		schemaDir := viper.GetString("DB_SCHEMA_DIR")
 		if schemaDir == "" {
-			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")
+			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrationssss")
 		}
 		dbMigConfig, err := getDbMigrationConfig()
 		if err != nil {
@@ -187,13 +187,19 @@ func serve(ctx context.Context) error {
 			schemaDir,
 			slogger,
 		); err != nil {
-			return fmt.Errorf("unable to complete database migrations: %w", err)
+			return fmt.Errorf("unable to complete database migrationss: %w", err)
 		}
 	}
 
 	stddb := stdlib.OpenDBFromPool(pool)
+	_ = stddb
 
 	rbacenforcer, err := enforcer.NewDefaultEnforcer(ctx, stddb, "neosync_api.casbin_rule")
+	if err != nil {
+		return err
+	}
+	rbacenforcer.EnableAutoSave(true)
+	err = rbacenforcer.LoadPolicy()
 	if err != nil {
 		return err
 	}

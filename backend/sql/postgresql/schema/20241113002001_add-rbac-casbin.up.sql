@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS neosync_api.casbin_rule(
     updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "idx_neosync_api_casbin_rule" ON neosync_api.casbin_rule (p_type, v0, v1);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_neosync_api_casbin_rule_unique_policy"
+ON neosync_api.casbin_rule (p_type, v0, v1, v2, v3, v4, v5);
 
 CREATE TRIGGER update_neosync_api_casbin_rule_updated_at
 BEFORE UPDATE ON neosync_api.casbin_rule
