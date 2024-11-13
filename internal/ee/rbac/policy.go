@@ -78,8 +78,10 @@ func (r *Rbac) InitPolicies(
 }
 
 func setPolicy(e casbin.IEnforcer, policy []string) error {
-	// AddPoliciesEx is what should be uesd here but is resulting in duplicates
-	// This logic here seems to handle this instead
+	// AddPoliciesEx is what should be uesd here but is resulting in duplicates (and errors with unique constraint)
+	// AddPolicies handles the unique constraint but fails if even one policy already exists..
+
+	// This logic here seems to handle what I want it to do instead strangely...
 	ok, err := e.HasPolicy(policy)
 	if err != nil {
 		return fmt.Errorf("unable to check if policy exists: %w", err)
