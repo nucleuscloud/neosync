@@ -66,7 +66,7 @@ func (r *Rbac) InitPolicies(
 		)
 	}
 	if len(policyRules) > 0 {
-		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac enginee", len(policyRules)))
+		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
 		for _, policy := range policyRules {
 			err := setPolicy(r.e, policy)
 			if err != nil {
