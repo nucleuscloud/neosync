@@ -371,8 +371,7 @@ const transformPiiTextConfig = Yup.object({
 });
 
 const generateIpAddressConfig = Yup.object({
-  version: Yup.string().default('GENERATE_IP_ADDRESS_VERSION_V4'),
-  class: Yup.string().default('GENERATE_IP_ADDRESS_CLASS_PUBLIC'),
+  ipType: Yup.string().default('GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC'),
 });
 
 type ConfigType = TransformerConfig['config'];
