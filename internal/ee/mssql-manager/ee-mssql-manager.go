@@ -5,12 +5,17 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"slices"
+	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	ViewsFunctionsLabel = "view and functions"
+	TableIndexLabel     = "table index"
 )
 
 type Manager struct {
@@ -189,14 +194,14 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 		return nil
 	})
 
-	tableViewsStmts := []string{}
+	viewAndFuncStmts := []string{}
 	errgrp.Go(func() error {
-		views, err := m.getViewsBySchemas(ctx, schemas)
+		views, err := m.getViewsAndFunctionsBySchemas(ctx, schemas)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve mssql schema table triggers: %w", err)
+			return fmt.Errorf("unable to retrieve mssql schema views and functions: %w", err)
 		}
 		for _, v := range views {
-			tableViewsStmts = append(tableViewsStmts, v.Definition)
+			viewAndFuncStmts = append(viewAndFuncStmts, v.Definition)
 		}
 		return nil
 	})
@@ -208,10 +213,11 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: "create table", Statements: slices.Concat(createTables, tableViewsStmts)},
+		{Label: "create table", Statements: createTables},
+		{Label: ViewsFunctionsLabel, Statements: viewAndFuncStmts},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
-		{Label: "table index", Statements: idxStmts},
+		{Label: TableIndexLabel, Statements: idxStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
 	}, nil
 }
@@ -246,14 +252,7 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 		output.Sequences = seqs
 		return nil
 	})
-	errgrp.Go(func() error {
-		funcs, err := m.getFunctionsBySchemas(errctx, schemas)
-		if err != nil {
-			return fmt.Errorf("unable to get mssql functions by tables: %w", err)
-		}
-		output.Functions = funcs
-		return nil
-	})
+
 	errgrp.Go(func() error {
 		datatypes, err := m.getDataTypesBySchemas(errctx, schemas)
 		if err != nil {
@@ -318,7 +317,6 @@ func (m *Manager) getSequencesBySchemas(ctx context.Context, schemas []string) (
 	return output, nil
 }
 
-// todo remove this
 func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomSequencesBySchemas(ctx, m.db, []string{schema})
 	if err != nil && !isNoRows(err) {
@@ -338,42 +336,100 @@ func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, table
 	return output, nil
 }
 
-func (m *Manager) getFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
-	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.db, schemas)
+func (m *Manager) getViewsAndFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetViewsAndFunctionsBySchemas(ctx, m.db, schemas)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	} else if err != nil && isNoRows(err) {
 		return []*sqlmanager_shared.DataType{}, nil
 	}
 
-	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
-	for _, row := range rows {
+	orderedObjects := orderObjectsByDependency(rows)
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(orderedObjects))
+	for _, row := range orderedObjects {
 		output = append(output, &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
-			Name:       row.FunctionName,
-			Definition: generateCreateFunctionStatement(row),
+			Name:       row.ObjectName,
+			Definition: generateCreateDatabaseObjectStatement(row.ObjectName, row.SchemaName, row.Definition),
 		})
 	}
 	return output, nil
 }
 
-func (m *Manager) getViewsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
-	rows, err := m.querier.GetCustomViewsBySchemas(ctx, m.db, schemas)
-	if err != nil && !isNoRows(err) {
-		return nil, err
-	} else if err != nil && isNoRows(err) {
-		return []*sqlmanager_shared.DataType{}, nil
+func orderObjectsByDependency(objects []*mssql_queries.GetViewsAndFunctionsBySchemasRow) []*mssql_queries.GetViewsAndFunctionsBySchemasRow {
+	objectMap := make(map[string]*mssql_queries.GetViewsAndFunctionsBySchemasRow)
+	processedObjects := make(map[string]bool)
+
+	for _, obj := range objects {
+		key := obj.SchemaName + "." + obj.ObjectName
+		objectMap[key] = obj
 	}
 
-	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
-	for _, row := range rows {
-		output = append(output, &sqlmanager_shared.DataType{
-			Schema:     row.SchemaName,
-			Name:       row.ViewName,
-			Definition: generateCreateViewStatement(row),
-		})
+	// Adjacency list
+	graph := make(map[string][]string)
+	inDegree := make(map[string]int)
+
+	// Initialize objects that have 0 dependencies
+	for _, obj := range objects {
+		key := obj.SchemaName + "." + obj.ObjectName
+		graph[key] = []string{}
+		inDegree[key] = 0
 	}
-	return output, nil
+
+	// Build dependency graph
+	for _, obj := range objects {
+		if obj.Dependencies.Valid {
+			dependencies := strings.Split(obj.Dependencies.String, ",")
+			objKey := obj.SchemaName + "." + obj.ObjectName
+
+			for _, dep := range dependencies {
+				dep = strings.TrimSpace(dep)
+				if _, exists := objectMap[dep]; exists {
+					graph[dep] = append(graph[dep], objKey)
+					inDegree[objKey]++
+				}
+			}
+		}
+	}
+
+	// Topological sort
+	var result []*mssql_queries.GetViewsAndFunctionsBySchemasRow
+	var queue []string
+
+	// Add roots first
+	for key := range graph {
+		if inDegree[key] == 0 {
+			queue = append(queue, key)
+		}
+	}
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		result = append(result, objectMap[current])
+		processedObjects[current] = true
+
+		// Process dependent objects
+		for _, dependent := range graph[current] {
+			inDegree[dependent]--
+			if inDegree[dependent] == 0 {
+				queue = append(queue, dependent)
+			}
+		}
+	}
+
+	// Any missing objects are part of a circular dependency
+	// Adding them to the end
+	for _, obj := range objects {
+		key := obj.SchemaName + "." + obj.ObjectName
+		if !processedObjects[key] {
+			result = append(result, obj)
+		}
+	}
+
+	return result
 }
 
 type datatypes struct {

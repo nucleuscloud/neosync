@@ -3,6 +3,7 @@ package mssql_queries
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -172,7 +173,7 @@ FROM
         WHERE i.is_primary_key = 1
     ) pk ON c.object_id = pk.object_id 
         AND c.column_id = pk.column_id
-WHERE t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (%s)
 ORDER BY
     s.name, t.name, c.column_id;
 `
@@ -201,10 +202,10 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
-	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
+	placeholders, args := createSchemaTableParams(schematables)
+	query := fmt.Sprintf(getDatabaseTableSchemasBySchemasAndTables, placeholders)
 
-	rows, err := db.QueryContext(ctx, getDatabaseTableSchemasBySchemasAndTables, sql.Named("schematables", schematablesList))
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +449,7 @@ LEFT JOIN
     sys.check_constraints cc_def ON o.object_id = cc_def.object_id
 WHERE
     o.type IN ('PK', 'UQ', 'F', 'C')
-    AND s.name IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
+    AND s.name IN (%s)
 ORDER BY
     s.name, t.name, o.name;
 `
@@ -468,11 +469,11 @@ type GetTableConstraintsBySchemasRow struct {
 }
 
 func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
-	// Join schemas into a comma-separated string
-	schemaList := strings.Join(schemas, ",")
+	placeholders, args := createSchemaTableParams(schemas)
+	query := fmt.Sprintf(getTableConstraintsBySchemas, placeholders)
 
 	// Execute the query with the schema list as a parameter
-	rows, err := db.QueryContext(ctx, getTableConstraintsBySchemas, sql.Named("schemas", schemaList))
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -603,7 +604,7 @@ INNER JOIN sys.tables t ON i.object_id = t.object_id
 WHERE i.is_primary_key = 0 
     AND i.type > 0 
     AND is_unique_constraint = 0
-    AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+    AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (%s)
 ORDER BY i.index_id;
 `
 
@@ -615,10 +616,10 @@ type GetIndicesBySchemasAndTablesRow struct {
 }
 
 func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
-	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
+	placeholders, args := createSchemaTableParams(schematables)
+	query := fmt.Sprintf(getIndicesBySchemasAndTable, placeholders)
 
-	rows, err := db.QueryContext(ctx, getIndicesBySchemasAndTable, sql.Named("schematables", schematablesList))
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -645,84 +646,77 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_que
 	return items, nil
 }
 
-const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
-SELECT
-   SCHEMA_NAME(o.schema_id) as schema_name,
-   o.name AS function_name,
-   sm.definition
-FROM sys.sql_modules AS sm
-LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
-WHERE o.type = 'P' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
-ORDER BY o.type;
+// Need to get views and functions together because they often depend on each other
+// Returns object definitions and dependencies
+// dependencies are comma separated string schema.object_name
+const getViewsAndFunctionsBySchemas = `-- name: GetViewsAndFunctionsBySchemas :many
+WITH ObjectInfo AS (
+   -- Base programmable objects with their definitions
+   SELECT 
+       o.object_id,
+       OBJECT_SCHEMA_NAME(o.object_id) as object_schema,
+       o.name as object_name,
+       o.type as object_type,
+       OBJECT_DEFINITION(o.object_id) as object_definition
+   FROM sys.objects o
+   WHERE o.type IN ('V', 'FN', 'IF', 'TF', 'P') AND OBJECT_SCHEMA_NAME(o.object_id) IN (%s)
+),
+Dependencies AS (
+   -- Get non-table dependencies
+   SELECT 
+       sed.referencing_id,
+       STRING_AGG(
+           CONCAT(
+               OBJECT_SCHEMA_NAME(sed.referenced_id),
+               '.',
+               OBJECT_NAME(sed.referenced_id)
+           ), 
+           ','
+       ) WITHIN GROUP (ORDER BY OBJECT_SCHEMA_NAME(sed.referenced_id), OBJECT_NAME(sed.referenced_id)) as dependencies
+   FROM sys.sql_expression_dependencies sed
+   JOIN sys.objects o ON sed.referenced_id = o.object_id
+   WHERE o.type IN ('V', 'FN', 'IF', 'TF', 'P')  -- Views, Stored Procedures, Functions
+   GROUP BY sed.referencing_id
+)
+SELECT 
+   oi.object_schema,
+   oi.object_name,
+   oi.object_type,
+   oi.object_definition,
+   d.dependencies
+FROM ObjectInfo oi
+LEFT JOIN Dependencies d ON oi.object_id = d.referencing_id
+ORDER BY 
+   oi.object_type,
+   oi.object_schema,
+   oi.object_name;
 `
 
-type GetCustomFunctionsBySchemasRow struct {
+type GetViewsAndFunctionsBySchemasRow struct {
 	SchemaName   string
-	FunctionName string
+	ObjectName   string
+	ObjectType   string
 	Definition   string
+	Dependencies sql.NullString
 }
 
-func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
-	// Join schemas into a comma-separated string
-	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemas, sql.Named("schemas", schemasList))
+func (q *Queries) GetViewsAndFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetViewsAndFunctionsBySchemasRow, error) {
+	placeholders, args := createSchemaTableParams(schemas)
+	query := fmt.Sprintf(getViewsAndFunctionsBySchemas, placeholders)
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetCustomFunctionsBySchemasRow
+	var items []*GetViewsAndFunctionsBySchemasRow
 	for rows.Next() {
-		var i GetCustomFunctionsBySchemasRow
+		var i GetViewsAndFunctionsBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
-			&i.FunctionName,
+			&i.ObjectName,
+			&i.ObjectType,
 			&i.Definition,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getCustomViewsBySchemas = `-- name: GetCustomViewsBySchemas :many
-SELECT
-   SCHEMA_NAME(o.schema_id) as schema_name,
-   o.name AS function_name,
-   sm.definition
-FROM sys.sql_modules AS sm
-LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
-WHERE o.type = 'V' AND SCHEMA_NAME(o.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
-ORDER BY o.type;
-`
-
-type GetCustomViewsBySchemasRow struct {
-	SchemaName string
-	ViewName   string
-	Definition string
-}
-
-func (q *Queries) GetCustomViewsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomViewsBySchemasRow, error) {
-	// Join schemas into a comma-separated string
-	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getCustomViewsBySchemas, sql.Named("schemas", schemasList))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetCustomViewsBySchemasRow
-	for rows.Next() {
-		var i GetCustomViewsBySchemasRow
-		if err := rows.Scan(
-			&i.SchemaName,
-			&i.ViewName,
-			&i.Definition,
+			&i.Dependencies,
 		); err != nil {
 			return nil, err
 		}
@@ -760,7 +754,7 @@ SELECT
         ';'
     ) AS definition
 FROM sys.sequences seq
-WHERE SCHEMA_NAME(seq.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
+WHERE SCHEMA_NAME(seq.schema_id) IN (%s)
 ORDER BY seq.schema_id, seq.name;
 `
 
@@ -771,9 +765,9 @@ type GetCustomSequencesBySchemasRow struct {
 }
 
 func (q *Queries) GetCustomSequencesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasRow, error) {
-	// Join schemas into a comma-separated string
-	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemas, sql.Named("schemas", schemasList))
+	placeholders, args := createSchemaTableParams(schemas)
+	query := fmt.Sprintf(getCustomSequencesBySchemas, placeholders)
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -808,7 +802,7 @@ SELECT
 FROM sys.sql_modules AS sm
 LEFT JOIN sys.objects AS o ON sm.object_id = o.object_id
 LEFT join sys.objects as oo on o.parent_object_id = oo.object_id
-WHERE o.type = 'TR' AND CONCAT(SCHEMA_NAME(o.schema_id), '.', oo.name) IN (SELECT value FROM STRING_SPLIT(@schematables, ','))
+WHERE o.type = 'TR' AND CONCAT(SCHEMA_NAME(o.schema_id), '.', oo.name) IN (%s)
 ORDER BY o.type;
 `
 
@@ -820,9 +814,9 @@ type GetCustomTriggersBySchemasAndTablesRow struct {
 }
 
 func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
-	// Join schemas into a comma-separated string
-	schematablesList := strings.Join(schematables, ",")
-	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemasAndTables, sql.Named("schematables", schematablesList))
+	placeholders, args := createSchemaTableParams(schematables)
+	query := fmt.Sprintf(getCustomTriggersBySchemasAndTables, placeholders)
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -903,7 +897,6 @@ SELECT
         FOR XML PATH('')
     ), 1, 2, '') + ');' AS definition
 FROM sys.table_types tt
-WHERE tt.is_user_defined = 1 AND SCHEMA_NAME(tt.schema_id) IN (SELECT value FROM STRING_SPLIT(@schemas, ','));
 `
 
 type GetDataTypesBySchemasRow struct {
@@ -914,9 +907,10 @@ type GetDataTypesBySchemasRow struct {
 }
 
 func (q *Queries) GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetDataTypesBySchemasRow, error) {
-	// Join schemas into a comma-separated string
-	schemasList := strings.Join(schemas, ",")
-	rows, err := db.QueryContext(ctx, getDataTypesBySchemasAndTables, sql.Named("schemas", schemasList))
+	placeholders, args := createSchemaTableParams(schemas)
+	where := fmt.Sprintf("WHERE tt.is_user_defined = 1 AND SCHEMA_NAME(tt.schema_id) IN (%s);", placeholders)
+	query := getDataTypesBySchemasAndTables + " " + where
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -941,4 +935,18 @@ func (q *Queries) GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DB
 		return nil, err
 	}
 	return items, nil
+}
+
+func createSchemaTableParams(values []string) (argPlaceholders string, arguments []any) {
+	// Create placeholders and args for the IN clause
+	var placeholders []string
+	args := make([]any, len(values))
+
+	for i := range values {
+		paramName := fmt.Sprintf("@p%d", i+1)
+		placeholders = append(placeholders, paramName)
+		args[i] = sql.Named(fmt.Sprintf("p%d", i+1), values[i])
+	}
+
+	return strings.Join(placeholders, ","), args
 }

@@ -7,8 +7,6 @@ import (
 )
 
 type Querier interface {
-	GetCustomFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error)
-	GetCustomViewsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomViewsBySchemasRow, error)
 	GetCustomSequencesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasRow, error)
 	GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error)
 	GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasRow, error)
@@ -17,6 +15,7 @@ type Querier interface {
 	GetIndicesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error)
 	GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error)
+	GetViewsAndFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetViewsAndFunctionsBySchemasRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

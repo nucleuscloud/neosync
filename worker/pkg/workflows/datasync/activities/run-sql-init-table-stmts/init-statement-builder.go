@@ -2,6 +2,7 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -16,7 +17,9 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
+	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"go.temporal.io/sdk/activity"
 )
 
 const (
@@ -52,6 +55,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	req *RunSqlInitTableStatementsRequest,
 	slogger *slog.Logger,
 ) (*RunSqlInitTableStatementsResponse, error) {
+	info := activity.GetInfo(ctx)
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
@@ -86,6 +90,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
+
+	initSchemaRunContext := []*InitSchemaRunContext{}
 
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
@@ -304,18 +310,33 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 
+				initErrors := []*InitSchemaError{}
 				for _, block := range initblocks {
 					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
 					if len(block.Statements) == 0 {
 						continue
 					}
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+					for _, stmt := range block.Statements {
+						err = destdb.Db.Exec(ctx, stmt)
+						if err != nil {
+							slogger.Error("unable to exec mssql %s statements: %w", block.Label, err)
+							initErrors = append(initErrors, &InitSchemaError{
+								Statement: stmt,
+								Error:     err.Error(),
+							})
+							if block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
+								destdb.Db.Close()
+								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+							}
+						}
 					}
 				}
+				initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+					ConnectionId: destination.ConnectionId,
+					Errors:       initErrors,
+				})
 			}
+
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
 				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
@@ -379,7 +400,45 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
+	err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId, info.WorkflowExecution.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RunSqlInitTableStatementsResponse{}, nil
+}
+
+type InitSchemaRunContext struct {
+	ConnectionId string
+	Errors       []*InitSchemaError
+}
+type InitSchemaError struct {
+	Statement string
+	Error     string
+}
+
+func (b *initStatementBuilder) setInitSchemaRunCtx(
+	ctx context.Context,
+	initschemaRunContexts []*InitSchemaRunContext,
+	accountId string,
+	workflowId string,
+) error {
+	bits, err := json.Marshal(initschemaRunContexts)
+	if err != nil {
+		return fmt.Errorf("failed to marshal init schema run context: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   workflowId,
+			ExternalId: "init-schema",
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to set init schema run context: %w", err)
+	}
+	return nil
 }
 
 func (b *initStatementBuilder) getJobById(

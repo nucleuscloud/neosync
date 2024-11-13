@@ -192,10 +192,10 @@ END`, record.SequenceName, record.SchemaName, record.Definition))
 	return sb.String()
 }
 
-// Creates idempotent create function statement
-func generateCreateFunctionStatement(record *mssql_queries.GetCustomFunctionsBySchemasRow) string {
+// Creates idempotent create database object statement
+func generateCreateDatabaseObjectStatement(name, schema, definition string) string {
 	var sb strings.Builder
-	def := strings.ReplaceAll(record.Definition, "'", "''")
+	def := strings.ReplaceAll(definition, "'", "''")
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
 	SELECT * 
@@ -205,25 +205,7 @@ IF NOT EXISTS (
 )
 BEGIN
   Exec('%s')
-END`, record.FunctionName, record.SchemaName, def))
-
-	return sb.String()
-}
-
-// Creates idempotent create view statement
-func generateCreateViewStatement(record *mssql_queries.GetCustomViewsBySchemasRow) string {
-	var sb strings.Builder
-	def := strings.ReplaceAll(record.Definition, "'", "''")
-	sb.WriteString(fmt.Sprintf(`
-IF NOT EXISTS (
-	SELECT * 
-	FROM sys.objects 
-  WHERE name = N'%s'
-  AND schema_id = SCHEMA_ID(N'%s')
-)
-BEGIN
-  Exec('%s')
-END`, record.ViewName, record.SchemaName, def))
+END`, name, schema, def))
 
 	return sb.String()
 }

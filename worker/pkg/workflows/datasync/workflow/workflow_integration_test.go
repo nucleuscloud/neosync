@@ -444,6 +444,17 @@ func addRunContextProcedureMux(mux *http.ServeMux) {
 			return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
 		},
 	))
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceSetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+			rcmu.RLock()
+			defer rcmu.RUnlock()
+			rcmap[toRunContextKeyString(r.Msg.GetId())] = r.Msg.GetValue()
+
+			return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
+		},
+	))
 }
 
 func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {

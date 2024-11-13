@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -127,6 +128,10 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
 				}
 
+				if isCircularSelfReferencingFk(row, constraintCols, fkCols) {
+					continue
+				}
+
 				foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
 					Columns:     constraintCols,
 					NotNullable: notNullable,
@@ -153,6 +158,27 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
+}
+
+// Checks if a foreign key constraint is self-referencing (points to the same table)
+// and all constraint columns match their referenced columns, indicating a circular reference.
+// example  public.users.id has a foreign key to public.users.id
+func isCircularSelfReferencingFk(row *mssql_queries.GetTableConstraintsBySchemasRow, constraintColumns, referencedColumns []string) bool {
+	// Check if the foreign key references the same table
+	isSameTable := row.SchemaName == row.ReferencedSchema.String &&
+		row.TableName == row.ReferencedTable.String
+	if !isSameTable {
+		return false
+	}
+
+	// Check if all constraint columns exist in referenced columns
+	for _, column := range constraintColumns {
+		if !slices.Contains(referencedColumns, column) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
