@@ -17,6 +17,8 @@ import (
 	"connectrpc.com/otelconnect"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
+	"github.com/jackc/pgx/v5/stdlib"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
@@ -65,6 +67,8 @@ import (
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
@@ -159,10 +163,13 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	db, err := neosyncdb.NewFromConfig(dbconfig)
+	pool, err := neosyncdb.NewPool(dbconfig)
 	if err != nil {
 		return err
 	}
+
+	querier := db_queries.New()
+	db := neosyncdb.New(pool, querier)
 
 	if viper.GetBool("DB_AUTO_MIGRATE") {
 		schemaDir := viper.GetString("DB_SCHEMA_DIR")
@@ -182,6 +189,19 @@ func serve(ctx context.Context) error {
 		); err != nil {
 			return fmt.Errorf("unable to complete database migrations: %w", err)
 		}
+	}
+
+	stddb := stdlib.OpenDBFromPool(pool)
+
+	rbacenforcer, err := enforcer.NewDefaultEnforcer(ctx, stddb, "neosync_api.casbin_rule")
+	if err != nil {
+		return err
+	}
+	rbacdb := rbac.NewRbacDb(querier, db.Db)
+	rbacclient := rbac.New(rbacenforcer)
+	err = rbacclient.InitPolicies(ctx, rbacdb, slogger)
+	if err != nil {
+		return err
 	}
 
 	stdInterceptors := []connect.Interceptor{}

@@ -248,6 +248,30 @@ func (q *Queries) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 	return i, err
 }
 
+const getAccountIds = `-- name: GetAccountIds :many
+SELECT id FROM neosync_api.accounts
+`
+
+func (q *Queries) GetAccountIds(ctx context.Context, db DBTX) ([]pgtype.UUID, error) {
+	rows, err := db.Query(ctx, getAccountIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAccountInvite = `-- name: GetAccountInvite :one
 SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at FROM neosync_api.account_invites
 WHERE id = $1
