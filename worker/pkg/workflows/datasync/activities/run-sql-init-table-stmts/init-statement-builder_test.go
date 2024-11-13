@@ -24,6 +24,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	connectionId := "456"
 	fkconnectionId := "789"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -170,6 +171,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -269,6 +271,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -398,6 +401,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -535,6 +539,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -677,6 +682,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}))
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
