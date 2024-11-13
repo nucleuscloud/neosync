@@ -36,6 +36,7 @@ func newEnforcer(
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize casbin synced cached enforcer: %w", err)
 	}
+	enforcer.EnableAutoSave(true) // seems to do this automatically but it doesn't hurt
 	enforcer.SetExpireTime(30 * time.Second)
 	return enforcer, nil
 }
