@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
@@ -31,6 +32,7 @@ import (
 	mssql_datatypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/data-types"
 	mssql_simple "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/simple"
 
+	mysql_alltypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/all-types"
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
@@ -85,8 +87,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
-					s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, tt.SourceFilePaths)
-					s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, tt.TargetFilePaths)
+					err := s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					require.NoError(t, err)
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					require.NoError(t, err)
 
 					schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
 					subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
@@ -177,7 +181,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-														Url: s.postgres.source.url,
+														Url: s.postgres.Source.URL,
 													},
 												},
 											},
@@ -194,7 +198,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-														Url: s.postgres.target.url,
+														Url: s.postgres.Target.URL,
 													},
 												},
 											},
@@ -210,7 +214,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
-					err := env.GetWorkflowError()
+					err = env.GetWorkflowError()
 					if tt.ExpectError {
 						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
 						return
@@ -218,7 +222,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
 
 					for table, expected := range tt.Expected {
-						rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
+						rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
 						require.NoError(t, err)
 						count := 0
 						for rows.Next() {
@@ -228,8 +232,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					// tear down
-					s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, []string{"teardown.sql"})
-					s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, []string{"teardown.sql"})
+					err = s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
 				})
 			}
 		})
@@ -438,6 +444,17 @@ func addRunContextProcedureMux(mux *http.ServeMux) {
 			return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
 		},
 	))
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceSetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+			rcmu.RLock()
+			defer rcmu.RUnlock()
+			rcmap[toRunContextKeyString(r.Msg.GetId())] = r.Msg.GetValue()
+
+			return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
+		},
+	))
 }
 
 func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
@@ -445,10 +462,12 @@ func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
-	testFolder := "postgres/virtual-foreign-keys"
+	testFolder := "testdata/postgres/virtual-foreign-keys"
 	// setup
-	s.RunPostgresSqlFiles(s.postgres.source.pool, testFolder, []string{"source-setup.sql"})
-	s.RunPostgresSqlFiles(s.postgres.target.pool, testFolder, []string{"target-setup.sql"})
+	err := s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"source-setup.sql"})
+	require.NoError(s.T(), err)
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"target-setup.sql"})
+	require.NoError(s.T(), err)
 
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
 	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
@@ -456,7 +475,6 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	for _, m := range jobmappings {
 		if m.Table == "countries" && m.Column == "country_id" {
 			m.Transformer = &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `if (value == 'US') { return 'SU'; } return value;`},
@@ -513,7 +531,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.source.url,
+										Url: s.postgres.Source.URL,
 									},
 								},
 							},
@@ -530,7 +548,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.target.url,
+										Url: s.postgres.Target.URL,
 									},
 								},
 							},
@@ -547,12 +565,12 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	testName := "Virtual Foreign Key primary key transform"
 	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
-	err := env.GetWorkflowError()
+	err = env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
-		rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
+		rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
 		require.NoError(s.T(), err)
 		count := 0
 		for rows.Next() {
@@ -562,35 +580,37 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		require.NoError(s.T(), err)
 	}
 
-	rows := s.postgres.source.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows := s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	var rowCount int
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.source.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
+	rows = s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
-	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 0, rowCount)
 
-	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
 	// tear down
-	s.RunPostgresSqlFiles(s.postgres.source.pool, testFolder, []string{"teardown.sql"})
-	s.RunPostgresSqlFiles(s.postgres.target.pool, testFolder, []string{"teardown.sql"})
+	err = s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
 }
 
 func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
@@ -598,13 +618,15 @@ func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	mdTests := mysql_multipledbs.GetSyncTests()
 	initTests := mysql_initschema.GetSyncTests()
 	compositeTests := mysql_compositekeys.GetSyncTests()
+	dataTypesTests := mysql_alltypes.GetSyncTests()
 	allTests["Multiple_Dbs"] = mdTests
 	allTests["Composite_Keys"] = compositeTests
 	allTests["Init_Schema"] = initTests
+	allTests["DataTypes"] = dataTypesTests
 	return allTests
 }
 
-func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 	tests := getAllMysqlSyncTests()
 	for groupName, group := range tests {
 		group := group
@@ -614,8 +636,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
-					s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, tt.SourceFilePaths)
-					s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, tt.TargetFilePaths)
+					err := s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					require.NoError(t, err)
 
 					schemas := []*mgmtv1alpha1.MysqlSourceSchemaOption{}
 					subsetMap := map[string]*mgmtv1alpha1.MysqlSourceSchemaOption{}
@@ -706,7 +730,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-														Url: s.mysql.source.url,
+														Url: s.mysql.Source.URL,
 													},
 												},
 											},
@@ -723,7 +747,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-														Url: s.mysql.target.url,
+														Url: s.mysql.Target.URL,
 													},
 												},
 											},
@@ -738,7 +762,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
-					err := env.GetWorkflowError()
+					err = env.GetWorkflowError()
 					if tt.ExpectError {
 						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
 						return
@@ -746,7 +770,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
 
 					for table, expected := range tt.Expected {
-						rows, err := s.mysql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
+						rows, err := s.mysql.Target.DB.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
 						require.NoError(t, err)
 						count := 0
 						for rows.Next() {
@@ -756,8 +780,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 					}
 
 					// tear down
-					s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, []string{"teardown.sql"})
-					s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, []string{"teardown.sql"})
+					err = s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
 				})
 			}
 		})
@@ -973,7 +999,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -984,7 +1009,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1005,7 +1029,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1016,7 +1039,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1039,7 +1061,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1050,7 +1071,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync-source",
 					Column: "a",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1060,21 +1080,18 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			JobOptions: &workflow_testdata.TestJobOptions{
 				DefaultTransformers: &workflow_testdata.DefaultTransformers{
 					Boolean: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 						},
 					},
 					Number: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
-								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: 10, RandomizationRangeMax: 1000},
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: gotypeutil.ToPtr(int64(10)), RandomizationRangeMax: gotypeutil.ToPtr(int64(1000))},
 							},
 						},
 					},
 					String: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{},
@@ -1082,8 +1099,9 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 					Byte: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
 					},
 				},
 			},
@@ -1271,7 +1289,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1282,7 +1299,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "bool",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 						},
@@ -1302,11 +1318,10 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "string",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{
-									PreserveLength: true,
+									PreserveLength: gotypeutil.ToPtr(true),
 								},
 							},
 						},
@@ -1317,7 +1332,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "embedded_document.name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -1330,12 +1344,11 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "decimal128",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
-									RandomizationRangeMin: 0,
-									RandomizationRangeMax: 300,
+									RandomizationRangeMin: gotypeutil.ToPtr(float64(0)),
+									RandomizationRangeMax: gotypeutil.ToPtr(float64(300)),
 								},
 							},
 						},
@@ -1346,12 +1359,11 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "int64",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
-									RandomizationRangeMin: 0,
-									RandomizationRangeMax: 300,
+									RandomizationRangeMin: gotypeutil.ToPtr(int64(0)),
+									RandomizationRangeMax: gotypeutil.ToPtr(int64(300)),
 								},
 							},
 						},
@@ -1362,7 +1374,6 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 					Table:  "test-sync",
 					Column: "timestamp",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
@@ -1378,6 +1389,121 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 		},
 	}
 	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Generate() {
+	// setup
+	testName := "Generate Job"
+	folder := "testdata/generate-job"
+	err := s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"setup.sql"})
+	require.NoError(s.T(), err)
+
+	connectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+	schema := "generate_job"
+	table := "regions"
+
+	destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+		Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+			PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+				InitTableSchema: false,
+				TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: false,
+				},
+				SkipForeignKeyViolations: false,
+			},
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetJobProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+				Job: &mgmtv1alpha1.Job{
+					Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+					Source: &mgmtv1alpha1.JobSource{
+						Options: &mgmtv1alpha1.JobSourceOptions{
+							Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+								Generate: &mgmtv1alpha1.GenerateSourceOptions{
+									Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{{Schema: schema, Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+										{Table: table, RowCount: 10},
+									}}},
+									FkSourceConnectionId: &connectionId,
+								},
+							},
+						},
+					},
+					Destinations: []*mgmtv1alpha1.JobDestination{
+						{
+							ConnectionId: connectionId,
+							Options:      destinationOptions,
+						},
+					},
+					Mappings: []*mgmtv1alpha1.JobMapping{
+						{Schema: schema, Table: table, Column: "region_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
+						}},
+						{Schema: schema, Table: table, Column: "region_name", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+									GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+								},
+							},
+						}},
+					},
+				}}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+						Name: "target",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: s.postgres.Target.URL,
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, nil
+		},
+	))
+
+	addRunContextProcedureMux(mux)
+	srv := startHTTPServer(s.T(), mux)
+	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
+	err = env.GetWorkflowError()
+	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+
+	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
+	require.NoError(s.T(), err)
+	count := 0
+	for rows.Next() {
+		count++
+	}
+	require.Equalf(s.T(), 10, count, fmt.Sprintf("Test: %s Table: %s", testName, table))
+
+	// tear down
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
 }
 
 func executeWorkflow(
@@ -1422,9 +1548,9 @@ func executeWorkflow(
 	)
 	var activityMeter metric.Meter
 	disableReaper := true
-	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, nil, true)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)

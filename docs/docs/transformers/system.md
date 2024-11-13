@@ -4,7 +4,7 @@ description: Learn about Neosync's System Transformers that come out of the box 
 id: system
 hide_title: false
 slug: /transformers/system
-# cSpell:words luhn,huntingon,dach,sporer,rodriguezon,rega,jdoe,lsmith,aidan,kunze,littel,johnsonston
+# cSpell:words luhn,huntingon,dach,sporer,rodriguezon,rega,jdoe,lsmith,aidan,kunze,littel,johnsonston,unixtimestamp,utctimestamp
 ---
 
 ## Introduction
@@ -20,7 +20,7 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | --------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | [Generate Categorical](/transformers/system#generate-categorical)                 | string  | Randomly selects a value from a defined set of categorical values                                                                |
 | [Generate Email](/transformers/system#generate-email)                             | string  | Generates a new randomized email address.                                                                                        |
-| [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | Generates a boolean value at random.                                                                                             |
+| [Generate Boolean](/transformers/system#generate-bool)                            | boolean | Generates a boolean value at random.                                                                                             |
 | [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | Generates a card number.                                                                                                         |
 | [Generate City](/transformers/system#generate-city)                               | string  | Randomly selects a city from a list of predefined US cities.                                                                     |
 | [Generate Country](/transformers/system#generate-country)                         | string  | Randomly selects a country and returns it as a 2-letter country code or the full country name                                    |
@@ -32,17 +32,17 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | [Generate Gender](/transformers/system#generate-gender)                           | string  | Randomly generates one of the following genders: female, male, undefined, nonbinary.                                             |
 | [Generate Javascript](/transformers/system#generate-javascript)                   | any     | Executes provided javascript code in the transformer for every row                                                               |
 | [Generate Int64 Phone Number](/transformers/system#generate-int64-phone-number)   | int64   | Generates a new phone number of type int64 with a default length of 10.                                                          |
-| [Generate Random Int64](/transformers/system#generate-random-int64)               | int64   | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
+| [Generate Random Int64](/transformers/system#generate-int64)                      | int64   | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
 | [Generate Last Name](/transformers/system#generate-last-name)                     | int64   | Generates a random last name.                                                                                                    |
-| [Generate SHA256 Hash](/transformers/system#generate-sha256-hash)                 | string  | SHA256 hashes a randomly generated value.                                                                                        |
+| [Generate SHA256 Hash](/transformers/system#generate-sha256hash)                  | string  | SHA256 hashes a randomly generated value.                                                                                        |
 | [Generate SSN](/transformers/system#generate-ssn)                                 | string  | Generates a completely random social security numbers including the hyphens in the format `xxx-xx-xxxx`.                         |
 | [Generate State](/transformers/system#generate-state)                             | string  | Randomly selects a US state and returns the two-character state code.                                                            |
 | [Generate Street Address](/transformers/system#generate-street-address)           | string  | Randomly generates a street address.                                                                                             |
 | [Generate String Phone Number](/transformers/system#generate-string-phone-number) | string  | Generates a Generate phone number and returns it as a string.                                                                    |
 | [Generate Random String](/transformers/system#generate-random-string)             | string  | Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.       |
-| [Generate Unix Timestamp](/transformers/system#generate-unix-timestamp)           | int64   | Randomly generates a Unix timestamp.                                                                                             |
+| [Generate Unix Timestamp](/transformers/system#generate-unixtimestamp)            | int64   | Randomly generates a Unix timestamp.                                                                                             |
 | [Generate Username](/transformers/system#generate-username)                       | string  | Randomly generates a username                                                                                                    |
-| [Generate UTC Timestamp](/transformers/system#generate-utc-timestamp)             | time    | Randomly generates a UTC timestamp.                                                                                              |
+| [Generate UTC Timestamp](/transformers/system#generate-utctimestamp)              | time    | Randomly generates a UTC timestamp.                                                                                              |
 | [Generate UUID](/transformers/system#generate-uuid)                               | uuid    | Generates a new UUIDv4 id.                                                                                                       |
 | [Generate Zip code](/transformers/system#generate-zipcode)                        | string  | Randomly selects a zip code from a list of predefined US zip codes.                                                              |
 | [Transform Email](/transformers/system#transform-email)                           | string  | Transforms an existing email address.                                                                                            |
@@ -58,12 +58,12 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | [Transform String](/transformers/system#transform-string)                         | string  | Transforms an existing string value.                                                                                             |
 | [Transform Character Scramble](/transformers/system#transform-character-scramble) | string  | Transforms an existing string value by scrambling the characters while maintaining the format.                                   |
 | [Passthrough](/transformers/system#passthrough)                                   | string  | Passes the input value through to the destination with no changes.                                                               |
-| [Null](/transformers/system#null)                                                 | string  | Inserts a `null` string instead of the source value.                                                                             |
-| [Use Column Default](/transformers/system#use-column-default)                     | any     | Applies the predefined default value of a column as specified in the SQL database schema                                         |
+| [Null](/transformers/system#generate-null)                                        | string  | Inserts a `null` string instead of the source value.                                                                             |
+| [Use Column Default](/transformers/system#generate-default)                       | any     | Applies the predefined default value of a column as specified in the SQL database schema                                         |
 
 ### Generate Categorical\{#generate-categorical}
 
-Allows a user to define a list of comma-separated string values that Neosync will randomly sample.
+Randomly selects a value from a defined set of categorical values.
 
 **Configurations**
 
@@ -80,11 +80,7 @@ Allows a user to define a list of comma-separated string values that Neosync wil
 
 ### Generate Email\{#generate-email}
 
-Generates a new randomized email address in the format:
-
-`<username>@<domain>.<top-level-domain>`
-
-By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
+Generates a new randomized email address.
 
 **Configurations**
 
@@ -99,9 +95,9 @@ By default, the transformer randomizes the username, domain and top-level domain
 | `ab6b676b-0d0e-4e38-b98a-3935a832da7d` |
 | `jFrankd@msn.com`                      |
 
-### Generate Boolean\{#generate-boolean}
+### Generate Boolean\{#generate-bool}
 
-Randomly generates a boolean value.
+Generates a random boolean value.
 
 **Configurations**
 
@@ -116,9 +112,7 @@ There are no configurations for this transformer.
 
 ### Generate Card Number\{#generate-card-number}
 
-Generates a new card number that can be [luhn valid.](https://en.wikipedia.org/wiki/Luhn_algorithm)
-
-By default, generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
+Generates a 16 digit card number that is valid by Luhn valid by default.
 
 **Configurations**
 
@@ -135,7 +129,7 @@ By default, generates a random 16 digit card number that is _not_ luhn valid. If
 
 ### Generate City\{#generate-city}
 
-Generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected
+Randomly selects a city from a list of predefined US cities.
 
 **Configurations**
 
@@ -150,7 +144,7 @@ There are no configurations for this transformer.
 
 ### Generate Country\{#generate-country}
 
-Generates a randomly selected country. It can return it in either a 2-letter country code format or the full country name.
+Randomly selects a country and by default, returns it as a 2-letter country code.
 
 **Configurations**
 
@@ -167,11 +161,7 @@ Generates a randomly selected country. It can return it in either a 2-letter cou
 
 ### Generate E164 Phone Number\{#generate-e164-phone-number}
 
-Generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random phone number with no hyphens in the format:
-
-`+34567890123`
-
-Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set the range of the value by setting the `min` and `max` params. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
+Generates a new random international phone number including the + sign and no hyphens.
 
 **Configurations**
 
@@ -190,9 +180,7 @@ Phone numbers also vary in length with some international phone numbers reaching
 
 ### Generate First Name\{#generate-first-name}
 
-Generates a valid first name from a list of predefined first name values.
-
-By default, the generate first name transformer randomly picks a first name with a length between 2 and 12.
+Generates a random first name between 2 and 12 characters long.
 
 **Configurations**
 
@@ -208,16 +196,7 @@ There are no configurations for this transformer.
 
 ### Generate Float64\{#generate-float64}
 
-Generates a random floating point number.
-
-For example:
-`32.2432`
-
-This transformer supports both positive and negative float numbers with a max precision of 17.
-
-Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.
-
-If this is not sufficient, contact us about creating a generator that supports numbers with higher precision.
+Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.
 
 **Configurations**
 
@@ -256,7 +235,7 @@ There are no configurations for this transformer.
 
 ### Generate Full Name\{#generate-full-name}
 
-Generates a valid full name from a list of predefined full name values.
+Generates a new full name consisting of a first and last name.
 
 **Configurations**
 
@@ -272,16 +251,7 @@ There are no configurations for this transformer.
 
 ### Generate Gender\{#generate-gender}
 
-Randomly selects a gender value from a predefined list of genders. Here is the list:
-
-| Gender    | Abbreviation |
-| --------- | ------------ |
-| male      | m            |
-| female    | f            |
-| nonbinary | n            |
-| undefined | u            |
-
-By default, the gender transformer does not abbreviate the gender. If you'd like to return an abbreviated gender, pass in the `abbreviate` config.
+Randomly generates one of the following genders: female (f), male (m), undefined (u), nonbinary (n).
 
 **Configurations**
 
@@ -299,7 +269,7 @@ By default, the gender transformer does not abbreviate the gender. If you'd like
 
 ### Generate Int64 Phone Number\{#generate-int64-phone-number}
 
-Generates a random 10 digit phone number with a valid US area code and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
+Generates a new int64 phone number with a default length of 10.
 
 **Configurations**
 
@@ -319,8 +289,8 @@ Allows the user to define Javascript code and then execute that on every row tha
 **Configurations**
 
 | Name | Description                               | Default         | Example Output |
-| ---- | ----------------------------------------- | --------------- | -------------- | --- |
-| Code | The javascript code that will be executed | `return 'test'` | `test`         | \   |
+| ---- | ----------------------------------------- | --------------- | -------------- |
+| Code | The javascript code that will be executed | `return 'test'` | `test`         |
 
 **Example**
 
@@ -328,12 +298,9 @@ Allows the user to define Javascript code and then execute that on every row tha
 | --------------- | -------------- |
 | `return 'test'` | `test`         |
 
-### Generate Random Int64\{#generate-random-int64}
+### Generate Random Int64\{#generate-int64}
 
-Generates a random integer and returns it as a int64 type.
-
-For example:
-`6782`
+Generates a random int64 value with a default length of 4.
 
 **Configurations**
 
@@ -355,7 +322,7 @@ Note: if randomize sign has been selected, this may cause the generated numbers 
 
 ### Generate Last Name\{#generate-last-name}
 
-Generates a valid last name from a list of predefined last name values.
+Generates a random last name.
 
 **Configurations**
 
@@ -369,9 +336,9 @@ There are no configurations for this transformer.
 | Sporer         |
 | Rodriguezon    |
 
-### Generate SHA256 Hash\{#generate-sha256-hash}
+### Generate SHA256 Hash\{#generate-sha256hash}
 
-Generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
+Generates a random SHA256 hash and returns it as a string.
 
 **Configurations**
 
@@ -387,7 +354,7 @@ There are no configurations for this transformer.
 
 ### Generate SSN\{#generate-ssn}
 
-Randomly generates a social security number and returns it with hyphens as a string.
+Generates a random social security numbers including the hyphens in the format xxx-xx-xxxx.
 
 **Configurations**
 
@@ -402,7 +369,7 @@ There are no configurations for this transformer.
 
 ### Generate State\{#generate-state}
 
-Generates a randomly selected US state in either 2-letter state code format or the full state name.
+Randomly selects a US state and by default, returns it as a 2-letter state code.
 
 **Configurations**
 
@@ -419,7 +386,7 @@ Generates a randomly selected US state in either 2-letter state code format or t
 
 ### Generate Street Address\{#generate-street-address}
 
-Generates a randomly selects a real street address that exists in the United States.
+Randomly generates a street address.
 
 **Configurations**
 
@@ -434,7 +401,7 @@ There are no configurations for this transformer.
 
 ### Generate String Phone Number\{#generate-string-phone-number}
 
-Generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
+Generates a random 10 digit phone number and returns it as a string with no hyphens.
 
 **Configurations**
 
@@ -475,11 +442,9 @@ By default, the random string transformer generates a string of 10 characters lo
 | 1   | 20  | 29h23rega9     |
 | 5   | 5   | h2dni          |
 
-### Generate Unix Timestamp\{#generate-unix-timestamp}
+### Generate Unix Timestamp\{#generate-unixtimestamp}
 
-Randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
-
-By default, the generated timestamp will always be in the **past**.
+Randomly generates a Unix timestamp that is in the past.
 
 **Configurations**
 
@@ -494,7 +459,7 @@ There are no configurations for this transformer.
 
 ### Generate Username\{#generate-username}
 
-The generate username transformer generates a random string in the format of `<first_initial><last_name>`.
+Randomly generates a username
 
 **Configurations**
 
@@ -507,11 +472,9 @@ There are no configurations for this transformer.
 | jdoe           |
 | lsmith         |
 
-### Generate UTC Timestamp\{#generate-utc-timestamp}
+### Generate UTC Timestamp\{#generate-utctimestamp}
 
-Randomly generates a utc timestamp in UTC timezone and returns back a time.Time representation of that timestamp.
-
-By default, the generated timestamp will always be in the **past**.
+Randomly generates a UTC timestamp. in the past.
 
 **Configurations**
 
@@ -561,11 +524,7 @@ There are no configurations for this transformer.
 
 ### Transform Email\{#transform-email}
 
-Anonymizes an existing email address or generate a new randomized email address in the format:
-
-`<username>@<domain>.<top-level-domain>`
-
-By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
+Anonymizes and transforms an existing email address.
 
 **Configurations**
 
@@ -591,9 +550,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform E164 Phone Number\{#transform-e164-phone-number}
 
-Anonymizes an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
-
-E164 Phone numbers vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value in order maintain the same shape as the input value.
+Anonymizes and transforms an existing E164 formatted phone number.
 
 **Configurations**
 
@@ -610,9 +567,7 @@ E164 Phone numbers vary in length with some international phone numbers reaching
 
 ### Transform First Name\{#transform-first-name}
 
-Generates a valid first name from a list of predefined first name values.
-
-By default, the first name transformer generates a first name of random length. To preserve the length of the input first name, you can set the `preserveLength` config.
+Anonymizes and transforms an existing first name.
 
 **Configurations**
 
@@ -629,9 +584,7 @@ By default, the first name transformer generates a first name of random length. 
 
 ### Transform Float64\{#transform-float64}
 
-Anonymizes an existing float64 value or generate a completely random floating point number.
-
-The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and lower bound around the value that you want to anonymize relative to the input. For example, if the input value is 10, and you set the `randomizationRangeMin` value to 5, then the minimum will be 5. And if you set the `randomizationRangeMax` to 5, then the maximum will be 15 ( 10 + 5 = 15).
+Anonymizes and transforms an existing float value.
 
 **Configurations**
 
@@ -650,9 +603,7 @@ The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and 
 
 ### Transform Full Name\{#transform-full-name}
 
-Generates a valid full name from a list of predefined full name values.
-
-By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
+Anonymizes and transforms an existing full name.
 
 **Configurations**
 
@@ -670,9 +621,7 @@ By default, the full name transformer generates a full name of random length. To
 
 ### Transform Int64 Phone Number\{#transform-int64-phone-number}
 
-Anonymizes an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
-
-You can see we generated a new phone integer value that can be used as an integer phone number. Also, note that we don't include hyphens in this transformer since the output type is an `integer`.
+Anonymizes and transforms an existing int64 phone number.
 
 **#Configurations**
 
@@ -689,7 +638,7 @@ You can see we generated a new phone integer value that can be used as an intege
 
 ### Transform Int64\{#transform-int64}
 
-Anonymizes an existing int64 value.
+Anonymizes and transforms an existing int64 value.
 
 **Configurations**
 
@@ -736,9 +685,7 @@ return append(value);
 
 ### Transform Last Name\{#transform-last-name}
 
-Generates a valid last name from a list of predefined last name values.
-
-By default, the last name transformer generates a last name of random length. To preserve the length of the input last name, you can set the `preserveLength` config.
+Anonymizes and transforms an existing last name.
 
 **Configurations**
 
@@ -756,9 +703,7 @@ By default, the last name transformer generates a last name of random length. To
 
 ### Transform Phone Number\{#transform-phone-number}
 
-Anonymizes an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
-
-By default, the transform phone transformer generates a random 10 string value phone number with no hyphens.
+Anonymizes and transforms an existing phone number that is typed as a string.
 
 **Configurations**
 
@@ -775,9 +720,7 @@ By default, the transform phone transformer generates a random 10 string value p
 
 ### Transform String\{#transform-string}
 
-Anonymizes an existing string value of alphanumeric characters.
-
-By default, the random string transformer generates a string of 10 characters long.
+Anonymizes and transforms an existing string value.
 
 **Configurations**
 
@@ -794,14 +737,7 @@ By default, the random string transformer generates a string of 10 characters lo
 
 ### Transform Character Scramble\{#transform-character-scramble}
 
-Transforms a string value with characters into an anonymized version of that string value while preserving spaces and capitalization. Letters will be replaced with letters, numbers with numbers and non-number or letter ASCII characters such as !&\* with other characters.
-
-For example:
-
-Original: Hello World 123!$%
-Substituted: Ifmmp Xpsme 234@%^
-
-Note that this does not work for hex values: 0x00 -> 0x1F such as chinese characters.
+Anonymizes and transforms an existing string value by scrambling the characters while maintaining the format based on a user provided regular expression. Letters will be replaced with letters, numbers with numbers and non-number or letter ASCII characters such as "!&\*" with other characters.
 
 **Configurations**
 
@@ -821,7 +757,7 @@ Note that this does not work for hex values: 0x00 -> 0x1F such as chinese charac
 
 Passes the input data out to the output without making any modifications to it. This is useful in many circumstances but cautious of accidentally leaking sensitive data through this transformer.
 
-### Null\{#null}
+### Null\{#generate-null}
 
 Simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
 
@@ -837,7 +773,7 @@ Here are some examples of what an output null value may look like.
 | ------------- | -------------- |
 | N/A           | null           |
 
-### Use Column Default\{#use-column-default}
+### Use Column Default\{#generate-default}
 
 Automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database. This is typically used in conjunction with `GENERATED` columns.
 

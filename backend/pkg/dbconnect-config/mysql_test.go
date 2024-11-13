@@ -1,7 +1,8 @@
 package dbconnectconfig
 
 import (
-	"net/url"
+	"io"
+	"log/slog"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -17,108 +18,194 @@ var (
 		Pass:     "test-pass",
 		Protocol: "tcp",
 	}
+	discardLogger         = slog.New(slog.NewTextHandler(io.Discard, nil))
+	testConnectionTimeout = uint32(5)
 )
 
-func Test_NewFromMysqlConnection_Connection(t *testing.T) {
-	out, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-				Connection: mysqlconnectionFixture,
-			},
-		},
-	}, ptr(uint32(5)))
+func Test_NewFromMysqlConnection(t *testing.T) {
+	t.Run("Connection", func(t *testing.T) {
+		t.Run("ok", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+							Connection: mysqlconnectionFixture,
+						},
+					},
+				},
+				&testConnectionTimeout,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:test-pass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:        "mysql",
-		host:          "localhost",
-		port:          ptr(int32(3309)),
-		database:      ptr("mydb"),
-		user:          "test-user",
-		pass:          "test-pass",
-		mysqlProtocol: ptr("tcp"),
-		queryParams:   url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}},
+		t.Run("ok_disable_parse_time", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+							Connection: mysqlconnectionFixture,
+						},
+					},
+				},
+				&testConnectionTimeout,
+				discardLogger,
+				true,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:test-pass@tcp(localhost:3309)/mydb?multiStatements=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("ok_no_timeout", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+							Connection: mysqlconnectionFixture,
+						},
+					},
+				},
+				nil,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:test-pass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
 	})
-}
 
-func Test_NewFromMysqlConnection_Url_mysql(t *testing.T) {
-	out, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-				Url: "mysql://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
-			},
-		},
-	}, ptr(uint32(5)))
-
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:        "mysql",
-		host:          "localhost",
-		port:          ptr(int32(3306)),
-		database:      ptr("mydatabase"),
-		user:          "myuser",
-		pass:          "mypassword",
-		mysqlProtocol: nil,
-		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+	t.Run("URL_DSN", func(t *testing.T) {
+		t.Run("ok", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("ok_no_timeout", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "test-user:testpass@tcp(localhost:3309)/mydb",
+						},
+					},
+				},
+				nil,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("ok_specialchars_userpass", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "specialuser!*-:46!ZfMv3@Uh8*-<@@tcp(localhost:3309)/mydb",
+						},
+					},
+				},
+				nil,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"specialuser!*-:46!ZfMv3@Uh8*-<@@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+				actual.String(),
+			)
+			assert.Equal(t, "specialuser!*-", actual.GetUser())
+		})
 	})
-}
-func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
-	out, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-				Url: "mysqlx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
-			},
-		},
-	}, ptr(uint32(5)))
 
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:        "mysqlx",
-		host:          "localhost",
-		port:          ptr(int32(3306)),
-		database:      ptr("mydatabase"),
-		user:          "myuser",
-		pass:          "mypassword",
-		mysqlProtocol: nil,
-		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+	t.Run("URL_URI", func(t *testing.T) {
+		t.Run("ok", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "mysql://test-user:testpass@localhost:3309/mydb",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("ok_no_timeout", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "mysql://test-user:testpass@localhost:3309/mydb",
+						},
+					},
+				},
+				nil,
+				discardLogger,
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
 	})
-}
-
-func Test_NewFromMysqlConnection_Url_Error(t *testing.T) {
-	_, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-				Url: "mysql://myuser:mypassword/mydatabase?ssl=true",
-			},
-		},
-	}, ptr(uint32(5)))
-
-	assert.Error(t, err)
-}
-
-func Test_NewFromMysqlConnection_Url_NoScheme(t *testing.T) {
-	_, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-				Url: "mysqlxxx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
-			},
-		},
-	}, ptr(uint32(5)))
-
-	assert.Error(t, err)
-}
-
-func Test_NewFromMysqlConnection_Url_NoPort(t *testing.T) {
-	_, err := NewFromMysqlConnection(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-				Url: "mysqlxxx://myuser:mypassword@localhost/mydatabase?ssl=true",
-			},
-		},
-	}, ptr(uint32(5)))
-
-	assert.Error(t, err)
 }

@@ -10,9 +10,14 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	columnDefaultDefault = "Default"
+	columnDefaultString  = "String"
 )
 
 type MysqlManager struct {
@@ -27,22 +32,33 @@ func NewManager(querier mysql_queries.Querier, pool mysql_queries.DBTX, closer f
 
 func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.pool)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
 		var generatedType *string
-		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") {
+		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") && !strings.Contains(row.Extra.String, "DEFAULT_GENERATED") {
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}
+
 		columnDefaultStr, err := convertUInt8ToString(row.ColumnDefault)
 		if err != nil {
 			return nil, err
 		}
+
+		var columnDefaultType *string
+		if row.Extra.Valid && columnDefaultStr != "" && row.Extra.String == "" {
+			val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
+			columnDefaultType = &val
+		} else if row.Extra.Valid && columnDefaultStr != "" && row.Extra.String != "" {
+			val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
+			columnDefaultType = &val
+		}
+
 		charMaxLength := -1
 		if row.CharacterMaximumLength.Valid {
 			charMaxLength = int(row.CharacterMaximumLength.Int64)
@@ -68,7 +84,8 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
 			ColumnDefault:          columnDefaultStr,
-			IsNullable:             row.IsNullable,
+			ColumnDefaultType:      columnDefaultType,
+			IsNullable:             row.IsNullable != "NO",
 			GeneratedType:          generatedType,
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
@@ -81,7 +98,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 }
 
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -96,9 +113,9 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 	}
 
 	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
@@ -172,9 +189,9 @@ func jsonRawToSlice[T any](j json.RawMessage) ([]T, error) {
 
 func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
 	rows, err := m.querier.GetMysqlRolePermissions(ctx, m.pool)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return map[string][]string{}, nil
 	}
 
@@ -285,6 +302,19 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return nil, err
 			}
+			var columnDefaultType *string
+			if identityType != nil && columnDefaultStr != "" && *identityType == "" {
+				val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
+				columnDefaultType = &val
+			} else if identityType != nil && columnDefaultStr != "" && *identityType != "" {
+				val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
+				columnDefaultType = &val
+			}
+			columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
+			if err != nil {
+				return nil, err
+			}
+
 			genExp, err := convertUInt8ToString(record.GenerationExp)
 			if err != nil {
 				return nil, err
@@ -316,8 +346,11 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	return output, nil
 }
 
-//nolint:gofmt
-func convertUInt8ToString(value interface{}) (string, error) {
+func (m *MysqlManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func convertUInt8ToString(value any) (string, error) {
 	convertedType, ok := value.([]uint8)
 	if !ok {
 		return "", fmt.Errorf("failed to convert []uint8 to string")
@@ -351,7 +384,7 @@ func buildTableCol(record *buildTableColRequest) string {
 	}
 
 	if record.ColumnDefault != "" {
-		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
+		pieces = append(pieces, fmt.Sprintf("DEFAULT %s", record.ColumnDefault))
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
@@ -469,9 +502,9 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 				Schema: schema,
 				Tables: tables,
 			})
-			if err != nil && !nucleusdb.IsNoRows(err) {
+			if err != nil && !neosyncdb.IsNoRows(err) {
 				return err
-			} else if err != nil && nucleusdb.IsNoRows(err) {
+			} else if err != nil && neosyncdb.IsNoRows(err) {
 				return nil
 			}
 
@@ -575,9 +608,9 @@ func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, tabl
 
 func (m *MysqlManager) getFunctionsByTables(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DataType{}, nil
 	}
 
@@ -792,4 +825,24 @@ func EscapeMysqlColumns(cols []string) []string {
 
 func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
+}
+
+func EscapeMysqlDefaultColumn(defaultColumnValue string, defaultColumnType *string) (string, error) {
+	defaultColumnTypes := []string{columnDefaultString, columnDefaultDefault}
+	if defaultColumnType == nil {
+		return defaultColumnValue, nil
+	}
+	if *defaultColumnType == columnDefaultString {
+		return fmt.Sprintf("'%s'", defaultColumnValue), nil
+	}
+	if *defaultColumnType == columnDefaultDefault {
+		return fmt.Sprintf("(%s)", defaultColumnValue), nil
+	}
+	return fmt.Sprintf("(%s)", defaultColumnValue), fmt.Errorf("unsupported default column type: %s, currently supported types are: %v", *defaultColumnType, defaultColumnTypes)
+}
+
+func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+	return
 }

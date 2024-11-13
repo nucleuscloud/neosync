@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -28,10 +29,10 @@ So we will need to understand what type of column the user is trying to insert t
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.").
+		Description("Generates a random int64 value with a default length of 4.").
 		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
-		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated int.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated int.")).
+		Param(bloblang.NewInt64Param("min").Default(1).Description("Specifies the minimum value for the generated int.")).
+		Param(bloblang.NewInt64Param("max").Default(10000).Description("Specifies the maximum value for the generated int.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -74,6 +75,22 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateInt64OptsFromConfig(config *mgmtv1alpha1.GenerateInt64) (*GenerateInt64Opts, error) {
+	if config == nil {
+		return NewGenerateInt64Opts(
+			nil,
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateInt64Opts(
+		config.RandomizeSign,
+		config.Min,
+		config.Max, nil,
+	)
 }
 
 func (t *GenerateInt64) Generate(opts any) (any, error) {

@@ -1,13 +1,14 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,12 +19,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -87,7 +88,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger, sqlconnect.WithMysqlParseTimeDisabled())
 		if err != nil {
 			return err
 		}
@@ -104,7 +105,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		r, err := db.QueryContext(ctx, query)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 
@@ -118,7 +119,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		rows, err := db.QueryContext(ctx, selectQuery)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 
@@ -148,11 +149,11 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger, sqlconnect.WithDefaultPostgresDriver())
 		if err != nil {
 			return err
 		}
-		db, err := conn.Open(ctx)
+		db, err := conn.Open()
 		if err != nil {
 			return err
 		}
@@ -164,65 +165,41 @@ func (s *Service) GetConnectionDataStream(
 		if err != nil {
 			return err
 		}
-		r, err := db.Query(ctx, query)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		r, err := db.QueryContext(ctx, query)
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer r.Close()
 
-		columnNames := []string{}
-		for _, col := range r.FieldDescriptions() {
-			columnNames = append(columnNames, col.Name)
+		columnNames, err := r.Columns()
+		if err != nil {
+			return err
 		}
 
 		selectQuery, err := querybuilder.BuildSelectQuery("postgres", table, columnNames, nil)
 		if err != nil {
 			return err
 		}
-		rows, err := db.Query(ctx, selectQuery)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		rows, err := db.QueryContext(ctx, selectQuery)
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer rows.Close()
 
+		// todo: this is probably way fucking broken now
 		for rows.Next() {
 			values := make([][]byte, len(columnNames))
 			valuesWrapped := make([]any, 0, len(columnNames))
-
-			for i, col := range r.FieldDescriptions() {
-				if col.DataTypeOID == 1082 { // OID for date
-					var t time.Time
-					ds := DateScanner{val: &t}
-					valuesWrapped = append(valuesWrapped, &ds)
-				} else {
-					valuesWrapped = append(valuesWrapped, &values[i])
-				}
+			for i := range values {
+				valuesWrapped = append(valuesWrapped, &values[i])
 			}
-
 			if err := rows.Scan(valuesWrapped...); err != nil {
 				return err
 			}
 			row := map[string][]byte{}
 			for i, v := range values {
 				col := columnNames[i]
-				if r.FieldDescriptions()[i].DataTypeOID == 1082 { // OID for date
-					// Convert time.Time value to []byte
-					if ds, ok := valuesWrapped[i].(*DateScanner); ok && ds.val != nil {
-						row[col] = []byte(ds.val.Format(time.RFC3339))
-					} else {
-						row[col] = v
-					}
-				} else if r.FieldDescriptions()[i].DataTypeOID == 2950 { // OID for UUID
-					// Convert the byte slice to a uuid.UUID type
-					uuidValue, err := uuid.FromBytes(v)
-					if err == nil {
-						row[col] = []byte(uuidValue.String())
-					} else {
-						row[col] = v
-					}
-				} else {
-					row[col] = v
-				}
+				row[col] = v
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -256,14 +233,17 @@ func (s *Service) GetConnectionDataStream(
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
+			logger = logger.With("jobId", id.JobId)
 			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
 			if err != nil {
 				return err
 			}
+			logger.Debug(fmt.Sprintf("found run id for job in s3: %s", runId))
 			jobRunId = runId
 		default:
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
+		logger = logger.With("runId", jobRunId)
 
 		tableName := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		s3pathpieces = append(
@@ -304,27 +284,30 @@ func (s *Service) GetConnectionDataStream(
 					return fmt.Errorf("error creating gzip reader: %w", err)
 				}
 
-				scanner := bufio.NewScanner(gzr)
-				for scanner.Scan() {
-					line := scanner.Bytes()
+				decoder := json.NewDecoder(gzr)
+				for {
 					var data map[string]any
-					err = json.Unmarshal(line, &data)
-					if err != nil {
+
+					// Decode the next JSON object
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
+						break // End of file, stop the loop
+					} else if err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
 					}
-
 					rowMap := make(map[string][]byte)
 					for key, value := range data {
 						var byteValue []byte
-						if str, ok := value.(string); ok {
+						switch v := value.(type) {
+						case string:
 							// try converting string directly to []byte
 							// prevents quoted strings
-							byteValue = []byte(str)
-						} else {
+							byteValue = []byte(v)
+						default:
 							// if not a string use JSON encoding
-							byteValue, err = json.Marshal(value)
+							byteValue, err = json.Marshal(v)
 							if err != nil {
 								result.Body.Close()
 								gzr.Close()
@@ -341,11 +324,6 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-				}
-				if err := scanner.Err(); err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return err
 				}
 				result.Body.Close()
 				gzr.Close()
@@ -536,7 +514,7 @@ func (s *Service) GetConnectionSchema(
 				Table:              col.TableName,
 				Column:             col.ColumnName,
 				DataType:           col.DataType,
-				IsNullable:         col.IsNullable,
+				IsNullable:         col.NullableString(),
 				ColumnDefault:      defaultColumn,
 				GeneratedType:      col.GeneratedType,
 				IdentityGeneration: col.IdentityGeneration,
@@ -648,7 +626,8 @@ func (s *Service) GetConnectionSchema(
 					return nil, err
 				}
 				if out == nil {
-					break
+					logger.Info(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
+					continue
 				}
 				item := out.Contents[0]
 				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
@@ -658,6 +637,10 @@ func (s *Service) GetConnectionSchema(
 				if err != nil {
 					return nil, err
 				}
+				if result.ContentLength == nil || *result.ContentLength == 0 {
+					logger.Info(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
+					continue
+				}
 
 				gzr, err := gzip.NewReader(result.Body)
 				if err != nil {
@@ -665,12 +648,14 @@ func (s *Service) GetConnectionSchema(
 					return nil, fmt.Errorf("error creating gzip reader: %w", err)
 				}
 
-				scanner := bufio.NewScanner(gzr)
-				if scanner.Scan() {
-					line := scanner.Bytes()
+				decoder := json.NewDecoder(gzr)
+				for {
 					var data map[string]any
-					err = json.Unmarshal(line, &data)
-					if err != nil {
+					// Decode the next JSON object
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
+						break // End of file, stop the loop
+					} else if err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return nil, err
@@ -683,11 +668,7 @@ func (s *Service) GetConnectionSchema(
 							Column: key,
 						})
 					}
-				}
-				if err := scanner.Err(); err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return nil, err
+					break // Only care about first record
 				}
 				result.Body.Close()
 				gzr.Close()
@@ -1049,14 +1030,14 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 
 func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string, logger *slog.Logger) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	conntimeout := uint32(5)
-	switch cconfig := connection.ConnectionConfig.Config.(type) {
+	switch connection.GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(cconfig.PgConfig, &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
 		if err != nil {
 			return nil, err
 		}
 		defer conn.Close()
-		db, err := conn.Open(ctx)
+		db, err := conn.Open()
 		if err != nil {
 			return nil, err
 		}
@@ -1077,7 +1058,7 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 		}
 		return schemas, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -1145,44 +1126,53 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	ctx context.Context,
 	logger *slog.Logger,
 	s3Client *s3.Client,
-	jobId, bucket string,
+	jobId,
+	bucket string,
 	region *string,
 	s3pathpieces []string,
 ) (string, error) {
-	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
-		JobId: jobId,
-	}))
-	if err != nil {
-		return "", err
-	}
-	jobRuns := jobRunsResp.Msg.GetRecentRuns()
+	pieces := []string{}
+	pieces = append(pieces, s3pathpieces...)
+	pieces = append(pieces, "workflows", jobId)
+	path := strings.Join(pieces, "/")
 
-	for i := len(jobRuns) - 1; i >= 0; i-- {
-		runId := jobRuns[i].JobRunId
-		s3pathpieces = append(
-			s3pathpieces,
-			"workflows",
-			runId,
-			"activities/",
-		)
-		path := strings.Join(s3pathpieces, "/")
+	var continuationToken *string
+	done := false
+	commonPrefixes := []string{}
+	for !done {
 		output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
-			Bucket:    aws.String(bucket),
-			Prefix:    aws.String(path),
-			Delimiter: aws.String("/"),
+			Bucket:            aws.String(bucket),
+			Prefix:            aws.String(path),
+			Delimiter:         aws.String("/"),
+			ContinuationToken: continuationToken,
 		})
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("unable to list job run directories from s3: %w", err)
 		}
-		if output == nil {
-			continue
-		}
-		if *output.KeyCount > 0 {
-			logger.Info(fmt.Sprintf("found latest job run: %s", runId))
-			return runId, nil
+		continuationToken = output.NextContinuationToken
+		done = !*output.IsTruncated
+		for _, cp := range output.CommonPrefixes {
+			commonPrefixes = append(commonPrefixes, *cp.Prefix)
 		}
 	}
-	return "", nucleuserrors.NewInternalError(fmt.Sprintf("unable to find latest job run for job: %s", jobId))
+
+	logger.Debug(fmt.Sprintf("found %d common prefixes for job in s3", len(commonPrefixes)))
+
+	runIDs := make([]string, 0, len(commonPrefixes))
+	for _, prefix := range commonPrefixes {
+		parts := strings.Split(strings.TrimSuffix(prefix, "/"), "/")
+		if len(parts) >= 2 {
+			runID := parts[len(parts)-1]
+			runIDs = append(runIDs, runID)
+		}
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(runIDs)))
+
+	if len(runIDs) == 0 {
+		return "", nucleuserrors.NewNotFound(fmt.Sprintf("unable to find latest job run for job in s3 after processing common prefixes: %s", jobId))
+	}
+	logger.Debug(fmt.Sprintf("found %d run ids for job in s3", len(runIDs)))
+	return runIDs[0], nil
 }
 
 func (s *Service) areSchemaAndTableValid(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string) error {
@@ -1325,7 +1315,7 @@ func (s *Service) GetAiGeneratedData(
 
 	conversation := []azopenai.ChatRequestMessageClassification{
 		&azopenai.ChatRequestSystemMessage{
-			Content: ptr(fmt.Sprintf("You generate data in JSON format. Generate %d records in a json array located on the data key", req.Msg.GetCount())),
+			Content: azopenai.NewChatRequestSystemMessageContent(fmt.Sprintf("You generate data in JSON format. Generate %d records in a json array located on the data key", req.Msg.GetCount())),
 		},
 		&azopenai.ChatRequestUserMessage{
 			Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%s\n%s", req.Msg.GetUserPrompt(), fmt.Sprintf("Each record looks like this: %s", strings.Join(columns, ",")))),

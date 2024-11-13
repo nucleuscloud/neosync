@@ -40,8 +40,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 		buildRunConfig("genbenthosconfigs_querybuilder.item", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "expense_id"}, []string{"id", "expense_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.company": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.company": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -81,7 +81,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -135,9 +135,9 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_e", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -178,7 +178,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -316,8 +316,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -369,7 +369,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -462,8 +462,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -499,7 +499,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -591,8 +591,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -628,7 +628,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -722,7 +722,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{}
 
 	expectedValues := map[string]map[string][]int64{
 		"genbenthosconfigs_querybuilder.orders": {
@@ -753,7 +753,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -822,11 +822,11 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.company":  {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_a": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.company":  {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -859,7 +859,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -927,11 +927,11 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.company":  {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.ColumnInfo{}},
-		"genbenthosconfigs_querybuilder.test_2_a": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.company":  {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_x": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_b": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
+		"genbenthosconfigs_querybuilder.test_2_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedCount := map[string]int{
@@ -948,7 +948,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		rowCount := 0
@@ -1007,8 +1007,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		),
 	}
 
-	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"genbenthosconfigs_querybuilder.division": {"id": &sqlmanager_shared.ColumnInfo{}},
+	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		"genbenthosconfigs_querybuilder.division": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
 	}
 
 	expectedValues := map[string]map[string][]int64{
@@ -1038,7 +1038,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -1203,58 +1203,58 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 		),
 	}
 
-	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"genbenthosconfigs_querybuilder.attachments": {
-			"attachment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"comment_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"file_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptr(255), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"file_path":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptr(255), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"uploaded_by":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"attachment_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"comment_id":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"file_name":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: 255, NumericPrecision: -1, NumericScale: -1},
+			"file_path":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: 255, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"task_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"uploaded_by":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.comments": {
-			"comment_id":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"content":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"created_at":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"parent_comment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"task_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"comment_id":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"content":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"created_at":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"parent_comment_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"task_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.initiatives": {
-			"client_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"lead_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
+			"client_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"description":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"lead_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name":          &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
 		},
 		"genbenthosconfigs_querybuilder.skills": {
-			"category": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"skill_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"category": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"name":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"skill_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.tasks": {
-			"assignee_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"reviewer_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"status":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: ptr(50), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"title":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: ptr(200), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
+			"assignee_id":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"description":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"reviewer_id":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"status":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: 50, NumericPrecision: -1, NumericScale: -1},
+			"task_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"title":         &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: 200, NumericPrecision: -1, NumericScale: -1},
 		},
 		"genbenthosconfigs_querybuilder.user_skills": {
-			"proficiency_level": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"skill_id":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_skill_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"proficiency_level": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"skill_id":          &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_skill_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.users": {
-			"email":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"manager_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"mentor_id":  &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"user_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"email":      &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"manager_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"mentor_id":  &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"user_id":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 	}
 
@@ -1308,7 +1308,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		if rows != nil {
 			allrows = append(allrows, rows)
 		}
@@ -1383,26 +1383,26 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		),
 	}
 
-	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"genbenthosconfigs_querybuilder.network_types": {
-			"id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"id":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.networks": {
-			"id":              &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name":            &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"address":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "timestamp without time zone", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"network_type_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"id":              &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name":            &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"address":         &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "timestamp without time zone", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"network_type_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"genbenthosconfigs_querybuilder.network_users": {
-			"id":            &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"username":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"email":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"password_hash": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"first_name":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"last_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"network_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"created_at":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 8, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
+			"id":            &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"username":      &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"email":         &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"password_hash": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"first_name":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"last_name":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"network_id":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"created_at":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 8, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
 		},
 	}
 
@@ -1437,7 +1437,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		assert.NotEmpty(s.T(), sql, "table %s", table)
 
-		rows, err := s.pgpool.Query(s.ctx, sql)
+		rows, err := s.pgcontainer.DB.Query(s.ctx, sql)
 		if rows != nil {
 			allrows = append(allrows, rows)
 		}
@@ -1607,58 +1607,58 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 		),
 	}
 
-	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"mssqltest.attachments": {
-			"attachment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"comment_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"file_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptr(255), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"file_path":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptr(255), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"uploaded_by":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"attachment_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"comment_id":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"file_name":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: 255, NumericPrecision: -1, NumericScale: -1},
+			"file_path":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: 255, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"task_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"uploaded_by":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"mssqltest.comments": {
-			"comment_id":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"content":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"created_at":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"parent_comment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"task_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"comment_id":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"content":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"created_at":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"parent_comment_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"task_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"mssqltest.initiatives": {
-			"client_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"lead_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
+			"client_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"description":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"lead_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name":          &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
 		},
 		"mssqltest.skills": {
-			"category": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"skill_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"category": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"name":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"skill_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"mssqltest.tasks": {
-			"assignee_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"reviewer_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"status":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: ptr(50), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"title":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: ptr(200), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
+			"assignee_id":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"description":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: -1, NumericPrecision: -1, NumericScale: -1},
+			"initiative_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"reviewer_id":   &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"status":        &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: 50, NumericPrecision: -1, NumericScale: -1},
+			"task_id":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"title":         &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: 200, NumericPrecision: -1, NumericScale: -1},
 		},
 		"mssqltest.user_skills": {
-			"proficiency_level": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"skill_id":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"user_skill_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"proficiency_level": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"skill_id":          &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_id":           &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"user_skill_id":     &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 		"mssqltest.users": {
-			"email":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"manager_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"mentor_id":  &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
-			"name":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptr(100), NumericPrecision: ptr(-1), NumericScale: ptr(-1)},
-			"user_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptr(-1), NumericPrecision: ptr(32), NumericScale: ptr(0)},
+			"email":      &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"manager_id": &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"mentor_id":  &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
+			"name":       &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: 100, NumericPrecision: -1, NumericScale: -1},
+			"user_id":    &sqlmanager_shared.DatabaseSchemaRow{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: -1, NumericPrecision: 32, NumericScale: 0},
 		},
 	}
 

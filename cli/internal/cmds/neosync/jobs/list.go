@@ -2,7 +2,6 @@ package jobs_cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -11,11 +10,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -36,8 +31,12 @@ func newListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return listJobs(cmd.Context(), &apiKey, &accountId)
+			return listJobs(cmd.Context(), debugMode, &apiKey, &accountId)
 		},
 	}
 	cmd.Flags().String("account-id", "", "Account to list jobs for. Defaults to account id in cli context")
@@ -46,36 +45,31 @@ func newListCmd() *cobra.Command {
 
 func listJobs(
 	ctx context.Context,
-	apiKey, accountIdFlag *string,
+	debug bool,
+	apiKey,
+	accountIdFlag *string,
 ) error {
-	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debug))
+
+	neosyncurl := auth.GetNeosyncUrl()
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err
 	}
 
-	var accountId = accountIdFlag
-	if accountId == nil || *accountId == "" {
-		aId, err := userconfig.GetAccountId()
-		if err != nil {
-			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") //nolint:forbidigo
-			return err
-		}
-		accountId = &aId
-	}
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl)
 
-	if accountId == nil || *accountId == "" {
-		return errors.New("Account Id not found. Please use account switch command to set account.")
+	accountId, err := auth.ResolveAccountIdFromFlag(ctx, userclient, accountIdFlag, apiKey, logger)
+	if err != nil {
+		return err
 	}
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		http_client.NewWithHeaders(version.Get().Headers()),
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
+		httpclient,
+		neosyncurl,
 	)
 	res, err := jobclient.GetJobs(ctx, connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
-		AccountId: *accountId,
+		AccountId: accountId,
 	}))
 	if err != nil {
 		return err

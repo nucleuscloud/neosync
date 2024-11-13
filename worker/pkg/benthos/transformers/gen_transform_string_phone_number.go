@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -26,10 +26,20 @@ func NewTransformStringPhoneNumber() *TransformStringPhoneNumber {
 }
 
 func NewTransformStringPhoneNumberOpts(
-	preserveLength bool,
-	maxLength int64,
+	preserveLengthArg *bool,
+	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformStringPhoneNumberOpts, error) {
+	preserveLength := bool(false)
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	maxLength := int64(100)
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -42,10 +52,31 @@ func NewTransformStringPhoneNumberOpts(
 	}, nil
 }
 
+func (o *TransformStringPhoneNumberOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"max_length:%v",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.preserveLength,
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_phone_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformStringPhoneNumber",
-		Description: "Transforms an existing phone number that is typed as a string.",
+		Description: "Anonymizes and transforms an existing phone number that is typed as a string.",
 		Example: "",
 	}, nil
 }
@@ -53,16 +84,16 @@ func (t *TransformStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) 
 func (t *TransformStringPhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformStringPhoneNumberOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformStringPhoneNumber", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
-	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformStringPhoneNumber", "maxLength")
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 100
 	}
-	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
 	var seedArg *int64

@@ -21,6 +21,9 @@
     "clean": {
       "cache": false
     },
-    "typecheck": {}
+    "typecheck": {},
+    "test": {
+      "dependsOn": ["^build"]
+    }
   }
 }

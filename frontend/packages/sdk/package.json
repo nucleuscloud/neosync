@@ -32,7 +32,7 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 0",
     "clean": "rm -rf dist",
     "build": "tsup src/index.ts src/connectquery.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts src/connectquery.ts --format esm,cjs --dts --watch",
@@ -42,12 +42,11 @@
   "author": "nickzelei",
   "license": "MIT",
   "devDependencies": {
-    "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
+    "tsup": "^8.3.0"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
-    "@connectrpc/connect": "^1.4.0"
+    "@connectrpc/connect": "^1.5.0"
   },
   "repository": {
     "type": "git",

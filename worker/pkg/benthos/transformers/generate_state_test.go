@@ -81,3 +81,13 @@ func Test_StateTransformer(t *testing.T) {
 	assert.Len(t, res, 2)
 	assert.True(t, stateExists, "The generated state should exist in the states.go file")
 }
+
+func Test_StateTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_state()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the state transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

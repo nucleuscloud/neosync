@@ -4,7 +4,7 @@ import ResourceId from '@/components/ResourceId';
 import Spinner from '@/components/Spinner';
 import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import LearnMoreTag from '@/components/labels/LearnMoreTag';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import PermissionsDataTable from '@/components/permissions/PermissionsDataTable';
 import { TestConnectionResult } from '@/components/permissions/PermissionsDialog';
 import {
@@ -209,7 +209,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
       <div className="flex flex-row justify-between items-center w-full">
         <div className="text-muted-foreground text-sm">
           Review the permissions that Neosync needs for your connection.{' '}
-          <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
+          <LearnMoreLink href="https://docs.neosync.dev/connections/postgres#permissions" />
         </div>
       </div>
 

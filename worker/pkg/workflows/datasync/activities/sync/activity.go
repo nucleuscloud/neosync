@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/gcp"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
@@ -16,13 +17,17 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
 	_ "github.com/warpstreamlabs/bento/public/components/redis"
-	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/mongo"
+	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
@@ -51,7 +56,7 @@ type SyncMetadata struct {
 type SyncRequest struct {
 	// Deprecated
 	BenthosConfig string
-	BenthosDsns   []*shared.BenthosDsn
+	BenthosDsns   []*benthosbuilder_shared.BenthosDsn
 	// Identifier that is used in combination with the AccountId to retrieve the benthos config
 	Name      string
 	AccountId string
@@ -64,6 +69,7 @@ type SyncResponse struct {
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
+	sqlconnector sqlconnect.SqlConnector,
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
 	meter metric.Meter,
@@ -73,6 +79,7 @@ func New(
 	return &Activity{
 		connclient:           connclient,
 		jobclient:            jobclient,
+		sqlconnector:         sqlconnector,
 		tunnelmanagermap:     tunnelmanagermap,
 		temporalclient:       temporalclient,
 		meter:                meter,
@@ -82,6 +89,7 @@ func New(
 }
 
 type Activity struct {
+	sqlconnector         sqlconnect.SqlConnector
 	connclient           mgmtv1alpha1connect.ConnectionServiceClient
 	jobclient            mgmtv1alpha1connect.JobServiceClient
 	tunnelmanagermap     *sync.Map
@@ -94,9 +102,9 @@ type Activity struct {
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
 		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(),
+		sqlprovider.NewProvider(a.sqlconnector),
 	)
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any, any](connectionProvider))
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any](connectionProvider))
 	manager, ok := val.(connectiontunnelmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
@@ -248,14 +256,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		bdns := bdns
 		errgrp.Go(func() error {
 			connection := connections[idx]
-			// benthos raws will need to have a map of connetions due to there possibly being more than one connection per benthos run associated to the configs
-			// so the raws need to have connections that will be good for every connection string it will encounter in a single run
-			localConnStr, err := tunnelmanager.GetConnectionString(session, connection, slogger)
-			if err != nil {
-				return err
-			}
-			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
-			dsnToConnectionIdMap.Store(localConnStr, connection.Id)
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, connection.Id)
+			dsnToConnectionIdMap.Store(connection.Id, connection.Id)
 			return nil
 		})
 	}
@@ -263,27 +265,30 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	benthosenv, err := benthos_environment.New(&benthos_environment.RegisterConfig{
-		Meter: a.meter,
-		SqlConfig: &benthos_environment.SqlConfig{
-			Provider: newSqlPoolProvider(getSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+	benenv, err := benthos_environment.NewEnvironment(
+		slogger,
+		benthos_environment.WithMeter(a.meter),
+		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
+			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 			IsRetry:  isRetry,
-		},
-		MongoConfig: &benthos_environment.MongoConfig{
-			Provider: newMongoPoolProvider(getMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
-		},
-		StopChannel: stopActivityChan,
-	})
+		}),
+		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
+			Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+		}),
+		benthos_environment.WithStopChannel(stopActivityChan),
+		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
-	envKeyMap["TEMPORAL_WORKFLOW_ID"] = info.WorkflowExecution.ID
-	envKeyMap["TEMPORAL_RUN_ID"] = info.WorkflowExecution.RunID
+	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
+	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
+	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
 
 	streamBuilderMu.Lock()
-	streambldr := benthosenv.NewStreamBuilder()
+	streambldr := benenv.NewStreamBuilder()
 	// would ideally use the activity logger here but can't convert it into a slog.
 	streambldr.SetLogger(slogger.With(
 		"benthos", "true",
@@ -336,7 +341,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 func getConnectionsFromBenthosDsns(
 	ctx context.Context,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	dsns []*shared.BenthosDsn,
+	dsns []*benthosbuilder_shared.BenthosDsn,
 ) ([]*mgmtv1alpha1.Connection, error) {
 	connections := make([]*mgmtv1alpha1.Connection, len(dsns))
 

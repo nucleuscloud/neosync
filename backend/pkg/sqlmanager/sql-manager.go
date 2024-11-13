@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -21,15 +21,11 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	// _ "github.com/microsoft/go-mssqldb" // This is commented out because one of our dependencies is importing this already and it panics if called more than once.
 )
 
 type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
-	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
@@ -38,6 +34,7 @@ type SqlDatabase interface {
 	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
 	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
 	GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)
+	GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
@@ -118,15 +115,11 @@ func (s *SqlManager) NewPooledSqlDb(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var closer func()
 		if _, ok := s.pgpool.Load(connection.Id); !ok {
-			pgconfig := connection.ConnectionConfig.GetPgConfig()
-			if pgconfig == nil {
-				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
-			}
-			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
+			pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
-			pool, err := pgconn.Open(ctx)
+			pool, err := pgconn.Open()
 			if err != nil {
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
@@ -244,11 +237,11 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection is not a postgres config")
 		}
-		pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, connTimeout, slogger)
+		pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 		}
-		pool, err := pgconn.Open(ctx)
+		pool, err := pgconn.Open()
 		if err != nil {
 			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 		}
@@ -310,31 +303,32 @@ func (s *SqlManager) NewSqlDbFromUrl(
 ) (*SqlConnection, error) {
 	var db SqlDatabase
 	switch driver {
-	case sqlmanager_shared.PostgresDriver:
-		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
+	case sqlmanager_shared.PostgresDriver, "postgres":
+		pgxconfig, err := pgx.ParseConfig(connectionUrl)
 		if err != nil {
 			return nil, err
 		}
-		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
+		pgxconfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
 			LogLevel: pgxslog.GetDatabaseLogLevel(),
 		}
-		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
-		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
+		pgxconfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+		pgconn, err := pgx.ConnectConfig(ctx, pgxconfig)
 		if err != nil {
 			return nil, err
 		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pgconn, func() {
+		sqldb := stdlib.OpenDB(*pgxconfig)
+		db = sqlmanager_postgres.NewManager(s.pgquerier, sqldb, func() {
 			if pgconn != nil {
-				pgconn.Close()
+				sqldb.Close()
 			}
 		})
 		driver = sqlmanager_shared.PostgresDriver
 	case sqlmanager_shared.MysqlDriver:
 		if strings.Contains(connectionUrl, "?") {
-			connectionUrl = fmt.Sprintf("%s&multiStatements=true", connectionUrl)
+			connectionUrl = fmt.Sprintf("%s&multiStatements=true&parseTime=true", connectionUrl)
 		} else {
-			connectionUrl = fmt.Sprintf("%s?multiStatements=true", connectionUrl)
+			connectionUrl = fmt.Sprintf("%s?multiStatements=true&parseTime=true", connectionUrl)
 		}
 
 		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)
@@ -366,4 +360,20 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		Db:     db,
 		Driver: driver,
 	}, nil
+}
+
+func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver, "postgres":
+		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	case sqlmanager_shared.MysqlDriver:
+		needsOverride, needsReset := sqlmanager_mysql.GetMysqlColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	case sqlmanager_shared.MssqlDriver:
+		needsOverride, needsReset := sqlmanager_mssql.GetMssqlColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	default:
+		return false, false, fmt.Errorf("unsupported sql driver: %s", driver)
+	}
 }

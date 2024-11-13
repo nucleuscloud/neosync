@@ -9,7 +9,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Init Schema",
-			Folder:          "mysql/init-schema",
+			Folder:          "testdata/mysql/init-schema",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create-dbs.sql"},
 			JobMappings:     getJobmappings(),

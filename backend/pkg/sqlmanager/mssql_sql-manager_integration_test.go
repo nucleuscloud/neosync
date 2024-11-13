@@ -5,7 +5,6 @@ import (
 	"fmt"
 	slog "log/slog"
 	"net/url"
-	"os"
 	"sync"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/suite"
 
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
@@ -90,10 +90,8 @@ func (s *MssqlIntegrationTestSuite) TearDownSuite() {
 }
 
 func TestMssqlIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
 		return
 	}
 	suite.Run(t, new(MssqlIntegrationTestSuite))

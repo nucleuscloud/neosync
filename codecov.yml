@@ -1,3 +1,5 @@
 ignore:
   - "**/mock_*.go"
   - "backend/gen/**"
+github_checks:
+  annotations: false

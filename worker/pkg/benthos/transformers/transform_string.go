@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -13,11 +14,11 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Transforms an existing string value.").
+		Description("Anonymizes and transforms an existing string value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("min_length").Default(1).Description("Specifies the minimum length of the transformed value.")).
-		Param(bloblang.NewInt64Param("max_length").Default(20).Description("Specifies the maximum length of the transformed value.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length of the transformed value.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -67,6 +68,18 @@ func init() {
 	}
 }
 
+func NewTransformStringOptsFromConfig(config *mgmtv1alpha1.TransformString, minLength, maxLength *int64) (*TransformStringOpts, error) {
+	if config == nil {
+		return NewTransformStringOpts(nil, nil, nil, nil)
+	}
+	return NewTransformStringOpts(
+		config.PreserveLength,
+		minLength,
+		maxLength,
+		nil,
+	)
+}
+
 func (t *TransformString) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformStringOpts)
 	if !ok {
@@ -83,8 +96,8 @@ func (t *TransformString) Transform(value, opts any) (any, error) {
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
 func transformString(randomizer rng.Rand, value *string, preserveLength bool, minLength, maxLength int64) (*string, error) {
-	if value == nil {
-		return nil, nil
+	if value == nil || *value == "" {
+		return value, nil
 	}
 
 	minL := minLength

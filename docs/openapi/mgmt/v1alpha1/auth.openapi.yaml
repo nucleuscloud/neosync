@@ -1,0 +1,454 @@
+openapi: 3.1.0
+info:
+  version: "0.4"
+  title: mgmt.v1alpha1
+paths:
+  /mgmt.v1alpha1.AuthService/LoginCli:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: LoginCli
+      description: Used by the CLI to login to Neosync with OAuth.
+      operationId: mgmt.v1alpha1.AuthService.LoginCli
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliResponse'
+  /mgmt.v1alpha1.AuthService/RefreshCli:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: RefreshCli
+      description: |-
+        Used by the CLI to refresh an expired Neosync accesss token.
+         This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
+      operationId: mgmt.v1alpha1.AuthService.RefreshCli
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliResponse'
+  /mgmt.v1alpha1.AuthService/CheckToken:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: CheckToken
+      description: Empty endpoint to simply check if the provided access token is valid
+      operationId: mgmt.v1alpha1.AuthService.CheckToken
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenResponse'
+  /mgmt.v1alpha1.AuthService/GetCliIssuer:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: GetCliIssuer
+      description: |-
+        Used by the CLI to retrieve Auth Issuer information
+         @deprecated
+      operationId: mgmt.v1alpha1.AuthService.GetCliIssuer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerResponse'
+  /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: GetAuthorizeUrl
+      description: Used by the CLI to retrieve an Authorize URL for use with OAuth login.
+      operationId: mgmt.v1alpha1.AuthService.GetAuthorizeUrl
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlResponse'
+  /mgmt.v1alpha1.AuthService/GetAuthStatus:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: GetAuthStatus
+      description: |-
+        Returns the auth status of the API server. Whether or not the backend has authentication enabled.
+         This is used by clients to make decisions on whether or not they should send access tokens to the API.
+      operationId: mgmt.v1alpha1.AuthService.GetAuthStatus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusResponse'
+components:
+  schemas:
+    mgmt.v1alpha1.AccessToken:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - idToken
+            - not:
+                anyOf:
+                  - required:
+                      - idToken
+        - anyOf:
+            - required:
+                - refreshToken
+            - not:
+                anyOf:
+                  - required:
+                      - refreshToken
+      properties:
+        accessToken:
+          type: string
+          title: access_token
+          description: The access token that will be provided in subsequent requests to provide authenticated access to the Api
+        refreshToken:
+          type: string
+          title: refresh_token
+          description: |-
+            Token that can be used to retrieve a refreshed access token.
+             Will not be provided if the offline_access scope is not provided in the initial login flow.
+        expiresIn:
+          oneOf:
+            - type: string
+            - type: number
+          title: expires_in
+          description: Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.
+        scope:
+          type: string
+          title: scope
+          description: The scopes that the access token have
+        idToken:
+          type: string
+          title: id_token
+          description: The identity token of the authenticated user
+        tokenType:
+          type: string
+          title: token_type
+          description: The token type. For JWTs, this will be `Bearer`
+      title: AccessToken
+      additionalProperties: false
+      description: A decoded representation of an Access token from the backing auth server
+    mgmt.v1alpha1.CheckTokenRequest:
+      type: object
+      title: CheckTokenRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckTokenResponse:
+      type: object
+      title: CheckTokenResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAuthStatusRequest:
+      type: object
+      title: GetAuthStatusRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAuthStatusResponse:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+          description: |-
+            Whether or not the server has authentication enabled.
+             This tells the client if it is expected to send access tokens.
+      title: GetAuthStatusResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAuthorizeUrlRequest:
+      type: object
+      properties:
+        state:
+          type: string
+          title: state
+          minLength: 1
+          description: The state that's generated by the client that is passed along to prevent tampering
+        redirectUri:
+          type: string
+          title: redirect_uri
+          minLength: 1
+          description: The redirect uri that the client will be redirected back to during the auth request
+        scope:
+          type: string
+          title: scope
+          minLength: 1
+          description: The scopes the client is requesting as a part of the oauth login request
+      title: GetAuthorizeUrlRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAuthorizeUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The generated url that is the client will be redirected to during the Oauth flow
+      title: GetAuthorizeUrlResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetCliIssuerRequest:
+      type: object
+      title: GetCliIssuerRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetCliIssuerResponse:
+      type: object
+      properties:
+        issuerUrl:
+          type: string
+          title: issuer_url
+          description: The backing authentication issuer url
+        audience:
+          type: string
+          title: audience
+          description: The audience that will be used in the access token. This corresponds to the "aud" claim
+      title: GetCliIssuerResponse
+      additionalProperties: false
+    mgmt.v1alpha1.LoginCliRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+          minLength: 1
+          description: The oauth code
+        redirectUri:
+          type: string
+          title: redirect_uri
+          minLength: 1
+          description: The oauth redirect uri that the client uses during the oauth request
+      title: LoginCliRequest
+      additionalProperties: false
+    mgmt.v1alpha1.LoginCliResponse:
+      type: object
+      properties:
+        accessToken:
+          allOf:
+            - title: access_token
+              description: The access token that is returned on successful login
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccessToken'
+      title: LoginCliResponse
+      additionalProperties: false
+    mgmt.v1alpha1.RefreshCliRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          title: refresh_token
+          minLength: 1
+          description: The token used to retrieve a new access token.
+      title: RefreshCliRequest
+      additionalProperties: false
+    mgmt.v1alpha1.RefreshCliResponse:
+      type: object
+      properties:
+        accessToken:
+          allOf:
+            - title: access_token
+              description: The access token that is returned on successful refresh
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccessToken'
+      title: RefreshCliResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security: []
+tags:
+  - name: mgmt.v1alpha1.AuthService
+    description: |-
+      Service that handles generic Authentication for Neosync
+       Today this is mostly used by the CLI to receive authentication information

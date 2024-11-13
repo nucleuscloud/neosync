@@ -2,7 +2,9 @@ import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-ha
 import { Transformer } from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
+  AwsS3DestinationConnectionOptions_StorageClass,
   GenerateEmailType,
+  GenerateIpAddressType,
   InvalidEmailAction,
   SupportedJobType,
   SystemTransformer,
@@ -137,29 +139,33 @@ export function getInvalidEmailActionString(
   return value ? value.toLowerCase() : 'unknown';
 }
 
+export function getStorageClassString(
+  storageclass: AwsS3DestinationConnectionOptions_StorageClass
+): string {
+  const value = AwsS3DestinationConnectionOptions_StorageClass[storageclass];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
 // Given the currently selected transformer mapping config, return the relevant Transformer
 export function getTransformerFromField(
   handler: TransformerHandler,
   value: JobMappingTransformerForm
 ): Transformer {
-  if (
-    value.source === TransformerSource.USER_DEFINED &&
-    value.config.case === 'userDefinedTransformerConfig'
-  ) {
+  if (value.config.case === 'userDefinedTransformerConfig') {
     return (
       handler.getUserDefinedTransformerById(value.config.value.id) ??
       new SystemTransformer()
     );
   }
   return (
-    handler.getSystemTransformerBySource(value.source) ??
+    handler.getSystemTransformerByConfigCase(value.config.case) ??
     new SystemTransformer()
   );
 }
 
-// Checks to see if the source is unspecified
+// Checks to see if the config is unspecified
 export function isInvalidTransformer(transformer: Transformer): boolean {
-  return transformer.source === TransformerSource.UNSPECIFIED;
+  return transformer.config == null;
 }
 
 export function getTransformerSelectButtonText(
@@ -185,4 +191,11 @@ export function getFilterdTransformersByType(
     dataType: datatype,
     jobType: SupportedJobType.SYNC,
   });
+}
+
+export function getGenerateIpAddressVersionString(
+  type: GenerateIpAddressType
+): string {
+  const value = GenerateIpAddressType[type];
+  return value ? value.toLowerCase() : 'unknown';
 }

@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -48,6 +49,16 @@ func Test_GenerateInternationalPhoneNumberTransformer(t *testing.T) {
 	assert.LessOrEqual(t, len(res.(string)), 15+1, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 }
 
+func Test_GenerateInternationalPhoneNumberTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_e164_phone_number()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the international phone number transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
+
 func Test_ValidateE164True(t *testing.T) {
 	val := "+6272636472"
 
@@ -78,4 +89,11 @@ func Test_ValidateE164FalseTooshort(t *testing.T) {
 	res := validateE164(val)
 
 	assert.Equal(t, res, false, "The e164 number should  be 10 < x")
+}
+
+func validateE164(p string) bool {
+	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
+		return true
+	}
+	return false
 }

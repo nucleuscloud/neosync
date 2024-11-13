@@ -1,0 +1,1512 @@
+openapi: 3.1.0
+info:
+  version: "0.4"
+  title: mgmt.v1alpha1
+paths:
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchema
+      description: Returns the schema for a specific connection. Used mostly for SQL-based connections
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchema
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMap:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchemaMap
+      description: Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMaps:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchemaMaps
+      description: Returns the schema in map format for every request provided
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionTableConstraints
+      description: For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionTableConstraints
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionForeignConstraints
+      description: |-
+        For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+         Used primarily by the CLI sync command to determine stream order.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionPrimaryConstraints
+      description: |-
+        For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
+         Used primarily by the CLI sync command to determine stream order.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionInitStatements
+      description: |-
+        For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+         Used primarily by the CLI sync command to create table schema init statement.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionUniqueConstraints
+      description: For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetAiGeneratedData
+      description: Query an AI connection by providing the necessary values. Typically used for generating preview data
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetTableRowCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetTableRowCount
+      description: Query table with subset to get row count
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetTableRowCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
+components:
+  schemas:
+    google.protobuf.NullValue:
+      type: string
+      title: NullValue
+      enum:
+        - NULL_VALUE
+      description: |-
+        `NullValue` is a singleton enumeration to represent the null value for the
+         `Value` type union.
+
+         The JSON representation for `NullValue` is JSON `null`.
+    google.protobuf.ListValue:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/google.protobuf.Value'
+          title: values
+          description: Repeated field of dynamically typed values.
+      title: ListValue
+      additionalProperties: false
+      description: |-
+        `ListValue` is a wrapper around a repeated field of values.
+
+         The JSON representation for `ListValue` is JSON array.
+    google.protobuf.Struct:
+      type: object
+      properties:
+        fields:
+          type: object
+          title: fields
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/google.protobuf.Value'
+          description: Unordered map of dynamically typed values.
+      title: Struct
+      additionalProperties: false
+      description: |-
+        `Struct` represents a structured data value, consisting of fields
+         which map to dynamically typed values. In some languages, `Struct`
+         might be supported by a native representation. For example, in
+         scripting languages like JS a struct is represented as an
+         object. The details of that representation are described together
+         with the proto support for the language.
+
+         The JSON representation for `Struct` is JSON object.
+    google.protobuf.Struct.FieldsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/google.protobuf.Value'
+      title: FieldsEntry
+      additionalProperties: false
+    google.protobuf.Value:
+      oneOf:
+        - type: "null"
+        - type: number
+        - type: string
+        - type: boolean
+        - type: array
+        - type: object
+          additionalProperties: true
+      description: |-
+        `Value` represents a dynamically typed value which can be either
+         null, a number, a string, a boolean, a recursive struct value, or a
+         list of values. A producer of value is expected to set one of these
+         variants. Absence of any variant indicates an error.
+
+         The JSON representation for `Value` is JSON value.
+    mgmt.v1alpha1.AwsDynamoDBStreamConfig:
+      type: object
+      title: AwsDynamoDBStreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.AwsS3SchemaConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobId
+            - required:
+                - jobRunId
+            - not:
+                anyOf:
+                  - required:
+                      - jobId
+                  - required:
+                      - jobRunId
+      anyOf:
+        - required:
+            - jobId
+        - required:
+            - jobRunId
+        - not:
+            anyOf:
+              - required:
+                  - jobId
+              - required:
+                  - jobRunId
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+      title: AwsS3SchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.AwsS3StreamConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobId
+            - required:
+                - jobRunId
+            - not:
+                anyOf:
+                  - required:
+                      - jobId
+                  - required:
+                      - jobRunId
+      anyOf:
+        - required:
+            - jobId
+        - required:
+            - jobRunId
+        - not:
+            anyOf:
+              - required:
+                  - jobId
+              - required:
+                  - jobRunId
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+      title: AwsS3StreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.ConnectionSchemaConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - awsS3Config
+            - required:
+                - dynamodbConfig
+            - required:
+                - gcpCloudstorageConfig
+            - required:
+                - mongoConfig
+            - required:
+                - mssqlConfig
+            - required:
+                - mysqlConfig
+            - required:
+                - pgConfig
+            - not:
+                anyOf:
+                  - required:
+                      - awsS3Config
+                  - required:
+                      - dynamodbConfig
+                  - required:
+                      - gcpCloudstorageConfig
+                  - required:
+                      - mongoConfig
+                  - required:
+                      - mssqlConfig
+                  - required:
+                      - mysqlConfig
+                  - required:
+                      - pgConfig
+      anyOf:
+        - required:
+            - awsS3Config
+        - required:
+            - dynamodbConfig
+        - required:
+            - gcpCloudstorageConfig
+        - required:
+            - mongoConfig
+        - required:
+            - mssqlConfig
+        - required:
+            - mysqlConfig
+        - required:
+            - pgConfig
+        - not:
+            anyOf:
+              - required:
+                  - awsS3Config
+              - required:
+                  - dynamodbConfig
+              - required:
+                  - gcpCloudstorageConfig
+              - required:
+                  - mongoConfig
+              - required:
+                  - mssqlConfig
+              - required:
+                  - mysqlConfig
+              - required:
+                  - pgConfig
+      properties:
+        pgConfig:
+          allOf:
+            - title: pg_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSchemaConfig'
+        awsS3Config:
+          allOf:
+            - title: aws_s3_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3SchemaConfig'
+        mysqlConfig:
+          allOf:
+            - title: mysql_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSchemaConfig'
+        mongoConfig:
+          allOf:
+            - title: mongo_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MongoSchemaConfig'
+        gcpCloudstorageConfig:
+          allOf:
+            - title: gcp_cloudstorage_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageSchemaConfig'
+        dynamodbConfig:
+          allOf:
+            - title: dynamodb_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSchemaConfig'
+        mssqlConfig:
+          allOf:
+            - title: mssql_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSchemaConfig'
+      title: ConnectionSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.ConnectionStreamConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - awsS3Config
+            - required:
+                - dynamodbConfig
+            - required:
+                - gcpCloudstorageConfig
+            - required:
+                - mysqlConfig
+            - required:
+                - pgConfig
+            - not:
+                anyOf:
+                  - required:
+                      - awsS3Config
+                  - required:
+                      - dynamodbConfig
+                  - required:
+                      - gcpCloudstorageConfig
+                  - required:
+                      - mysqlConfig
+                  - required:
+                      - pgConfig
+      anyOf:
+        - required:
+            - awsS3Config
+        - required:
+            - dynamodbConfig
+        - required:
+            - gcpCloudstorageConfig
+        - required:
+            - mysqlConfig
+        - required:
+            - pgConfig
+        - not:
+            anyOf:
+              - required:
+                  - awsS3Config
+              - required:
+                  - dynamodbConfig
+              - required:
+                  - gcpCloudstorageConfig
+              - required:
+                  - mysqlConfig
+              - required:
+                  - pgConfig
+      properties:
+        pgConfig:
+          allOf:
+            - title: pg_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresStreamConfig'
+        awsS3Config:
+          allOf:
+            - title: aws_s3_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3StreamConfig'
+        mysqlConfig:
+          allOf:
+            - title: mysql_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlStreamConfig'
+        gcpCloudstorageConfig:
+          allOf:
+            - title: gcp_cloudstorage_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageStreamConfig'
+        dynamodbConfig:
+          allOf:
+            - title: dynamodb_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsDynamoDBStreamConfig'
+      title: ConnectionStreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.DatabaseColumn:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnDefault
+            - not:
+                anyOf:
+                  - required:
+                      - columnDefault
+        - anyOf:
+            - required:
+                - generatedType
+            - not:
+                anyOf:
+                  - required:
+                      - generatedType
+        - anyOf:
+            - required:
+                - identityGeneration
+            - not:
+                anyOf:
+                  - required:
+                      - identityGeneration
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: 'The database schema. Ex: public'
+        table:
+          type: string
+          title: table
+          description: The name of the table in the schema
+        column:
+          type: string
+          title: column
+          description: The name of the column
+        dataType:
+          type: string
+          title: data_type
+          description: The datatype of the column
+        isNullable:
+          type: string
+          title: is_nullable
+          description: The isNullable Flag of the column
+        columnDefault:
+          type: string
+          title: column_default
+          description: The default value of the column if available
+        generatedType:
+          type: string
+          title: generated_type
+          description: |-
+            Populated if the column is generated. The value is the type of generated column it is. For example, postgres is 's' for stored
+             May be other values in the future, or other DB providers may use a different value types.
+        identityGeneration:
+          type: string
+          title: identity_generation
+          description: Populated if the column is an identity. The value is the type of the identity column it is. For example, postgres is 'd' for generated by default, or 'a' for generated always.
+      title: DatabaseColumn
+      additionalProperties: false
+    mgmt.v1alpha1.DatabaseTable:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          minLength: 1
+        table:
+          type: string
+          title: table
+          minLength: 1
+      title: DatabaseTable
+      additionalProperties: false
+    mgmt.v1alpha1.DynamoDBSchemaConfig:
+      type: object
+      title: DynamoDBSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.ForeignConstraint:
+      type: object
+      properties:
+        column:
+          type: string
+          title: column
+          description: '@deprecated - use columns'
+        isNullable:
+          type: boolean
+          title: is_nullable
+          description: '@deprecated - use not_nullable'
+        foreignKey:
+          allOf:
+            - title: foreign_key
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignKey'
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+        notNullable:
+          type: array
+          items:
+            type: boolean
+          title: not_nullable
+      title: ForeignConstraint
+      additionalProperties: false
+    mgmt.v1alpha1.ForeignConstraintTables:
+      type: object
+      properties:
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraint'
+          title: constraints
+      title: ForeignConstraintTables
+      additionalProperties: false
+    mgmt.v1alpha1.ForeignKey:
+      type: object
+      properties:
+        table:
+          type: string
+          title: table
+        column:
+          type: string
+          title: column
+          description: '@deprecated - use columns'
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+      title: ForeignKey
+      additionalProperties: false
+    mgmt.v1alpha1.GcpCloudStorageSchemaConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobId
+            - required:
+                - jobRunId
+            - not:
+                anyOf:
+                  - required:
+                      - jobId
+                  - required:
+                      - jobRunId
+      anyOf:
+        - required:
+            - jobId
+        - required:
+            - jobRunId
+        - not:
+            anyOf:
+              - required:
+                  - jobId
+              - required:
+                  - jobRunId
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+      title: GcpCloudStorageSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.GcpCloudStorageStreamConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobId
+            - required:
+                - jobRunId
+            - not:
+                anyOf:
+                  - required:
+                      - jobId
+                  - required:
+                      - jobRunId
+      anyOf:
+        - required:
+            - jobId
+        - required:
+            - jobRunId
+        - not:
+            anyOf:
+              - required:
+                  - jobId
+              - required:
+                  - jobRunId
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+      title: GcpCloudStorageStreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.GetAiGeneratedDataRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - userPrompt
+            - not:
+                anyOf:
+                  - required:
+                      - userPrompt
+      anyOf:
+        - required:
+            - userPrompt
+        - not:
+            anyOf:
+              - required:
+                  - userPrompt
+      properties:
+        aiConnectionId:
+          type: string
+          title: ai_connection_id
+          format: uuid
+        count:
+          oneOf:
+            - type: string
+            - type: number
+          title: count
+          maximum: 10
+          minimum: 1
+        modelName:
+          type: string
+          title: model_name
+          minLength: 1
+        userPrompt:
+          type: string
+          title: user_prompt
+        dataConnectionId:
+          type: string
+          title: data_connection_id
+          format: uuid
+        table:
+          allOf:
+            - title: table
+            - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseTable'
+      title: GetAiGeneratedDataRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAiGeneratedDataResponse:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/google.protobuf.Struct'
+          title: records
+          description: A list of generated records
+      title: GetAiGeneratedDataResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionDataStreamRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+        streamConfig:
+          allOf:
+            - title: stream_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionStreamConfig'
+        schema:
+          type: string
+          title: schema
+        table:
+          type: string
+          title: table
+      title: GetConnectionDataStreamRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionDataStreamResponse:
+      type: object
+      properties:
+        row:
+          type: object
+          title: row
+          additionalProperties:
+            type: string
+            title: value
+            format: byte
+          description: A map of column name to the bytes value of the data that was found for that column and row
+      title: GetConnectionDataStreamResponse
+      additionalProperties: false
+      description: Each stream response is a single row in the requested schema and table
+    mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+          format: byte
+      title: RowEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionForeignConstraintsRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+      title: GetConnectionForeignConstraintsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse:
+      type: object
+      properties:
+        tableConstraints:
+          type: object
+          title: table_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+          description: the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
+      title: GetConnectionForeignConstraintsResponse
+      additionalProperties: false
+      description: Dependency constraints for a specific table
+    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+      title: TableConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionInitStatementsRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+        options:
+          allOf:
+            - title: options
+            - $ref: '#/components/schemas/mgmt.v1alpha1.InitStatementOptions'
+      title: GetConnectionInitStatementsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionInitStatementsResponse:
+      type: object
+      properties:
+        tableInitStatements:
+          type: object
+          title: table_init_statements
+          additionalProperties:
+            type: string
+            title: value
+          description: the key here is <schema>.<table> and value is the table init statement.
+        tableTruncateStatements:
+          type: object
+          title: table_truncate_statements
+          additionalProperties:
+            type: string
+            title: value
+          description: the key here is <schema>.<table> and value is the table truncate statement.
+        schemaInitStatements:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.SchemaInitStatements'
+          title: schema_init_statements
+      title: GetConnectionInitStatementsResponse
+      additionalProperties: false
+      description: Init statement for a specific table
+    mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: TableInitStatementsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableTruncateStatementsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: TableTruncateStatementsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+      title: GetConnectionPrimaryConstraintsRequest
+      additionalProperties: false
+      description: Primary constraints for a specific table
+    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse:
+      type: object
+      properties:
+        tableConstraints:
+          type: object
+          title: table_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+          description: the key here is <schema>.<table> and value is the primary constraint
+      title: GetConnectionPrimaryConstraintsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+      title: TableConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaMapRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+        schemaConfig:
+          allOf:
+            - title: schema_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
+      title: GetConnectionSchemaMapRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaMapResponse:
+      type: object
+      properties:
+        schemaMap:
+          type: object
+          title: schema_map
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+          description: Returns the database columns separated by the fully qualified <schema>.<table>
+      title: GetConnectionSchemaMapResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaMapResponse.SchemaMapEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+      title: SchemaMapEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaMapsRequest:
+      type: object
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapRequest'
+          title: requests
+          description: List of connection schema maps to request
+      title: GetConnectionSchemaMapsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaMapsResponse:
+      type: object
+      properties:
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapResponse'
+          title: responses
+          description: List of responses in the same order as the input
+        connectionIds:
+          type: array
+          items:
+            type: string
+          title: connection_ids
+          description: Parallel array of each connection id that matches with the response
+      title: GetConnectionSchemaMapsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+        schemaConfig:
+          allOf:
+            - title: schema_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
+      title: GetConnectionSchemaRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionSchemaResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: schemas
+      title: GetConnectionSchemaResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+      title: GetConnectionTableConstraintsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse:
+      type: object
+      properties:
+        foreignKeyConstraints:
+          type: object
+          title: foreign_key_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+          description: the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
+        primaryKeyConstraints:
+          type: object
+          title: primary_key_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+          description: the key here is <schema>.<table> and value is the primary constraint
+        uniqueConstraints:
+          type: object
+          title: unique_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
+          description: the key here is <schema>.<table> and value is the unique constraint
+      title: GetConnectionTableConstraintsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+      title: ForeignKeyConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+      title: PrimaryKeyConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
+      title: UniqueConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+      title: GetConnectionUniqueConstraintsRequest
+      additionalProperties: false
+      description: Unique constraints for a specific table
+    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse:
+      type: object
+      properties:
+        tableConstraints:
+          type: object
+          title: table_constraints
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
+          description: the key here is <schema>.<table> and value is the unique constraint
+      title: GetConnectionUniqueConstraintsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
+      title: TableConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetTableRowCountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - whereClause
+            - not:
+                anyOf:
+                  - required:
+                      - whereClause
+      anyOf:
+        - required:
+            - whereClause
+        - not:
+            anyOf:
+              - required:
+                  - whereClause
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+        schema:
+          type: string
+          title: schema
+        table:
+          type: string
+          title: table
+        whereClause:
+          type: string
+          title: where_clause
+      title: GetTableRowCountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetTableRowCountResponse:
+      type: object
+      properties:
+        count:
+          oneOf:
+            - type: string
+            - type: number
+          title: count
+      title: GetTableRowCountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.InitStatementOptions:
+      type: object
+      properties:
+        initSchema:
+          type: boolean
+          title: init_schema
+        truncateBeforeInsert:
+          type: boolean
+          title: truncate_before_insert
+        truncateCascade:
+          type: boolean
+          title: truncate_cascade
+      title: InitStatementOptions
+      additionalProperties: false
+    mgmt.v1alpha1.MongoSchemaConfig:
+      type: object
+      title: MongoSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlSchemaConfig:
+      type: object
+      title: MssqlSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlSchemaConfig:
+      type: object
+      title: MysqlSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlStreamConfig:
+      type: object
+      title: MysqlStreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSchemaConfig:
+      type: object
+      title: PostgresSchemaConfig
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresStreamConfig:
+      type: object
+      title: PostgresStreamConfig
+      additionalProperties: false
+    mgmt.v1alpha1.PrimaryConstraint:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+      title: PrimaryConstraint
+      additionalProperties: false
+    mgmt.v1alpha1.SchemaInitStatements:
+      type: object
+      properties:
+        label:
+          type: string
+          title: label
+        statements:
+          type: array
+          items:
+            type: string
+          title: statements
+      title: SchemaInitStatements
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueConstraint:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+      title: UniqueConstraint
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueConstraints:
+      type: object
+      properties:
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
+          title: constraints
+      title: UniqueConstraints
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security: []
+tags:
+  - name: mgmt.v1alpha1.ConnectionDataService
+    description: |-
+      Service for managing connection data.
+       This is used in handle data from a connection

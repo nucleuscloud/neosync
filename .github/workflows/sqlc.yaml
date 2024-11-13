@@ -1,7 +1,7 @@
 on:
   pull_request:
     paths:
-      - backend/sqlc.yaml
+      - sqlc.yaml
       - backend/sql/**
       - SQLC_VERSION
 
@@ -10,9 +10,6 @@ jobs:
   sqlcdiff:
     name: sqlc-diff
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,9 +28,6 @@ jobs:
   sqlcvet:
     name: sqlc-vet
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     services:
       postgres:
         image: "postgres:15"
@@ -53,7 +47,7 @@ jobs:
       - name: Patch sqlc.yaml with db-prepare lint
         uses: mikefarah/yq@v4.44.3
         with:
-          cmd: sh ./backend/scripts/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
+          cmd: sh ./backend/scripts/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./sqlc.yaml
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -62,12 +56,12 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Install golang-migrate
-        run: make install-go-tools
+        run: cd backend && make install-go-tools
 
       - name: Run migrations on database
         env:
           PG_PASSWORD: postgres
-        run: ./scripts/migrate.sh up
+        run: ./backend/scripts/migrate.sh up
 
       - name: Retrieve SQLC Version
         run: |

@@ -132,7 +132,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
+              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
             </span>
           </div>
         );
@@ -150,7 +150,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
+              {formatDateTime(row.getValue<Timestamp>('updatedAt')?.toDate())}
             </span>
           </div>
         );

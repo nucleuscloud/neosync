@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -39,10 +39,31 @@ func NewTransformCharacterScrambleOpts(
 	}, nil
 }
 
+func (o *TransformCharacterScrambleOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s",
+	}
+
+	params := []any{
+		valuePath,
+	}
+
+	
+	if o.userProvidedRegex != nil {
+		fnStr = append(fnStr, "user_provided_regex:%q")
+		params = append(params, *o.userProvidedRegex)
+	}
+
+	template := fmt.Sprintf("transform_character_scramble(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformCharacterScramble) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformCharacterScramble",
-		Description: "Transforms an existing string value by scrambling the characters while maintaining the format.",
+		Description: "",
 		Example: "",
 	}, nil
 }

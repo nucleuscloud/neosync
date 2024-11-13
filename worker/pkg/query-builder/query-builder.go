@@ -2,18 +2,15 @@ package querybuilder
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
-	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
 const defaultStr = "DEFAULT"
@@ -29,12 +26,19 @@ type SubsetColumnConstraint struct {
 	ForeignKey  *SubsetReferenceKey
 }
 
+func getGoquDialect(driver string) goqu.DialectWrapper {
+	if driver == sqlmanager_shared.PostgresDriver {
+		return goqu.Dialect("postgres")
+	}
+	return goqu.Dialect(driver)
+}
+
 func BuildSelectQuery(
 	driver, table string,
 	columns []string,
 	whereClause *string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
@@ -62,7 +66,7 @@ func BuildSelectLimitQuery(
 	driver, table string,
 	limit uint,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	sql, _, err := builder.From((sqltable)).Limit(limit).ToSQL()
 	if err != nil {
@@ -71,78 +75,67 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
-	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(row, columnDataTypes)
-	}
-	gval := goqu.Vals{}
-	for _, a := range row {
-		if isDefault(a) {
-			gval = append(gval, goqu.Literal(defaultStr))
-		} else {
-			gval = append(gval, a)
-		}
-	}
-	return gval
-}
-
-func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
-	gval := goqu.Vals{}
-	for i, a := range row {
-		colDataType := columnDataTypes[i]
-		if gotypeutil.IsMap(a) {
-			bits, err := gotypeutil.MapToJson(a)
-			if err != nil {
-				gval = append(gval, a)
-				continue
-			}
-			gval = append(gval, bits)
-		} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
-			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
-		} else if gotypeutil.IsSlice(a) {
-			s, err := gotypeutil.ParseSlice(a)
-			if err != nil {
-				gval = append(gval, a)
-				continue
-			}
-			gval = append(gval, pq.Array(s))
-		} else if isDefault(a) {
-			gval = append(gval, goqu.Literal(defaultStr))
-		} else {
-			gval = append(gval, a)
-		}
-	}
-	return gval
-}
-
-func isDefault(val any) bool {
-	valStr, isString := val.(string)
-	if !isString {
-		return false
-	}
-	return strings.EqualFold(valStr, defaultStr)
-}
-
 func BuildInsertQuery(
 	driver, schema, table string,
 	columns []string,
-	columnDataTypes []string,
-	values [][]any,
+	values []goqu.Vals,
 	onConflictDoNothing *bool,
-) (string, error) {
-	builder := goqu.Dialect(driver)
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))
 	for i, col := range columns {
 		insertCols[i] = col
 	}
-	insert := builder.Insert(sqltable).Cols(insertCols...)
+	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(driver, row, columnDataTypes)
-		insert = insert.Vals(gval)
+		insert = insert.Vals(row)
 	}
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {
+		insert = insert.OnConflict(goqu.DoNothing())
+	}
+
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return "", nil, err
+	}
+	return query, args, nil
+}
+
+// BuildPreparedQuery creates a prepared statement query template
+func BuildPreparedInsertQuery(
+	driver, schema, table string,
+	columns []string,
+	rowCount int,
+	onConflictDoNothing bool,
+) (string, error) {
+	if rowCount < 1 {
+		rowCount = 1
+	}
+
+	builder := getGoquDialect(driver)
+	sqltable := goqu.S(schema).Table(table)
+
+	insertCols := make([]any, len(columns))
+	for i, col := range columns {
+		insertCols[i] = col
+	}
+
+	insert := builder.Insert(sqltable).
+		Prepared(true).
+		Cols(insertCols...)
+
+	// Add placeholder rows based on rowCount
+	for i := 0; i < rowCount; i++ {
+		placeholderRow := make(goqu.Vals, len(columns))
+		for j := range columns {
+			placeholderRow[j] = nil
+		}
+		insert = insert.Vals(placeholderRow)
+	}
+
+	if onConflictDoNothing {
 		insert = insert.OnConflict(goqu.DoNothing())
 	}
 
@@ -150,6 +143,7 @@ func BuildInsertQuery(
 	if err != nil {
 		return "", err
 	}
+
 	return query, nil
 }
 
@@ -159,17 +153,13 @@ func BuildUpdateQuery(
 	whereColumns []string,
 	columnValueMap map[string]any,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
 		val := columnValueMap[col]
-		if isDefault(val) {
-			updateRecord[col] = goqu.L(defaultStr)
-		} else {
-			updateRecord[col] = val
-		}
+		updateRecord[col] = val
 	}
 
 	where := []exp.Expression{}
@@ -192,7 +182,7 @@ func BuildUpdateQuery(
 func BuildTruncateQuery(
 	driver, table string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	truncate := builder.Truncate(sqltable)
 	query, _, err := truncate.ToSQL()

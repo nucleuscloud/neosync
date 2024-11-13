@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -15,14 +16,16 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
-	"connectrpc.com/validate"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/metric"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -34,19 +37,19 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
-	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha1_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
@@ -56,6 +59,10 @@ import (
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -66,6 +73,8 @@ import (
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	promconfig "github.com/prometheus/common/config"
+
+	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 func NewCmd() *cobra.Command {
@@ -98,6 +107,12 @@ func serve(ctx context.Context) error {
 
 	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
 
+	eelicense, err := license.NewFromEnv()
+	if err != nil {
+		return fmt.Errorf("unable to initialize ee license from env: %w", err)
+	}
+	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
+
 	mux := http.NewServeMux()
 
 	services := []string{
@@ -108,6 +123,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.TransformersServiceName,
 		mgmtv1alpha1connect.ApiKeyServiceName,
 		mgmtv1alpha1connect.ConnectionDataServiceName,
+		mgmtv1alpha1connect.AnonymizationServiceName,
 	}
 
 	if shouldEnableMetricsService() {
@@ -134,7 +150,7 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	db, err := nucleusdb.NewFromConfig(dbconfig)
+	db, err := neosyncdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
 	}
@@ -148,9 +164,10 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := up_cmd.Up(
+		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
+		if err := neomigrate.Up(
 			ctx,
-			nucleusdb.GetDbUrl(dbMigConfig),
+			neosyncdb.GetDbUrl(dbMigConfig),
 			schemaDir,
 			slogger,
 		); err != nil {
@@ -160,10 +177,14 @@ func serve(ctx context.Context) error {
 
 	stdInterceptors := []connect.Interceptor{}
 
+	var anonymizerMeter metric.Meter
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
-		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+		tmPropagator := neosyncotel.NewDefaultPropagator()
+		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
+		traceProviders := []neosyncotel.TracerProvider{}
+		meterProviders := []neosyncotel.MeterProvider{}
 
 		meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
 			Exporter:   otelconfig.MeterExporter,
@@ -179,8 +200,26 @@ func serve(ctx context.Context) error {
 		if meterprovider != nil {
 			slogger.Debug("otel metering has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(meterprovider))
+			meterProviders = append(meterProviders, meterprovider)
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
+		}
+
+		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if anonymizeMeterProvider != nil {
+			slogger.Debug("otel metering for anonymize service has been configured")
+			meterProviders = append(meterProviders, anonymizeMeterProvider)
+			anonymizerMeter = anonymizeMeterProvider.Meter("anonymizer")
 		}
 
 		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
@@ -196,6 +235,7 @@ func serve(ctx context.Context) error {
 		if traceprovider != nil {
 			slogger.Debug("otel tracing has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(traceprovider))
+			traceProviders = append(traceProviders, traceprovider)
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())
 		}
@@ -207,9 +247,10 @@ func serve(ctx context.Context) error {
 		stdInterceptors = append(stdInterceptors, otelInterceptor)
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
-			MeterProviders: []neosyncotel.MeterProvider{meterprovider},
-			Logger:         logr.FromSlogHandler(slogger.Handler()),
+			TraceProviders:    traceProviders,
+			MeterProviders:    meterProviders,
+			Logger:            logr.FromSlogHandler(slogger.Handler()),
+			TextMapPropagator: tmPropagator,
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
@@ -262,6 +303,10 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
+			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
+			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
+			mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
@@ -330,14 +375,24 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	tfwfmgr := clientmanager.New(&clientmanager.Config{
-		AuthCertificates: authcerts,
-		DefaultTemporalConfig: &clientmanager.DefaultTemporalConfig{
-			Url:              getDefaultTemporalUrl(),
-			Namespace:        getDefaultTemporalNamespace(),
-			SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
-		},
+
+	var temporalTlsConfig *tls.Config
+	if len(authcerts) > 0 {
+		temporalTlsConfig = &tls.Config{
+			Certificates: authcerts,
+			MinVersion:   tls.VersionTLS13,
+		}
+	}
+	temporalConfigProvider := clientmanager.NewDBConfigProvider(&clientmanager.TemporalConfig{
+		Url:              getDefaultTemporalUrl(),
+		Namespace:        getDefaultTemporalNamespace(),
+		SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		TLSConfig:        temporalTlsConfig,
 	}, db.Q, db.Db)
+	tfwfmgr := clientmanager.NewClientManager(
+		temporalConfigProvider,
+		clientmanager.NewTemporalClientFactory(),
+	)
 
 	authadminclient, err := getAuthAdminClient(ctx, authclient, slogger)
 	if err != nil {
@@ -347,11 +402,26 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	stripeclient := getStripeApiClient()
+	var billingClient billing.Interface
+	if stripeclient != nil {
+		slogger.Debug("stripe client is enabled")
+		priceLookups, err := getStripePriceLookupMap()
+		if err != nil {
+			return err
+		}
+		billingClient = billing.New(stripeclient, &billing.Config{
+			AppBaseUrl:   getAppBaseUrl(),
+			PriceLookups: priceLookups,
+		})
+	}
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient))
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -421,10 +491,50 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db, useraccountService)
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+	var presEntityClient presidioapi.EntityInterface
+	if getIsNeosyncCloud() {
+		analyzeClient, ok, err := getPresidioAnalyzeClient()
+		if err != nil {
+			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
+		}
+		if ok {
+			slogger.Debug("presidio analyze client is enabled")
+			presAnalyzeClient = analyzeClient
+			presEntityClient = analyzeClient
+		}
+		anonClient, ok, err := getPresidioAnonymizeClient()
+		if err != nil {
+			return fmt.Errorf("unable to initialize presidio anonymize client: %w", err)
+		}
+		if ok {
+			slogger.Debug("presidio anonymize client is enabled")
+			presAnonClient = anonClient
+		}
+	}
+
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
+		IsPresidioEnabled: getIsNeosyncCloud(),
+		IsNeosyncCloud:    getIsNeosyncCloud(),
+	}, db, useraccountService, presEntityClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
+		),
+	)
+
+	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
+		IsPresidioEnabled: getIsNeosyncCloud(),
+		IsAuthEnabled:     isAuthEnabled,
+		IsNeosyncCloud:    getIsNeosyncCloud(),
+	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
+	api.Handle(
+		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
+			anonymizationService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
 			connect.WithRecover(recoverHandler),
@@ -499,7 +609,7 @@ func getPromClientFromEnvironment() (promapi.Client, error) {
 	})
 }
 
-func getDbConfig() (*nucleusdb.ConnectConfig, error) {
+func getDbConfig() (*neosyncdb.ConnectConfig, error) {
 	dbHost := viper.GetString("DB_HOST")
 	if dbHost == "" {
 		return nil, fmt.Errorf("must provide DB_HOST in environment")
@@ -536,7 +646,7 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		dbOptions = &val
 	}
 
-	return &nucleusdb.ConnectConfig{
+	return &neosyncdb.ConnectConfig{
 		Host:     dbHost,
 		Port:     dbPort,
 		Database: dbName,
@@ -547,7 +657,7 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
+func getDbMigrationConfig() (*neosyncdb.ConnectConfig, error) {
 	dbHost := viper.GetString("DB_HOST")
 	if dbHost == "" {
 		return nil, fmt.Errorf("must provide DB_HOST in environment")
@@ -596,7 +706,7 @@ func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 		dbOptions = &val
 	}
 
-	return &nucleusdb.ConnectConfig{
+	return &neosyncdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
 		Database:              dbName,
@@ -909,6 +1019,95 @@ func getKubernetesWorkerAppName() string {
 func getDefaultMaxAllowedRecords() *int64 {
 	val := viper.GetInt64("MAX_ALLOWED_RECORDS")
 	if val <= 0 {
+		return nil
+	}
+	return &val
+}
+
+func getStripeApiClient() *stripeapiclient.API {
+	apiKey := getStripeApiKey()
+	if apiKey != nil {
+		return stripeapiclient.New(*apiKey, nil)
+	}
+	return nil
+}
+
+func getStripeApiKey() *string {
+	value := viper.GetString("STRIPE_API_KEY")
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func getStripePriceLookupMap() (billing.PriceQuantity, error) {
+	value := viper.GetStringMapString("STRIPE_PRICE_LOOKUPS")
+
+	output := billing.PriceQuantity{}
+	for k, v := range value {
+		if v == "" {
+			output[k] = 0
+			continue
+		}
+		quantity, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
+		}
+		output[k] = quantity
+	}
+	return output, nil
+}
+
+func getAppBaseUrl() string {
+	return viper.GetString("APP_BASEURL")
+}
+
+func getPresidioAnalyzeClient() (*presidioapi.ClientWithResponses, bool, error) {
+	endpoint := getPresidioAnalyzeEndpoint()
+	if endpoint == "" {
+		return nil, false, nil
+	}
+	return getPresidioClient(endpoint)
+}
+
+func getPresidioAnonymizeClient() (*presidioapi.ClientWithResponses, bool, error) {
+	endpoint := getPresidioAnonymizeEndpoint()
+	if endpoint == "" {
+		return nil, false, nil
+	}
+	return getPresidioClient(endpoint)
+}
+
+func getPresidioClient(endpoint string) (*presidioapi.ClientWithResponses, bool, error) {
+	httpclient := http_client.WithHeaders(&http.Client{}, getPresidioHttpHeaders())
+
+	client, err := presidioapi.NewClientWithResponses(endpoint, presidioapi.WithHTTPClient(httpclient))
+	if err != nil {
+		return nil, false, err
+	}
+
+	return client, true, nil
+}
+
+func getPresidioAnalyzeEndpoint() string {
+	return viper.GetString("PRESIDIO_ANALYZER_URL")
+}
+func getPresidioAnonymizeEndpoint() string {
+	return viper.GetString("PRESIDIO_ANONYMIZER_URL")
+}
+
+func getPresidioHttpHeaders() map[string]string {
+	output := map[string]string{}
+	authtoken := getPresidioAuthTokenHeaderValue()
+	if authtoken != nil && *authtoken != "" {
+		output["Authorization"] = *authtoken
+	}
+	return output
+}
+
+func getPresidioAuthTokenHeaderValue() *string {
+	val := viper.GetString("PRESIDIO_HEADER_AUTH_TOKEN")
+	if val == "" {
 		return nil
 	}
 	return &val

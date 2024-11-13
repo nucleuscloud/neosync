@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "multiple databases sync + init schema",
-			Folder:          "mysql/multiple-dbs",
+			Folder:          "testdata/mysql/multiple-dbs",
 			SourceFilePaths: []string{"create-dbs.sql", "create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create-dbs.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

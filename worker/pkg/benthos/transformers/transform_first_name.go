@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -14,7 +15,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Transforms an existing first name").
-		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
@@ -66,6 +67,17 @@ func init() {
 	}
 }
 
+func NewTransformFirstNameOptsFromConfig(config *mgmtv1alpha1.TransformFirstName, maxLength *int64) (*TransformFirstNameOpts, error) {
+	if config == nil {
+		return NewTransformFirstNameOpts(nil, nil, nil)
+	}
+	return NewTransformFirstNameOpts(
+		maxLength,
+		config.PreserveLength,
+		nil,
+	)
+}
+
 func (t *TransformFirstName) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformFirstNameOpts)
 	if !ok {
@@ -83,7 +95,7 @@ func (t *TransformFirstName) Transform(value, opts any) (any, error) {
 // Generates a random first name which can be of either random length or as long as the input name
 func transformFirstName(randomizer rng.Rand, value string, preserveLength bool, maxLength int64) (*string, error) {
 	if value == "" {
-		return nil, nil
+		return &value, nil
 	}
 
 	maxValue := maxLength

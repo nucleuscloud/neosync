@@ -12,6 +12,7 @@ const all = [
   { type: 'doc', label: 'Introduction', id: 'home' },
   { type: 'doc', label: 'Go', id: 'go' },
   { type: 'doc', label: 'TypeScript', id: 'typescript' },
+  { type: 'doc', label: 'Python', id: 'python' },
   ...protodocs,
 ];
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_NewNotEqLabel(t *testing.T) {
@@ -12,12 +13,22 @@ func Test_NewNotEqLabel(t *testing.T) {
 	assert.Equal(t, `foo!="bar"`, label.ToPromQueryString())
 }
 
-func Test_metricLabel_ToPromQueryString(t *testing.T) {
+func Test_NewEqLabel(t *testing.T) {
+	actual := NewEqLabel("foo", "bar")
+	require.Equal(t, `foo="bar"`, actual.ToPromQueryString())
+}
+
+func Test_NewRegexMatchLabel(t *testing.T) {
+	actual := NewRegexMatchLabel("foo", "bar")
+	require.Equal(t, `foo=~"bar"`, actual.ToPromQueryString())
+}
+
+func Test_MetricLabel_ToPromQueryString(t *testing.T) {
 	label := NewEqLabel("foo", "bar")
 	assert.Equal(t, `foo="bar"`, label.ToPromQueryString())
 }
 
-func Test_metricLabels_ToPromQueryString(t *testing.T) {
+func Test_MetricLabels_ToPromQueryString(t *testing.T) {
 	labels := MetricLabels{
 		NewEqLabel("foo", "bar"),
 		NewEqLabel("foo2", "bar2"),
@@ -29,12 +40,12 @@ func Test_metricLabels_ToPromQueryString(t *testing.T) {
 	)
 }
 
-func Test_metricLabel_ToBenthosMeta(t *testing.T) {
+func Test_MetricLabel_ToBenthosMeta(t *testing.T) {
 	label := NewEqLabel("foo", "bar")
 	assert.Equal(t, `meta foo = "bar"`, label.ToBenthosMeta())
 }
 
-func Test_metricLabels_ToBenthosMeta(t *testing.T) {
+func Test_MetricLabels_ToBenthosMeta(t *testing.T) {
 	labels := MetricLabels{
 		NewEqLabel("foo", "bar"),
 		NewEqLabel("foo2", "bar2"),

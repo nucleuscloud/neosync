@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -28,7 +28,7 @@ func NewGenerateStateOpts(
 	generateFullNameArg *bool,
   seedArg *int64,
 ) (*GenerateStateOpts, error) {
-	generateFullName := bool(false) 
+	generateFullName := bool(false)
 	if generateFullNameArg != nil {
 		generateFullName = *generateFullNameArg
 	}
@@ -44,10 +44,26 @@ func NewGenerateStateOpts(
 	}, nil
 }
 
+func (o *GenerateStateOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"generate_full_name:%v",
+	}
+
+	params := []any{
+	 	o.generateFullName,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_state(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
-		Description: "Randomly selects a US state and either returns the two character state code or the full state name.",
+		Description: "Randomly selects a US state and by default, returns it as a 2-letter state code.",
 		Example: "",
 	}, nil
 }

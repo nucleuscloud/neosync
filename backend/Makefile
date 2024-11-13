@@ -24,7 +24,7 @@ run: ## Runs the project
 	./bin/mgmt serve connect
 
 gen: ## Runs the gen script
-	./scripts/gen.sh
+	@cd .. && ./scripts/backend-gen.sh
 
 clean: ## Cleans the bin directory
 	rm -rf bin

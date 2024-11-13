@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -25,9 +25,14 @@ func NewTransformInt64PhoneNumber() *TransformInt64PhoneNumber {
 }
 
 func NewTransformInt64PhoneNumberOpts(
-	preserveLength bool,
+	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformInt64PhoneNumberOpts, error) {
+	preserveLength := bool(false)
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -39,10 +44,29 @@ func NewTransformInt64PhoneNumberOpts(
 	}, nil
 }
 
+func (o *TransformInt64PhoneNumberOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"preserve_length:%v",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.preserveLength,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_int64_phone_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64PhoneNumber",
-		Description: "Transforms an existing phone number that is typed as an integer",
+		Description: "Anonymizes and transforms an existing int64 phone number.",
 		Example: "",
 	}, nil
 }
@@ -50,10 +74,10 @@ func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformInt64PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformInt64PhoneNumberOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformInt64PhoneNumber", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
 	var seedArg *int64

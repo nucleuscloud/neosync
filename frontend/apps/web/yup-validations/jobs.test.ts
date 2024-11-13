@@ -17,20 +17,6 @@ describe('JobMappingTransformerForm schema', () => {
     ).resolves.toBeTruthy();
   });
 
-  it('should fail validation when source is missing', async () => {
-    const invalidData = {
-      config: { case: 'generateGenderConfig', value: { abbreviate: true } },
-    };
-
-    await expect(JobMappingTransformerForm.isValid(invalidData)).resolves.toBe(
-      false
-    );
-
-    await expect(
-      JobMappingTransformerForm.validate(invalidData)
-    ).rejects.toThrow('A valid transformer source must be specified');
-  });
-
   it('should fail validation with invalid config', async () => {
     const invalidData = {
       source: 1,

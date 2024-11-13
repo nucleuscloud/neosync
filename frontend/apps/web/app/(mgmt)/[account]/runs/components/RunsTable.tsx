@@ -1,3 +1,4 @@
+import EmptyState from '@/components/EmptyState';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
@@ -7,7 +8,9 @@ import {
 } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { getJobRuns, getJobs } from '@neosync/sdk/connectquery';
+import { ArrowTopRightIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
+import { GoStack } from 'react-icons/go';
 import { getColumns } from './JobRunsTable/columns';
 import { DataTable } from './JobRunsTable/data-table';
 
@@ -88,17 +91,29 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable
-        columns={columns}
-        data={runs}
-        refreshInterval={refreshInterval}
-        onAutoRefreshIntervalChange={(newVal: JobRunsAutoRefreshInterval) =>
-          setAutoRefreshInterval(newVal)
-        }
-        autoRefreshIntervalOptions={INTERVAL_SELECT_OPTIONS}
-        onRefreshClick={refreshClick}
-        isRefreshing={isValidating}
-      />
+      {runs.length == 0 ? (
+        <EmptyState
+          title="No Job Runs yet"
+          description="Runs are instances of a job that have been executed."
+          buttonText="Trigger a Job to see a Run"
+          buttonIcon={<ArrowTopRightIcon />}
+          buttonIconSide="right"
+          icon={<GoStack className="w-8 h-8 text-primary" />}
+          href={`/${account?.name}/jobs`}
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={runs}
+          refreshInterval={refreshInterval}
+          onAutoRefreshIntervalChange={(newVal: JobRunsAutoRefreshInterval) =>
+            setAutoRefreshInterval(newVal)
+          }
+          autoRefreshIntervalOptions={INTERVAL_SELECT_OPTIONS}
+          onRefreshClick={refreshClick}
+          isRefreshing={isValidating}
+        />
+      )}
     </div>
   );
 }

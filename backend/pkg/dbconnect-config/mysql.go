@@ -1,91 +1,99 @@
 package dbconnectconfig
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
-	"strconv"
 	"strings"
+	"time"
 
+	"github.com/go-sql-driver/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
-func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, connectionTimeout *uint32) (*GeneralDbConnectConfig, error) {
-	switch cc := config.MysqlConfig.ConnectionConfig.(type) {
+type mysqlConnectConfig struct {
+	dsn  string
+	user string
+}
+
+var _ DbConnectConfig = (*mysqlConnectConfig)(nil)
+
+func (m *mysqlConnectConfig) String() string {
+	return m.dsn
+}
+func (m *mysqlConnectConfig) GetUser() string {
+	return m.user
+}
+
+func NewFromMysqlConnection(
+	config *mgmtv1alpha1.ConnectionConfig_MysqlConfig,
+	connectionTimeout *uint32,
+	logger *slog.Logger,
+	mysqlDisableParseTime bool,
+) (DbConnectConfig, error) {
+	parseTime := !mysqlDisableParseTime
+	switch cc := config.MysqlConfig.GetConnectionConfig().(type) {
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
-		query := url.Values{}
+		cfg := mysql.NewConfig()
+		cfg.DBName = cc.Connection.GetName()
+		cfg.Addr = cc.Connection.GetHost()
+		if cc.Connection.GetPort() > 0 {
+			cfg.Addr += fmt.Sprintf(":%d", cc.Connection.GetPort())
+		}
+		cfg.User = cc.Connection.GetUser()
+		cfg.Passwd = cc.Connection.GetPass()
 		if connectionTimeout != nil {
-			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
+			cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
 		}
-		query.Add("multiStatements", "true")
-		return &GeneralDbConnectConfig{
-			driver:        mysqlDriver,
-			host:          cc.Connection.Host,
-			port:          &cc.Connection.Port,
-			database:      &cc.Connection.Name,
-			user:          cc.Connection.User,
-			pass:          cc.Connection.Pass,
-			mysqlProtocol: &cc.Connection.Protocol,
-			queryParams:   query,
-		}, nil
+		cfg.Net = cc.Connection.GetProtocol()
+		cfg.MultiStatements = true
+		cfg.ParseTime = parseTime
+
+		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		// follows the format [scheme://][user[:password]@]<host[:port]|socket>[/schema][?option=value&option=value...]
-		// from the format - https://dev.mysql.com/doc/dev/mysqlsh-api-javascript/8.0/classmysqlsh_1_1_shell.html#a639614cf6b980f0d5267cc7057b81012
+		mysqlurl := cc.Url
 
-		u, err := url.Parse(cc.Url)
+		cfg, err := mysql.ParseDSN(mysqlurl)
 		if err != nil {
-			return nil, err
-		}
-
-		// mysqlx is a newer connection protocol meant for more flexible schemas and supports mysqls nosql db capabilities
-		// more information here - https://dev.mysql.com/doc/refman/8.4/en/connecting-using-uri-or-key-value-pairs.html
-
-		if u.Scheme != "mysql" && u.Scheme != "mysqlx" {
-			return nil, fmt.Errorf("scheme is not mysql ,unsupported scheme: %s", u.Scheme)
-		}
-
-		var user string
-		var pass string
-
-		if u.User != nil {
-			user = u.User.Username()
-			pass, _ = u.User.Password()
-		}
-
-		port := int32(3306)
-		if p := u.Port(); p != "" {
-			portInt, err := strconv.Atoi(p)
+			logger.Warn(fmt.Sprintf("failed to parse mysql url as DSN: %v", err))
+			uriConfig, err := url.Parse(mysqlurl)
 			if err != nil {
-				return nil, err
+				var urlErr *url.Error
+				if errors.As(err, &urlErr) {
+					return nil, fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
+				}
+				return nil, fmt.Errorf("unable to parse mysql url: %w", err)
+			}
+			cfg = mysql.NewConfig()
+			cfg.Net = "tcp"
+			cfg.DBName = strings.TrimPrefix(uriConfig.Path, "/")
+			cfg.Addr = uriConfig.Host
+			cfg.User = uriConfig.User.Username()
+			if passwd, ok := uriConfig.User.Password(); ok {
+				cfg.Passwd = passwd
 			}
 
-			// #nosec G109
-			// this throws a linter error due to strconv.Atoi conversion above from string -> int32
-			// mysql ports are unsigned 16-bit numbers so they should never overflow in an in32
-			// https://stackoverflow.com/questions/20379491/what-is-the-optimal-way-to-store-port-numbers-in-a-mysql-database#:~:text=Port%20number%20is%20an%20unsinged,highest%20value%20can%20be%2065535.
-			// https://downloads.mysql.com/docs/mysql-port-reference-en.pdf
-			port = int32(portInt) //nolint:gosec // Ignoring for now
+			if connectionTimeout != nil {
+				cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
+			}
+			cfg.MultiStatements = true
+			cfg.ParseTime = parseTime
+			for k, values := range uriConfig.Query() {
+				for _, value := range values {
+					cfg.Params[k] = value
+				}
+			}
+			return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 		}
 
-		database := strings.TrimPrefix(u.Path, "/")
-
-		query := u.Query()
-		if connectionTimeout != nil {
-			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
+		if cfg.Timeout == 0 && connectionTimeout != nil {
+			cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
 		}
-		query.Add("multiStatements", "true")
-
-		return &GeneralDbConnectConfig{
-			driver:        u.Scheme,
-			host:          u.Hostname(),
-			port:          &port,
-			database:      &database,
-			user:          user,
-			pass:          pass,
-			mysqlProtocol: nil,
-			queryParams:   query,
-		}, nil
+		cfg.MultiStatements = true
+		cfg.ParseTime = parseTime
+		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	default:
-		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
+		return nil, fmt.Errorf("unsupported mysql connection config: %T", cc)
 	}
 }

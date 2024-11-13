@@ -1,6 +1,5 @@
 'use client';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,18 +38,15 @@ export default function UsagePage(): ReactElement {
   }
   const [start, end] = periodToDateRange(period);
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader
-          header="Usage"
-          subHeadings={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
-          extraHeading={
-            <UsagePeriodSelector period={period} setPeriod={setPeriod} />
-          }
-        />
-      }
-      containerClassName="usage-page"
-    >
+    <div>
+      <SubPageHeader
+        header="Usage"
+        description="See periodic usage for this account"
+        subHeadings={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
+        extraHeading={
+          <UsagePeriodSelector period={period} setPeriod={setPeriod} />
+        }
+      />
       <div className="flex">
         <MetricCount
           period={period}
@@ -67,6 +63,6 @@ export default function UsagePage(): ReactElement {
           identifier={account?.id ?? ''}
         />
       </div>
-    </OverviewContainer>
+    </div>
   );
 }

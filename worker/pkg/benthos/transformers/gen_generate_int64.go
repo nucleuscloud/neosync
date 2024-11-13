@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -28,13 +28,23 @@ func NewGenerateInt64() *GenerateInt64 {
 
 func NewGenerateInt64Opts(
 	randomizeSignArg *bool,
-	min int64,
-	max int64,
+	minArg *int64,
+	maxArg *int64,
   seedArg *int64,
 ) (*GenerateInt64Opts, error) {
-	randomizeSign := bool(false) 
+	randomizeSign := bool(false)
 	if randomizeSignArg != nil {
 		randomizeSign = *randomizeSignArg
+	}
+	
+	min := int64(1)
+	if minArg != nil {
+		min = *minArg
+	}
+	
+	max := int64(10000)
+	if maxArg != nil {
+		max = *maxArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -50,10 +60,30 @@ func NewGenerateInt64Opts(
 	}, nil
 }
 
+func (o *GenerateInt64Opts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"randomize_sign:%v", 
+		"min:%v", 
+		"max:%v",
+	}
+
+	params := []any{
+	 	o.randomizeSign,
+	 	o.min,
+	 	o.max,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_int64(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64",
-		Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.",
+		Description: "Generates a random int64 value with a default length of 4.",
 		Example: "",
 	}, nil
 }
@@ -67,16 +97,16 @@ func (t *GenerateInt64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizeSign = randomizeSign
 
-	if _, ok := opts["min"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInt64", "min")
+	min, ok := opts["min"].(int64)
+	if !ok {
+		min = 1
 	}
-	min := opts["min"].(int64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInt64", "max")
+	max, ok := opts["max"].(int64)
+	if !ok {
+		max = 10000
 	}
-	max := opts["max"].(int64)
 	transformerOpts.max = max
 
 	var seedArg *int64

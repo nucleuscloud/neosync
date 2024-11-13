@@ -2,7 +2,6 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"log/slog"
 	"slices"
 	"testing"
 
@@ -11,11 +10,18 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
+const (
+	workflowId = "workflow-id"
+)
+
 func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
@@ -23,6 +29,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	connectionId := "456"
 	fkconnectionId := "789"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -52,11 +59,10 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -67,7 +73,6 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -138,6 +143,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
 	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: []string{}},
 		{Label: "create table", Statements: []string{"test-create-statement"}},
@@ -146,7 +152,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		{Label: "table index", Statements: []string{"test-idx-statement"}},
 		{Label: "table triggers", Statements: []string{"test-trigger-statement"}},
 	}, nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
@@ -154,22 +160,24 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -199,11 +207,10 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -214,7 +221,6 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -255,22 +261,24 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -302,11 +310,10 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -317,7 +324,6 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -330,11 +336,10 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 						Table:  "accounts",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -382,26 +387,29 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	stmts := []string{"TRUNCATE \"public\".\"users\" CASCADE;", "TRUNCATE \"public\".\"accounts\" CASCADE;"}
+	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
+	stmts := []string{"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;", "TRUNCATE \"public\".\"accounts\" RESTART IDENTITY CASCADE;"}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -433,11 +441,10 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -448,7 +455,6 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -461,11 +467,10 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 						Table:  "accounts",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -522,25 +527,28 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 			}},
 		},
 	}, nil)
-	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
+	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
+	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE \"public\".\"accounts\", \"public\".\"users\" RESTART IDENTITY;").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -572,11 +580,10 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -587,7 +594,6 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -600,11 +606,10 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 						Table:  "accounts",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -670,22 +675,24 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
+	t.Parallel()
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
+	mockJobClient.On("SetRunContext", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil)
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
@@ -715,11 +722,10 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -730,7 +736,6 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -781,16 +786,17 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, nil, true, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
-		slog.Default(),
+		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
 }
 
 func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
+	t.Parallel()
 	tables := map[string]struct{}{
 		"public.regions":     {},
 		"public.jobs":        {},
@@ -838,6 +844,7 @@ func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
 }
 
 func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
+	t.Parallel()
 	tables := map[string]struct{}{
 		"public.countries": {},
 	}

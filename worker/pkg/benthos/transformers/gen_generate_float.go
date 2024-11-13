@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -30,15 +30,25 @@ func NewGenerateFloat64() *GenerateFloat64 {
 
 func NewGenerateFloat64Opts(
 	randomizeSignArg *bool,
-	min float64,
-	max float64,
+	minArg *float64,
+	maxArg *float64,
 	precision *int64,
 	scale *int64,
   seedArg *int64,
 ) (*GenerateFloat64Opts, error) {
-	randomizeSign := bool(false) 
+	randomizeSign := bool(false)
 	if randomizeSignArg != nil {
 		randomizeSign = *randomizeSignArg
+	}
+	
+	min := float64(1)
+	if minArg != nil {
+		min = *minArg
+	}
+	
+	max := float64(10000)
+	if maxArg != nil {
+		max = *maxArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -56,10 +66,38 @@ func NewGenerateFloat64Opts(
 	}, nil
 }
 
+func (o *GenerateFloat64Opts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"randomize_sign:%v", 
+		"min:%v", 
+		"max:%v",
+	}
+
+	params := []any{
+	 	o.randomizeSign,
+	 	o.min,
+	 	o.max,
+	}
+
+	
+	if o.precision != nil {
+		fnStr = append(fnStr, "precision:%v")
+		params = append(params, *o.precision)
+	}
+	if o.scale != nil {
+		fnStr = append(fnStr, "scale:%v")
+		params = append(params, *o.scale)
+	}
+
+	template := fmt.Sprintf("generate_float64(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFloat64",
-		Description: "Generates a random float64 value.",
+		Description: "Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.",
 		Example: "",
 	}, nil
 }
@@ -73,16 +111,16 @@ func (t *GenerateFloat64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizeSign = randomizeSign
 
-	if _, ok := opts["min"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "min")
+	min, ok := opts["min"].(float64)
+	if !ok {
+		min = 1
 	}
-	min := opts["min"].(float64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "max")
+	max, ok := opts["max"].(float64)
+	if !ok {
+		max = 10000
 	}
-	max := opts["max"].(float64)
 	transformerOpts.max = max
 
 	var precision *int64

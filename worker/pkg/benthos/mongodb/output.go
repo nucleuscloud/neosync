@@ -77,26 +77,6 @@ func outputSpec() *service.ConfigSpec {
 	return spec
 }
 
-// func init() {
-// 	err := service.RegisterBatchOutput(
-// 		"mongodb", outputSpec(),
-// 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.BatchOutput, batchPol service.BatchPolicy, mif int, err error) {
-// 			if batchPol, err = conf.FieldBatchPolicy(moFieldBatching); err != nil {
-// 				return
-// 			}
-// 			if mif, err = conf.FieldMaxInFlight(); err != nil {
-// 				return
-// 			}
-// 			if out, err = newOutputWriter(conf, mgr); err != nil {
-// 				return
-// 			}
-// 			return
-// 		})
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
-
 func RegisterPooledMongoDbOutput(env *service.Environment, clientProvider MongoPoolProvider) error {
 	return env.RegisterBatchOutput(
 		"pooled_mongodb", outputSpec(),

@@ -1,0 +1,453 @@
+openapi: 3.1.0
+info:
+  version: "0.4"
+  title: mgmt.v1alpha1
+paths:
+  /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.MetricsService
+      summary: GetDailyMetricCount
+      description: Retrieve a timed range of records
+      operationId: mgmt.v1alpha1.MetricsService.GetDailyMetricCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountResponse'
+  /mgmt.v1alpha1.MetricsService/GetMetricCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.MetricsService
+      summary: GetMetricCount
+      description: For the given metric and time range, returns the total count found
+      operationId: mgmt.v1alpha1.MetricsService.GetMetricCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountResponse'
+components:
+  schemas:
+    mgmt.v1alpha1.RangedMetricName:
+      type: string
+      title: RangedMetricName
+      enum:
+        - RANGED_METRIC_NAME_UNSPECIFIED
+        - RANGED_METRIC_NAME_INPUT_RECEIVED
+    google.protobuf.Timestamp:
+      type: string
+      format: date-time
+      description: |-
+        A Timestamp represents a point in time independent of any time zone or local
+         calendar, encoded as a count of seconds and fractions of seconds at
+         nanosecond resolution. The count is relative to an epoch at UTC midnight on
+         January 1, 1970, in the proleptic Gregorian calendar which extends the
+         Gregorian calendar backwards to year one.
+
+         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
+         second table is needed for interpretation, using a [24-hour linear
+         smear](https://developers.google.com/time/smear).
+
+         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
+         restricting to that range, we ensure that we can convert to and from [RFC
+         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+
+         # Examples
+
+         Example 1: Compute Timestamp from POSIX `time()`.
+
+             Timestamp timestamp;
+             timestamp.set_seconds(time(NULL));
+             timestamp.set_nanos(0);
+
+         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
+
+             struct timeval tv;
+             gettimeofday(&tv, NULL);
+
+             Timestamp timestamp;
+             timestamp.set_seconds(tv.tv_sec);
+             timestamp.set_nanos(tv.tv_usec * 1000);
+
+         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
+
+             FILETIME ft;
+             GetSystemTimeAsFileTime(&ft);
+             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+
+             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
+             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
+             Timestamp timestamp;
+             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
+             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
+
+         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
+
+             long millis = System.currentTimeMillis();
+
+             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+                 .setNanos((int) ((millis % 1000) * 1000000)).build();
+
+         Example 5: Compute Timestamp from Java `Instant.now()`.
+
+             Instant now = Instant.now();
+
+             Timestamp timestamp =
+                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
+                     .setNanos(now.getNano()).build();
+
+         Example 6: Compute Timestamp from current time in Python.
+
+             timestamp = Timestamp()
+             timestamp.GetCurrentTime()
+
+         # JSON Mapping
+
+         In JSON format, the Timestamp type is encoded as a string in the
+         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
+         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
+         where {year} is always expressed using four digits while {month}, {day},
+         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
+         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
+         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
+         is required. A proto3 JSON serializer should always use UTC (as indicated by
+         "Z") when printing the Timestamp type and a proto3 JSON parser should be
+         able to accept both UTC and other timezones (as indicated by an offset).
+
+         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
+         01:30 UTC on January 15, 2017.
+
+         In JavaScript, one can convert a Date object to this format using the
+         standard
+         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
+         method. In Python, a standard `datetime.datetime` object can be converted
+         to this format using
+         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
+         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
+         the Joda Time's [`ISODateTimeFormat.dateTime()`](
+         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
+         ) to obtain a formatter capable of generating timestamps in this format.
+    mgmt.v1alpha1.Date:
+      type: object
+      properties:
+        year:
+          type: integer
+          title: year
+          maximum: 9999
+          description: |-
+            Year of the date. Must be from 1 to 9999, or 0 to specify a date without
+             a year.
+        month:
+          type: integer
+          title: month
+          maximum: 31
+          description: |-
+            Month of a year. Must be from 1 to 12, or 0 to specify a year without a
+             month and day.
+        day:
+          type: integer
+          title: day
+          maximum: 31
+          description: |-
+            Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
+             to specify a year by itself or a year and month where the day isn't
+             significant.
+      title: Date
+      additionalProperties: false
+      description: |-
+        Represents a whole or partial calendar date, such as a birthday. The time of
+         day and time zone are either specified elsewhere or are insignificant. The
+         date is relative to the Gregorian Calendar. This can represent one of the
+         following:
+
+         * A full date, with non-zero year, month, and day values
+         * A month and day value, with a zero year, such as an anniversary
+         * A year on its own, with zero month and day values
+         * A year and month value, with a zero day, such as a credit card expiration
+         date
+
+         Related types are [google.type.TimeOfDay][google.type.TimeOfDay] and
+         `google.protobuf.Timestamp`.
+    mgmt.v1alpha1.DayResult:
+      type: object
+      properties:
+        date:
+          allOf:
+            - title: date
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+        count:
+          oneOf:
+            - type: string
+            - type: number
+          title: count
+      title: DayResult
+      additionalProperties: false
+    mgmt.v1alpha1.GetDailyMetricCountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accountId
+            - required:
+                - jobId
+            - required:
+                - runId
+            - not:
+                anyOf:
+                  - required:
+                      - accountId
+                  - required:
+                      - jobId
+                  - required:
+                      - runId
+      anyOf:
+        - required:
+            - accountId
+        - required:
+            - jobId
+        - required:
+            - runId
+        - not:
+            anyOf:
+              - required:
+                  - accountId
+              - required:
+                  - jobId
+              - required:
+                  - runId
+      properties:
+        start:
+          allOf:
+            - title: start
+              description: The start day
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+        end:
+          allOf:
+            - title: end
+              description: The end day
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+        metric:
+          allOf:
+            - title: metric
+              description: The metric to return
+            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account identifier that will be used to filter by
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The job identifier that will be used to filter by
+        runId:
+          type: string
+          title: run_id
+          format: uuid
+          description: The run identifier that will be used to filter by
+      title: GetDailyMetricCountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetDailyMetricCountResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DayResult'
+          title: results
+      title: GetDailyMetricCountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetMetricCountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accountId
+            - required:
+                - jobId
+            - required:
+                - runId
+            - not:
+                anyOf:
+                  - required:
+                      - accountId
+                  - required:
+                      - jobId
+                  - required:
+                      - runId
+      anyOf:
+        - required:
+            - accountId
+        - required:
+            - jobId
+        - required:
+            - runId
+        - not:
+            anyOf:
+              - required:
+                  - accountId
+              - required:
+                  - jobId
+              - required:
+                  - runId
+      properties:
+        start:
+          allOf:
+            - title: start
+              description: '@deprecated - use start_day'
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        end:
+          allOf:
+            - title: end
+              description: '@deprecated - use end_day'
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        metric:
+          allOf:
+            - title: metric
+              description: The metric to return
+            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account identifier that will be used to filter by
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The job identifier that will be used to filter by
+        runId:
+          type: string
+          title: run_id
+          format: uuid
+          description: The run identifier that will be used to filter by
+        startDay:
+          allOf:
+            - title: start_day
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+        endDay:
+          allOf:
+            - title: end_day
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+      title: GetMetricCountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetMetricCountResponse:
+      type: object
+      properties:
+        count:
+          oneOf:
+            - type: string
+            - type: number
+          title: count
+          description: The summed up count of the metric based on the input query and timerange specified
+      title: GetMetricCountResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security: []
+tags:
+  - name: mgmt.v1alpha1.MetricsService

@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -13,8 +14,8 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Generates a random first name.").
-		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Description("Generates a random first name between 2 and 12 characters long.").
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_first_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -45,6 +46,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateFirstNameOptsFromConfig(config *mgmtv1alpha1.GenerateFirstName, maxLength *int64) (*GenerateFirstNameOpts, error) {
+	if config == nil {
+		return NewGenerateFirstNameOpts(nil, nil)
+	}
+	return NewGenerateFirstNameOpts(
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateFirstName) Generate(opts any) (any, error) {

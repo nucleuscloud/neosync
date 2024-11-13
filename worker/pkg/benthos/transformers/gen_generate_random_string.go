@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -26,10 +26,20 @@ func NewGenerateRandomString() *GenerateRandomString {
 }
 
 func NewGenerateRandomStringOpts(
-	min int64,
-	max int64,
+	minArg *int64,
+	maxArg *int64,
   seedArg *int64,
 ) (*GenerateRandomStringOpts, error) {
+	min := int64(1)
+	if minArg != nil {
+		min = *minArg
+	}
+	
+	max := int64(100)
+	if maxArg != nil {
+		max = *maxArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -42,10 +52,28 @@ func NewGenerateRandomStringOpts(
 	}, nil
 }
 
+func (o *GenerateRandomStringOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"min:%v", 
+		"max:%v",
+	}
+
+	params := []any{
+	 	o.min,
+	 	o.max,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_string(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateRandomString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateRandomString",
-		Description: "Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.",
+		Description: "Generates a random string of alphanumeric characters..",
 		Example: "",
 	}, nil
 }
@@ -53,16 +81,16 @@ func (t *GenerateRandomString) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateRandomString) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateRandomStringOpts{}
 
-	if _, ok := opts["min"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateRandomString", "min")
+	min, ok := opts["min"].(int64)
+	if !ok {
+		min = 1
 	}
-	min := opts["min"].(int64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateRandomString", "max")
+	max, ok := opts["max"].(int64)
+	if !ok {
+		max = 100
 	}
-	max := opts["max"].(int64)
 	transformerOpts.max = max
 
 	var seedArg *int64

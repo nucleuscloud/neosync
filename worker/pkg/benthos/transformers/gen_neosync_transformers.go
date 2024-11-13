@@ -22,6 +22,7 @@ func GetNeosyncTransformers() []NeosyncTransformer {
 func GetNeosyncGenerators() []NeosyncGenerator {
 	return []NeosyncGenerator{
 			NewGenerateBool(),
+			NewGenerateBusinessName(),
 			NewGenerateCardNumber(),
 			NewGenerateCategorical(),
 			NewGenerateCity(),
@@ -35,6 +36,7 @@ func GetNeosyncGenerators() []NeosyncGenerator {
 			NewGenerateInt64(),
 			NewGenerateInt64PhoneNumber(),
 			NewGenerateInternationalPhoneNumber(),
+			NewGenerateIpAddress(),
 			NewGenerateLastName(),
 			NewGenerateRandomString(),
 			NewGenerateSHA256Hash(),

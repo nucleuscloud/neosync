@@ -136,6 +136,10 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_USER_DEFINED = 44;
   TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT = 45;
   TRANSFORMER_SOURCE_GENERATE_COUNTRY = 46;
+  // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+  TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
+  TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
+  TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
 }
 
 enum TransformerDataType {
@@ -213,6 +217,89 @@ message TransformerConfig {
     TransformCharacterScramble transform_character_scramble_config = 41;
     GenerateJavascript generate_javascript_config = 42;
     GenerateCountry generate_country_config = 43;
+    // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+    TransformPiiText transform_pii_text_config = 44;
+    GenerateBusinessName generate_business_name_config = 45;
+    GenerateIpAddress generate_ip_address_config = 46;
+  }
+}
+
+// NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+message TransformPiiText {
+  // Minimal detection score for determining PII. 0.0-1.0
+  float score_threshold = 1 [
+    (buf.validate.field).float.gte = 0.0,
+    (buf.validate.field).float.lte = 1.0
+  ];
+  // The default anonmyization config used for all instances of detected PII.
+  PiiAnonymizer default_anonymizer = 2;
+
+  // Configure deny lists where each word is treated as PII.
+  repeated PiiDenyRecognizer deny_recognizers = 3;
+
+  // Configure a list of entities to be used for PII analysis. If not provided or empty, all entities are considiered
+  // If this is specified, any ad-hoc, or deny_recognizers entity names must also be provided.
+  // To see available builtin entities, call the GetPiiTextEntities() RPC method to see what is available for your account.
+  repeated string allowed_entities = 4 [(buf.validate.field).repeated = {
+    items: {
+      string: {min_len: 1}
+    }
+  }];
+
+  // Exact match of PII phrases identified by the analysis engine.
+  repeated string allowed_phrases = 5;
+}
+
+message PiiDenyRecognizer {
+  // Friendly name of this entity
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-_]{1,100}$"];
+  // List of words that will be treated as PII.
+  repeated string deny_words = 2 [(buf.validate.field).repeated = {
+    items: {
+      string: {min_len: 1}
+    }
+  }];
+}
+
+message PiiAnonymizer {
+  oneof config {
+    // Configures the anonymizer to replace the identified PII with a specific value
+    Replace replace = 1;
+    // Configures the anonymizer to completely remove the identified PII
+    Redact redact = 2;
+    // Configures the anonymizer to mask the identified PII
+    Mask mask = 3;
+    // Configures the anonymizer to hash the identified PII
+    Hash hash = 4;
+  }
+
+  message Replace {
+    // The value to replace. If not provided, a template token of the anonymizer is used.
+    optional string value = 1;
+  }
+  message Redact {}
+  message Mask {
+    // Provide a character that will be used for the replacement.
+    optional string masking_char = 1;
+    // How many characters to mask.
+    optional int32 chars_to_mask = 2;
+    // Whether to mask the PII from start or end
+    optional bool from_end = 3;
+  }
+  message Hash {
+    // The hashing algorithm to use.
+    optional HashType algo = 1;
+
+    enum HashType {
+      // If unspecified, defaults to md5
+      HASH_TYPE_UNSPECIFIED = 0;
+      // The MD5 Hash Algorithm
+      HASH_TYPE_MD5 = 1;
+      // The SHA256 Hash Algorithm
+      HASH_TYPE_SHA256 = 2;
+      // The SHA512 Hash Algorithm
+      HASH_TYPE_SHA512 = 3;
+    }
   }
 }
 
@@ -246,9 +333,9 @@ enum InvalidEmailAction {
 
 message TransformEmail {
   // Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
-  bool preserve_domain = 1;
+  optional bool preserve_domain = 1;
   // Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
-  bool preserve_length = 2;
+  optional bool preserve_length = 2;
   // A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
   repeated string excluded_domains = 3;
   // Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
@@ -260,7 +347,7 @@ message TransformEmail {
 message GenerateBool {}
 
 message GenerateCardNumber {
-  bool valid_luhn = 1;
+  optional bool valid_luhn = 1;
 }
 
 message GenerateCity {}
@@ -268,17 +355,17 @@ message GenerateCity {}
 message GenerateDefault {}
 
 message GenerateE164PhoneNumber {
-  int64 min = 1;
-  int64 max = 2;
+  optional int64 min = 1;
+  optional int64 max = 2;
 }
 
 message GenerateFirstName {}
 
 message GenerateFloat64 {
-  bool randomize_sign = 1;
-  double min = 2;
-  double max = 3;
-  int64 precision = 4;
+  optional bool randomize_sign = 1;
+  optional double min = 2;
+  optional double max = 3;
+  optional int64 precision = 4;
 }
 
 message GenerateFullAddress {}
@@ -286,15 +373,15 @@ message GenerateFullAddress {}
 message GenerateFullName {}
 
 message GenerateGender {
-  bool abbreviate = 1;
+  optional bool abbreviate = 1;
 }
 
 message GenerateInt64PhoneNumber {}
 
 message GenerateInt64 {
-  bool randomize_sign = 1;
-  int64 min = 2;
-  int64 max = 3;
+  optional bool randomize_sign = 1;
+  optional int64 min = 2;
+  optional int64 max = 3;
 }
 
 message GenerateLastName {}
@@ -304,19 +391,19 @@ message GenerateSSN {}
 
 message GenerateState {
   // An option to return the full state name of the randomly selected state or return the default of a 2-letter state code.
-  bool generate_full_name = 1;
+  optional bool generate_full_name = 1;
 }
 
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
-  int64 min = 2;
-  int64 max = 3;
+  optional int64 min = 2;
+  optional int64 max = 3;
 }
 
 message GenerateString {
-  int64 min = 1;
-  int64 max = 2;
+  optional int64 min = 1;
+  optional int64 max = 2;
 }
 
 message GenerateUnixTimestamp {}
@@ -326,47 +413,47 @@ message GenerateUsername {}
 message GenerateUtcTimestamp {}
 
 message GenerateUuid {
-  bool include_hyphens = 1;
+  optional bool include_hyphens = 1;
 }
 
 message GenerateZipcode {}
 
 message TransformE164PhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformFirstName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformFloat64 {
-  double randomization_range_min = 1;
-  double randomization_range_max = 2;
+  optional double randomization_range_min = 1;
+  optional double randomization_range_max = 2;
 }
 
 message TransformFullName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformInt64PhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformInt64 {
-  int64 randomization_range_min = 1;
-  int64 randomization_range_max = 2;
+  optional int64 randomization_range_min = 1;
+  optional int64 randomization_range_max = 2;
 }
 
 message TransformLastName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformPhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformString {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message Passthrough {}
@@ -392,7 +479,7 @@ message ValidateUserJavascriptCodeResponse {
 }
 
 message GenerateCategorical {
-  string categories = 1;
+  optional string categories = 1;
 }
 
 message TransformCharacterScramble {
@@ -416,7 +503,43 @@ message ValidateUserRegexCodeResponse {
 
 message GenerateCountry {
   // An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
-  bool generate_full_name = 1;
+  optional bool generate_full_name = 1;
+}
+
+message GetTransformPiiEntitiesRequest {
+  // The unique identifier of the account to return entities for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetTransformPiiEntitiesResponse {
+  // The list of built-in entities that are enabled for the provided account id.
+  repeated string entities = 1;
+}
+
+message GenerateBusinessName {}
+
+enum GenerateIpAddressType {
+  // Unspecified defaults to ipv4
+  GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED = 0;
+  // Generates a random ipv4_public
+  GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC = 1;
+  // Generates a random ipv4_private_a
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A = 2;
+  // Generates a random ipv4_private_b
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B = 3;
+  // Generates a random ipv4_private_c
+  GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C = 4;
+  // Generates a random ipv4_linklocal
+  GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL = 5;
+  // Generates a random ipv4_multicast
+  GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST = 6;
+  // Generates a random ipv4_loopback
+  GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK = 7;
+  // Generates a random ipv6
+  GENERATE_IP_ADDRESS_TYPE_V6 = 8;
+}
+
+message GenerateIpAddress {
+  optional GenerateIpAddressType ip_type = 1;
 }
 
 service TransformersService {
@@ -430,4 +553,9 @@ service TransformersService {
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
   rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
   rpc ValidateUserRegexCode(ValidateUserRegexCodeRequest) returns (ValidateUserRegexCodeResponse) {}
+
+  // Retrieve a list of available Pii entities for use with the TransformPiiText transformer
+  rpc GetTransformPiiEntities(GetTransformPiiEntitiesRequest) returns (GetTransformPiiEntitiesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

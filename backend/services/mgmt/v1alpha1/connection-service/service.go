@@ -6,7 +6,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -16,7 +16,7 @@ import (
 
 type Service struct {
 	cfg                *Config
-	db                 *nucleusdb.NucleusDb
+	db                 *neosyncdb.NeosyncDb
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 	sqlConnector       sqlconnect.SqlConnector
 	sqlmanager         sql_manager.SqlManagerClient
@@ -34,7 +34,7 @@ type Config struct {
 
 func New(
 	cfg *Config,
-	db *nucleusdb.NucleusDb,
+	db *neosyncdb.NeosyncDb,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	sqlConnector sqlconnect.SqlConnector,
 	pgquerier pg_queries.Querier,

@@ -100,7 +100,7 @@ export function getColumns(
         return (
           <div>
             <span className="font-medium">
-              {formatDateTime(row.getValue<Timestamp>('startedAt').toDate())}
+              {formatDateTime(row.getValue<Timestamp>('startedAt')?.toDate())}
             </span>
           </div>
         );
@@ -116,7 +116,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         const completedAt = row.getValue('completedAt')
-          ? formatDateTime(row.getValue<Timestamp>('completedAt').toDate())
+          ? formatDateTime(row.getValue<Timestamp>('completedAt')?.toDate())
           : undefined;
         return (
           <div>

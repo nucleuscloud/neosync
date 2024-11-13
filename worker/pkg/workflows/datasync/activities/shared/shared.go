@@ -11,7 +11,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"github.com/spf13/viper"
 )
 
@@ -19,11 +19,24 @@ const (
 	// The benthos value for null
 	NullString = "null"
 
-	runContext_ExternalId_BenthosConfig = "benthosconfig"
+	runContext_ExternalId_BenthosConfig       = "benthosconfig"
+	runContext_ExternalId_PostTableSyncConfig = "posttablesync"
 )
 
 func GetBenthosConfigExternalId(identifier string) string {
 	return fmt.Sprintf("%s-%s", runContext_ExternalId_BenthosConfig, identifier)
+}
+
+func GetPostTableSyncConfigExternalId(identifier string) string {
+	return fmt.Sprintf("%s-%s", runContext_ExternalId_PostTableSyncConfig, identifier)
+}
+
+type PostTableSyncConfig struct {
+	DestinationConfigs map[string]*PostTableSyncDestConfig `json:"destinationConfigs"`
+}
+
+type PostTableSyncDestConfig struct {
+	Statements []string `json:"statements"` // statements to run
 }
 
 // General workflow metadata struct that is intended to be common across activities
@@ -51,7 +64,7 @@ func GetNeosyncUrl() string {
 // Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
 func GetNeosyncHttpClient() *http.Client {
 	apikey := viper.GetString("NEOSYNC_API_KEY")
-	return http_client.NewWithAuth(&apikey)
+	return http_client.NewWithBearerAuth(&apikey)
 }
 
 // Generic util method that turns any value into its pointer
@@ -223,6 +236,30 @@ func GetJobSourceConnection(
 	return sourceConnection, nil
 }
 
+func GetConnectionType(connection *mgmtv1alpha1.Connection) string {
+	switch connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return "postgres"
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return "mysql"
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return "sqlserver"
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return "aws-s3"
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		return "gcp-cloud-storage"
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return "mongodb"
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return "aws-dynamodb"
+	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
+		return "local-directory"
+	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
+		return "openai"
+	default:
+		return "unknown"
+	}
+}
 func GetConnectionById(
 	ctx context.Context,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,

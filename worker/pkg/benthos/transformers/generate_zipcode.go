@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -12,7 +13,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateZipcode
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly selects a zip code from a list of predefined US zipcodes.").
+	spec := bloblang.NewPluginSpec().Description("Generates a randomly selected US zipcode.").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -35,6 +36,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateZipcodeOptsFromConfig(config *mgmtv1alpha1.GenerateZipcode) (*GenerateZipcodeOpts, error) {
+	return NewGenerateZipcodeOpts(nil)
 }
 
 func (t *GenerateZipcode) Generate(opts any) (any, error) {

@@ -5,6 +5,7 @@ import {
   createPromiseClient,
 } from '@connectrpc/connect';
 
+import { AnonymizationService } from './mgmt/v1alpha1/anonymization_connect.js';
 import { ApiKeyService } from './mgmt/v1alpha1/api_key_connect.js';
 import { ConnectionService } from './mgmt/v1alpha1/connection_connect.js';
 import { ConnectionDataService } from './mgmt/v1alpha1/connection_data_connect.js';
@@ -24,6 +25,7 @@ export interface NeosyncV1alpha1Client {
   apikeys: PromiseClient<typeof ApiKeyService>;
   connectiondata: PromiseClient<typeof ConnectionDataService>;
   metrics: PromiseClient<typeof MetricsService>;
+  anonymization: PromiseClient<typeof AnonymizationService>;
 }
 
 /**
@@ -89,6 +91,7 @@ export function getNeosyncV1alpha1Client(
     apikeys: createPromiseClient(ApiKeyService, transport),
     connectiondata: createPromiseClient(ConnectionDataService, transport),
     metrics: createPromiseClient(MetricsService, transport),
+    anonymization: createPromiseClient(AnonymizationService, transport),
   };
 }
 

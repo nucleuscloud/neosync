@@ -21,9 +21,14 @@ message GetUserAccountsResponse {
 }
 
 message UserAccount {
+  // The unique identifier of the account
   string id = 1;
+  // The account slug
   string name = 2;
+  // The type of account
   UserAccountType type = 3;
+  // Whether or not the account has an associated stripe customer id
+  bool has_stripe_customer_id = 4;
 }
 
 enum UserAccountType {
@@ -33,8 +38,21 @@ enum UserAccountType {
   USER_ACCOUNT_TYPE_ENTERPRISE = 3;
 }
 
-message ConvertPersonalToTeamAccountRequest {}
-message ConvertPersonalToTeamAccountResponse {}
+message ConvertPersonalToTeamAccountRequest {
+  // The name of the team account
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
+  // And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
+  optional string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message ConvertPersonalToTeamAccountResponse {
+  // The id of the team account (will be the same identifier as the personal account)
+  string account_id = 1;
+  // If NeosyncCloud, will respond with a checkout session url so they can setup billing
+  optional string checkout_session_url = 2;
+  // The identifier of the newly created personal account
+  string new_personal_account_id = 3;
+}
 
 message SetPersonalAccountRequest {}
 message SetPersonalAccountResponse {
@@ -70,10 +88,13 @@ message AccountTemporalConfig {
 }
 
 message CreateTeamAccountRequest {
+  // The name of the team account
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 message CreateTeamAccountResponse {
   string account_id = 1;
+  // If NeosyncCloud, will respond with a checkout session url so they can setup billing
+  optional string checkout_session_url = 2;
 }
 
 message AccountUser {
@@ -138,9 +159,13 @@ message AcceptTeamAccountInviteResponse {
 
 message GetSystemInformationRequest {}
 message GetSystemInformationResponse {
+  // The Git tagged version
   string version = 1;
+  // The Git commit
   string commit = 2;
+  // The Go compiler flag that was used to build this version of Neosync
   string compiler = 3;
+  // The Go platform flag that was used to build this version of Neosync
   string platform = 4;
   google.protobuf.Timestamp build_date = 5;
 }
@@ -161,15 +186,34 @@ message SetAccountOnboardingConfigResponse {
 }
 
 message AccountOnboardingConfig {
+  // @deprecated - use has_completed_onboarding
   bool has_created_source_connection = 1;
+  // @deprecated - use has_completed_onboarding
   bool has_created_destination_connection = 2;
+  // @deprecated - use has_completed_onboarding
   bool has_created_job = 3;
+  // @deprecated - use has_completed_onboarding
   bool has_invited_members = 4;
+  bool has_completed_onboarding = 5;
 }
 
 message GetAccountStatusRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
+
+enum BillingStatus {
+  BILLING_STATUS_UNSPECIFIED = 0;
+  // Corresponds to a billing subscription and rolls up various states into active
+  // This may be split into the future to be more granular and mirror the underlying billing system
+  BILLING_STATUS_ACTIVE = 1;
+  // If the system could not find any active subscriptions
+  BILLING_STATUS_EXPIRED = 2;
+  // The account does not have an active subscription and is in a valid trial period
+  BILLING_STATUS_TRIAL_ACTIVE = 3;
+  // The account does not have an active subscription and the trial period has ended
+  BILLING_STATUS_TRIAL_EXPIRED = 4;
+}
+
 message GetAccountStatusResponse {
   // A count of the currently used records for the current billing period.
   // This may go over the allowed record count depending on when the record count is polled by the metric system.
@@ -178,15 +222,91 @@ message GetAccountStatusResponse {
   optional uint64 allowed_record_count = 2;
 
   // The current subscription status determined by the billing system.
-  int32 subscription_status = 3;
+  BillingStatus subscription_status = 3;
 }
 
 message IsAccountStatusValidRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // An optional count of records to be added to the current usage for validation.
+  optional uint64 requested_record_count = 2;
 }
+
 message IsAccountStatusValidResponse {
   bool is_valid = 1;
+  // If the account is not valid, a reason for why may be provided.
+  optional string reason = 2;
+  // Whether or not the process should decide to continue polling for validitiy updates
+  bool should_poll = 3;
+  // A count of the currently used records for the current billing period.
+  // This may go over the allowed record count depending on when the record count is polled by the metric system.
+  // @deprecated
+  uint64 used_record_count = 4;
+  // The allowed record count. It will be null if there is no limit.
+  // @deprecated
+  optional uint64 allowed_record_count = 5;
+  // The current status of the account. Default is valid.
+  AccountStatus account_status = 6;
+  // The time when the trial expires
+  optional google.protobuf.Timestamp trial_expires_at = 7;
 }
+
+enum AccountStatus {
+  // Default value, should be used when no reason is specified
+  ACCOUNT_STATUS_REASON_UNSPECIFIED = 0;
+  // @deprecated - Current usage exceeds allowed limit
+  ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT = 1;
+  // @deprecated - Adding requested records exceeds the allowed limit
+  ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
+  // Account is currently in an expired state
+  ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
+  // The account is currently in an active trial period
+  ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE = 4;
+  // The account is past the active trial period
+  ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED = 5;
+}
+
+message GetAccountBillingCheckoutSessionRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountBillingCheckoutSessionResponse {
+  // The url that will be redirected to
+  string checkout_session_url = 1;
+}
+
+message GetAccountBillingPortalSessionRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountBillingPortalSessionResponse {
+  // The url that will be redirected to
+  string portal_session_url = 1;
+}
+
+message GetBillingAccountsRequest {
+  // Optional list of account identifiers to filter the response by
+  repeated string account_ids = 1;
+}
+
+message GetBillingAccountsResponse {
+  repeated UserAccount accounts = 1;
+}
+
+message SetBillingMeterEventRequest {
+  // The account id to apply this metered event to
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+
+  // The metered event name
+  string event_name = 2 [(buf.validate.field).string.min_len = 1];
+  // The value of the meter for the given time
+  string value = 3 [(buf.validate.field).string.min_len = 1];
+  // The unique identifier of this metered event
+  string event_id = 4 [(buf.validate.field).string.min_len = 1];
+  // The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
+  optional uint64 timestamp = 5;
+}
+
+message SetBillingMeterEventResponse {}
 
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
@@ -196,7 +316,10 @@ service UserAccountService {
 
   rpc SetPersonalAccount(SetPersonalAccountRequest) returns (SetPersonalAccountResponse) {}
 
+  // Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
   rpc ConvertPersonalToTeamAccount(ConvertPersonalToTeamAccountRequest) returns (ConvertPersonalToTeamAccountResponse) {}
+
+  // Creates a new team account
   rpc CreateTeamAccount(CreateTeamAccountRequest) returns (CreateTeamAccountResponse) {}
 
   rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}
@@ -211,7 +334,9 @@ service UserAccountService {
   rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
 
-  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {}
+  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}
@@ -224,4 +349,18 @@ service UserAccountService {
   rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // Returns a new checkout session for the account to subscribe
+  rpc GetAccountBillingCheckoutSession(GetAccountBillingCheckoutSessionRequest) returns (GetAccountBillingCheckoutSessionResponse) {}
+
+  // Returns a new billing portal session if the account has a billing customer id
+  rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {}
+
+  // Returns user accounts that have a billing id.
+  rpc GetBillingAccounts(GetBillingAccountsRequest) returns (GetBillingAccountsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Sends a new metered event to the billing system
+  rpc SetBillingMeterEvent(SetBillingMeterEventRequest) returns (SetBillingMeterEventResponse) {}
 }

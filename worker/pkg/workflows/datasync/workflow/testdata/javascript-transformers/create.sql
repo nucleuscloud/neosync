@@ -15,7 +15,7 @@ CREATE TABLE transformers (
     str VARCHAR (255),
     character_scramble VARCHAR (255),
     bool BOOLEAN,
-    card_number VARCHAR(255),
+    card_number BIGINT,
     categorical VARCHAR(255),
     city VARCHAR(255),
     full_address VARCHAR(255),
@@ -27,7 +27,7 @@ CREATE TABLE transformers (
     street_address VARCHAR(255),
     unix_time BIGINT,
     username VARCHAR(255),
-    utc_timestamp VARCHAR(255),
+    utc_timestamp TIMESTAMPTZ,
     uuid VARCHAR(255),
     zipcode BIGINT
 );

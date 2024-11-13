@@ -9,7 +9,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Javascript transformer sync",
-			Folder:          "javascript-transformers",
+			Folder:          "testdata/javascript-transformers",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     getJsTransformerJobmappings(),
@@ -19,7 +19,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "Javascript generator sync",
-			Folder:          "javascript-transformers",
+			Folder:          "testdata/javascript-transformers",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     getJsGeneratorJobmappings(),

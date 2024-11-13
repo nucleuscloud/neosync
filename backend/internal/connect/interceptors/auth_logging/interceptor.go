@@ -6,14 +6,14 @@ import (
 	"connectrpc.com/connect"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
 type Interceptor struct {
-	db *nucleusdb.NucleusDb
+	db *neosyncdb.NeosyncDb
 }
 
-func NewInterceptor(db *nucleusdb.NucleusDb) connect.Interceptor {
+func NewInterceptor(db *neosyncdb.NeosyncDb) connect.Interceptor {
 	return &Interceptor{db: db}
 }
 
@@ -35,13 +35,13 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 	}
 }
 
-func setAuthValues(ctx context.Context, db *nucleusdb.NucleusDb) context.Context {
+func setAuthValues(ctx context.Context, db *neosyncdb.NeosyncDb) context.Context {
 	vals := getAuthValues(ctx, db)
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx).With(vals...)
 	return logger_interceptor.SetLoggerContext(ctx, logger)
 }
 
-func getAuthValues(ctx context.Context, db *nucleusdb.NucleusDb) []any {
+func getAuthValues(ctx context.Context, db *neosyncdb.NeosyncDb) []any {
 	tokenCtxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
 		return []any{}
@@ -53,15 +53,15 @@ func getAuthValues(ctx context.Context, db *nucleusdb.NucleusDb) []any {
 
 		user, err := db.Q.GetUserByProviderSub(ctx, db.Db, tokenCtxResp.JwtContextData.AuthUserId)
 		if err == nil {
-			output = append(output, "userId", nucleusdb.UUIDString(user.ID))
+			output = append(output, "userId", neosyncdb.UUIDString(user.ID))
 		}
 	} else if tokenCtxResp.ApiKeyContextData != nil {
 		output = append(output, "apiKeyType", tokenCtxResp.ApiKeyContextData.ApiKeyType)
 		if tokenCtxResp.ApiKeyContextData.ApiKey != nil {
 			output = append(output,
-				"apiKeyId", nucleusdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.ID),
-				"accountId", nucleusdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.AccountID),
-				"userId", nucleusdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.UserID),
+				"apiKeyId", neosyncdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.ID),
+				"accountId", neosyncdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.AccountID),
+				"userId", neosyncdb.UUIDString(tokenCtxResp.ApiKeyContextData.ApiKey.UserID),
 			)
 		}
 	}

@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "mgmt/v1alpha1/transformer.proto";
+
+message AnonymizeManyRequest {
+  // Array of stringified JSON data to be anonymized (up to 25 items)
+  repeated string input_data = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 25
+    items: {
+      string: {min_len: 1}
+    }
+  }];
+
+  // Array of Transformer mappings
+  repeated TransformerMapping transformer_mappings = 2;
+
+  // Optional default transformations for any unmapped keys
+  optional DefaultTransformersConfig default_transformers = 3;
+
+  // Flag to indicate whether to stop processing when an error occurs
+  // true: stops on first error encounter
+  bool halt_on_failure = 4;
+  // The unique account identifier
+  string account_id = 5 [(buf.validate.field).string.uuid = true];
+}
+
+message AnonymizeManyResponse {
+  // Array of anonymized JSON data
+  repeated string output_data = 1;
+  // Array of errors that occured during anonymization
+  repeated AnonymizeManyErrors errors = 2;
+}
+
+message TransformerMapping {
+  // JQ Expression or Field Path to apply the transformation to
+  string expression = 1 [(buf.validate.field).required = true];
+  // Configuration of Transformer to apply
+  TransformerConfig transformer = 2 [(buf.validate.field).required = true];
+}
+
+message DefaultTransformersConfig {
+  // Boolean
+  TransformerConfig boolean = 2;
+  // Number
+  TransformerConfig n = 3;
+  // String
+  TransformerConfig s = 4;
+}
+
+message AnonymizeManyErrors {
+  // Index of input data that caused error
+  int64 input_index = 1;
+  // Error message
+  string error_message = 2;
+}
+
+message AnonymizeSingleRequest {
+  // Stringified JSON data to be anonymized
+  string input_data = 1;
+
+  // Array of Transformer mappings
+  repeated TransformerMapping transformer_mappings = 2;
+
+  // Optional default transformations for any unmapped keys
+  optional DefaultTransformersConfig default_transformers = 3;
+  // The unique account identifier
+  string account_id = 4 [(buf.validate.field).string.uuid = true];
+}
+
+message AnonymizeSingleResponse {
+  // Anonymized JSON data
+  string output_data = 1;
+}
+
+service AnonymizationService {
+  // Anonymizes many JSON strings by applying specified transformation mappings.
+  rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}
+  // Anonymizes a single JSON strings by applying specified transformation mappings.
+  rpc AnonymizeSingle(AnonymizeSingleRequest) returns (AnonymizeSingleResponse) {}
+}

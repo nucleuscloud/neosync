@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Double reference sync",
-			Folder:          "postgres/double-reference",
+			Folder:          "testdata/postgres/double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
@@ -19,7 +19,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "Double reference subset",
-			Folder:          "postgres/double-reference",
+			Folder:          "testdata/postgres/double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
 			SubsetMap: map[string]string{

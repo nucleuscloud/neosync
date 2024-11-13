@@ -1,10 +1,16 @@
 import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
-import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
+import {
+  JobMappingTransformer,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob,
+  TransformerConfig,
+} from '@neosync/sdk';
 import * as Yup from 'yup';
+import { getDurationValidateFn } from './number';
 
 // Yup schema form JobMappingTransformers
 export const JobMappingTransformerForm = Yup.object({
-  source: Yup.number().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });
 
@@ -17,7 +23,6 @@ export function convertJobMappingTransformerToForm(
   jmt: JobMappingTransformer
 ): JobMappingTransformerForm {
   return {
-    source: jmt.source,
     config: convertTransformerConfigToForm(jmt.config),
   };
 }
@@ -25,7 +30,6 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
   form: JobMappingTransformerForm
 ): JobMappingTransformer {
   return new JobMappingTransformer({
-    source: form.source,
     config: convertTransformerConfigSchemaToTransformerConfig(form.config),
   });
 }
@@ -64,6 +68,13 @@ export function convertTransformerConfigSchemaToTransformerConfig(
   }
 }
 
+const BatchFormValues = Yup.object({
+  count: Yup.number().min(0, 'Must be greater than or equal to 0').optional(),
+  period: Yup.string()
+    .optional()
+    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+});
+
 export const JobMappingFormValues = Yup.object({
   schema: Yup.string().required('A schema is required'),
   table: Yup.string().required('A table is required'),
@@ -88,9 +99,18 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-const PostgresSourceOptionsFormValues = Yup.object({
-  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+
+export const PostgresSourceOptionsFormValues = Yup.object({
+  newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
+    .oneOf(['continue', 'halt', 'automap'])
+    .optional()
+    .default('continue'),
 });
+export type PostgresSourceOptionsFormValues = Yup.InferType<
+  typeof PostgresSourceOptionsFormValues
+>;
+
 const MysqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
 });
@@ -169,27 +189,67 @@ const PostgresDbDestinationOptionsFormValues = Yup.object({
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
+export type PostgresDbDestinationOptionsFormValues = Yup.InferType<
+  typeof PostgresDbDestinationOptionsFormValues
+>;
 
 const MysqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
+export type MysqlDbDestinationOptionsFormValues = Yup.InferType<
+  typeof MysqlDbDestinationOptionsFormValues
+>;
 
 const MssqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
+export type MssqlDbDestinationOptionsFormValues = Yup.InferType<
+  typeof MssqlDbDestinationOptionsFormValues
+>;
+
+export const AwsS3DestinationOptionsFormValues = Yup.object({
+  storageClass: Yup.number().optional(),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  timeout: Yup.string()
+    .optional()
+    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+  batch: BatchFormValues.optional(),
+});
+export type AwsS3DestinationOptionsFormValues = Yup.InferType<
+  typeof AwsS3DestinationOptionsFormValues
+>;
 
 export const DestinationOptionsFormValues = Yup.object({
   postgres: PostgresDbDestinationOptionsFormValues.optional(),
   mysql: MysqlDbDestinationOptionsFormValues.optional(),
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
   mssql: MssqlDbDestinationOptionsFormValues.optional(),
+  awss3: AwsS3DestinationOptionsFormValues.optional(),
 }).required('Destination Options are required.');
 // Object that holds connection specific destination options for a job
 export type DestinationOptionsFormValues = Yup.InferType<
@@ -274,3 +334,57 @@ export const DataSyncSourceFormValues = SourceFormValues.concat(
 export type DataSyncSourceFormValues = Yup.InferType<
   typeof DataSyncSourceFormValues
 >;
+
+export const DefaultTransformerFormValues = Yup.object({
+  overrideTransformers: Yup.boolean().default(false),
+});
+
+export type DefaultTransformerFormValues = Yup.InferType<
+  typeof DefaultTransformerFormValues
+>;
+
+export function toJobSourcePostgresNewColumnAdditionStrategy(
+  strategy?: NewColumnAdditionStrategy
+): PostgresSourceConnectionOptions_NewColumnAdditionStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return undefined;
+    }
+    case 'automap': {
+      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
+        strategy: {
+          case: 'autoMap',
+          value:
+            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap(),
+        },
+      });
+    }
+    case 'halt': {
+      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
+        strategy: {
+          case: 'haltJob',
+          value:
+            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob(),
+        },
+      });
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+export function toNewColumnAdditionStrategy(
+  input: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | undefined
+): NewColumnAdditionStrategy {
+  switch (input?.strategy.case) {
+    case 'haltJob': {
+      return 'halt';
+    }
+    case 'autoMap': {
+      return 'automap';
+    }
+    default: {
+      return 'continue';
+    }
+  }
+}

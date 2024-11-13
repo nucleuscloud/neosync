@@ -296,6 +296,10 @@ pre {
   @apply text-sm;
 }
 
+code {
+  @apply text-sm;
+}
+
 table {
   @apply text-sm;
 }

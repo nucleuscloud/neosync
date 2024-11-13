@@ -15,7 +15,7 @@ import {
 import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
 import Spinner from '../Spinner';
-import LearnMoreTag from '../labels/LearnMoreTag';
+import LearnMoreLink from '../labels/LearnMoreLink';
 import { Button } from '../ui/button';
 import PermissionsDataTable from './PermissionsDataTable';
 import { PermissionConnectionType, getPermissionColumns } from './columns';
@@ -54,7 +54,7 @@ export default function PermissionsDialog(props: Props): ReactElement {
           </div>
           <div className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
-            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />{' '}
+            <LearnMoreLink href="https://docs.neosync.dev/connections/postgres#permissions" />{' '}
           </div>
         </DialogHeader>
         <PermissionsDataTable

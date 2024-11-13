@@ -97,13 +97,13 @@ INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1;
 
 
--- name: CreateAccountUserAssociation :one
+-- name: CreateAccountUserAssociation :exec
 INSERT INTO neosync_api.account_user_associations (
   account_id, user_id
 ) VALUES (
   $1, $2
 )
-RETURNING *;
+ON CONFLICT (account_id, user_id) DO NOTHING;
 
 -- name: GetAccountUserAssociation :one
 SELECT aua.* from neosync_api.account_user_associations aua
@@ -202,9 +202,27 @@ SET onboarding_config = $1
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
 
-
--- name: SetAccountMaxAllowedRecords :one
+-- name: SetAccountCreatedAt :one
 UPDATE neosync_api.accounts
-SET max_allowed_records = $1
+SET created_at = $1
+WHERE id = sqlc.arg('accountId')
+RETURNING *;
+
+-- name: SetNewAccountStripeCustomerId :one
+UPDATE neosync_api.accounts
+SET stripe_customer_id = $1
+WHERE id = sqlc.arg('accountId') AND stripe_customer_id IS NULL
+RETURNING *;
+
+-- name: GetBilledAccounts :many
+SELECT *
+FROM neosync_api.accounts
+WHERE stripe_customer_id IS NOT NULL AND (sqlc.arg('accountIds')::uuid[] = '{}' OR id = ANY(sqlc.arg('accountIds')::uuid[]));
+
+-- name: ConvertPersonalAccountToTeam :one
+UPDATE neosync_api.accounts
+SET account_slug = sqlc.arg('teamName'),
+    account_type = 1,
+    max_allowed_records = NULL
 WHERE id = sqlc.arg('accountId')
 RETURNING *;

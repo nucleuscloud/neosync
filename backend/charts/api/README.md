@@ -36,7 +36,8 @@ A Helm chart for the Neosync Backend API
 | db.port | int | `5432` | The database port |
 | db.username | string | `nil` | The username that will be used for authentication |
 | deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
-| extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
+| ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
+| extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment's user-container. |
 | fullnameOverride | string | `nil` | Fully overrides the chart name |
 | host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
 | image.pullPolicy | string | `nil` | Overrides the default K8s pull policy |
@@ -58,6 +59,7 @@ A Helm chart for the Neosync Backend API
 | migrations.db.port | int | `5432` | The database port |
 | migrations.db.schemaDir | string | `"/migrations"` | The directory where the migrations are located. |
 | migrations.db.username | string | `nil` | The username that will be used for authentication |
+| migrations.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the migration init container. |
 | nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | neosyncCloud.workerApiKeys | list | `[]` | Worker API keys that have been allowlisted to for use |

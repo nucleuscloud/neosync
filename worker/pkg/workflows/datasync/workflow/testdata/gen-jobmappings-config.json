@@ -64,5 +64,10 @@
 		"folder": "skip-fk-violations",
 		"sql_file": "create.sql",
 		"driver": "postgres"
+	},
+	{
+		"folder": "mysql/all-types",
+		"sql_file": "create.sql",
+		"driver": "mysql"
 	}
 ]

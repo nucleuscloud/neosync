@@ -9,14 +9,14 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
 func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) { //nolint:unparam
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
 	}

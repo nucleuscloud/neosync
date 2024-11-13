@@ -3,24 +3,21 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { formatDateTimeMilliseconds } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
-import {
-  JobRunEvent,
-  JobRunEventMetadata,
-  JobRunEventTaskError,
-} from '@neosync/sdk';
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  ExclamationTriangleIcon,
-} from '@radix-ui/react-icons';
+import { JobRunEvent, JobRunEventTaskError } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { getJobSyncMetadata } from './data-table';
 import { DataTableColumnHeader } from './data-table-column-header';
-
-interface GetColumnsProps {}
+import { DataTableRowActions } from './data-table-row-actions';
+interface GetColumnsProps {
+  onViewSelectClicked(schema: string, table: string): void;
+}
 
 export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
-  const {} = props;
+  const { onViewSelectClicked } = props;
+
   return [
     {
       accessorKey: 'id',
@@ -32,6 +29,25 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       enableHiding: false,
     },
     {
+      accessorKey: 'scheduleTime',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Scheduled" />
+      ),
+      cell: ({ row }) => {
+        const scheduledTime = row.original.tasks.find(
+          (item) => item.type == 'ActivityTaskScheduled'
+        )?.eventTime;
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {scheduledTime &&
+                formatDateTimeMilliseconds(scheduledTime?.toDate())}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'startTime',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Start Time" />
@@ -41,7 +57,28 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {startTime && formatDateTimeMilliseconds(startTime.toDate())}
+              {startTime && formatDateTimeMilliseconds(startTime?.toDate())}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'closeTime',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Completed" />
+      ),
+      cell: ({ row }) => {
+        const closeTime = row.original.tasks.find(
+          (item) => item.type == 'ActivityTaskCompleted'
+        )?.eventTime;
+
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {closeTime
+                ? formatDateTimeMilliseconds(closeTime?.toDate())
+                : 'N/A'}
             </span>
           </div>
         );
@@ -63,24 +100,48 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       },
     },
     {
-      accessorKey: 'metadata',
+      accessorKey: 'schema',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Metadata" />
+        <DataTableColumnHeader column={column} title="Schema" />
       ),
       cell: ({ row }) => {
-        const metadata = row.getValue<JobRunEventMetadata>('metadata');
+        const metadata = getJobSyncMetadata(
+          row.original.metadata // Use row.original to access the full row data
+        );
 
         return (
           <div className="flex space-x-2">
             <span className="font-medium">
-              <pre>
-                {JSON.stringify(metadata?.metadata?.value, undefined, 2)}
-              </pre>
+              {metadata?.schema && (
+                <Badge variant="outline">{metadata.schema}</Badge>
+              )}
             </span>
           </div>
         );
       },
     },
+    {
+      accessorKey: 'table',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Table" />
+      ),
+      cell: ({ row }) => {
+        const metadata = getJobSyncMetadata(
+          row.original.metadata // Use row.original to access the full row data
+        );
+
+        return (
+          <div className="flex space-x-2">
+            <span className="font-medium">
+              {metadata?.table && (
+                <Badge variant="outline">{metadata.table}</Badge>
+              )}
+            </span>
+          </div>
+        );
+      },
+    },
+
     {
       accessorKey: 'error',
       accessorFn: (originalRow, _) =>
@@ -112,17 +173,18 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       },
     },
     {
-      id: 'expander',
-      header: () => null,
+      id: 'actions',
       cell: ({ row }) => {
-        return (
-          <div>
-            {row.getIsExpanded() ? (
-              <ChevronDownIcon className="w-4 h-4" />
-            ) : (
-              <ChevronRightIcon className="w-4 h-4" />
-            )}
-          </div>
+        const metadata = getJobSyncMetadata(row.original.metadata);
+        return metadata?.schema && metadata.table ? (
+          <DataTableRowActions
+            row={row}
+            onViewSelectClicked={() =>
+              onViewSelectClicked(metadata?.schema ?? '', metadata?.table ?? '')
+            }
+          />
+        ) : (
+          <div />
         );
       },
     },

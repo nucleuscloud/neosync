@@ -24,7 +24,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -151,10 +151,11 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 	expected := []*mgmtv1alpha1.DatabaseColumn{}
 	for _, col := range mockColumns {
 		expected = append(expected, &mgmtv1alpha1.DatabaseColumn{
-			Schema:   col.TableSchema,
-			Table:    col.TableName,
-			Column:   col.ColumnName,
-			DataType: col.DataType,
+			Schema:     col.TableSchema,
+			Table:      col.TableName,
+			Column:     col.ColumnName,
+			DataType:   col.DataType,
+			IsNullable: "NO",
 		})
 	}
 
@@ -611,7 +612,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 		},
 	})
 
-	expectedTruncate := "TRUNCATE \"public\".\"users\" CASCADE;"
+	expectedTruncate := "TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;"
 	require.Nil(t, err)
 	require.Len(t, resp.Msg.TableInitStatements, 0)
 	require.Len(t, resp.Msg.TableTruncateStatements, 1)
@@ -620,7 +621,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 
 type serviceMocks struct {
 	Service                *Service
-	DbtxMock               *nucleusdb.MockDBTX
+	DbtxMock               *neosyncdb.MockDBTX
 	QuerierMock            *db_queries.MockQuerier
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
 	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
@@ -628,7 +629,6 @@ type serviceMocks struct {
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
-	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQueierMock           *pg_queries.MockQuerier
 	MysqlQueierMock        *mysql_queries.MockQuerier
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
@@ -640,7 +640,7 @@ type serviceMocks struct {
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -671,7 +671,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
-		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 		PgQueierMock:           mockPgquerier,
 		MysqlQueierMock:        mockMysqlquerier,
 		SqlConnectorMock:       mockSqlConnector,

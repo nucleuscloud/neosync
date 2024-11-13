@@ -23,11 +23,6 @@ ARG buildDate="1970-01-01T00:00:00Z"
 ARG gitCommit=""
 ARG gitVersion="v0.0.0-main"
 
-# Set environment variables using the build arguments
-ENV buildDate=$buildDate
-ENV gitCommit=$gitCommit
-ENV gitVersion=$gitVersion
-
 WORKDIR /workspace/backend
 
 # Copy in generated code

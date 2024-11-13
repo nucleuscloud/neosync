@@ -398,7 +398,7 @@ func processTables(
 }
 
 type OrderedTablesResult struct {
-	OrderedTables []string
+	OrderedTables []*sqlmanager_shared.SchemaTable
 	HasCycles     bool
 }
 
@@ -413,12 +413,13 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTa
 	for t := range dependencyMap {
 		tableMap[t] = struct{}{}
 	}
-	orderedTables := []string{}
+	orderedTables := []*sqlmanager_shared.SchemaTable{}
 	seenTables := map[string]struct{}{}
 	for table := range tableMap {
 		dep, ok := dependencyMap[table]
 		if !ok || len(dep) == 0 {
-			orderedTables = append(orderedTables, table)
+			s, t := sqlmanager_shared.SplitTableKey(table)
+			orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
 			seenTables[table] = struct{}{}
 			delete(tableMap, table)
 		}
@@ -434,7 +435,8 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTa
 		for table := range tableMap {
 			deps := dependencyMap[table]
 			if isReady(seenTables, deps, table, cycles) {
-				orderedTables = append(orderedTables, table)
+				s, t := sqlmanager_shared.SplitTableKey(table)
+				orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
 				seenTables[table] = struct{}{}
 				delete(tableMap, table)
 			}

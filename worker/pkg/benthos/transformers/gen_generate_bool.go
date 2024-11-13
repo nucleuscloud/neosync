@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -36,10 +36,24 @@ func NewGenerateBoolOpts(
 	}, nil
 }
 
+func (o *GenerateBoolOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{
+	}
+
+	params := []any{
+	}
+
+	
+
+	template := fmt.Sprintf("generate_bool(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateBool",
-		Description: "Generates a boolean value at random.",
+		Description: "Generates a random boolean value.",
 		Example: "",
 	}, nil
 }

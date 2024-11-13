@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -16,8 +17,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Transforms an existing E164 formatted phone number.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
-		Param(bloblang.NewInt64Param("max_length").Optional().Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("max_length").Default(15).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -67,6 +68,13 @@ func init() {
 	}
 }
 
+func NewTransformE164PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformE164PhoneNumber, maxLength *int64) (*TransformE164PhoneNumberOpts, error) {
+	if config == nil {
+		return NewTransformE164PhoneNumberOpts(nil, nil, nil)
+	}
+	return NewTransformE164PhoneNumberOpts(config.PreserveLength, maxLength, nil)
+}
+
 func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformE164PhoneNumberOpts)
 	if !ok {
@@ -78,7 +86,7 @@ func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformE164PhoneNumber(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformE164PhoneNumber(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, &parsedOpts.maxLength)
 }
 
 // Generates a random phone number and returns it as a string

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -14,7 +15,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly selects a value from a defined set of categorical values.").
-		Param(bloblang.NewStringParam("categories").Description("A list of comma-separated string values to randomly select from.")).
+		Param(bloblang.NewStringParam("categories").Default("ultimo,proximo,semper").Description("A list of comma-separated string values to randomly select from.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_categorical", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -44,6 +45,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateCategoricalOptsFromConfig(config *mgmtv1alpha1.GenerateCategorical) (*GenerateCategoricalOpts, error) {
+	if config == nil {
+		return NewGenerateCategoricalOpts(nil, nil)
+	}
+	return NewGenerateCategoricalOpts(config.Categories, nil)
 }
 
 func (t *GenerateCategorical) Generate(opts any) (any, error) {

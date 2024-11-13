@@ -101,6 +101,8 @@ export default function InviteUserForm(props: Props): ReactElement {
                   <FormItem>
                     <FormControl>
                       <Input
+                        autoCapitalize="off"
+                        data-1p-ignore // tells 1password extension to not autofill this field
                         type="email"
                         id="email"
                         placeholder="example@email.com"

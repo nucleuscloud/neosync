@@ -1,3 +1,5 @@
+import { TestContext, ValidationError } from 'yup';
+import { parseDuration } from '../util/duration';
 // Ensures that the number being validated is always greater than or equal to a minimum value
 export function getNumberValidateMinFn(
   minVal: number
@@ -25,4 +27,25 @@ function numberOrDefault(
   defaultVal: number
 ): number {
   return value == null ? defaultVal : value;
+}
+
+// Allows empty duration values
+export function getDurationValidateFn(): (
+  value: string | undefined,
+  context: TestContext<unknown>
+) => boolean | ValidationError {
+  return (value, context) => {
+    if (!value) {
+      return true;
+    }
+    try {
+      parseDuration(value);
+      return true;
+    } catch (err) {
+      return context.createError({
+        message:
+          err instanceof Error ? err.message : 'Must be a valid duration',
+      });
+    }
+  };
 }

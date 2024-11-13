@@ -38,8 +38,24 @@ The following options can be passed using the `neosync sync` command:
 - `--init-schema` - Creates the table schema and its constraints.
 - `--on-conflict-do-nothing` - If there is a conflict when inserting data into SQL database do not insert.
 - `--output` - Sets output type (auto, plain, tty). (default `auto`).
+- `--debug` - Sets the log level to debug and prints much more information. Works best with `--output plain`.
+- `--destination-idle-duration` - Maximum amount of time a connection may be idle (e.g. '5m')
+- `--destination-idle-limit` - Maximum number of idle connections
+- `--destination-open-duration` - Maximum amount of time a connection may be open (e.g. '30s')
+- `--destination-open-limit` - Maximum number of open connections
+- `--destination-max-in-flight` - Maximum allowed batched rows to sync. If not provided, uses server default of 64
+- `--destination-batch-count` - Batch size of rows that will be sent to the destination.
+- `--destination-batch-period` - Duration of tim e that a batch of rows will be sent.
 
 ## Yaml Config File
+
+To persist settings, a yaml config may be enabled. It can be provided like so:
+
+```
+neosync sync --config ./path/to/config.yaml
+```
+
+> **NB:** Flags will take precedence over values provided in the config.
 
 ```yaml
 source:
@@ -54,6 +70,15 @@ destination:
   init-schema: false
   on-conflict:
     do-nothing: false
+  connection-opts:
+    open-limit: 25 # remove to unset and use system default (CLI falls back to default of 25 if not provided)
+    idle-limit: 2 # remove to unset and use system default
+    idle-duration: 30s # remove to unset and use system default
+    open-duration: 5m # remove to unset and use system default
+  max-in-flight: 10
+  batch:
+    count: 100
+    period: 5s
 ```
 
 ## Circular Dependencies

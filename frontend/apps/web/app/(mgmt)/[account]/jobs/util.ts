@@ -4,6 +4,7 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  DestinationOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
   NewDestinationFormValues,
@@ -12,6 +13,8 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toJobSourcePostgresNewColumnAdditionStrategy,
+  toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { Struct, Value } from '@bufbuild/protobuf';
 import {
@@ -20,6 +23,8 @@ import {
   AiGenerateSourceSchemaOption,
   AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
+  AwsS3DestinationConnectionOptions_StorageClass,
+  BatchConfig,
   Connection,
   CreateJobRequest,
   DatabaseTable,
@@ -70,13 +75,13 @@ import {
   PostgresTruncateTableConfig,
   RetryPolicy,
   TransformerConfig,
-  TransformerSource,
   ValidateJobMappingsRequest,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
   WorkflowOptions,
 } from '@neosync/sdk';
+import { ConnectionConfigCase } from '../connections/util';
 import {
   ActivityOptionsSchema,
   ConnectFormValues,
@@ -448,6 +453,10 @@ export function toJobDestinationOptions(
               values.destinationOptions.postgres?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.postgres?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.postgres?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.postgres?.batch,
+            }),
           }),
         },
       });
@@ -468,6 +477,10 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mysql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mysql?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.mysql?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.mysql?.batch,
+            }),
           }),
         },
       });
@@ -476,7 +489,14 @@ export function toJobDestinationOptions(
       return new JobDestinationOptions({
         config: {
           case: 'awsS3Options',
-          value: new AwsS3DestinationConnectionOptions({}),
+          value: new AwsS3DestinationConnectionOptions({
+            storageClass: values.destinationOptions.awss3?.storageClass,
+            timeout: values.destinationOptions.awss3?.timeout,
+            maxInFlight: values.destinationOptions.awss3?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.awss3?.batch,
+            }),
+          }),
         },
       });
     }
@@ -529,6 +549,10 @@ export function toJobDestinationOptions(
             initTableSchema: values.destinationOptions.mssql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mssql?.skipForeignKeyViolations,
+            maxInFlight: values.destinationOptions.mssql?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.mssql?.batch,
+            }),
           }),
         },
       });
@@ -612,9 +636,10 @@ function toJobSourceOptions(
           case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.postgres?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourcePostgresNewColumnAdditionStrategy(
+                values.connect.sourceOptions.postgres?.newColumnAdditionStrategy
+              ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -694,7 +719,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
   return {
     boolean: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.GENERATE_BOOL,
         config: new TransformerConfig({
           config: {
             case: 'generateBoolConfig',
@@ -705,7 +729,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     byte: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -716,7 +739,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     n: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -727,7 +749,6 @@ export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTrans
     ),
     s: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
-        source: TransformerSource.GENERATE_RANDOM_STRING,
         config: new TransformerConfig({
           config: {
             case: 'generateStringConfig',
@@ -852,7 +873,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     boolean: convertJobMappingTransformerToForm(
       ut.boolean ||
         new JobMappingTransformer({
-          source: TransformerSource.GENERATE_BOOL,
           config: new TransformerConfig({
             config: {
               case: 'generateBoolConfig',
@@ -864,7 +884,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     byte: convertJobMappingTransformerToForm(
       ut.b ||
         new JobMappingTransformer({
-          source: TransformerSource.PASSTHROUGH,
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -876,7 +895,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     n: convertJobMappingTransformerToForm(
       ut.n ||
         new JobMappingTransformer({
-          source: TransformerSource.PASSTHROUGH,
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -888,7 +906,6 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
     s: convertJobMappingTransformerToForm(
       ut.s ||
         new JobMappingTransformer({
-          source: TransformerSource.GENERATE_RANDOM_STRING,
           config: new TransformerConfig({
             config: {
               case: 'generateStringConfig',
@@ -1031,7 +1048,9 @@ function setDefaultConnectFormValues(
           job.source.options.config.value.fkSourceConnectionId ?? '',
         destination:
           job.destinations.length > 0
-            ? getDefaultDestinationFormValues(job.destinations[0])
+            ? getDestinationFormValuesOrDefaultFromDestination(
+                job.destinations[0]
+              )
             : {
                 connectionId: '',
                 destinationOptions: {},
@@ -1046,7 +1065,9 @@ function setDefaultConnectFormValues(
           job.source.options.config.value.fkSourceConnectionId ?? '',
         destination:
           job.destinations.length > 0
-            ? getDefaultDestinationFormValues(job.destinations[0])
+            ? getDestinationFormValuesOrDefaultFromDestination(
+                job.destinations[0]
+              )
             : {
                 connectionId: '',
                 destinationOptions: {},
@@ -1061,7 +1082,7 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {},
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1102,7 +1123,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
@@ -1118,7 +1139,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1130,12 +1151,13 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           postgres: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1152,7 +1174,7 @@ function setDefaultConnectFormValues(
           },
         },
         destinations: job.destinations.map((dest) =>
-          getDefaultDestinationFormValues(dest)
+          getDestinationFormValuesOrDefaultFromDestination(dest)
         ),
       };
 
@@ -1363,11 +1385,104 @@ export function getSingleTableGenerateNumRows(
   return 0;
 }
 
-export function getDefaultDestinationFormValues(
+export function getDefaultDestinationFormValueOptionsFromConnectionCase(
+  destCase: ConnectionConfigCase | null | undefined,
+  getUniqueTables: () => Set<string>
+): DestinationOptionsFormValues {
+  switch (destCase) {
+    case 'pgConfig': {
+      return {
+        postgres: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          truncateCascade: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'mysqlConfig': {
+      return {
+        mysql: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'mssqlConfig': {
+      return {
+        mssql: {
+          initTableSchema: false,
+          onConflictDoNothing: false,
+          skipForeignKeyViolations: false,
+          truncateBeforeInsert: false,
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'awsS3Config': {
+      return {
+        awss3: {
+          storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+          timeout: '5s',
+          batch: {
+            count: 100,
+            period: '5s',
+          },
+          maxInFlight: 64,
+        },
+      };
+    }
+    case 'dynamodbConfig': {
+      return {
+        dynamodb: {
+          tableMappings: Array.from(getUniqueTables()).map((table) => ({
+            sourceTable: table,
+            destinationTable: '',
+          })),
+        },
+      };
+    }
+    case 'mongoConfig': {
+      return {};
+    }
+    case 'gcpCloudstorageConfig': {
+      return {};
+    }
+    case 'localDirConfig': {
+      return {};
+    }
+    case 'openaiConfig': {
+      return {};
+    }
+    default: {
+      return {};
+    }
+  }
+}
+
+// Based on the job destiation type, returns the form values, or their default equivalent
+export function getDestinationFormValuesOrDefaultFromDestination(
   d: JobDestination
 ): NewDestinationFormValues {
   switch (d.options?.config.case) {
-    case 'postgresOptions':
+    case 'postgresOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1382,10 +1497,16 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
-    case 'mysqlOptions':
+    }
+    case 'mysqlOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1398,9 +1519,15 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
+    }
     case 'dynamodbOptions': {
       return {
         connectionId: d.connectionId,
@@ -1414,7 +1541,7 @@ export function getDefaultDestinationFormValues(
         },
       };
     }
-    case 'mssqlOptions':
+    case 'mssqlOptions': {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
@@ -1427,9 +1554,31 @@ export function getDefaultDestinationFormValues(
               d.options.config.value.onConflict?.doNothing ?? false,
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
+            maxInFlight: d.options.config.value.maxInFlight,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
           },
         },
       };
+    }
+    case 'awsS3Options': {
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          awss3: {
+            storageClass: d.options.config.value.storageClass,
+            maxInFlight: d.options.config.value.maxInFlight,
+            timeout: d.options.config.value.timeout,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
+          },
+        },
+      };
+    }
     default:
       return {
         connectionId: d.connectionId,
@@ -1497,20 +1646,18 @@ export async function validateJobMapping(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer:
-          m.transformer.source != 0
-            ? convertJobMappingTransformerFormToJobMappingTransformer(
-                m.transformer
-              )
-            : new JobMappingTransformer({
-                source: 1,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: {},
-                  },
-                }),
+        transformer: m.transformer.config.case
+          ? convertJobMappingTransformerFormToJobMappingTransformer(
+              m.transformer
+            )
+          : new JobMappingTransformer({
+              config: new TransformerConfig({
+                config: {
+                  case: 'passthroughConfig',
+                  value: {},
+                },
               }),
+            }),
       });
     }),
     virtualForeignKeys: virtualForeignKeys.map((v) => {

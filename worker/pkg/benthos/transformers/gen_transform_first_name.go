@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -30,12 +30,12 @@ func NewTransformFirstNameOpts(
 	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformFirstNameOpts, error) {
-	maxLength := int64(10000) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
@@ -52,6 +52,27 @@ func NewTransformFirstNameOpts(
 	}, nil
 }
 
+func (o *TransformFirstNameOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{ 
+		"max_length:%v",
+		"value:this.%s", 
+		"preserve_length:%v",
+	}
+
+	params := []any{
+	 	o.maxLength,
+		valuePath,
+	 	o.preserveLength,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_first_name(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformFirstName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFirstName",
@@ -65,7 +86,7 @@ func (t *TransformFirstName) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

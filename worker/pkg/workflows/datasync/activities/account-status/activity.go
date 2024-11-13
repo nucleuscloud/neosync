@@ -26,12 +26,14 @@ func New(
 }
 
 type CheckAccountStatusRequest struct {
-	AccountId string
+	AccountId            string
+	RequestedRecordCount *uint64
 }
 
 type CheckAccountStatusResponse struct {
-	IsValid bool
-	Reason  *string
+	IsValid    bool
+	Reason     *string
+	ShouldPoll bool
 }
 
 func (a *Activity) CheckAccountStatus(
@@ -60,14 +62,26 @@ func (a *Activity) CheckAccountStatus(
 	logger.Debug("checking account status")
 
 	resp, err := a.userclient.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId: req.AccountId,
+		AccountId:            req.AccountId,
+		RequestedRecordCount: req.RequestedRecordCount,
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
 
-	logger.Debug(fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()))
+	logger.Debug(
+		fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()),
+		"reason", withReasonOrDefault(resp.Msg.GetReason()),
+	)
 
-	// todo: add reason
-	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: nil}, nil
+	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason, ShouldPoll: resp.Msg.GetShouldPoll()}, nil
+}
+
+const defaultReason = "no reason provided"
+
+func withReasonOrDefault(reason string) string {
+	if reason == "" {
+		return defaultReason
+	}
+	return reason
 }

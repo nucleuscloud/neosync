@@ -24,7 +24,7 @@ In order to create a data generation job:
 
 2. Select the **Data Generation** job type.
 
-![job-type](https://assets.nucleuscloud.com/neosync/docs/job-type.png)
+![job-type](/img/first.png)
 
 3. Then give your job a **Name**. Next, if you want your job to run on a schedule, click on the schedule switch to expose an input where you can provide a cron string. Your job will run on this schedule. Lastly, activate the **Initiate Job Run** switch if you want to immediately trigger a single job run once the job is completed. Click **Next** once you're ready.
 
@@ -36,6 +36,6 @@ In order to create a data generation job:
 
 5. Next is the Schema page. Here you can select how you want to transform your tables and columns with [**Transformers**](/core-concepts#transformers). Select your schema and the table you want to transform and then the number of rows you want to generate. There are a number of [transformers](/transformers/system) that Neosync ships with out of the box or you can create your own custom transformer. Once you're done, you can click **Next**.
 
-![job-schema](https://assets.nucleuscloud.com/neosync/docs/new-data-gen-job-schema.png)
+![job-schema](/img/fourth.png)
 
 7. Congrats! You successfully created a job. From here, you will be taken to the Job Details page where you can pause, resume, run or update the job you created.

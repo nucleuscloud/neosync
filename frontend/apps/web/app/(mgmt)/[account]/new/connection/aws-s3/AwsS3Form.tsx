@@ -3,7 +3,6 @@ import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -25,22 +24,13 @@ import {
   AWS_FORM_SCHEMA,
   CreateConnectionFormContext,
 } from '@/yup-validations/connections';
-import {
-  createConnectQueryKey,
-  useMutation,
-  useQuery,
-} from '@connectrpc/connect-query';
+import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  GetAccountOnboardingConfigResponse,
-  GetConnectionResponse,
-} from '@neosync/sdk';
+import { GetConnectionResponse } from '@neosync/sdk';
 import {
   createConnection,
-  getAccountOnboardingConfig,
   getConnection,
   isConnectionNameAvailable,
-  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -55,16 +45,7 @@ export default function AwsS3Form() {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
-
-  const { data: onboardingData } = useQuery(
-    getAccountOnboardingConfig,
-    { accountId: account?.id ?? '' },
-    { enabled: !!account?.id }
-  );
   const queryclient = useQueryClient();
-  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
-    setAccountOnboardingConfig
-  );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     isConnectionNameAvailable
   );
@@ -95,63 +76,6 @@ export default function AwsS3Form() {
         accountId: account.id,
         connectionConfig: buildConnectionConfigAwsS3(values),
       });
-
-      // updates the onboarding data
-      if (
-        onboardingData?.config?.hasCreatedSourceConnection &&
-        !onboardingData?.config.hasCreatedDestinationConnection
-      ) {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection:
-                onboardingData.config.hasCreatedSourceConnection,
-              hasCreatedDestinationConnection: true,
-              hasCreatedJob: onboardingData.config.hasCreatedJob,
-              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      } else {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection: true,
-              hasCreatedDestinationConnection:
-                onboardingData?.config?.hasCreatedSourceConnection ?? true,
-              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-              hasInvitedMembers:
-                onboardingData?.config?.hasInvitedMembers ?? true,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      }
 
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {

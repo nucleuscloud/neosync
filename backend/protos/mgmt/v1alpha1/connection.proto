@@ -208,8 +208,24 @@ message ClientTlsConfig {
 }
 
 message SqlConnectionOptions {
-  // Limits the number of open connections in the pool.
+  // Sets the maximum number of open connections
+  // If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
+  // If this value is less than or equal to 0, then there is no limit on the number of open connections. If not provided, the default is 0 (unlimited).
   optional int32 max_connection_limit = 1;
+  // Sets the maximum number of connections in the idle connection pool.
+  // This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
+  // If this value is less than or equal to 0, then no idle connections are maintained. If not provided, the default is 2, which may change in a future release.
+  optional int32 max_idle_connections = 2;
+  // Sets the maximum amount of time a connection may be idle.
+  // Expired connections may be closed lazily before reuse.
+  // if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
+  // This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
+  optional string max_idle_duration = 3;
+  // Sets the maximum amount of time a connection may be reused.
+  // Expired connections may be closed lazily before reuse.
+  // If this value is less than or equal to 0, connections may not be closed due to a connection's age.
+  // This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
+  optional string max_open_duration = 4;
 }
 
 message SSHTunnel {

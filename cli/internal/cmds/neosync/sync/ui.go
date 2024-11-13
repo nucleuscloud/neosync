@@ -4,32 +4,32 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
+	"log/slog"
 	"strings"
 	syncmap "sync"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 
-	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
-	_ "github.com/warpstreamlabs/bento/public/components/sql"
+	"github.com/warpstreamlabs/bento/public/service"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	charmlog "github.com/charmbracelet/log"
 )
 
 type model struct {
 	ctx              context.Context
-	logger           *charmlog.Logger
-	groupedConfigs   [][]*benthosConfigResponse
+	logger           *slog.Logger
+	benv             *service.Environment
+	groupedConfigs   [][]*benthosbuilder.BenthosConfigResponse
 	tableSynced      int
 	index            int
 	width            int
@@ -37,6 +37,7 @@ type model struct {
 	spinner          spinner.Model
 	done             bool
 	totalConfigCount int
+	outputType       output.OutputType
 }
 
 var (
@@ -50,7 +51,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) *model {
+func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -60,6 +61,8 @@ func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, lo
 		spinner:          s,
 		totalConfigCount: getConfigCount(groupedConfigs),
 		logger:           logger,
+		outputType:       outputType,
+		benv:             benv,
 	}
 }
 
@@ -84,7 +87,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.totalConfigCount == m.tableSynced {
 			m.done = true
-			m.logger.Infof("Done! Completed %d tables.", m.tableSynced)
+			m.logger.Info(fmt.Sprintf("Done! Completed %d tables.", m.tableSynced))
 			return m, tea.Sequence(
 				tea.Println(strings.Join(successStrs, " \n")),
 				tea.Quit,
@@ -134,7 +137,7 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(ctx context.Context, configs []*benthosbuilder.BenthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -143,15 +146,15 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 			cfg := cfg
 			errgrp.Go(func() error {
 				start := time.Now()
-				m.logger.Infof("Syncing table %s", cfg.Name)
-				err := syncData(errctx, cfg, m.logger)
+				m.logger.Info(fmt.Sprintf("Syncing table %s", cfg.Name))
+				err := syncData(errctx, m.benv, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
 				}
 				duration := time.Since(start)
 				messageMap.Store(cfg.Name, duration)
-				m.logger.Infof("Finished syncing table %s %s", cfg.Name, duration.String())
+				m.logger.Info(fmt.Sprintf("Finished syncing table %s %s", cfg.Name, duration.String()))
 				return nil
 			})
 		}
@@ -177,7 +180,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 	}
 }
 
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+func getConfigCount(groupedConfigs [][]*benthosbuilder.BenthosConfigResponse) int {
 	count := 0
 	for _, group := range groupedConfigs {
 		for _, config := range group {
@@ -189,19 +192,20 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
+func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) error {
 	var opts []tea.ProgramOption
+	var synclogger = logger
 	if outputType == output.PlainOutput {
 		// Plain mode don't render the TUI
 		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
 	} else {
 		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
 		// TUI mode, discard log output
-		logger.SetOutput(io.Discard)
+		synclogger = slog.New(slog.NewJSONHandler(io.Discard, nil))
 	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
-		logger.Error("Error syncing data:", err)
-		os.Exit(1)
+	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, synclogger, outputType), opts...).Run(); err != nil {
+		logger.Error(fmt.Sprintf("Error syncing data: %v", err))
+		return fmt.Errorf("unable to finish syncing data: %w", err)
 	}
 	return nil
 }

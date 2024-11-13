@@ -35,6 +35,8 @@ services:
     volumes:
       - ./frontend:/app/:rw
       - neosync_app_nodemodules:/app/node_modules
+      - neosync_web_nodemodules:/app/apps/web/node_modules
+      - neosync_sdk_nodemodules:/app/packages/sdk/node_modules
 
   db:
     container_name: neosync-db
@@ -69,7 +71,7 @@ services:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
-      - DB_SCHEMA_DIR=/migrations
+      - DB_SCHEMA_DIR=/workspace/backend/sql/postgresql/schema
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=nucleus
@@ -154,6 +156,8 @@ volumes:
   neosync_worker_build_cache:
   neosync_go_mod_cache:
   neosync_app_nodemodules:
+  neosync_web_nodemodules:
+  neosync_sdk_nodemodules:
 
 networks:
   neosync-network:

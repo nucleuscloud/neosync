@@ -1,0 +1,67 @@
+---
+title: anonymization.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `anonymization.proto`
+_**path** mgmt/v1alpha1/anonymization.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `AnonymizeManyErrors`
+<ProtoMessage key={0} message={{"name":"AnonymizeManyErrors","longName":"AnonymizeManyErrors","fullName":"mgmt.v1alpha1.AnonymizeManyErrors","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"input_index","description":"Index of input data that caused error","label":"","type":"int64","longType":"int64","fullType":"int64","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"error_message","description":"Error message","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AnonymizeManyRequest`
+<ProtoMessage key={1} message={{"name":"AnonymizeManyRequest","longName":"AnonymizeManyRequest","fullName":"mgmt.v1alpha1.AnonymizeManyRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"input_data","description":"Array of stringified JSON data to be anonymized (up to 25 items)","label":"repeated","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"transformer_mappings","description":"Array of Transformer mappings","label":"repeated","type":"TransformerMapping","longType":"TransformerMapping","fullType":"mgmt.v1alpha1.TransformerMapping","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/anonymization.proto#transformermapping"},{"name":"default_transformers","description":"Optional default transformations for any unmapped keys","label":"optional","type":"DefaultTransformersConfig","longType":"DefaultTransformersConfig","fullType":"mgmt.v1alpha1.DefaultTransformersConfig","ismap":false,"isoneof":true,"oneofdecl":"_default_transformers","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/anonymization.proto#defaulttransformersconfig"},{"name":"halt_on_failure","description":"Flag to indicate whether to stop processing when an error occurs\ntrue: stops on first error encounter","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"account_id","description":"The unique account identifier","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AnonymizeManyResponse`
+<ProtoMessage key={2} message={{"name":"AnonymizeManyResponse","longName":"AnonymizeManyResponse","fullName":"mgmt.v1alpha1.AnonymizeManyResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"output_data","description":"Array of anonymized JSON data","label":"repeated","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"errors","description":"Array of errors that occured during anonymization","label":"repeated","type":"AnonymizeManyErrors","longType":"AnonymizeManyErrors","fullType":"mgmt.v1alpha1.AnonymizeManyErrors","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyerrors"}]}} />
+
+
+### `AnonymizeSingleRequest`
+<ProtoMessage key={3} message={{"name":"AnonymizeSingleRequest","longName":"AnonymizeSingleRequest","fullName":"mgmt.v1alpha1.AnonymizeSingleRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"input_data","description":"Stringified JSON data to be anonymized","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"transformer_mappings","description":"Array of Transformer mappings","label":"repeated","type":"TransformerMapping","longType":"TransformerMapping","fullType":"mgmt.v1alpha1.TransformerMapping","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/anonymization.proto#transformermapping"},{"name":"default_transformers","description":"Optional default transformations for any unmapped keys","label":"optional","type":"DefaultTransformersConfig","longType":"DefaultTransformersConfig","fullType":"mgmt.v1alpha1.DefaultTransformersConfig","ismap":false,"isoneof":true,"oneofdecl":"_default_transformers","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/anonymization.proto#defaulttransformersconfig"},{"name":"account_id","description":"The unique account identifier","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AnonymizeSingleResponse`
+<ProtoMessage key={4} message={{"name":"AnonymizeSingleResponse","longName":"AnonymizeSingleResponse","fullName":"mgmt.v1alpha1.AnonymizeSingleResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"output_data","description":"Anonymized JSON data","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `DefaultTransformersConfig`
+<ProtoMessage key={5} message={{"name":"DefaultTransformersConfig","longName":"DefaultTransformersConfig","fullName":"mgmt.v1alpha1.DefaultTransformersConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"boolean","description":"Boolean","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"n","description":"Number","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"s","description":"String","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
+
+
+### `TransformerMapping`
+<ProtoMessage key={6} message={{"name":"TransformerMapping","longName":"TransformerMapping","fullName":"mgmt.v1alpha1.TransformerMapping","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"expression","description":"JQ Expression or Field Path to apply the transformation to","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"transformer","description":"Configuration of Transformer to apply","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
+
+---
+## Services
+
+
+### `AnonymizationService`
+
+
+
+
+#### `AnonymizeMany`
+<ProtoServiceMethod key={'AnonymizeMany-0'} method={{"name":"AnonymizeMany","description":"Anonymizes many JSON strings by applying specified transformation mappings.","requestType":"AnonymizeManyRequest","requestLongType":"AnonymizeManyRequest","requestFullType":"mgmt.v1alpha1.AnonymizeManyRequest","requestStreaming":false,"responseType":"AnonymizeManyResponse","responseLongType":"AnonymizeManyResponse","responseFullType":"mgmt.v1alpha1.AnonymizeManyResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyrequest","responseTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyresponse"}} />
+
+
+#### `AnonymizeSingle`
+<ProtoServiceMethod key={'AnonymizeSingle-1'} method={{"name":"AnonymizeSingle","description":"Anonymizes a single JSON strings by applying specified transformation mappings.","requestType":"AnonymizeSingleRequest","requestLongType":"AnonymizeSingleRequest","requestFullType":"mgmt.v1alpha1.AnonymizeSingleRequest","requestStreaming":false,"responseType":"AnonymizeSingleResponse","responseLongType":"AnonymizeSingleResponse","responseFullType":"mgmt.v1alpha1.AnonymizeSingleResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizesinglerequest","responseTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizesingleresponse"}} />
+
+
+---
+
+
+  

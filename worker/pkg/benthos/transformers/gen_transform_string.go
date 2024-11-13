@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -32,17 +32,17 @@ func NewTransformStringOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformStringOpts, error) {
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
-	minLength := int64(1) 
+	minLength := int64(1)
 	if minLengthArg != nil {
 		minLength = *minLengthArg
 	}
 	
-	maxLength := int64(20) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -60,10 +60,33 @@ func NewTransformStringOpts(
 	}, nil
 }
 
+func (o *TransformStringOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"min_length:%v", 
+		"max_length:%v",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.preserveLength,
+	 	o.minLength,
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_string(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",
-		Description: "Transforms an existing string value.",
+		Description: "Anonymizes and transforms an existing string value.",
 		Example: "",
 	}, nil
 }
@@ -85,7 +108,7 @@ func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 20
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

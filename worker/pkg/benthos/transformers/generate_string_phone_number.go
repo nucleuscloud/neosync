@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -12,9 +13,9 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Generates a Generate phone number and returns it as a string.").
-		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum length for the generated phone number.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum length for the generated phone number.")).
+		Description("Generates a random 10 digit phone number and returns it as a string with no hyphens.").
+		Param(bloblang.NewInt64Param("min").Default(9).Description("Specifies the minimum length for the generated phone number.")).
+		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum length for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_string_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -52,6 +53,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateStringPhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateStringPhoneNumber) (*GenerateStringPhoneNumberOpts, error) {
+	if config == nil {
+		return NewGenerateStringPhoneNumberOpts(nil, nil, nil)
+	}
+	return NewGenerateStringPhoneNumberOpts(config.Min, config.Max, nil)
 }
 
 func (t *GenerateStringPhoneNumber) Generate(opts any) (any, error) {

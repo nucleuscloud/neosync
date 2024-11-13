@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -12,7 +13,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateCountry
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly selects a Country and either returns the two character country code or the full country name.").
+	spec := bloblang.NewPluginSpec().Description("Randomly selects a country and by default, returns it as a 2-letter country code.").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full country name instead of the two character country code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
@@ -39,6 +40,18 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateCountryOptsFromConfig(config *mgmtv1alpha1.GenerateCountry) (*GenerateCountryOpts, error) {
+	if config == nil {
+		return NewGenerateCountryOpts(
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateCountryOpts(
+		config.GenerateFullName, nil,
+	)
 }
 
 func (t *GenerateCountry) Generate(opts any) (any, error) {

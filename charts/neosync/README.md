@@ -20,6 +20,9 @@ A Helm chart for Neosync that contains the api, app, and worker
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| api.enabled | bool | `true` | Enable or Disable Neoysnc Api |
+| app.enabled | bool | `true` | Enable or Disable Neoysnc App |
+| worker.enabled | bool | `true` | Enable or Disable Neosync Worker |
 | api.auth.api.baseUrl | string | `nil` | The base url to the auth service's admin url |
 | api.auth.api.clientId | string | `nil` | The service account client id |
 | api.auth.api.clientSecret | string | `nil` | The service account client secret |
@@ -44,7 +47,8 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.db.port | int | `5432` | The database port |
 | api.db.username | string | `nil` | The username that will be used for authentication |
 | api.deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
-| api.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
+| api.ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
+| api.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment's user-container. |
 | api.fullnameOverride | string | `nil` | Fully overrides the chart name |
 | api.host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
 | api.image.pullPolicy | string | `nil` | Overrides the default K8s pull policy |
@@ -66,6 +70,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.migrations.db.port | int | `5432` | The database port |
 | api.migrations.db.schemaDir | string | `"/migrations"` | The directory where the migrations are located. |
 | api.migrations.db.username | string | `nil` | The username that will be used for authentication |
+| api.migrations.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the migration init container. |
 | api.nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | api.neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | api.neosyncCloud.workerApiKeys | list | `[]` | Worker API keys that have been allowlisted to for use |
@@ -164,6 +169,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.containerPort | int | `8080` | The container port |
 | worker.datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | worker.deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
+| worker.ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
 | worker.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | worker.fullnameOverride | string | `nil` | Fully overrides the chart name |
 | worker.host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
@@ -175,6 +181,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | worker.neosync.apiKey | string | `nil` | Only required if running the backend in auth-mode |
 | worker.neosync.url | string | `"http://neosync-api"` | The url to the Neoysnc API instance |
+| worker.neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | worker.nodeSelector | object | `{}` | Any node selectors that should be applied to the deployment |
 | worker.nucleusEnv | string | `nil` | Mostly used by NeosyncCloud. Adds a special tag to the logging to determine what environment is running |
 | worker.otel | object | `{"enabled":false,"otlpPort":4317}` | Will eventually allow sending traces. The worker does emit record-based metrics, but does not currently listen to otel.enabled. Must provide the OTEL_SDK_DISABLED=false environment variable separately today. |

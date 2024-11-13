@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -36,10 +36,24 @@ func NewGenerateZipcodeOpts(
 	}, nil
 }
 
+func (o *GenerateZipcodeOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{
+	}
+
+	params := []any{
+	}
+
+	
+
+	template := fmt.Sprintf("generate_zipcode(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateZipcode",
-		Description: "Randomly selects a zip code from a list of predefined US zipcodes.",
+		Description: "Generates a randomly selected US zipcode.",
 		Example: "",
 	}, nil
 }

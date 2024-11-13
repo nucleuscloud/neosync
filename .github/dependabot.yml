@@ -12,6 +12,8 @@ updates:
         update-types:
           - minor
           - patch
+    reviewers:
+      - nickzelei
 
   - package-ecosystem: "npm"
     directory: "frontend"
@@ -30,6 +32,9 @@ updates:
         update-types:
           - minor
           - patch
+    reviewers:
+      - nickzelei
+    versioning-strategy: increase
 
   - package-ecosystem: "npm"
     directory: "docs"
@@ -48,6 +53,8 @@ updates:
         update-types:
           - minor
           - patch
+    reviewers:
+      - nickzelei
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -61,3 +68,5 @@ updates:
         update-types:
           - minor
           - patch
+    reviewers:
+      - nickzelei

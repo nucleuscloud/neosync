@@ -1,3 +1,4 @@
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,10 @@ import {
   isUserDefinedTransformer,
   Transformer,
 } from '@/shared/transformers';
-import { getTransformerDataTypesString } from '@/util/util';
+import {
+  getTransformerDataTypesString,
+  getTransformerSourceString,
+} from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
@@ -25,7 +29,7 @@ import {
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerConfig } from '@neosync/sdk';
+import { TransformerConfig, TransformerSource } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
   EyeOpenIcon,
@@ -79,6 +83,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
       <DialogContent
         className="max-w-3xl"
         onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <div className="flex flex-row w-full">
@@ -93,7 +98,12 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   </Badge>
                 </div>
               </div>
-              <DialogDescription>{transformer?.description}</DialogDescription>
+              <div className="flex flex-row items-center gap-2">
+                <DialogDescription>
+                  {transformer?.description}{' '}
+                  <LearnMoreLink href={constructDocsLink(transformer.source)} />
+                </DialogDescription>
+              </div>
             </div>
           </div>
           <Separator />
@@ -215,4 +225,17 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
       </div>
     </Alert>
   );
+}
+
+export function constructDocsLink(source: TransformerSource): string {
+  const name = getTransformerSourceString(source).replaceAll('_', '-');
+
+  if (
+    source == TransformerSource.GENERATE_JAVASCRIPT ||
+    source == TransformerSource.TRANSFORM_JAVASCRIPT
+  ) {
+    return `https://docs.neosync.dev/guides/custom-code-transformers`;
+  } else {
+    return `https://docs.neosync.dev/transformers/system#${name}`;
+  }
 }

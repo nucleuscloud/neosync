@@ -31,7 +31,7 @@ source: transform_character_scramble.go
 
 ### transformCharacterScramble
 
-Transforms an existing string value by scrambling the characters while maintaining the format.
+
 
 **Parameters**
 
@@ -77,8 +77,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 |  | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 15 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -86,8 +86,8 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformE164PhoneNumber(value, { 
-	preserveLength: false,  
-	maxLength: 1,  
+	preserveLength: false, 
+	maxLength: 15, 
 	seed: 1, 
 });
 
@@ -101,7 +101,7 @@ source: transform_email.go
 
 ### transformEmail
 
-Transforms an existing email address.
+Anonymizes and transforms an existing email address.
 
 **Parameters**
 
@@ -116,7 +116,7 @@ Description: Value that will be transformed
 | preserveLength | bool | false | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | preserveDomain | bool | false | false | A boolean indicating whether the domain part of the email should be preserved.
 | excludedDomains | any | [] | false | A list of domains that should be excluded from the transformation
-| maxLength | int64 | 10000 | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 100 | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.
 | emailType | string | 'uuidv4' | false | Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.
 | invalidEmailAction | string | 'reject' | false | Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`.<br/>
@@ -129,7 +129,7 @@ const newValue = neosync.transformEmail(value, {
 	preserveLength: false, 
 	preserveDomain: false, 
 	excludedDomains: [], 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1,  
 	emailType: 'uuidv4', 
 	invalidEmailAction: 'reject',
@@ -157,7 +157,7 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
@@ -166,7 +166,7 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformFirstName(value, { 
-	maxLength: 10000, 
+	maxLength: 100, 
 	preserveLength: false, 
 	seed: 1, 
 });
@@ -181,7 +181,7 @@ source: transform_float.go
 
 ### transformFloat64
 
-Transforms an existing float value.
+Anonymizes and transforms an existing float value.
 
 **Parameters**
 
@@ -193,8 +193,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizationRangeMin | float64 |  | true | Specifies the minimum value for the range of the float.
-| randomizationRangeMax | float64 |  | true | Specifies the maximum value for the randomization range of the float.
+| randomizationRangeMin | float64 | 1 | false | Specifies the minimum value for the range of the float.
+| randomizationRangeMax | float64 | 10000 | false | Specifies the maximum value for the randomization range of the float.
 | precision | int64 |  | false | An optional parameter that defines the number of significant digits for the float.
 | scale | int64 |  | false | An optional parameter that defines the number of decimal places for the float.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
@@ -204,8 +204,8 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformFloat64(value, { 
-	randomizationRangeMin: 1.12,  
-	randomizationRangeMax: 1.12,  
+	randomizationRangeMin: 1, 
+	randomizationRangeMax: 10000, 
 	precision: 1,  
 	scale: 1,  
 	seed: 1, 
@@ -233,7 +233,7 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | 
+| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
@@ -242,7 +242,7 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformFullName(value, { 
-	maxLength: 10000, 
+	maxLength: 100, 
 	preserveLength: false, 
 	seed: 1, 
 });
@@ -257,7 +257,7 @@ source: transform_int64.go
 
 ### transformInt64
 
-Transforms an existing integer value.
+Anonymizes and transforms an existing int64 value.
 
 **Parameters**
 
@@ -269,8 +269,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizationRangeMin | int64 |  | true | Specifies the minimum value for the range of the int.
-| randomizationRangeMax | int64 |  | true | Specifies the maximum value for the range of the int.
+| randomizationRangeMin | int64 | 1 | false | Specifies the minimum value for the range of the int.
+| randomizationRangeMax | int64 | 10000 | false | Specifies the maximum value for the range of the int.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -278,8 +278,8 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformInt64(value, { 
-	randomizationRangeMin: 1,  
-	randomizationRangeMax: 1,  
+	randomizationRangeMin: 1, 
+	randomizationRangeMax: 10000, 
 	seed: 1, 
 });
 
@@ -293,7 +293,7 @@ source: transform_int64_phone_number.go
 
 ### transformInt64PhoneNumber
 
-Transforms an existing phone number that is typed as an integer
+Anonymizes and transforms an existing int64 phone number.
 
 **Parameters**
 
@@ -305,7 +305,7 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -313,7 +313,7 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformInt64PhoneNumber(value, { 
-	preserveLength: false,  
+	preserveLength: false, 
 	seed: 1, 
 });
 
@@ -327,7 +327,7 @@ source: transform_lastname.go
 
 ### transformLastName
 
-Transforms an existing last name.
+Anonymizes and transforms an existing last name.
 
 **Parameters**
 
@@ -339,7 +339,7 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
@@ -348,7 +348,7 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformLastName(value, { 
-	maxLength: 10000, 
+	maxLength: 100, 
 	preserveLength: false, 
 	seed: 1, 
 });
@@ -363,7 +363,7 @@ source: transform_string.go
 
 ### transformString
 
-Transforms an existing string value.
+Anonymizes and transforms an existing string value.
 
 **Parameters**
 
@@ -377,7 +377,7 @@ Description: Value that will be transformed
 | -------- | ---- | ------- | -------- | ----------- |
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | minLength | int64 | 1 | false | Specifies the minimum length of the transformed value.
-| maxLength | int64 | 20 | false | Specifies the maximum length of the transformed value.
+| maxLength | int64 | 100 | false | Specifies the maximum length of the transformed value.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -387,7 +387,7 @@ Description: Value that will be transformed
 const newValue = neosync.transformString(value, { 
 	preserveLength: false, 
 	minLength: 1, 
-	maxLength: 20, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -401,7 +401,7 @@ source: transform_string_phone_number.go
 
 ### transformStringPhoneNumber
 
-Transforms an existing phone number that is typed as a string.
+Anonymizes and transforms an existing phone number that is typed as a string.
 
 **Parameters**
 
@@ -413,8 +413,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 |  | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -422,8 +422,8 @@ Description: Value that will be transformed
 ```javascript
 
 const newValue = neosync.transformStringPhoneNumber(value, { 
-	preserveLength: false,  
-	maxLength: 1,  
+	preserveLength: false, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -446,7 +446,7 @@ source: generate_bool.go
 
 ### generateBool
 
-Generates a boolean value at random.
+Generates a random boolean value.
 
 **Parameters**
 
@@ -470,12 +470,12 @@ const newValue = neosync.generateBool({
 
 
 <!--
-source: generate_card_number.go
+source: generate_business_name.go
 -->
 
-### generateCardNumber
+### generateBusinessName
 
-Generates a card number.
+Generates a random business name between 2 and 35 characters long.
 
 **Parameters**
 
@@ -483,7 +483,38 @@ Generates a card number.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| validLuhn | bool |  | true | A boolean indicating whether the generated value should pass the Luhn algorithm check.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateBusinessName({ 
+	maxLength: 100, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
+source: generate_card_number.go
+-->
+
+### generateCardNumber
+
+Generates a 16 digit card number that is valid by Luhn valid by default.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| validLuhn | bool | false | false | A boolean indicating whether the generated value should pass the Luhn algorithm check.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -492,7 +523,7 @@ Generates a card number.
 ```javascript
 
 const newValue = neosync.generateCardNumber({ 
-	validLuhn: false,  
+	validLuhn: false, 
 	seed: 1, 
 });
 
@@ -514,7 +545,7 @@ Randomly selects a value from a defined set of categorical values.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| categories | string |  | true | A list of comma-separated string values to randomly select from.
+| categories | string | "ultimo,proximo,semper" | false | A list of comma-separated string values to randomly select from.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -523,7 +554,7 @@ Randomly selects a value from a defined set of categorical values.
 ```javascript
 
 const newValue = neosync.generateCategorical({ 
-	categories: "",  
+	categories: "ultimo,proximo,semper", 
 	seed: 1, 
 });
 
@@ -545,7 +576,7 @@ Randomly selects a city from a list of predefined US cities.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -554,7 +585,7 @@ Randomly selects a city from a list of predefined US cities.
 ```javascript
 
 const newValue = neosync.generateCity({ 
-	maxLength: 1,  
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -568,7 +599,7 @@ source: generate_country.go
 
 ### generateCountry
 
-Randomly selects a Country and either returns the two character country code or the full country name.
+Randomly selects a country and by default, returns it as a 2-letter country code.
 
 **Parameters**
 
@@ -632,7 +663,7 @@ source: generate_first_name.go
 
 ### generateFirstName
 
-Generates a random first name.
+Generates a random first name between 2 and 12 characters long.
 
 **Parameters**
 
@@ -640,7 +671,7 @@ Generates a random first name.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -649,7 +680,7 @@ Generates a random first name.
 ```javascript
 
 const newValue = neosync.generateFirstName({ 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -663,7 +694,7 @@ source: generate_float.go
 
 ### generateFloat64
 
-Generates a random float64 value.
+Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.
 
 **Parameters**
 
@@ -672,8 +703,8 @@ Generates a random float64 value.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
-| min | float64 |  | true | Specifies the minimum value for the generated float.
-| max | float64 |  | true | Specifies the maximum value for the generated float
+| min | float64 | 1 | false | Specifies the minimum value for the generated float.
+| max | float64 | 10000 | false | Specifies the maximum value for the generated float
 | precision | int64 |  | false | An optional parameter that defines the number of significant digits for the generated float.
 | scale | int64 |  | false | An optional parameter that defines the number of decimal places for the generated float.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
@@ -685,8 +716,8 @@ Generates a random float64 value.
 
 const newValue = neosync.generateFloat64({ 
 	randomizeSign: false, 
-	min: 1.12,  
-	max: 1.12,  
+	min: 1, 
+	max: 10000, 
 	precision: 1,  
 	scale: 1,  
 	seed: 1, 
@@ -702,7 +733,7 @@ source: generate_full_address.go
 
 ### generateFullAddress
 
-Randomly generates a street address.
+Generates a randomly selected real full address that exists in the United States.
 
 **Parameters**
 
@@ -710,7 +741,7 @@ Randomly generates a street address.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -719,7 +750,7 @@ Randomly generates a street address.
 ```javascript
 
 const newValue = neosync.generateFullAddress({ 
-	maxLength: 1,  
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -741,7 +772,7 @@ Generates a new full name consisting of a first and last name.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -750,7 +781,7 @@ Generates a new full name consisting of a first and last name.
 ```javascript
 
 const newValue = neosync.generateFullName({ 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -764,7 +795,7 @@ source: generate_gender.go
 
 ### generateGender
 
-Randomly generates one of the following genders: female, male, undefined, nonbinary.
+Randomly generates one of the following genders: female (f), male (m), undefined (u), nonbinary (n).
 
 **Parameters**
 
@@ -773,7 +804,7 @@ Randomly generates one of the following genders: female, male, undefined, nonbin
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | abbreviate | bool | false | false | Shortens length of generated value to 1.
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -783,7 +814,7 @@ Randomly generates one of the following genders: female, male, undefined, nonbin
 
 const newValue = neosync.generateGender({ 
 	abbreviate: false, 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -797,7 +828,7 @@ source: generate_int64.go
 
 ### generateInt64
 
-Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.
+Generates a random int64 value with a default length of 4.
 
 **Parameters**
 
@@ -806,8 +837,8 @@ Generates a random integer value with a default length of 4 unless the Integer L
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
-| min | int64 |  | true | Specifies the minimum value for the generated int.
-| max | int64 |  | true | Specifies the maximum value for the generated int.
+| min | int64 | 1 | false | Specifies the minimum value for the generated int.
+| max | int64 | 10000 | false | Specifies the maximum value for the generated int.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -817,8 +848,8 @@ Generates a random integer value with a default length of 4 unless the Integer L
 
 const newValue = neosync.generateInt64({ 
 	randomizeSign: false, 
-	min: 1,  
-	max: 1,  
+	min: 1, 
+	max: 10000, 
 	seed: 1, 
 });
 
@@ -832,7 +863,7 @@ source: generate_int64_phone_number.go
 
 ### generateInt64PhoneNumber
 
-Generates a new phone number of type int64 with a default length of 10.
+Generates a new int64 phone number with a default length of 10.
 
 **Parameters**
 
@@ -861,7 +892,7 @@ source: generate_international_phone_number.go
 
 ### generateInternationalPhoneNumber
 
-Generates a Generate phone number in e164 format.
+Generates a new random international phone number including the + sign and no hyphens.
 
 **Parameters**
 
@@ -869,8 +900,8 @@ Generates a Generate phone number in e164 format.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | Specifies the minimum value for the generated phone number.
-| max | int64 |  | true | Specifies the maximum value for the generated phone number.
+| min | int64 | 9 | false | Specifies the minimum value for the generated phone number.
+| max | int64 | 15 | false | Specifies the maximum value for the generated phone number.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -879,8 +910,43 @@ Generates a Generate phone number in e164 format.
 ```javascript
 
 const newValue = neosync.generateInternationalPhoneNumber({ 
-	min: 1,  
-	max: 1,  
+	min: 9, 
+	max: 15, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
+source: generate_ip_address.go
+-->
+
+### generateIpAddress
+
+Generates IPv4 or IPv6 addresses with support for different network classes.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| maxLength | int64 | 100000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| version | string | string(IpVersion_V4) | false | IP version to generate: 'ipv4' or 'ipv6'
+| class | string | string(IpV4Class_Public) | false | IP class: 'public', 'private-a', 'private-b', 'private-c', 'link_local', 'multicast', 'loopback'
+| seed | int64 |  | false | Optional seed for deterministic generation
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateIpAddress({ 
+	maxLength: 100000, 
+	version: string(IpVersion_V4), 
+	class: string(IpV4Class_Public), 
 	seed: 1, 
 });
 
@@ -902,7 +968,7 @@ Generates a random last name.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -911,7 +977,7 @@ Generates a random last name.
 ```javascript
 
 const newValue = neosync.generateLastName({ 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -925,7 +991,7 @@ source: generate_random_string.go
 
 ### generateRandomString
 
-Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.
+Generates a random string of alphanumeric characters..
 
 **Parameters**
 
@@ -933,8 +999,8 @@ Creates a randomly ordered alphanumeric string with a default length of 10 unles
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | Specifies the minimum length for the generated string.
-| max | int64 |  | true | Specifies the maximum length for the generated string.
+| min | int64 | 1 | false | Specifies the minimum length for the generated string.
+| max | int64 | 100 | false | Specifies the maximum length for the generated string.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -943,8 +1009,8 @@ Creates a randomly ordered alphanumeric string with a default length of 10 unles
 ```javascript
 
 const newValue = neosync.generateRandomString({ 
-	min: 1,  
-	max: 1,  
+	min: 1, 
+	max: 100, 
 	seed: 1, 
 });
 
@@ -958,7 +1024,7 @@ source: generate_sha256hash.go
 
 ### generateSHA256Hash
 
-SHA256 hashes a randomly generated value.
+Generates a random SHA256 hash and returns it as a string.
 
 **Parameters**
 
@@ -984,7 +1050,7 @@ source: generate_ssn.go
 
 ### generateSSN
 
-Generates a completely random social security numbers including the hyphens in the format xxx-xx-xxxx.
+Generates a random social security numbers including the hyphens in the format xxx-xx-xxxx.
 
 **Parameters**
 
@@ -1013,7 +1079,7 @@ source: generate_state.go
 
 ### generateState
 
-Randomly selects a US state and either returns the two character state code or the full state name.
+Randomly selects a US state and by default, returns it as a 2-letter state code.
 
 **Parameters**
 
@@ -1052,7 +1118,7 @@ Randomly generates a street address.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -1061,7 +1127,7 @@ Randomly generates a street address.
 ```javascript
 
 const newValue = neosync.generateStreetAddress({ 
-	maxLength: 1,  
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -1075,7 +1141,7 @@ source: generate_string_phone_number.go
 
 ### generateStringPhoneNumber
 
-Generates a Generate phone number and returns it as a string.
+Generates a random 10 digit phone number and returns it as a string with no hyphens.
 
 **Parameters**
 
@@ -1083,8 +1149,8 @@ Generates a Generate phone number and returns it as a string.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | Specifies the minimum length for the generated phone number.
-| max | int64 |  | true | Specifies the maximum length for the generated phone number.
+| min | int64 | 9 | false | Specifies the minimum length for the generated phone number.
+| max | int64 | 15 | false | Specifies the maximum length for the generated phone number.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -1093,8 +1159,8 @@ Generates a Generate phone number and returns it as a string.
 ```javascript
 
 const newValue = neosync.generateStringPhoneNumber({ 
-	min: 1,  
-	max: 1,  
+	min: 9, 
+	max: 15, 
 	seed: 1, 
 });
 
@@ -1108,7 +1174,7 @@ source: generate_unix_timestamp.go
 
 ### generateUnixTimestamp
 
-Randomly generates a Unix timestamp.
+Randomly generates a Unix timestamp that is in the past.
 
 **Parameters**
 
@@ -1145,7 +1211,7 @@ Randomly generates a username
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -1154,7 +1220,7 @@ Randomly generates a username
 ```javascript
 
 const newValue = neosync.generateUsername({ 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 
@@ -1226,7 +1292,7 @@ source: generate_zipcode.go
 
 ### generateZipcode
 
-Randomly selects a zip code from a list of predefined US zipcodes.
+Generates a randomly selected US zipcode.
 
 **Parameters**
 

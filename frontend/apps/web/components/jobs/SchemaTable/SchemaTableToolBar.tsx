@@ -5,7 +5,6 @@ import { Row, Table } from '@tanstack/react-table';
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
-import ConfirmationDialog from '@/components/ConfirmationDialog';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
@@ -22,28 +21,41 @@ import {
 } from '@/yup-validations/jobs';
 import {
   GenerateDefault,
+  JobMapping,
   JobMappingTransformer,
   Passthrough,
   SystemTransformer,
   TransformerConfig,
-  TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import ApplyDefaultTransformersButton from './ApplyDefaultTransformersButton';
+import ExportJobMappingsButton from './ExportJobMappingsButton';
+import ImportJobMappingsButton, {
+  ImportMappingsConfig,
+} from './ImportJobMappingsButton';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
-import { TransformerHandler } from './transformer-handler';
+import {
+  TransformerConfigCase,
+  TransformerHandler,
+} from './transformer-handler';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
+  onExportMappingsClick(shouldFormat: boolean): void;
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    config: ImportMappingsConfig
+  ): void;
 }
 
 export function SchemaTableToolbar<TData>({
@@ -51,6 +63,8 @@ export function SchemaTableToolbar<TData>({
   transformerHandler,
   constraintHandler,
   jobType,
+  onExportMappingsClick,
+  onImportMappingsClick,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasSelectedRows = Object.values(table.getState().rowSelection).some(
@@ -161,65 +175,62 @@ export function SchemaTableToolbar<TData>({
             </Button>
           )}
           {jobType === 'sync' && (
-            <ConfirmationDialog
-              trigger={
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={form.getValues('mappings').length == 0}
-                >
-                  <ButtonText text="Apply Default Transformers" />
-                </Button>
-              }
-              headerText="Apply Default Transformers?"
-              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated columns."
-              buttonText="Apply"
-              onConfirm={() => {
+            <ApplyDefaultTransformersButton
+              isDisabled={form.watch('mappings').length === 0}
+              onClick={(override) => {
                 const formMappings = form.getValues('mappings');
                 formMappings.forEach((fm, idx) => {
-                  const colkey = {
-                    schema: fm.schema,
-                    table: fm.table,
-                    column: fm.column,
-                  };
-                  const isGenerated = constraintHandler.getIsGenerated(colkey);
-                  const identityType =
-                    constraintHandler.getIdentityType(colkey);
-                  const newJm =
-                    isGenerated || identityType
-                      ? new JobMappingTransformer({
-                          source: TransformerSource.GENERATE_DEFAULT,
-                          config: new TransformerConfig({
-                            config: {
-                              case: 'generateDefaultConfig',
-                              value: new GenerateDefault(),
-                            },
-                          }),
-                        })
-                      : new JobMappingTransformer({
-                          source: TransformerSource.PASSTHROUGH,
-                          config: new TransformerConfig({
-                            config: {
-                              case: 'passthroughConfig',
-                              value: new Passthrough(),
-                            },
-                          }),
-                        });
-
-                  form.setValue(
-                    `mappings.${idx}.transformer`,
-                    convertJobMappingTransformerToForm(newJm),
-                    {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: false,
-                    }
-                  );
+                  // skips setting the default transformer if the user has already set the transformer
+                  if (fm.transformer.config.case && !override) {
+                    return;
+                  } else {
+                    const colkey = {
+                      schema: fm.schema,
+                      table: fm.table,
+                      column: fm.column,
+                    };
+                    const isGenerated =
+                      constraintHandler.getIsGenerated(colkey);
+                    const identityType =
+                      constraintHandler.getIdentityType(colkey);
+                    const newJm =
+                      isGenerated && !identityType
+                        ? new JobMappingTransformer({
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'generateDefaultConfig',
+                                value: new GenerateDefault(),
+                              },
+                            }),
+                          })
+                        : new JobMappingTransformer({
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'passthroughConfig',
+                                value: new Passthrough(),
+                              },
+                            }),
+                          });
+                    form.setValue(
+                      `mappings.${idx}.transformer`,
+                      convertJobMappingTransformerToForm(newJm),
+                      {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: false,
+                      }
+                    );
+                  }
                 });
                 form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               }}
             />
           )}
+          <ImportJobMappingsButton onImport={onImportMappingsClick} />
+          <ExportJobMappingsButton
+            onClick={onExportMappingsClick}
+            count={table.getSelectedRowModel().rows.length}
+          />
           <SchemaTableViewOptions table={table} />
         </div>
       </div>
@@ -271,9 +282,11 @@ function getFilteredTransformersForBulkSet<TData>(
     userDefinedArrays.push(userDefined);
   });
 
-  const uniqueSystemSources = findCommonSystemSources(systemArrays);
-  const uniqueSystem = uniqueSystemSources
-    .map((source) => transformerHandler.getSystemTransformerBySource(source))
+  const uniqueSystemConfigCases = findCommonSystemConfigCases(systemArrays);
+  const uniqueSystem = uniqueSystemConfigCases
+    .map((configCase) =>
+      transformerHandler.getSystemTransformerByConfigCase(configCase)
+    )
     .filter((x): x is SystemTransformer => !!x);
 
   const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
@@ -287,30 +300,33 @@ function getFilteredTransformersForBulkSet<TData>(
   };
 }
 
-function findCommonSystemSources(
+function findCommonSystemConfigCases(
   arrays: SystemTransformer[][]
-): TransformerSource[] {
-  const elementCount: Record<TransformerSource, number> = {} as Record<
-    TransformerSource,
+): TransformerConfigCase[] {
+  const elementCount: Record<TransformerConfigCase, number> = {} as Record<
+    TransformerConfigCase,
     number
   >;
   const subArrayCount = arrays.length;
-  const commonElements: TransformerSource[] = [];
+  const commonElements: TransformerConfigCase[] = [];
 
   arrays.forEach((subArray) => {
     // Use a Set to ensure each element in a sub-array is counted only once
     new Set(subArray).forEach((element) => {
-      if (!elementCount[element.source]) {
-        elementCount[element.source] = 1;
+      if (!element.config?.config.case) {
+        return;
+      }
+      if (!elementCount[element.config.config.case]) {
+        elementCount[element.config.config.case] = 1;
       } else {
-        elementCount[element.source]++;
+        elementCount[element.config.config.case]++;
       }
     });
   });
 
   for (const [element, count] of Object.entries(elementCount)) {
     if (count === subArrayCount) {
-      commonElements.push(+element as TransformerSource);
+      commonElements.push(element as TransformerConfigCase);
     }
   }
 

@@ -38,7 +38,7 @@ import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
-  getDefaultDestinationFormValues,
+  getDestinationFormValuesOrDefaultFromDestination,
   toJobDestinationOptions,
 } from '../../../util';
 
@@ -70,7 +70,7 @@ export default function DestinationConnectionCard({
 
   const form = useForm({
     resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
-    values: getDefaultDestinationFormValues(destination),
+    values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
 
   async function onSubmit(values: NewDestinationFormValues) {
@@ -188,6 +188,7 @@ export default function DestinationConnectionCard({
                 hideInitTableSchema={shouldHideInitTableSchema}
                 hideDynamoDbTableMappings={true}
                 destinationDetailsRecord={{}} // not used because we are hiding dynamodb table mappings
+                errors={form.formState.errors?.destinationOptions}
               />
             </div>
           </CardContent>

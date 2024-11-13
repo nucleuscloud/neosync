@@ -68,7 +68,6 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformerHandler, constraintHandler, jobType } = props;
-
   return [
     {
       accessorKey: 'isSelected',
@@ -127,10 +126,15 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           control: form.control,
           name: 'mappings',
         });
+        const columnKey: ColumnKey = {
+          schema: row.getValue<string>('schema'),
+          table: row.getValue<string>('table'),
+          column: row.getValue<string>('column'),
+        };
         return (
           <div className="flex flex-row gap-2 items-center">
             <SchemaRowAlert
-              row={row}
+              rowKey={columnKey}
               handler={constraintHandler}
               onRemoveClick={() => remove(row.index)}
             />
@@ -418,8 +422,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         // row.original works here. There must be a caching bug with the transformer prop being an object.
         // This may be related: https://github.com/TanStack/table/issues/5363
         const rowVal = row.original.transformer;
-        const tsource = transformerHandler.getSystemTransformerBySource(
-          rowVal.source
+        const tsource = transformerHandler.getSystemTransformerByConfigCase(
+          rowVal.config.case
         );
         const sourceName = tsource?.name.toLowerCase() ?? 'select transformer';
         return sourceName.includes((value as string)?.toLowerCase());
@@ -437,7 +441,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
-
                 const filtered = transformerHandler.getFilteredTransformers(
                   getTransformerFilter(constraintHandler, colkey, jobType)
                 );

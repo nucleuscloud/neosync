@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
 
 func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
-	manager := MysqlManager{querier: s.source.querier, pool: s.source.pool}
+	manager := MysqlManager{querier: s.querier, pool: s.containers.Source.DB}
 
 	expected := &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -42,7 +43,7 @@ func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetSchemaColumnMap(context.Background())
 	require.NoError(s.T(), err)
@@ -57,7 +58,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
 	require.NoError(s.T(), err)
@@ -113,7 +114,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
 	require.NoError(s.T(), err)
@@ -154,7 +155,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() 
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
@@ -174,7 +175,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -192,7 +193,7 @@ func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -206,7 +207,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -222,7 +223,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetRolePermissionsMap(context.Background())
@@ -241,18 +242,18 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
-	_, err = s.target.pool.ExecContext(context.Background(), actual)
+	_, err = s.containers.Target.DB.ExecContext(context.Background(), actual)
 	require.NoError(s.T(), err)
 }
 
 func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableInitStatements(
@@ -267,25 +268,25 @@ func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
 	for _, stmt := range actual {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt.CreateTableStatement)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt.CreateTableStatement)
 		require.NoError(s.T(), err)
 	}
 	for _, stmt := range actual {
 		for _, index := range stmt.IndexStatements {
-			_, err = s.target.pool.ExecContext(context.Background(), index)
+			_, err = s.containers.Target.DB.ExecContext(context.Background(), index)
 			require.NoError(s.T(), err)
 		}
 	}
 	for _, stmt := range actual {
 		for _, alter := range stmt.AlterTableStatements {
-			_, err = s.target.pool.ExecContext(context.Background(), alter.Statement)
+			_, err = s.containers.Target.DB.ExecContext(context.Background(), alter.Statement)
 			require.NoError(s.T(), err)
 		}
 	}
 }
 
 func (s *IntegrationTestSuite) Test_Exec() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	err := manager.Exec(context.Background(), fmt.Sprintf("SELECT 1 FROM %s.%s", schema, "users"))
@@ -293,7 +294,7 @@ func (s *IntegrationTestSuite) Test_Exec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", schema, "users")
@@ -302,7 +303,7 @@ func (s *IntegrationTestSuite) Test_BatchExec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", schema, "users")
@@ -313,7 +314,7 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{
@@ -336,29 +337,29 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
 		lableStmtMap[st.Label] = append(lableStmtMap[st.Label], st.Statements...)
 	}
 	for _, stmt := range lableStmtMap["create table"] {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt)
 		require.NoError(s.T(), err)
 	}
 	for _, stmt := range lableStmtMap["table triggers"] {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt)
 		require.NoError(s.T(), err)
 	}
 	for _, stmt := range lableStmtMap["table index"] {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt)
 		require.NoError(s.T(), err)
 	}
 	for _, stmt := range lableStmtMap["non-fk alter table"] {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt)
 		require.NoError(s.T(), err)
 	}
 	for _, stmt := range lableStmtMap["fk alter table"] {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		_, err = s.containers.Target.DB.ExecContext(context.Background(), stmt)
 		require.NoError(s.T(), err)
 	}
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})
@@ -367,7 +368,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	triggers, err := manager.GetSchemaTableTriggers(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employee_log"}})
@@ -376,7 +377,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
+	manager := NewManager(s.querier, s.containers.Source.DB, func() {})
 	schema := "sqlmanagermysql3"
 
 	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})

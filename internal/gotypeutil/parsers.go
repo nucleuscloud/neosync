@@ -50,3 +50,7 @@ func ParseSlice(input any) ([]any, error) {
 	}
 	return result, nil
 }
+
+func ToPtr[T any](value T) *T {
+	return &value
+}

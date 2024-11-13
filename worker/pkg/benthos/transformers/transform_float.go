@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -15,10 +16,10 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Transforms an existing float value.").
+		Description("Anonymizes and transforms an existing float value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewFloat64Param("randomization_range_min").Description("Specifies the minimum value for the range of the float.")).
-		Param(bloblang.NewFloat64Param("randomization_range_max").Description("Specifies the maximum value for the randomization range of the float.")).
+		Param(bloblang.NewFloat64Param("randomization_range_min").Default(1).Description("Specifies the minimum value for the range of the float.")).
+		Param(bloblang.NewFloat64Param("randomization_range_max").Default(10000).Description("Specifies the maximum value for the randomization range of the float.")).
 		Param(bloblang.NewInt64Param("precision").Optional().Description("An optional parameter that defines the number of significant digits for the float.")).
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the float.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
@@ -72,6 +73,19 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformFloat64OptsFromConfig(config *mgmtv1alpha1.TransformFloat64, scale, precision *int64) (*TransformFloat64Opts, error) {
+	if config == nil {
+		return NewTransformFloat64Opts(nil, nil, nil, nil, nil)
+	}
+	return NewTransformFloat64Opts(
+		config.RandomizationRangeMin,
+		config.RandomizationRangeMax,
+		precision,
+		scale,
+		nil,
+	)
 }
 
 func (t *TransformFloat64) Transform(value, opts any) (any, error) {

@@ -3,8 +3,8 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -14,9 +14,9 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Generates a Generate phone number in e164 format.").
-		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated phone number.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated phone number.")).
+		Description("Generates a new random international phone number including the + sign and no hyphens.").
+		Param(bloblang.NewInt64Param("min").Default(9).Description("Specifies the minimum value for the generated phone number.")).
+		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum value for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -56,6 +56,21 @@ func init() {
 	}
 }
 
+func NewGenerateInternationalPhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateE164PhoneNumber) (*GenerateInternationalPhoneNumberOpts, error) {
+	if config == nil {
+		return NewGenerateInternationalPhoneNumberOpts(
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateInternationalPhoneNumberOpts(
+		config.Min,
+		config.Max,
+		nil,
+	)
+}
+
 func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateInternationalPhoneNumberOpts)
 	if !ok {
@@ -78,11 +93,4 @@ func generateInternationalPhoneNumber(randomizer rng.Rand, minValue, maxValue in
 	}
 
 	return fmt.Sprintf("+%d", val), nil
-}
-
-func validateE164(p string) bool {
-	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
-		return true
-	}
-	return false
 }

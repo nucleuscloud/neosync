@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -25,9 +25,14 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 }
 
 func NewGenerateCardNumberOpts(
-	validLuhn bool,
+	validLuhnArg *bool,
   seedArg *int64,
 ) (*GenerateCardNumberOpts, error) {
+	validLuhn := bool(false)
+	if validLuhnArg != nil {
+		validLuhn = *validLuhnArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -39,10 +44,26 @@ func NewGenerateCardNumberOpts(
 	}, nil
 }
 
+func (o *GenerateCardNumberOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"valid_luhn:%v",
+	}
+
+	params := []any{
+	 	o.validLuhn,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_card_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",
-		Description: "Generates a card number.",
+		Description: "Generates a 16 digit card number that is valid by Luhn valid by default.",
 		Example: "",
 	}, nil
 }
@@ -50,10 +71,10 @@ func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateCardNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateCardNumberOpts{}
 
-	if _, ok := opts["validLuhn"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateCardNumber", "validLuhn")
+	validLuhn, ok := opts["validLuhn"].(bool)
+	if !ok {
+		validLuhn = false
 	}
-	validLuhn := opts["validLuhn"].(bool)
 	transformerOpts.validLuhn = validLuhn
 
 	var seedArg *int64

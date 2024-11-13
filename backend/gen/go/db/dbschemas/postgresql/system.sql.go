@@ -7,8 +7,9 @@ package pg_queries
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lib/pq"
 )
 
 const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
@@ -78,7 +79,7 @@ type GetCustomFunctionsBySchemaAndTablesRow struct {
 }
 
 func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomFunctionsBySchemaAndTables, arg.Schema, arg.Tables)
+	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemaAndTables, arg.Schema, pq.Array(arg.Tables))
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +96,9 @@ func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DB
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -174,7 +178,7 @@ type GetCustomSequencesBySchemaAndTablesRow struct {
 }
 
 func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, arg.Schema, arg.Tables)
+	rows, err := db.QueryContext(ctx, getCustomSequencesBySchemaAndTables, arg.Schema, pq.Array(arg.Tables))
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +197,9 @@ func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DB
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -225,7 +232,7 @@ type GetCustomTriggersBySchemaAndTablesRow struct {
 }
 
 func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomTriggersBySchemaAndTables, schematables)
+	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemaAndTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
@@ -242,6 +249,9 @@ func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBT
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -393,7 +403,7 @@ type GetDataTypesBySchemaAndTablesRow struct {
 }
 
 func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getDataTypesBySchemaAndTables, arg.Schema, arg.Tables)
+	rows, err := db.QueryContext(ctx, getDataTypesBySchemaAndTables, arg.Schema, pq.Array(arg.Tables))
 	if err != nil {
 		return nil, err
 	}
@@ -410,6 +420,9 @@ func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, ar
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -447,6 +460,8 @@ column_defaults AS (
         CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
         CASE
             WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character(%' THEN
                 a.atttypmod - 4
             ELSE
                 -1
@@ -558,18 +573,18 @@ type GetDatabaseSchemaRow struct {
 	OrdinalPosition        int16
 	GeneratedType          string
 	IdentityGeneration     string
-	TableOid               pgtype.Uint32
+	TableOid               interface{}
 	SequenceType           string
-	SeqIncrementBy         *int64
-	SeqMinValue            *int64
-	SeqMaxValue            *int64
-	SeqStartValue          *int64
-	SeqCacheValue          *int64
-	SeqCycleOption         *bool
+	SeqIncrementBy         sql.NullInt64
+	SeqMinValue            sql.NullInt64
+	SeqMaxValue            sql.NullInt64
+	SeqStartValue          sql.NullInt64
+	SeqCacheValue          sql.NullInt64
+	SeqCycleOption         sql.NullBool
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
-	rows, err := db.Query(ctx, getDatabaseSchema)
+	rows, err := db.QueryContext(ctx, getDatabaseSchema)
 	if err != nil {
 		return nil, err
 	}
@@ -602,6 +617,9 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -639,6 +657,8 @@ column_defaults AS (
         CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
         CASE
             WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character(%' THEN
                 a.atttypmod - 4
             ELSE
                 -1
@@ -750,18 +770,18 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	OrdinalPosition        int16
 	GeneratedType          string
 	IdentityGeneration     string
-	TableOid               pgtype.Uint32
+	TableOid               interface{}
 	SequenceType           string
-	SeqIncrementBy         *int64
-	SeqMinValue            *int64
-	SeqMaxValue            *int64
-	SeqStartValue          *int64
-	SeqCacheValue          *int64
-	SeqCycleOption         *bool
+	SeqIncrementBy         sql.NullInt64
+	SeqMinValue            sql.NullInt64
+	SeqMaxValue            sql.NullInt64
+	SeqStartValue          sql.NullInt64
+	SeqCacheValue          sql.NullInt64
+	SeqCycleOption         sql.NullBool
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
-	rows, err := db.Query(ctx, getDatabaseTableSchemasBySchemasAndTables, schematables)
+	rows, err := db.QueryContext(ctx, getDatabaseTableSchemasBySchemasAndTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
@@ -794,6 +814,9 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -832,7 +855,7 @@ type GetIndicesBySchemasAndTablesRow struct {
 }
 
 func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
-	rows, err := db.Query(ctx, getIndicesBySchemasAndTables, schematables)
+	rows, err := db.QueryContext(ctx, getIndicesBySchemasAndTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
@@ -849,6 +872,9 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -878,7 +904,7 @@ type GetPostgresRolePermissionsRow struct {
 }
 
 func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error) {
-	rows, err := db.Query(ctx, getPostgresRolePermissions)
+	rows, err := db.QueryContext(ctx, getPostgresRolePermissions)
 	if err != nil {
 		return nil, err
 	}
@@ -890,6 +916,9 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*G
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -979,7 +1008,7 @@ type GetTableConstraintsRow struct {
 }
 
 func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
-	rows, err := db.Query(ctx, getTableConstraints, arg.Schema, arg.Table)
+	rows, err := db.QueryContext(ctx, getTableConstraints, arg.Schema, arg.Table)
 	if err != nil {
 		return nil, err
 	}
@@ -992,16 +1021,19 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 			&i.ConstraintType,
 			&i.SchemaName,
 			&i.TableName,
-			&i.ConstraintColumns,
-			&i.Notnullable,
+			pq.Array(&i.ConstraintColumns),
+			pq.Array(&i.Notnullable),
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.ForeignColumnNames,
+			pq.Array(&i.ForeignColumnNames),
 			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1087,7 +1119,7 @@ type GetTableConstraintsBySchemaRow struct {
 }
 
 func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error) {
-	rows, err := db.Query(ctx, getTableConstraintsBySchema, schema)
+	rows, err := db.QueryContext(ctx, getTableConstraintsBySchema, pq.Array(schema))
 	if err != nil {
 		return nil, err
 	}
@@ -1100,16 +1132,19 @@ func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, sche
 			&i.ConstraintType,
 			&i.SchemaName,
 			&i.TableName,
-			&i.ConstraintColumns,
-			&i.Notnullable,
+			pq.Array(&i.ConstraintColumns),
+			pq.Array(&i.Notnullable),
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.ForeignColumnNames,
+			pq.Array(&i.ForeignColumnNames),
 			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

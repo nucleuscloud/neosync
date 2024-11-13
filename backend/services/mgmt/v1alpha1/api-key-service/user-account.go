@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
 func (s *Service) verifyUserInAccount(
@@ -22,7 +22,7 @@ func (s *Service) verifyUserInAccount(
 		return nil, nucleuserrors.NewForbidden("user in not in requested account")
 	}
 
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *Service) getUserUuid(
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}

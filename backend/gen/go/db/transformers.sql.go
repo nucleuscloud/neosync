@@ -26,7 +26,7 @@ type CreateUserDefinedTransformerParams struct {
 	Description       string
 	Source            int32
 	AccountID         pgtype.UUID
-	TransformerConfig *pg_models.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfig
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 }
@@ -158,7 +158,7 @@ RETURNING id, created_at, updated_at, name, description, account_id, transformer
 type UpdateUserDefinedTransformerParams struct {
 	Name              string
 	Description       string
-	TransformerConfig *pg_models.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfig
 	UpdatedByID       pgtype.UUID
 	ID                pgtype.UUID
 }

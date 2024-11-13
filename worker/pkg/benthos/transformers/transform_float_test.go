@@ -49,6 +49,17 @@ func Test_TransformFloat64_Benthos(t *testing.T) {
 	}
 }
 
+func Test_TransformFloat64_Benthos_NoOptions(t *testing.T) {
+	val := float64(27.35)
+	mapping := fmt.Sprintf(`root = transform_float64(value:%f)`, val)
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+}
+
 func Test_calculateMaxNumber(t *testing.T) {
 	tests := []struct {
 		precision int

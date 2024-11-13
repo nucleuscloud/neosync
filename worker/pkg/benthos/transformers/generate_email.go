@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -73,6 +74,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateEmailOptsFromConfig(config *mgmtv1alpha1.GenerateEmail, maxLength *int64) (*GenerateEmailOpts, error) {
+	if config == nil {
+		return NewGenerateEmailOpts(nil, nil, nil)
+	}
+	var emailType *string
+	if config.EmailType != nil {
+		emailTypeStr := dtoEmailTypeToTransformerEmailType(config.GetEmailType()).String()
+		emailType = &emailTypeStr
+	}
+	return NewGenerateEmailOpts(
+		maxLength,
+		emailType, nil,
+	)
 }
 
 func (t *GenerateEmail) Generate(opts any) (any, error) {

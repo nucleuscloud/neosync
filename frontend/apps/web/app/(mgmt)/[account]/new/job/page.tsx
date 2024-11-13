@@ -15,6 +15,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/libs/utils';
 import { MagicWandIcon, SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -58,6 +60,10 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <SymbolIcon />,
       type: 'data-sync',
       experimental: false,
+      lightModeimage:
+        'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
     },
     {
       name: 'Data Generation',
@@ -67,6 +73,10 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <AiOutlineExperiment />,
       type: 'generate-table',
       experimental: false,
+      lightModeimage:
+        'https://assets.nucleuscloud.com/neosync/app/gen-light.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/datagen-dark.svg',
     },
     {
       name: 'AI Data Generation',
@@ -75,6 +85,9 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <MagicWandIcon />,
       type: 'ai-generate-table',
       experimental: true,
+      lightModeimage: 'https://assets.nucleuscloud.com/neosync/app/aigen.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
     },
   ] as const;
 
@@ -91,53 +104,77 @@ export default function NewJob({ params }: PageProps): ReactElement {
   const router = useRouter();
   const posthog = usePostHog();
 
+  const theme = useTheme();
+
   return (
     <div
       id="newjobdefine"
-      className="px-12 sm:px-24 md:px-48 lg:px-60 xl:px-96 flex flex-col pt-4 gap-16"
+      className="px-12 sm:px-24 md:px-48 lg:px-60 flex flex-col pt-4 gap-16"
     >
       <OverviewContainer Header={<PageHeader header="Select a Job type" />}>
-        <div className="flex flex-col justify-center gap-6 pt-8">
-          <RadioGroup
-            value={selectedJobType}
-            onChange={() => setSelectedJobType}
-          >
-            {jobData.map((jd) => (
-              <Card
-                key={jd.name}
-                className={cn(
-                  'cursor-pointer p-2',
-                  selectedJobType === jd.type
-                    ? 'border border-black shadow-sm dark:border-gray-500'
-                    : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'
-                )}
-                onClick={() => handleJobSelection(jd.type, jd.href)}
-              >
-                <CardHeader>
-                  <div className="flex flex-col md:flex-row justify-between items-center">
-                    <div>
-                      <CardTitle>
-                        <div className="flex flex-row items-center gap-2">
-                          <div>{jd.icon}</div>
-                          <p>{jd.name}</p>
-                          {jd.experimental ? <Badge>Experimental</Badge> : null}
-                        </div>
-                      </CardTitle>
-                      <CardDescription className="pl-6 pt-2">
-                        {jd.description}
-                      </CardDescription>
-                    </div>
-                    <RadioGroupItem
-                      value={jd.type}
-                      id={jd.type}
-                      className={`${selectedJobType === jd.type ? 'bg-black text-white' : 'bg-white dark:bg-transparent text-black'}`}
+        <RadioGroup
+          value={selectedJobType}
+          className="flex flex-col lg:flex-row justify-center items-center gap-6 pt-8"
+        >
+          {jobData.map((jd) => (
+            <Card
+              key={jd.name}
+              className={cn(
+                'cursor-pointer',
+                selectedJobType === jd.type
+                  ? 'border border-black shadow-md dark:border-gray-400'
+                  : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'
+              )}
+              onClick={() => handleJobSelection(jd.type, jd.href)}
+            >
+              <CardHeader className=" w-[300px] relative">
+                <div className="flex flex-col items-center text-left">
+                  <div className="relative">
+                    <Image
+                      src={
+                        theme.resolvedTheme == 'light'
+                          ? jd.lightModeimage
+                          : jd.darkModeImage
+                      }
+                      alt="image"
+                      width="200"
+                      height="200"
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          theme.resolvedTheme == 'light'
+                            ? 'linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 5%, rgba(255,255,255,0) 100%)'
+                            : 'linear-gradient(to top, rgba(30,30,36,1) 0%, rgba(30,30,36,1) 5%, rgba(30,30,36,0) 100%)',
+                        pointerEvents: 'none',
+                      }}
                     />
                   </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </RadioGroup>
-        </div>
+                  <div className="pt-8">
+                    <CardTitle>
+                      <div className="flex flex-row items-center gap-2 text-nowrap">
+                        <p>{jd.name}</p>
+                        <div>{jd.icon}</div>
+                        {jd.experimental ? <Badge>Experimental</Badge> : null}
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="pt-2">
+                      {jd.description}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="absolute top-0 right-2">
+                  <RadioGroupItem
+                    value={jd.type}
+                    id={jd.type}
+                    className={`${selectedJobType === jd.type ? 'bg-black dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-transparent text-black'}`}
+                  />{' '}
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </RadioGroup>
       </OverviewContainer>
       <div className="flex flex-col md:flex-row justify-between gap-1">
         <Button

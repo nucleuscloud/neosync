@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
 func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
@@ -105,17 +106,21 @@ func toBit(v bool) int {
 
 func FilterOutSqlServerDefaultIdentityColumns(
 	driver string,
-	identityCols, columnNames []string,
+	columnNames []string,
 	argRows [][]any,
-) (columns []string, rows [][]any) {
-	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
-		return columnNames, argRows
+	colDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
+) (columns []string, rows [][]any, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) {
+	// build map of identity columns
+	defaultIdentityColMap := map[string]bool{}
+	for idx, d := range colDefaultProperties {
+		cName := columnNames[idx]
+		if d != nil && d.HasDefaultTransformer && d.NeedsOverride && d.NeedsReset {
+			defaultIdentityColMap[cName] = true
+		}
 	}
 
-	// build map of identity columns
-	identityColMap := map[string]bool{}
-	for _, id := range identityCols {
-		identityColMap[id] = true
+	if driver != sqlmanager_shared.MssqlDriver || len(defaultIdentityColMap) == 0 {
+		return columnNames, argRows, colDefaultProperties
 	}
 
 	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
@@ -125,21 +130,25 @@ func FilterOutSqlServerDefaultIdentityColumns(
 		newRow := []any{}
 		for idx, arg := range row {
 			col := columnNames[idx]
-			if identityColMap[col] && arg == "DEFAULT" {
+			if defaultIdentityColMap[col] {
 				// pass on identity columns with a default
 				continue
 			}
 			newRow = append(newRow, arg)
 			nonIdentityColumnMap[col] = struct{}{}
 		}
-		newRows = append(newRows, newRow)
-	}
-	newColumns := []string{}
-	// build new columns list while maintaining same order
-	for _, col := range columnNames {
-		if _, ok := nonIdentityColumnMap[col]; ok {
-			newColumns = append(newColumns, col)
+		if len(newRow) != 0 {
+			newRows = append(newRows, newRow)
 		}
 	}
-	return newColumns, newRows
+	newColumns := []string{}
+	newDefaultProperites := []*neosync_benthos.ColumnDefaultProperties{}
+	// build new columns list while maintaining same order
+	for idx, col := range columnNames {
+		if _, ok := nonIdentityColumnMap[col]; ok {
+			newColumns = append(newColumns, col)
+			newDefaultProperites = append(newDefaultProperites, colDefaultProperties[idx])
+		}
+	}
+	return newColumns, newRows, newDefaultProperites
 }

@@ -5,11 +5,10 @@ import (
 )
 
 type JobMappingTransformerModel struct {
-	Source int32               `json:"source"`
-	Config *TransformerConfigs `json:"config,omitempty"`
+	Config *TransformerConfig `json:"config,omitempty"`
 }
 
-type TransformerConfigs struct {
+type TransformerConfig struct {
 	GenerateEmail              *GenerateEmailConfig             `json:"generateEmailConfig,omitempty"`
 	TransformEmail             *TransformEmailConfig            `json:"transformEmail,omitempty"`
 	GenerateBool               *GenerateBoolConfig              `json:"generateBool,omitempty"`
@@ -39,7 +38,7 @@ type TransformerConfigs struct {
 	TransformE164PhoneNumber   *TransformE164PhoneNumberConfig  `json:"transformE164PhoneNumber,omitempty"`
 	TransformFirstname         *TransformFirstNameConfig        `json:"transformFirstName,omitempty"`
 	TransformFloat64           *TransformFloat64Config          `json:"transformFloat64,omitempty"`
-	TransformFullName          *TransformFullNameConfig         `json:"transformFullName,,omitempty"`
+	TransformFullName          *TransformFullNameConfig         `json:"transformFullName,omitempty"`
 	TransformInt64PhoneNumber  *TransformInt64PhoneNumberConfig `json:"transformInt64PhoneNumber,omitempty"`
 	TransformInt64             *TransformInt64Config            `json:"transformInt64,omitempty"`
 	TransformLastName          *TransformLastNameConfig         `json:"transformLastName,omitempty"`
@@ -53,6 +52,8 @@ type TransformerConfigs struct {
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 	GenerateCountry            *GenerateCountryConfig           `json:"generateCountryConfig,omitempty"`
+	GenerateBusinessName       *GenerateBusinessNameConfig      `json:"generateBusinessNameConfig,omitempty"`
+	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
 }
 
 type GenerateEmailConfig struct {
@@ -60,8 +61,8 @@ type GenerateEmailConfig struct {
 }
 
 type TransformEmailConfig struct {
-	PreserveLength     bool     `json:"preserveLength"`
-	PreserveDomain     bool     `json:"preserveDomain"`
+	PreserveLength     *bool    `json:"preserveLength,omitempty"`
+	PreserveDomain     *bool    `json:"preserveDomain,omitempty"`
 	ExcludedDomains    []string `json:"excludedDomains"`
 	EmailType          *int32   `json:"emailType,omitempty"`
 	InvalidEmailAction *int32   `json:"invalidEmailAction,omitempty"`
@@ -70,7 +71,7 @@ type TransformEmailConfig struct {
 type GenerateBoolConfig struct{}
 
 type GenerateCardNumberConfig struct {
-	ValidLuhn bool `json:"validLuhn"`
+	ValidLuhn *bool `json:"validLuhn,omitempty"`
 }
 
 type GenerateCityConfig struct{}
@@ -78,16 +79,16 @@ type GenerateCityConfig struct{}
 type GenerateDefaultConfig struct{}
 
 type GenerateE164PhoneNumberConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 type GenerateFirstNameConfig struct{}
 
 type GenerateFloat64Config struct {
-	RandomizeSign bool    `json:"randomizeSign"`
-	Min           float64 `json:"min"`
-	Max           float64 `json:"max"`
-	Precision     int64   `json:"precision"`
+	RandomizeSign *bool    `json:"randomizeSign,omitempty"`
+	Min           *float64 `json:"min,omitempty"`
+	Max           *float64 `json:"max,omitempty"`
+	Precision     *int64   `json:"precision,omitempty"`
 }
 
 type GenerateFullAddressConfig struct{}
@@ -95,15 +96,15 @@ type GenerateFullAddressConfig struct{}
 type GenerateFullNameConfig struct{}
 
 type GenerateGenderConfig struct {
-	Abbreviate bool `json:"abbreviate"`
+	Abbreviate *bool `json:"abbreviate,omitempty"`
 }
 
 type GenerateInt64PhoneNumberConfig struct{}
 
 type GenerateInt64Config struct {
-	RandomizeSign bool  `json:"randomizeSign"`
-	Min           int64 `json:"min"`
-	Max           int64 `json:"max"`
+	RandomizeSign *bool  `json:"randomizeSign,omitempty"`
+	Min           *int64 `json:"min,omitempty"`
+	Max           *int64 `json:"max,omitempty"`
 }
 
 type GenerateLastNameConfig struct{}
@@ -113,19 +114,19 @@ type GenerateSha256HashConfig struct{}
 type GenerateSsnConfig struct{}
 
 type GenerateStateConfig struct {
-	GenerateFullName bool `json:"generateFullName"`
+	GenerateFullName *bool `json:"generateFullName,omitempty"`
 }
 
 type GenerateStreetAddressConfig struct{}
 
 type GenerateStringPhoneNumberConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 
 type GenerateStringConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 type GenerateUnixTimestampConfig struct{}
 
@@ -134,47 +135,47 @@ type GenerateUsernameConfig struct{}
 type GenerateUtcTimestampConfig struct{}
 
 type GenerateUuidConfig struct {
-	IncludeHyphens bool `json:"includeHyphens"`
+	IncludeHyphens *bool `json:"includeHyphens,omitempty"`
 }
 
 type GenerateZipcodeConfig struct{}
 
 type TransformE164PhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformFirstNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformFloat64Config struct {
-	RandomizationRangeMin float64 `json:"randomizationRangeMin"`
-	RandomizationRangeMax float64 `json:"randomizationRangeMax"`
+	RandomizationRangeMin *float64 `json:"randomizationRangeMin,omitempty"`
+	RandomizationRangeMax *float64 `json:"randomizationRangeMax,omitempty"`
 }
 
 type TransformFullNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformInt64PhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformInt64Config struct {
-	RandomizationRangeMin int64 `json:"randomizationRangeMin"`
-	RandomizationRangeMax int64 `json:"randomizationRangeMax"`
+	RandomizationRangeMin *int64 `json:"randomizationRangeMin,omitempty"`
+	RandomizationRangeMax *int64 `json:"randomizationRangeMax,omitempty"`
 }
 
 type TransformLastNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformPhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformStringConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type PassthroughConfig struct{}
@@ -190,7 +191,7 @@ type TransformJavascriptConfig struct {
 }
 
 type GenerateCategoricalConfig struct {
-	Categories string `json:"categories"`
+	Categories *string `json:"categories,omitempty"`
 }
 
 type TransformCharacterScramble struct {
@@ -202,25 +203,29 @@ type GenerateJavascript struct {
 }
 
 type GenerateCountryConfig struct {
-	GenerateFullName bool `json:"generateFullName"`
+	GenerateFullName *bool `json:"generateFullName,omitempty"`
 }
 
-// from API -> DB
+type GenerateBusinessNameConfig struct{}
+
+type GenerateIpAddressConfig struct {
+	IpType *int32 `json:"ipType,omitempty"`
+}
+
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
-	t.Source = int32(tr.Source)
+	if tr == nil {
+		tr = &mgmtv1alpha1.JobMappingTransformer{}
+	}
 
-	config := &TransformerConfigs{}
-
+	config := &TransformerConfig{}
 	if err := config.FromTransformerConfigDto(tr.GetConfig()); err != nil {
 		return err
 	}
-
 	t.Config = config
-
 	return nil
 }
 
-func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
+func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
 	if tr == nil {
 		tr = &mgmtv1alpha1.TransformerConfig{}
 	}
@@ -377,32 +382,29 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateCountry = &GenerateCountryConfig{
 			GenerateFullName: tr.GetGenerateCountryConfig().GenerateFullName,
 		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
+		t.GenerateBusinessName = &GenerateBusinessNameConfig{}
+	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
+		t.GenerateIpAddress = &GenerateIpAddressConfig{
+			IpType: (*int32)(tr.GetGenerateIpAddressConfig().IpType),
+		}
 	default:
-		t = &TransformerConfigs{}
+		t = &TransformerConfig{}
 	}
 
 	return nil
 }
 
-// DB -> API
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
-	_, ok := mgmtv1alpha1.TransformerSource_name[t.Source]
-	var source mgmtv1alpha1.TransformerSource
-	if !ok {
-		source = mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED
-	} else {
-		source = mgmtv1alpha1.TransformerSource(t.Source)
-	}
 	if t.Config == nil {
-		t.Config = &TransformerConfigs{}
+		t.Config = &TransformerConfig{}
 	}
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: source,
 		Config: t.Config.ToTransformerConfigDto(),
 	}
 }
 
-func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerConfig {
+func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerConfig {
 	switch {
 	case t.GenerateEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
@@ -723,6 +725,20 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
 				GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
 					GenerateFullName: t.GenerateCountry.GenerateFullName,
+				},
+			},
+		}
+	case t.GenerateBusinessName != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
+				GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
+			},
+		}
+	case t.GenerateIpAddress != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+					IpType: (*mgmtv1alpha1.GenerateIpAddressType)(t.GenerateIpAddress.IpType),
 				},
 			},
 		}

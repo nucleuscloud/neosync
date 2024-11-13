@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -14,7 +15,7 @@ import (
 var defaultPhoneNumberLength = int64(10)
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Generates a new phone number of type int64 with a default length of 10.").
+	spec := bloblang.NewPluginSpec().Description("Generates a new int64 phone number with a default length of 10.").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -42,6 +43,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateInt64PhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateInt64PhoneNumber) (*GenerateInt64PhoneNumberOpts, error) {
+	return NewGenerateInt64PhoneNumberOpts(nil)
 }
 
 func (t *GenerateInt64PhoneNumber) Generate(opts any) (any, error) {

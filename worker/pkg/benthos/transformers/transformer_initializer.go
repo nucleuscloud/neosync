@@ -1,10 +1,13 @@
 package transformers
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 )
 
 type TransformerExecutor struct {
@@ -12,12 +15,48 @@ type TransformerExecutor struct {
 	Mutate func(value any, opts any) (any, error)
 }
 
-func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer) (*TransformerExecutor, error) {
-	maxLength := int64(10000) // TODO: update this based on colInfo if available
-	switch transformerMapping.Source {
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL:
-		categories := transformerMapping.Config.GetGenerateCategoricalConfig().Categories
-		opts, err := NewGenerateCategoricalOpts(categories, nil)
+type TransformerExecutorOption func(c *TransformerExecutorConfig)
+
+type TransformerExecutorConfig struct {
+	transformPiiText *transformPiiTextConfig
+}
+
+type transformPiiTextConfig struct {
+	analyze   presidioapi.AnalyzeInterface
+	anonymize presidioapi.AnonymizeInterface
+}
+
+func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface) TransformerExecutorOption {
+	return func(c *TransformerExecutorConfig) {
+		c.transformPiiText = &transformPiiTextConfig{
+			analyze:   analyze,
+			anonymize: anonymize,
+		}
+	}
+}
+
+func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
+}
+
+func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+	execCfg := &TransformerExecutorConfig{}
+	for _, opt := range opts {
+		opt(execCfg)
+	}
+
+	maxLength := int64(100) // TODO: update this based on colInfo if available
+	switch transformerConfig.GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
+		return &TransformerExecutor{
+			Opts: nil,
+			Mutate: func(value any, opts any) (any, error) {
+				return value, nil
+			},
+		}, nil
+	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
+		config := transformerConfig.GetGenerateCategoricalConfig()
+		opts, err := NewGenerateCategoricalOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -29,8 +68,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
-		opts, err := NewGenerateBoolOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
+		config := transformerConfig.GetGenerateBoolConfig()
+		opts, err := NewGenerateBoolOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -42,10 +82,10 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING:
-		pl := transformerMapping.Config.GetTransformStringConfig().PreserveLength
+	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
+		config := transformerConfig.GetTransformStringConfig()
 		minLength := int64(3) // TODO: pull this value from the database schema
-		opts, err := NewTransformStringOpts(&pl, &minLength, &maxLength, nil)
+		opts, err := NewTransformStringOptsFromConfig(config, &minLength, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -56,10 +96,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 				return transform(value, opts)
 			},
 		}, nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64:
-		rMin := transformerMapping.Config.GetTransformInt64Config().RandomizationRangeMin
-		rMax := transformerMapping.Config.GetTransformInt64Config().RandomizationRangeMax
-		opts, err := NewTransformInt64Opts(rMin, rMax, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
+		config := transformerConfig.GetTransformInt64Config()
+		opts, err := NewTransformInt64OptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -71,9 +110,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
-		pl := transformerMapping.Config.GetTransformFullNameConfig().PreserveLength
-		opts, err := NewTransformFullNameOpts(nil, &pl, &maxLength)
+	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
+		config := transformerConfig.GetTransformFullNameConfig()
+		opts, err := NewTransformFullNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -85,13 +124,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL:
-		emailType := transformerMapping.GetConfig().GetGenerateEmailConfig().GetEmailType()
-		if emailType == mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UNSPECIFIED {
-			emailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
-		}
-		emailStrType := emailType.String()
-		opts, err := NewGenerateEmailOpts(&maxLength, &emailStrType, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
+		config := transformerConfig.GetGenerateEmailConfig()
+		opts, err := NewGenerateEmailOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -103,20 +138,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL:
-		config := transformerMapping.Config.GetTransformEmailConfig()
-		emailTypeStr := config.EmailType.String()
-		invalidEmailActionStr := config.InvalidEmailAction.String()
-		var excludedDomains any = config.ExcludedDomains
-		opts, err := NewTransformEmailOpts(
-			&config.PreserveDomain,
-			&config.PreserveLength,
-			&excludedDomains,
-			&maxLength,
-			nil,
-			&emailTypeStr,
-			&invalidEmailActionStr,
-		)
+	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
+		config := transformerConfig.GetTransformEmailConfig()
+		opts, err := NewTransformEmailOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -128,9 +152,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER:
-		luhn := transformerMapping.Config.GetGenerateCardNumberConfig().ValidLuhn
-		opts, err := NewGenerateCardNumberOpts(luhn, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig:
+		config := transformerConfig.GetGenerateCardNumberConfig()
+		opts, err := NewGenerateCardNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -142,8 +166,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY:
-		opts, err := NewGenerateCityOpts(maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateCityConfig:
+		config := transformerConfig.GetGenerateCityConfig()
+		opts, err := NewGenerateCityOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -155,10 +180,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER:
-		minValue := transformerMapping.Config.GetGenerateE164PhoneNumberConfig().Min
-		maxValue := transformerMapping.Config.GetGenerateE164PhoneNumberConfig().Max
-		opts, err := NewGenerateInternationalPhoneNumberOpts(minValue, maxValue, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
+		config := transformerConfig.GetGenerateE164PhoneNumberConfig()
+		opts, err := NewGenerateInternationalPhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -169,8 +193,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 				return generate(opts)
 			},
 		}, nil
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME:
-		opts, err := NewGenerateFirstNameOpts(&maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig:
+		config := transformerConfig.GetGenerateFirstNameConfig()
+		opts, err := NewGenerateFirstNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -182,16 +207,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64:
-		config := transformerMapping.Config.GetGenerateFloat64Config()
-		opts, err := NewGenerateFloat64Opts(
-			&config.RandomizeSign,
-			config.Min,
-			config.Max,
-			&config.Precision,
-			nil, // TODO: update scale based on colInfo if available
-			nil,
-		)
+	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
+		config := transformerConfig.GetGenerateFloat64Config()
+		opts, err := NewGenerateFloat64OptsFromConfig(config, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -203,8 +221,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS:
-		opts, err := NewGenerateFullAddressOpts(maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
+		config := transformerConfig.GetGenerateFullAddressConfig()
+		opts, err := NewGenerateFullAddressOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -216,8 +235,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:
-		opts, err := NewGenerateFullNameOpts(&maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig:
+		config := transformerConfig.GetGenerateFullNameConfig()
+		opts, err := NewGenerateFullNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -229,9 +249,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER:
-		ab := transformerMapping.Config.GetGenerateGenderConfig().Abbreviate
-		opts, err := NewGenerateGenderOpts(&ab, &maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
+		config := transformerConfig.GetGenerateGenderConfig()
+		opts, err := NewGenerateGenderOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -243,8 +263,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER:
-		opts, err := NewGenerateInt64PhoneNumberOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig:
+		config := transformerConfig.GetGenerateInt64PhoneNumberConfig()
+		opts, err := NewGenerateInt64PhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -256,9 +277,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64:
-		config := transformerMapping.Config.GetGenerateInt64Config()
-		opts, err := NewGenerateInt64Opts(&config.RandomizeSign, config.Min, config.Max, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
+		config := transformerConfig.GetGenerateInt64Config()
+		opts, err := NewGenerateInt64OptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -270,8 +291,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME:
-		opts, err := NewGenerateLastNameOpts(&maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig:
+		config := transformerConfig.GetGenerateLastNameConfig()
+		opts, err := NewGenerateLastNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -283,8 +305,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH:
-		opts, err := NewGenerateSHA256HashOpts()
+	case *mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig:
+		config := transformerConfig.GetGenerateSha256HashConfig()
+		opts, err := NewGenerateSHA256HashOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -296,8 +319,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN:
-		opts, err := NewGenerateSSNOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateSsnConfig:
+		config := transformerConfig.GetGenerateSsnConfig()
+		opts, err := NewGenerateSSNOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -309,9 +333,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE:
-		generateFullName := transformerMapping.Config.GetGenerateStateConfig().GenerateFullName
-		opts, err := NewGenerateStateOpts(&generateFullName, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateStateConfig:
+		config := transformerConfig.GetGenerateStateConfig()
+		opts, err := NewGenerateStateOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -323,8 +347,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
-		opts, err := NewGenerateStreetAddressOpts(maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
+		config := transformerConfig.GetGenerateStreetAddressConfig()
+		opts, err := NewGenerateStreetAddressOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -336,12 +361,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER:
-		minValue := transformerMapping.Config.GetGenerateStringPhoneNumberConfig().Min
-		maxValue := transformerMapping.Config.GetGenerateStringPhoneNumberConfig().Max
-		minValue = transformer_utils.MinInt(minValue, maxLength)
-		maxValue = transformer_utils.Ceil(maxValue, maxLength)
-		opts, err := NewGenerateStringPhoneNumberOpts(minValue, maxValue, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
+		config := transformerConfig.GetGenerateStringPhoneNumberConfig()
+		opts, err := NewGenerateStringPhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -353,9 +375,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
-		config := transformerMapping.Config.GetGenerateStringConfig()
-		opts, err := NewGenerateRandomStringOpts(config.Min, config.Max, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
+		config := transformerConfig.GetGenerateStringConfig()
+		opts, err := NewGenerateRandomStringOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -367,8 +389,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP:
-		opts, err := NewGenerateUnixTimestampOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
+		config := transformerConfig.GetGenerateUnixtimestampConfig()
+		opts, err := NewGenerateUnixTimestampOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -380,8 +403,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME:
-		opts, err := NewGenerateUsernameOpts(&maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig:
+		config := transformerConfig.GetGenerateUsernameConfig()
+		opts, err := NewGenerateUsernameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -393,8 +417,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP:
-		opts, err := NewGenerateUTCTimestampOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig:
+		config := transformerConfig.GetGenerateUtctimestampConfig()
+		opts, err := NewGenerateUTCTimestampOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -406,9 +431,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID:
-		ih := transformerMapping.Config.GetGenerateUuidConfig().IncludeHyphens
-		opts, err := NewGenerateUUIDOpts(&ih)
+	case *mgmtv1alpha1.TransformerConfig_GenerateUuidConfig:
+		config := transformerConfig.GetGenerateUuidConfig()
+		opts, err := NewGenerateUUIDOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -420,8 +445,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE:
-		opts, err := NewGenerateZipcodeOpts(nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig:
+		config := transformerConfig.GetGenerateZipcodeConfig()
+		opts, err := NewGenerateZipcodeOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -433,9 +459,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER:
-		config := transformerMapping.Config.GetTransformE164PhoneNumberConfig()
-		opts, err := NewTransformE164PhoneNumberOpts(config.PreserveLength, &maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
+		config := transformerConfig.GetTransformE164PhoneNumberConfig()
+		opts, err := NewTransformE164PhoneNumberOptsFromConfig(config, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -447,9 +473,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME:
-		config := transformerMapping.Config.GetTransformFirstNameConfig()
-		opts, err := NewTransformFirstNameOpts(&maxLength, &config.PreserveLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
+		config := transformerConfig.GetTransformFirstNameConfig()
+		opts, err := NewTransformFirstNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -461,15 +487,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
-		config := transformerMapping.Config.GetTransformFloat64Config()
-		opts, err := NewTransformFloat64Opts(
-			config.RandomizationRangeMin,
-			config.RandomizationRangeMax,
-			nil, // TODO: update precision based on colInfo if available
-			nil, // TODO: update scale based on colInfo if available
-			nil,
-		)
+	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
+		config := transformerConfig.GetTransformFloat64Config()
+		opts, err := NewTransformFloat64OptsFromConfig(config, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -481,9 +501,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER:
-		config := transformerMapping.Config.GetTransformInt64PhoneNumberConfig()
-		opts, err := NewTransformInt64PhoneNumberOpts(config.PreserveLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
+		config := transformerConfig.GetTransformInt64PhoneNumberConfig()
+		opts, err := NewTransformInt64PhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -495,9 +515,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME:
-		config := transformerMapping.Config.GetTransformLastNameConfig()
-		opts, err := NewTransformLastNameOpts(&maxLength, &config.PreserveLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
+		config := transformerConfig.GetTransformLastNameConfig()
+		opts, err := NewTransformLastNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -509,9 +529,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER:
-		config := transformerMapping.Config.GetTransformPhoneNumberConfig()
-		opts, err := NewTransformStringPhoneNumberOpts(config.PreserveLength, maxLength, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
+		config := transformerConfig.GetTransformPhoneNumberConfig()
+		opts, err := NewTransformStringPhoneNumberOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -523,7 +543,7 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL:
+	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
@@ -531,7 +551,7 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT:
+	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
@@ -539,9 +559,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE:
-		config := transformerMapping.Config.GetTransformCharacterScrambleConfig()
-		opts, err := NewTransformCharacterScrambleOpts(config.UserProvidedRegex, nil)
+	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
+		config := transformerConfig.GetTransformCharacterScrambleConfig()
+		opts, err := NewTransformCharacterScrambleOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -553,9 +573,9 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
-	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY:
-		generateFullName := transformerMapping.Config.GetGenerateCountryConfig().GenerateFullName
-		opts, err := NewGenerateCountryOpts(&generateFullName, nil)
+	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
+		config := transformerConfig.GetGenerateCountryConfig()
+		opts, err := NewGenerateCountryOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -567,7 +587,56 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
+	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
+		if execCfg.transformPiiText == nil {
+			return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
+		}
+		config := transformerConfig.GetTransformPiiTextConfig()
+
+		return &TransformerExecutor{
+			Opts: nil,
+			Mutate: func(value, opts any) (any, error) {
+				valueStr, ok := value.(string)
+				if !ok {
+					return nil, fmt.Errorf("expected value to be of type string. %T", value)
+				}
+				return ee_transformer_fns.TransformPiiText(
+					context.Background(),
+					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
+					config, valueStr,
+				)
+			},
+		}, nil
+
+	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
+		config := transformerConfig.GetGenerateBusinessNameConfig()
+		opts, err := NewGenerateBusinessNameOptsFromConfig(config, &maxLength)
+		if err != nil {
+			return nil, err
+		}
+		generate := NewGenerateBusinessName().Generate
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return generate(opts)
+			},
+		}, nil
+
+	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
+		config := transformerConfig.GetGenerateIpAddressConfig()
+		opts, err := NewGenerateIpAddressOptsFromConfig(config, &maxLength)
+		if err != nil {
+			return nil, err
+		}
+		generate := NewGenerateIpAddress().Generate
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return generate(opts)
+			},
+		}, nil
+
 	default:
-		return nil, fmt.Errorf("unsupported transformer: %v", transformerMapping.Source)
+		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
 	}
 }

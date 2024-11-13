@@ -1,5 +1,6 @@
 'use client';
 import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/TransformerForm';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { constructDocsLink } from '../../EditTransformerOptions';
 
 interface Props {
   currentTransformer: UserDefinedTransformer;
@@ -106,7 +108,12 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           render={() => (
             <FormItem>
               <FormLabel>Source Transformer</FormLabel>
-              <FormDescription>The system transformer source.</FormDescription>
+              <FormDescription>
+                The system transformer source.{' '}
+                <LearnMoreLink
+                  href={constructDocsLink(currentTransformer.source)}
+                />
+              </FormDescription>
               <FormControl>
                 <Select disabled={true}>
                   <SelectTrigger>

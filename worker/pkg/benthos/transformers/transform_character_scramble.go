@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unicode"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -21,7 +22,7 @@ const (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Transforms an existing string value by scrambling the characters while maintaining the format.").
+		Description(`Anonymizes and transforms an existing string value by scrambling the characters while maintaining the format based on a user provided regular expression. Letters will be replaced with letters, numbers with numbers and non-number or letter ASCII characters such as "!&\*" with other characters.`).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewStringParam("user_provided_regex").Optional().Description("A custom regular expression. This regex is used to manipulate input data during the transformation process.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
@@ -66,6 +67,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformCharacterScrambleOptsFromConfig(config *mgmtv1alpha1.TransformCharacterScramble) (*TransformCharacterScrambleOpts, error) {
+	if config == nil {
+		return NewTransformCharacterScrambleOpts(nil, nil)
+	}
+	return NewTransformCharacterScrambleOpts(config.UserProvidedRegex, nil)
 }
 
 func (t *TransformCharacterScramble) Transform(value, opts any) (any, error) {

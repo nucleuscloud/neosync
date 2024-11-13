@@ -80,6 +80,7 @@ export default function AccountProvider(props: Props): ReactElement {
   }, [
     userAccount?.id,
     userAccount?.name,
+    userAccount?.type,
     accountsResponse?.accounts.length,
     isLoading,
     accountName,

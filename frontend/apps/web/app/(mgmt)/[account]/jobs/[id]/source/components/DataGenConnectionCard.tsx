@@ -64,6 +64,7 @@ import {
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { useOnImportMappings } from './useOnImportMappings';
 import { getOnSelectedTableToggle } from './util';
 
 interface Props {
@@ -218,6 +219,33 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const { mutateAsync: validateJobMappingsAsync } =
     useMutation(validateJobMappings);
+
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+    setSelectedTables: setSelectedTables,
+  });
 
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
@@ -437,6 +465,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           )}
           isJobMappingsValidating={isValidatingMappings}
           onValidate={validateMappings}
+          onImportMappingsClick={onImportMappingsClick}
         />
 
         {form.formState.errors.mappings && (

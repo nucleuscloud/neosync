@@ -1,4 +1,5 @@
 'use client';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -100,8 +101,11 @@ export default function Temporal(): ReactElement {
   }
 
   return (
-    <div>
-      <h1 className="text-xl font-bold tracking-tight">Temporal</h1>
+    <div className="flex flex-col gap-5">
+      <SubPageHeader
+        header="Temporal"
+        description="Configure Temporal settings for this account"
+      />
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

@@ -9,7 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
@@ -42,19 +42,19 @@ func (s *Service) GetAccountApiKey(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountApiKeyRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountApiKeyResponse], error) {
-	apiKeyUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	apiKeyUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	apiKey, err := s.db.Q.GetAccountApiKeyById(ctx, s.db.Db, apiKeyUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find api key")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(apiKey.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(apiKey.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *Service) CreateAccountApiKey(
 		return nil, err
 	}
 
-	expiresAt, err := nucleusdb.ToTimestamp(req.Msg.ExpiresAt.AsTime())
+	expiresAt, err := neosyncdb.ToTimestamp(req.Msg.ExpiresAt.AsTime())
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *Service) CreateAccountApiKey(
 		clearKeyValue,
 	)
 
-	newApiKey, err := s.db.CreateAccountApikey(ctx, &nucleusdb.CreateAccountApiKeyRequest{
+	newApiKey, err := s.db.CreateAccountApikey(ctx, &neosyncdb.CreateAccountApiKeyRequest{
 		KeyName:           req.Msg.Name,
 		KeyValue:          hashedKeyValue,
 		AccountUuid:       *accountUuid,
@@ -106,19 +106,19 @@ func (s *Service) RegenerateAccountApiKey(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.RegenerateAccountApiKeyRequest],
 ) (*connect.Response[mgmtv1alpha1.RegenerateAccountApiKeyResponse], error) {
-	apiKeyUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	apiKeyUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	apiKey, err := s.db.Q.GetAccountApiKeyById(ctx, s.db.Db, apiKeyUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("account api key not found")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(apiKey.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(apiKey.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (s *Service) RegenerateAccountApiKey(
 	hashedKeyValue := pkg_utils.ToSha256(
 		clearKeyValue,
 	)
-	expiresAt, err := nucleusdb.ToTimestamp(req.Msg.ExpiresAt.AsTime())
+	expiresAt, err := neosyncdb.ToTimestamp(req.Msg.ExpiresAt.AsTime())
 	if err != nil {
 		return nil, err
 	}
@@ -152,24 +152,24 @@ func (s *Service) DeleteAccountApiKey(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteAccountApiKeyRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteAccountApiKeyResponse], error) {
-	apiKeyUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	apiKeyUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 	apiKey, err := s.db.Q.GetAccountApiKeyById(ctx, s.db.Db, apiKeyUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.DeleteAccountApiKeyResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(apiKey.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(apiKey.AccountID))
 	if err != nil {
 		return nil, err
 	}
 
 	err = s.db.Q.RemoveAccountApiKey(ctx, s.db.Db, apiKeyUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	}
 

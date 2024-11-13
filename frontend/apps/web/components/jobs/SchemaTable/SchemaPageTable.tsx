@@ -10,6 +10,7 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getSortedRowModel,
+  Row as TanStackRow,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -25,7 +26,9 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/libs/utils';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { JobMapping } from '@neosync/sdk';
 import { GoWorkflow } from 'react-icons/go';
+import { ImportMappingsConfig } from './ImportJobMappingsButton';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerHandler } from './transformer-handler';
@@ -38,6 +41,14 @@ interface DataTableProps<TData, TValue> {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
   jobType: JobType;
+  onExportMappingsClick(
+    selected: TanStackRow<TData>[],
+    shouldFormat: boolean
+  ): void;
+  onImportMappingsClick(
+    jobmappings: JobMapping[],
+    config: ImportMappingsConfig
+  ): void;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -46,6 +57,8 @@ export default function SchemaPageTable<TData, TValue>({
   transformerHandler,
   constraintHandler,
   jobType,
+  onExportMappingsClick,
+  onImportMappingsClick,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -74,7 +87,6 @@ export default function SchemaPageTable<TData, TValue>({
     getScrollElement: () => tableContainerRef.current,
     overscan: 5,
   });
-
   return (
     <div>
       <div className="flex flex-row items-center gap-2 pt-4 ">
@@ -92,6 +104,13 @@ export default function SchemaPageTable<TData, TValue>({
           transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
           jobType={jobType}
+          onExportMappingsClick={(shouldFormat) =>
+            onExportMappingsClick(
+              table.getSelectedRowModel().rows,
+              shouldFormat
+            )
+          }
+          onImportMappingsClick={onImportMappingsClick}
         />
       </div>
       <div

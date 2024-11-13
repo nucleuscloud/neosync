@@ -8,6 +8,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	ee_transformers "github.com/nucleuscloud/neosync/internal/ee/transformers"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
 var (
@@ -15,7 +17,10 @@ var (
 
 	defaultInvalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
 
-	systemTransformers = []*mgmtv1alpha1.SystemTransformer{
+	defaultGenerateIpv4 = mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+
+	// base transformers
+	baseSystemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
 
 			Name:              "Generate Email",
@@ -42,8 +47,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain:     false,
-						PreserveLength:     false,
+						PreserveDomain:     gotypeutil.ToPtr(false),
+						PreserveLength:     gotypeutil.ToPtr(false),
 						ExcludedDomains:    []string{},
 						EmailType:          &defaultGenerateEmailType,
 						InvalidEmailAction: &defaultInvalidEmailAction,
@@ -74,7 +79,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
-						ValidLuhn: true,
+						ValidLuhn: gotypeutil.ToPtr(true),
 					},
 				},
 			},
@@ -115,8 +120,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
-						Min: 9,
-						Max: 15,
+						Min: gotypeutil.ToPtr(int64(9)),
+						Max: gotypeutil.ToPtr(int64(15)),
 					},
 				},
 			},
@@ -144,10 +149,10 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-						RandomizeSign: false,
-						Min:           1.00,
-						Max:           100.00,
-						Precision:     6,
+						RandomizeSign: gotypeutil.ToPtr(false),
+						Min:           gotypeutil.ToPtr(1.00),
+						Max:           gotypeutil.ToPtr(100.00),
+						Precision:     gotypeutil.ToPtr(int64(6)),
 					},
 				},
 			},
@@ -188,7 +193,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
-						Abbreviate: false,
+						Abbreviate: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -216,9 +221,9 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-						RandomizeSign: false,
-						Min:           1,
-						Max:           40,
+						RandomizeSign: gotypeutil.ToPtr(false),
+						Min:           gotypeutil.ToPtr(int64(1)),
+						Max:           gotypeutil.ToPtr(int64(40)),
 					},
 				},
 			},
@@ -272,7 +277,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-						GenerateFullName: false,
+						GenerateFullName: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -300,8 +305,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-						Min: 9,
-						Max: 14,
+						Min: gotypeutil.ToPtr(int64(9)),
+						Max: gotypeutil.ToPtr(int64(14)),
 					},
 				},
 			},
@@ -316,8 +321,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Min: 2,
-						Max: 7,
+						Min: gotypeutil.ToPtr(int64(2)),
+						Max: gotypeutil.ToPtr(int64(7)),
 					},
 				},
 			},
@@ -371,7 +376,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-						IncludeHyphens: true,
+						IncludeHyphens: gotypeutil.ToPtr(true),
 					},
 				},
 			},
@@ -399,7 +404,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -414,7 +419,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -429,8 +434,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 					TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
-						RandomizationRangeMin: 20.00,
-						RandomizationRangeMax: 50.00,
+						RandomizationRangeMin: gotypeutil.ToPtr(20.00),
+						RandomizationRangeMax: gotypeutil.ToPtr(50.00),
 					},
 				},
 			},
@@ -445,7 +450,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -460,7 +465,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 					TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -475,8 +480,8 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 					TransformInt64Config: &mgmtv1alpha1.TransformInt64{
-						RandomizationRangeMin: 20,
-						RandomizationRangeMax: 50,
+						RandomizationRangeMin: gotypeutil.ToPtr(int64(20)),
+						RandomizationRangeMax: gotypeutil.ToPtr(int64(50)),
 					},
 				},
 			},
@@ -491,7 +496,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -506,7 +511,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -521,7 +526,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 					TransformStringConfig: &mgmtv1alpha1.TransformString{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -575,7 +580,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
 					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
-						Categories: "value1,value2",
+						Categories: gotypeutil.ToPtr("value1,value2"),
 					},
 				},
 			},
@@ -618,24 +623,66 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
 					GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
-						GenerateFullName: false,
+						GenerateFullName: gotypeutil.ToPtr(false),
+					},
+				},
+			},
+		},
+		{
+			Name:              "Generate Business Name",
+			Description:       "Generates a random business name.",
+			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
+			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_GENERATE, mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
+			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
+					GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
+				},
+			},
+		},
+		{
+			Name:              "Generate IP Address",
+			Description:       "Generates a random IP address.",
+			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
+			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_GENERATE, mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
+			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+					GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+						IpType: &defaultGenerateIpv4,
 					},
 				},
 			},
 		},
 	}
 
-	systemTransformerSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
+	// base transformers + ee transformers
+	allSystemTransformers = []*mgmtv1alpha1.SystemTransformer{}
+
+	baseSystemTransformerSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
+
+	allSystemTransformersSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
 )
 
 func init() {
-	slices.SortFunc(systemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
+	allSystemTransformers = append(allSystemTransformers, baseSystemTransformers...)
+	allSystemTransformers = append(allSystemTransformers, ee_transformers.Transformers...)
+
+	slices.SortFunc(baseSystemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
+		return cmp.Compare(t1.Name, t2.Name)
+	})
+	slices.SortFunc(allSystemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
 		return cmp.Compare(t1.Name, t2.Name)
 	})
 
 	// hydrate the system transformer map when the system boots up
-	for _, transformer := range systemTransformers {
-		systemTransformerSourceMap[transformer.Source] = transformer
+	for _, transformer := range baseSystemTransformers {
+		baseSystemTransformerSourceMap[transformer.Source] = transformer
+	}
+	for _, transformer := range allSystemTransformers {
+		allSystemTransformersSourceMap[transformer.Source] = transformer
 	}
 }
 
@@ -643,16 +690,29 @@ func (s *Service) GetSystemTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-		Transformers: systemTransformers,
-	}), nil
+	if s.cfg.IsNeosyncCloud {
+		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
+			Transformers: allSystemTransformers,
+		}), nil
+	} else {
+		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
+			Transformers: baseSystemTransformers,
+		}), nil
+	}
 }
 
 func (s *Service) GetSystemTransformerBySource(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error) {
-	transformer, ok := systemTransformerSourceMap[req.Msg.Source]
+	var transformerMap map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer
+	if s.cfg.IsNeosyncCloud {
+		transformerMap = allSystemTransformersSourceMap
+	} else {
+		transformerMap = baseSystemTransformerSourceMap
+	}
+
+	transformer, ok := transformerMap[req.Msg.GetSource()]
 	if !ok {
 		return nil, nucleuserrors.NewNotFound("unable to find system transformer with provided source")
 	}

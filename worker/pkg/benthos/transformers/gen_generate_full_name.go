@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -28,7 +28,7 @@ func NewGenerateFullNameOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateFullNameOpts, error) {
-	maxLength := int64(10000) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -44,6 +44,22 @@ func NewGenerateFullNameOpts(
 	}, nil
 }
 
+func (o *GenerateFullNameOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"max_length:%v",
+	}
+
+	params := []any{
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_full_name(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateFullName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullName",
@@ -57,7 +73,7 @@ func (t *GenerateFullName) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

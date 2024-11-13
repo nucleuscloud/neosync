@@ -14,13 +14,21 @@ type DatabaseSchemaRow struct {
 	ColumnName             string
 	DataType               string
 	ColumnDefault          string
-	IsNullable             string
+	ColumnDefaultType      *string
+	IsNullable             bool
 	CharacterMaximumLength int
 	NumericPrecision       int
 	NumericScale           int
 	OrdinalPosition        int
 	GeneratedType          *string
 	IdentityGeneration     *string
+}
+
+func (d *DatabaseSchemaRow) NullableString() string {
+	if d.IsNullable {
+		return "YES"
+	}
+	return "NO"
 }
 
 type ForeignKeyConstraintsRow struct {
@@ -116,17 +124,6 @@ type TableConstraints struct {
 	UniqueConstraints     map[string][][]string
 }
 
-type ColumnInfo struct {
-	OrdinalPosition        int     // Specifies the sequence or order in which each column is defined within the table. Starts at 1 for the first column.
-	ColumnDefault          string  // Specifies the default value for a column, if any is set.
-	IsNullable             bool    // Specifies if the column is nullable or not.
-	DataType               string  // Specifies the data type of the column, i.e., bool, varchar, int, etc.
-	CharacterMaximumLength *int    // Specifies the maximum allowable length of the column for character-based data types. For datatypes such as integers, boolean, dates etc. this is NULL.
-	NumericPrecision       *int    // Specifies the precision for numeric data types. It represents the TOTAL count of significant digits in the whole number, that is, the number of digits to BOTH sides of the decimal point. Null for non-numeric data types.
-	NumericScale           *int    // Specifies the scale of the column for numeric data types, specifically non-integers. It represents the number of digits to the RIGHT of the decimal point. Null for non-numeric data types and integers.
-	IdentityGeneration     *string // Specifies the identity generation strategy for the column, if applicable.
-}
-
 type DataType struct {
 	Schema     string
 	Name       string
@@ -157,9 +154,6 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 	for _, seq := range s.Sequences {
 		output = append(output, seq.Definition)
 	}
-	for _, fn := range s.Functions {
-		output = append(output, fn.Definition)
-	}
 	for _, comp := range s.Composites {
 		output = append(output, comp.Definition)
 	}
@@ -168,6 +162,9 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 	}
 	for _, domain := range s.Domains {
 		output = append(output, domain.Definition)
+	}
+	for _, fn := range s.Functions {
+		output = append(output, fn.Definition)
 	}
 	return output
 }

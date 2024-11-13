@@ -81,6 +81,8 @@ migrations:
     migrationsTableQuoted: false
     # -- Extra database options that will be appended to the query string
     options:
+  # -- Provide extra environment variables that will be applied to the migration init container.
+  extraEnvVars: []
 
 # Set requests and limits on the backend to change its performance
 resources:
@@ -237,8 +239,13 @@ protometrics:
 # -- The strategy to use when rolling out new replicas
 updateStrategy:
 
-# -- Provide extra environment variables that will be applied to the deployment.
+# -- Provide extra environment variables that will be applied to the deployment's user-container.
 extraEnvVars: []
 
 # -- Provide sidecars that will be appended directly to the deployment next to the user-container
 sidecarContainers: []
+
+# Configure Neosync Enterprise
+ee:
+  # -- Neosync Enterprise-Edition License Key
+  license:

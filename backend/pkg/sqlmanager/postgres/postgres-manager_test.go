@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
 
@@ -115,10 +116,12 @@ func Test_EscapePgColumns(t *testing.T) {
 }
 
 func Test_BuildPgTruncateStatement(t *testing.T) {
+	stmt, err := BuildPgTruncateStatement([]*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}, {Schema: "bad name", Table: "C$@111"}})
+	require.NoError(t, err)
 	require.Equal(
 		t,
-		BuildPgTruncateStatement([]string{"foo", "bar", "baz"}),
-		"TRUNCATE TABLE foo, bar, baz;",
+		"TRUNCATE \"public\".\"users\", \"bad name\".\"C$@111\" RESTART IDENTITY;",
+		stmt,
 	)
 }
 
@@ -127,7 +130,7 @@ func Test_BuildPgTruncateCascadeStatement(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"TRUNCATE \"public\".\"users\" CASCADE;",
+		"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;",
 		actual,
 	)
 }

@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -28,12 +28,22 @@ func NewTransformFloat64() *TransformFloat64 {
 }
 
 func NewTransformFloat64Opts(
-	randomizationRangeMin float64,
-	randomizationRangeMax float64,
+	randomizationRangeMinArg *float64,
+	randomizationRangeMaxArg *float64,
 	precision *int64,
 	scale *int64,
   seedArg *int64,
 ) (*TransformFloat64Opts, error) {
+	randomizationRangeMin := float64(1)
+	if randomizationRangeMinArg != nil {
+		randomizationRangeMin = *randomizationRangeMinArg
+	}
+	
+	randomizationRangeMax := float64(10000)
+	if randomizationRangeMaxArg != nil {
+		randomizationRangeMax = *randomizationRangeMaxArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -48,10 +58,39 @@ func NewTransformFloat64Opts(
 	}, nil
 }
 
+func (o *TransformFloat64Opts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"randomization_range_min:%v", 
+		"randomization_range_max:%v",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.randomizationRangeMin,
+	 	o.randomizationRangeMax,
+	}
+
+	
+	if o.precision != nil {
+		fnStr = append(fnStr, "precision:%v")
+		params = append(params, *o.precision)
+	}
+	if o.scale != nil {
+		fnStr = append(fnStr, "scale:%v")
+		params = append(params, *o.scale)
+	}
+
+	template := fmt.Sprintf("transform_float64(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFloat64",
-		Description: "Transforms an existing float value.",
+		Description: "Anonymizes and transforms an existing float value.",
 		Example: "",
 	}, nil
 }
@@ -59,16 +98,16 @@ func (t *TransformFloat64) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformFloat64) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformFloat64Opts{}
 
-	if _, ok := opts["randomizationRangeMin"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformFloat64", "randomizationRangeMin")
+	randomizationRangeMin, ok := opts["randomizationRangeMin"].(float64)
+	if !ok {
+		randomizationRangeMin = 1
 	}
-	randomizationRangeMin := opts["randomizationRangeMin"].(float64)
 	transformerOpts.randomizationRangeMin = randomizationRangeMin
 
-	if _, ok := opts["randomizationRangeMax"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformFloat64", "randomizationRangeMax")
+	randomizationRangeMax, ok := opts["randomizationRangeMax"].(float64)
+	if !ok {
+		randomizationRangeMax = 10000
 	}
-	randomizationRangeMax := opts["randomizationRangeMax"].(float64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax
 
 	var precision *int64

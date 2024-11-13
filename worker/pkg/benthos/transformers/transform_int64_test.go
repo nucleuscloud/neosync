@@ -47,3 +47,14 @@ func Test_TransformInt64_Benthos(t *testing.T) {
 		require.Error(t, err, "Expected the pointer to resolve to an int64")
 	}
 }
+
+func Test_TransformInt64_Benthos_NoOptions(t *testing.T) {
+	val := int64(27)
+	mapping := fmt.Sprintf(`root = transform_int64(value:%d)`, val)
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+}

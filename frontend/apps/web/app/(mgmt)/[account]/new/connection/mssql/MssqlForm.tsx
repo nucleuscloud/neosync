@@ -2,7 +2,6 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -30,24 +29,17 @@ import {
   MssqlCreateConnectionFormContext,
   MssqlFormValues,
 } from '@/yup-validations/connections';
-import {
-  createConnectQueryKey,
-  useMutation,
-  useQuery,
-} from '@connectrpc/connect-query';
+import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
   createConnection,
-  getAccountOnboardingConfig,
   getConnection,
   isConnectionNameAvailable,
-  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -75,7 +67,10 @@ export default function MssqlForm() {
         url: '',
       },
       options: {
-        maxConnectionLimit: 80,
+        maxConnectionLimit: 50,
+        maxIdleDuration: '',
+        maxIdleLimit: 2,
+        maxOpenDuration: '',
       },
       tunnel: {
         host: '',
@@ -105,16 +100,7 @@ export default function MssqlForm() {
     checkConnectionConfig
   );
   const { mutateAsync: getMssqlConnection } = useMutation(getConnection);
-  const { data: onboardingData } = useQuery(
-    getAccountOnboardingConfig,
-    { accountId: account?.id ?? '' },
-    { enabled: !!account?.id }
-  );
   const queryclient = useQueryClient();
-  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
-    setAccountOnboardingConfig
-  );
-
   async function onSubmit(values: MssqlFormValues) {
     if (!account) {
       return;
@@ -127,61 +113,6 @@ export default function MssqlForm() {
       });
       posthog.capture('New Connection Created', { type: 'mssql' });
       toast.success('Successfully created connection!');
-
-      // updates the onboarding data
-      if (onboardingData?.config?.hasCreatedSourceConnection) {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection:
-                onboardingData.config.hasCreatedSourceConnection,
-              hasCreatedDestinationConnection: true,
-              hasCreatedJob: onboardingData.config.hasCreatedJob,
-              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      } else {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection: true,
-              hasCreatedDestinationConnection:
-                onboardingData?.config?.hasCreatedSourceConnection ?? true,
-              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-              hasInvitedMembers:
-                onboardingData?.config?.hasInvitedMembers ?? true,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      }
-
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
         router.push(returnTo);
@@ -252,7 +183,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           },
           options: {
             maxConnectionLimit:
-              config.connectionOptions?.maxConnectionLimit ?? 80,
+              config.connectionOptions?.maxConnectionLimit ?? 50,
+            maxIdleDuration: config.connectionOptions?.maxIdleDuration ?? '',
+            maxIdleLimit: config.connectionOptions?.maxIdleConnections ?? 2,
+            maxOpenDuration: config.connectionOptions?.maxOpenDuration ?? '',
           },
           tunnel: {
             host: config.tunnel?.host ?? '',
@@ -283,7 +217,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="connectionName"
@@ -334,34 +268,132 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="options.maxConnectionLimit"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Max Connection Limit</FormLabel>
-                <FormDescription>
-                  The maximum number of concurrent database connections allowed.
-                  If set to 0 then there is no limit on the number of open
-                  connections.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Input
-                  {...field}
-                  className="max-w-[180px]"
-                  type="number"
-                  value={field.value ? field.value.toString() : 80}
-                  onChange={(event) => {
-                    field.onChange(event.target.valueAsNumber);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-col gap-0">
+          <FormField
+            control={form.control}
+            name="options.maxConnectionLimit"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Max Open Connection Limit</FormLabel>
+                    <FormDescription>
+                      The maximum number of concurrent database connections
+                      allowed. If set to 0 then there is no limit on the number
+                      of open connections. -1 to leave unset and use system
+                      default.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      type="number"
+                      value={
+                        field.value != null ? field.value.toString() : '-1'
+                      }
+                      onChange={(event) => {
+                        field.onChange(event.target.valueAsNumber);
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="options.maxOpenDuration"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Max Open Duration</FormLabel>
+                    <FormDescription>
+                      The maximum amount of time a connection may be reused.
+                      Expired connections may be closed laizly before reuse. Ex:
+                      1s, 1m, 500ms. Empty to leave unset.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      value={field.value ? field.value : ''}
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="options.maxIdleLimit"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Max Idle Connection Limit</FormLabel>
+                    <FormDescription>
+                      The maximum number of idle database connections allowed.
+                      If set to 0 then there is no limit on the number of idle
+                      connections. -1 to leave unset and use system default.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      type="number"
+                      value={
+                        field.value != null ? field.value.toString() : '-1'
+                      }
+                      onChange={(event) => {
+                        field.onChange(event.target.valueAsNumber);
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="options.maxIdleDuration"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Max Idle Duration</FormLabel>
+                    <FormDescription>
+                      The maximum amount of time a connection may be idle.
+                      Expired connections may be closed laizly before reuse. Ex:
+                      1s, 1m, 500ms. Empty to leave unset.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      value={field.value ? field.value : ''}
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">

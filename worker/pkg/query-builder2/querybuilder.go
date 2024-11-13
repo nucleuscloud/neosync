@@ -74,7 +74,7 @@ type QueryBuilder struct {
 	tables          map[string]*TableInfo
 	whereConditions map[string][]WhereCondition
 	// schema.table -> column -> { column info }
-	columnInfo                    map[string]map[string]*sqlmanager_shared.ColumnInfo
+	columnInfo                    map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
 	defaultSchema                 string
 	driver                        string
 	subsetByForeignKeyConstraints bool
@@ -83,7 +83,7 @@ type QueryBuilder struct {
 	aliasCounter                  int
 }
 
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow) *QueryBuilder {
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),

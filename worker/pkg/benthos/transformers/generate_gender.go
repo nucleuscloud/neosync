@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -12,9 +13,9 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Randomly generates one of the following genders: female, male, undefined, nonbinary.").
+		Description("Randomly generates one of the following genders: female (f), male (m), undefined (u), nonbinary (n).").
 		Param(bloblang.NewBoolParam("abbreviate").Default(false).Description("Shortens length of generated value to 1.")).
-		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -47,6 +48,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateGenderOptsFromConfig(config *mgmtv1alpha1.GenerateGender, maxLength *int64) (*GenerateGenderOpts, error) {
+	if config == nil {
+		return NewGenerateGenderOpts(
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateGenderOpts(
+		config.Abbreviate,
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateGender) Generate(opts any) (any, error) {

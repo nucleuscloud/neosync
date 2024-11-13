@@ -93,31 +93,47 @@ const (
 	// UserAccountServiceIsAccountStatusValidProcedure is the fully-qualified name of the
 	// UserAccountService's IsAccountStatusValid RPC.
 	UserAccountServiceIsAccountStatusValidProcedure = "/mgmt.v1alpha1.UserAccountService/IsAccountStatusValid"
+	// UserAccountServiceGetAccountBillingCheckoutSessionProcedure is the fully-qualified name of the
+	// UserAccountService's GetAccountBillingCheckoutSession RPC.
+	UserAccountServiceGetAccountBillingCheckoutSessionProcedure = "/mgmt.v1alpha1.UserAccountService/GetAccountBillingCheckoutSession"
+	// UserAccountServiceGetAccountBillingPortalSessionProcedure is the fully-qualified name of the
+	// UserAccountService's GetAccountBillingPortalSession RPC.
+	UserAccountServiceGetAccountBillingPortalSessionProcedure = "/mgmt.v1alpha1.UserAccountService/GetAccountBillingPortalSession"
+	// UserAccountServiceGetBillingAccountsProcedure is the fully-qualified name of the
+	// UserAccountService's GetBillingAccounts RPC.
+	UserAccountServiceGetBillingAccountsProcedure = "/mgmt.v1alpha1.UserAccountService/GetBillingAccounts"
+	// UserAccountServiceSetBillingMeterEventProcedure is the fully-qualified name of the
+	// UserAccountService's SetBillingMeterEvent RPC.
+	UserAccountServiceSetBillingMeterEventProcedure = "/mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	userAccountServiceServiceDescriptor                            = v1alpha1.File_mgmt_v1alpha1_user_account_proto.Services().ByName("UserAccountService")
-	userAccountServiceGetUserMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("GetUser")
-	userAccountServiceSetUserMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("SetUser")
-	userAccountServiceGetUserAccountsMethodDescriptor              = userAccountServiceServiceDescriptor.Methods().ByName("GetUserAccounts")
-	userAccountServiceSetPersonalAccountMethodDescriptor           = userAccountServiceServiceDescriptor.Methods().ByName("SetPersonalAccount")
-	userAccountServiceConvertPersonalToTeamAccountMethodDescriptor = userAccountServiceServiceDescriptor.Methods().ByName("ConvertPersonalToTeamAccount")
-	userAccountServiceCreateTeamAccountMethodDescriptor            = userAccountServiceServiceDescriptor.Methods().ByName("CreateTeamAccount")
-	userAccountServiceIsUserInAccountMethodDescriptor              = userAccountServiceServiceDescriptor.Methods().ByName("IsUserInAccount")
-	userAccountServiceGetAccountTemporalConfigMethodDescriptor     = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountTemporalConfig")
-	userAccountServiceSetAccountTemporalConfigMethodDescriptor     = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountTemporalConfig")
-	userAccountServiceGetTeamAccountMembersMethodDescriptor        = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountMembers")
-	userAccountServiceRemoveTeamAccountMemberMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountMember")
-	userAccountServiceInviteUserToTeamAccountMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("InviteUserToTeamAccount")
-	userAccountServiceGetTeamAccountInvitesMethodDescriptor        = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountInvites")
-	userAccountServiceRemoveTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountInvite")
-	userAccountServiceAcceptTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("AcceptTeamAccountInvite")
-	userAccountServiceGetSystemInformationMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("GetSystemInformation")
-	userAccountServiceGetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountOnboardingConfig")
-	userAccountServiceSetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountOnboardingConfig")
-	userAccountServiceGetAccountStatusMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountStatus")
-	userAccountServiceIsAccountStatusValidMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("IsAccountStatusValid")
+	userAccountServiceServiceDescriptor                                = v1alpha1.File_mgmt_v1alpha1_user_account_proto.Services().ByName("UserAccountService")
+	userAccountServiceGetUserMethodDescriptor                          = userAccountServiceServiceDescriptor.Methods().ByName("GetUser")
+	userAccountServiceSetUserMethodDescriptor                          = userAccountServiceServiceDescriptor.Methods().ByName("SetUser")
+	userAccountServiceGetUserAccountsMethodDescriptor                  = userAccountServiceServiceDescriptor.Methods().ByName("GetUserAccounts")
+	userAccountServiceSetPersonalAccountMethodDescriptor               = userAccountServiceServiceDescriptor.Methods().ByName("SetPersonalAccount")
+	userAccountServiceConvertPersonalToTeamAccountMethodDescriptor     = userAccountServiceServiceDescriptor.Methods().ByName("ConvertPersonalToTeamAccount")
+	userAccountServiceCreateTeamAccountMethodDescriptor                = userAccountServiceServiceDescriptor.Methods().ByName("CreateTeamAccount")
+	userAccountServiceIsUserInAccountMethodDescriptor                  = userAccountServiceServiceDescriptor.Methods().ByName("IsUserInAccount")
+	userAccountServiceGetAccountTemporalConfigMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountTemporalConfig")
+	userAccountServiceSetAccountTemporalConfigMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountTemporalConfig")
+	userAccountServiceGetTeamAccountMembersMethodDescriptor            = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountMembers")
+	userAccountServiceRemoveTeamAccountMemberMethodDescriptor          = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountMember")
+	userAccountServiceInviteUserToTeamAccountMethodDescriptor          = userAccountServiceServiceDescriptor.Methods().ByName("InviteUserToTeamAccount")
+	userAccountServiceGetTeamAccountInvitesMethodDescriptor            = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountInvites")
+	userAccountServiceRemoveTeamAccountInviteMethodDescriptor          = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountInvite")
+	userAccountServiceAcceptTeamAccountInviteMethodDescriptor          = userAccountServiceServiceDescriptor.Methods().ByName("AcceptTeamAccountInvite")
+	userAccountServiceGetSystemInformationMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("GetSystemInformation")
+	userAccountServiceGetAccountOnboardingConfigMethodDescriptor       = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountOnboardingConfig")
+	userAccountServiceSetAccountOnboardingConfigMethodDescriptor       = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountOnboardingConfig")
+	userAccountServiceGetAccountStatusMethodDescriptor                 = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountStatus")
+	userAccountServiceIsAccountStatusValidMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("IsAccountStatusValid")
+	userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountBillingCheckoutSession")
+	userAccountServiceGetAccountBillingPortalSessionMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountBillingPortalSession")
+	userAccountServiceGetBillingAccountsMethodDescriptor               = userAccountServiceServiceDescriptor.Methods().ByName("GetBillingAccounts")
+	userAccountServiceSetBillingMeterEventMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("SetBillingMeterEvent")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -126,7 +142,9 @@ type UserAccountServiceClient interface {
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
+	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
@@ -144,6 +162,14 @@ type UserAccountServiceClient interface {
 	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
 	// Distils the account status down to whether not it is in a valid state.
 	IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error)
+	// Returns a new checkout session for the account to subscribe
+	GetAccountBillingCheckoutSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error)
+	// Returns a new billing portal session if the account has a billing customer id
+	GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error)
+	// Returns user accounts that have a billing id.
+	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
+	// Sends a new metered event to the billing system
+	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -250,6 +276,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetSystemInformationProcedure,
 			connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAccountOnboardingConfig: connect.NewClient[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse](
@@ -278,31 +305,60 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
+		getAccountBillingCheckoutSession: connect.NewClient[v1alpha1.GetAccountBillingCheckoutSessionRequest, v1alpha1.GetAccountBillingCheckoutSessionResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetAccountBillingCheckoutSessionProcedure,
+			connect.WithSchema(userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getAccountBillingPortalSession: connect.NewClient[v1alpha1.GetAccountBillingPortalSessionRequest, v1alpha1.GetAccountBillingPortalSessionResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetAccountBillingPortalSessionProcedure,
+			connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getBillingAccounts: connect.NewClient[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetBillingAccountsProcedure,
+			connect.WithSchema(userAccountServiceGetBillingAccountsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
+		setBillingMeterEvent: connect.NewClient[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse](
+			httpClient,
+			baseURL+UserAccountServiceSetBillingMeterEventProcedure,
+			connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // userAccountServiceClient implements UserAccountServiceClient.
 type userAccountServiceClient struct {
-	getUser                      *connect.Client[v1alpha1.GetUserRequest, v1alpha1.GetUserResponse]
-	setUser                      *connect.Client[v1alpha1.SetUserRequest, v1alpha1.SetUserResponse]
-	getUserAccounts              *connect.Client[v1alpha1.GetUserAccountsRequest, v1alpha1.GetUserAccountsResponse]
-	setPersonalAccount           *connect.Client[v1alpha1.SetPersonalAccountRequest, v1alpha1.SetPersonalAccountResponse]
-	convertPersonalToTeamAccount *connect.Client[v1alpha1.ConvertPersonalToTeamAccountRequest, v1alpha1.ConvertPersonalToTeamAccountResponse]
-	createTeamAccount            *connect.Client[v1alpha1.CreateTeamAccountRequest, v1alpha1.CreateTeamAccountResponse]
-	isUserInAccount              *connect.Client[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse]
-	getAccountTemporalConfig     *connect.Client[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse]
-	setAccountTemporalConfig     *connect.Client[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse]
-	getTeamAccountMembers        *connect.Client[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse]
-	removeTeamAccountMember      *connect.Client[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse]
-	inviteUserToTeamAccount      *connect.Client[v1alpha1.InviteUserToTeamAccountRequest, v1alpha1.InviteUserToTeamAccountResponse]
-	getTeamAccountInvites        *connect.Client[v1alpha1.GetTeamAccountInvitesRequest, v1alpha1.GetTeamAccountInvitesResponse]
-	removeTeamAccountInvite      *connect.Client[v1alpha1.RemoveTeamAccountInviteRequest, v1alpha1.RemoveTeamAccountInviteResponse]
-	acceptTeamAccountInvite      *connect.Client[v1alpha1.AcceptTeamAccountInviteRequest, v1alpha1.AcceptTeamAccountInviteResponse]
-	getSystemInformation         *connect.Client[v1alpha1.GetSystemInformationRequest, v1alpha1.GetSystemInformationResponse]
-	getAccountOnboardingConfig   *connect.Client[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse]
-	setAccountOnboardingConfig   *connect.Client[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse]
-	getAccountStatus             *connect.Client[v1alpha1.GetAccountStatusRequest, v1alpha1.GetAccountStatusResponse]
-	isAccountStatusValid         *connect.Client[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse]
+	getUser                          *connect.Client[v1alpha1.GetUserRequest, v1alpha1.GetUserResponse]
+	setUser                          *connect.Client[v1alpha1.SetUserRequest, v1alpha1.SetUserResponse]
+	getUserAccounts                  *connect.Client[v1alpha1.GetUserAccountsRequest, v1alpha1.GetUserAccountsResponse]
+	setPersonalAccount               *connect.Client[v1alpha1.SetPersonalAccountRequest, v1alpha1.SetPersonalAccountResponse]
+	convertPersonalToTeamAccount     *connect.Client[v1alpha1.ConvertPersonalToTeamAccountRequest, v1alpha1.ConvertPersonalToTeamAccountResponse]
+	createTeamAccount                *connect.Client[v1alpha1.CreateTeamAccountRequest, v1alpha1.CreateTeamAccountResponse]
+	isUserInAccount                  *connect.Client[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse]
+	getAccountTemporalConfig         *connect.Client[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse]
+	setAccountTemporalConfig         *connect.Client[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse]
+	getTeamAccountMembers            *connect.Client[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse]
+	removeTeamAccountMember          *connect.Client[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse]
+	inviteUserToTeamAccount          *connect.Client[v1alpha1.InviteUserToTeamAccountRequest, v1alpha1.InviteUserToTeamAccountResponse]
+	getTeamAccountInvites            *connect.Client[v1alpha1.GetTeamAccountInvitesRequest, v1alpha1.GetTeamAccountInvitesResponse]
+	removeTeamAccountInvite          *connect.Client[v1alpha1.RemoveTeamAccountInviteRequest, v1alpha1.RemoveTeamAccountInviteResponse]
+	acceptTeamAccountInvite          *connect.Client[v1alpha1.AcceptTeamAccountInviteRequest, v1alpha1.AcceptTeamAccountInviteResponse]
+	getSystemInformation             *connect.Client[v1alpha1.GetSystemInformationRequest, v1alpha1.GetSystemInformationResponse]
+	getAccountOnboardingConfig       *connect.Client[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse]
+	setAccountOnboardingConfig       *connect.Client[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse]
+	getAccountStatus                 *connect.Client[v1alpha1.GetAccountStatusRequest, v1alpha1.GetAccountStatusResponse]
+	isAccountStatusValid             *connect.Client[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse]
+	getAccountBillingCheckoutSession *connect.Client[v1alpha1.GetAccountBillingCheckoutSessionRequest, v1alpha1.GetAccountBillingCheckoutSessionResponse]
+	getAccountBillingPortalSession   *connect.Client[v1alpha1.GetAccountBillingPortalSessionRequest, v1alpha1.GetAccountBillingPortalSessionResponse]
+	getBillingAccounts               *connect.Client[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse]
+	setBillingMeterEvent             *connect.Client[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -405,13 +461,37 @@ func (c *userAccountServiceClient) IsAccountStatusValid(ctx context.Context, req
 	return c.isAccountStatusValid.CallUnary(ctx, req)
 }
 
+// GetAccountBillingCheckoutSession calls
+// mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession.
+func (c *userAccountServiceClient) GetAccountBillingCheckoutSession(ctx context.Context, req *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error) {
+	return c.getAccountBillingCheckoutSession.CallUnary(ctx, req)
+}
+
+// GetAccountBillingPortalSession calls
+// mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession.
+func (c *userAccountServiceClient) GetAccountBillingPortalSession(ctx context.Context, req *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error) {
+	return c.getAccountBillingPortalSession.CallUnary(ctx, req)
+}
+
+// GetBillingAccounts calls mgmt.v1alpha1.UserAccountService.GetBillingAccounts.
+func (c *userAccountServiceClient) GetBillingAccounts(ctx context.Context, req *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error) {
+	return c.getBillingAccounts.CallUnary(ctx, req)
+}
+
+// SetBillingMeterEvent calls mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent.
+func (c *userAccountServiceClient) SetBillingMeterEvent(ctx context.Context, req *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error) {
+	return c.setBillingMeterEvent.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
+	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
@@ -429,6 +509,14 @@ type UserAccountServiceHandler interface {
 	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
 	// Distils the account status down to whether not it is in a valid state.
 	IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error)
+	// Returns a new checkout session for the account to subscribe
+	GetAccountBillingCheckoutSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error)
+	// Returns a new billing portal session if the account has a billing customer id
+	GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error)
+	// Returns user accounts that have a billing id.
+	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
+	// Sends a new metered event to the billing system
+	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -531,6 +619,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetSystemInformationProcedure,
 		svc.GetSystemInformation,
 		connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetAccountOnboardingConfigHandler := connect.NewUnaryHandler(
@@ -557,6 +646,31 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		svc.IsAccountStatusValid,
 		connect.WithSchema(userAccountServiceIsAccountStatusValidMethodDescriptor),
 		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceGetAccountBillingCheckoutSessionHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetAccountBillingCheckoutSessionProcedure,
+		svc.GetAccountBillingCheckoutSession,
+		connect.WithSchema(userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceGetAccountBillingPortalSessionHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetAccountBillingPortalSessionProcedure,
+		svc.GetAccountBillingPortalSession,
+		connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceGetBillingAccountsHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetBillingAccountsProcedure,
+		svc.GetBillingAccounts,
+		connect.WithSchema(userAccountServiceGetBillingAccountsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceSetBillingMeterEventHandler := connect.NewUnaryHandler(
+		UserAccountServiceSetBillingMeterEventProcedure,
+		svc.SetBillingMeterEvent,
+		connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -601,6 +715,14 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceGetAccountStatusHandler.ServeHTTP(w, r)
 		case UserAccountServiceIsAccountStatusValidProcedure:
 			userAccountServiceIsAccountStatusValidHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetAccountBillingCheckoutSessionProcedure:
+			userAccountServiceGetAccountBillingCheckoutSessionHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetAccountBillingPortalSessionProcedure:
+			userAccountServiceGetAccountBillingPortalSessionHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetBillingAccountsProcedure:
+			userAccountServiceGetBillingAccountsHandler.ServeHTTP(w, r)
+		case UserAccountServiceSetBillingMeterEventProcedure:
+			userAccountServiceSetBillingMeterEventHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -688,4 +810,20 @@ func (UnimplementedUserAccountServiceHandler) GetAccountStatus(context.Context, 
 
 func (UnimplementedUserAccountServiceHandler) IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.IsAccountStatusValid is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetAccountBillingCheckoutSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetBillingAccounts is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent is not implemented"))
 }

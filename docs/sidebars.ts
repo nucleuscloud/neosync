@@ -241,8 +241,23 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/anonymization-service-endpoints',
+      label: 'Anonymization Service Endpoints',
+    },
+    {
+      type: 'doc',
       id: 'guides/viewing-job-run-logs',
       label: 'Viewing Job Run Logs',
+    },
+    {
+      type: 'doc',
+      id: 'guides/incremental-data-sync',
+      label: 'Incremental Data Syncs',
+    },
+    {
+      type: 'doc',
+      id: 'guides/new-column-addition-strategies',
+      label: 'New Column Addition Strategies',
     },
     {
       type: 'html',
@@ -298,6 +313,11 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'transformers/javascript',
       label: 'Javascript',
+    },
+    {
+      type: 'doc',
+      id: 'transformers/sql-javascript',
+      label: 'SQL Type to JS Types',
     },
     {
       type: 'doc',

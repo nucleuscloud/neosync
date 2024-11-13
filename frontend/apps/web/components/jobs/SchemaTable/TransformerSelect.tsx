@@ -22,7 +22,6 @@ import {
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
-  TransformerSource,
   UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
@@ -101,7 +100,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                           onSelect(
                             convertJobMappingTransformerToForm(
                               new JobMappingTransformer({
-                                source: TransformerSource.USER_DEFINED,
                                 config: new TransformerConfig({
                                   config: {
                                     case: 'userDefinedTransformerConfig',
@@ -124,8 +122,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                                 'mr-2 h-4 w-4',
                                 value?.config?.case ===
                                   'userDefinedTransformerConfig' &&
-                                  value?.source ===
-                                    TransformerSource.USER_DEFINED &&
                                   value.config.value.id === t.id
                                   ? 'opacity-100'
                                   : 'opacity-0'
@@ -151,7 +147,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                           onSelect(
                             convertJobMappingTransformerToForm(
                               new JobMappingTransformer({
-                                source: t.source,
                                 config: t.config,
                               })
                             )
@@ -165,7 +160,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                             <CheckIcon
                               className={cn(
                                 'mr-2 h-4 w-4',
-                                value?.source === t?.source
+                                value?.config.case === t?.config?.config.case
                                   ? 'opacity-100'
                                   : 'opacity-0'
                               )}

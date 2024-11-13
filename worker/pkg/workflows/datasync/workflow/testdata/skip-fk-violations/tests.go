@@ -8,7 +8,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Skip Foreign Key Violations",
-			Folder:          "skip-fk-violations",
+			Folder:          "testdata/skip-fk-violations",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
@@ -27,7 +27,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "Foreign Key Violations Error",
-			Folder:          "skip-fk-violations",
+			Folder:          "testdata/skip-fk-violations",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

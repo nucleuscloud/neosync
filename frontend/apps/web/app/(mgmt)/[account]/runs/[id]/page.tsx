@@ -33,6 +33,7 @@ import {
 } from '@/libs/utils';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { Editor } from '@monaco-editor/react';
 import {
   cancelJobRun,
   deleteJobRun,
@@ -42,9 +43,12 @@ import {
   terminateJobRun,
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
+import { formatDuration, intervalToDuration } from 'date-fns';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
@@ -107,6 +111,31 @@ export default function Page({ params }: PageProps): ReactElement {
   });
   const [isRetrievingRunContext, setIsRetrievingRunContext] =
     useState<boolean>(false);
+
+  const [duration, setDuration] = useState<string>('');
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (jobRun?.startedAt && jobRun?.status === JobRunStatusEnum.RUNNING) {
+      const updateDuration = () => {
+        if (jobRun?.startedAt?.toDate()) {
+          setDuration(getDuration(new Date(), jobRun?.startedAt?.toDate()));
+        }
+      };
+
+      updateDuration();
+      // sets up an interval to call the timer every second
+      timer = setInterval(updateDuration, 1000);
+    } else if (jobRun?.completedAt && jobRun?.startedAt) {
+      setDuration(
+        getDuration(jobRun.completedAt.toDate(), jobRun.startedAt.toDate())
+      );
+    }
+    // cleans up and restarts the interval if the job isn't done yet
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [jobRun?.startedAt, jobRun?.completedAt, jobRun?.status]);
 
   async function onDelete(): Promise<void> {
     try {
@@ -286,13 +315,7 @@ export default function Page({ params }: PageProps): ReactElement {
               header="Completion Time"
               content={formatDateTime(jobRun?.completedAt?.toDate())}
             />
-            <StatCard
-              header="Duration"
-              content={getDuration(
-                jobRun?.completedAt?.toDate(),
-                jobRun?.startedAt?.toDate()
-              )}
-            />
+            <StatCard header="Duration" content={duration} />
           </div>
           <div className="space-y-4">
             {jobRun?.pendingActivities.map((a) => {
@@ -314,8 +337,7 @@ export default function Page({ params }: PageProps): ReactElement {
               </div>
             )}
           <div className="space-y-4">
-            <div className="flex flex-row items-center space-x-2">
-              <h2 className="text-2xl font-bold tracking-tight">Activity</h2>
+            <div className="flex flex-row items-center justify-end space-x-2">
               {isValidating && <Spinner />}
             </div>
             {eventsIsLoading ? (
@@ -324,6 +346,7 @@ export default function Page({ params }: PageProps): ReactElement {
               <JobRunActivityTable
                 jobRunEvents={eventData?.events}
                 onViewSelectClicked={onViewSelectClicked}
+                jobStatus={jobRun?.status}
               />
             )}
           </div>
@@ -382,9 +405,16 @@ interface ViewSelectDialogProps {
 
 function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
   const { isDialogOpen, setIsDialogOpen, query } = props;
+  const { resolvedTheme } = useTheme();
+
+  const formattedQuery = useMemo(() => {
+    // todo: maybe update this to explicitly pass in the driver type so it formats it according to the correct connection
+    return formatSql(query.select);
+  }, [query.schema, query.table, query.select]);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent>
+      <DialogContent className="lg:max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             SQL Select Query - {query.schema}.{query.table}
@@ -394,7 +424,20 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
             run
           </DialogDescription>
         </DialogHeader>
-        <div>{query.select}</div>
+        <div>
+          <Editor
+            height="50vh"
+            width="100%"
+            language="sql"
+            value={formattedQuery}
+            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
+            options={{
+              minimap: { enabled: false },
+              readOnly: true,
+              wordWrap: 'on',
+            }}
+          />
+        </div>
         <DialogFooter className="md:justify-between">
           <Button
             type="button"
@@ -435,20 +478,15 @@ function StatCard(props: StatCardProps): ReactElement {
   );
 }
 
-function getDuration(dateTimeValue2?: Date, dateTimeValue1?: Date): string {
-  if (!dateTimeValue1 || !dateTimeValue2) {
+function getDuration(completedAt?: Date, startedAt?: Date): string {
+  if (!startedAt || !completedAt) {
     return '';
   }
-  var differenceValue =
-    (dateTimeValue2.getTime() - dateTimeValue1.getTime()) / 1000;
-  const minutes = Math.abs(Math.round(differenceValue / 60));
-  const seconds = Math.round(differenceValue % 60);
-  if (minutes === 0) {
-    return `${seconds} seconds`;
-  }
-  return `${minutes} minutes ${seconds} seconds`;
-}
 
+  const duration = intervalToDuration({ start: startedAt, end: completedAt });
+
+  return formatDuration(duration, { format: ['minutes', 'seconds'] });
+}
 interface AlertProps {
   title: string;
   description: string;
@@ -470,7 +508,7 @@ function ButtonLink(props: ButtonProps): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
   if (!props.jobId) {
-    return <></>;
+    return <div />;
   }
   return (
     <Button

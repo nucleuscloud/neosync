@@ -440,12 +440,18 @@ type PostgresConnection struct {
 }
 
 type ConnectionOptions struct {
-	MaxConnectionLimit *int32 `json:"maxConnectionLimit,omitempty"`
+	MaxConnectionLimit *int32  `json:"maxConnectionLimit,omitempty"`
+	MaxIdleConnections *int32  `json:"maxIdleConnections,omitempty"`
+	MaxIdleDuration    *string `json:"maxIdleDuration,omitempty"`
+	MaxOpenDuration    *string `json:"maxOpenDuration,omitempty"`
 }
 
 func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {
 	return &mgmtv1alpha1.SqlConnectionOptions{
 		MaxConnectionLimit: s.MaxConnectionLimit,
+		MaxIdleConnections: s.MaxIdleConnections,
+		MaxIdleDuration:    s.MaxIdleDuration,
+		MaxOpenDuration:    s.MaxOpenDuration,
 	}
 }
 
@@ -454,6 +460,9 @@ func (s *ConnectionOptions) FromDto(dto *mgmtv1alpha1.SqlConnectionOptions) {
 		dto = &mgmtv1alpha1.SqlConnectionOptions{}
 	}
 	s.MaxConnectionLimit = dto.MaxConnectionLimit
+	s.MaxIdleConnections = dto.MaxIdleConnections
+	s.MaxOpenDuration = dto.MaxOpenDuration
+	s.MaxIdleDuration = dto.MaxIdleDuration
 }
 
 type SSHTunnel struct {
@@ -933,26 +942,22 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 	if s.UnmappedTransforms == nil {
 		s.UnmappedTransforms = &DynamoDBSourceUnmappedTransformConfig{
 			B: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					Passthrough: &PassthroughConfig{},
 				},
 			},
 			Boolean: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					GenerateBool: &GenerateBoolConfig{},
 				},
 			},
 			N: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					Passthrough: &PassthroughConfig{},
 				},
 			},
 			S: &JobMappingTransformerModel{
-				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING),
-				Config: &TransformerConfigs{
+				Config: &TransformerConfig{
 					GenerateString: &GenerateStringConfig{},
 				},
 			},
@@ -1005,11 +1010,49 @@ type MysqlSourceOptions struct {
 	ConnectionId                  string                     `json:"connectionId"`
 }
 type PostgresSourceOptions struct {
-	HaltOnNewColumnAddition       bool                          `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                          `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*PostgresSourceSchemaOption `json:"schemas"`
-	ConnectionId                  string                        `json:"connectionId"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                               `json:"haltOnNewColumnAddition,omitempty"`
+	SubsetByForeignKeyConstraints bool                               `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*PostgresSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                             `json:"connectionId"`
+	NewColumnAdditionStrategy     *PostgresNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type PostgresNewColumnAdditionStrategy struct {
+	HaltJob *PostgresHaltJobStrategy `json:"haltJob,omitempty"`
+	AutoMap *PostgresAutoMapStrategy `json:"autoMap,omitempty"`
+}
+
+func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
+	if p.HaltJob != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	} else if p.AutoMap != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
+				AutoMap: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	}
+	return nil
+}
+func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
+	}
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+		p.AutoMap = &PostgresAutoMapStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+		p.HaltJob = &PostgresHaltJobStrategy{}
+	}
+}
+
+type PostgresHaltJobStrategy struct{}
+type PostgresAutoMapStrategy struct{}
 
 type GenerateSourceOptions struct {
 	Schemas              []*GenerateSourceSchemaOption `json:"schemas"`
@@ -1045,7 +1088,6 @@ type AiGenerateSourceTableOption struct {
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
 	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
-		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
@@ -1066,13 +1108,34 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 		}
 	}
 
+	if s.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = s.NewColumnAdditionStrategy.ToDto()
+	}
+	if dto.NewColumnAdditionStrategy == nil && s.HaltOnNewColumnAddition {
+		// HaltOnNewColumnAddition is deprecated, so we are also populating the new strategy automatically to move the api forward
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+
 	return dto
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{}
+		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if dto.GetHaltOnNewColumnAddition() {
+		// halt on new column addition is deprecated, so if the new column strategy is nil but the deprecated value is true,
+		// we are going to store it in the new strategy format.
+		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{
+			HaltJob: &PostgresHaltJobStrategy{},
+		}
+	}
 }
 
 func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {
@@ -1427,12 +1490,67 @@ type GcpCloudStorageDestinationOptions struct{}
 
 type MongoDestinationOptions struct{}
 
-type AwsS3DestinationOptions struct{}
+type AwsS3DestinationOptions struct {
+	StorageClass *int32       `json:"storageClass,omitempty"`
+	MaxInFlight  *uint32      `json:"maxInFlight,omitempty"`
+	Timeout      *string      `json:"timeout,omitempty"`
+	Batch        *BatchConfig `json:"batch,omitempty"`
+}
+
+type BatchConfig struct {
+	Count  *uint32 `json:"count,omitempty"`
+	Period *string `json:"period,omitempty"`
+}
+
 type PostgresDestinationOptions struct {
 	TruncateTableConfig      *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
 	InitTableSchema          bool                         `json:"initTableSchema"`
 	OnConflictConfig         *PostgresOnConflictConfig    `json:"onConflictConfig,omitempty"`
 	SkipForeignKeyViolations bool                         `json:"skipForeignKeyViolations"`
+	MaxInFlight              *uint32                      `json:"maxInFlight,omitempty"`
+	Batch                    *BatchConfig                 `json:"batch,omitempty"`
+}
+
+func (m *PostgresDestinationOptions) ToDto() *mgmtv1alpha1.PostgresDestinationConnectionOptions {
+	if m.TruncateTableConfig == nil {
+		m.TruncateTableConfig = &PostgresTruncateTableConfig{}
+	}
+	if m.OnConflictConfig == nil {
+		m.OnConflictConfig = &PostgresOnConflictConfig{}
+	}
+	var batchConfig *mgmtv1alpha1.BatchConfig
+	if m.Batch != nil {
+		batchConfig = m.Batch.ToDto()
+	}
+	return &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+		TruncateTable:            m.TruncateTableConfig.ToDto(),
+		InitTableSchema:          m.InitTableSchema,
+		OnConflict:               m.OnConflictConfig.ToDto(),
+		SkipForeignKeyViolations: m.SkipForeignKeyViolations,
+		MaxInFlight:              m.MaxInFlight,
+		Batch:                    batchConfig,
+	}
+}
+
+func (m *PostgresDestinationOptions) FromDto(dto *mgmtv1alpha1.PostgresDestinationConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.PostgresDestinationConnectionOptions{}
+	}
+	m.InitTableSchema = dto.GetInitTableSchema()
+	if dto.GetOnConflict() != nil {
+		m.OnConflictConfig = &PostgresOnConflictConfig{}
+		m.OnConflictConfig.FromDto(dto.GetOnConflict())
+	}
+	if dto.GetTruncateTable() != nil {
+		m.TruncateTableConfig = &PostgresTruncateTableConfig{}
+		m.TruncateTableConfig.FromDto(dto.GetTruncateTable())
+	}
+	m.SkipForeignKeyViolations = dto.GetSkipForeignKeyViolations()
+	m.MaxInFlight = dto.MaxInFlight
+	if dto.GetBatch() != nil {
+		m.Batch = &BatchConfig{}
+		m.Batch.FromDto(dto.GetBatch())
+	}
 }
 
 type PostgresOnConflictConfig struct {
@@ -1471,6 +1589,50 @@ type MysqlDestinationOptions struct {
 	InitTableSchema          bool                      `json:"initTableSchema"`
 	OnConflictConfig         *MysqlOnConflictConfig    `json:"onConflict,omitempty"`
 	SkipForeignKeyViolations bool                      `json:"skipForeignKeyViolations"`
+	MaxInFlight              *uint32                   `json:"maxInFlight,omitempty"`
+	Batch                    *BatchConfig              `json:"batch,omitempty"`
+}
+
+func (m *MysqlDestinationOptions) ToDto() *mgmtv1alpha1.MysqlDestinationConnectionOptions {
+	if m.TruncateTableConfig == nil {
+		m.TruncateTableConfig = &MysqlTruncateTableConfig{}
+	}
+	if m.OnConflictConfig == nil {
+		m.OnConflictConfig = &MysqlOnConflictConfig{}
+	}
+	var batchConfig *mgmtv1alpha1.BatchConfig
+	if m.Batch != nil {
+		batchConfig = m.Batch.ToDto()
+	}
+	return &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+		TruncateTable:            m.TruncateTableConfig.ToDto(),
+		InitTableSchema:          m.InitTableSchema,
+		OnConflict:               m.OnConflictConfig.ToDto(),
+		SkipForeignKeyViolations: m.SkipForeignKeyViolations,
+		MaxInFlight:              m.MaxInFlight,
+		Batch:                    batchConfig,
+	}
+}
+
+func (m *MysqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MysqlDestinationConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MysqlDestinationConnectionOptions{}
+	}
+	m.InitTableSchema = dto.GetInitTableSchema()
+	if dto.GetOnConflict() != nil {
+		m.OnConflictConfig = &MysqlOnConflictConfig{}
+		m.OnConflictConfig.FromDto(dto.GetOnConflict())
+	}
+	if dto.GetTruncateTable() != nil {
+		m.TruncateTableConfig = &MysqlTruncateTableConfig{}
+		m.TruncateTableConfig.FromDto(dto.GetTruncateTable())
+	}
+	m.SkipForeignKeyViolations = dto.GetSkipForeignKeyViolations()
+	m.MaxInFlight = dto.MaxInFlight
+	if dto.GetBatch() != nil {
+		m.Batch = &BatchConfig{}
+		m.Batch.FromDto(dto.GetBatch())
+	}
 }
 
 type MysqlOnConflictConfig struct {
@@ -1506,6 +1668,8 @@ type MssqlDestinationOptions struct {
 	InitTableSchema          bool                      `json:"initTableSchema"`
 	OnConflictConfig         *MssqlOnConflictConfig    `json:"onConflict,omitempty"`
 	SkipForeignKeyViolations bool                      `json:"skipForeignKeyViolations"`
+	MaxInFlight              *uint32                   `json:"maxInFlight,omitempty"`
+	Batch                    *BatchConfig              `json:"batch,omitempty"`
 }
 
 func (m *MssqlDestinationOptions) ToDto() *mgmtv1alpha1.MssqlDestinationConnectionOptions {
@@ -1518,11 +1682,18 @@ func (m *MssqlDestinationOptions) ToDto() *mgmtv1alpha1.MssqlDestinationConnecti
 		onconflictConfig = m.OnConflictConfig.ToDto()
 	}
 
+	var batchConfig *mgmtv1alpha1.BatchConfig
+	if m.Batch != nil {
+		batchConfig = m.Batch.ToDto()
+	}
+
 	return &mgmtv1alpha1.MssqlDestinationConnectionOptions{
 		TruncateTable:            truncateTableConfig,
 		InitTableSchema:          m.InitTableSchema,
 		OnConflict:               onconflictConfig,
 		SkipForeignKeyViolations: m.SkipForeignKeyViolations,
+		MaxInFlight:              m.MaxInFlight,
+		Batch:                    batchConfig,
 	}
 }
 func (m *MssqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MssqlDestinationConnectionOptions) {
@@ -1539,6 +1710,11 @@ func (m *MssqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MssqlDestinationConn
 		m.TruncateTableConfig.FromDto(dto.GetTruncateTable())
 	}
 	m.SkipForeignKeyViolations = dto.GetSkipForeignKeyViolations()
+	m.MaxInFlight = dto.MaxInFlight
+	if dto.GetBatch() != nil {
+		m.Batch = &BatchConfig{}
+		m.Batch.FromDto(dto.GetBatch())
+	}
 }
 
 type MssqlOnConflictConfig struct {
@@ -1577,45 +1753,23 @@ func (t *MssqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MssqlTruncateTableC
 
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.PostgresOptions != nil {
-		if j.PostgresOptions.TruncateTableConfig == nil {
-			j.PostgresOptions.TruncateTableConfig = &PostgresTruncateTableConfig{}
-		}
-		if j.PostgresOptions.OnConflictConfig == nil {
-			j.PostgresOptions.OnConflictConfig = &PostgresOnConflictConfig{}
-		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
-				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
-					TruncateTable:            j.PostgresOptions.TruncateTableConfig.ToDto(),
-					InitTableSchema:          j.PostgresOptions.InitTableSchema,
-					OnConflict:               j.PostgresOptions.OnConflictConfig.ToDto(),
-					SkipForeignKeyViolations: j.PostgresOptions.SkipForeignKeyViolations,
-				},
+				PostgresOptions: j.PostgresOptions.ToDto(),
 			},
 		}
 	}
 	if j.MysqlOptions != nil {
-		if j.MysqlOptions.TruncateTableConfig == nil {
-			j.MysqlOptions.TruncateTableConfig = &MysqlTruncateTableConfig{}
-		}
-		if j.MysqlOptions.OnConflictConfig == nil {
-			j.MysqlOptions.OnConflictConfig = &MysqlOnConflictConfig{}
-		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
-				MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
-					TruncateTable:            j.MysqlOptions.TruncateTableConfig.ToDto(),
-					InitTableSchema:          j.MysqlOptions.InitTableSchema,
-					OnConflict:               j.MysqlOptions.OnConflictConfig.ToDto(),
-					SkipForeignKeyViolations: j.MysqlOptions.SkipForeignKeyViolations,
-				},
+				MysqlOptions: j.MysqlOptions.ToDto(),
 			},
 		}
 	}
 	if j.AwsS3Options != nil {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
-				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+				AwsS3Options: j.AwsS3Options.ToDto(),
 			},
 		}
 	}
@@ -1651,39 +1805,71 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	return nil
 }
 
+func (a *AwsS3DestinationOptions) ToDto() *mgmtv1alpha1.AwsS3DestinationConnectionOptions {
+	storageClass := mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_UNSPECIFIED
+	if a.StorageClass != nil {
+		if _, ok := mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass_name[*a.StorageClass]; ok {
+			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(*a.StorageClass)
+		}
+	}
+	var batch *mgmtv1alpha1.BatchConfig
+	if a.Batch != nil {
+		batch = a.Batch.ToDto()
+	}
+	return &mgmtv1alpha1.AwsS3DestinationConnectionOptions{
+		StorageClass: storageClass,
+		MaxInFlight:  a.MaxInFlight,
+		Timeout:      a.Timeout,
+		Batch:        batch,
+	}
+}
+
+func (a *AwsS3DestinationOptions) FromDto(dto *mgmtv1alpha1.AwsS3DestinationConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.AwsS3DestinationConnectionOptions{}
+	}
+	sc := dto.GetStorageClass()
+	a.StorageClass = (*int32)(&sc)
+	a.MaxInFlight = dto.MaxInFlight
+	a.Timeout = dto.Timeout
+	if dto.Batch != nil {
+		a.Batch = &BatchConfig{}
+		a.Batch.FromDto(dto.GetBatch())
+	}
+}
+
+func (b *BatchConfig) ToDto() *mgmtv1alpha1.BatchConfig {
+	if b.Count == nil && b.Period == nil {
+		return nil
+	}
+	return &mgmtv1alpha1.BatchConfig{
+		Count:  b.Count,
+		Period: b.Period,
+	}
+}
+
+func (b *BatchConfig) FromDto(dto *mgmtv1alpha1.BatchConfig) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.BatchConfig{}
+	}
+	b.Count = dto.Count
+	b.Period = dto.Period
+}
+
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
 	if dto == nil {
 		dto = &mgmtv1alpha1.JobDestinationOptions{}
 	}
-	switch config := dto.Config.(type) {
+	switch config := dto.GetConfig().(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
-		truncateCfg := &PostgresTruncateTableConfig{}
-		truncateCfg.FromDto(config.PostgresOptions.TruncateTable)
-		j.PostgresOptions = &PostgresDestinationOptions{
-			InitTableSchema:          config.PostgresOptions.InitTableSchema,
-			TruncateTableConfig:      truncateCfg,
-			SkipForeignKeyViolations: config.PostgresOptions.SkipForeignKeyViolations,
-		}
-		if config.PostgresOptions.OnConflict != nil {
-			onConflictCfg := &PostgresOnConflictConfig{}
-			onConflictCfg.FromDto(config.PostgresOptions.OnConflict)
-			j.PostgresOptions.OnConflictConfig = onConflictCfg
-		}
+		j.PostgresOptions = &PostgresDestinationOptions{}
+		j.PostgresOptions.FromDto(config.PostgresOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
-		truncateCfg := &MysqlTruncateTableConfig{}
-		truncateCfg.FromDto(config.MysqlOptions.TruncateTable)
-		j.MysqlOptions = &MysqlDestinationOptions{
-			InitTableSchema:          config.MysqlOptions.InitTableSchema,
-			TruncateTableConfig:      truncateCfg,
-			SkipForeignKeyViolations: config.MysqlOptions.SkipForeignKeyViolations,
-		}
-		if config.MysqlOptions.OnConflict != nil {
-			onConflictCfg := &MysqlOnConflictConfig{}
-			onConflictCfg.FromDto(config.MysqlOptions.OnConflict)
-			j.MysqlOptions.OnConflictConfig = onConflictCfg
-		}
+		j.MysqlOptions = &MysqlDestinationOptions{}
+		j.MysqlOptions.FromDto(config.MysqlOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
+		j.AwsS3Options.FromDto(config.AwsS3Options)
 	case *mgmtv1alpha1.JobDestinationOptions_MongodbOptions:
 		j.MongoOptions = &MongoDestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:
@@ -1776,24 +1962,15 @@ func (r *RetryPolicy) FromDto(dto *mgmtv1alpha1.RetryPolicy) {
 }
 
 type AccountOnboardingConfig struct {
-	HasCreatedSourceConnection      bool `json:"hasCreatedSourceConnection"`
-	HasCreatedDestinationConnection bool `json:"hasCreatedDestinationConnection"`
-	HasCreatedJob                   bool `json:"hasCreatedJob"`
-	HasInvitedMembers               bool `json:"hasInvitedMembers"`
+	HasCompletedOnboarding bool `json:"hasCompletedOnboarding"`
 }
 
 func (t *AccountOnboardingConfig) ToDto() *mgmtv1alpha1.AccountOnboardingConfig {
 	return &mgmtv1alpha1.AccountOnboardingConfig{
-		HasCreatedSourceConnection:      t.HasCreatedSourceConnection,
-		HasCreatedDestinationConnection: t.HasCreatedDestinationConnection,
-		HasCreatedJob:                   t.HasCreatedJob,
-		HasInvitedMembers:               t.HasInvitedMembers,
+		HasCompletedOnboarding: t.HasCompletedOnboarding,
 	}
 }
 
 func (t *AccountOnboardingConfig) FromDto(dto *mgmtv1alpha1.AccountOnboardingConfig) {
-	t.HasCreatedSourceConnection = dto.GetHasCreatedSourceConnection()
-	t.HasCreatedDestinationConnection = dto.GetHasCreatedDestinationConnection()
-	t.HasCreatedJob = dto.GetHasCreatedJob()
-	t.HasInvitedMembers = dto.GetHasInvitedMembers()
+	t.HasCompletedOnboarding = dto.GetHasCompletedOnboarding()
 }

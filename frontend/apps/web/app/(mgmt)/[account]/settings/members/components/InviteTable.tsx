@@ -38,7 +38,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { toast } from 'sonner';
-import InviteUserForm, { buildInviteLink } from './InviteUserForm';
+import { buildInviteLink } from './InviteUserForm';
 
 interface ColumnProps {
   onDeleted(id: string): void;
@@ -61,7 +61,7 @@ function getColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
+              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
             </span>
           </div>
         );
@@ -74,7 +74,7 @@ function getColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('expiresAt').toDate())}
+              {formatDateTime(row.getValue<Timestamp>('expiresAt')?.toDate())}
             </span>
           </div>
         );
@@ -112,24 +112,15 @@ export function InvitesTable(props: Props) {
     return <SkeletonTable />;
   }
 
-  return (
-    <DataTable
-      data={data?.invites || []}
-      accountId={accountId}
-      onDeleted={() => refetch()}
-      onInvited={() => refetch()}
-    />
-  );
+  return <DataTable data={data?.invites || []} onDeleted={() => refetch()} />;
 }
 
 interface DataTableProps {
   data: AccountInvite[];
-  accountId: string;
   onDeleted(id: string): void;
-  onInvited(): void;
 }
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, accountId, onDeleted, onInvited } = props;
+  const { data, onDeleted } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -170,7 +161,6 @@ function DataTable(props: DataTableProps): React.ReactElement {
           }
           className="max-w-sm"
         />
-        <InviteUserForm accountId={accountId} onInvited={onInvited} />
       </div>
       <div className="rounded-md border">
         <Table>

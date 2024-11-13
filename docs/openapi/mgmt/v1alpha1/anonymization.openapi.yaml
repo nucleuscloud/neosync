@@ -1,0 +1,1894 @@
+openapi: 3.1.0
+info:
+  version: "0.4"
+  title: mgmt.v1alpha1
+paths:
+  /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
+    post:
+      tags:
+        - mgmt.v1alpha1.AnonymizationService
+      summary: AnonymizeMany
+      description: Anonymizes many JSON strings by applying specified transformation mappings.
+      operationId: mgmt.v1alpha1.AnonymizationService.AnonymizeMany
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.AnonymizeManyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.AnonymizeManyResponse'
+  /mgmt.v1alpha1.AnonymizationService/AnonymizeSingle:
+    post:
+      tags:
+        - mgmt.v1alpha1.AnonymizationService
+      summary: AnonymizeSingle
+      description: Anonymizes a single JSON strings by applying specified transformation mappings.
+      operationId: mgmt.v1alpha1.AnonymizationService.AnonymizeSingle
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.AnonymizeSingleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.AnonymizeSingleResponse'
+components:
+  schemas:
+    mgmt.v1alpha1.GenerateEmailType:
+      type: string
+      title: GenerateEmailType
+      enum:
+        - GENERATE_EMAIL_TYPE_UNSPECIFIED
+        - GENERATE_EMAIL_TYPE_UUID_V4
+        - GENERATE_EMAIL_TYPE_FULLNAME
+    mgmt.v1alpha1.GenerateIpAddressType:
+      type: string
+      title: GenerateIpAddressType
+      enum:
+        - GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C
+        - GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL
+        - GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST
+        - GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK
+        - GENERATE_IP_ADDRESS_TYPE_V6
+    mgmt.v1alpha1.InvalidEmailAction:
+      type: string
+      title: InvalidEmailAction
+      enum:
+        - INVALID_EMAIL_ACTION_UNSPECIFIED
+        - INVALID_EMAIL_ACTION_REJECT
+        - INVALID_EMAIL_ACTION_NULL
+        - INVALID_EMAIL_ACTION_PASSTHROUGH
+        - INVALID_EMAIL_ACTION_GENERATE
+      description: Action enumeration that dictates what the transform_email transformer should do in the case that it encounters an email that does not conform to RFC 5322
+    mgmt.v1alpha1.PiiAnonymizer.Hash.HashType:
+      type: string
+      title: HashType
+      enum:
+        - HASH_TYPE_UNSPECIFIED
+        - HASH_TYPE_MD5
+        - HASH_TYPE_SHA256
+        - HASH_TYPE_SHA512
+    mgmt.v1alpha1.AnonymizeManyErrors:
+      type: object
+      properties:
+        inputIndex:
+          oneOf:
+            - type: string
+            - type: number
+          title: input_index
+          description: Index of input data that caused error
+        errorMessage:
+          type: string
+          title: error_message
+          description: Error message
+      title: AnonymizeManyErrors
+      additionalProperties: false
+    mgmt.v1alpha1.AnonymizeManyRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - defaultTransformers
+            - not:
+                anyOf:
+                  - required:
+                      - defaultTransformers
+      anyOf:
+        - required:
+            - defaultTransformers
+        - not:
+            anyOf:
+              - required:
+                  - defaultTransformers
+      properties:
+        inputData:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxItems: 25
+            minItems: 1
+          title: input_data
+          maxItems: 25
+          minItems: 1
+          description: Array of stringified JSON data to be anonymized (up to 25 items)
+        transformerMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.TransformerMapping'
+          title: transformer_mappings
+          description: Array of Transformer mappings
+        defaultTransformers:
+          allOf:
+            - title: default_transformers
+              description: Optional default transformations for any unmapped keys
+            - $ref: '#/components/schemas/mgmt.v1alpha1.DefaultTransformersConfig'
+        haltOnFailure:
+          type: boolean
+          title: halt_on_failure
+          description: |-
+            Flag to indicate whether to stop processing when an error occurs
+             true: stops on first error encounter
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique account identifier
+      title: AnonymizeManyRequest
+      additionalProperties: false
+    mgmt.v1alpha1.AnonymizeManyResponse:
+      type: object
+      properties:
+        outputData:
+          type: array
+          items:
+            type: string
+          title: output_data
+          description: Array of anonymized JSON data
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AnonymizeManyErrors'
+          title: errors
+          description: Array of errors that occured during anonymization
+      title: AnonymizeManyResponse
+      additionalProperties: false
+    mgmt.v1alpha1.AnonymizeSingleRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - defaultTransformers
+            - not:
+                anyOf:
+                  - required:
+                      - defaultTransformers
+      anyOf:
+        - required:
+            - defaultTransformers
+        - not:
+            anyOf:
+              - required:
+                  - defaultTransformers
+      properties:
+        inputData:
+          type: string
+          title: input_data
+          description: Stringified JSON data to be anonymized
+        transformerMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.TransformerMapping'
+          title: transformer_mappings
+          description: Array of Transformer mappings
+        defaultTransformers:
+          allOf:
+            - title: default_transformers
+              description: Optional default transformations for any unmapped keys
+            - $ref: '#/components/schemas/mgmt.v1alpha1.DefaultTransformersConfig'
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique account identifier
+      title: AnonymizeSingleRequest
+      additionalProperties: false
+    mgmt.v1alpha1.AnonymizeSingleResponse:
+      type: object
+      properties:
+        outputData:
+          type: string
+          title: output_data
+          description: Anonymized JSON data
+      title: AnonymizeSingleResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DefaultTransformersConfig:
+      type: object
+      properties:
+        boolean:
+          allOf:
+            - title: boolean
+              description: Boolean
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+        n:
+          allOf:
+            - title: n
+              description: Number
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+        s:
+          allOf:
+            - title: s
+              description: String
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+      title: DefaultTransformersConfig
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateBool:
+      type: object
+      title: GenerateBool
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateBusinessName:
+      type: object
+      title: GenerateBusinessName
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateCardNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - validLuhn
+            - not:
+                anyOf:
+                  - required:
+                      - validLuhn
+      anyOf:
+        - required:
+            - validLuhn
+        - not:
+            anyOf:
+              - required:
+                  - validLuhn
+      properties:
+        validLuhn:
+          type: boolean
+          title: valid_luhn
+      title: GenerateCardNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateCategorical:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - categories
+            - not:
+                anyOf:
+                  - required:
+                      - categories
+      anyOf:
+        - required:
+            - categories
+        - not:
+            anyOf:
+              - required:
+                  - categories
+      properties:
+        categories:
+          type: string
+          title: categories
+      title: GenerateCategorical
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateCity:
+      type: object
+      title: GenerateCity
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateCountry:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - generateFullName
+            - not:
+                anyOf:
+                  - required:
+                      - generateFullName
+      anyOf:
+        - required:
+            - generateFullName
+        - not:
+            anyOf:
+              - required:
+                  - generateFullName
+      properties:
+        generateFullName:
+          type: boolean
+          title: generate_full_name
+          description: An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
+      title: GenerateCountry
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateDefault:
+      type: object
+      title: GenerateDefault
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateE164PhoneNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+      properties:
+        min:
+          oneOf:
+            - type: string
+            - type: number
+          title: min
+        max:
+          oneOf:
+            - type: string
+            - type: number
+          title: max
+      title: GenerateE164PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateEmail:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - emailType
+            - not:
+                anyOf:
+                  - required:
+                      - emailType
+      anyOf:
+        - required:
+            - emailType
+        - not:
+            anyOf:
+              - required:
+                  - emailType
+      properties:
+        emailType:
+          allOf:
+            - title: email_type
+              description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmailType'
+      title: GenerateEmail
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateFirstName:
+      type: object
+      title: GenerateFirstName
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateFloat64:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+        - anyOf:
+            - required:
+                - precision
+            - not:
+                anyOf:
+                  - required:
+                      - precision
+        - anyOf:
+            - required:
+                - randomizeSign
+            - not:
+                anyOf:
+                  - required:
+                      - randomizeSign
+      properties:
+        randomizeSign:
+          type: boolean
+          title: randomize_sign
+        min:
+          oneOf:
+            - type: string
+            - type: number
+          title: min
+        max:
+          oneOf:
+            - type: string
+            - type: number
+          title: max
+        precision:
+          oneOf:
+            - type: string
+            - type: number
+          title: precision
+      title: GenerateFloat64
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateFullAddress:
+      type: object
+      title: GenerateFullAddress
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateFullName:
+      type: object
+      title: GenerateFullName
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateGender:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - abbreviate
+            - not:
+                anyOf:
+                  - required:
+                      - abbreviate
+      anyOf:
+        - required:
+            - abbreviate
+        - not:
+            anyOf:
+              - required:
+                  - abbreviate
+      properties:
+        abbreviate:
+          type: boolean
+          title: abbreviate
+      title: GenerateGender
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateInt64:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+        - anyOf:
+            - required:
+                - randomizeSign
+            - not:
+                anyOf:
+                  - required:
+                      - randomizeSign
+      properties:
+        randomizeSign:
+          type: boolean
+          title: randomize_sign
+        min:
+          oneOf:
+            - type: string
+            - type: number
+          title: min
+        max:
+          oneOf:
+            - type: string
+            - type: number
+          title: max
+      title: GenerateInt64
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateInt64PhoneNumber:
+      type: object
+      title: GenerateInt64PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateIpAddress:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - ipType
+            - not:
+                anyOf:
+                  - required:
+                      - ipType
+      anyOf:
+        - required:
+            - ipType
+        - not:
+            anyOf:
+              - required:
+                  - ipType
+      properties:
+        ipType:
+          allOf:
+            - title: ip_type
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
+      title: GenerateIpAddress
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateJavascript:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+      title: GenerateJavascript
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateLastName:
+      type: object
+      title: GenerateLastName
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateSSN:
+      type: object
+      title: GenerateSSN
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateSha256Hash:
+      type: object
+      title: GenerateSha256Hash
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateState:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - generateFullName
+            - not:
+                anyOf:
+                  - required:
+                      - generateFullName
+      anyOf:
+        - required:
+            - generateFullName
+        - not:
+            anyOf:
+              - required:
+                  - generateFullName
+      properties:
+        generateFullName:
+          type: boolean
+          title: generate_full_name
+          description: An option to return the full state name of the randomly selected state or return the default of a 2-letter state code.
+      title: GenerateState
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateStreetAddress:
+      type: object
+      title: GenerateStreetAddress
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateString:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+      properties:
+        min:
+          oneOf:
+            - type: string
+            - type: number
+          title: min
+        max:
+          oneOf:
+            - type: string
+            - type: number
+          title: max
+      title: GenerateString
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateStringPhoneNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - max
+            - not:
+                anyOf:
+                  - required:
+                      - max
+        - anyOf:
+            - required:
+                - min
+            - not:
+                anyOf:
+                  - required:
+                      - min
+      properties:
+        min:
+          oneOf:
+            - type: string
+            - type: number
+          title: min
+        max:
+          oneOf:
+            - type: string
+            - type: number
+          title: max
+      title: GenerateStringPhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateUnixTimestamp:
+      type: object
+      title: GenerateUnixTimestamp
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateUsername:
+      type: object
+      title: GenerateUsername
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateUtcTimestamp:
+      type: object
+      title: GenerateUtcTimestamp
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateUuid:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - includeHyphens
+            - not:
+                anyOf:
+                  - required:
+                      - includeHyphens
+      anyOf:
+        - required:
+            - includeHyphens
+        - not:
+            anyOf:
+              - required:
+                  - includeHyphens
+      properties:
+        includeHyphens:
+          type: boolean
+          title: include_hyphens
+      title: GenerateUuid
+      additionalProperties: false
+    mgmt.v1alpha1.GenerateZipcode:
+      type: object
+      title: GenerateZipcode
+      additionalProperties: false
+    mgmt.v1alpha1.Null:
+      type: object
+      title: "Null"
+      additionalProperties: false
+    mgmt.v1alpha1.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - hash
+            - required:
+                - mask
+            - required:
+                - redact
+            - required:
+                - replace
+            - not:
+                anyOf:
+                  - required:
+                      - hash
+                  - required:
+                      - mask
+                  - required:
+                      - redact
+                  - required:
+                      - replace
+      anyOf:
+        - required:
+            - hash
+        - required:
+            - mask
+        - required:
+            - redact
+        - required:
+            - replace
+        - not:
+            anyOf:
+              - required:
+                  - hash
+              - required:
+                  - mask
+              - required:
+                  - redact
+              - required:
+                  - replace
+      properties:
+        replace:
+          allOf:
+            - title: replace
+              description: Configures the anonymizer to replace the identified PII with a specific value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Replace'
+        redact:
+          allOf:
+            - title: redact
+              description: Configures the anonymizer to completely remove the identified PII
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Redact'
+        mask:
+          allOf:
+            - title: mask
+              description: Configures the anonymizer to mask the identified PII
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Mask'
+        hash:
+          allOf:
+            - title: hash
+              description: Configures the anonymizer to hash the identified PII
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Hash'
+      title: PiiAnonymizer
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer.Hash:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - algo
+            - not:
+                anyOf:
+                  - required:
+                      - algo
+      anyOf:
+        - required:
+            - algo
+        - not:
+            anyOf:
+              - required:
+                  - algo
+      properties:
+        algo:
+          allOf:
+            - title: algo
+              description: The hashing algorithm to use.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Hash.HashType'
+      title: Hash
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer.Mask:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - charsToMask
+            - not:
+                anyOf:
+                  - required:
+                      - charsToMask
+        - anyOf:
+            - required:
+                - fromEnd
+            - not:
+                anyOf:
+                  - required:
+                      - fromEnd
+        - anyOf:
+            - required:
+                - maskingChar
+            - not:
+                anyOf:
+                  - required:
+                      - maskingChar
+      properties:
+        maskingChar:
+          type: string
+          title: masking_char
+          description: Provide a character that will be used for the replacement.
+        charsToMask:
+          type: integer
+          title: chars_to_mask
+          description: How many characters to mask.
+        fromEnd:
+          type: boolean
+          title: from_end
+          description: Whether to mask the PII from start or end
+      title: Mask
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer.Redact:
+      type: object
+      title: Redact
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer.Replace:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - value
+            - not:
+                anyOf:
+                  - required:
+                      - value
+      anyOf:
+        - required:
+            - value
+        - not:
+            anyOf:
+              - required:
+                  - value
+      properties:
+        value:
+          type: string
+          title: value
+          description: The value to replace. If not provided, a template token of the anonymizer is used.
+      title: Replace
+      additionalProperties: false
+    mgmt.v1alpha1.PiiDenyRecognizer:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-_]{1,100}$
+          description: Friendly name of this entity
+        denyWords:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          title: deny_words
+          description: List of words that will be treated as PII.
+      title: PiiDenyRecognizer
+      additionalProperties: false
+    mgmt.v1alpha1.TransformCharacterScramble:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - userProvidedRegex
+            - not:
+                anyOf:
+                  - required:
+                      - userProvidedRegex
+      anyOf:
+        - required:
+            - userProvidedRegex
+        - not:
+            anyOf:
+              - required:
+                  - userProvidedRegex
+      properties:
+        userProvidedRegex:
+          type: string
+          title: user_provided_regex
+          description: a user provided regular expression that they wish to validate if it compiles in GO
+      title: TransformCharacterScramble
+      additionalProperties: false
+    mgmt.v1alpha1.TransformE164PhoneNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformE164PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.TransformEmail:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - emailType
+            - not:
+                anyOf:
+                  - required:
+                      - emailType
+        - anyOf:
+            - required:
+                - invalidEmailAction
+            - not:
+                anyOf:
+                  - required:
+                      - invalidEmailAction
+        - anyOf:
+            - required:
+                - preserveDomain
+            - not:
+                anyOf:
+                  - required:
+                      - preserveDomain
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      properties:
+        preserveDomain:
+          type: boolean
+          title: preserve_domain
+          description: Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
+        preserveLength:
+          type: boolean
+          title: preserve_length
+          description: Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
+        excludedDomains:
+          type: array
+          items:
+            type: string
+          title: excluded_domains
+          description: A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
+        emailType:
+          allOf:
+            - title: email_type
+              description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmailType'
+        invalidEmailAction:
+          allOf:
+            - title: invalid_email_action
+              description: Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.InvalidEmailAction'
+      title: TransformEmail
+      additionalProperties: false
+    mgmt.v1alpha1.TransformFirstName:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformFirstName
+      additionalProperties: false
+    mgmt.v1alpha1.TransformFloat64:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - randomizationRangeMax
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMax
+        - anyOf:
+            - required:
+                - randomizationRangeMin
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMin
+      properties:
+        randomizationRangeMin:
+          oneOf:
+            - type: string
+            - type: number
+          title: randomization_range_min
+        randomizationRangeMax:
+          oneOf:
+            - type: string
+            - type: number
+          title: randomization_range_max
+      title: TransformFloat64
+      additionalProperties: false
+    mgmt.v1alpha1.TransformFullName:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformFullName
+      additionalProperties: false
+    mgmt.v1alpha1.TransformInt64:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - randomizationRangeMax
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMax
+        - anyOf:
+            - required:
+                - randomizationRangeMin
+            - not:
+                anyOf:
+                  - required:
+                      - randomizationRangeMin
+      properties:
+        randomizationRangeMin:
+          oneOf:
+            - type: string
+            - type: number
+          title: randomization_range_min
+        randomizationRangeMax:
+          oneOf:
+            - type: string
+            - type: number
+          title: randomization_range_max
+      title: TransformInt64
+      additionalProperties: false
+    mgmt.v1alpha1.TransformInt64PhoneNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformInt64PhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.TransformJavascript:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+      title: TransformJavascript
+      additionalProperties: false
+    mgmt.v1alpha1.TransformLastName:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformLastName
+      additionalProperties: false
+    mgmt.v1alpha1.TransformPhoneNumber:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformPhoneNumber
+      additionalProperties: false
+    mgmt.v1alpha1.TransformPiiText:
+      type: object
+      properties:
+        scoreThreshold:
+          type: number
+          title: score_threshold
+          description: Minimal detection score for determining PII. 0.0-1.0
+        defaultAnonymizer:
+          allOf:
+            - title: default_anonymizer
+              description: The default anonmyization config used for all instances of detected PII.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+        denyRecognizers:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.PiiDenyRecognizer'
+          title: deny_recognizers
+          description: Configure deny lists where each word is treated as PII.
+        allowedEntities:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          title: allowed_entities
+          description: |-
+            Configure a list of entities to be used for PII analysis. If not provided or empty, all entities are considiered
+             If this is specified, any ad-hoc, or deny_recognizers entity names must also be provided.
+             To see available builtin entities, call the GetPiiTextEntities() RPC method to see what is available for your account.
+        allowedPhrases:
+          type: array
+          items:
+            type: string
+          title: allowed_phrases
+          description: Exact match of PII phrases identified by the analysis engine.
+      title: TransformPiiText
+      additionalProperties: false
+      description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+    mgmt.v1alpha1.TransformString:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - preserveLength
+            - not:
+                anyOf:
+                  - required:
+                      - preserveLength
+      anyOf:
+        - required:
+            - preserveLength
+        - not:
+            anyOf:
+              - required:
+                  - preserveLength
+      properties:
+        preserveLength:
+          type: boolean
+          title: preserve_length
+      title: TransformString
+      additionalProperties: false
+    mgmt.v1alpha1.TransformerConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - generateBoolConfig
+            - required:
+                - generateBusinessNameConfig
+            - required:
+                - generateCardNumberConfig
+            - required:
+                - generateCategoricalConfig
+            - required:
+                - generateCityConfig
+            - required:
+                - generateCountryConfig
+            - required:
+                - generateDefaultConfig
+            - required:
+                - generateE164PhoneNumberConfig
+            - required:
+                - generateEmailConfig
+            - required:
+                - generateFirstNameConfig
+            - required:
+                - generateFloat64Config
+            - required:
+                - generateFullAddressConfig
+            - required:
+                - generateFullNameConfig
+            - required:
+                - generateGenderConfig
+            - required:
+                - generateInt64Config
+            - required:
+                - generateInt64PhoneNumberConfig
+            - required:
+                - generateIpAddressConfig
+            - required:
+                - generateJavascriptConfig
+            - required:
+                - generateLastNameConfig
+            - required:
+                - generateSha256hashConfig
+            - required:
+                - generateSsnConfig
+            - required:
+                - generateStateConfig
+            - required:
+                - generateStreetAddressConfig
+            - required:
+                - generateStringConfig
+            - required:
+                - generateStringPhoneNumberConfig
+            - required:
+                - generateUnixtimestampConfig
+            - required:
+                - generateUsernameConfig
+            - required:
+                - generateUtctimestampConfig
+            - required:
+                - generateUuidConfig
+            - required:
+                - generateZipcodeConfig
+            - required:
+                - nullconfig
+            - required:
+                - passthroughConfig
+            - required:
+                - transformCharacterScrambleConfig
+            - required:
+                - transformE164PhoneNumberConfig
+            - required:
+                - transformEmailConfig
+            - required:
+                - transformFirstNameConfig
+            - required:
+                - transformFloat64Config
+            - required:
+                - transformFullNameConfig
+            - required:
+                - transformInt64Config
+            - required:
+                - transformInt64PhoneNumberConfig
+            - required:
+                - transformJavascriptConfig
+            - required:
+                - transformLastNameConfig
+            - required:
+                - transformPhoneNumberConfig
+            - required:
+                - transformPiiTextConfig
+            - required:
+                - transformStringConfig
+            - required:
+                - userDefinedTransformerConfig
+            - not:
+                anyOf:
+                  - required:
+                      - generateBoolConfig
+                  - required:
+                      - generateBusinessNameConfig
+                  - required:
+                      - generateCardNumberConfig
+                  - required:
+                      - generateCategoricalConfig
+                  - required:
+                      - generateCityConfig
+                  - required:
+                      - generateCountryConfig
+                  - required:
+                      - generateDefaultConfig
+                  - required:
+                      - generateE164PhoneNumberConfig
+                  - required:
+                      - generateEmailConfig
+                  - required:
+                      - generateFirstNameConfig
+                  - required:
+                      - generateFloat64Config
+                  - required:
+                      - generateFullAddressConfig
+                  - required:
+                      - generateFullNameConfig
+                  - required:
+                      - generateGenderConfig
+                  - required:
+                      - generateInt64Config
+                  - required:
+                      - generateInt64PhoneNumberConfig
+                  - required:
+                      - generateIpAddressConfig
+                  - required:
+                      - generateJavascriptConfig
+                  - required:
+                      - generateLastNameConfig
+                  - required:
+                      - generateSha256hashConfig
+                  - required:
+                      - generateSsnConfig
+                  - required:
+                      - generateStateConfig
+                  - required:
+                      - generateStreetAddressConfig
+                  - required:
+                      - generateStringConfig
+                  - required:
+                      - generateStringPhoneNumberConfig
+                  - required:
+                      - generateUnixtimestampConfig
+                  - required:
+                      - generateUsernameConfig
+                  - required:
+                      - generateUtctimestampConfig
+                  - required:
+                      - generateUuidConfig
+                  - required:
+                      - generateZipcodeConfig
+                  - required:
+                      - nullconfig
+                  - required:
+                      - passthroughConfig
+                  - required:
+                      - transformCharacterScrambleConfig
+                  - required:
+                      - transformE164PhoneNumberConfig
+                  - required:
+                      - transformEmailConfig
+                  - required:
+                      - transformFirstNameConfig
+                  - required:
+                      - transformFloat64Config
+                  - required:
+                      - transformFullNameConfig
+                  - required:
+                      - transformInt64Config
+                  - required:
+                      - transformInt64PhoneNumberConfig
+                  - required:
+                      - transformJavascriptConfig
+                  - required:
+                      - transformLastNameConfig
+                  - required:
+                      - transformPhoneNumberConfig
+                  - required:
+                      - transformPiiTextConfig
+                  - required:
+                      - transformStringConfig
+                  - required:
+                      - userDefinedTransformerConfig
+      anyOf:
+        - required:
+            - generateBoolConfig
+        - required:
+            - generateBusinessNameConfig
+        - required:
+            - generateCardNumberConfig
+        - required:
+            - generateCategoricalConfig
+        - required:
+            - generateCityConfig
+        - required:
+            - generateCountryConfig
+        - required:
+            - generateDefaultConfig
+        - required:
+            - generateE164PhoneNumberConfig
+        - required:
+            - generateEmailConfig
+        - required:
+            - generateFirstNameConfig
+        - required:
+            - generateFloat64Config
+        - required:
+            - generateFullAddressConfig
+        - required:
+            - generateFullNameConfig
+        - required:
+            - generateGenderConfig
+        - required:
+            - generateInt64Config
+        - required:
+            - generateInt64PhoneNumberConfig
+        - required:
+            - generateIpAddressConfig
+        - required:
+            - generateJavascriptConfig
+        - required:
+            - generateLastNameConfig
+        - required:
+            - generateSha256hashConfig
+        - required:
+            - generateSsnConfig
+        - required:
+            - generateStateConfig
+        - required:
+            - generateStreetAddressConfig
+        - required:
+            - generateStringConfig
+        - required:
+            - generateStringPhoneNumberConfig
+        - required:
+            - generateUnixtimestampConfig
+        - required:
+            - generateUsernameConfig
+        - required:
+            - generateUtctimestampConfig
+        - required:
+            - generateUuidConfig
+        - required:
+            - generateZipcodeConfig
+        - required:
+            - nullconfig
+        - required:
+            - passthroughConfig
+        - required:
+            - transformCharacterScrambleConfig
+        - required:
+            - transformE164PhoneNumberConfig
+        - required:
+            - transformEmailConfig
+        - required:
+            - transformFirstNameConfig
+        - required:
+            - transformFloat64Config
+        - required:
+            - transformFullNameConfig
+        - required:
+            - transformInt64Config
+        - required:
+            - transformInt64PhoneNumberConfig
+        - required:
+            - transformJavascriptConfig
+        - required:
+            - transformLastNameConfig
+        - required:
+            - transformPhoneNumberConfig
+        - required:
+            - transformPiiTextConfig
+        - required:
+            - transformStringConfig
+        - required:
+            - userDefinedTransformerConfig
+        - not:
+            anyOf:
+              - required:
+                  - generateBoolConfig
+              - required:
+                  - generateBusinessNameConfig
+              - required:
+                  - generateCardNumberConfig
+              - required:
+                  - generateCategoricalConfig
+              - required:
+                  - generateCityConfig
+              - required:
+                  - generateCountryConfig
+              - required:
+                  - generateDefaultConfig
+              - required:
+                  - generateE164PhoneNumberConfig
+              - required:
+                  - generateEmailConfig
+              - required:
+                  - generateFirstNameConfig
+              - required:
+                  - generateFloat64Config
+              - required:
+                  - generateFullAddressConfig
+              - required:
+                  - generateFullNameConfig
+              - required:
+                  - generateGenderConfig
+              - required:
+                  - generateInt64Config
+              - required:
+                  - generateInt64PhoneNumberConfig
+              - required:
+                  - generateIpAddressConfig
+              - required:
+                  - generateJavascriptConfig
+              - required:
+                  - generateLastNameConfig
+              - required:
+                  - generateSha256hashConfig
+              - required:
+                  - generateSsnConfig
+              - required:
+                  - generateStateConfig
+              - required:
+                  - generateStreetAddressConfig
+              - required:
+                  - generateStringConfig
+              - required:
+                  - generateStringPhoneNumberConfig
+              - required:
+                  - generateUnixtimestampConfig
+              - required:
+                  - generateUsernameConfig
+              - required:
+                  - generateUtctimestampConfig
+              - required:
+                  - generateUuidConfig
+              - required:
+                  - generateZipcodeConfig
+              - required:
+                  - nullconfig
+              - required:
+                  - passthroughConfig
+              - required:
+                  - transformCharacterScrambleConfig
+              - required:
+                  - transformE164PhoneNumberConfig
+              - required:
+                  - transformEmailConfig
+              - required:
+                  - transformFirstNameConfig
+              - required:
+                  - transformFloat64Config
+              - required:
+                  - transformFullNameConfig
+              - required:
+                  - transformInt64Config
+              - required:
+                  - transformInt64PhoneNumberConfig
+              - required:
+                  - transformJavascriptConfig
+              - required:
+                  - transformLastNameConfig
+              - required:
+                  - transformPhoneNumberConfig
+              - required:
+                  - transformPiiTextConfig
+              - required:
+                  - transformStringConfig
+              - required:
+                  - userDefinedTransformerConfig
+      properties:
+        generateEmailConfig:
+          allOf:
+            - title: generate_email_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmail'
+        transformEmailConfig:
+          allOf:
+            - title: transform_email_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformEmail'
+        generateBoolConfig:
+          allOf:
+            - title: generate_bool_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBool'
+        generateCardNumberConfig:
+          allOf:
+            - title: generate_card_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCardNumber'
+        generateCityConfig:
+          allOf:
+            - title: generate_city_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCity'
+        generateE164PhoneNumberConfig:
+          allOf:
+            - title: generate_e164_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateE164PhoneNumber'
+        generateFirstNameConfig:
+          allOf:
+            - title: generate_first_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFirstName'
+        generateFloat64Config:
+          allOf:
+            - title: generate_float64_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFloat64'
+        generateFullAddressConfig:
+          allOf:
+            - title: generate_full_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFullAddress'
+        generateFullNameConfig:
+          allOf:
+            - title: generate_full_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFullName'
+        generateGenderConfig:
+          allOf:
+            - title: generate_gender_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateGender'
+        generateInt64PhoneNumberConfig:
+          allOf:
+            - title: generate_int64_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateInt64PhoneNumber'
+        generateInt64Config:
+          allOf:
+            - title: generate_int64_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateInt64'
+        generateLastNameConfig:
+          allOf:
+            - title: generate_last_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateLastName'
+        generateSha256hashConfig:
+          allOf:
+            - title: generate_sha256hash_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSha256Hash'
+        generateSsnConfig:
+          allOf:
+            - title: generate_ssn_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSSN'
+        generateStateConfig:
+          allOf:
+            - title: generate_state_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateState'
+        generateStreetAddressConfig:
+          allOf:
+            - title: generate_street_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateStreetAddress'
+        generateStringPhoneNumberConfig:
+          allOf:
+            - title: generate_string_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateStringPhoneNumber'
+        generateStringConfig:
+          allOf:
+            - title: generate_string_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateString'
+        generateUnixtimestampConfig:
+          allOf:
+            - title: generate_unixtimestamp_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUnixTimestamp'
+        generateUsernameConfig:
+          allOf:
+            - title: generate_username_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUsername'
+        generateUtctimestampConfig:
+          allOf:
+            - title: generate_utctimestamp_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUtcTimestamp'
+        generateUuidConfig:
+          allOf:
+            - title: generate_uuid_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUuid'
+        generateZipcodeConfig:
+          allOf:
+            - title: generate_zipcode_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateZipcode'
+        transformE164PhoneNumberConfig:
+          allOf:
+            - title: transform_e164_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformE164PhoneNumber'
+        transformFirstNameConfig:
+          allOf:
+            - title: transform_first_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFirstName'
+        transformFloat64Config:
+          allOf:
+            - title: transform_float64_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFloat64'
+        transformFullNameConfig:
+          allOf:
+            - title: transform_full_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFullName'
+        transformInt64PhoneNumberConfig:
+          allOf:
+            - title: transform_int64_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformInt64PhoneNumber'
+        transformInt64Config:
+          allOf:
+            - title: transform_int64_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformInt64'
+        transformLastNameConfig:
+          allOf:
+            - title: transform_last_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformLastName'
+        transformPhoneNumberConfig:
+          allOf:
+            - title: transform_phone_number_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPhoneNumber'
+        transformStringConfig:
+          allOf:
+            - title: transform_string_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformString'
+        passthroughConfig:
+          allOf:
+            - title: passthrough_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Passthrough'
+        nullconfig:
+          allOf:
+            - title: nullconfig
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Null'
+        userDefinedTransformerConfig:
+          allOf:
+            - title: user_defined_transformer_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UserDefinedTransformerConfig'
+        generateDefaultConfig:
+          allOf:
+            - title: generate_default_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateDefault'
+        transformJavascriptConfig:
+          allOf:
+            - title: transform_javascript_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformJavascript'
+        generateCategoricalConfig:
+          allOf:
+            - title: generate_categorical_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCategorical'
+        transformCharacterScrambleConfig:
+          allOf:
+            - title: transform_character_scramble_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformCharacterScramble'
+        generateJavascriptConfig:
+          allOf:
+            - title: generate_javascript_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateJavascript'
+        generateCountryConfig:
+          allOf:
+            - title: generate_country_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCountry'
+        transformPiiTextConfig:
+          allOf:
+            - title: transform_pii_text_config
+              description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPiiText'
+        generateBusinessNameConfig:
+          allOf:
+            - title: generate_business_name_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
+        generateIpAddressConfig:
+          allOf:
+            - title: generate_ip_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
+      title: TransformerConfig
+      additionalProperties: false
+    mgmt.v1alpha1.TransformerMapping:
+      type: object
+      properties:
+        expression:
+          type: string
+          title: expression
+          description: JQ Expression or Field Path to apply the transformation to
+        transformer:
+          allOf:
+            - title: transformer
+              description: Configuration of Transformer to apply
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+      title: TransformerMapping
+      required:
+        - expression
+        - transformer
+        - transformer
+      additionalProperties: false
+    mgmt.v1alpha1.UserDefinedTransformerConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+      title: UserDefinedTransformerConfig
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security: []
+tags:
+  - name: mgmt.v1alpha1.AnonymizationService

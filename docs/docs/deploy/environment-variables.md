@@ -4,7 +4,7 @@ description: A listing of the environment variables that Neosync uses to work lo
 id: env-vars
 hide_title: false
 slug: /deploy/environment-variables
-# cSpell:words PODCONFIG,APPNAME,LOKICONFIG,LABELSQUERY,KEEPLABELS
+# cSpell:words PODCONFIG,APPNAME,LOKICONFIG,LABELSQUERY,KEEPLABELS,NEXTAUTH
 ---
 
 ## Overview
@@ -70,6 +70,7 @@ These environment variables are loaded when running the `mgmt serve connect` com
 | OTEL_TRACES_EXPORTER                | The exporter that will be used. Allowed: otlp, console, none. If otlp, uses grpc.                                                                                                                                                                                                                | false    | otlp                                          |
 | OTEL_METRICS_EXPORTER               | The exporter that will be used. Allowed: otlp, console, none. If otlp, uses grpc                                                                                                                                                                                                                 | false    | otlp                                          |
 | MAX_ALLOWED_RECORDS                 | The max allowed records that are allowed for an account to ingest (currently only applies to Personal accounts in Neosync Cloud)                                                                                                                                                                 | false    | NULL                                          |
+| EE_LICENSE                          | A base64-encoded Enterprise License Key obtained from the Neosync Team                                                                                                                                                                                                                           | false    |                                               |
 
 ## Backend API Database Migrations
 

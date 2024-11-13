@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -37,12 +39,12 @@ func isValidInvalidEmailAction(action string) bool {
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Transforms an existing email address.").
+		Description("Anonymizes and transforms an existing email address.").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewBoolParam("preserve_domain").Default(false).Description("A boolean indicating whether the domain part of the email should be preserved.")).
 		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{}).Description("A list of domains that should be excluded from the transformation")).
-		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations.")).
 		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()).Description("Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.")).
 		Param(bloblang.NewStringParam("invalid_email_action").Default(InvalidEmailAction_Reject.String()).Description("Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`."))
@@ -129,6 +131,37 @@ func init() {
 	}
 }
 
+func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLength *int64) (*TransformEmailOpts, error) {
+	if config == nil {
+		var excludedDomains any = "[]"
+		return NewTransformEmailOpts(nil, nil, &excludedDomains, nil, nil, nil, nil)
+	}
+	var emailType *string
+	if config.EmailType != nil {
+		emailTypeStr := dtoEmailTypeToTransformerEmailType(config.GetEmailType()).String()
+		emailType = &emailTypeStr
+	}
+	var invalidEmailAction *string
+	if config.InvalidEmailAction != nil {
+		invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(config.GetInvalidEmailAction()).String()
+		invalidEmailAction = &invalidEmailActionStr
+	}
+	excludedDomainsStr, err := convertStringSliceToString(config.GetExcludedDomains())
+	if err != nil {
+		return nil, err
+	}
+	var excludedDomains any = excludedDomainsStr
+	return NewTransformEmailOpts(
+		config.PreserveLength,
+		config.PreserveDomain,
+		&excludedDomains,
+		maxLength,
+		nil,
+		emailType,
+		invalidEmailAction,
+	)
+}
+
 func (t *TransformEmail) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformEmailOpts)
 	if !ok {
@@ -142,15 +175,21 @@ func (t *TransformEmail) Transform(value, opts any) (any, error) {
 
 	excludedDomains := []string{}
 	if parsedOpts.excludedDomains != nil {
-		exDomains, ok := parsedOpts.excludedDomains.([]any)
-		if !ok {
-			return nil, errors.New("excludedDomains is not a slice")
+		switch v := parsedOpts.excludedDomains.(type) {
+		case []any:
+			exDomainsStrs, err := fromAnyToStringSlice(excludedDomains)
+			if err != nil {
+				return nil, errors.New("excludedDomains is not a []string")
+			}
+			excludedDomains = exDomainsStrs
+		case []string:
+			excludedDomains = v
+		case string:
+			css := strings.TrimSuffix(strings.TrimPrefix(v, "["), "]")
+			excludedDomains = strings.Split(css, ",")
+		default:
+			return nil, fmt.Errorf("excludedDomains is of type %T, not []any or []string", v)
 		}
-		exDomainsStrs, err := fromAnyToStringSlice(exDomains)
-		if err != nil {
-			return nil, errors.New("excludedDomains is not a []string")
-		}
-		excludedDomains = exDomainsStrs
 	}
 
 	return transformEmail(parsedOpts.randomizer, valueStr, transformeEmailOptions{
@@ -292,4 +331,41 @@ func transformEmail(
 
 	generatedemail := fmt.Sprintf("%s@%s", newname, newdomain)
 	return &generatedemail, nil
+}
+
+func dtoEmailTypeToTransformerEmailType(dto mgmtv1alpha1.GenerateEmailType) GenerateEmailType {
+	switch dto {
+	case mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME:
+		return GenerateEmailType_FullName
+	default:
+		return GenerateEmailType_UuidV4
+	}
+}
+
+func dtoInvalidEmailActionToTransformerInvalidEmailAction(dto mgmtv1alpha1.InvalidEmailAction) InvalidEmailAction {
+	switch dto {
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE:
+		return InvalidEmailAction_Generate
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_NULL:
+		return InvalidEmailAction_Null
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_PASSTHROUGH:
+		return InvalidEmailAction_Passthrough
+	default:
+		return InvalidEmailAction_Reject
+	}
+}
+
+func convertStringSliceToString(slc []string) (string, error) {
+	var returnStr string
+
+	if len(slc) == 0 {
+		returnStr = "[]"
+	} else {
+		sliceBytes, err := json.Marshal(slc)
+		if err != nil {
+			return "", err
+		}
+		returnStr = string(sliceBytes)
+	}
+	return returnStr, nil
 }

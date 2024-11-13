@@ -2,8 +2,10 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -14,6 +16,8 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
+	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -22,20 +26,29 @@ const (
 )
 
 type initStatementBuilder struct {
-	sqlmanager sql_manager.SqlManagerClient
-	jobclient  mgmtv1alpha1connect.JobServiceClient
-	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	sqlmanager     sql_manager.SqlManagerClient
+	jobclient      mgmtv1alpha1connect.JobServiceClient
+	connclient     mgmtv1alpha1connect.ConnectionServiceClient
+	eelicense      *license.EELicense
+	isNeosyncCloud bool
+	workflowId     string
 }
 
 func newInitStatementBuilder(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	eelicense *license.EELicense,
+	isNeosyncCloud bool,
+	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager: sqlmanager,
-		jobclient:  jobclient,
-		connclient: connclient,
+		sqlmanager:     sqlmanager,
+		jobclient:      jobclient,
+		connclient:     connclient,
+		eelicense:      eelicense,
+		isNeosyncCloud: isNeosyncCloud,
+		workflowId:     workflowId,
 	}
 }
 
@@ -53,6 +66,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
+
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
+
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
 		sourceConnection, err = shared.GetConnectionById(ctx, b.connclient, *job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId)
 		if err != nil {
@@ -73,11 +92,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
+	initSchemaRunContext := []*InitSchemaRunContext{}
+
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
 		}
+		destinationConnectionType := shared.GetConnectionType(destinationConnection)
+		slogger = slogger.With(
+			"destinationConnectionType", destinationConnectionType,
+		)
 		if destinationConnection.GetConnectionConfig().GetAwsS3Config() != nil || destinationConnection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
 			// nothing to do for Bucket destinations
 			continue
@@ -175,17 +200,47 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 
-				orderedTableTruncate := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					schema, table := sqlmanager_shared.SplitTableKey(table)
-					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, schema, table))
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTablesResp.OrderedTables)))
+				truncateStmt, err := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
+				if err != nil {
+					slogger.Error(fmt.Sprint("unable to build postgres truncate statement: %w", err))
+					return nil, err
 				}
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
+				}
+			}
+			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
+				// reset serial counts
+				// identity counts are automatically reset with truncate identity restart clause
+				schemaTableMap := map[string][]string{}
+				for schemaTable := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(schemaTable)
+					schemaTableMap[schema] = append(schemaTableMap[schema], table)
+				}
+
+				resetSeqStmts := []string{}
+				for schema, tables := range schemaTableMap {
+					sequences, err := sourcedb.Db.GetSequencesByTables(ctx, schema, tables)
+					if err != nil {
+						destdb.Db.Close()
+						return nil, err
+					}
+					for _, seq := range sequences {
+						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Name))
+					}
+				}
+				if len(resetSeqStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						// handle not found errors
+						if !strings.Contains(err.Error(), `does not exist`) {
+							destdb.Db.Close()
+							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+						}
+					}
 				}
 			}
 			destdb.Db.Close()
@@ -240,6 +295,50 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			// init statements
+			if sqlopts.InitSchema {
+				if !b.isNeosyncCloud && !b.eelicense.IsValid() {
+					return nil, fmt.Errorf("Invalid license, Neosync Cloud not detected. SQL Server schema init requires Enterprise license.")
+				}
+				tables := []*sqlmanager_shared.SchemaTable{}
+				for tableKey := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(tableKey)
+					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+				}
+
+				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+				if err != nil {
+					return nil, err
+				}
+
+				initErrors := []*InitSchemaError{}
+				for _, block := range initblocks {
+					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+					if len(block.Statements) == 0 {
+						continue
+					}
+					for _, stmt := range block.Statements {
+						err = destdb.Db.Exec(ctx, stmt)
+						if err != nil {
+							slogger.Error("unable to exec mssql %s statements: %w", block.Label, err)
+							initErrors = append(initErrors, &InitSchemaError{
+								Statement: stmt,
+								Error:     err.Error(),
+							})
+							if block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
+								destdb.Db.Close()
+								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+							}
+						}
+					}
+				}
+				initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+					ConnectionId: destination.ConnectionId,
+					Errors:       initErrors,
+				})
+			}
+
+			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
 				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
@@ -254,9 +353,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				orderedTableDelete := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					schema, table := sqlmanager_shared.SplitTableKey(table)
-					orderedTableDelete = append(orderedTableDelete, sqlmanager_mssql.BuildMssqlDeleteStatement(schema, table))
+				for _, st := range orderedTablesResp.OrderedTables {
+					stmt, err := sqlmanager_mssql.BuildMssqlDeleteStatement(st.Schema, st.Table)
+					if err != nil {
+						return nil, err
+					}
+					orderedTableDelete = append(orderedTableDelete, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will delete from tables", len(orderedTableDelete)))
 				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
@@ -264,14 +366,19 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
 				}
+
 				// reset identity column counts
 				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
 				if err != nil {
 					destdb.Db.Close()
 					return nil, err
 				}
+
 				identityStmts := []string{}
 				for table, cols := range schemaColMap {
+					if _, ok := uniqueTables[table]; !ok {
+						continue
+					}
 					for _, c := range cols {
 						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
 							schema, table := sqlmanager_shared.SplitTableKey(table)
@@ -294,7 +401,44 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
+	err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RunSqlInitTableStatementsResponse{}, nil
+}
+
+type InitSchemaRunContext struct {
+	ConnectionId string
+	Errors       []*InitSchemaError
+}
+type InitSchemaError struct {
+	Statement string
+	Error     string
+}
+
+func (b *initStatementBuilder) setInitSchemaRunCtx(
+	ctx context.Context,
+	initschemaRunContexts []*InitSchemaRunContext,
+	accountId string,
+) error {
+	bits, err := json.Marshal(initschemaRunContexts)
+	if err != nil {
+		return fmt.Errorf("failed to marshal init schema run context: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   b.workflowId,
+			ExternalId: "init-schema-report",
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to set init schema run context: %w", err)
+	}
+	return nil
 }
 
 func (b *initStatementBuilder) getJobById(

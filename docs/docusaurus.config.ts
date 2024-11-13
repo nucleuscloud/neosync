@@ -92,7 +92,7 @@ const config: Config = {
       'docusaurus-protobuffet',
       {
         protobuffet: {
-          fileDescriptorsPath: './protos/data/proto_docs.json',
+          fileDescriptorsPath: './protos/proto_docs.json',
           protoDocsPath: 'protos',
           sidebarPath: './protos/proto-sidebars.js',
         },
@@ -144,8 +144,12 @@ const config: Config = {
           'aria-label': 'Discord Server',
         },
         { to: '/', label: 'Docs' },
-        { to: '/api', label: 'API' },
+        { to: '/api', label: 'SDK' },
         { to: '/changelog', label: 'Changelog' },
+        {
+          to: 'https://www.postman.com/payload-pilot-82848251/neosync-rest-apis/collection/6sxdkh5/mgmt-v1alpha1?action=share&creator=24215189',
+          label: 'API Reference',
+        },
       ],
     },
     footer: {

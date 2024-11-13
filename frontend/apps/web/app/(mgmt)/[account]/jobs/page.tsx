@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -12,6 +13,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useMemo } from 'react';
+import { GrPowerCycle } from 'react-icons/gr';
 import { getColumns } from './components/DataTable/columns';
 import { DataTable } from './components/DataTable/data-table';
 
@@ -83,7 +85,17 @@ function JobTable(props: JobTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable columns={columns} data={jobData} />
+      {jobData.length == 0 ? (
+        <EmptyState
+          title="No Jobs yet"
+          description="Jobs are async workflows that transform data and sync it between source and destination systems."
+          buttonText="Create your first Job"
+          icon={<GrPowerCycle className="w-8 h-8 text-primary" />}
+          href={`/${account?.name}/new/job`}
+        />
+      ) : (
+        <DataTable columns={columns} data={jobData} />
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -15,6 +16,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { ReactElement, useMemo } from 'react';
+import { IoMdCode } from 'react-icons/io';
 import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
 import { SystemTransformersDataTable } from './components/SystemTransformersTable/data-table';
 import { getUserDefinedTransformerColumns } from './components/UserDefinedTransformersTable/columns';
@@ -106,10 +108,20 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
           <TabsTrigger value="system">System Transformers</TabsTrigger>
         </TabsList>
         <TabsContent value="ud">
-          <UserDefinedTransformersDataTable
-            columns={userDefinedTransformerColumns}
-            data={userDefinedTransformers}
-          />
+          {userDefinedTransformers.length == 0 ? (
+            <EmptyState
+              title="No User Defined Transformers yet"
+              description="Create a User Defined Transformer to implement data transformation logic. "
+              buttonText="Create your first Transformer"
+              icon={<IoMdCode className="w-8 h-8 text-primary" />}
+              href={`/${account?.name}/new/transformer`}
+            />
+          ) : (
+            <UserDefinedTransformersDataTable
+              columns={userDefinedTransformerColumns}
+              data={userDefinedTransformers}
+            />
+          )}
         </TabsContent>
         <TabsContent value="system">
           <SystemTransformersDataTable

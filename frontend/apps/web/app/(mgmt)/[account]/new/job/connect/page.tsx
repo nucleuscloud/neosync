@@ -1,6 +1,7 @@
 'use client';
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import Spinner from '@/components/Spinner';
+import TestConnectionBadge from '@/components/connections/TestConnectionBadge';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
@@ -27,6 +28,8 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  Code,
+  ConnectError,
   Connection,
   ConnectionConfig,
 } from '@neosync/sdk';
@@ -34,19 +37,11 @@ import {
   checkConnectionConfigById,
   getConnections,
 } from '@neosync/sdk/connectquery';
-import {
-  ArrowTopRightIcon,
-  CheckCircledIcon,
-  Cross2Icon,
-  PlusIcon,
-} from '@radix-ui/react-icons';
-import Link from 'next/link';
+import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { MdErrorOutline } from 'react-icons/md';
-import { TiWarningOutline } from 'react-icons/ti';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
 import {
@@ -55,6 +50,7 @@ import {
   getConnectionType,
 } from '../../../connections/util';
 import {
+  getDefaultDestinationFormValueOptionsFromConnectionCase,
   getDefaultUnmappedTransformConfig,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
@@ -152,7 +148,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <div />
       </OverviewContainer>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
           >
@@ -230,15 +226,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 });
                                 setSourceValidationResponse(res);
                               } catch (err) {
-                                setSourceValidationResponse(
-                                  new CheckConnectionConfigResponse({
-                                    isConnected: false,
-                                    connectionError:
-                                      err instanceof Error
-                                        ? err.message
-                                        : 'unknown error',
-                                  })
-                                );
+                                if (
+                                  err instanceof ConnectError &&
+                                  err.code === Code.InvalidArgument &&
+                                  err.message.includes('unsupported operation')
+                                ) {
+                                  setSourceValidationResponse(undefined);
+                                } else {
+                                  setSourceValidationResponse(
+                                    new CheckConnectionConfigResponse({
+                                      isConnected: false,
+                                      connectionError:
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'unknown error',
+                                    })
+                                  );
+                                }
                               } finally {
                                 setIsSourceValidating(false);
                               }
@@ -248,7 +252,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     postgres: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                     },
                                   },
                                   {
@@ -351,7 +355,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       {form.getValues('sourceId') && !isSourceValidating && (
                         <TestConnectionBadge
                           validationResponse={sourceValidationResponse}
-                          id={form.getValues('sourceId')}
+                          connectionId={form.getValues('sourceId')}
                           accountName={account?.name ?? ''}
                         />
                       )}
@@ -393,6 +397,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div className="space-y-12 col-span-2">
               {fields.map((val, index) => {
+                const destErrs = form.formState.errors?.destinations ?? [];
                 return (
                   <div className="space-y-4 col-span-2" key={val.id}>
                     <div className="flex flex-row gap-2">
@@ -482,101 +487,60 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             })
                                           );
                                         } catch (err) {
-                                          setDestinationValidation(
-                                            (prevState) => ({
-                                              ...prevState,
-                                              [value]: {
-                                                isValidating: false,
-                                                response:
-                                                  new CheckConnectionConfigResponse(
-                                                    {
-                                                      isConnected: false,
-                                                      connectionError:
-                                                        err instanceof Error
-                                                          ? err.message
-                                                          : 'unknown error',
-                                                    }
-                                                  ),
-                                              },
-                                            })
-                                          );
+                                          if (
+                                            err instanceof ConnectError &&
+                                            err.code === Code.InvalidArgument &&
+                                            err.message.includes(
+                                              'unsupported operation'
+                                            )
+                                          ) {
+                                            setDestinationValidation(
+                                              (prevState) => ({
+                                                ...prevState,
+                                                [value]: {
+                                                  isValidating: false,
+                                                  response: undefined,
+                                                },
+                                              })
+                                            );
+                                          } else {
+                                            setDestinationValidation(
+                                              (prevState) => ({
+                                                ...prevState,
+                                                [value]: {
+                                                  isValidating: false,
+                                                  response:
+                                                    new CheckConnectionConfigResponse(
+                                                      {
+                                                        isConnected: false,
+                                                        connectionError:
+                                                          err instanceof Error
+                                                            ? err.message
+                                                            : 'unknown error',
+                                                      }
+                                                    ),
+                                                },
+                                              })
+                                            );
+                                          }
                                         } finally {
                                           setIsSourceValidating(false);
                                         }
 
-                                        if (destConnType === 'pgConfig') {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              postgres: {
-                                                truncateBeforeInsert: false,
-                                                truncateCascade: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
+                                        const newOpts =
+                                          getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                            destConnType,
+                                            () => new Set()
                                           );
-                                        } else if (
-                                          destConnType === 'mysqlConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              mysql: {
-                                                truncateBeforeInsert: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        } else if (
-                                          destConnType === 'dynamodbConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              dynamodb: {
-                                                tableMappings: [],
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        } else if (
-                                          destConnType === 'mssqlConfig'
-                                        ) {
-                                          form.setValue(
-                                            `destinations.${index}.destinationOptions`,
-                                            {
-                                              mssql: {
-                                                truncateBeforeInsert: false,
-                                                initTableSchema: false,
-                                                onConflictDoNothing: false,
-                                                skipForeignKeyViolations: false,
-                                              },
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldTouch: true,
-                                              shouldValidate: true,
-                                            }
-                                          );
-                                        }
+                                        form.setValue(
+                                          `destinations.${index}.destinationOptions`,
+                                          newOpts,
+                                          {
+                                            shouldDirty: true,
+                                            shouldTouch: true,
+                                            shouldValidate: true,
+                                          }
+                                        );
                                       }}
                                       value={field.value}
                                     >
@@ -631,7 +595,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       )
                                     ]?.response
                                   }
-                                  id={form.getValues(
+                                  connectionId={form.getValues(
                                     `destinations.${index}.connectionId`
                                   )}
                                   accountName={account?.name ?? ''}
@@ -674,6 +638,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               }}
                               hideDynamoDbTableMappings={true}
                               destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
+                              errors={destErrs[index]?.destinationOptions}
                             />
                           </FormControl>
                         </FormItem>
@@ -722,92 +687,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-interface TestConnectionBadgeProps {
-  validationResponse: CheckConnectionConfigResponse | undefined;
-  id: string | undefined;
-  accountName: string;
-}
-
-function TestConnectionBadge(props: TestConnectionBadgeProps) {
-  const { validationResponse, id, accountName } = props;
-
-  return (
-    <ValidationResponseBadge
-      validationResponse={validationResponse}
-      accountName={accountName}
-      id={id ?? ''}
-    />
-  );
-}
-
-interface ValidationResponseBadgeProps {
-  validationResponse: CheckConnectionConfigResponse | undefined;
-  accountName: string;
-  id: string;
-}
-
-function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
-  const { validationResponse, accountName, id } = props;
-  const url = `/${accountName}/connections/${id}/permissions`;
-
-  if (
-    validationResponse?.isConnected &&
-    validationResponse.privileges.length > 0
-  ) {
-    return (
-      <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-green-900 dark:text-green-100 border border-green-700 bg-green-100 dark:bg-green-900 transition-colors">
-        <CheckCircledIcon />
-        <div className="text-nowrap text-xs font-medium">
-          Successfully connected
-        </div>
-      </div>
-    );
-  } else if (
-    validationResponse?.isConnected &&
-    validationResponse.privileges.length === 0
-  ) {
-    return (
-      <Link href={url} passHref target="_blank">
-        <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-orange-900 dark:text-orange-100 border border-orange-700 bg-orange-100 dark:bg-orange-900 hover:bg-orange-200 hover:dark:bg-orange-950/90 transition-colors">
-          <TiWarningOutline />
-          <div className="text-nowrap text-xs font-medium">
-            Connection Warning - No tables found.{' '}
-            <a
-              href={url}
-              className="underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              More info
-            </a>
-          </div>
-          <ArrowTopRightIcon />
-        </div>
-      </Link>
-    );
-  } else if (validationResponse && !validationResponse.isConnected) {
-    return (
-      <Link href={url} passHref target="_blank">
-        <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 hover:dark:bg-red-950/90 hover:bg-red-200 transition-colors">
-          <MdErrorOutline />
-          <div className="text-nowrap text-xs pl-2 font-medium">
-            Connection Error - Unable to connect.{' '}
-            <a
-              href={url}
-              className="underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              More info
-            </a>
-          </div>
-          <ArrowTopRightIcon />
-        </div>
-      </Link>
-    );
-  } else {
-    return null;
-  }
 }

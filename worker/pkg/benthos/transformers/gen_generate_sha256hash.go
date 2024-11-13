@@ -5,6 +5,8 @@
 package transformers
 
 import (
+	"strings"
+	"fmt"
 )
 
 type GenerateSHA256Hash struct{}
@@ -22,10 +24,24 @@ func NewGenerateSHA256HashOpts(
 	}, nil
 }
 
+func (o *GenerateSHA256HashOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{
+	}
+
+	params := []any{
+	}
+
+	
+
+	template := fmt.Sprintf("generate_sha256hash(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *GenerateSHA256Hash) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSHA256Hash",
-		Description: "SHA256 hashes a randomly generated value.",
+		Description: "Generates a random SHA256 hash and returns it as a string.",
 		Example: "",
 	}, nil
 }

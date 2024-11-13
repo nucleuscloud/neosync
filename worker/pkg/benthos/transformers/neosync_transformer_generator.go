@@ -65,6 +65,7 @@ func main() {
 		}
 		tf.Params = p.Params
 		tf.Description = p.SpecDescription
+		tf.BloblangFuncName = p.BloblangFuncName
 	}
 
 	for _, tf := range transformerFuncs {
@@ -96,9 +97,8 @@ const codeTemplate = `
 package {{.PackageName}}
 
 import (
-	{{- if eq .ImportFmt true}}
+	"strings"
 	"fmt"
-	{{ end }}
 	{{- if eq .HasSeedParam true}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -148,7 +148,11 @@ func New{{.StructName}}Opts(
     return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	{{ else if $param.HasDefault }}
+	{{- if eq $param.TypeStr "any" }}
+	var {{$param.Name}} any 
+	{{- else}}
 	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
+	{{- end }}
 	if {{$param.Name}}Arg != nil {
 		{{$param.Name}} = *{{$param.Name}}Arg
 	}
@@ -164,6 +168,48 @@ func New{{.StructName}}Opts(
     {{- end }}
 {{- end }}	
 	}, nil
+}
+
+func (o *{{.StructName}}Opts) BuildBloblangString(
+{{- if .IsTransformer }}
+	valuePath string,
+{{- end }}	
+) string {
+	fnStr := []string{
+	{{- range $index, $param := .FunctInfo.Params }}
+	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
+	{{- if eq $param.Name "value" }}
+		"value:this.%s",
+	{{- else if not $param.IsOptional }} 
+		"{{$param.BloblangName}}:{{- if eq $param.TypeStr "string" }}%q{{else}}%v{{end}}",
+	{{- end }}
+	{{- end }}
+	}
+
+	params := []any{
+	{{- range $index, $param := .FunctInfo.Params }}
+	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
+	{{- if eq $param.Name "value" }}
+		valuePath,
+	{{- else if not $param.IsOptional }}
+	 	o.{{$param.Name}},
+	{{- end }}
+	{{- end }}
+	}
+
+	{{ range $index, $param := .FunctInfo.Params }}
+	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
+	{{- if $param.IsOptional }}
+	if o.{{$param.Name}} != nil {
+		fnStr = append(fnStr, "{{$param.BloblangName}}:{{- if eq $param.TypeStr "string" }}%q{{else}}%v{{end}}")
+		params = append(params, *o.{{$param.Name}})
+	}
+	{{- end -}}
+	{{- end }}
+
+	template := fmt.Sprintf("{{ .FunctInfo.BloblangFuncName }}(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
@@ -223,12 +269,12 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 `
 
 type TemplateData struct {
-	SourceFile   string
-	PackageName  string
-	FunctInfo    transformers.BenthosSpec
-	StructName   string
-	ImportFmt    bool
-	HasSeedParam bool
+	SourceFile    string
+	PackageName   string
+	FunctInfo     transformers.BenthosSpec
+	StructName    string
+	HasSeedParam  bool
+	IsTransformer bool
 }
 
 func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, error) {
@@ -241,10 +287,9 @@ func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, e
 	for _, p := range funcInfo.Params {
 		if p.Name == "seed" {
 			data.HasSeedParam = true
-			data.ImportFmt = true
 		}
-		if !p.IsOptional && !p.HasDefault {
-			data.ImportFmt = true
+		if p.Name == "value" {
+			data.IsTransformer = true
 		}
 	}
 	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))

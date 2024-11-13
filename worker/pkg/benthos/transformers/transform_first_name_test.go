@@ -20,7 +20,7 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 
 	res, err := transformFirstName(randomizer, emptyName, false, maxCharacterLimit)
 	assert.NoError(t, err)
-	assert.Nil(t, res, "The response should be nil")
+	assert.Empty(t, res, "The response should be empty")
 }
 
 func Test_TranformFirstName_Random(t *testing.T) {
@@ -104,4 +104,14 @@ func Test_TransformFirstNameTransformerWithEmptyValue(t *testing.T) {
 
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
+}
+
+func Test_TransformFirstNameTransformer_NoOptions(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_first_name(value:%q)`, "name")
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the first name transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
 }

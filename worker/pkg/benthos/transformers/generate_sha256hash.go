@@ -6,13 +6,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateSHA256Hash
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("SHA256 hashes a randomly generated value.")
+	spec := bloblang.NewPluginSpec().Description("Generates a random SHA256 hash and returns it as a string.")
 
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
@@ -26,6 +27,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateSHA256HashOptsFromConfig(config *mgmtv1alpha1.GenerateSha256Hash) (*GenerateSHA256HashOpts, error) {
+	return NewGenerateSHA256HashOpts()
 }
 
 func (t *GenerateSHA256Hash) Generate(opts any) (any, error) {

@@ -6,10 +6,8 @@ import (
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -19,34 +17,8 @@ type GenerateBenthosConfigsRequest struct {
 	JobId string
 }
 type GenerateBenthosConfigsResponse struct {
-	BenthosConfigs []*BenthosConfigResponse
+	BenthosConfigs []*benthosbuilder.BenthosConfigResponse
 	AccountId      string
-}
-
-type BenthosRedisConfig struct {
-	Key    string
-	Table  string // schema.table
-	Column string
-}
-
-type BenthosConfigResponse struct {
-	Name            string
-	DependsOn       []*tabledependency.DependsOn
-	RunType         tabledependency.RunType
-	Config          *neosync_benthos.BenthosConfig
-	TableSchema     string
-	TableName       string
-	Columns         []string
-	RedisDependsOn  map[string][]string
-	IdentityColumns []string
-
-	Processors  []*neosync_benthos.ProcessorConfig
-	BenthosDsns []*shared.BenthosDsn
-	RedisConfig []*BenthosRedisConfig
-
-	primaryKeys []string
-
-	metriclabels metrics.MetricLabels
 }
 
 type Activity struct {
@@ -119,5 +91,5 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.metricsEnabled,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
-	return bbuilder.GenerateBenthosConfigs(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
+	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
 }

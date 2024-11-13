@@ -8,10 +8,9 @@ slug: /
 
 ## Introduction
 
-Neosync, like many web services these days, is a full-fledged API. Check out the [architecture](/platform) page for an overview of how the Neosync API fits into the picture.
+Neosync has first-class APIs and SDKs that developers can use to integrate Neosync into their workflow. To learn more about how the Neosync API fits into the overall architecture, check out the Check out the [platform page](/platform).
 
-All of our APIs are generated from Protobuf files. For this reason, a client can easily be generated in any of the many supported languages.
-Internally, we make great use of the Go SDK as well as the TypeScript SDK.
+Neosync API serves up [Connect](https://github.com/connectrpc), which can listen using Connect, gRPC, or HTTP protocols. All of our APIs are generated from Protobuf files and our SDKs call Connect endpoints by default. Each SDK can be configured to use gRPC or REST in lieu of the default (Connect).
 
 ## Configuration
 

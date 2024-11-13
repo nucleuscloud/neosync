@@ -22,7 +22,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
-  github.com/nucleuscloud/neosync/backend/internal/nucleusdb:
+  github.com/nucleuscloud/neosync/backend/internal/neosyncdb:
     # config:
     interfaces:
       DBTX:
@@ -40,11 +40,11 @@ packages:
       ConnectionServiceClient:
       AuthServiceClient:
       TransformersServiceClient:
-  github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
+  github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager:
     interfaces:
       DB:
-      # this is broken. it uses the wrong package. after running mockery change internal to client in mock
-      # TemporalClientManagerClient:
+      Interface:
+      ConfigProvider:
   github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql:
     # config:
     interfaces:
@@ -63,7 +63,6 @@ packages:
     interfaces:
       SqlConnector:
       SqlDbContainer:
-      PgPoolContainer:
   github.com/nucleuscloud/neosync/backend/pkg/sqlmanager:
     interfaces:
       SqlDatabase:
@@ -80,8 +79,9 @@ packages:
       BenthosStreamManagerClient:
   github.com/prometheus/client_golang/api/prometheus/v1:
     config:
-      dir: "backend/internal/mocks/{{.PackagePath}}"
+      dir: "internal/mocks/{{.PackagePath}}"
       inpackage: False
+      outpkg: promapiv1mock
     interfaces:
       API:
   github.com/nucleuscloud/neosync/backend/internal/loki:
@@ -95,9 +95,24 @@ packages:
     interfaces:
       ManagerInterface:
       ClientInterface:
-  github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager:
+  github.com/nucleuscloud/neosync/internal/connection-tunnel-manager:
     interfaces:
       ConnectionProvider:
   github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb:
     interfaces:
       dynamoDBAPIV2:
+  github.com/nucleuscloud/neosync/internal/billing:
+    interfaces:
+      Interface:
+  github.com/jackc/pgx/v5:
+    config:
+      dir: "internal/mocks/{{.PackagePath}}"
+      inpackage: False
+      outpkg: pgxmock
+    interfaces:
+      Tx:
+  github.com/nucleuscloud/neosync/internal/ee/presidio:
+    interfaces:
+      AnalyzeInterface:
+      AnonymizeInterface:
+      EntityInterface:

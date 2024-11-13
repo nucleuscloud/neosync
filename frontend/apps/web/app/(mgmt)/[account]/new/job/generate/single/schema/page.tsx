@@ -1,6 +1,7 @@
 'use client';
 
 import FormPersist from '@/app/(mgmt)/FormPersist';
+import { useOnImportMappings } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/useOnImportMappings';
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
@@ -31,27 +32,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import {
-  createConnectQueryKey,
-  useMutation,
-  useQuery,
-} from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  GetAccountOnboardingConfigResponse,
-  ValidateJobMappingsResponse,
-} from '@neosync/sdk';
+import { ValidateJobMappingsResponse } from '@neosync/sdk';
 import {
   createJob,
-  getAccountOnboardingConfig,
   getConnections,
   getConnectionSchemaMap,
   getConnectionTableConstraints,
-  setAccountOnboardingConfig,
   validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -71,15 +62,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
   const posthog = usePostHog();
-  const { data: onboardingData } = useQuery(
-    getAccountOnboardingConfig,
-    { accountId: account?.id },
-    { enabled: !!account?.id }
-  );
-  const queryclient = useQueryClient();
-  const { mutateAsync: setOnboardingConfig } = useMutation(
-    setAccountOnboardingConfig
-  );
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
     ValidateJobMappingsResponse | undefined
@@ -181,37 +163,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       toast.success('Successfully created job!');
 
       clearNewJobSession(window.sessionStorage, sessionPrefix);
-
-      // updates the onboarding data
-      if (!onboardingData?.config?.hasCreatedJob) {
-        try {
-          const resp = await setOnboardingConfig({
-            accountId: account.id,
-            config: {
-              hasCreatedSourceConnection:
-                onboardingData?.config?.hasCreatedSourceConnection ?? true,
-              hasCreatedDestinationConnection:
-                onboardingData?.config?.hasCreatedDestinationConnection ?? true,
-              hasCreatedJob: true,
-              hasInvitedMembers:
-                onboardingData?.config?.hasInvitedMembers ?? true,
-            },
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      }
-
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}`);
       } else {
@@ -304,6 +255,33 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading]);
 
+  const { onClick: onImportMappingsClick } = useOnImportMappings({
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    appendNewMappings(mappings) {
+      append(mappings);
+    },
+    setTransformer(idx, transformer) {
+      form.setValue(`mappings.${idx}.transformer`, transformer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+    setSelectedTables: setSelectedTables,
+  });
+
   return (
     <div className="flex flex-col gap-5">
       <FormPersist formKey={formKey} form={form} />
@@ -367,6 +345,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               )}
               onValidate={validateMappings}
               isJobMappingsValidating={isValidatingMappings}
+              onImportMappingsClick={onImportMappingsClick}
             />
           )}
           {form.formState.errors.root && (

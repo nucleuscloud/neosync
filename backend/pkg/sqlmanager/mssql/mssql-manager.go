@@ -2,36 +2,40 @@ package sqlmanager_mssql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
 type Manager struct {
 	querier mssql_queries.Querier
 	db      mysql_queries.DBTX
 	close   func()
+
+	ee_sqlmanager_mssql.Manager
 }
 
 func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func()) *Manager {
-	return &Manager{querier: querier, db: db, close: closer}
+	return &Manager{querier: querier, db: db, close: closer, Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer)}
 }
 
 const defaultIdentity string = "IDENTITY(1,1)"
 
 func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
 
@@ -66,7 +70,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
-			IsNullable:             row.IsNullable,
+			IsNullable:             row.IsNullable != "NO",
 			GeneratedType:          generatedType,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			CharacterMaximumLength: charMaxLength,
@@ -79,7 +83,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 	return output, nil
 }
 
-func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
+func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -93,9 +97,9 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.db, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
@@ -124,11 +128,15 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
 				}
 
+				if isInvalidCircularSelfReferencingFk(row, constraintCols, fkCols) {
+					continue
+				}
+
 				foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
 					Columns:     constraintCols,
 					NotNullable: notNullable,
 					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   row.ReferencedTable.String,
+						Table:   sqlmanager_shared.BuildTable(row.ReferencedSchema.String, row.ReferencedTable.String),
 						Columns: fkCols,
 					},
 				})
@@ -152,11 +160,32 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 	}, nil
 }
 
+// Checks if a foreign key constraint is self-referencing (points to the same table)
+// and all constraint columns match their referenced columns, indicating a circular reference.
+// example  public.users.id has a foreign key to public.users.id
+func isInvalidCircularSelfReferencingFk(row *mssql_queries.GetTableConstraintsBySchemasRow, constraintColumns, referencedColumns []string) bool {
+	// Check if the foreign key references the same table
+	isSameTable := row.SchemaName == row.ReferencedSchema.String &&
+		row.TableName == row.ReferencedTable.String
+	if !isSameTable {
+		return false
+	}
+
+	// Check if all constraint columns exist in referenced columns
+	for _, column := range constraintColumns {
+		if !slices.Contains(referencedColumns, column) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
 	rows, err := m.querier.GetRolePermissions(ctx, m.db)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, fmt.Errorf("unable to retrieve mssql role permissions: %w", err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return map[string][]string{}, nil
 	}
 
@@ -178,32 +207,6 @@ func splitAndStrip(input, delim string) []string {
 	}
 
 	return output
-}
-
-func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
-	return []*sqlmanager_shared.TableInitStatement{}, nil
-}
-
-func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
-	return &sqlmanager_shared.SchemaTableDataTypeResponse{
-		Sequences:  []*sqlmanager_shared.DataType{},
-		Functions:  []*sqlmanager_shared.DataType{},
-		Composites: []*sqlmanager_shared.DataType{},
-		Enums:      []*sqlmanager_shared.DataType{},
-		Domains:    []*sqlmanager_shared.DataType{},
-	}, nil
-}
-
-func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
-	return []*sqlmanager_shared.TableTrigger{}, nil
-}
-
-func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return []*sqlmanager_shared.InitSchemaStatements{}, nil
-}
-
-func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	return "", errors.ErrUnsupported
 }
 
 func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
@@ -253,10 +256,36 @@ func (m *Manager) Close() {
 	}
 }
 
+func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+
+	// check if the column is an idenitity type
+	if columnInfo.IdentityGeneration != nil && *columnInfo.IdentityGeneration != "" {
+		needsOverride = true
+		needsReset = true
+		return
+	}
+
+	// check if column default is sequence
+	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
+		needsReset = true
+		return
+	}
+
+	return
+}
+
 func BuildMssqlDeleteStatement(
 	schema, table string,
-) string {
-	return fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table)
+) (string, error) {
+	dialect := goqu.Dialect("sqlserver")
+	ds := dialect.Delete(goqu.S(schema).Table(table))
+	sql, _, err := ds.ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return sql + ";", nil
 }
 
 // Resets current identity value back to the initial count

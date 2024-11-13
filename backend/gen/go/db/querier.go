@@ -13,9 +13,10 @@ import (
 
 type Querier interface {
 	AreConnectionsInAccount(ctx context.Context, db DBTX, arg AreConnectionsInAccountParams) (int64, error)
+	ConvertPersonalAccountToTeam(ctx context.Context, db DBTX, arg ConvertPersonalAccountToTeamParams) (NeosyncApiAccount, error)
 	CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error)
 	CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error)
-	CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
+	CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) error
 	CreateConnection(ctx context.Context, db DBTX, arg CreateConnectionParams) (NeosyncApiConnection, error)
 	CreateIdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateIdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)
 	CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error)
@@ -39,6 +40,7 @@ type Querier interface {
 	GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetActiveAccountInvites(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountInvite, error)
 	GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
+	GetBilledAccounts(ctx context.Context, db DBTX, accountids []pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiConnection, error)
 	GetConnectionByNameAndAccount(ctx context.Context, db DBTX, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error)
 	GetConnectionsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiConnection, error)
@@ -76,10 +78,11 @@ type Querier interface {
 	RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
-	SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error)
+	SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error)
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams) (NeosyncApiJob, error)
 	SetJobWorkflowOptions(ctx context.Context, db DBTX, arg SetJobWorkflowOptionsParams) (NeosyncApiJob, error)
+	SetNewAccountStripeCustomerId(ctx context.Context, db DBTX, arg SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error)
 	SetRunContext(ctx context.Context, db DBTX, arg SetRunContextParams) error
 	UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)
 	UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)

@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -38,22 +38,22 @@ func NewTransformEmailOpts(
 	emailTypeArg *string,
 	invalidEmailActionArg *string,
 ) (*TransformEmailOpts, error) {
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
-	preserveDomain := bool(false) 
+	preserveDomain := bool(false)
 	if preserveDomainArg != nil {
 		preserveDomain = *preserveDomainArg
 	}
 	
-	excludedDomains := any([]any{}) 
+	var excludedDomains any
 	if excludedDomainsArg != nil {
 		excludedDomains = *excludedDomainsArg
 	}
 	
-	maxLength := int64(10000) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -63,12 +63,12 @@ func NewTransformEmailOpts(
     return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	
-	emailType := string(GenerateEmailType_UuidV4.String()) 
+	emailType := string(GenerateEmailType_UuidV4.String())
 	if emailTypeArg != nil {
 		emailType = *emailTypeArg
 	}
 	
-	invalidEmailAction := string(InvalidEmailAction_Reject.String()) 
+	invalidEmailAction := string(InvalidEmailAction_Reject.String())
 	if invalidEmailActionArg != nil {
 		invalidEmailAction = *invalidEmailActionArg
 	}
@@ -84,10 +84,39 @@ func NewTransformEmailOpts(
 	}, nil
 }
 
+func (o *TransformEmailOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"preserve_domain:%v", 
+		"excluded_domains:%v", 
+		"max_length:%v", 
+		"email_type:%q", 
+		"invalid_email_action:%q",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.preserveLength,
+	 	o.preserveDomain,
+	 	o.excludedDomains,
+	 	o.maxLength,
+	 	o.emailType,
+	 	o.invalidEmailAction,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_email(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
+}
+
 func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformEmail",
-		Description: "Transforms an existing email address.",
+		Description: "Anonymizes and transforms an existing email address.",
 		Example: "",
 	}, nil
 }
@@ -115,7 +144,7 @@ func (t *TransformEmail) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

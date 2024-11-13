@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -59,7 +60,7 @@ output:
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 
-	activity := New(nil, jobclient, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -79,7 +80,7 @@ func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
 
 	benthosStreamManager := NewBenthosStreamManager()
 
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -93,7 +94,7 @@ func Test_Sync_Run_Success(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -123,7 +124,7 @@ func Test_Sync_Run_Metrics_Success(t *testing.T) {
 	meterProvider := metricsdk.NewMeterProvider()
 	meter := meterProvider.Meter("test")
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, meter, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, meter, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -153,7 +154,7 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -185,7 +186,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -241,7 +242,7 @@ func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -300,7 +301,7 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -331,7 +332,7 @@ func Test_Sync_Run_Output_Error(t *testing.T) {
 
 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
 	mockBenthosStream := NewMockBenthosStreamClient(t)
-	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -382,7 +383,7 @@ output:
 	mockBenthosStream.On("Run", mock.Anything).After(5 * time.Second).Return(nil)
 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil)
 
-	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	stopCh := make(chan struct{})
@@ -405,7 +406,7 @@ func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 	stopCh := make(chan struct{})
@@ -456,7 +457,7 @@ output:
 	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
 
-	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{

@@ -74,24 +74,32 @@ To access the database from your laptop, you would simply replace `test-prod-db-
 
 > **NB:** It is imperative that you provide a `database` in the connection URL. This will define what MSSQL database Neosync connects to.
 
-```
+```bash
 sqlserver://sa:YourStrong@Passw0rd@test-prod-db-mssql:1433?database=master
 ```
 
 Due to MSSQL's design, it is possible to have two separate databases within the same physical database instance and sync between the two. They will simply need to be configured as two separate Neosync connections.
 
-### Max Connection Limit
+### Max Open Connection Limit
 
-This is by default set to 80, but it's important to look into this and set this value to the appropriate size given the size of your database as it changes based on the machine type. 80 may be too high, or too low! Ultimately, this will affect how quickly Neosync is able to sync to or from your database as it takes advantage of parallelization where it can.
+This is by default set to 50, but it's important to look into this and set this value to the appropriate size given the size of your database as it changes based on the machine type. 50 may be too high, or too low! Ultimately, this will affect how quickly Neosync is able to sync to or from your database as it takes advantage of parallelization where it can.
 
 ### Bastion Host Configuration
 
 This section is optional, but may be required for many that use MSSQL databases hosted within cloud infrastructure.
 It's generally not a good practice to publicly expose a database and to instead use a bastion host, or jump box. This facilitates Neosync to use SSH tunneling through this jump box to gain access to your database.
 
-If you require a bastion host and need help setting one up or configuring one, check out our [Connect Postgres via Bastion Host](/guides/connect-private-postgres-via-bastion-host) guide. Many of the same elements apply there for Postgres as they do for MSSQL Server.
+If you require a bastion host and need help setting one up or configuring one, check out out [this tutorial from Azure](https://learn.microsoft.com/en-us/azure/private-link/tutorial-private-endpoint-sql-portal) guide.
 
-The main difference is that instead of exposing ports `5432`, you'll most likely be exposing ports `1433`, the MSSQL default port.
+**Note** For Azure deployments: when trying to connect to your SQL Server instance in a private VPC with a bastion host - make sure to add the database server to the DB user (using an `@`) you're using to connect.
+
+For example, if your database user is `johndoe` and your database host is `test-sql-server.database.windows.net`. Then your connection string should be:
+
+`sqlserver://johndoe@test-sql-server.database.windows.net:<password>@test-sql-server.database.windows.net:1433?database=dev`
+
+Notice how the username has `@<hostname>` appended to it. Once successfully connected, you should see a window like this:
+
+![Connecting](/img/sqlconn.png)
 
 ## Permissions
 
