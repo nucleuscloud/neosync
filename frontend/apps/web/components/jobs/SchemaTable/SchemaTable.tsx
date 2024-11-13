@@ -141,7 +141,7 @@ export function SchemaTable(props: Props): ReactElement {
         transformer: d.transformer,
       };
     });
-  }, [data, constraintHandler, jobType]);
+  }, [data.length]);
 
   const virtualForeignKeyColumns = useMemo(() => {
     return getVirtualForeignKeysColumns({ removeVirtualForeignKey });
