@@ -8,7 +8,9 @@ import {
   ArrowUpIcon,
   CaretSortIcon,
 } from '@radix-ui/react-icons';
+import { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
+import { useDebounceCallback } from 'usehooks-ts';
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -21,6 +23,13 @@ export function SchemaColumnHeader<TData, TValue>({
   title,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const [inputValue, setInputValue] = useState(
+    (column.getFilterValue() ?? '') as string
+  );
+  const onInputChange = useDebounceCallback(
+    (value) => column.setFilterValue(value),
+    500
+  );
   return (
     <div className="flex flex-row gap-2 items-center justify-start">
       {column.getCanFilter() && (
@@ -28,8 +37,11 @@ export function SchemaColumnHeader<TData, TValue>({
           <div className="relative">
             <Input
               type="text"
-              value={(column.getFilterValue() ?? '') as string}
-              onChange={(e) => column.setFilterValue(e.target.value)}
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                onInputChange(e.target.value);
+              }}
               placeholder={title}
               className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-transparent text-xs h-8 pl-8"
             />
