@@ -66,13 +66,28 @@ func (r *Rbac) InitPolicies(
 		)
 	}
 	if len(policyRules) > 0 {
-		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
-		ok, err := r.e.AddPoliciesEx(policyRules)
-		if err != nil {
-			return fmt.Errorf("unable to add policies to enforcer: %w", err)
+		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac enginee", len(policyRules)))
+		for _, policy := range policyRules {
+			err := setPolicy(r.e, policy)
+			if err != nil {
+				return err
+			}
 		}
-		if ok {
-			logger.Debug("previously non-existent rules were added to the rbac engine")
+	}
+	return nil
+}
+
+func setPolicy(e casbin.IEnforcer, policy []string) error {
+	// AddPoliciesEx is what should be uesd here but is resulting in duplicates
+	// This logic here seems to handle this instead
+	ok, err := e.HasPolicy(policy)
+	if err != nil {
+		return fmt.Errorf("unable to check if policy exists: %w", err)
+	}
+	if !ok {
+		_, err = e.AddPolicy(policy) // always resolves to true even if it was not added, may be adapter dependent
+		if err != nil {
+			return fmt.Errorf("unable to add policy: %w", err)
 		}
 	}
 	return nil
