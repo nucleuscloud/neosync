@@ -430,7 +430,7 @@ func (b *initStatementBuilder) setInitSchemaRunCtx(
 	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
 			JobRunId:   b.workflowId,
-			ExternalId: "init-schema",
+			ExternalId: "init-schema-report",
 			AccountId:  accountId,
 		},
 		Value: bits,

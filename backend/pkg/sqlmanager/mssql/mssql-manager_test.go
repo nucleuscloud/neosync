@@ -6,7 +6,6 @@ import (
 
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/stretchr/testify/require"
-	"github.com/zeebo/assert"
 )
 
 func Test_BuildMssqlDeleteStatement(t *testing.T) {
@@ -19,7 +18,7 @@ func Test_BuildMssqlDeleteStatement(t *testing.T) {
 	)
 }
 
-func Test_IsCircularSelfReferencingFk(t *testing.T) {
+func Test_isInvalidCircularSelfReferencingFk(t *testing.T) {
 	t.Run("different tables should return false", func(t *testing.T) {
 		row := &mssql_queries.GetTableConstraintsBySchemasRow{
 			SchemaName: "dbo",
@@ -33,8 +32,8 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row, []string{"DepartmentId"}, []string{"Id"})
-		assert.False(t, result)
+		result := isInvalidCircularSelfReferencingFk(row, []string{"DepartmentId"}, []string{"Id"})
+		require.False(t, result)
 	})
 
 	t.Run("different schemas should return false", func(t *testing.T) {
@@ -50,8 +49,8 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row, []string{"ManagerId"}, []string{"Id"})
-		assert.False(t, result)
+		result := isInvalidCircularSelfReferencingFk(row, []string{"ManagerId"}, []string{"Id"})
+		require.False(t, result)
 	})
 
 	t.Run("same table but different columns should return false", func(t *testing.T) {
@@ -67,8 +66,8 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row, []string{"ManagerId"}, []string{"Id"})
-		assert.False(t, result)
+		result := isInvalidCircularSelfReferencingFk(row, []string{"ManagerId"}, []string{"Id"})
+		require.False(t, result)
 	})
 
 	t.Run("circular reference with matching columns should return true", func(t *testing.T) {
@@ -84,8 +83,8 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row, []string{"Id"}, []string{"Id"})
-		assert.True(t, result)
+		result := isInvalidCircularSelfReferencingFk(row, []string{"Id"}, []string{"Id"})
+		require.True(t, result)
 	})
 
 	t.Run("circular reference with multiple matching columns should return true", func(t *testing.T) {
@@ -101,10 +100,10 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row,
+		result := isInvalidCircularSelfReferencingFk(row,
 			[]string{"Id", "SubId"},
 			[]string{"SubId", "Id"})
-		assert.True(t, result)
+		require.True(t, result)
 	})
 
 	t.Run("circular reference with some non-matching columns should return false", func(t *testing.T) {
@@ -120,10 +119,10 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row,
+		result := isInvalidCircularSelfReferencingFk(row,
 			[]string{"Id", "SubId"},
 			[]string{"Id", "DifferentId"})
-		assert.False(t, result)
+		require.False(t, result)
 	})
 
 	t.Run("same table with empty columns should return true", func(t *testing.T) {
@@ -139,7 +138,7 @@ func Test_IsCircularSelfReferencingFk(t *testing.T) {
 				Valid:  true,
 			},
 		}
-		result := isCircularSelfReferencingFk(row, []string{}, []string{})
-		assert.True(t, result)
+		result := isInvalidCircularSelfReferencingFk(row, []string{}, []string{})
+		require.True(t, result)
 	})
 }
