@@ -353,13 +353,15 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				orderedTableDelete := []string{}
-				for _, st := range orderedTablesResp.OrderedTables {
+				for i := len(orderedTablesResp.OrderedTables) - 1; i >= 0; i-- {
+					st := orderedTablesResp.OrderedTables[i]
 					stmt, err := sqlmanager_mssql.BuildMssqlDeleteStatement(st.Schema, st.Table)
 					if err != nil {
 						return nil, err
 					}
 					orderedTableDelete = append(orderedTableDelete, stmt)
 				}
+
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will delete from tables", len(orderedTableDelete)))
 				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
