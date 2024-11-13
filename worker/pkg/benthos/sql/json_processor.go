@@ -96,7 +96,7 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 				return v
 			}
 			return validJson
-		case "money", "uuid", "timetz":
+		case "money", "uuid", "time with time zone", "timestamp with time zone":
 			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
 			return string(v)
 		}
