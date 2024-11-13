@@ -16,7 +16,7 @@ builds:
       - arm64
 
     ldflags:
-      - -s -w -X 'github.com/nucleuscloud/neosync/cli/internal/version.buildDate={{.Date}}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitCommit={{.Commit}}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitVersion={{.Version}}' -X 'github.com/nucleuscloud/neosync/cli/internal/serverconfig.defaultBaseUrl={{ .Env.NEOSYNC_BASE_URL }}'
+      - -s -w -X 'github.com/nucleuscloud/neosync/cli/internal/version.buildDate={{.Date}}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitCommit={{.Commit}}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitVersion={{.Version}}' -X 'github.com/nucleuscloud/neosync/cli/internal/auth.defaultBaseUrl={{ .Env.NEOSYNC_BASE_URL }}'
 
     main: ./cmd/neosync
 

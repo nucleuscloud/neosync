@@ -154,9 +154,6 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 	for _, seq := range s.Sequences {
 		output = append(output, seq.Definition)
 	}
-	for _, fn := range s.Functions {
-		output = append(output, fn.Definition)
-	}
 	for _, comp := range s.Composites {
 		output = append(output, comp.Definition)
 	}
@@ -165,6 +162,9 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 	}
 	for _, domain := range s.Domains {
 		output = append(output, domain.Definition)
+	}
+	for _, fn := range s.Functions {
+		output = append(output, fn.Definition)
 	}
 	return output
 }

@@ -1,4 +1,4 @@
 USE testdb;
 EXEC('
-CREATE SCHEMA sqlmanagermssql2;
+CREATE SCHEMA mssqlinit;
 ');

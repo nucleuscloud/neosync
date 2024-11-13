@@ -2,9 +2,9 @@ package sqlmanager_mssql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,6 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
@@ -20,10 +21,12 @@ type Manager struct {
 	querier mssql_queries.Querier
 	db      mysql_queries.DBTX
 	close   func()
+
+	ee_sqlmanager_mssql.Manager
 }
 
 func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func()) *Manager {
-	return &Manager{querier: querier, db: db, close: closer}
+	return &Manager{querier: querier, db: db, close: closer, Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer)}
 }
 
 const defaultIdentity string = "IDENTITY(1,1)"
@@ -125,11 +128,15 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
 				}
 
+				if isInvalidCircularSelfReferencingFk(row, constraintCols, fkCols) {
+					continue
+				}
+
 				foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
 					Columns:     constraintCols,
 					NotNullable: notNullable,
 					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   row.ReferencedTable.String,
+						Table:   sqlmanager_shared.BuildTable(row.ReferencedSchema.String, row.ReferencedTable.String),
 						Columns: fkCols,
 					},
 				})
@@ -151,6 +158,27 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
+}
+
+// Checks if a foreign key constraint is self-referencing (points to the same table)
+// and all constraint columns match their referenced columns, indicating a circular reference.
+// example  public.users.id has a foreign key to public.users.id
+func isInvalidCircularSelfReferencingFk(row *mssql_queries.GetTableConstraintsBySchemasRow, constraintColumns, referencedColumns []string) bool {
+	// Check if the foreign key references the same table
+	isSameTable := row.SchemaName == row.ReferencedSchema.String &&
+		row.TableName == row.ReferencedTable.String
+	if !isSameTable {
+		return false
+	}
+
+	// Check if all constraint columns exist in referenced columns
+	for _, column := range constraintColumns {
+		if !slices.Contains(referencedColumns, column) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
@@ -179,32 +207,6 @@ func splitAndStrip(input, delim string) []string {
 	}
 
 	return output
-}
-
-func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
-	return []*sqlmanager_shared.TableInitStatement{}, nil
-}
-
-func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
-	return &sqlmanager_shared.SchemaTableDataTypeResponse{
-		Sequences:  []*sqlmanager_shared.DataType{},
-		Functions:  []*sqlmanager_shared.DataType{},
-		Composites: []*sqlmanager_shared.DataType{},
-		Enums:      []*sqlmanager_shared.DataType{},
-		Domains:    []*sqlmanager_shared.DataType{},
-	}, nil
-}
-
-func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
-	return []*sqlmanager_shared.TableTrigger{}, nil
-}
-
-func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return []*sqlmanager_shared.InitSchemaStatements{}, nil
-}
-
-func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	return "", errors.ErrUnsupported
 }
 
 func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
@@ -243,10 +245,6 @@ func (m *Manager) GetTableRowCount(
 	return count, err
 }
 
-func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
-	return nil, errors.ErrUnsupported
-}
-
 func (m *Manager) Exec(ctx context.Context, statement string) error {
 	_, err := m.db.ExecContext(ctx, statement)
 	return err
@@ -256,6 +254,26 @@ func (m *Manager) Close() {
 	if m.db != nil && m.close != nil {
 		m.close()
 	}
+}
+
+func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+
+	// check if the column is an idenitity type
+	if columnInfo.IdentityGeneration != nil && *columnInfo.IdentityGeneration != "" {
+		needsOverride = true
+		needsReset = true
+		return
+	}
+
+	// check if column default is sequence
+	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
+		needsReset = true
+		return
+	}
+
+	return
 }
 
 func BuildMssqlDeleteStatement(
@@ -307,24 +325,4 @@ func BuildMssqlSetIdentityInsertStatement(
 		enabledKeyword = "ON"
 	}
 	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
-}
-
-func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
-	needsOverride = false
-	needsReset = false
-
-	// check if the column is an idenitity type
-	if columnInfo.IdentityGeneration != nil && *columnInfo.IdentityGeneration != "" {
-		needsOverride = true
-		needsReset = true
-		return
-	}
-
-	// check if column default is sequence
-	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
-		needsReset = true
-		return
-	}
-
-	return
 }

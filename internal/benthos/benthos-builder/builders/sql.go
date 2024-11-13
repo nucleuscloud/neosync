@@ -30,10 +30,11 @@ type sqlSyncBuilder struct {
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	primaryKeyToForeignKeysMap        map[string]map[string][]*bb_internal.ReferenceKey          // schema.table -> column -> ForeignKey
-	colTransformerMap                 map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
-	sqlSourceSchemaColumnInfoMap      map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
-	sqlDestinationSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	primaryKeyToForeignKeysMap   map[string]map[string][]*bb_internal.ReferenceKey          // schema.table -> column -> ForeignKey
+	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
+	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	// merged source and destination schema. with preference given to destination schema
+	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 }
 
 type SqlSyncOption func(*SqlSyncOptions)
@@ -276,15 +277,22 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	// lazy load
-	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
+	if len(b.mergedSchemaColumnMap) == 0 {
 		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
-		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
+		b.mergedSchemaColumnMap = sqlSchemaColMap
+	}
+	if len(b.mergedSchemaColumnMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for either source or destination: %s", params.DestConnection.Name)
 	}
 
 	var colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow
-	colMap, ok := b.sqlDestinationSchemaColumnInfoMap[tableKey]
+	colMap, ok := b.mergedSchemaColumnMap[tableKey]
 	if ok {
 		colInfoMap = colMap
+	}
+
+	if len(colInfoMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for destination: %s table: %s", params.DestConnection.Name, tableKey)
 	}
 
 	colTransformerMap := b.colTransformerMap
@@ -298,6 +306,10 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	tableColTransformers := colTransformerMap[tableKey]
+	if len(tableColTransformers) == 0 {
+		return nil, fmt.Errorf("column transformer mappings not found for table: %s", tableKey)
+	}
+
 	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
 	if err != nil {
 		return nil, err

@@ -2,19 +2,15 @@ package connections_cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
-	"os"
 	"time"
 
 	"connectrpc.com/connect"
-	charmlog "github.com/charmbracelet/log"
 	"github.com/fatih/color"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 )
@@ -50,42 +46,27 @@ func newListCmd() *cobra.Command {
 func listConnections(
 	ctx context.Context,
 	debugMode bool,
-	apiKey, accountIdFlag *string,
+	apiKey,
+	accountIdFlag *string,
 ) error {
-	logLevel := charmlog.InfoLevel
-	if debugMode {
-		logLevel = charmlog.DebugLevel
-	}
-	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-		Level:           logLevel,
-	})
-	logger := slog.New(charmlogger)
+	logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debugMode))
 
-	var accountId = accountIdFlag
-	if accountId == nil || *accountId == "" {
-		aId, err := userconfig.GetAccountId()
-		if err != nil {
-			logger.Error("Unable to retrieve account id. Please use account switch command to set account.")
-			return err
-		}
-		accountId = &aId
-	}
-
-	if accountId == nil || *accountId == "" {
-		return errors.New("Account Id not found. Please use account switch command to set account.")
-	}
-
-	connectInterceptors := []connect.Interceptor{}
 	neosyncurl := auth.GetNeosyncUrl()
-	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, logger, auth.WithApiKey(apiKey))
 	if err != nil {
 		return err
 	}
-	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
-	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 
-	connections, err := getConnections(ctx, connectionclient, *accountId)
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl)
+
+	accountId, err := auth.ResolveAccountIdFromFlag(ctx, userclient, accountIdFlag, apiKey, logger)
+	if err != nil {
+		return err
+	}
+
+	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
+
+	connections, err := getConnections(ctx, connectionclient, accountId)
 	if err != nil {
 		return err
 	}
@@ -139,7 +120,7 @@ func getCategory(cc *mgmtv1alpha1.ConnectionConfig) string {
 	if cc == nil {
 		return "Unknown"
 	}
-	switch cc.Config.(type) {
+	switch cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return "PostgreSQL"
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
@@ -154,6 +135,8 @@ func getCategory(cc *mgmtv1alpha1.ConnectionConfig) string {
 		return "OpenAI"
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 		return "DynamoDB"
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return "MSSQL"
 	default:
 		return "Unknown"
 	}

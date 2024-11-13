@@ -65,7 +65,6 @@ func (m *jsonToSqlProcessor) Close(context.Context) error {
 	return nil
 }
 
-// [bigint binary blob char date datetime decimal double enum float int int json longblob longtext mediumblob mediumint mediumtext set set smallint text time timestamp tinyblob tinyint tinytext varbinary varchar year]
 func (p *jsonToSqlProcessor) transform(path string, root any) any {
 	switch v := root.(type) {
 	case map[string]any:
@@ -97,7 +96,8 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 				return v
 			}
 			return validJson
-		case "money", "timetz":
+		case "money", "uuid", "timetz":
+			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
 			return string(v)
 		}
 		return v
