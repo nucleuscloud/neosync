@@ -119,7 +119,7 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
         table.options.meta?.getTransformerFromField(row.index) ??
         new SystemTransformer();
       return (
-        <div>
+        <div className="flex flex-row gap-2">
           <div>
             <TransformerSelect
               getTransformers={() =>
@@ -129,6 +129,7 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
                 }
               }
               buttonText={getTransformerSelectButtonText(transformer)}
+              buttonClassName="w-[175px]"
               value={getValue()}
               onSelect={(updatedValue) =>
                 table.options.meta?.onTransformerUpdate(row.index, updatedValue)
@@ -153,18 +154,6 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
       );
     },
   });
-
-  // const dataTypeColumn: AccessorColumnDef<JobMappingFormValues, any> = {
-  //   id: 'dataType',
-  //   // accessorKey: 'dataType',
-  //   accessorFn(data) {
-  //     return 'foo';
-  //   },
-  //   filterFn() {},
-  //   header({ column }) {
-  //     return <SchemaColumnHeader column={column} title="Data Type" />;
-  //   },
-  // };
 
   return [
     checkboxColumn,
