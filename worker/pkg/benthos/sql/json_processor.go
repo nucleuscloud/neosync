@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"strconv"
+	"strings"
 
+	"github.com/lib/pq"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -81,6 +83,15 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
+		if isPgArray(datatype) {
+			var pgarray []any
+			err := json.Unmarshal(v, &pgarray)
+			if err != nil {
+				p.logger.Errorf("unable to unmarshal pg array: %w", err)
+				return v
+			}
+			return pq.Array(pgarray)
+		}
 		switch datatype {
 		case "bit":
 			bit, err := convertStringToBit(string(v))
@@ -104,6 +115,10 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 	default:
 		return v
 	}
+}
+
+func isPgArray(datatype string) bool {
+	return strings.HasSuffix(datatype, "[]")
 }
 
 // handles case where json strings are not quoted
