@@ -3,6 +3,7 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
+import { getTransformerFilter } from '@/components/jobs/SchemaTable/SchemaColumns';
 import {
   SchemaTable,
   getAllFormErrors,
@@ -25,12 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { splitConnections } from '@/libs/utils';
-import { getErrorMessage } from '@/util/util';
+import { getErrorMessage, getTransformerFromField } from '@/util/util';
 import {
   DataSyncSourceFormValues,
   EditDestinationOptionsFormValues,
   JobMappingFormValues,
+  JobMappingTransformerForm,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -233,6 +236,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     control: form.control,
     name: 'mappings',
   });
+  const watchedMappings = form.watch('mappings');
+  console.log(
+    'form mappings',
+    formMappings[0] ? formMappings[0].transformer.config : undefined,
+    watchedMappings[0] ? watchedMappings[0].transformer.config : undefined
+  );
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -466,6 +475,28 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     []
   );
 
+  const { handler, isLoading, isValidating } = useGetTransformersHandler(
+    account?.id ?? ''
+  );
+
+  function onTransformerUpdate(
+    index: number,
+    transformer: JobMappingTransformerForm
+  ): void {
+    // form.setValue(`mappings.${index}.transformer`, transformer, {
+    //   shouldDirty: true,
+    //   shouldTouch: true,
+    //   shouldValidate: false, // this is intentional!
+    // });
+    const val = form.getValues(`mappings.${index}`);
+    update(index, {
+      schema: val.schema,
+      table: val.table,
+      column: val.column,
+      transformer,
+    });
+  }
+
   const { onClick: onImportMappingsClick } = useOnImportMappings({
     setMappings(mappings) {
       form.setValue('mappings', mappings, {
@@ -480,13 +511,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     appendNewMappings(mappings) {
       append(mappings);
     },
-    setTransformer(idx, transformer) {
-      form.setValue(`mappings.${idx}.transformer`, transformer, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: false,
-      });
-    },
+    setTransformer: onTransformerUpdate,
     async triggerUpdate() {
       await form.trigger('mappings');
       setTimeout(() => {
@@ -757,6 +782,27 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               addVirtualForeignKey={addVirtualForeignKey}
               removeVirtualForeignKey={removeVirtualForeignKey}
               onImportMappingsClick={onImportMappingsClick}
+              onTransformerUpdate={(idx, cfg) => {
+                onTransformerUpdate(idx, cfg);
+              }}
+              getAvailableTransformers={(idx) => {
+                const row = formMappings[idx];
+                return handler.getFilteredTransformers(
+                  getTransformerFilter(
+                    schemaConstraintHandler,
+                    {
+                      schema: row.schema,
+                      table: row.table,
+                      column: row.column,
+                    },
+                    'sync'
+                  )
+                );
+              }}
+              getTransformerFromField={(idx) => {
+                const row = formMappings[idx];
+                return getTransformerFromField(handler, row.transformer);
+              }}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">

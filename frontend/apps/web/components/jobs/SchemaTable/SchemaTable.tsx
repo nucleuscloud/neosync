@@ -4,8 +4,6 @@ import DualListBox, {
   Action,
   Option,
 } from '@/components/DualListBox/DualListBox';
-import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Card,
@@ -15,9 +13,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
+import { Transformer } from '@/shared/transformers';
 import {
   JobMappingFormValues,
+  JobMappingTransformerForm,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
@@ -29,14 +28,15 @@ import {
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
+import { COLUMNS, JobMappingRow } from '../JobMappingTable/Columns';
+import JobMappingTable from '../JobMappingTable/JobMappingTable';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { ImportMappingsConfig } from './ImportJobMappingsButton';
-import { getSchemaColumns } from './SchemaColumns';
-import SchemaPageTable from './SchemaPageTable';
 import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
 import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
+import { TransformerResult } from './transformer-handler';
 import { useOnExportMappings } from './useOnExportMappings';
 
 interface Props {
@@ -59,6 +59,9 @@ interface Props {
     jobmappings: JobMapping[],
     importConfig: ImportMappingsConfig
   ): void;
+  onTransformerUpdate(index: number, config: JobMappingTransformerForm): void;
+  getAvailableTransformers(index: number): TransformerResult;
+  getTransformerFromField(index: number): Transformer;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -76,19 +79,69 @@ export function SchemaTable(props: Props): ReactElement {
     isJobMappingsValidating,
     onValidate,
     onImportMappingsClick,
+    onTransformerUpdate,
+    getAvailableTransformers,
+    getTransformerFromField,
   } = props;
-  const { account } = useAccount();
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  // const { account } = useAccount();
+  // const { handler, isLoading, isValidating } = useGetTransformersHandler(
+  //   account?.id ?? ''
+  // );
 
-  const columns = useMemo(() => {
-    return getSchemaColumns({
-      transformerHandler: handler,
-      constraintHandler,
-      jobType,
+  // const columns = useMemo(() => {
+  //   return getSchemaColumns({
+  //     transformerHandler: handler,
+  //     constraintHandler,
+  //     jobType,
+  //   });
+  // }, [handler, constraintHandler, jobType]);
+  const tableData = useMemo((): JobMappingRow[] => {
+    console.log('rendering job table data');
+    return data.map((d): JobMappingRow => {
+      const colKey = {
+        schema: d.schema,
+        table: d.table,
+        column: d.column,
+      };
+      const isPrimaryKey = constraintHandler.getIsPrimaryKey(colKey);
+      const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(colKey);
+      const isUnique = constraintHandler.getIsUniqueConstraint(colKey);
+
+      const constraintPieces: string[] = [];
+      if (isPrimaryKey) {
+        constraintPieces.push('Primary Key');
+      }
+      if (isForeignKey) {
+        fkCols.forEach((col) => constraintPieces.push(`Foreign Key: ${col}`));
+      }
+      if (isUnique) {
+        constraintPieces.push('Unique');
+      }
+      const constraints = constraintPieces.join('\n');
+
+      const generatedType = constraintHandler.getGeneratedType(colKey);
+      const identityType = constraintHandler.getIdentityType(colKey);
+
+      const attributePieces: string[] = [];
+      if (generatedType) {
+        attributePieces.push(getGeneratedStatement(generatedType));
+      } else if (identityType) {
+        attributePieces.push(getIdentityStatement(identityType));
+      }
+      const attributes = attributePieces.join('\n');
+
+      return {
+        schema: d.schema,
+        table: d.table,
+        column: d.column,
+        dataType: constraintHandler.getDataType(colKey), // todo: add handleDataTypeBadge method
+        attributes: attributes,
+        constraints: constraints,
+        isNullable: constraintHandler.getIsNullable(colKey) ? 'Yes' : 'No',
+        transformer: d.transformer,
+      };
     });
-  }, [handler, constraintHandler, jobType]);
+  }, [data, constraintHandler, jobType]);
 
   const virtualForeignKeyColumns = useMemo(() => {
     return getVirtualForeignKeysColumns({ removeVirtualForeignKey });
@@ -104,7 +157,7 @@ export function SchemaTable(props: Props): ReactElement {
     jobMappings: data,
   });
 
-  if (isLoading || !data) {
+  if (!data) {
     return <SkeletonTable />;
   }
 
@@ -118,7 +171,7 @@ export function SchemaTable(props: Props): ReactElement {
                 <TableIcon className="h-4 w-4" />
               </div>
               <CardTitle>Table Selection</CardTitle>
-              <div>{isValidating ? <Spinner /> : null}</div>
+              {/* <div>{isValidating ? <Spinner /> : null}</div> */}
             </div>
             <CardDescription>
               Select the tables that you want to transform and move them from
@@ -150,7 +203,7 @@ export function SchemaTable(props: Props): ReactElement {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="mappings">
-            <SchemaPageTable
+            {/* <SchemaPageTable
               columns={columns}
               data={data}
               transformerHandler={handler}
@@ -158,6 +211,13 @@ export function SchemaTable(props: Props): ReactElement {
               jobType={jobType}
               onExportMappingsClick={onExportMappingsClick}
               onImportMappingsClick={onImportMappingsClick}
+            /> */}
+            <JobMappingTable<JobMappingRow, any>
+              data={tableData}
+              columns={COLUMNS}
+              onTransformerUpdate={onTransformerUpdate}
+              getAvailableTransformers={getAvailableTransformers}
+              getTransformerFromField={getTransformerFromField}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -176,15 +236,16 @@ export function SchemaTable(props: Props): ReactElement {
           </TabsContent>
         </Tabs>
       ) : (
-        <SchemaPageTable
-          columns={columns}
-          data={data}
-          transformerHandler={handler}
-          constraintHandler={constraintHandler}
-          jobType={jobType}
-          onExportMappingsClick={onExportMappingsClick}
-          onImportMappingsClick={onImportMappingsClick}
-        />
+        // <SchemaPageTable
+        //   columns={columns}
+        //   data={data}
+        //   transformerHandler={handler}
+        //   constraintHandler={constraintHandler}
+        //   jobType={jobType}
+        //   onExportMappingsClick={onExportMappingsClick}
+        //   onImportMappingsClick={onImportMappingsClick}
+        // />
+        <div />
       )}
     </div>
   );
@@ -262,4 +323,24 @@ export function getAllFormErrors(
   }
 
   return messages;
+}
+
+function getIdentityStatement(identityType: string): string {
+  if (identityType === 'a') {
+    return 'GENERATED ALWAYS AS IDENTITY';
+  } else if (identityType === 'd') {
+    return 'GENERATED BY DEFAULT AS IDENTITY';
+  } else if (identityType === 'auto_increment') {
+    return 'AUTO_INCREMENT';
+  }
+  return identityType;
+}
+
+function getGeneratedStatement(generatedType: string): string {
+  if (generatedType === 's' || generatedType === 'STORED GENERATED') {
+    return 'GENERATED ALWAYS AS STORED';
+  } else if (generatedType === 'v' || generatedType === 'VIRTUAL GENERATED') {
+    return 'GENERATED ALWAYS AS VIRTUAL';
+  }
+  return generatedType;
 }
