@@ -226,3 +226,6 @@ SET account_slug = sqlc.arg('teamName'),
     max_allowed_records = NULL
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
+
+-- name: GetAccountIds :many
+SELECT id FROM neosync_api.accounts;
