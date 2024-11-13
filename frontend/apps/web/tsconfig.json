@@ -28,9 +28,9 @@
       "@/*": [
         "./*"
       ],
-      "@neosync/sdk": [
-        "../../packages/sdk/*"
-      ]
+      // "@neosync/sdk": [
+      //   "../../packages/sdk/*"
+      // ]
     }
   },
   "include": [
