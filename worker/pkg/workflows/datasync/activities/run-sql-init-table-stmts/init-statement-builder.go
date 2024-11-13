@@ -19,7 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"go.temporal.io/sdk/activity"
 )
 
 const (
@@ -32,6 +31,7 @@ type initStatementBuilder struct {
 	connclient     mgmtv1alpha1connect.ConnectionServiceClient
 	eelicense      *license.EELicense
 	isNeosyncCloud bool
+	workflowId     string
 }
 
 func newInitStatementBuilder(
@@ -40,6 +40,7 @@ func newInitStatementBuilder(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	eelicense *license.EELicense,
 	isNeosyncCloud bool,
+	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
 		sqlmanager:     sqlmanager,
@@ -47,6 +48,7 @@ func newInitStatementBuilder(
 		connclient:     connclient,
 		eelicense:      eelicense,
 		isNeosyncCloud: isNeosyncCloud,
+		workflowId:     workflowId,
 	}
 }
 
@@ -55,7 +57,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	req *RunSqlInitTableStatementsRequest,
 	slogger *slog.Logger,
 ) (*RunSqlInitTableStatementsResponse, error) {
-	info := activity.GetInfo(ctx)
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
@@ -400,7 +401,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
-	err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId, info.WorkflowExecution.ID)
+	err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -421,7 +422,6 @@ func (b *initStatementBuilder) setInitSchemaRunCtx(
 	ctx context.Context,
 	initschemaRunContexts []*InitSchemaRunContext,
 	accountId string,
-	workflowId string,
 ) error {
 	bits, err := json.Marshal(initschemaRunContexts)
 	if err != nil {
@@ -429,7 +429,7 @@ func (b *initStatementBuilder) setInitSchemaRunCtx(
 	}
 	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   workflowId,
+			JobRunId:   b.workflowId,
 			ExternalId: "init-schema",
 			AccountId:  accountId,
 		},

@@ -75,6 +75,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.connclient,
 		a.eelicense,
 		a.isNeosyncCloud,
+		info.WorkflowExecution.ID,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(
 		"jobId", req.JobId,
