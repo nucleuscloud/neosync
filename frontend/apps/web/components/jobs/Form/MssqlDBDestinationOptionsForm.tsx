@@ -34,7 +34,7 @@ export default function MssqlDBDestinationOptionsForm(
         />
         <FormErrorMessage message={errors?.truncateBeforeInsert?.message} />
       </FormItemContainer>
-      {/* {!hideInitTableSchema && (
+      {!props.hideInitTableSchema && (
         <FormItemContainer>
           <SwitchCard
             isChecked={value.initTableSchema ?? false}
@@ -49,7 +49,7 @@ export default function MssqlDBDestinationOptionsForm(
           />
           <FormErrorMessage message={errors?.initTableSchema?.message} />
         </FormItemContainer>
-      )} */}
+      )}
       {/* <FormItemContainer>
         <SwitchCard
           isChecked={value.onConflictDoNothing ?? false}

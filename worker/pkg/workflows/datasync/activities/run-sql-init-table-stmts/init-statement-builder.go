@@ -2,6 +2,7 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -15,6 +16,8 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
+	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -23,20 +26,29 @@ const (
 )
 
 type initStatementBuilder struct {
-	sqlmanager sql_manager.SqlManagerClient
-	jobclient  mgmtv1alpha1connect.JobServiceClient
-	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	sqlmanager     sql_manager.SqlManagerClient
+	jobclient      mgmtv1alpha1connect.JobServiceClient
+	connclient     mgmtv1alpha1connect.ConnectionServiceClient
+	eelicense      *license.EELicense
+	isNeosyncCloud bool
+	workflowId     string
 }
 
 func newInitStatementBuilder(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	eelicense *license.EELicense,
+	isNeosyncCloud bool,
+	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager: sqlmanager,
-		jobclient:  jobclient,
-		connclient: connclient,
+		sqlmanager:     sqlmanager,
+		jobclient:      jobclient,
+		connclient:     connclient,
+		eelicense:      eelicense,
+		isNeosyncCloud: isNeosyncCloud,
+		workflowId:     workflowId,
 	}
 }
 
@@ -79,6 +91,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
+
+	initSchemaRunContext := []*InitSchemaRunContext{}
 
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
@@ -281,6 +295,50 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			// init statements
+			if sqlopts.InitSchema {
+				if !b.isNeosyncCloud && !b.eelicense.IsValid() {
+					return nil, fmt.Errorf("Invalid license, Neosync Cloud not detected. SQL Server schema init requires Enterprise license.")
+				}
+				tables := []*sqlmanager_shared.SchemaTable{}
+				for tableKey := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(tableKey)
+					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+				}
+
+				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+				if err != nil {
+					return nil, err
+				}
+
+				initErrors := []*InitSchemaError{}
+				for _, block := range initblocks {
+					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+					if len(block.Statements) == 0 {
+						continue
+					}
+					for _, stmt := range block.Statements {
+						err = destdb.Db.Exec(ctx, stmt)
+						if err != nil {
+							slogger.Error("unable to exec mssql %s statements: %w", block.Label, err)
+							initErrors = append(initErrors, &InitSchemaError{
+								Statement: stmt,
+								Error:     err.Error(),
+							})
+							if block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
+								destdb.Db.Close()
+								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+							}
+						}
+					}
+				}
+				initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+					ConnectionId: destination.ConnectionId,
+					Errors:       initErrors,
+				})
+			}
+
+			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
 				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
@@ -345,7 +403,44 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
+	err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RunSqlInitTableStatementsResponse{}, nil
+}
+
+type InitSchemaRunContext struct {
+	ConnectionId string
+	Errors       []*InitSchemaError
+}
+type InitSchemaError struct {
+	Statement string
+	Error     string
+}
+
+func (b *initStatementBuilder) setInitSchemaRunCtx(
+	ctx context.Context,
+	initschemaRunContexts []*InitSchemaRunContext,
+	accountId string,
+) error {
+	bits, err := json.Marshal(initschemaRunContexts)
+	if err != nil {
+		return fmt.Errorf("failed to marshal init schema run context: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   b.workflowId,
+			ExternalId: "init-schema-report",
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to set init schema run context: %w", err)
+	}
+	return nil
 }
 
 func (b *initStatementBuilder) getJobById(

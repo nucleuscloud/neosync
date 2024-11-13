@@ -1,4 +1,4 @@
 USE testdb;
 EXEC('
-CREATE SCHEMA sqlmanagermssql3;
+CREATE SCHEMA sqlmanagermssql2;
 ');
