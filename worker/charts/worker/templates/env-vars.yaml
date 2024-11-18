@@ -73,17 +73,9 @@ stringData:
     REDIS_MASTER: {{ .Values.redis.master }}
     {{- end }}
 
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enabled }}
     REDIS_TLS_ENABLED: {{ .Values.redis.tls.enabled | default "false" | quote }}
-    {{- end }}
-
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.skipCertVerify }}
     REDIS_TLS_SKIP_CERT_VERIFY: {{ .Values.redis.tls.skipCertVerify | default "false" | quote }}
-    {{- end }}
-
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enableRenegotiation }}
     REDIS_TLS_ENABLE_RENEGOTIATION: {{ .Values.redis.tls.enableRenegotiation | default "false" | quote }}
-    {{- end }}
 
     {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthority }}
     REDIS_TLS_ROOT_CERT_AUTHORITY: {{ .Values.redis.tls.rootCertAuthority }}
