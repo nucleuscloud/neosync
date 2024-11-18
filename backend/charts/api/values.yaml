@@ -59,6 +59,8 @@ db:
 
 # Specify connection information for the migrations init container
 migrations:
+  # -- Whether or not the migratiosn init container will be added to the deployment
+  enabled: true
   ## Specify database connection information for the migrations init container to connect to
   db:
     # -- The database hostname
