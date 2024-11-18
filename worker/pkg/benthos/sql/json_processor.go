@@ -100,7 +100,7 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 				return v
 			}
 			return bit
-		case "json":
+		case "json", "jsonb":
 			validJson, err := getValidJson(v)
 			if err != nil {
 				p.logger.Errorf("unable to get valid json: %w", err)
