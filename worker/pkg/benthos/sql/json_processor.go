@@ -84,13 +84,12 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 			return v
 		}
 		if isPgArray(datatype) {
-			var pgarray []any
-			err := json.Unmarshal(v, &pgarray)
+			pgarray, err := processPgArray(v, datatype)
 			if err != nil {
-				p.logger.Errorf("unable to unmarshal pg array: %w", err)
+				p.logger.Errorf("unable to process PG Array: %w", err)
 				return v
 			}
-			return pq.Array(pgarray)
+			return pgarray
 		}
 		switch datatype {
 		case "bit":
@@ -117,6 +116,24 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 	}
 }
 
+func processPgArray(bits []byte, datatype string) (any, error) {
+	var pgarray []any
+	err := json.Unmarshal(bits, &pgarray)
+	if err != nil {
+		return nil, err
+	}
+	switch datatype {
+	case "json[]", "jsonb[]":
+		jsonArray, err := stringifyJsonArray(pgarray)
+		if err != nil {
+			return nil, err
+		}
+		return pq.Array(jsonArray), nil
+	default:
+		return pq.Array(pgarray), nil
+	}
+}
+
 func isPgArray(datatype string) bool {
 	return strings.HasSuffix(datatype, "[]")
 }
@@ -133,6 +150,18 @@ func getValidJson(jsonData []byte) ([]byte, error) {
 		return nil, err
 	}
 	return quotedData, nil
+}
+
+func stringifyJsonArray(pgarray []any) ([]string, error) {
+	jsonArray := make([]string, len(pgarray))
+	for i, item := range pgarray {
+		bytes, err := json.Marshal(item)
+		if err != nil {
+			return nil, err
+		}
+		jsonArray[i] = string(bytes)
+	}
+	return jsonArray, nil
 }
 
 func convertStringToBit(bitString string) ([]byte, error) {
