@@ -86,9 +86,6 @@ export default function JobMappingTable<TData, TValue>(
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    // getFacetedRowModel: getFacetedRowModel(),
-    // getFacetedUniqueValues: getFacetedUniqueValues(),
-    // getFacetedMinMaxValues: getFacetedMinMaxValues(),
     meta: {
       onTransformerUpdate: onTransformerUpdate,
       getAvailableTransformers: getAvailableTransformers,
@@ -104,7 +101,7 @@ export default function JobMappingTable<TData, TValue>(
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize() {
-      return 33;
+      return 53;
     },
     getScrollElement() {
       return tableContainerRef.current;
@@ -150,7 +147,7 @@ export default function JobMappingTable<TData, TValue>(
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="sticky top-0 z-10 px-2 grid">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 px-2 grid">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -184,11 +181,10 @@ export default function JobMappingTable<TData, TValue>(
               const row = rows[virtualRow.index];
               return (
                 <TableRow
-                  data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                   key={row.id}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
+                    height: `${virtualRow.size}px`,
                   }}
                   className="items-center flex absolute w-full justify-between px-2"
                 >

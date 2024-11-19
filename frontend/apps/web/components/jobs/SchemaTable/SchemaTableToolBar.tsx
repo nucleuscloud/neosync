@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
 import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
-  getTransformerSelectButtonText,
   isInvalidTransformer,
+  useTransformerSelectButtonText,
 } from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
@@ -48,6 +48,8 @@ interface DataTableToolbarProps<TData> {
   onApplyDefaultClick(override: boolean): void;
 }
 
+const DEFAULT_TRANSFORMER_BUTTON_TEXT = 'Bulk set transformers';
+
 export function SchemaTableToolbar<TData>({
   table,
   onExportMappingsClick,
@@ -59,8 +61,9 @@ export function SchemaTableToolbar<TData>({
   isApplyDefaultButtonDisabled,
   onApplyDefaultClick,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
-  const hasSelectedRows = Object.values(table.getState().rowSelection).some(
+  const tableState = table.getState();
+  const isFiltered = tableState.columnFilters.length > 0;
+  const hasSelectedRows = Object.values(tableState.rowSelection).some(
     (value) => value
   );
 
@@ -77,6 +80,10 @@ export function SchemaTableToolbar<TData>({
     !bulkTransformer ||
     !hasSelectedRows ||
     !isTransformerAllowed(allowedTransformers, transformer);
+  const transformerSelectButtontext = useTransformerSelectButtonText(
+    transformer,
+    DEFAULT_TRANSFORMER_BUTTON_TEXT
+  );
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -89,10 +96,7 @@ export function SchemaTableToolbar<TData>({
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            buttonText={getTransformerSelectButtonText(
-              transformer,
-              'Bulk set transformers'
-            )}
+            buttonText={transformerSelectButtontext}
             disabled={!hasSelectedRows}
             buttonClassName="md:max-w-[275px]"
             notFoundText="No transformers found for the given selection."
@@ -153,7 +157,6 @@ export function SchemaTableToolbar<TData>({
           )}
           {displayApplyDefaultTransformersButton && (
             <ApplyDefaultTransformersButton
-              // isDisabled={form.watch('mappings').length === 0}
               isDisabled={isApplyDefaultButtonDisabled}
               onClick={onApplyDefaultClick}
             />
