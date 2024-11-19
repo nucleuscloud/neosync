@@ -7,8 +7,8 @@ import {
 } from '@/components/ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
-import { handleDataTypeBadge, toColKey } from './SchemaColumns';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { handleDataTypeBadge, toColKey } from './util';
 
 interface Props {
   constraintHandler: SchemaConstraintHandler;

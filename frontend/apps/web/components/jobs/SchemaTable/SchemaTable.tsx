@@ -29,7 +29,7 @@ import { TableIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
-import { COLUMNS, JobMappingRow } from '../JobMappingTable/Columns';
+import { JobMappingRow, SQL_COLUMNS } from '../JobMappingTable/Columns';
 import JobMappingTable from '../JobMappingTable/JobMappingTable';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { ImportMappingsConfig } from './ImportJobMappingsButton';
@@ -98,7 +98,6 @@ export function SchemaTable(props: Props): ReactElement {
     onTransformerBulkUpdate,
   } = props;
   const tableData = useMemo((): JobMappingRow[] => {
-    console.log('rendering job table data');
     return data.map((d): JobMappingRow => {
       const colKey = {
         schema: d.schema,
@@ -173,7 +172,6 @@ export function SchemaTable(props: Props): ReactElement {
                 <TableIcon className="h-4 w-4" />
               </div>
               <CardTitle>Table Selection</CardTitle>
-              {/* <div>{isValidating ? <Spinner /> : null}</div> */}
             </div>
             <CardDescription>
               Select the tables that you want to transform and move them from
@@ -205,18 +203,9 @@ export function SchemaTable(props: Props): ReactElement {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="mappings">
-            {/* <SchemaPageTable
-              columns={columns}
-              data={data}
-              transformerHandler={handler}
-              constraintHandler={constraintHandler}
-              jobType={jobType}
-              onExportMappingsClick={onExportMappingsClick}
-              onImportMappingsClick={onImportMappingsClick}
-            /> */}
             <JobMappingTable<JobMappingRow, any>
               data={tableData}
-              columns={COLUMNS}
+              columns={SQL_COLUMNS}
               onTransformerUpdate={onTransformerUpdate}
               getAvailableTransformers={getAvailableTransformers}
               getTransformerFromField={getTransformerFromField}
@@ -227,6 +216,12 @@ export function SchemaTable(props: Props): ReactElement {
               getTransformerFromFieldValue={getTransformerFromFieldValue}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
               onApplyDefaultClick={onApplyDefaultClick}
+              onDeleteRow={() =>
+                console.warn('on delete row is not implemented')
+              }
+              onDuplicateRow={() =>
+                console.warn('on duplicate row is not implemented')
+              }
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -245,16 +240,24 @@ export function SchemaTable(props: Props): ReactElement {
           </TabsContent>
         </Tabs>
       ) : (
-        // <SchemaPageTable
-        //   columns={columns}
-        //   data={data}
-        //   transformerHandler={handler}
-        //   constraintHandler={constraintHandler}
-        //   jobType={jobType}
-        //   onExportMappingsClick={onExportMappingsClick}
-        //   onImportMappingsClick={onImportMappingsClick}
-        // />
-        <div />
+        <JobMappingTable<JobMappingRow, any>
+          data={tableData}
+          columns={SQL_COLUMNS}
+          onTransformerUpdate={onTransformerUpdate}
+          getAvailableTransformers={getAvailableTransformers}
+          getTransformerFromField={getTransformerFromField}
+          onExportMappingsClick={onExportMappingsClick}
+          onImportMappingsClick={onImportMappingsClick}
+          isApplyDefaultTransformerButtonDisabled={data.length === 0}
+          getAvalableTransformersForBulk={getAvailableTransformersForBulk}
+          getTransformerFromFieldValue={getTransformerFromFieldValue}
+          onTransformerBulkUpdate={onTransformerBulkUpdate}
+          onApplyDefaultClick={onApplyDefaultClick}
+          onDeleteRow={() => console.warn('on delete row is not implemented')}
+          onDuplicateRow={() =>
+            console.warn('on duplicate row is not implemented')
+          }
+        />
       )}
     </div>
   );

@@ -6,14 +6,14 @@ import {
   SchemaConstraintHandler,
 } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import {
-  fromRowDataToColKey,
-  getTransformerFilter,
-} from '@/components/jobs/SchemaTable/SchemaColumns';
-import {
   TransformerConfigCase,
   TransformerHandler,
   TransformerResult,
 } from '@/components/jobs/SchemaTable/transformer-handler';
+import {
+  fromRowDataToColKey,
+  getTransformerFilter,
+} from '@/components/jobs/SchemaTable/util';
 import { isValidSubsetType } from '@/components/jobs/subsets/utils';
 import {
   JobMappingFormValues,
@@ -205,11 +205,7 @@ export function getFilteredTransformersForBulkSet(
 
   rows.forEach((row) => {
     const { system, userDefined } = transformerHandler.getFilteredTransformers(
-      getTransformerFilter(
-        constraintHandler,
-        fromRowDataToColKey(row as unknown as any), // todo
-        jobType
-      )
+      getTransformerFilter(constraintHandler, fromRowDataToColKey(row), jobType)
     );
     systemArrays.push(system);
     userDefinedArrays.push(userDefined);

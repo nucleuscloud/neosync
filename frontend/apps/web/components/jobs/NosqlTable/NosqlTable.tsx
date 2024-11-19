@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { cn } from '@/libs/utils';
+import { Transformer } from '@/shared/transformers';
 import {
   getTransformerFromField,
   getTransformerSelectButtonText,
@@ -58,7 +59,7 @@ import {
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckIcon, Pencil1Icon, TableIcon } from '@radix-ui/react-icons';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
-import { ColumnDef } from '@tanstack/react-table';
+import { Row } from '@tanstack/react-table';
 import { nanoid } from 'nanoid';
 import {
   HTMLProps,
@@ -71,33 +72,33 @@ import {
 } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { JobMappingRow, NOSQL_COLUMNS } from '../JobMappingTable/Columns';
+import JobMappingTable from '../JobMappingTable/JobMappingTable';
 import FormErrorsCard, { FormError } from '../SchemaTable/FormErrorsCard';
 import { ImportMappingsConfig } from '../SchemaTable/ImportJobMappingsButton';
-import { SchemaColumnHeader } from '../SchemaTable/SchemaColumnHeader';
-import SchemaPageTable, { Row } from '../SchemaTable/SchemaPageTable';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
-import { SchemaConstraintHandler } from '../SchemaTable/schema-constraint-handler';
-import { TransformerHandler } from '../SchemaTable/transformer-handler';
+import {
+  TransformerHandler,
+  TransformerResult,
+} from '../SchemaTable/transformer-handler';
 import { useOnExportMappings } from '../SchemaTable/useOnExportMappings';
 import {
   DestinationDetails,
   OnTableMappingUpdateRequest,
 } from './TableMappings/Columns';
 import TableMappingsCard from './TableMappings/TableMappingsCard';
-import { DataTableRowActions } from './data-table-row-actions';
 
 interface Props {
   data: JobMappingFormValues[];
   schema: Record<string, GetConnectionSchemaResponse>;
   isSchemaDataReloading: boolean;
-  constraintHandler: SchemaConstraintHandler;
   isJobMappingsValidating?: boolean;
 
   onValidate?(): void;
 
   formErrors: FormError[];
   onAddMappings(values: AddNewNosqlRecordFormValues[]): void;
-  onRemoveMappings(values: JobMappingFormValues[]): void;
+  onRemoveMappings(indices: number[]): void;
   onEditMappings(values: JobMappingFormValues, index: number): void;
 
   destinationOptions: EditDestinationOptionsFormValues[];
@@ -108,6 +109,17 @@ interface Props {
     jobmappings: JobMapping[],
     importConfig: ImportMappingsConfig
   ): void;
+  getAvailableTransformers(index: number): TransformerResult;
+  getTransformerFromField(index: number): Transformer;
+  onApplyDefaultClick(override: boolean): void;
+  getAvailableTransformersForBulk(
+    rows: Row<JobMappingRow>[]
+  ): TransformerResult;
+  getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
+  onTransformerBulkUpdate(
+    indices: number[],
+    config: JobMappingTransformerForm
+  ): void;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -116,7 +128,6 @@ export default function NosqlTable(props: Props): ReactElement {
     schema,
     formErrors,
     isJobMappingsValidating,
-    constraintHandler,
     onValidate,
     onAddMappings,
     onRemoveMappings,
@@ -126,6 +137,12 @@ export default function NosqlTable(props: Props): ReactElement {
     onDestinationTableMappingUpdate,
     showDestinationTableMappings,
     onImportMappingsClick,
+    getAvailableTransformers,
+    getTransformerFromField,
+    onApplyDefaultClick,
+    getAvailableTransformersForBulk,
+    getTransformerFromFieldValue,
+    onTransformerBulkUpdate,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -173,31 +190,20 @@ export default function NosqlTable(props: Props): ReactElement {
     [data, collections]
   );
 
-  const columns = useMemo(
-    () =>
-      getColumns({
-        onDelete(row) {
-          onRemoveMappings([row]);
-        },
-        onEdit(row, index) {
-          onEditMappings(row, index);
-        },
-        onDuplicate(row: Row) {
-          const newKey = createDuplicateKey(row.column);
-          onAddMappings([
-            {
-              collection: `${row.schema}.${row.table}`,
-              key: newKey,
-              transformer: row.transformer,
-            },
-          ]);
-        },
-        transformerHandler: handler,
-        filteredCollections,
-        isDuplicateKey,
-      }),
-    [onRemoveMappings, onEditMappings, handler, isLoading]
-  );
+  const tableData = useMemo(() => {
+    return data.map((d): JobMappingRow => {
+      return {
+        schema: d.schema,
+        table: d.table,
+        column: d.column,
+        dataType: '',
+        attributes: '',
+        constraints: '',
+        isNullable: '',
+        transformer: d.transformer,
+      };
+    });
+  }, [data.length]);
 
   const { onClick: onExportMappingsClick } = useOnExportMappings({
     jobMappings: data,
@@ -246,14 +252,33 @@ export default function NosqlTable(props: Props): ReactElement {
           />
         </div>
       )}
-      <SchemaPageTable
-        columns={columns}
-        data={data}
-        transformerHandler={handler}
-        jobType="sync"
-        constraintHandler={constraintHandler}
+      <JobMappingTable<JobMappingRow, any>
+        data={tableData}
+        columns={NOSQL_COLUMNS}
+        onTransformerUpdate={(idx, config) => {
+          const row = data[idx];
+          onEditMappings({ ...row, transformer: config }, idx);
+        }}
+        getAvailableTransformers={getAvailableTransformers}
+        getTransformerFromField={getTransformerFromField}
         onExportMappingsClick={onExportMappingsClick}
         onImportMappingsClick={onImportMappingsClick}
+        isApplyDefaultTransformerButtonDisabled={data.length === 0}
+        getAvalableTransformersForBulk={getAvailableTransformersForBulk}
+        getTransformerFromFieldValue={getTransformerFromFieldValue}
+        onTransformerBulkUpdate={onTransformerBulkUpdate}
+        onApplyDefaultClick={onApplyDefaultClick}
+        onDeleteRow={(idx) => onRemoveMappings([idx])}
+        onDuplicateRow={(idx) => {
+          const row = data[idx];
+          onAddMappings([
+            {
+              collection: `${row.schema}.${row.table}`,
+              key: createDuplicateKey(row.column),
+              transformer: row.transformer,
+            },
+          ]);
+        }}
       />
     </div>
   );
@@ -482,221 +507,221 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
   );
 }
 
-interface GetColumnsProps {
-  onDelete(row: Row): void;
-  onDuplicate(row: Row): void;
-  transformerHandler: TransformerHandler;
-  onEdit(row: Row, index: number): void;
-  isDuplicateKey: (
-    newValue: string,
-    schema: string,
-    table: string,
-    currValue?: string
-  ) => boolean;
-  filteredCollections(ind: number): string[];
-}
+// interface GetColumnsProps {
+//   onDelete(row: Row): void;
+//   onDuplicate(row: Row): void;
+//   transformerHandler: TransformerHandler;
+//   onEdit(row: Row, index: number): void;
+//   isDuplicateKey: (
+//     newValue: string,
+//     schema: string,
+//     table: string,
+//     currValue?: string
+//   ) => boolean;
+//   filteredCollections(ind: number): string[];
+// }
 
-function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const {
-    onDelete,
-    transformerHandler,
-    onEdit,
-    onDuplicate,
-    isDuplicateKey,
-    filteredCollections,
-  } = props;
-  return [
-    {
-      accessorKey: 'isSelected',
-      header: ({ table }) => (
-        <IndeterminateCheckbox
-          {...{
-            checked: table.getIsAllRowsSelected(),
-            indeterminate: table.getIsSomeRowsSelected(),
-            onChange: table.getToggleAllRowsSelectedHandler(),
-          }}
-        />
-      ),
-      cell: ({ row }) => (
-        <div>
-          <IndeterminateCheckbox
-            {...{
-              checked: row.getIsSelected(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler(),
-            }}
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-      size: 30,
-    },
-    {
-      accessorKey: 'schema',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Schema" />
-      ),
-    },
-    {
-      accessorKey: 'table',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Table" />
-      ),
-    },
-    {
-      accessorFn: (row) => {
-        if (row.schema && row.table) {
-          return `${row.schema}.${row.table}`;
-        }
-        if (row.schema) {
-          return row.schema;
-        }
-        return row.table;
-      },
-      id: 'schemaTable',
-      footer: (props) => props.column.id,
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Collection" />
-      ),
-      cell: ({ getValue, row }) => {
-        return (
-          <EditCollection
-            text={getValue<string>()}
-            collections={filteredCollections(row.index)}
-            onEdit={(updatedObject) => {
-              const lastDotIndex = updatedObject.collection.lastIndexOf('.');
-              onEdit(
-                {
-                  schema: updatedObject.collection.substring(0, lastDotIndex),
-                  table: updatedObject.collection.substring(lastDotIndex + 1),
-                  column: row.getValue('column'),
-                  transformer: row.getValue('transformer'),
-                },
-                row.index
-              );
-            }}
-          />
-        );
-      },
-      maxSize: 500,
-      size: 300,
-    },
-    {
-      accessorKey: 'column',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Document Key" />
-      ),
-      cell: ({ row }) => {
-        const text = row.getValue<string>('column');
-        return (
-          <EditDocumentKey
-            text={text}
-            isDuplicate={(newValue: string, currValue?: string) =>
-              currValue !== newValue &&
-              isDuplicateKey(
-                newValue,
-                row.getValue('schema'),
-                row.getValue('table'),
-                currValue
-              )
-            }
-            onEdit={(updatedObject) => {
-              onEdit(
-                {
-                  schema: row.getValue('schema'),
-                  table: row.getValue('table'),
-                  column: updatedObject.column,
-                  transformer: row.getValue('transformer'),
-                },
-                row.index
-              );
-            }}
-          />
-        );
-      },
-      maxSize: 500,
-      size: 200,
-    },
-    {
-      id: 'transformer',
-      accessorKey: 'transformer',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Transformer" />
-      ),
-      cell: ({ row }) => {
-        // row.getValue doesn't work here due to a tanstack bug where the transformer value is out of sync with getValue
-        // row.original works here. There must be a caching bug with the transformer prop being an object.
-        // This may be related: https://github.com/TanStack/table/issues/5363
-        const fv = row.original.transformer;
-        const transformer = getTransformerFromField(transformerHandler, fv);
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            <div className="flex flex-row gap-2">
-              <div>
-                <TransformerSelect
-                  getTransformers={() => transformerHandler.getTransformers()}
-                  buttonText={getTransformerSelectButtonText(transformer)}
-                  value={fv}
-                  onSelect={(updatedTransformer) =>
-                    onEdit(
-                      {
-                        schema: row.getValue('schema'),
-                        table: row.getValue('table'),
-                        column: row.getValue('column'),
-                        transformer: updatedTransformer,
-                      },
-                      row.index
-                    )
-                  }
-                  side={'left'}
-                  disabled={false}
-                  buttonClassName="w-[175px]"
-                />
-              </div>
-              <EditTransformerOptions
-                transformer={transformer}
-                value={fv}
-                onSubmit={(updatedTransformer) => {
-                  onEdit(
-                    {
-                      schema: row.getValue('schema'),
-                      table: row.getValue('table'),
-                      column: row.getValue('column'),
-                      transformer: updatedTransformer,
-                    },
-                    row.index
-                  );
-                }}
-                disabled={isInvalidTransformer(transformer)}
-              />
-            </div>
-          </span>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      header: () => <p>Actions</p>,
-      cell: ({ row }) => {
-        return (
-          <DataTableRowActions
-            row={row}
-            onDuplicate={() => onDuplicate(row.original)}
-            onDelete={() =>
-              onDelete({
-                schema: row.getValue('schema'),
-                table: row.getValue('table'),
-                column: row.getValue('column'),
-                transformer: row.getValue('transformer'),
-              })
-            }
-          />
-        );
-      },
-    },
-  ];
-}
+// function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
+//   const {
+//     onDelete,
+//     transformerHandler,
+//     onEdit,
+//     onDuplicate,
+//     isDuplicateKey,
+//     filteredCollections,
+//   } = props;
+//   return [
+//     {
+//       accessorKey: 'isSelected',
+//       header: ({ table }) => (
+//         <IndeterminateCheckbox
+//           {...{
+//             checked: table.getIsAllRowsSelected(),
+//             indeterminate: table.getIsSomeRowsSelected(),
+//             onChange: table.getToggleAllRowsSelectedHandler(),
+//           }}
+//         />
+//       ),
+//       cell: ({ row }) => (
+//         <div>
+//           <IndeterminateCheckbox
+//             {...{
+//               checked: row.getIsSelected(),
+//               indeterminate: row.getIsSomeSelected(),
+//               onChange: row.getToggleSelectedHandler(),
+//             }}
+//           />
+//         </div>
+//       ),
+//       enableSorting: false,
+//       enableHiding: false,
+//       size: 30,
+//     },
+//     {
+//       accessorKey: 'schema',
+//       header: ({ column }) => (
+//         <SchemaColumnHeader column={column} title="Schema" />
+//       ),
+//     },
+//     {
+//       accessorKey: 'table',
+//       header: ({ column }) => (
+//         <SchemaColumnHeader column={column} title="Table" />
+//       ),
+//     },
+//     {
+//       accessorFn: (row) => {
+//         if (row.schema && row.table) {
+//           return `${row.schema}.${row.table}`;
+//         }
+//         if (row.schema) {
+//           return row.schema;
+//         }
+//         return row.table;
+//       },
+//       id: 'schemaTable',
+//       footer: (props) => props.column.id,
+//       header: ({ column }) => (
+//         <SchemaColumnHeader column={column} title="Collection" />
+//       ),
+//       cell: ({ getValue, row }) => {
+//         return (
+//           <EditCollection
+//             text={getValue<string>()}
+//             collections={filteredCollections(row.index)}
+//             onEdit={(updatedObject) => {
+//               const lastDotIndex = updatedObject.collection.lastIndexOf('.');
+//               onEdit(
+//                 {
+//                   schema: updatedObject.collection.substring(0, lastDotIndex),
+//                   table: updatedObject.collection.substring(lastDotIndex + 1),
+//                   column: row.getValue('column'),
+//                   transformer: row.getValue('transformer'),
+//                 },
+//                 row.index
+//               );
+//             }}
+//           />
+//         );
+//       },
+//       maxSize: 500,
+//       size: 300,
+//     },
+//     {
+//       accessorKey: 'column',
+//       header: ({ column }) => (
+//         <SchemaColumnHeader column={column} title="Document Key" />
+//       ),
+//       cell: ({ row }) => {
+//         const text = row.getValue<string>('column');
+//         return (
+//           <EditDocumentKey
+//             text={text}
+//             isDuplicate={(newValue: string, currValue?: string) =>
+//               currValue !== newValue &&
+//               isDuplicateKey(
+//                 newValue,
+//                 row.getValue('schema'),
+//                 row.getValue('table'),
+//                 currValue
+//               )
+//             }
+//             onEdit={(updatedObject) => {
+//               onEdit(
+//                 {
+//                   schema: row.getValue('schema'),
+//                   table: row.getValue('table'),
+//                   column: updatedObject.column,
+//                   transformer: row.getValue('transformer'),
+//                 },
+//                 row.index
+//               );
+//             }}
+//           />
+//         );
+//       },
+//       maxSize: 500,
+//       size: 200,
+//     },
+//     {
+//       id: 'transformer',
+//       accessorKey: 'transformer',
+//       header: ({ column }) => (
+//         <SchemaColumnHeader column={column} title="Transformer" />
+//       ),
+//       cell: ({ row }) => {
+//         // row.getValue doesn't work here due to a tanstack bug where the transformer value is out of sync with getValue
+//         // row.original works here. There must be a caching bug with the transformer prop being an object.
+//         // This may be related: https://github.com/TanStack/table/issues/5363
+//         const fv = row.original.transformer;
+//         const transformer = getTransformerFromField(transformerHandler, fv);
+//         return (
+//           <span className="max-w-[500px] truncate font-medium">
+//             <div className="flex flex-row gap-2">
+//               <div>
+//                 <TransformerSelect
+//                   getTransformers={() => transformerHandler.getTransformers()}
+//                   buttonText={getTransformerSelectButtonText(transformer)}
+//                   value={fv}
+//                   onSelect={(updatedTransformer) =>
+//                     onEdit(
+//                       {
+//                         schema: row.getValue('schema'),
+//                         table: row.getValue('table'),
+//                         column: row.getValue('column'),
+//                         transformer: updatedTransformer,
+//                       },
+//                       row.index
+//                     )
+//                   }
+//                   side={'left'}
+//                   disabled={false}
+//                   buttonClassName="w-[175px]"
+//                 />
+//               </div>
+//               <EditTransformerOptions
+//                 transformer={transformer}
+//                 value={fv}
+//                 onSubmit={(updatedTransformer) => {
+//                   onEdit(
+//                     {
+//                       schema: row.getValue('schema'),
+//                       table: row.getValue('table'),
+//                       column: row.getValue('column'),
+//                       transformer: updatedTransformer,
+//                     },
+//                     row.index
+//                   );
+//                 }}
+//                 disabled={isInvalidTransformer(transformer)}
+//               />
+//             </div>
+//           </span>
+//         );
+//       },
+//     },
+//     {
+//       id: 'actions',
+//       header: () => <p>Actions</p>,
+//       cell: ({ row }) => {
+//         return (
+//           <DataTableRowActions
+//             row={row}
+//             onDuplicate={() => onDuplicate(row.original)}
+//             onDelete={() =>
+//               onDelete({
+//                 schema: row.getValue('schema'),
+//                 table: row.getValue('table'),
+//                 column: row.getValue('column'),
+//                 transformer: row.getValue('transformer'),
+//               })
+//             }
+//           />
+//         );
+//       },
+//     },
+//   ];
+// }
 
 function createDuplicateKey(key: string): string {
   const uniqueSuffix = nanoid(6);
@@ -723,63 +748,6 @@ function IndeterminateCheckbox({
       className={className + ' cursor-pointer '}
       {...rest}
     />
-  );
-}
-interface EditDocumentKeyProps {
-  text: string;
-  onEdit: (updatedObject: { column: string }) => void;
-  isDuplicate: (val: string, currValue?: string) => boolean;
-}
-
-function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
-  const { text, onEdit, isDuplicate } = props;
-  const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState<string>(text);
-  const [duplicateError, setDuplicateError] = useState<boolean>(false);
-
-  const handleSave = () => {
-    onEdit({ column: inputValue });
-    setIsEditingMapping(false);
-  };
-
-  const handleDocumentKeyChange = (val: string) => {
-    setInputValue(val);
-    setDuplicateError(isDuplicate(val, text));
-  };
-
-  return (
-    <div className="w-full flex flex-row items-center gap-1">
-      {isEditingMapping ? (
-        <>
-          <Input
-            value={inputValue}
-            onChange={(e) => handleDocumentKeyChange(e.target.value)}
-            className={cn(duplicateError ? 'border border-red-400 ring-' : '')}
-          />
-          <div className="text-red-400 text-xs pl-2">
-            {duplicateError && 'Already exists'}
-          </div>
-        </>
-      ) : (
-        <TruncatedText text={inputValue} />
-      )}
-      <Button
-        variant="outline"
-        size="sm"
-        className="hidden h-[36px] lg:flex"
-        type="button"
-        disabled={duplicateError}
-        onClick={() => {
-          if (isEditingMapping) {
-            handleSave();
-          } else {
-            setIsEditingMapping(true);
-          }
-        }}
-      >
-        {isEditingMapping ? <CheckIcon /> : <Pencil1Icon />}
-      </Button>
-    </div>
   );
 }
 

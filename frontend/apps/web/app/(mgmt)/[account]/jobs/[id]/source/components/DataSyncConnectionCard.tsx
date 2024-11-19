@@ -3,12 +3,13 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
-import { getTransformerFilter } from '@/components/jobs/SchemaTable/SchemaColumns';
 import {
   SchemaTable,
   getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
+import { TransformerResult } from '@/components/jobs/SchemaTable/transformer-handler';
+import { getTransformerFilter } from '@/components/jobs/SchemaTable/util';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -547,6 +548,74 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         c.connectionConfig?.config.case !== 'gcpCloudstorageConfig'
     )
   );
+
+  function getAvailableTransformers(idx: number): TransformerResult {
+    const row = formMappings[idx];
+    return handler.getFilteredTransformers(
+      getTransformerFilter(
+        schemaConstraintHandler,
+        {
+          schema: row.schema,
+          table: row.table,
+          column: row.column,
+        },
+        'sync'
+      )
+    );
+  }
+
+  function onApplyDefaultClick(override: boolean): void {
+    const formMappings = form.getValues('mappings');
+    formMappings.forEach((fm, idx) => {
+      // skips setting the default transformer if the user has already set the transformer
+      if (fm.transformer.config.case && !override) {
+        return;
+      } else {
+        const colkey = {
+          schema: fm.schema,
+          table: fm.table,
+          column: fm.column,
+        };
+        const isGenerated = schemaConstraintHandler.getIsGenerated(colkey);
+        const identityType = schemaConstraintHandler.getIdentityType(colkey);
+        const newJm =
+          isGenerated && !identityType
+            ? new JobMappingTransformer({
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateDefaultConfig',
+                    value: new GenerateDefault(),
+                  },
+                }),
+              })
+            : new JobMappingTransformer({
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: new Passthrough(),
+                  },
+                }),
+              });
+        onTransformerUpdate(idx, convertJobMappingTransformerToForm(newJm));
+      }
+    });
+    setTimeout(() => {
+      form.trigger('mappings');
+    }, 0);
+  }
+
+  function onTransformerBulkUpdate(
+    indices: number[],
+    config: JobMappingTransformerForm
+  ): void {
+    indices.forEach((idx) => {
+      onTransformerUpdate(idx, config);
+    });
+    setTimeout(() => {
+      form.trigger('mappings');
+    }, 0);
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -617,33 +686,19 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 validateMappingsResponse
               )}
               onValidate={validateMappings}
-              constraintHandler={schemaConstraintHandler}
-              onRemoveMappings={(values) => {
-                const valueSet = new Set(
-                  values.map((v) => `${v.schema}.${v.table}.${v.column}`)
-                );
-                const toRemove: number[] = [];
-                formMappings.forEach((mapping, idx) => {
-                  if (
-                    valueSet.has(
-                      `${mapping.schema}.${mapping.table}.${mapping.column}`
-                    )
-                  ) {
-                    toRemove.push(idx);
-                  }
-                });
-                if (toRemove.length > 0) {
-                  remove(toRemove);
+              onRemoveMappings={(indices) => {
+                const indexSet = new Set(indices);
+                const remainingTables = formMappings
+                  .filter((_, idx) => !indexSet.has(idx))
+                  .map((fm) => fm.table);
+
+                if (indices.length > 0) {
+                  remove(indices);
                 }
 
                 if (!source || isDynamoDBConnection(source)) {
                   return;
                 }
-
-                const toRemoveSet = new Set(toRemove);
-                const remainingTables = formMappings
-                  .filter((_, idx) => !toRemoveSet.has(idx))
-                  .map((fm) => fm.table);
 
                 // Check and update destinationOptions if needed
                 const destOpts = form.getValues('destinationOptions');
@@ -763,6 +818,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 dynamoDBDestinations.length > 0
               )}
               onImportMappingsClick={onImportMappingsClick}
+              getAvailableTransformers={getAvailableTransformers}
+              getTransformerFromField={(idx) => {
+                const row = formMappings[idx];
+                return getTransformerFromField(handler, row.transformer);
+              }}
+              getAvailableTransformersForBulk={(rows) => {
+                return getFilteredTransformersForBulkSet(
+                  rows,
+                  handler,
+                  schemaConstraintHandler,
+                  'sync'
+                );
+              }}
+              getTransformerFromFieldValue={(fvalue) => {
+                return getTransformerFromField(handler, fvalue);
+              }}
+              onApplyDefaultClick={onApplyDefaultClick}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
             />
           )}
 
@@ -789,20 +862,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               onTransformerUpdate={(idx, cfg) => {
                 onTransformerUpdate(idx, cfg);
               }}
-              getAvailableTransformers={(idx) => {
-                const row = formMappings[idx];
-                return handler.getFilteredTransformers(
-                  getTransformerFilter(
-                    schemaConstraintHandler,
-                    {
-                      schema: row.schema,
-                      table: row.table,
-                      column: row.column,
-                    },
-                    'sync'
-                  )
-                );
-              }}
+              getAvailableTransformers={getAvailableTransformers}
               getTransformerFromField={(idx) => {
                 const row = formMappings[idx];
                 return getTransformerFromField(handler, row.transformer);
@@ -818,58 +878,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               getTransformerFromFieldValue={(fvalue) => {
                 return getTransformerFromField(handler, fvalue);
               }}
-              onApplyDefaultClick={(override) => {
-                const formMappings = form.getValues('mappings');
-                formMappings.forEach((fm, idx) => {
-                  // skips setting the default transformer if the user has already set the transformer
-                  if (fm.transformer.config.case && !override) {
-                    return;
-                  } else {
-                    const colkey = {
-                      schema: fm.schema,
-                      table: fm.table,
-                      column: fm.column,
-                    };
-                    const isGenerated =
-                      schemaConstraintHandler.getIsGenerated(colkey);
-                    const identityType =
-                      schemaConstraintHandler.getIdentityType(colkey);
-                    const newJm =
-                      isGenerated && !identityType
-                        ? new JobMappingTransformer({
-                            config: new TransformerConfig({
-                              config: {
-                                case: 'generateDefaultConfig',
-                                value: new GenerateDefault(),
-                              },
-                            }),
-                          })
-                        : new JobMappingTransformer({
-                            config: new TransformerConfig({
-                              config: {
-                                case: 'passthroughConfig',
-                                value: new Passthrough(),
-                              },
-                            }),
-                          });
-                    onTransformerUpdate(
-                      idx,
-                      convertJobMappingTransformerToForm(newJm)
-                    );
-                  }
-                });
-                setTimeout(() => {
-                  form.trigger('mappings');
-                }, 0);
-              }}
-              onTransformerBulkUpdate={(indices, config) => {
-                indices.forEach((idx) => {
-                  onTransformerUpdate(idx, config);
-                });
-                setTimeout(() => {
-                  form.trigger('mappings');
-                }, 0);
-              }}
+              onApplyDefaultClick={onApplyDefaultClick}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">

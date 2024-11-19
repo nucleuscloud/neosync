@@ -463,33 +463,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 validateMappingsResponse
               )}
               onValidate={validateMappings}
-              constraintHandler={schemaConstraintHandler}
-              onRemoveMappings={(values) => {
-                const valueSet = new Set(
-                  values.map((v) => `${v.schema}.${v.table}.${v.column}`)
-                );
-                const toRemove: number[] = [];
-                formMappings.forEach((mapping, idx) => {
-                  if (
-                    valueSet.has(
-                      `${mapping.schema}.${mapping.table}.${mapping.column}`
-                    )
-                  ) {
-                    toRemove.push(idx);
-                  }
-                });
-                if (toRemove.length > 0) {
-                  remove(toRemove);
+              onRemoveMappings={(indices) => {
+                const indexSet = new Set(indices);
+                const remainingTables = formMappings
+                  .filter((_, idx) => !indexSet.has(idx))
+                  .map((fm) => fm.table);
+
+                if (indices.length > 0) {
+                  remove(indices);
                 }
 
                 if (!source || isDynamoDBConnection(source)) {
                   return;
                 }
-
-                const toRemoveSet = new Set(toRemove);
-                const remainingTables = formMappings
-                  .filter((_, idx) => !toRemoveSet.has(idx))
-                  .map((fm) => fm.table);
 
                 // Check and update destinationOptions if needed
                 const destOpts = form.getValues('destinationOptions');
