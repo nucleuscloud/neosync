@@ -40,11 +40,14 @@ func (s *Service) GetJobs(
 	if err != nil {
 		return nil, err
 	}
+	logger = logger.With("accountId", req.Msg.AccountId)
 	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
+
+	logger.Debug(fmt.Sprintf("found %d jobs", len(jobs)))
 
 	jobIds := []pgtype.UUID{}
 	for idx := range jobs {
