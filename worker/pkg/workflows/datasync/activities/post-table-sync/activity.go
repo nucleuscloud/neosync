@@ -70,7 +70,7 @@ func (a *Activity) RunPostTableSync(
 		},
 	}))
 	if err != nil && runContextNotFound(err) {
-		slogger.Info("no runcontext found. continuing")
+		slogger.Debug("no runcontext found. continuing")
 		return nil, nil
 	} else if err != nil && !runContextNotFound(err) {
 		return nil, fmt.Errorf("unable to retrieve posttablesync runcontext for %s: %w", req.Name, err)
