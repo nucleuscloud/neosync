@@ -238,7 +238,7 @@ func newCliSyncFromCmd(
 		return nil, err
 	}
 	cmd.SilenceUsage = true
-	logger = logger.With("accountId", cmdCfg.AccountId)
+	logger = logger.With("accountId", *cmdCfg.AccountId)
 
 	logger.Info("Starting sync")
 
