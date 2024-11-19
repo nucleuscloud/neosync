@@ -1,4 +1,4 @@
-package logging_interceptor
+package bookend_logging_interceptor
 
 import (
 	"context"

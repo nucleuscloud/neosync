@@ -1,4 +1,4 @@
-package logging_interceptor
+package bookend_logging_interceptor
 
 import (
 	"context"
@@ -13,10 +13,31 @@ import (
 )
 
 type Interceptor struct {
+	config *config
 }
 
-func NewInterceptor() connect.Interceptor {
-	return &Interceptor{}
+func NewInterceptor(opts ...Option) connect.Interceptor {
+	cfg := &config{
+		level: slog.LevelInfo,
+	}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	return &Interceptor{config: cfg}
+}
+
+type config struct {
+	level slog.Level
+}
+
+type Option func(*config)
+
+// Used to configure the standard level that the bookend messages are logged at.
+// The error log is always printed at the Error level regardless of the level set.
+func WithLogLevel(level slog.Level) Option {
+	return func(o *config) {
+		o.level = level
+	}
 }
 
 func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
@@ -32,7 +53,9 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		ctx = logger_interceptor.SetLoggerContext(ctx, logger)
 
 		now := time.Now()
-		logger.Info(
+		logger.Log(
+			ctx,
+			i.config.level,
 			"started call",
 			"time_ms", fmt.Sprintf("%d", now.UnixMilli()),
 			"stream_type", request.Spec().StreamType.String(),
@@ -58,16 +81,20 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 				fields = append(fields, "connect.code", connect.CodeInternal.String())
 			}
 
-			logger.Error(err.Error(), fields...)
+			logger.ErrorContext(ctx, err.Error(), fields...)
 
-			logger.Info(
+			logger.Log(
+				ctx,
+				i.config.level,
 				"finished call",
 				fields...,
 			)
 			return nil, err
 		}
 		fields = append(fields, "connect.code", "ok")
-		logger.Info(
+		logger.Log(
+			ctx,
+			i.config.level,
 			"finished call",
 			fields...,
 		)
