@@ -1,5 +1,5 @@
 import { Row } from '@tanstack/react-table';
-import { JobMappingRow } from '../JobMappingTable/Columns';
+import { JobMappingRow, NosqlJobMappingRow } from '../JobMappingTable/Columns';
 import {
   ColumnKey,
   JobType,
@@ -14,6 +14,17 @@ export function fromRowDataToColKey(row: Row<JobMappingRow>): ColumnKey {
     column: row.getValue('column'),
   };
 }
+export function fromNosqlRowDataToColKey(
+  row: Row<NosqlJobMappingRow>
+): ColumnKey {
+  const [schema, table] = splitCollection(row.getValue('collection'));
+  return {
+    schema,
+    table,
+    column: row.getValue('column'),
+  };
+}
+
 export function toColKey(
   schema: string,
   table: string,
@@ -67,4 +78,11 @@ export function getTransformerFilter(
     isGenerated,
     identityType: constraintHandler.getIdentityType(colkey),
   };
+}
+
+export function splitCollection(collection: string): [string, string] {
+  const lastDotIndex = collection.lastIndexOf('.');
+  const schema = collection.substring(0, lastDotIndex);
+  const table = collection.substring(lastDotIndex + 1);
+  return [schema, table];
 }

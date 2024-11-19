@@ -1,5 +1,8 @@
 import { Action } from '@/components/DualListBox/DualListBox';
-import { JobMappingRow } from '@/components/jobs/JobMappingTable/Columns';
+import {
+  JobMappingRow,
+  NosqlJobMappingRow,
+} from '@/components/jobs/JobMappingTable/Columns';
 import { DestinationDetails } from '@/components/jobs/NosqlTable/TableMappings/Columns';
 import {
   JobType,
@@ -11,6 +14,7 @@ import {
   TransformerResult,
 } from '@/components/jobs/SchemaTable/transformer-handler';
 import {
+  fromNosqlRowDataToColKey,
   fromRowDataToColKey,
   getTransformerFilter,
 } from '@/components/jobs/SchemaTable/util';
@@ -195,7 +199,7 @@ export function getDynamoDbDestinations(
 }
 
 export function getFilteredTransformersForBulkSet(
-  rows: Row<JobMappingRow>[],
+  rows: Row<JobMappingRow>[] | Row<NosqlJobMappingRow>[],
   transformerHandler: TransformerHandler,
   constraintHandler: SchemaConstraintHandler,
   jobType: JobType
@@ -204,8 +208,11 @@ export function getFilteredTransformersForBulkSet(
   const userDefinedArrays: UserDefinedTransformer[][] = [];
 
   rows.forEach((row) => {
+    const colkey = row.getValue('collection')
+      ? fromNosqlRowDataToColKey(row as Row<NosqlJobMappingRow>)
+      : fromRowDataToColKey(row as Row<JobMappingRow>);
     const { system, userDefined } = transformerHandler.getFilteredTransformers(
-      getTransformerFilter(constraintHandler, fromRowDataToColKey(row), jobType)
+      getTransformerFilter(constraintHandler, colkey, jobType)
     );
     systemArrays.push(system);
     userDefinedArrays.push(userDefined);

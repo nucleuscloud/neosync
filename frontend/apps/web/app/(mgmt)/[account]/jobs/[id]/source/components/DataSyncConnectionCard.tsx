@@ -9,7 +9,10 @@ import {
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { TransformerResult } from '@/components/jobs/SchemaTable/transformer-handler';
-import { getTransformerFilter } from '@/components/jobs/SchemaTable/util';
+import {
+  getTransformerFilter,
+  splitCollection,
+} from '@/components/jobs/SchemaTable/util';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -241,12 +244,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     control: form.control,
     name: 'mappings',
   });
-  // const watchedMappings = form.watch('mappings');
-  // console.log(
-  //   'form mappings',
-  //   formMappings[0] ? formMappings[0].transformer.config : undefined,
-  //   watchedMappings[0] ? watchedMappings[0].transformer.config : undefined
-  // );
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -732,7 +729,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               onAddMappings={(values) => {
                 append(
                   values.map((v) => {
-                    const [schema, table] = v.collection.split('.');
+                    const [schema, table] = splitCollection(v.collection);
                     return {
                       schema,
                       table,
