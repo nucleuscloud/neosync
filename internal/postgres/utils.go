@@ -135,6 +135,9 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {
+	if array.Elements == nil {
+		return nil
+	}
 	goSlice := convertArrayToGoType(array)
 
 	dim := array.Dimensions()
