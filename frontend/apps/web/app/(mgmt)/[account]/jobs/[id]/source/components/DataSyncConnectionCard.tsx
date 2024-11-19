@@ -488,11 +488,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     index: number,
     transformer: JobMappingTransformerForm
   ): void {
-    // form.setValue(`mappings.${index}.transformer`, transformer, {
-    //   shouldDirty: true,
-    //   shouldTouch: true,
-    //   shouldValidate: false, // this is intentional!
-    // });
     const val = form.getValues(`mappings.${index}`);
     update(index, {
       schema: val.schema,

@@ -10,14 +10,19 @@ import {
   SchemaTable,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
+import { TransformerResult } from '@/components/jobs/SchemaTable/transformer-handler';
+import { getTransformerFilter } from '@/components/jobs/SchemaTable/util';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { getSingleOrUndefined } from '@/libs/utils';
-import { getErrorMessage } from '@/util/util';
+import { getErrorMessage, getTransformerFromField } from '@/util/util';
 import {
+  convertJobMappingTransformerToForm,
+  JobMappingTransformerForm,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
@@ -29,9 +34,13 @@ import {
   Connection,
   DatabaseColumn,
   ForeignConstraintTables,
+  GenerateDefault,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapsResponse,
+  JobMappingTransformer,
+  Passthrough,
   PrimaryConstraint,
+  TransformerConfig,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -54,6 +63,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import { useOnImportMappings } from '../../../jobs/[id]/source/components/useOnImportMappings';
 import {
   getDestinationDetailsRecord,
+  getFilteredTransformersForBulkSet,
   getOnSelectedTableToggle,
   isConnectionSubsettable,
   isDynamoDBConnection,
@@ -406,6 +416,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setSelectedTables: setSelectedTables,
   });
 
+  const { handler, isLoading, isValidating } = useGetTransformersHandler(
+    account?.id ?? ''
+  );
+
   if (isConnectionLoading || isSchemaMapLoading) {
     return <SkeletonForm />;
   }
@@ -426,6 +440,86 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           connectionId: d.connectionId,
         }))
       : [];
+
+  function getAvailableTransformers(idx: number): TransformerResult {
+    const row = formMappings[idx];
+    return handler.getFilteredTransformers(
+      getTransformerFilter(
+        schemaConstraintHandler,
+        {
+          schema: row.schema,
+          table: row.table,
+          column: row.column,
+        },
+        'sync'
+      )
+    );
+  }
+
+  function onTransformerUpdate(
+    index: number,
+    transformer: JobMappingTransformerForm
+  ): void {
+    const val = form.getValues(`mappings.${index}`);
+    update(index, {
+      schema: val.schema,
+      table: val.table,
+      column: val.column,
+      transformer,
+    });
+  }
+
+  function onApplyDefaultClick(override: boolean): void {
+    const formMappings = form.getValues('mappings');
+    formMappings.forEach((fm, idx) => {
+      // skips setting the default transformer if the user has already set the transformer
+      if (fm.transformer.config.case && !override) {
+        return;
+      } else {
+        const colkey = {
+          schema: fm.schema,
+          table: fm.table,
+          column: fm.column,
+        };
+        const isGenerated = schemaConstraintHandler.getIsGenerated(colkey);
+        const identityType = schemaConstraintHandler.getIdentityType(colkey);
+        const newJm =
+          isGenerated && !identityType
+            ? new JobMappingTransformer({
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateDefaultConfig',
+                    value: new GenerateDefault(),
+                  },
+                }),
+              })
+            : new JobMappingTransformer({
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: new Passthrough(),
+                  },
+                }),
+              });
+        onTransformerUpdate(idx, convertJobMappingTransformerToForm(newJm));
+      }
+    });
+    setTimeout(() => {
+      form.trigger('mappings');
+    }, 0);
+  }
+
+  function onTransformerBulkUpdate(
+    indices: number[],
+    config: JobMappingTransformerForm
+  ): void {
+    indices.forEach((idx) => {
+      onTransformerUpdate(idx, config);
+    });
+    setTimeout(() => {
+      form.trigger('mappings');
+    }, 0);
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -595,6 +689,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               )}
               destinationOptions={form.watch('destinationOptions')}
               onImportMappingsClick={onImportMappingsClick}
+              getAvailableTransformers={getAvailableTransformers}
+              getTransformerFromField={(idx) => {
+                const row = formMappings[idx];
+                return getTransformerFromField(handler, row.transformer);
+              }}
+              getAvailableTransformersForBulk={(rows) => {
+                return getFilteredTransformersForBulkSet(
+                  rows,
+                  handler,
+                  schemaConstraintHandler,
+                  'sync'
+                );
+              }}
+              getTransformerFromFieldValue={(fvalue) => {
+                return getTransformerFromField(handler, fvalue);
+              }}
+              onApplyDefaultClick={onApplyDefaultClick}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
             />
           )}
 
@@ -618,6 +730,27 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               addVirtualForeignKey={addVirtualForeignKey}
               removeVirtualForeignKey={removeVirtualForeignKey}
               onImportMappingsClick={onImportMappingsClick}
+              onTransformerUpdate={(idx, cfg) => {
+                onTransformerUpdate(idx, cfg);
+              }}
+              getAvailableTransformers={getAvailableTransformers}
+              getTransformerFromField={(idx) => {
+                const row = formMappings[idx];
+                return getTransformerFromField(handler, row.transformer);
+              }}
+              getAvailableTransformersForBulk={(rows) => {
+                return getFilteredTransformersForBulkSet(
+                  rows,
+                  handler,
+                  schemaConstraintHandler,
+                  'sync'
+                );
+              }}
+              getTransformerFromFieldValue={(fvalue) => {
+                return getTransformerFromField(handler, fvalue);
+              }}
+              onApplyDefaultClick={onApplyDefaultClick}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">
