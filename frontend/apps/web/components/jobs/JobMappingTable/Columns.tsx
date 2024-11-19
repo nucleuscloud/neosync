@@ -26,8 +26,6 @@ export interface JobMappingRow {
 }
 
 export interface NosqlJobMappingRow {
-  // schema: string;
-  // table: string;
   collection: string; // combined schema.table
   column: string;
   transformer: JobMappingTransformerForm;

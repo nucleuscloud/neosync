@@ -233,6 +233,15 @@ export default function JobMappingTable<TData, TValue>(
           </TableBody>
         </StickyHeaderTable>
       </div>
+      <div className="text-xs text-gray-600 dark:text-gray-400 pt-4">
+        Total rows: ({getFormattedCount(data.length)}) Rows visible: (
+        {getFormattedCount(table.getRowModel().rows.length)})
+      </div>
     </div>
   );
+}
+
+const US_NUMBER_FORMAT = new Intl.NumberFormat('en-US');
+function getFormattedCount(count: number): string {
+  return US_NUMBER_FORMAT.format(count);
 }
