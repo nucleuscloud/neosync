@@ -116,21 +116,9 @@ export function SchemaTableToolbar<TData>({
                 return;
               }
               onBulkUpdate(rowIndices, bulkTransformer);
-              // table.getSelectedRowModel().rows.forEach((r) => {
-              //   form.setValue(
-              //     `mappings.${r.index}.transformer`,
-              //     bulkTransformer,
-              //     {
-              //       shouldDirty: true,
-              //       shouldTouch: true,
-              //       shouldValidate: false, // this is really expensive, see the trigger call below
-              //     }
-              //   );
-              // });
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
               );
-              // form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               table.resetRowSelection(true);
             }}
           >

@@ -852,30 +852,19 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                               },
                             }),
                           });
-                    form.setValue(
-                      `mappings.${idx}.transformer`,
-                      convertJobMappingTransformerToForm(newJm),
-                      {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: false,
-                      }
+                    onTransformerUpdate(
+                      idx,
+                      convertJobMappingTransformerToForm(newJm)
                     );
                   }
                 });
                 setTimeout(() => {
                   form.trigger('mappings');
                 }, 0);
-                // form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               }}
               onTransformerBulkUpdate={(indices, config) => {
-                //
                 indices.forEach((idx) => {
-                  form.setValue(`mappings.${idx}.transformer`, config, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: false,
-                  });
+                  onTransformerUpdate(idx, config);
                 });
                 setTimeout(() => {
                   form.trigger('mappings');
