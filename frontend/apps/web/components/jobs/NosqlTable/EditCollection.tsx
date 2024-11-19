@@ -9,11 +9,12 @@ import {
 } from '@/components/ui/select';
 import { CheckIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
+import { NosqlJobMappingRow } from '../JobMappingTable/Columns';
 
 interface Props {
   collections: string[];
   text: string;
-  onEdit(updatedObject: { collection: string }): void;
+  onEdit(updatedObject: Pick<NosqlJobMappingRow, 'collection'>): void;
 }
 
 export default function EditCollection(props: Props): ReactElement {

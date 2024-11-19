@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/libs/utils';
 import { CheckIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
+import { NosqlJobMappingRow } from '../JobMappingTable/Columns';
 
 interface Props {
   text: string;
-  onEdit(updatedObject: { column: string }): void;
+  onEdit(updatedObject: Pick<NosqlJobMappingRow, 'column'>): void;
   isDuplicate(val: string, currValue?: string): boolean;
 }
 

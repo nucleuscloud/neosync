@@ -72,7 +72,7 @@ import {
 } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { JobMappingRow, NOSQL_COLUMNS } from '../JobMappingTable/Columns';
+import { NOSQL_COLUMNS, NosqlJobMappingRow } from '../JobMappingTable/Columns';
 import JobMappingTable from '../JobMappingTable/JobMappingTable';
 import FormErrorsCard, { FormError } from '../SchemaTable/FormErrorsCard';
 import { ImportMappingsConfig } from '../SchemaTable/ImportJobMappingsButton';
@@ -113,7 +113,7 @@ interface Props {
   getTransformerFromField(index: number): Transformer;
   onApplyDefaultClick(override: boolean): void;
   getAvailableTransformersForBulk(
-    rows: Row<JobMappingRow>[]
+    rows: Row<NosqlJobMappingRow>[]
   ): TransformerResult;
   getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
   onTransformerBulkUpdate(
@@ -162,8 +162,9 @@ export default function NosqlTable(props: Props): ReactElement {
 
   // useCallback ensures that we only re-run the function if the keySet changes
   const isDuplicateKey = useCallback(
-    (newValue: string, schema: string, table: string) => {
-      const key = `${schema}.${table}.${newValue}`;
+    (index: number, newValue: string) => {
+      const row = data[index];
+      const key = `${row.schema}.${row.table}.${newValue}`;
       return keySet.has(key);
     },
     [keySet]
@@ -171,7 +172,7 @@ export default function NosqlTable(props: Props): ReactElement {
 
   // used to calculate the collections that can be updated based on a given key value
   // for ex. if a collection.key is "a.b.c" and we want to update it to "d.e.c" but "d.e.c" already exists, then we don't want to show the "d.e." collection as an uption for the update
-  const filteredCollections = useCallback(
+  const getAvailableCollectionsByRow = useCallback(
     (index: number) => {
       const currentColumn = data[index].column;
       const currentSchemaTable = `${data[index].schema}.${data[index].table}`;
@@ -191,23 +192,19 @@ export default function NosqlTable(props: Props): ReactElement {
   );
 
   const tableData = useMemo(() => {
-    return data.map((d): JobMappingRow => {
+    return data.map((d): NosqlJobMappingRow => {
       return {
-        schema: d.schema,
-        table: d.table,
+        collection: `${d.schema}.${d.table}`,
         column: d.column,
-        dataType: '',
-        attributes: '',
-        constraints: '',
-        isNullable: '',
         transformer: d.transformer,
       };
     });
   }, [data.length]);
 
-  const { onClick: onExportMappingsClick } = useOnExportMappings({
-    jobMappings: data,
-  });
+  const { onClick: onExportMappingsClick } =
+    useOnExportMappings<NosqlJobMappingRow>({
+      jobMappings: data,
+    });
 
   return (
     <div className="flex flex-col gap-3">
@@ -229,7 +226,9 @@ export default function NosqlTable(props: Props): ReactElement {
           <CardContent>
             <AddNewRecord
               collections={collections}
-              isDuplicateKey={isDuplicateKey}
+              isDuplicateKey={(newVal, schema, table) => {
+                return keySet.has(`${schema}.${table}.${newVal}`);
+              }}
               onSubmit={(values) => {
                 onAddMappings([values]);
               }}
@@ -252,7 +251,7 @@ export default function NosqlTable(props: Props): ReactElement {
           />
         </div>
       )}
-      <JobMappingTable<JobMappingRow, any>
+      <JobMappingTable<NosqlJobMappingRow, any>
         data={tableData}
         columns={NOSQL_COLUMNS}
         onTransformerUpdate={(idx, config) => {
@@ -279,6 +278,21 @@ export default function NosqlTable(props: Props): ReactElement {
             },
           ]);
         }}
+        canRenameColumn={isDuplicateKey}
+        onRowUpdate={(idx, val) => {
+          const lastDotIndex = val.collection.lastIndexOf('.');
+          const schema = val.collection.substring(0, lastDotIndex);
+          const table = val.collection.substring(lastDotIndex + 1);
+          onEditMappings(
+            {
+              ...val,
+              schema,
+              table,
+            },
+            idx
+          );
+        }}
+        getAvailableCollectionsByRow={getAvailableCollectionsByRow}
       />
     </div>
   );

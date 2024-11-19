@@ -8,6 +8,7 @@ import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { DataTableRowActions } from '../NosqlTable/data-table-row-actions';
+import EditCollection from '../NosqlTable/EditCollection';
 import EditDocumentKey from '../NosqlTable/EditDocumentKey';
 import { SchemaColumnHeader } from '../SchemaTable/SchemaColumnHeader';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
@@ -21,6 +22,14 @@ export interface JobMappingRow {
   dataType: string;
   isNullable: string;
   attributes: string;
+  transformer: JobMappingTransformerForm;
+}
+
+export interface NosqlJobMappingRow {
+  // schema: string;
+  // table: string;
+  collection: string; // combined schema.table
+  column: string;
   transformer: JobMappingTransformerForm;
 }
 
@@ -170,8 +179,11 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   ];
 }
 
-export function getNosqlJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
-  const columnHelper = createColumnHelper<JobMappingRow>();
+export function getNosqlJobMappingColumns(): ColumnDef<
+  NosqlJobMappingRow,
+  any
+>[] {
+  const columnHelper = createColumnHelper<NosqlJobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
     id: 'isSelected',
@@ -201,32 +213,52 @@ export function getNosqlJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
     },
   });
 
-  const schemaColumn = columnHelper.accessor('schema', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Schema" />;
-    },
-  });
-
-  const tableColumn = columnHelper.accessor('table', {
+  const collectionColumn = columnHelper.accessor('collection', {
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Collection" />;
     },
-    // todo: EditCollection
+    cell({ getValue, table, row }) {
+      return (
+        <EditCollection
+          text={getValue()}
+          collections={
+            table.options.meta?.getAvailableCollectionsByRow(row.index) ?? []
+          }
+          onEdit={(updatedValue) => {
+            if (table.options.meta?.onRowUpdate) {
+              table.options.meta.onRowUpdate(row.index, {
+                ...row.original,
+                collection: updatedValue.collection,
+              });
+            }
+          }}
+        />
+      );
+    },
   });
 
   const columnColumn = columnHelper.accessor('column', {
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Document Key" />;
     },
-    cell({ getValue }) {
+    cell({ getValue, table, row }) {
       return (
         <EditDocumentKey
           text={getValue()}
           isDuplicate={(newValue, currValue) => {
-            return newValue !== currValue; // todo: isDuplicateKey()
+            return (
+              newValue !== currValue &&
+              (table.options.meta?.canRenameColumn(row.index, newValue) ??
+                false)
+            );
           }}
           onEdit={(updatedValue) => {
-            // todo
+            if (table.options.meta?.onRowUpdate) {
+              table.options.meta.onRowUpdate(row.index, {
+                ...row.original,
+                column: updatedValue.column,
+              });
+            }
           }}
         />
       );
@@ -296,8 +328,7 @@ export function getNosqlJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
 
   return [
     checkboxColumn,
-    schemaColumn,
-    tableColumn,
+    collectionColumn,
     columnColumn,
     transformerColumn,
     actionsColumn,

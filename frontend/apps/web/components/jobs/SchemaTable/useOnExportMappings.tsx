@@ -6,27 +6,25 @@ import { JobMapping } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { useJsonFileDownload } from '../../useJsonFileDownload';
-import { JobMappingRow } from '../JobMappingTable/Columns';
 
 interface Props {
   jobMappings: JobMappingFormValues[];
 }
 
-interface UseOnExportMappingsResponse {
-  onClick(
-    selectedRows: Row<JobMappingRow>[],
-    shouldFormat: boolean
-  ): Promise<void>;
+interface UseOnExportMappingsResponse<T> {
+  onClick(selectedRows: Row<T>[], shouldFormat: boolean): Promise<void>;
 }
 
 // Hook that provides an onClick handler that will download job mappings to disk
-export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
+export function useOnExportMappings<T>(
+  props: Props
+): UseOnExportMappingsResponse<T> {
   const { jobMappings } = props;
   const { downloadFile } = useJsonFileDownload();
 
   return {
     onClick: async function (
-      selectedRows: Row<JobMappingRow>[],
+      selectedRows: Row<T>[],
       shouldFormat: boolean
     ): Promise<void> {
       // Using the raw jobMappings instead of the row due to tanstack sometimes not giving the most up to date values.

@@ -52,6 +52,9 @@ interface Props<TData, TValue> {
 
   onDuplicateRow(index: number): void;
   onDeleteRow(index: number): void;
+  canRenameColumn(index: number, newColumn: string): boolean;
+  onRowUpdate(index: number, newValue: TData): void;
+  getAvailableCollectionsByRow(index: number): string[];
 }
 
 declare module '@tanstack/react-table' {
@@ -65,6 +68,10 @@ declare module '@tanstack/react-table' {
 
     onDuplicateRow(rowIndex: number): void;
     onDeleteRow(rowIndex: number): void;
+    canRenameColumn(rowIndex: number, newColumn: string): boolean;
+    onRowUpdate(rowIndex: number, newValue: TData): void;
+    // Returns the available schema.table list
+    getAvailableCollectionsByRow(rowIndex: number): string[];
   }
 }
 
@@ -86,6 +93,9 @@ export default function JobMappingTable<TData, TValue>(
     onTransformerBulkUpdate,
     onDeleteRow,
     onDuplicateRow,
+    canRenameColumn,
+    onRowUpdate,
+    getAvailableCollectionsByRow,
   } = props;
 
   const table = useReactTable({
@@ -100,6 +110,9 @@ export default function JobMappingTable<TData, TValue>(
       getTransformerFromField: getTransformerFromField,
       onDeleteRow,
       onDuplicateRow,
+      canRenameColumn,
+      onRowUpdate,
+      getAvailableCollectionsByRow,
     },
     debugAll: true,
   });

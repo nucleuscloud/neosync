@@ -39,6 +39,7 @@ import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerResult } from './transformer-handler';
 import { useOnExportMappings } from './useOnExportMappings';
+import { handleDataTypeBadge } from './util';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -135,7 +136,7 @@ export function SchemaTable(props: Props): ReactElement {
         schema: d.schema,
         table: d.table,
         column: d.column,
-        dataType: constraintHandler.getDataType(colKey), // todo: add handleDataTypeBadge method
+        dataType: handleDataTypeBadge(constraintHandler.getDataType(colKey)),
         attributes: attributes,
         constraints: constraints,
         isNullable: constraintHandler.getIsNullable(colKey) ? 'Yes' : 'No',
@@ -154,9 +155,11 @@ export function SchemaTable(props: Props): ReactElement {
     [schema, data]
   );
 
-  const { onClick: onExportMappingsClick } = useOnExportMappings({
-    jobMappings: data,
-  });
+  const { onClick: onExportMappingsClick } = useOnExportMappings<JobMappingRow>(
+    {
+      jobMappings: data,
+    }
+  );
 
   if (!data) {
     return <SkeletonTable />;
@@ -222,6 +225,12 @@ export function SchemaTable(props: Props): ReactElement {
               onDuplicateRow={() =>
                 console.warn('on duplicate row is not implemented')
               }
+              canRenameColumn={() => false}
+              onRowUpdate={() => console.warn('onRowUpdate is not implemented')}
+              getAvailableCollectionsByRow={() => {
+                console.warn('getAvailableCollections is not implemented');
+                return [];
+              }}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -257,6 +266,12 @@ export function SchemaTable(props: Props): ReactElement {
           onDuplicateRow={() =>
             console.warn('on duplicate row is not implemented')
           }
+          canRenameColumn={() => false}
+          onRowUpdate={() => console.warn('onRowUpdate is not implemented')}
+          getAvailableCollectionsByRow={() => {
+            console.warn('getAvailableCollections is not implemented');
+            return [];
+          }}
         />
       )}
     </div>
