@@ -45,6 +45,9 @@ Open Source Data Anonymization and Synthetic Data Orchestration
   <a href="https://artifacthub.io/packages/search?repo=neosync">
     <img alt="ArtifactHub Neosync" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync" />
   </a>
+  <a href="https://gurubase.io/g/neosync">
+    <img alt="Gurubase" src="https://img.shields.io/badge/Gurubase-Ask%20Neosync%20Guru-006BFF" />
+  </a>
 </div>
 
 ## Introduction
