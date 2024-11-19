@@ -37,6 +37,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
+	accountid_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/accountid"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -264,12 +265,14 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(slogger)
+	loggerAccountIdInterceptor := accountid_interceptor.NewInterceptor()
 	loggingInterceptor := logging_interceptor.NewInterceptor()
 
 	stdInterceptors = append(
 		stdInterceptors,
 		loggerInterceptor,
 		validateInterceptor,
+		loggerAccountIdInterceptor,
 		loggingInterceptor,
 	)
 
