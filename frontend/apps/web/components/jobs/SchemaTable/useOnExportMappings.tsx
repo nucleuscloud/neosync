@@ -6,6 +6,7 @@ import { JobMapping } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { useJsonFileDownload } from '../../useJsonFileDownload';
+import { JobMappingRow } from '../JobMappingTable/Columns';
 
 interface Props {
   jobMappings: JobMappingFormValues[];
@@ -13,7 +14,7 @@ interface Props {
 
 interface UseOnExportMappingsResponse {
   onClick(
-    selectedRows: Row<JobMappingFormValues>[],
+    selectedRows: Row<JobMappingRow>[],
     shouldFormat: boolean
   ): Promise<void>;
 }
@@ -25,7 +26,7 @@ export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
 
   return {
     onClick: async function (
-      selectedRows: Row<JobMappingFormValues>[],
+      selectedRows: Row<JobMappingRow>[],
       shouldFormat: boolean
     ): Promise<void> {
       // Using the raw jobMappings instead of the row due to tanstack sometimes not giving the most up to date values.

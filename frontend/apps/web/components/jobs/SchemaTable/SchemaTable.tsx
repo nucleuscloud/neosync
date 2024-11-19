@@ -26,6 +26,7 @@ import {
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
+import { Row } from '@tanstack/react-table';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import { COLUMNS, JobMappingRow } from '../JobMappingTable/Columns';
@@ -62,6 +63,15 @@ interface Props {
   onTransformerUpdate(index: number, config: JobMappingTransformerForm): void;
   getAvailableTransformers(index: number): TransformerResult;
   getTransformerFromField(index: number): Transformer;
+  onTransformerBulkUpdate(
+    indices: number[],
+    config: JobMappingTransformerForm
+  ): void;
+  getAvailableTransformersForBulk(
+    rows: Row<JobMappingRow>[]
+  ): TransformerResult;
+  getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
+  onApplyDefaultClick(override: boolean): void;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -82,19 +92,11 @@ export function SchemaTable(props: Props): ReactElement {
     onTransformerUpdate,
     getAvailableTransformers,
     getTransformerFromField,
+    getAvailableTransformersForBulk,
+    getTransformerFromFieldValue,
+    onApplyDefaultClick,
+    onTransformerBulkUpdate,
   } = props;
-  // const { account } = useAccount();
-  // const { handler, isLoading, isValidating } = useGetTransformersHandler(
-  //   account?.id ?? ''
-  // );
-
-  // const columns = useMemo(() => {
-  //   return getSchemaColumns({
-  //     transformerHandler: handler,
-  //     constraintHandler,
-  //     jobType,
-  //   });
-  // }, [handler, constraintHandler, jobType]);
   const tableData = useMemo((): JobMappingRow[] => {
     console.log('rendering job table data');
     return data.map((d): JobMappingRow => {
@@ -218,6 +220,13 @@ export function SchemaTable(props: Props): ReactElement {
               onTransformerUpdate={onTransformerUpdate}
               getAvailableTransformers={getAvailableTransformers}
               getTransformerFromField={getTransformerFromField}
+              onExportMappingsClick={onExportMappingsClick}
+              onImportMappingsClick={onImportMappingsClick}
+              isApplyDefaultTransformerButtonDisabled={data.length === 0}
+              getAvalableTransformersForBulk={getAvailableTransformersForBulk}
+              getTransformerFromFieldValue={getTransformerFromFieldValue}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
+              onApplyDefaultClick={onApplyDefaultClick}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">

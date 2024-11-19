@@ -51,6 +51,7 @@ import {
   Connection,
   DynamoDBSourceConnectionOptions,
   DynamoDBSourceUnmappedTransformConfig,
+  GenerateDefault,
   GetConnectionResponse,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapResponse,
@@ -64,7 +65,9 @@ import {
   MongoDBSourceConnectionOptions,
   MssqlSourceConnectionOptions,
   MysqlSourceConnectionOptions,
+  Passthrough,
   PostgresSourceConnectionOptions,
+  TransformerConfig,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -95,6 +98,7 @@ import {
   getConnectionIdFromSource,
   getDestinationDetailsRecord,
   getDynamoDbDestinations,
+  getFilteredTransformersForBulkSet,
   getOnSelectedTableToggle,
   isDynamoDBConnection,
   isNosqlSource,
@@ -236,12 +240,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     control: form.control,
     name: 'mappings',
   });
-  const watchedMappings = form.watch('mappings');
-  console.log(
-    'form mappings',
-    formMappings[0] ? formMappings[0].transformer.config : undefined,
-    watchedMappings[0] ? watchedMappings[0].transformer.config : undefined
-  );
+  // const watchedMappings = form.watch('mappings');
+  // console.log(
+  //   'form mappings',
+  //   formMappings[0] ? formMappings[0].transformer.config : undefined,
+  //   watchedMappings[0] ? watchedMappings[0].transformer.config : undefined
+  // );
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -802,6 +806,80 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               getTransformerFromField={(idx) => {
                 const row = formMappings[idx];
                 return getTransformerFromField(handler, row.transformer);
+              }}
+              getAvailableTransformersForBulk={(rows) => {
+                return getFilteredTransformersForBulkSet(
+                  rows,
+                  handler,
+                  schemaConstraintHandler,
+                  'sync'
+                );
+              }}
+              getTransformerFromFieldValue={(fvalue) => {
+                return getTransformerFromField(handler, fvalue);
+              }}
+              onApplyDefaultClick={(override) => {
+                const formMappings = form.getValues('mappings');
+                formMappings.forEach((fm, idx) => {
+                  // skips setting the default transformer if the user has already set the transformer
+                  if (fm.transformer.config.case && !override) {
+                    return;
+                  } else {
+                    const colkey = {
+                      schema: fm.schema,
+                      table: fm.table,
+                      column: fm.column,
+                    };
+                    const isGenerated =
+                      schemaConstraintHandler.getIsGenerated(colkey);
+                    const identityType =
+                      schemaConstraintHandler.getIdentityType(colkey);
+                    const newJm =
+                      isGenerated && !identityType
+                        ? new JobMappingTransformer({
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'generateDefaultConfig',
+                                value: new GenerateDefault(),
+                              },
+                            }),
+                          })
+                        : new JobMappingTransformer({
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'passthroughConfig',
+                                value: new Passthrough(),
+                              },
+                            }),
+                          });
+                    form.setValue(
+                      `mappings.${idx}.transformer`,
+                      convertJobMappingTransformerToForm(newJm),
+                      {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: false,
+                      }
+                    );
+                  }
+                });
+                setTimeout(() => {
+                  form.trigger('mappings');
+                }, 0);
+                // form.trigger('mappings'); // trigger validation after bulk updating the selected form options
+              }}
+              onTransformerBulkUpdate={(indices, config) => {
+                //
+                indices.forEach((idx) => {
+                  form.setValue(`mappings.${idx}.transformer`, config, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: false,
+                  });
+                });
+                setTimeout(() => {
+                  form.trigger('mappings');
+                }, 0);
               }}
             />
           )}
