@@ -40,8 +40,8 @@ import (
 	accountid_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/accountid"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
+	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
@@ -266,14 +266,15 @@ func serve(ctx context.Context) error {
 	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(slogger)
 	loggerAccountIdInterceptor := accountid_interceptor.NewInterceptor()
-	loggingInterceptor := logging_interceptor.NewInterceptor()
+	handlerBookendInterceptor := bookend_logging_interceptor.NewInterceptor(
+		bookend_logging_interceptor.WithLogLevel(slog.LevelInfo),
+	)
 
 	stdInterceptors = append(
 		stdInterceptors,
 		loggerInterceptor,
 		validateInterceptor,
 		loggerAccountIdInterceptor,
-		loggingInterceptor,
 	)
 
 	// standard auth interceptors that should be applied to most services
@@ -371,6 +372,8 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
 			connect.WithInterceptors(authSvcInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -430,6 +433,7 @@ func serve(ctx context.Context) error {
 			useraccountService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -442,6 +446,7 @@ func serve(ctx context.Context) error {
 			apiKeyService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(jwtOnlyAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -463,6 +468,7 @@ func serve(ctx context.Context) error {
 			connectionService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -490,6 +496,7 @@ func serve(ctx context.Context) error {
 			jobService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -526,6 +533,7 @@ func serve(ctx context.Context) error {
 			transformerService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -540,6 +548,7 @@ func serve(ctx context.Context) error {
 			anonymizationService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -563,6 +572,7 @@ func serve(ctx context.Context) error {
 			connectionDataService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -579,6 +589,7 @@ func serve(ctx context.Context) error {
 				metricsService,
 				connect.WithInterceptors(stdInterceptors...),
 				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
 				connect.WithRecover(recoverHandler),
 			),
 		)
