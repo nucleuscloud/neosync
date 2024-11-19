@@ -36,15 +36,18 @@ func (s *Service) GetJobs(
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
+
 	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
+
+	logger.Debug(fmt.Sprintf("found %d jobs", len(jobs)))
 
 	jobIds := []pgtype.UUID{}
 	for idx := range jobs {
