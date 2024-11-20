@@ -516,6 +516,17 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     setSelectedTables: setSelectedTables,
   });
 
+  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setTransformer: onTransformerUpdate,
+    constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
   if (
     isConnectionsLoading ||
     isSchemaDataMapLoading ||
@@ -557,17 +568,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       )
     );
   }
-
-  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
-    getMappings() {
-      return form.getValues('mappings');
-    },
-    setTransformer: onTransformerUpdate,
-    constraintHandler: schemaConstraintHandler,
-    triggerUpdate() {
-      form.trigger('mappings');
-    },
-  });
 
   function onTransformerBulkUpdate(
     indices: number[],
