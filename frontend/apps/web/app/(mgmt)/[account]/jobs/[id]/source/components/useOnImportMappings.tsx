@@ -24,7 +24,7 @@ interface UseOnImportMappingsResponse {
   ): void;
 }
 
-// Hook that provides an onClick handler that will importing job mappings.
+// Hook that provides an onClick handler that will import job mappings.
 export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
   const {
     setMappings,

@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/lib/pq"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -83,7 +83,7 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
-		if isPgArray(datatype) {
+		if pgutil.IsPgArrayColumnDataType(datatype) {
 			pgarray, err := processPgArray(v, datatype)
 			if err != nil {
 				p.logger.Errorf("unable to process PG Array: %w", err)
@@ -132,10 +132,6 @@ func processPgArray(bits []byte, datatype string) (any, error) {
 	default:
 		return pq.Array(pgarray), nil
 	}
-}
-
-func isPgArray(datatype string) bool {
-	return strings.HasSuffix(datatype, "[]")
 }
 
 // handles case where json strings are not quoted

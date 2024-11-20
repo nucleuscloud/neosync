@@ -4,8 +4,6 @@ import DualListBox, {
   Action,
   Option,
 } from '@/components/DualListBox/DualListBox';
-import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Card,
@@ -15,9 +13,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
+import { Transformer } from '@/shared/transformers';
 import {
   JobMappingFormValues,
+  JobMappingTransformerForm,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
@@ -27,17 +26,24 @@ import {
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
+import { Row } from '@tanstack/react-table';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
+import {
+  getGeneratedStatement,
+  getIdentityStatement,
+} from '../JobMappingTable/AttributesCell';
+import { JobMappingRow, SQL_COLUMNS } from '../JobMappingTable/Columns';
+import JobMappingTable from '../JobMappingTable/JobMappingTable';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { ImportMappingsConfig } from './ImportJobMappingsButton';
-import { getSchemaColumns } from './SchemaColumns';
-import SchemaPageTable from './SchemaPageTable';
 import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
 import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
+import { TransformerResult } from './transformer-handler';
 import { useOnExportMappings } from './useOnExportMappings';
+import { handleDataTypeBadge } from './util';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -59,6 +65,18 @@ interface Props {
     jobmappings: JobMapping[],
     importConfig: ImportMappingsConfig
   ): void;
+  onTransformerUpdate(index: number, config: JobMappingTransformerForm): void;
+  getAvailableTransformers(index: number): TransformerResult;
+  getTransformerFromField(index: number): Transformer;
+  onTransformerBulkUpdate(
+    indices: number[],
+    config: JobMappingTransformerForm
+  ): void;
+  getAvailableTransformersForBulk(
+    rows: Row<JobMappingRow>[]
+  ): TransformerResult;
+  getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
+  onApplyDefaultClick(override: boolean): void;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -76,19 +94,80 @@ export function SchemaTable(props: Props): ReactElement {
     isJobMappingsValidating,
     onValidate,
     onImportMappingsClick,
+    onTransformerUpdate,
+    getAvailableTransformers,
+    getTransformerFromField,
+    getAvailableTransformersForBulk,
+    getTransformerFromFieldValue,
+    onApplyDefaultClick,
+    onTransformerBulkUpdate,
   } = props;
-  const { account } = useAccount();
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  const tableData = useMemo((): JobMappingRow[] => {
+    return data.map((d): JobMappingRow => {
+      const colKey = {
+        schema: d.schema,
+        table: d.table,
+        column: d.column,
+      };
+      const isPrimaryKey = constraintHandler.getIsPrimaryKey(colKey);
+      const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(colKey);
+      const [isVirtualForeignKey, vfkCols] =
+        constraintHandler.getIsVirtualForeignKey(colKey);
+      const isUnique = constraintHandler.getIsUniqueConstraint(colKey);
 
-  const columns = useMemo(() => {
-    return getSchemaColumns({
-      transformerHandler: handler,
-      constraintHandler,
-      jobType,
+      const constraintPieces: string[] = [];
+      if (isPrimaryKey) {
+        constraintPieces.push('Primary Key');
+      }
+      if (isForeignKey) {
+        fkCols.forEach((col) => constraintPieces.push(`Foreign Key: ${col}`));
+      }
+      if (isVirtualForeignKey) {
+        vfkCols.forEach((col) =>
+          constraintPieces.push(`Virtual Foreign Key: ${col}`)
+        );
+      }
+      if (isUnique) {
+        constraintPieces.push('Unique');
+      }
+      const constraints = constraintPieces.join('\n');
+
+      const generatedType = constraintHandler.getGeneratedType(colKey);
+      const identityType = constraintHandler.getIdentityType(colKey);
+
+      const attributePieces: string[] = [];
+      if (generatedType) {
+        attributePieces.push(getGeneratedStatement(generatedType));
+      } else if (identityType) {
+        attributePieces.push(getIdentityStatement(identityType));
+      }
+      attributePieces.push(
+        constraintHandler.getIsNullable(colKey) ? 'Is Nullable' : 'Not Nullable'
+      );
+      const attributes = attributePieces.join('\n');
+
+      return {
+        schema: d.schema,
+        table: d.table,
+        column: d.column,
+        dataType: handleDataTypeBadge(constraintHandler.getDataType(colKey)),
+        attributes: {
+          value: attributes,
+          generatedType: generatedType,
+          identityType: identityType,
+        },
+        constraints: {
+          value: constraints,
+          foreignKey: [isForeignKey, fkCols],
+          virtualForeignKey: [isVirtualForeignKey, vfkCols],
+          isPrimaryKey: isPrimaryKey,
+          isUnique: isUnique,
+        },
+        isNullable: constraintHandler.getIsNullable(colKey),
+        transformer: d.transformer,
+      };
     });
-  }, [handler, constraintHandler, jobType]);
+  }, [data]);
 
   const virtualForeignKeyColumns = useMemo(() => {
     return getVirtualForeignKeysColumns({ removeVirtualForeignKey });
@@ -100,11 +179,13 @@ export function SchemaTable(props: Props): ReactElement {
     [schema, data]
   );
 
-  const { onClick: onExportMappingsClick } = useOnExportMappings({
-    jobMappings: data,
-  });
+  const { onClick: onExportMappingsClick } = useOnExportMappings<JobMappingRow>(
+    {
+      jobMappings: data,
+    }
+  );
 
-  if (isLoading || !data) {
+  if (!data) {
     return <SkeletonTable />;
   }
 
@@ -118,7 +199,6 @@ export function SchemaTable(props: Props): ReactElement {
                 <TableIcon className="h-4 w-4" />
               </div>
               <CardTitle>Table Selection</CardTitle>
-              <div>{isValidating ? <Spinner /> : null}</div>
             </div>
             <CardDescription>
               Select the tables that you want to transform and move them from
@@ -150,14 +230,31 @@ export function SchemaTable(props: Props): ReactElement {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="mappings">
-            <SchemaPageTable
-              columns={columns}
-              data={data}
-              transformerHandler={handler}
-              constraintHandler={constraintHandler}
-              jobType={jobType}
+            <JobMappingTable
+              data={tableData}
+              columns={SQL_COLUMNS}
+              onTransformerUpdate={onTransformerUpdate}
+              getAvailableTransformers={getAvailableTransformers}
+              getTransformerFromField={getTransformerFromField}
               onExportMappingsClick={onExportMappingsClick}
               onImportMappingsClick={onImportMappingsClick}
+              isApplyDefaultTransformerButtonDisabled={data.length === 0}
+              getAvalableTransformersForBulk={getAvailableTransformersForBulk}
+              getTransformerFromFieldValue={getTransformerFromFieldValue}
+              onTransformerBulkUpdate={onTransformerBulkUpdate}
+              onApplyDefaultClick={onApplyDefaultClick}
+              onDeleteRow={() =>
+                console.warn('on delete row is not implemented')
+              }
+              onDuplicateRow={() =>
+                console.warn('on duplicate row is not implemented')
+              }
+              canRenameColumn={() => false}
+              onRowUpdate={() => console.warn('onRowUpdate is not implemented')}
+              getAvailableCollectionsByRow={() => {
+                console.warn('getAvailableCollections is not implemented');
+                return [];
+              }}
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -176,14 +273,29 @@ export function SchemaTable(props: Props): ReactElement {
           </TabsContent>
         </Tabs>
       ) : (
-        <SchemaPageTable
-          columns={columns}
-          data={data}
-          transformerHandler={handler}
-          constraintHandler={constraintHandler}
-          jobType={jobType}
+        <JobMappingTable
+          data={tableData}
+          columns={SQL_COLUMNS}
+          onTransformerUpdate={onTransformerUpdate}
+          getAvailableTransformers={getAvailableTransformers}
+          getTransformerFromField={getTransformerFromField}
           onExportMappingsClick={onExportMappingsClick}
           onImportMappingsClick={onImportMappingsClick}
+          isApplyDefaultTransformerButtonDisabled={data.length === 0}
+          getAvalableTransformersForBulk={getAvailableTransformersForBulk}
+          getTransformerFromFieldValue={getTransformerFromFieldValue}
+          onTransformerBulkUpdate={onTransformerBulkUpdate}
+          onApplyDefaultClick={onApplyDefaultClick}
+          onDeleteRow={() => console.warn('on delete row is not implemented')}
+          onDuplicateRow={() =>
+            console.warn('on duplicate row is not implemented')
+          }
+          canRenameColumn={() => false}
+          onRowUpdate={() => console.warn('onRowUpdate is not implemented')}
+          getAvailableCollectionsByRow={() => {
+            console.warn('getAvailableCollections is not implemented');
+            return [];
+          }}
         />
       )}
     </div>

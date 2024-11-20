@@ -58,7 +58,6 @@ export default function GenerateIpAddressForm(props: Props): ReactElement {
                   GenerateIpAddressType.V4_PRIVATE_A,
                   GenerateIpAddressType.V4_PRIVATE_B,
                   GenerateIpAddressType.V4_PRIVATE_C,
-                  GenerateIpAddressType.V4_PRIVATE_C,
                   GenerateIpAddressType.V4_PUBLIC,
                   GenerateIpAddressType.V6,
                 ].map((version) => (

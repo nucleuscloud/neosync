@@ -16,6 +16,11 @@ export type TransformerConfigCase = NonNullable<
   ExtractCase<TransformerConfig['config']>
 >;
 
+export interface TransformerResult {
+  system: SystemTransformer[];
+  userDefined: UserDefinedTransformer[];
+}
+
 export class TransformerHandler {
   private readonly systemTransformers: SystemTransformer[];
   private readonly userDefinedTransformers: UserDefinedTransformer[];
@@ -55,10 +60,9 @@ export class TransformerHandler {
     };
   }
 
-  public getFilteredTransformers(filters: TransformerFilters): {
-    system: SystemTransformer[];
-    userDefined: UserDefinedTransformer[];
-  } {
+  public getFilteredTransformers(
+    filters: TransformerFilters
+  ): TransformerResult {
     const systemMap = new Map(
       this.systemTransformers.map((t) => [
         t.source,
