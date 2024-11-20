@@ -21,7 +21,6 @@ import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandle
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage, getTransformerFromField } from '@/util/util';
 import {
-  convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
@@ -34,13 +33,9 @@ import {
   Connection,
   DatabaseColumn,
   ForeignConstraintTables,
-  GenerateDefault,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapsResponse,
-  JobMappingTransformer,
-  Passthrough,
   PrimaryConstraint,
-  TransformerConfig,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -60,6 +55,7 @@ import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
+import { useOnApplyDefaultClick } from '../../../jobs/[id]/source/components/useOnApplyDefaultClick';
 import { useOnImportMappings } from '../../../jobs/[id]/source/components/useOnImportMappings';
 import {
   getDestinationDetailsRecord,
@@ -468,45 +464,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     });
   }
 
-  function onApplyDefaultClick(override: boolean): void {
-    const formMappings = form.getValues('mappings');
-    formMappings.forEach((fm, idx) => {
-      // skips setting the default transformer if the user has already set the transformer
-      if (fm.transformer.config.case && !override) {
-        return;
-      } else {
-        const colkey = {
-          schema: fm.schema,
-          table: fm.table,
-          column: fm.column,
-        };
-        const isGenerated = schemaConstraintHandler.getIsGenerated(colkey);
-        const identityType = schemaConstraintHandler.getIdentityType(colkey);
-        const newJm =
-          isGenerated && !identityType
-            ? new JobMappingTransformer({
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateDefaultConfig',
-                    value: new GenerateDefault(),
-                  },
-                }),
-              })
-            : new JobMappingTransformer({
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough(),
-                  },
-                }),
-              });
-        onTransformerUpdate(idx, convertJobMappingTransformerToForm(newJm));
-      }
-    });
-    setTimeout(() => {
+  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setTransformer: onTransformerUpdate,
+    constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
       form.trigger('mappings');
-    }, 0);
-  }
+    },
+  });
 
   function onTransformerBulkUpdate(
     indices: number[],

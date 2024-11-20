@@ -41,14 +41,11 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  GenerateDefault,
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
   Job,
   JobMapping,
   JobMappingTransformer,
-  Passthrough,
-  TransformerConfig,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
@@ -71,6 +68,7 @@ import {
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { useOnApplyDefaultClick } from './useOnApplyDefaultClick';
 import { useOnImportMappings } from './useOnImportMappings';
 import {
   getFilteredTransformersForBulkSet,
@@ -288,45 +286,16 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     );
   }
 
-  function onApplyDefaultClick(override: boolean): void {
-    const formMappings = form.getValues('mappings');
-    formMappings.forEach((fm, idx) => {
-      // skips setting the default transformer if the user has already set the transformer
-      if (fm.transformer.config.case && !override) {
-        return;
-      } else {
-        const colkey = {
-          schema: fm.schema,
-          table: fm.table,
-          column: fm.column,
-        };
-        const isGenerated = schemaConstraintHandler.getIsGenerated(colkey);
-        const identityType = schemaConstraintHandler.getIdentityType(colkey);
-        const newJm =
-          isGenerated && !identityType
-            ? new JobMappingTransformer({
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateDefaultConfig',
-                    value: new GenerateDefault(),
-                  },
-                }),
-              })
-            : new JobMappingTransformer({
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough(),
-                  },
-                }),
-              });
-        onTransformerUpdate(idx, convertJobMappingTransformerToForm(newJm));
-      }
-    });
-    setTimeout(() => {
+  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setTransformer: onTransformerUpdate,
+    constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
       form.trigger('mappings');
-    }, 0);
-  }
+    },
+  });
 
   function onTransformerBulkUpdate(
     indices: number[],
