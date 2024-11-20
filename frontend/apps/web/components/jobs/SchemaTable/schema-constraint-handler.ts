@@ -73,8 +73,6 @@ export function getSchemaConstraintHandler(
     uniqueConstraints,
     vfkMap
   );
-  console.log('colmap', colmap);
-
   return {
     getDataType(key) {
       return colmap[fromColKey(key)]?.dataType ?? '';
