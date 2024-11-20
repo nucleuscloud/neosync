@@ -699,7 +699,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   rows,
                   handler,
                   schemaConstraintHandler,
-                  'sync'
+                  'sync',
+                  'nosql'
                 );
               }}
               getTransformerFromFieldValue={(fvalue) => {
@@ -743,7 +744,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   rows,
                   handler,
                   schemaConstraintHandler,
-                  'sync'
+                  'sync',
+                  'relational'
                 );
               }}
               getTransformerFromFieldValue={(fvalue) => {

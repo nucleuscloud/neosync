@@ -1,5 +1,6 @@
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import TruncatedText from '@/components/TruncatedText';
+import { Badge } from '@/components/ui/badge';
 import {
   getTransformerSelectButtonText,
   isInvalidTransformer,
@@ -12,17 +13,34 @@ import EditCollection from '../NosqlTable/EditCollection';
 import EditDocumentKey from '../NosqlTable/EditDocumentKey';
 import { SchemaColumnHeader } from '../SchemaTable/SchemaColumnHeader';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
+import AttributesCell from './AttributesCell';
+import ConstraintsCell from './ConstraintsCell';
+import DataTypeCell from './DataTypeCell';
 import IndeterminateCheckbox from './IndeterminateCheckbox';
 
 export interface JobMappingRow {
   schema: string;
   table: string;
   column: string;
-  constraints: string;
+  constraints: RowConstraint;
   dataType: string;
-  isNullable: string;
-  attributes: string;
+  isNullable: boolean;
+  attributes: RowAttribute;
   transformer: JobMappingTransformerForm;
+}
+
+interface RowAttribute {
+  value: string; // accessor fn value for search
+
+  generatedType: string | undefined;
+  identityType: string | undefined;
+}
+interface RowConstraint {
+  value: string; // accessor fn value for search
+  isPrimaryKey: boolean;
+  foreignKey: [boolean, string[]];
+  virtualForeignKey: [boolean, string[]];
+  isUnique: boolean;
 }
 
 export interface NosqlJobMappingRow {
@@ -60,6 +78,7 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
         </div>
       );
     },
+    maxSize: 30,
   });
 
   const schemaColumn = columnHelper.accessor('schema', {
@@ -68,7 +87,8 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
     },
   });
 
-  const tableColumn = columnHelper.accessor('table', {
+  const tableColumn = columnHelper.accessor((row) => row.table, {
+    id: 'table',
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Table" />;
     },
@@ -88,81 +108,122 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
       return <SchemaColumnHeader column={column} title="Data Type" />;
     },
     cell({ getValue }) {
-      return <span>{getValue()}</span>;
+      return <DataTypeCell value={getValue()} />;
     },
   });
 
-  const isNullableColumn = columnHelper.accessor('isNullable', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Nullable" />;
-    },
-    cell({ getValue }) {
-      return <span>{getValue()}</span>;
-    },
-  });
+  const isNullableColumn = columnHelper.accessor(
+    (row) => (row.isNullable ? 'Yes' : 'No'),
+    {
+      id: 'isNullable',
+      header({ column }) {
+        return <SchemaColumnHeader column={column} title="Nullable" />;
+      },
+      cell({ getValue }) {
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            <Badge variant="outline">{getValue()}</Badge>
+          </span>
+        );
+      },
+    }
+  );
 
-  const constraintColumn = columnHelper.accessor('constraints', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Constraints" />;
-    },
-    cell({ getValue }) {
-      return <span>{getValue()}</span>;
-    },
-  });
+  const constraintColumn = columnHelper.accessor(
+    (row) => row.constraints.value,
+    {
+      id: 'constraints',
+      header({ column }) {
+        return <SchemaColumnHeader column={column} title="Constraints" />;
+      },
+      cell({ row }) {
+        const constraints = row.original.constraints;
+        return (
+          <ConstraintsCell
+            isPrimaryKey={constraints.isPrimaryKey}
+            foreignKey={constraints.foreignKey}
+            virtualForeignKey={constraints.virtualForeignKey}
+            isUnique={constraints.isUnique}
+          />
+        );
+      },
+    }
+  );
 
-  const attributeColumn = columnHelper.accessor('attributes', {
+  const attributeColumn = columnHelper.accessor((row) => row.attributes.value, {
+    id: 'attributeValues',
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Attributes" />;
     },
-    cell({ getValue }) {
-      return <span>{getValue()}</span>;
-    },
-  });
-
-  const transformerColumn = columnHelper.accessor('transformer', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Transformer" />;
-    },
-    cell({ getValue, table, row }) {
-      const transformer =
-        table.options.meta?.getTransformerFromField(row.index) ??
-        new SystemTransformer();
+    cell({ row }) {
+      const val = row.original.attributes;
       return (
-        <div className="flex flex-row gap-2">
-          <div>
-            <TransformerSelect
-              getTransformers={() =>
-                table.options.meta?.getAvailableTransformers(row.index) ?? {
-                  system: [],
-                  userDefined: [],
-                }
-              }
-              buttonText={getTransformerSelectButtonText(transformer)}
-              buttonClassName="w-[175px]"
-              value={getValue()}
-              onSelect={(updatedValue) =>
-                table.options.meta?.onTransformerUpdate(row.index, updatedValue)
-              }
-              disabled={false}
-            />
-          </div>
-          <div>
-            <EditTransformerOptions
-              transformer={transformer}
-              value={getValue()}
-              onSubmit={(updatedValue) => {
-                table.options.meta?.onTransformerUpdate(
-                  row.index,
-                  updatedValue
-                );
-              }}
-              disabled={isInvalidTransformer(transformer)}
-            />
-          </div>
-        </div>
+        <AttributesCell
+          generatedType={val.generatedType}
+          identityType={val.identityType}
+          value={val.value}
+        />
       );
     },
   });
+
+  const transformerColumn = columnHelper.accessor(
+    (row) => {
+      if (row.transformer.config.case) {
+        return row.transformer.config.case.toLowerCase();
+      }
+      return 'select transformer';
+    },
+    {
+      id: 'transformer',
+      header({ column }) {
+        return <SchemaColumnHeader column={column} title="Transformer" />;
+      },
+      cell({ table, row }) {
+        const transformer =
+          table.options.meta?.getTransformerFromField(row.index) ??
+          new SystemTransformer();
+        const transformerForm = row.original.transformer;
+        return (
+          <div className="flex flex-row gap-2">
+            <div>
+              <TransformerSelect
+                getTransformers={() =>
+                  table.options.meta?.getAvailableTransformers(row.index) ?? {
+                    system: [],
+                    userDefined: [],
+                  }
+                }
+                buttonText={getTransformerSelectButtonText(transformer)}
+                buttonClassName="w-[175px]"
+                value={transformerForm}
+                onSelect={(updatedValue) =>
+                  table.options.meta?.onTransformerUpdate(
+                    row.index,
+                    updatedValue
+                  )
+                }
+                disabled={false}
+              />
+            </div>
+            <div>
+              <EditTransformerOptions
+                transformer={transformer}
+                value={transformerForm}
+                onSubmit={(updatedValue) => {
+                  table.options.meta?.onTransformerUpdate(
+                    row.index,
+                    updatedValue
+                  );
+                }}
+                disabled={isInvalidTransformer(transformer)}
+              />
+            </div>
+          </div>
+        );
+      },
+    }
+  );
 
   return [
     checkboxColumn,

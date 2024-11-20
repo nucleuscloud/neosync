@@ -458,7 +458,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   rows,
                   handler,
                   schemaConstraintHandler,
-                  'sync'
+                  'sync',
+                  'relational'
                 );
               }}
               getTransformerFromFieldValue={(fvalue) => {

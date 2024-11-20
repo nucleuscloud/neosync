@@ -202,15 +202,17 @@ export function getFilteredTransformersForBulkSet(
   rows: Row<JobMappingRow>[] | Row<NosqlJobMappingRow>[],
   transformerHandler: TransformerHandler,
   constraintHandler: SchemaConstraintHandler,
-  jobType: JobType
+  jobType: JobType,
+  sqlType: 'relational' | 'nosql'
 ): TransformerResult {
   const systemArrays: SystemTransformer[][] = [];
   const userDefinedArrays: UserDefinedTransformer[][] = [];
 
   rows.forEach((row) => {
-    const colkey = row.getValue('collection')
-      ? fromNosqlRowDataToColKey(row as Row<NosqlJobMappingRow>)
-      : fromRowDataToColKey(row as Row<JobMappingRow>);
+    const colkey =
+      sqlType === 'nosql'
+        ? fromNosqlRowDataToColKey(row as Row<NosqlJobMappingRow>)
+        : fromRowDataToColKey(row as Row<JobMappingRow>);
     const { system, userDefined } = transformerHandler.getFilteredTransformers(
       getTransformerFilter(constraintHandler, colkey, jobType)
     );
