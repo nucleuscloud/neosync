@@ -1,9 +1,11 @@
 package postgres
 
 import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
 	"testing"
 
-	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
@@ -168,39 +170,32 @@ func Test_FormatPgArrayLiteral(t *testing.T) {
 func Test_parsePgRowValues(t *testing.T) {
 	t.Run("Multiple Columns", func(t *testing.T) {
 		binaryData := []byte{0x01, 0x02, 0x03}
-		xmlData := []byte("<root><element>value</element></root>")
+		xmlStr := "<root><element>value</element></root>"
 		uuidValue := "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+
+		xmlVal := sql.NullString{String: xmlStr, Valid: true}
+		jsonVal := &NullableJSON{RawMessage: json.RawMessage(`{"key": "value"}`), Valid: true}
 
 		values := []any{
 			"Hello",
 			int64(42),
 			true,
 			nil,
-			[]byte(`{"key": "value"}`),
+			jsonVal,
 			&PgxArray[any]{
 				Array:       pgtype.Array[any]{Elements: []any{1, 2, 3}},
 				colDataType: "_integer",
 			},
 			binaryData,
-			xmlData,
+			xmlVal,
 			uuidValue,
 		}
 		columnNames := []string{
 			"text_col", "int_col", "bool_col", "nil_col", "json_col", "array_col",
 			"binary_col", "xml_col", "uuid_col",
 		}
-		cTypes := []string{
-			"text",
-			"integer",
-			"boolean",
-			"text",
-			"json",
-			"_integer",
-			"bytea",
-			"xml",
-			"uuid",
-		}
-		result := parsePgRowValues(values, columnNames, cTypes)
+
+		result := parsePgRowValues(values, columnNames)
 		expected := map[string]any{
 			"text_col":   "Hello",
 			"int_col":    int64(42),
@@ -209,18 +204,24 @@ func Test_parsePgRowValues(t *testing.T) {
 			"json_col":   map[string]any{"key": "value"},
 			"array_col":  []any{1, 2, 3},
 			"binary_col": binaryData,
-			"xml_col":    string(xmlData), // Assuming XML is converted to string
+			"xml_col":    xmlStr,
 			"uuid_col":   uuidValue,
 		}
 		require.Equal(t, expected, result)
 	})
 
 	t.Run("JSON Columns", func(t *testing.T) {
-		values := []any{[]byte(`"Hello"`), []byte(`true`), []byte(`null`), []byte(`42`), []byte(`{"items": ["book", "pen"], "count": 2, "in_stock": true}`), []byte(`[1,2,3]`)}
+		values := []any{
+			&NullableJSON{RawMessage: json.RawMessage(`"Hello"`), Valid: true},
+			&NullableJSON{RawMessage: json.RawMessage(`true`), Valid: true},
+			&NullableJSON{Valid: false},
+			&NullableJSON{RawMessage: json.RawMessage(`42`), Valid: true},
+			&NullableJSON{RawMessage: json.RawMessage(`{"items": ["book", "pen"], "count": 2, "in_stock": true}`), Valid: true},
+			&NullableJSON{RawMessage: json.RawMessage(`[1,2,3]`), Valid: true},
+		}
 		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
-		cTypes := []string{"json", "json", "json", "json", "json", "json"}
 
-		result := parsePgRowValues(values, columnNames, cTypes)
+		result := parsePgRowValues(values, columnNames)
 
 		expected := map[string]any{
 			"text_col":  "Hello",
@@ -236,10 +237,10 @@ func Test_parsePgRowValues(t *testing.T) {
 	t.Run("Multiple Array Columns", func(t *testing.T) {
 		binaryData1 := []byte{0x01, 0x02, 0x03}
 		binaryData2 := []byte{0x04, 0x05, 0x06}
-		xmlData1 := []byte("<root><element>value1</element></root>")
-		xmlData2 := []byte("<root><element>value2</element></root>")
-		uuidValue1 := [16]uint8{0xa0, 0xee, 0xbc, 0x99, 0x9c, 0x0b, 0x4e, 0xf8, 0xbb, 0x6d, 0x6b, 0xb9, 0xbd, 0x38, 0x0a, 0x11}
-		uuidValue2 := [16]uint8{0xb0, 0xee, 0xbc, 0x99, 0x9c, 0x0b, 0x4e, 0xf8, 0xbb, 0x6d, 0x6b, 0xb9, 0xbd, 0x38, 0x0a, 0x22}
+		xmlData1 := "<root><element>value1</element></root>"
+		xmlData2 := "<root><element>value2</element></root>"
+		uuidValue1 := "160075f6-4d6e-4040-b287-bd43677464fa"
+		uuidValue2 := "5f4a4b96-a74e-4502-b05b-1d96fba90657"
 
 		values := []any{
 			&PgxArray[any]{
@@ -255,7 +256,9 @@ func Test_parsePgRowValues(t *testing.T) {
 				colDataType: "_boolean",
 			},
 			&PgxArray[any]{
-				Array:       pgtype.Array[any]{Elements: []any{[]byte(`{"key": "value1"}`), []byte(`{"key": "value2"}`)}},
+				Array: pgtype.Array[any]{Elements: []any{
+					map[string]any{"key": "value1"}, map[string]any{"key": "value2"},
+				}},
 				colDataType: "_json",
 			},
 			&PgxArray[any]{
@@ -263,7 +266,10 @@ func Test_parsePgRowValues(t *testing.T) {
 				colDataType: "_bytea",
 			},
 			&PgxArray[any]{
-				Array:       pgtype.Array[any]{Elements: []any{xmlData1, xmlData2}},
+				Array: pgtype.Array[any]{Elements: []any{
+					xmlData1,
+					xmlData2,
+				}},
 				colDataType: "_xml",
 			},
 			&PgxArray[any]{
@@ -281,12 +287,7 @@ func Test_parsePgRowValues(t *testing.T) {
 			"binary_array", "xml_array", "uuid_array", "multidim_array",
 		}
 
-		cTypes := []string{
-			"_text", "_integer", "_boolean", "_json",
-			"_bytea", "_xml", "_uuid", "_integer[]",
-		}
-
-		result := parsePgRowValues(values, columnNames, cTypes)
+		result := parsePgRowValues(values, columnNames)
 
 		expected := map[string]any{
 			"text_array":     []any{"Hello", "World"},
@@ -294,15 +295,87 @@ func Test_parsePgRowValues(t *testing.T) {
 			"bool_array":     []any{true, false},
 			"json_array":     []any{map[string]any{"key": "value1"}, map[string]any{"key": "value2"}},
 			"binary_array":   []any{binaryData1, binaryData2},
-			"xml_array":      []any{string(xmlData1), string(xmlData2)},
-			"uuid_array":     []any{uuid.UUID(uuidValue1).String(), uuid.UUID(uuidValue2).String()},
+			"xml_array":      []any{xmlData1, xmlData2},
+			"uuid_array":     []any{uuidValue1, uuidValue2},
 			"multidim_array": []any{[]any{1, 2}, []any{3, 4}},
 		}
 
 		for key, expectedArray := range expected {
 			actual, ok := result[key]
+			jsonF, _ := json.MarshalIndent(expectedArray, "", " ")
+			fmt.Printf("expectedArray: %s \n", string(jsonF))
+			jsonF, _ = json.MarshalIndent(actual, "", " ")
+			fmt.Printf("actual: %s \n", string(jsonF))
 			require.True(t, ok)
 			require.ElementsMatch(t, actual, expectedArray)
 		}
 	})
+
+	t.Run("Null Values", func(t *testing.T) {
+		values := []any{
+			sql.NullString{Valid: false},
+			&NullableJSON{Valid: false},
+		}
+		columnNames := []string{"null_string", "null_json"}
+
+		result := parsePgRowValues(values, columnNames)
+
+		expected := map[string]any{
+			"null_string": nil,
+			"null_json":   nil,
+		}
+		require.Equal(t, expected, result)
+	})
+}
+
+func TestNullableJSON_Unmarshal(t *testing.T) {
+	tests := []struct {
+		name    string
+		json    NullableJSON
+		want    any
+		wantErr bool
+	}{
+		{
+			name:    "Invalid JSON",
+			json:    NullableJSON{Valid: false},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name:    "Valid string",
+			json:    NullableJSON{RawMessage: json.RawMessage(`"test"`), Valid: true},
+			want:    "test",
+			wantErr: false,
+		},
+		{
+			name:    "Valid number",
+			json:    NullableJSON{RawMessage: json.RawMessage(`42`), Valid: true},
+			want:    float64(42),
+			wantErr: false,
+		},
+		{
+			name:    "Valid object",
+			json:    NullableJSON{RawMessage: json.RawMessage(`{"key":"value"}`), Valid: true},
+			want:    map[string]any{"key": "value"},
+			wantErr: false,
+		},
+		{
+			name:    "Invalid JSON content",
+			json:    NullableJSON{RawMessage: json.RawMessage(`{invalid}`), Valid: true},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.json.Unmarshal()
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
