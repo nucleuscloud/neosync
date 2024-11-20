@@ -1,5 +1,23 @@
 import { Action } from '@/components/DualListBox/DualListBox';
+import {
+  JobMappingRow,
+  NosqlJobMappingRow,
+} from '@/components/jobs/JobMappingTable/Columns';
 import { DestinationDetails } from '@/components/jobs/NosqlTable/TableMappings/Columns';
+import {
+  JobType,
+  SchemaConstraintHandler,
+} from '@/components/jobs/SchemaTable/schema-constraint-handler';
+import {
+  TransformerConfigCase,
+  TransformerHandler,
+  TransformerResult,
+} from '@/components/jobs/SchemaTable/transformer-handler';
+import {
+  fromNosqlRowDataToColKey,
+  fromRowDataToColKey,
+  getTransformerFilter,
+} from '@/components/jobs/SchemaTable/util';
 import { isValidSubsetType } from '@/components/jobs/subsets/utils';
 import {
   JobMappingFormValues,
@@ -12,7 +30,10 @@ import {
   JobDestination,
   JobMappingTransformer,
   JobSource,
+  SystemTransformer,
+  UserDefinedTransformer,
 } from '@neosync/sdk';
+import { Row } from '@tanstack/react-table';
 
 export function getConnectionIdFromSource(
   js: JobSource | undefined
@@ -175,4 +196,104 @@ export function getDynamoDbDestinations(
   return destinations.filter(
     (d) => d.options?.config.case === 'dynamodbOptions'
   );
+}
+
+export function getFilteredTransformersForBulkSet(
+  rows: Row<JobMappingRow>[] | Row<NosqlJobMappingRow>[],
+  transformerHandler: TransformerHandler,
+  constraintHandler: SchemaConstraintHandler,
+  jobType: JobType,
+  sqlType: 'relational' | 'nosql'
+): TransformerResult {
+  const systemArrays: SystemTransformer[][] = [];
+  const userDefinedArrays: UserDefinedTransformer[][] = [];
+
+  rows.forEach((row) => {
+    const colkey =
+      sqlType === 'nosql'
+        ? fromNosqlRowDataToColKey(row as Row<NosqlJobMappingRow>)
+        : fromRowDataToColKey(row as Row<JobMappingRow>);
+    const { system, userDefined } = transformerHandler.getFilteredTransformers(
+      getTransformerFilter(constraintHandler, colkey, jobType)
+    );
+    systemArrays.push(system);
+    userDefinedArrays.push(userDefined);
+  });
+
+  const uniqueSystemConfigCases = findCommonSystemConfigCases(systemArrays);
+  const uniqueSystem = uniqueSystemConfigCases
+    .map((configCase) =>
+      transformerHandler.getSystemTransformerByConfigCase(configCase)
+    )
+    .filter((x): x is SystemTransformer => !!x);
+
+  const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
+  const uniqueUserDef = uniqueIds
+    .map((id) => transformerHandler.getUserDefinedTransformerById(id))
+    .filter((x): x is UserDefinedTransformer => !!x);
+
+  return {
+    system: uniqueSystem,
+    userDefined: uniqueUserDef,
+  };
+}
+
+function findCommonSystemConfigCases(
+  arrays: SystemTransformer[][]
+): TransformerConfigCase[] {
+  const elementCount: Record<TransformerConfigCase, number> = {} as Record<
+    TransformerConfigCase,
+    number
+  >;
+  const subArrayCount = arrays.length;
+  const commonElements: TransformerConfigCase[] = [];
+
+  arrays.forEach((subArray) => {
+    // Use a Set to ensure each element in a sub-array is counted only once
+    new Set(subArray).forEach((element) => {
+      if (!element.config?.config.case) {
+        return;
+      }
+      if (!elementCount[element.config.config.case]) {
+        elementCount[element.config.config.case] = 1;
+      } else {
+        elementCount[element.config.config.case]++;
+      }
+    });
+  });
+
+  for (const [element, count] of Object.entries(elementCount)) {
+    if (count === subArrayCount) {
+      commonElements.push(element as TransformerConfigCase);
+    }
+  }
+
+  return commonElements;
+}
+
+function findCommonUserDefinedIds(
+  arrays: UserDefinedTransformer[][]
+): string[] {
+  const elementCount: Record<string, number> = {};
+  const subArrayCount = arrays.length;
+  const commonElements: string[] = [];
+
+  arrays.forEach((subArray) => {
+    // Use a Set to ensure each element in a sub-array is counted only once
+    new Set(subArray).forEach((element) => {
+      if (!elementCount[element.id]) {
+        elementCount[element.id] = 1;
+      } else {
+        elementCount[element.id]++;
+      }
+    });
+  });
+
+  for (const [element, count] of Object.entries(elementCount)) {
+    if (count === subArrayCount) {
+      commonElements.push(element);
+    }
+  }
+
+  return commonElements;
 }

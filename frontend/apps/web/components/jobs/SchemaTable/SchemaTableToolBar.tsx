@@ -2,7 +2,6 @@
 
 import { Row, Table } from '@tanstack/react-table';
 
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
@@ -10,64 +9,61 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
 import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
-  getTransformerFromField,
-  getTransformerSelectButtonText,
   isInvalidTransformer,
+  useTransformerSelectButtonText,
 } from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
-  SchemaFormValues,
 } from '@/yup-validations/jobs';
 import {
-  GenerateDefault,
   JobMapping,
   JobMappingTransformer,
-  Passthrough,
   SystemTransformer,
-  TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 import ApplyDefaultTransformersButton from './ApplyDefaultTransformersButton';
 import ExportJobMappingsButton from './ExportJobMappingsButton';
 import ImportJobMappingsButton, {
   ImportMappingsConfig,
 } from './ImportJobMappingsButton';
-import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
-import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
-import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
-import {
-  TransformerConfigCase,
-  TransformerHandler,
-} from './transformer-handler';
+import { TransformerResult } from './transformer-handler';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  transformerHandler: TransformerHandler;
-  constraintHandler: SchemaConstraintHandler;
-  jobType: JobType;
+  getAllowedTransformers(rows: Row<TData>[]): TransformerResult;
+  getTransformerFromField(selected: JobMappingTransformerForm): Transformer;
+  onBulkUpdate(indices: number[], value: JobMappingTransformerForm): void;
   onExportMappingsClick(shouldFormat: boolean): void;
   onImportMappingsClick(
     jobmappings: JobMapping[],
     config: ImportMappingsConfig
   ): void;
+  displayApplyDefaultTransformersButton: boolean;
+  isApplyDefaultButtonDisabled: boolean;
+  onApplyDefaultClick(override: boolean): void;
 }
+
+const DEFAULT_TRANSFORMER_BUTTON_TEXT = 'Bulk set transformers';
 
 export function SchemaTableToolbar<TData>({
   table,
-  transformerHandler,
-  constraintHandler,
-  jobType,
   onExportMappingsClick,
   onImportMappingsClick,
+  getAllowedTransformers,
+  getTransformerFromField,
+  onBulkUpdate,
+  displayApplyDefaultTransformersButton,
+  isApplyDefaultButtonDisabled,
+  onApplyDefaultClick,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
-  const hasSelectedRows = Object.values(table.getState().rowSelection).some(
+  const tableState = table.getState();
+  const isFiltered = tableState.columnFilters.length > 0;
+  const hasSelectedRows = Object.values(tableState.rowSelection).some(
     (value) => value
   );
 
@@ -76,25 +72,18 @@ export function SchemaTableToolbar<TData>({
       convertJobMappingTransformerToForm(new JobMappingTransformer())
     );
 
-  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
-
-  const transformer = getTransformerFromField(
-    transformerHandler,
-    bulkTransformer
+  const transformer = getTransformerFromField(bulkTransformer);
+  const allowedTransformers = getAllowedTransformers(
+    table.getSelectedRowModel().rows
   );
-  // conditionally computed the allowed transformers only if there are selected rows
-  const allowedTransformers = hasSelectedRows
-    ? getFilteredTransformersForBulkSet(
-        table.getSelectedRowModel().rows,
-        transformerHandler,
-        constraintHandler,
-        jobType
-      )
-    : { system: [], userDefined: [] };
   const isBulkApplyDisabled =
     !bulkTransformer ||
     !hasSelectedRows ||
     !isTransformerAllowed(allowedTransformers, transformer);
+  const transformerSelectButtontext = useTransformerSelectButtonText(
+    transformer,
+    DEFAULT_TRANSFORMER_BUTTON_TEXT
+  );
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -107,10 +96,7 @@ export function SchemaTableToolbar<TData>({
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            buttonText={getTransformerSelectButtonText(
-              transformer,
-              'Bulk set transformers'
-            )}
+            buttonText={transformerSelectButtontext}
             disabled={!hasSelectedRows}
             buttonClassName="md:max-w-[275px]"
             notFoundText="No transformers found for the given selection."
@@ -127,21 +113,16 @@ export function SchemaTableToolbar<TData>({
             variant="outline"
             className={cn(isBulkApplyDisabled ? undefined : 'border-blue-600')}
             onClick={() => {
-              table.getSelectedRowModel().rows.forEach((r) => {
-                form.setValue(
-                  `mappings.${r.index}.transformer`,
-                  bulkTransformer,
-                  {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: false, // this is really expensive, see the trigger call below
-                  }
-                );
-              });
+              const rowIndices = table
+                .getSelectedRowModel()
+                .rows.map((r) => r.index);
+              if (rowIndices.length === 0) {
+                return;
+              }
+              onBulkUpdate(rowIndices, bulkTransformer);
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
               );
-              form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               table.resetRowSelection(true);
             }}
           >
@@ -174,56 +155,10 @@ export function SchemaTableToolbar<TData>({
               />
             </Button>
           )}
-          {jobType === 'sync' && (
+          {displayApplyDefaultTransformersButton && (
             <ApplyDefaultTransformersButton
-              isDisabled={form.watch('mappings').length === 0}
-              onClick={(override) => {
-                const formMappings = form.getValues('mappings');
-                formMappings.forEach((fm, idx) => {
-                  // skips setting the default transformer if the user has already set the transformer
-                  if (fm.transformer.config.case && !override) {
-                    return;
-                  } else {
-                    const colkey = {
-                      schema: fm.schema,
-                      table: fm.table,
-                      column: fm.column,
-                    };
-                    const isGenerated =
-                      constraintHandler.getIsGenerated(colkey);
-                    const identityType =
-                      constraintHandler.getIdentityType(colkey);
-                    const newJm =
-                      isGenerated && !identityType
-                        ? new JobMappingTransformer({
-                            config: new TransformerConfig({
-                              config: {
-                                case: 'generateDefaultConfig',
-                                value: new GenerateDefault(),
-                              },
-                            }),
-                          })
-                        : new JobMappingTransformer({
-                            config: new TransformerConfig({
-                              config: {
-                                case: 'passthroughConfig',
-                                value: new Passthrough(),
-                              },
-                            }),
-                          });
-                    form.setValue(
-                      `mappings.${idx}.transformer`,
-                      convertJobMappingTransformerToForm(newJm),
-                      {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: false,
-                      }
-                    );
-                  }
-                });
-                form.trigger('mappings'); // trigger validation after bulk updating the selected form options
-              }}
+              isDisabled={isApplyDefaultButtonDisabled}
+              onClick={onApplyDefaultClick}
             />
           )}
           <ImportJobMappingsButton onImport={onImportMappingsClick} />
@@ -256,106 +191,4 @@ function isTransformerAllowed(
   } else {
     return userDefined.some((t) => t.id === selected.id);
   }
-}
-
-function getFilteredTransformersForBulkSet<TData>(
-  rows: Row<TData>[],
-  transformerHandler: TransformerHandler,
-  constraintHandler: SchemaConstraintHandler,
-  jobType: JobType
-): {
-  system: SystemTransformer[];
-  userDefined: UserDefinedTransformer[];
-} {
-  const systemArrays: SystemTransformer[][] = [];
-  const userDefinedArrays: UserDefinedTransformer[][] = [];
-
-  rows.forEach((row) => {
-    const { system, userDefined } = transformerHandler.getFilteredTransformers(
-      getTransformerFilter(
-        constraintHandler,
-        fromRowDataToColKey(row as unknown as Row<RowData>), // this will bite us at some point
-        jobType
-      )
-    );
-    systemArrays.push(system);
-    userDefinedArrays.push(userDefined);
-  });
-
-  const uniqueSystemConfigCases = findCommonSystemConfigCases(systemArrays);
-  const uniqueSystem = uniqueSystemConfigCases
-    .map((configCase) =>
-      transformerHandler.getSystemTransformerByConfigCase(configCase)
-    )
-    .filter((x): x is SystemTransformer => !!x);
-
-  const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
-  const uniqueUserDef = uniqueIds
-    .map((id) => transformerHandler.getUserDefinedTransformerById(id))
-    .filter((x): x is UserDefinedTransformer => !!x);
-
-  return {
-    system: uniqueSystem,
-    userDefined: uniqueUserDef,
-  };
-}
-
-function findCommonSystemConfigCases(
-  arrays: SystemTransformer[][]
-): TransformerConfigCase[] {
-  const elementCount: Record<TransformerConfigCase, number> = {} as Record<
-    TransformerConfigCase,
-    number
-  >;
-  const subArrayCount = arrays.length;
-  const commonElements: TransformerConfigCase[] = [];
-
-  arrays.forEach((subArray) => {
-    // Use a Set to ensure each element in a sub-array is counted only once
-    new Set(subArray).forEach((element) => {
-      if (!element.config?.config.case) {
-        return;
-      }
-      if (!elementCount[element.config.config.case]) {
-        elementCount[element.config.config.case] = 1;
-      } else {
-        elementCount[element.config.config.case]++;
-      }
-    });
-  });
-
-  for (const [element, count] of Object.entries(elementCount)) {
-    if (count === subArrayCount) {
-      commonElements.push(element as TransformerConfigCase);
-    }
-  }
-
-  return commonElements;
-}
-
-function findCommonUserDefinedIds(
-  arrays: UserDefinedTransformer[][]
-): string[] {
-  const elementCount: Record<string, number> = {};
-  const subArrayCount = arrays.length;
-  const commonElements: string[] = [];
-
-  arrays.forEach((subArray) => {
-    // Use a Set to ensure each element in a sub-array is counted only once
-    new Set(subArray).forEach((element) => {
-      if (!elementCount[element.id]) {
-        elementCount[element.id] = 1;
-      } else {
-        elementCount[element.id]++;
-      }
-    });
-  });
-
-  for (const [element, count] of Object.entries(elementCount)) {
-    if (count === subArrayCount) {
-      commonElements.push(element);
-    }
-  }
-
-  return commonElements;
 }

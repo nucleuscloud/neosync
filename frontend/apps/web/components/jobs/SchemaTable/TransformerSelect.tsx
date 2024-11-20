@@ -26,7 +26,8 @@ import {
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
+import { TransformerResult } from './transformer-handler';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
@@ -59,9 +60,14 @@ export default function TransformerSelect(props: Props): ReactElement {
   } = props;
   const [open, setOpen] = useState(false);
 
-  const { system, userDefined } = open
-    ? getTransformers()
-    : { system: [], userDefined: [] };
+  const [{ system, userDefined }, setTransformerResult] =
+    useState<TransformerResult>({ system: [], userDefined: [] });
+
+  useEffect(() => {
+    if (open) {
+      setTransformerResult(getTransformers());
+    }
+  }, [open]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
