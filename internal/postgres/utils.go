@@ -16,7 +16,8 @@ type PgxArray[T any] struct {
 	colDataType string
 }
 
-// Handles scanning postgres arrays
+// custom PGX array scanner
+// properly handles scanning postgres arrays
 func (a *PgxArray[T]) Scan(src any) error {
 	m := pgtype.NewMap()
 	// Register money types

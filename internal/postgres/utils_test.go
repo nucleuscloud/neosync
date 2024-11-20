@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -302,10 +301,6 @@ func Test_parsePgRowValues(t *testing.T) {
 
 		for key, expectedArray := range expected {
 			actual, ok := result[key]
-			jsonF, _ := json.MarshalIndent(expectedArray, "", " ")
-			fmt.Printf("expectedArray: %s \n", string(jsonF))
-			jsonF, _ = json.MarshalIndent(actual, "", " ")
-			fmt.Printf("actual: %s \n", string(jsonF))
 			require.True(t, ok)
 			require.ElementsMatch(t, actual, expectedArray)
 		}
