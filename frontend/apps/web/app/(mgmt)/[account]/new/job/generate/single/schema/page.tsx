@@ -270,9 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading]);
 
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  const { handler, isLoading } = useGetTransformersHandler(account?.id ?? '');
 
   function onTransformerUpdate(
     index: number,

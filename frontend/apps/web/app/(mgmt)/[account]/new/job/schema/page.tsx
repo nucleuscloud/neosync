@@ -416,11 +416,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setSelectedTables: setSelectedTables,
   });
 
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  const { handler, isLoading: isGetTransformersLoading } =
+    useGetTransformersHandler(account?.id ?? '');
 
-  if (isConnectionLoading || isSchemaMapLoading) {
+  if (isConnectionLoading || isSchemaMapLoading || isGetTransformersLoading) {
     return <SkeletonForm />;
   }
 

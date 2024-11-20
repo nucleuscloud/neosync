@@ -230,9 +230,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { mutateAsync: validateJobMappingsAsync } =
     useMutation(validateJobMappings);
 
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  const { handler, isLoading: isGetTransformersLoading } =
+    useGetTransformersHandler(account?.id ?? '');
 
   function onTransformerUpdate(
     index: number,
@@ -341,7 +340,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }, 0);
   }
 
-  if (isJobLoading || isSchemaDataMapLoading) {
+  if (isJobLoading || isSchemaDataMapLoading || isGetTransformersLoading) {
     return <SchemaPageSkeleton />;
   }
 

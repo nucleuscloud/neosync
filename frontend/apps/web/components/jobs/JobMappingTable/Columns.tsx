@@ -49,7 +49,7 @@ export interface NosqlJobMappingRow {
   transformer: JobMappingTransformerForm;
 }
 
-export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
+function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   const columnHelper = createColumnHelper<JobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
@@ -238,10 +238,7 @@ export function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   ];
 }
 
-export function getNosqlJobMappingColumns(): ColumnDef<
-  NosqlJobMappingRow,
-  any
->[] {
+function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
   const columnHelper = createColumnHelper<NosqlJobMappingRow>();
 
   const checkboxColumn = columnHelper.display({

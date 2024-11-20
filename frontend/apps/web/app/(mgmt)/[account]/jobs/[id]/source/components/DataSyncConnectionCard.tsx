@@ -477,9 +477,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     []
   );
 
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
-    account?.id ?? ''
-  );
+  const { handler, isLoading: isGetTransformersLoading } =
+    useGetTransformersHandler(account?.id ?? '');
 
   function onTransformerUpdate(
     index: number,
@@ -519,7 +518,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     setSelectedTables: setSelectedTables,
   });
 
-  if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
+  if (
+    isConnectionsLoading ||
+    isSchemaDataMapLoading ||
+    isJobDataLoading ||
+    isGetTransformersLoading
+  ) {
     return <SchemaPageSkeleton />;
   }
 
