@@ -415,6 +415,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { handler, isLoading: isGetTransformersLoading } =
     useGetTransformersHandler(account?.id ?? '');
 
+  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setTransformer: onTransformerUpdate,
+    constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
   if (isConnectionLoading || isSchemaMapLoading || isGetTransformersLoading) {
     return <SkeletonForm />;
   }
@@ -463,17 +474,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       transformer,
     });
   }
-
-  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
-    getMappings() {
-      return form.getValues('mappings');
-    },
-    setTransformer: onTransformerUpdate,
-    constraintHandler: schemaConstraintHandler,
-    triggerUpdate() {
-      form.trigger('mappings');
-    },
-  });
 
   function onTransformerBulkUpdate(
     indices: number[],
