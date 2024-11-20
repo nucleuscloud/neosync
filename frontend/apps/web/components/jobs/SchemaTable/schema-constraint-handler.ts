@@ -73,6 +73,7 @@ export function getSchemaConstraintHandler(
     uniqueConstraints,
     vfkMap
   );
+  console.log('colmap', colmap);
 
   return {
     getDataType(key) {
@@ -251,7 +252,7 @@ function buildColDetailsMap(
         if (constraint.foreignKey) {
           fkconstraintsMap[col] = new ForeignKey({
             table: constraint.foreignKey?.table,
-            column: constraint.foreignKey?.columns[idx],
+            columns: [constraint.foreignKey?.columns[idx]],
           });
         } else {
           fkconstraintsMap[col] = new ForeignKey();
