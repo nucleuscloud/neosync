@@ -81,7 +81,7 @@ func (a *PgxArray[T]) Scan(src any) error {
 	var ok bool
 
 	if oid, err := strconv.Atoi(a.colDataType); err == nil {
-		pgt, ok = m.TypeForOID(uint32(oid))
+		pgt, ok = m.TypeForOID(uint32(oid)) //nolint:gosec
 	} else {
 		pgt, ok = m.TypeForName(strings.ToLower(a.colDataType))
 	}

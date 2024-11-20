@@ -172,7 +172,7 @@ func Test_parsePgRowValues(t *testing.T) {
 		xmlStr := "<root><element>value</element></root>"
 		uuidValue := "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
-		xmlVal := sql.NullString{String: xmlStr, Valid: true}
+		xmlVal := &sql.NullString{String: xmlStr, Valid: true}
 		jsonVal := &NullableJSON{RawMessage: json.RawMessage(`{"key": "value"}`), Valid: true}
 
 		values := []any{
@@ -308,7 +308,7 @@ func Test_parsePgRowValues(t *testing.T) {
 
 	t.Run("Null Values", func(t *testing.T) {
 		values := []any{
-			sql.NullString{Valid: false},
+			&sql.NullString{Valid: false},
 			&NullableJSON{Valid: false},
 		}
 		columnNames := []string{"null_string", "null_json"}
