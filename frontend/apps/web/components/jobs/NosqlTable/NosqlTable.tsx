@@ -92,7 +92,7 @@ export default function NosqlTable(props: Props): ReactElement {
     onTransformerBulkUpdate,
   } = props;
   const { account } = useAccount();
-  const { handler, isLoading, isValidating } = useGetTransformersHandler(
+  const { handler, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
   );
 
@@ -198,7 +198,7 @@ export default function NosqlTable(props: Props): ReactElement {
           />
         </div>
       )}
-      <JobMappingTable<NosqlJobMappingRow, any>
+      <JobMappingTable
         data={tableData}
         columns={NOSQL_COLUMNS}
         onTransformerUpdate={(idx, config) => {

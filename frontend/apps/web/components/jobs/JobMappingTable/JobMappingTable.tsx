@@ -299,6 +299,7 @@ const MemoizedRow = memo(
     return true;
   }
 );
+MemoizedRow.displayName = 'MemoizedRow';
 
 const MemoizedCell = memo(
   <TData,>({ cell }: { cell: Cell<TData, unknown> }) =>
@@ -316,3 +317,4 @@ const MemoizedCell = memo(
     return prevValue === nextValue;
   }
 );
+MemoizedCell.displayName = 'MemoizedCell';

@@ -49,7 +49,7 @@ export interface NosqlJobMappingRow {
   transformer: JobMappingTransformerForm;
 }
 
-function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
+function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
   const columnHelper = createColumnHelper<JobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
@@ -113,7 +113,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   });
 
   const isNullableColumn = columnHelper.accessor(
-    (row) => (row.isNullable ? 'Yes' : 'No'),
+    (row) => (row.isNullable ? 'Yes' : 'No') as string,
     {
       id: 'isNullable',
       header({ column }) {
@@ -238,7 +238,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   ];
 }
 
-function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
+function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, string>[] {
   const columnHelper = createColumnHelper<NosqlJobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
@@ -321,50 +321,63 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
     },
   });
 
-  const transformerColumn = columnHelper.accessor('transformer', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Transformer" />;
+  const transformerColumn = columnHelper.accessor(
+    (row) => {
+      if (row.transformer.config.case) {
+        return row.transformer.config.case.toLowerCase();
+      }
+      return 'select transformer';
     },
-    cell({ getValue, table, row }) {
-      const transformer =
-        table.options.meta?.getTransformerFromField(row.index) ??
-        new SystemTransformer();
-      return (
-        <div className="flex flex-row gap-2">
-          <div>
-            <TransformerSelect
-              getTransformers={() =>
-                table.options.meta?.getAvailableTransformers(row.index) ?? {
-                  system: [],
-                  userDefined: [],
+    {
+      id: 'transformer',
+      header({ column }) {
+        return <SchemaColumnHeader column={column} title="Transformer" />;
+      },
+      cell({ getValue, table, row }) {
+        const transformer =
+          table.options.meta?.getTransformerFromField(row.index) ??
+          new SystemTransformer();
+        const transformerForm = row.original.transformer;
+        return (
+          <div className="flex flex-row gap-2">
+            <div>
+              <TransformerSelect
+                getTransformers={() =>
+                  table.options.meta?.getAvailableTransformers(row.index) ?? {
+                    system: [],
+                    userDefined: [],
+                  }
                 }
-              }
-              buttonText={getTransformerSelectButtonText(transformer)}
-              buttonClassName="w-[175px]"
-              value={getValue()}
-              onSelect={(updatedValue) =>
-                table.options.meta?.onTransformerUpdate(row.index, updatedValue)
-              }
-              disabled={false}
-            />
+                buttonText={getTransformerSelectButtonText(transformer)}
+                buttonClassName="w-[175px]"
+                value={transformerForm}
+                onSelect={(updatedValue) =>
+                  table.options.meta?.onTransformerUpdate(
+                    row.index,
+                    updatedValue
+                  )
+                }
+                disabled={false}
+              />
+            </div>
+            <div>
+              <EditTransformerOptions
+                transformer={transformer}
+                value={transformerForm}
+                onSubmit={(updatedValue) => {
+                  table.options.meta?.onTransformerUpdate(
+                    row.index,
+                    updatedValue
+                  );
+                }}
+                disabled={isInvalidTransformer(transformer)}
+              />
+            </div>
           </div>
-          <div>
-            <EditTransformerOptions
-              transformer={transformer}
-              value={getValue()}
-              onSubmit={(updatedValue) => {
-                table.options.meta?.onTransformerUpdate(
-                  row.index,
-                  updatedValue
-                );
-              }}
-              disabled={isInvalidTransformer(transformer)}
-            />
-          </div>
-        </div>
-      );
-    },
-  });
+        );
+      },
+    }
+  );
 
   const actionsColumn = columnHelper.display({
     id: 'actions',

@@ -273,7 +273,7 @@ export function SchemaTable(props: Props): ReactElement {
           </TabsContent>
         </Tabs>
       ) : (
-        <JobMappingTable<JobMappingRow, any>
+        <JobMappingTable
           data={tableData}
           columns={SQL_COLUMNS}
           onTransformerUpdate={onTransformerUpdate}
