@@ -419,7 +419,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     getMappings() {
       return form.getValues('mappings');
     },
-    setTransformer: onTransformerUpdate,
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
     constraintHandler: schemaConstraintHandler,
     triggerUpdate() {
       form.trigger('mappings');

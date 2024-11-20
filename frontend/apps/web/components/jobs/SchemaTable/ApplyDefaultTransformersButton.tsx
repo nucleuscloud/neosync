@@ -17,7 +17,7 @@ import { ReactElement } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 interface Props {
   isDisabled: boolean;
-  onClick(override: boolean): void;
+  onClick(override: boolean): void | Promise<void>;
 }
 
 export default function ApplyDefaultTransformersButton(
@@ -43,7 +43,7 @@ export default function ApplyDefaultTransformersButton(
       containerClassName="max-w-xl"
       onConfirm={() => {
         const override = form.getValues('overrideTransformers');
-        onClick(override);
+        return onClick(override);
       }}
     />
   );
