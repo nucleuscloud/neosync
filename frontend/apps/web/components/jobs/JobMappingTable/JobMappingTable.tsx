@@ -11,6 +11,7 @@ import { Transformer } from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import { JobMapping } from '@neosync/sdk';
 import {
+  Cell,
   ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -20,8 +21,8 @@ import {
   RowData,
   useReactTable,
 } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { ReactElement, useRef } from 'react';
+import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
+import { ReactElement, useMemo, useRef } from 'react';
 import { GoWorkflow } from 'react-icons/go';
 import { ImportMappingsConfig } from '../SchemaTable/ImportJobMappingsButton';
 import { SchemaTableToolbar } from '../SchemaTable/SchemaTableToolBar';
@@ -114,7 +115,6 @@ export default function JobMappingTable<TData, TValue>(
       onRowUpdate,
       getAvailableCollectionsByRow,
     },
-    debugAll: true,
   });
 
   const { rows } = table.getRowModel();
@@ -203,31 +203,7 @@ export default function JobMappingTable<TData, TValue>(
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                <TableRow
-                  key={row.id}
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                    height: `${virtualRow.size}px`,
-                  }}
-                  className="items-center flex absolute w-full justify-between px-2"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <td
-                        key={cell.id}
-                        className="py-2"
-                        style={{
-                          minWidth: cell.column.getSize(),
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </TableRow>
+                <MemoizedRow key={row.id} row={row} virtualRow={virtualRow} />
               );
             })}
           </TableBody>
@@ -244,4 +220,54 @@ export default function JobMappingTable<TData, TValue>(
 const US_NUMBER_FORMAT = new Intl.NumberFormat('en-US');
 function getFormattedCount(count: number): string {
   return US_NUMBER_FORMAT.format(count);
+}
+
+function MemoizedRow<TData>({
+  row,
+  virtualRow,
+}: {
+  row: Row<TData>;
+  virtualRow: VirtualItem;
+}) {
+  return useMemo(
+    () => (
+      <TableRow
+        key={row.id}
+        style={{
+          transform: `translateY(${virtualRow.start}px)`,
+          height: `${virtualRow.size}px`,
+        }}
+        className="items-center flex absolute w-full justify-between px-2"
+      >
+        {row.getVisibleCells().map((cell) => (
+          <td
+            key={cell.id}
+            className="py-2"
+            style={{
+              minWidth: cell.column.getSize(),
+            }}
+          >
+            <MemoizedCell cell={cell} />
+          </td>
+        ))}
+      </TableRow>
+    ),
+    [
+      row.id,
+      virtualRow.start,
+      virtualRow.size,
+      row.getVisibleCells(),
+      row.getIsSelected(),
+    ]
+  );
+}
+
+function MemoizedCell<TData>({ cell }: { cell: Cell<TData, unknown> }) {
+  return useMemo(
+    () => flexRender(cell.column.columnDef.cell, cell.getContext()),
+    [
+      cell.getValue(),
+      cell.column.id === 'isSelected' ? cell.row.getIsSelected() : undefined,
+    ]
+  );
 }

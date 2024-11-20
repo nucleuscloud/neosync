@@ -28,7 +28,7 @@ export function SchemaColumnHeader<TData, TValue>({
   );
   const onInputChange = useDebounceCallback(
     (value) => column.setFilterValue(value),
-    500
+    300
   );
   return (
     <div className="flex flex-row gap-2 items-center justify-start">
