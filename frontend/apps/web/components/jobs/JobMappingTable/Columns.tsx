@@ -333,7 +333,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, string>[] {
       header({ column }) {
         return <SchemaColumnHeader column={column} title="Transformer" />;
       },
-      cell({ getValue, table, row }) {
+      cell({ table, row }) {
         const transformer =
           table.options.meta?.getTransformerFromField(row.index) ??
           new SystemTransformer();

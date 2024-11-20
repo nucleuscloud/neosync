@@ -230,7 +230,7 @@ export function SchemaTable(props: Props): ReactElement {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="mappings">
-            <JobMappingTable<JobMappingRow, any>
+            <JobMappingTable
               data={tableData}
               columns={SQL_COLUMNS}
               onTransformerUpdate={onTransformerUpdate}
