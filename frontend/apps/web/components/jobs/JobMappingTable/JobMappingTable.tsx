@@ -22,7 +22,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
-import { ReactElement, useMemo, useRef } from 'react';
+import { memo, ReactElement, useRef } from 'react';
 import { GoWorkflow } from 'react-icons/go';
 import { ImportMappingsConfig } from '../SchemaTable/ImportJobMappingsButton';
 import { SchemaTableToolbar } from '../SchemaTable/SchemaTableToolBar';
@@ -129,7 +129,7 @@ export default function JobMappingTable<TData, TValue>(
     getScrollElement() {
       return tableContainerRef.current;
     },
-    overscan: 15,
+    overscan: 50,
   });
 
   return (
@@ -203,7 +203,12 @@ export default function JobMappingTable<TData, TValue>(
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                <MemoizedRow key={row.id} row={row} virtualRow={virtualRow} />
+                <MemoizedRow
+                  key={row.id}
+                  row={row}
+                  virtualRow={virtualRow}
+                  selected={row.getIsSelected()} // must be memoized here since row.getIsSelected() changes in place
+                />
               );
             })}
           </TableBody>
@@ -222,15 +227,16 @@ function getFormattedCount(count: number): string {
   return US_NUMBER_FORMAT.format(count);
 }
 
-function MemoizedRow<TData>({
-  row,
-  virtualRow,
-}: {
-  row: Row<TData>;
-  virtualRow: VirtualItem;
-}) {
-  return useMemo(
-    () => (
+const MemoizedRow = memo(
+  <TData,>({
+    row,
+    virtualRow,
+  }: {
+    row: Row<TData>;
+    virtualRow: VirtualItem;
+    selected: boolean;
+  }) => {
+    return (
       <TableRow
         key={row.id}
         style={{
@@ -247,27 +253,66 @@ function MemoizedRow<TData>({
               minWidth: cell.column.getSize(),
             }}
           >
-            <MemoizedCell cell={cell} />
+            <MemoizedCell cell={cell as Cell<unknown, unknown>} />
           </td>
         ))}
       </TableRow>
-    ),
-    [
-      row.id,
-      virtualRow.start,
-      virtualRow.size,
-      row.getVisibleCells(),
-      row.getIsSelected(),
-    ]
-  );
-}
+    );
+  },
+  (prev, next) => {
+    // Compare virtualRow properties
+    if (
+      prev.virtualRow.start !== next.virtualRow.start ||
+      prev.virtualRow.size !== next.virtualRow.size
+    ) {
+      return false;
+    }
 
-function MemoizedCell<TData>({ cell }: { cell: Cell<TData, unknown> }) {
-  return useMemo(
-    () => flexRender(cell.column.columnDef.cell, cell.getContext()),
-    [
-      cell.getValue(),
-      cell.column.id === 'isSelected' ? cell.row.getIsSelected() : undefined,
-    ]
-  );
-}
+    // Compare row.id
+    if (prev.row.id !== next.row.id) {
+      return false;
+    }
+
+    // Check row selection state for "isSelected"
+    if (prev.selected !== next.selected) {
+      return false;
+    }
+
+    // Check if visible cells or their values have changed
+    const prevCells = prev.row.getVisibleCells();
+    const nextCells = next.row.getVisibleCells();
+
+    if (prevCells.length !== nextCells.length) {
+      return false;
+    }
+
+    for (let i = 0; i < prevCells.length; i++) {
+      if (
+        prevCells[i].id !== nextCells[i].id ||
+        prevCells[i].getValue() !== nextCells[i].getValue()
+      ) {
+        return false;
+      }
+    }
+
+    // If no differences are found, skip re-render
+    return true;
+  }
+);
+
+const MemoizedCell = memo(
+  <TData,>({ cell }: { cell: Cell<TData, unknown> }) =>
+    flexRender(cell.column.columnDef.cell, cell.getContext()),
+  (prev, next) => {
+    const prevValue = prev.cell.getValue();
+    const nextValue = next.cell.getValue();
+
+    if (prev.cell.column.id === 'isSelected') {
+      // Always re-render checkbox cells as getIsSelected() is always the same for both
+      return false;
+    }
+
+    // For other columns, just compare the values
+    return prevValue === nextValue;
+  }
+);
