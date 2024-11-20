@@ -16,16 +16,6 @@ type PgxArray[T any] struct {
 	colDataType string
 }
 
-// func (a *PgxArray[T]) SimpleArray() []any {
-// 	newArray := make([]any, len(a.Elements))
-
-// 	for _, element := range a.Elements {
-
-// 	}
-// 	return newArray
-
-// }
-
 // Handles scanning postgres arrays
 func (a *PgxArray[T]) Scan(src any) error {
 	m := pgtype.NewMap()
@@ -184,15 +174,6 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	}
 
 	jObj := parsePgRowValues(values, columnNames)
-	jsonF, _ := json.MarshalIndent(jObj, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
-
-	fmt.Println()
-	for k, v := range jObj {
-		fmt.Println("key", k, "val", v, "type", reflect.TypeOf(v))
-	}
-	fmt.Println()
-
 	return jObj, nil
 }
 
@@ -203,7 +184,7 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 		switch t := v.(type) {
 		case nil:
 			jObj[col] = t
-		case sql.NullString:
+		case *sql.NullString:
 			var val any = nil
 			if t.Valid {
 				val = t.String
@@ -252,7 +233,6 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		}
 		return CreateMultiDimSlice(dims, array.Elements)
 	}
-	// return array.SimpleArray()
 	return array.Elements
 }
 
