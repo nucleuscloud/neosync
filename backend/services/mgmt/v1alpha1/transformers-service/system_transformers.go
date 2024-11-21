@@ -690,27 +690,17 @@ func (s *Service) GetSystemTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
-	if s.cfg.IsNeosyncCloud {
-		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-			Transformers: allSystemTransformers,
-		}), nil
-	} else {
-		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-			Transformers: baseSystemTransformers,
-		}), nil
-	}
+	systemTransformers := s.getSystemTransformers()
+	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
+		Transformers: systemTransformers,
+	}), nil
 }
 
 func (s *Service) GetSystemTransformerBySource(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error) {
-	var transformerMap map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer
-	if s.cfg.IsNeosyncCloud {
-		transformerMap = allSystemTransformersSourceMap
-	} else {
-		transformerMap = baseSystemTransformerSourceMap
-	}
+	transformerMap := s.getSystemTransformerSourceMap()
 
 	transformer, ok := transformerMap[req.Msg.GetSource()]
 	if !ok {
@@ -719,4 +709,18 @@ func (s *Service) GetSystemTransformerBySource(
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformerBySourceResponse{
 		Transformer: transformer,
 	}), nil
+}
+
+func (s *Service) getSystemTransformerSourceMap() map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer {
+	if s.cfg.IsNeosyncCloud {
+		return allSystemTransformersSourceMap
+	}
+	return baseSystemTransformerSourceMap
+}
+
+func (s *Service) getSystemTransformers() []*mgmtv1alpha1.SystemTransformer {
+	if s.cfg.IsNeosyncCloud {
+		return allSystemTransformers
+	}
+	return baseSystemTransformers
 }

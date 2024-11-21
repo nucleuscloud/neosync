@@ -33,9 +33,9 @@ func (s *Service) GetUserDefinedTransformers(
 	dtoTransformers := []*mgmtv1alpha1.UserDefinedTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
-		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, baseSystemTransformerSourceMap)
+		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, s.getSystemTransformerSourceMap())
 		if err != nil {
-			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
+			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(transformer.ID), transformer.Source, err)
 		}
 		dtoTransformers = append(dtoTransformers, dto)
 	}
@@ -66,9 +66,9 @@ func (s *Service) GetUserDefinedTransformerById(
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, baseSystemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, s.getSystemTransformerSourceMap())
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(transformer.ID), transformer.Source, err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
@@ -107,9 +107,9 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, baseSystemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, s.getSystemTransformerSourceMap())
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(ct.ID), ct.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(ct.ID), ct.Source, err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
@@ -142,7 +142,7 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		logger.Info("transformer not found or has already been removed")
+		logger.Debug("transformer not found or has already been removed")
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
@@ -188,9 +188,9 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, baseSystemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, s.getSystemTransformerSourceMap())
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source, err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateUserDefinedTransformerResponse{

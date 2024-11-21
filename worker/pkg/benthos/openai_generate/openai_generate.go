@@ -390,7 +390,7 @@ func getCsvRecordsFromInput(input string, logger *service.Logger) ([][]string, e
 				continue
 			} else if errors.Is(err, io.EOF) {
 				// including EOF as line count to inadvertingly account for header line
-				logger.Info(fmt.Sprintf("pulled %d/%d records/lines out of csv output", len(records), totalProcessed))
+				logger.Debug(fmt.Sprintf("pulled %d/%d records/lines out of csv output", len(records), totalProcessed))
 				return records, nil
 			} else {
 				logger.Warnf("encountered error when reading csv from openai: %s", err.Error())
