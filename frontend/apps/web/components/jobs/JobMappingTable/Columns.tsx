@@ -85,12 +85,18 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Schema" />;
     },
+    cell({ getValue }) {
+      return <TruncatedText text={getValue()} />;
+    },
   });
 
   const tableColumn = columnHelper.accessor((row) => row.table, {
     id: 'table',
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Table" />;
+    },
+    cell({ getValue }) {
+      return <TruncatedText text={getValue()} />;
     },
   });
 
