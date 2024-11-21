@@ -96,6 +96,7 @@ import {
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { useOnApplyDefaultClick } from './useOnApplyDefaultClick';
 import { useOnImportMappings } from './useOnImportMappings';
+import { useOnTransformerBulkUpdateClick } from './useOnTransformerBulkUpdateClick';
 import {
   getConnectionIdFromSource,
   getDestinationDetailsRecord,
@@ -520,8 +521,30 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     getMappings() {
       return form.getValues('mappings');
     },
-    setTransformer: onTransformerUpdate,
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
     constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
+  const { onClick: onTransformerBulkUpdate } = useOnTransformerBulkUpdateClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
     triggerUpdate() {
       form.trigger('mappings');
     },
@@ -567,18 +590,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         'sync'
       )
     );
-  }
-
-  function onTransformerBulkUpdate(
-    indices: number[],
-    config: JobMappingTransformerForm
-  ): void {
-    indices.forEach((idx) => {
-      onTransformerUpdate(idx, config);
-    });
-    setTimeout(() => {
-      form.trigger('mappings');
-    }, 0);
   }
 
   return (
