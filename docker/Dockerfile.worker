@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.22-bookworm AS builder
+FROM golang:1.23-bookworm AS builder
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
