@@ -192,7 +192,9 @@ func (s *Service) AnonymizeSingle(
 
 	outputData, err := anonymizer.AnonymizeJSONObject(req.Msg.InputData)
 	if err != nil {
-		outputErrorCounter.Add(ctx, int64(1), metric.WithAttributes(labels...))
+		if outputErrorCounter != nil {
+			outputErrorCounter.Add(ctx, int64(1), metric.WithAttributes(labels...))
+		}
 		return nil, err
 	}
 

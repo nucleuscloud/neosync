@@ -114,6 +114,10 @@ func serve(ctx context.Context) error {
 	}
 	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
 
+	if getIsNeosyncCloud() {
+		slogger.Debug("neosync cloud is enabled")
+	}
+
 	mux := http.NewServeMux()
 
 	services := []string{
