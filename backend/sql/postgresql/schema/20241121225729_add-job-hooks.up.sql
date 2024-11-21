@@ -15,6 +15,12 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
   enabled boolean NOT NULL DEFAULT true,
   weight integer NOT NULL DEFAULT 0,
 
+  hook_timing jsonb GENERATED ALWAYS AS (
+    CASE
+      WHEN config->'sql' IS NOT NULL THEN config->'sql'->'timing'
+    END
+  ) STORED,
+
   CONSTRAINT fk_job_hooks_job
     FOREIGN KEY (job_id)
     REFERENCES neosync_api.jobs(id)
@@ -33,6 +39,10 @@ CREATE INDEX IF NOT EXISTS idx_job_hooks_weight
 
 CREATE INDEX IF NOT EXISTS idx_job_hooks_enabled
   ON neosync_api.job_hooks(enabled)
+  WHERE enabled = true;
+
+CREATE INDEX IF NOT EXISTS idx_job_hooks_timing_lookup
+  ON neosync_api.job_hooks(job_id, hook_timing, enabled)
   WHERE enabled = true;
 
 CREATE TRIGGER update_neosync_api_jobhooks_updated_at

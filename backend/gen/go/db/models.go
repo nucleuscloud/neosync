@@ -104,6 +104,7 @@ type NeosyncApiJobHook struct {
 	UpdatedAt       pgtype.Timestamptz
 	Enabled         bool
 	Weight          int32
+	HookTiming      []byte
 }
 
 type NeosyncApiRuncontext struct {

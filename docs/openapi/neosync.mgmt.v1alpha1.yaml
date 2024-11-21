@@ -9937,27 +9937,97 @@ components:
       allOf:
         - anyOf:
             - required:
-                - sqlConfig
+                - sql
             - not:
                 anyOf:
                   - required:
-                      - sqlConfig
+                      - sql
       anyOf:
         - required:
-            - sqlConfig
+            - sql
         - not:
             anyOf:
               - required:
-                  - sqlConfig
+                  - sql
       properties:
-        sqlConfig:
+        sql:
           allOf:
-            - title: sql_config
+            - title: sql
               description: Configuration for SQL-specific hooks.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.JobSqlHookConfig'
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook'
       title: JobHookConfig
       additionalProperties: false
       description: Contains the specific hook type configurations.
+    mgmt.v1alpha1.JobHookConfig.JobSqlHook:
+      type: object
+      properties:
+        query:
+          type: string
+          title: query
+          description: The SQL query to execute
+        connectionId:
+          type: string
+          title: connection_id
+          description: >-
+            Unique identifier of the Neosync connection to run this hook for.
+            Must be a connection id that is present in the job.
+        timing:
+          allOf:
+            - title: timing
+              description: The timing of when the hook will run
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing
+      title: JobSqlHook
+      additionalProperties: false
+      description: Configuration for SQL-based hooks
+    mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - postSync
+            - required:
+                - preSync
+            - not:
+                anyOf:
+                  - required:
+                      - postSync
+                  - required:
+                      - preSync
+      anyOf:
+        - required:
+            - postSync
+        - required:
+            - preSync
+        - not:
+            anyOf:
+              - required:
+                  - postSync
+              - required:
+                  - preSync
+      properties:
+        preSync:
+          allOf:
+            - title: pre_sync
+              description: A Pre-Sync timing. Will run before the first table sync.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPreSync'
+        postSync:
+          allOf:
+            - title: post_sync
+              description: A Post-Sync timing. wIll run after the last table sync.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPostSync'
+      title: Timing
+      additionalProperties: false
+    mgmt.v1alpha1.JobHookTimingPostSync:
+      type: object
+      title: JobHookTimingPostSync
+      additionalProperties: false
+      description: Configures the job hook to run after the last table sync.
+    mgmt.v1alpha1.JobHookTimingPreSync:
+      type: object
+      title: JobHookTimingPreSync
+      additionalProperties: false
+      description: Configures the job hook to run before the first table sync.
     mgmt.v1alpha1.JobMapping:
       type: object
       properties:
@@ -10353,22 +10423,6 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceSchemaSubset'
       title: JobSourceSqlSubetSchemas
       additionalProperties: false
-    mgmt.v1alpha1.JobSqlHookConfig:
-      type: object
-      properties:
-        query:
-          type: string
-          title: query
-          description: The SQL query to execute
-        connectionId:
-          type: string
-          title: connection_id
-          description: >-
-            Unique identifier of the Neosync connection to run this hook for.
-            Must be a connection id that is present in the job.
-      title: JobSqlHookConfig
-      additionalProperties: false
-      description: Configuration for SQL-based hooks
     mgmt.v1alpha1.JobStatusRecord:
       type: object
       properties:

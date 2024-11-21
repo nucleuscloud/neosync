@@ -1224,18 +1224,34 @@ class NewJobHook(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., config: _Optional[_Union[JobHookConfig, _Mapping]] = ..., enabled: bool = ..., weight: _Optional[int] = ...) -> None: ...
 
 class JobHookConfig(_message.Message):
-    __slots__ = ("sql_config",)
-    SQL_CONFIG_FIELD_NUMBER: _ClassVar[int]
-    sql_config: JobSqlHookConfig
-    def __init__(self, sql_config: _Optional[_Union[JobSqlHookConfig, _Mapping]] = ...) -> None: ...
+    __slots__ = ("sql",)
+    class JobSqlHook(_message.Message):
+        __slots__ = ("query", "connection_id", "timing")
+        class Timing(_message.Message):
+            __slots__ = ("pre_sync", "post_sync")
+            PRE_SYNC_FIELD_NUMBER: _ClassVar[int]
+            POST_SYNC_FIELD_NUMBER: _ClassVar[int]
+            pre_sync: JobHookTimingPreSync
+            post_sync: JobHookTimingPostSync
+            def __init__(self, pre_sync: _Optional[_Union[JobHookTimingPreSync, _Mapping]] = ..., post_sync: _Optional[_Union[JobHookTimingPostSync, _Mapping]] = ...) -> None: ...
+        QUERY_FIELD_NUMBER: _ClassVar[int]
+        CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
+        TIMING_FIELD_NUMBER: _ClassVar[int]
+        query: str
+        connection_id: str
+        timing: JobHookConfig.JobSqlHook.Timing
+        def __init__(self, query: _Optional[str] = ..., connection_id: _Optional[str] = ..., timing: _Optional[_Union[JobHookConfig.JobSqlHook.Timing, _Mapping]] = ...) -> None: ...
+    SQL_FIELD_NUMBER: _ClassVar[int]
+    sql: JobHookConfig.JobSqlHook
+    def __init__(self, sql: _Optional[_Union[JobHookConfig.JobSqlHook, _Mapping]] = ...) -> None: ...
 
-class JobSqlHookConfig(_message.Message):
-    __slots__ = ("query", "connection_id")
-    QUERY_FIELD_NUMBER: _ClassVar[int]
-    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
-    query: str
-    connection_id: str
-    def __init__(self, query: _Optional[str] = ..., connection_id: _Optional[str] = ...) -> None: ...
+class JobHookTimingPreSync(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class JobHookTimingPostSync(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
 
 class GetJobHooksRequest(_message.Message):
     __slots__ = ("job_id",)

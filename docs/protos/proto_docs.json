@@ -11663,18 +11663,124 @@
           "extensions": [],
           "fields": [
             {
-              "name": "sql_config",
+              "name": "sql",
               "description": "Configuration for SQL-specific hooks.",
               "label": "",
-              "type": "JobSqlHookConfig",
-              "longType": "JobSqlHookConfig",
-              "fullType": "mgmt.v1alpha1.JobSqlHookConfig",
+              "type": "JobSqlHook",
+              "longType": "JobHookConfig.JobSqlHook",
+              "fullType": "mgmt.v1alpha1.JobHookConfig.JobSqlHook",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "JobSqlHook",
+          "longName": "JobHookConfig.JobSqlHook",
+          "fullName": "mgmt.v1alpha1.JobHookConfig.JobSqlHook",
+          "description": "Configuration for SQL-based hooks",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "query",
+              "description": "The SQL query to execute",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timing",
+              "description": "The timing of when the hook will run",
+              "label": "",
+              "type": "Timing",
+              "longType": "JobHookConfig.JobSqlHook.Timing",
+              "fullType": "mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Timing",
+          "longName": "JobHookConfig.JobSqlHook.Timing",
+          "fullName": "mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "pre_sync",
+              "description": "A Pre-Sync timing. Will run before the first table sync.",
+              "label": "",
+              "type": "JobHookTimingPreSync",
+              "longType": "JobHookTimingPreSync",
+              "fullType": "mgmt.v1alpha1.JobHookTimingPreSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "timing",
+              "defaultValue": ""
+            },
+            {
+              "name": "post_sync",
+              "description": "A Post-Sync timing. wIll run after the last table sync.",
+              "label": "",
+              "type": "JobHookTimingPostSync",
+              "longType": "JobHookTimingPostSync",
+              "fullType": "mgmt.v1alpha1.JobHookTimingPostSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "timing",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobHookTimingPostSync",
+          "longName": "JobHookTimingPostSync",
+          "fullName": "mgmt.v1alpha1.JobHookTimingPostSync",
+          "description": "Configures the job hook to run after the last table sync.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "JobHookTimingPreSync",
+          "longName": "JobHookTimingPreSync",
+          "fullName": "mgmt.v1alpha1.JobHookTimingPreSync",
+          "description": "Configures the job hook to run before the first table sync.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "JobMapping",
@@ -12356,42 +12462,6 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "schemas",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "JobSqlHookConfig",
-          "longName": "JobSqlHookConfig",
-          "fullName": "mgmt.v1alpha1.JobSqlHookConfig",
-          "description": "Configuration for SQL-based hooks",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "query",
-              "description": "The SQL query to execute",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "connection_id",
-              "description": "Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

@@ -6503,10 +6503,10 @@ export class JobHookConfig extends Message<JobHookConfig> {
     /**
      * Configuration for SQL-specific hooks.
      *
-     * @generated from field: mgmt.v1alpha1.JobSqlHookConfig sql_config = 5;
+     * @generated from field: mgmt.v1alpha1.JobHookConfig.JobSqlHook sql = 5;
      */
-    value: JobSqlHookConfig;
-    case: "sqlConfig";
+    value: JobHookConfig_JobSqlHook;
+    case: "sql";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobHookConfig>) {
@@ -6517,7 +6517,7 @@ export class JobHookConfig extends Message<JobHookConfig> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobHookConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 5, name: "sql_config", kind: "message", T: JobSqlHookConfig, oneof: "config" },
+    { no: 5, name: "sql", kind: "message", T: JobHookConfig_JobSqlHook, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHookConfig {
@@ -6540,9 +6540,9 @@ export class JobHookConfig extends Message<JobHookConfig> {
 /**
  * Configuration for SQL-based hooks
  *
- * @generated from message mgmt.v1alpha1.JobSqlHookConfig
+ * @generated from message mgmt.v1alpha1.JobHookConfig.JobSqlHook
  */
-export class JobSqlHookConfig extends Message<JobSqlHookConfig> {
+export class JobHookConfig_JobSqlHook extends Message<JobHookConfig_JobSqlHook> {
   /**
    * The SQL query to execute
    *
@@ -6557,32 +6557,160 @@ export class JobSqlHookConfig extends Message<JobSqlHookConfig> {
    */
   connectionId = "";
 
-  constructor(data?: PartialMessage<JobSqlHookConfig>) {
+  /**
+   * The timing of when the hook will run
+   *
+   * @generated from field: mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing timing = 3;
+   */
+  timing?: JobHookConfig_JobSqlHook_Timing;
+
+  constructor(data?: PartialMessage<JobHookConfig_JobSqlHook>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobSqlHookConfig";
+  static readonly typeName = "mgmt.v1alpha1.JobHookConfig.JobSqlHook";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "timing", kind: "message", T: JobHookConfig_JobSqlHook_Timing },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSqlHookConfig {
-    return new JobSqlHookConfig().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHookConfig_JobSqlHook {
+    return new JobHookConfig_JobSqlHook().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSqlHookConfig {
-    return new JobSqlHookConfig().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobHookConfig_JobSqlHook {
+    return new JobHookConfig_JobSqlHook().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSqlHookConfig {
-    return new JobSqlHookConfig().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobHookConfig_JobSqlHook {
+    return new JobHookConfig_JobSqlHook().fromJsonString(jsonString, options);
   }
 
-  static equals(a: JobSqlHookConfig | PlainMessage<JobSqlHookConfig> | undefined, b: JobSqlHookConfig | PlainMessage<JobSqlHookConfig> | undefined): boolean {
-    return proto3.util.equals(JobSqlHookConfig, a, b);
+  static equals(a: JobHookConfig_JobSqlHook | PlainMessage<JobHookConfig_JobSqlHook> | undefined, b: JobHookConfig_JobSqlHook | PlainMessage<JobHookConfig_JobSqlHook> | undefined): boolean {
+    return proto3.util.equals(JobHookConfig_JobSqlHook, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing
+ */
+export class JobHookConfig_JobSqlHook_Timing extends Message<JobHookConfig_JobSqlHook_Timing> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing.timing
+   */
+  timing: {
+    /**
+     * A Pre-Sync timing. Will run before the first table sync.
+     *
+     * @generated from field: mgmt.v1alpha1.JobHookTimingPreSync pre_sync = 3;
+     */
+    value: JobHookTimingPreSync;
+    case: "preSync";
+  } | {
+    /**
+     * A Post-Sync timing. wIll run after the last table sync.
+     *
+     * @generated from field: mgmt.v1alpha1.JobHookTimingPostSync post_sync = 4;
+     */
+    value: JobHookTimingPostSync;
+    case: "postSync";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<JobHookConfig_JobSqlHook_Timing>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 3, name: "pre_sync", kind: "message", T: JobHookTimingPreSync, oneof: "timing" },
+    { no: 4, name: "post_sync", kind: "message", T: JobHookTimingPostSync, oneof: "timing" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHookConfig_JobSqlHook_Timing {
+    return new JobHookConfig_JobSqlHook_Timing().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobHookConfig_JobSqlHook_Timing {
+    return new JobHookConfig_JobSqlHook_Timing().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobHookConfig_JobSqlHook_Timing {
+    return new JobHookConfig_JobSqlHook_Timing().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobHookConfig_JobSqlHook_Timing | PlainMessage<JobHookConfig_JobSqlHook_Timing> | undefined, b: JobHookConfig_JobSqlHook_Timing | PlainMessage<JobHookConfig_JobSqlHook_Timing> | undefined): boolean {
+    return proto3.util.equals(JobHookConfig_JobSqlHook_Timing, a, b);
+  }
+}
+
+/**
+ * Configures the job hook to run before the first table sync.
+ *
+ * @generated from message mgmt.v1alpha1.JobHookTimingPreSync
+ */
+export class JobHookTimingPreSync extends Message<JobHookTimingPreSync> {
+  constructor(data?: PartialMessage<JobHookTimingPreSync>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobHookTimingPreSync";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHookTimingPreSync {
+    return new JobHookTimingPreSync().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobHookTimingPreSync {
+    return new JobHookTimingPreSync().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobHookTimingPreSync {
+    return new JobHookTimingPreSync().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobHookTimingPreSync | PlainMessage<JobHookTimingPreSync> | undefined, b: JobHookTimingPreSync | PlainMessage<JobHookTimingPreSync> | undefined): boolean {
+    return proto3.util.equals(JobHookTimingPreSync, a, b);
+  }
+}
+
+/**
+ * Configures the job hook to run after the last table sync.
+ *
+ * @generated from message mgmt.v1alpha1.JobHookTimingPostSync
+ */
+export class JobHookTimingPostSync extends Message<JobHookTimingPostSync> {
+  constructor(data?: PartialMessage<JobHookTimingPostSync>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobHookTimingPostSync";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHookTimingPostSync {
+    return new JobHookTimingPostSync().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobHookTimingPostSync {
+    return new JobHookTimingPostSync().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobHookTimingPostSync {
+    return new JobHookTimingPostSync().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobHookTimingPostSync | PlainMessage<JobHookTimingPostSync> | undefined, b: JobHookTimingPostSync | PlainMessage<JobHookTimingPostSync> | undefined): boolean {
+    return proto3.util.equals(JobHookTimingPostSync, a, b);
   }
 }
 

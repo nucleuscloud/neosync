@@ -899,18 +899,37 @@ message JobHookConfig {
   oneof config {
     option (buf.validate.oneof).required = true;
     // Configuration for SQL-specific hooks.
-    JobSqlHookConfig sql_config = 5;
+    JobSqlHook sql = 5;
+  }
+
+  // Configuration for SQL-based hooks
+  message JobSqlHook {
+    // The SQL query to execute
+    string query = 1;
+
+    // Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
+    string connection_id = 2;
+
+    // The timing of when the hook will run
+    Timing timing = 3;
+
+    message Timing {
+      oneof timing {
+        option (buf.validate.oneof).required = true;
+        // A Pre-Sync timing. Will run before the first table sync.
+        JobHookTimingPreSync pre_sync = 3;
+        // A Post-Sync timing. wIll run after the last table sync.
+        JobHookTimingPostSync post_sync = 4;
+      }
+    }
   }
 }
 
-// Configuration for SQL-based hooks
-message JobSqlHookConfig {
-  // The SQL query to execute
-  string query = 1;
+// Configures the job hook to run before the first table sync.
+message JobHookTimingPreSync {}
 
-  // Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
-  string connection_id = 2;
-}
+// Configures the job hook to run after the last table sync.
+message JobHookTimingPostSync {}
 
 message GetJobHooksRequest {
   // The unique identifier of the job
