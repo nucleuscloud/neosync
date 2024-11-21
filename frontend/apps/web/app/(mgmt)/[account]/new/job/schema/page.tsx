@@ -433,6 +433,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     },
   });
 
+  const { onClick: onTransformerBulkUpdate } = useOnTransformerBulkUpdateClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
   if (isConnectionLoading || isSchemaMapLoading || isGetTransformersLoading) {
     return <SkeletonForm />;
   }
@@ -481,22 +497,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       transformer,
     });
   }
-
-  const { onClick: onTransformerBulkUpdate } = useOnTransformerBulkUpdateClick({
-    getMappings() {
-      return form.getValues('mappings');
-    },
-    setMappings(mappings) {
-      form.setValue('mappings', mappings, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: false,
-      });
-    },
-    triggerUpdate() {
-      form.trigger('mappings');
-    },
-  });
 
   return (
     <div className="flex flex-col gap-5">
