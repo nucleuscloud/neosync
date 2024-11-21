@@ -160,8 +160,7 @@ func (s *Service) GetJobStatus(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving jbo status: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobStatusResponse{
@@ -203,7 +202,7 @@ func (s *Service) GetJobStatuses(
 	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
 	for idx, resp := range responses {
 		if resp.Error != nil {
-			logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+			logger.Warn(fmt.Errorf("unable to describe temporal schedule when retrieving job statuses: %w", resp.Error).Error())
 		} else if resp.Schedule != nil {
 			dtos[idx] = &mgmtv1alpha1.JobStatusRecord{
 				JobId:  scheduleIds[idx],
@@ -239,8 +238,7 @@ func (s *Service) GetJobRecentRuns(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving job recent runs: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRecentRunsResponse{
@@ -270,8 +268,7 @@ func (s *Service) GetJobNextRuns(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving job next runs: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobNextRunsResponse{
