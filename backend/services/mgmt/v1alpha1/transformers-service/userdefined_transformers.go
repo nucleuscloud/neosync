@@ -142,7 +142,7 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		logger.Info("transformer not found or has already been removed")
+		logger.Debug("transformer not found or has already been removed")
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
