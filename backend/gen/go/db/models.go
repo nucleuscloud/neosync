@@ -91,6 +91,21 @@ type NeosyncApiJobDestinationConnectionAssociation struct {
 	Options      *pg_models.JobDestinationOptions
 }
 
+// Stores hooks that can be configured to run as part of a job
+type NeosyncApiJobHook struct {
+	ID              pgtype.UUID
+	Name            string
+	Description     string
+	JobID           pgtype.UUID
+	Config          []byte
+	CreatedByUserID pgtype.UUID
+	CreatedAt       pgtype.Timestamptz
+	UpdatedByUserID pgtype.UUID
+	UpdatedAt       pgtype.Timestamptz
+	Enabled         bool
+	Weight          int32
+}
+
 type NeosyncApiRuncontext struct {
 	WorkflowID  string
 	ExternalID  string
