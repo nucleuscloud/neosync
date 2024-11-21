@@ -8,7 +8,7 @@ RUN apt-get update \
   apt-get install --no-install-recommends -y \
     build-essential
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.52.3
 
 # Copy the Go Modules manifests
 COPY go.mod go.sum ./
