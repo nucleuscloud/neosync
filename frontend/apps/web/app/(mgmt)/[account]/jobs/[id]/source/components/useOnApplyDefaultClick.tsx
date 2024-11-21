@@ -18,7 +18,7 @@ interface Props {
 }
 
 interface UseOnApplyDefaultClickResponse {
-  onClick(override: boolean): void | Promise<void>;
+  onClick(override: boolean): void;
 }
 
 // Hook that provides an onClick handler that will handle setting job mappings to a sensible default transformer
