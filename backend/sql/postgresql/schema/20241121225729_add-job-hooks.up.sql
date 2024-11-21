@@ -15,11 +15,14 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
   enabled boolean NOT NULL DEFAULT true,
   weight integer NOT NULL DEFAULT 0,
 
-  hook_timing jsonb GENERATED ALWAYS AS (
+  hook_timing text GENERATED ALWAYS AS (
     CASE
-      WHEN config->'sql' IS NOT NULL THEN config->'sql'->'timing'
+      WHEN config->'sql'->>'pre_sync' IS NOT NULL THEN 'pre_sync'
+      WHEN config->'sql'->>'post_sync' IS NOT NULL THEN 'post_sync'
+      ELSE NULL
     END
   ) STORED,
+  CONSTRAINT hook_timing_not_null CHECK (hook_timing IS NOT NULL), -- Ensures we always have valid hook timings
 
   CONSTRAINT fk_job_hooks_job
     FOREIGN KEY (job_id)
