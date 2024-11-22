@@ -121,3 +121,9 @@ RETURNING *;
 
 -- name: RemoveJobConnectionDestination :exec
 DELETE FROM neosync_api.job_destination_connection_associations WHERE id = $1;
+
+-- name: GetAccountIdFromJobId :one
+SELECT account_id
+FROM neosync_api.jobs
+WHERE id = $1
+LIMIT 1;

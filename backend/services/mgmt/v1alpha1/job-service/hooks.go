@@ -11,33 +11,53 @@ func (s *Service) GetJobHooks(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobHooksRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobHooksResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetJobHooksResponse{}), nil
+	resp, err := s.hookService.GetJobHooks(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *Service) GetJobHook(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobHookRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobHookResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetJobHookResponse{}), nil
+	resp, err := s.hookService.GetJobHook(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *Service) CreateJobHook(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobHookRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobHookResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.CreateJobHookResponse{}), nil
+	resp, err := s.hookService.CreateJobHook(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *Service) DeleteJobHook(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobHookRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobHookResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.DeleteJobHookResponse{}), nil
+	resp, err := s.hookService.DeleteJobHook(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *Service) IsJobHookNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsJobHookNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsJobHookNameAvailableResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.IsJobHookNameAvailableResponse{}), nil
+	resp, err := s.hookService.IsJobHookNameAvailable(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
 }

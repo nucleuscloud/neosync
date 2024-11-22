@@ -42,6 +42,7 @@ import (
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
@@ -477,6 +478,17 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	jobhookOpts := []jobhooks.Option{}
+	if getIsNeosyncCloud() || eelicense.IsValid() {
+		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
+	}
+
+	jobhookService := jobhooks.New(
+		db,
+		useraccountService,
+		jobhookOpts...,
+	)
+
 	runLogConfig, err := getRunLogConfig()
 	if err != nil {
 		return err
@@ -494,6 +506,7 @@ func serve(ctx context.Context) error {
 		connectionService,
 		useraccountService,
 		sqlmanager,
+		jobhookService,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(

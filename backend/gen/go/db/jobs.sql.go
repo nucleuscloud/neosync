@@ -117,6 +117,20 @@ func (q *Queries) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error 
 	return err
 }
 
+const getAccountIdFromJobId = `-- name: GetAccountIdFromJobId :one
+SELECT account_id
+FROM neosync_api.jobs
+WHERE id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetAccountIdFromJobId(ctx context.Context, db DBTX, id pgtype.UUID) (pgtype.UUID, error) {
+	row := db.QueryRow(ctx, getAccountIdFromJobId, id)
+	var account_id pgtype.UUID
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
 const getJobById = `-- name: GetJobById :one
 SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys from neosync_api.jobs WHERE id = $1
 `

@@ -34,6 +34,7 @@ type Querier interface {
 	GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error)
 	GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error)
 	GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountApiKey, error)
+	GetAccountIdFromJobId(ctx context.Context, db DBTX, id pgtype.UUID) (pgtype.UUID, error)
 	GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)
 	GetAccountInviteByToken(ctx context.Context, db DBTX, token string) (NeosyncApiAccountInvite, error)
 	GetAccountOnboardingConfig(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.AccountOnboardingConfig, error)

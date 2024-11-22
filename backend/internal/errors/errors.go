@@ -2,6 +2,8 @@ package nucleuserrors
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"connectrpc.com/connect"
 	"google.golang.org/grpc/codes"
@@ -50,6 +52,12 @@ func NewUnauthorized(message string) error {
 
 func NewNotImplemented(message string) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New(message))
+}
+
+func NewNotImplementedProcedure(procedure string) error {
+	return NewNotImplemented(
+		fmt.Sprintf("%s is not implemented", strings.TrimPrefix(procedure, "/")),
+	)
 }
 
 func IsNotFound(err error) bool {
