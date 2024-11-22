@@ -555,6 +555,65 @@ func (_c *MockJobServiceHandler_DeleteJobRun_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetActiveJobHooksByTiming provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) GetActiveJobHooksByTiming(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveJobHooksByTiming")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) *connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_GetActiveJobHooksByTiming_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActiveJobHooksByTiming'
+type MockJobServiceHandler_GetActiveJobHooksByTiming_Call struct {
+	*mock.Call
+}
+
+// GetActiveJobHooksByTiming is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]
+func (_e *MockJobServiceHandler_Expecter) GetActiveJobHooksByTiming(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_GetActiveJobHooksByTiming_Call {
+	return &MockJobServiceHandler_GetActiveJobHooksByTiming_Call{Call: _e.mock.On("GetActiveJobHooksByTiming", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_GetActiveJobHooksByTiming_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest])) *MockJobServiceHandler_GetActiveJobHooksByTiming_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_GetActiveJobHooksByTiming_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], _a1 error) *MockJobServiceHandler_GetActiveJobHooksByTiming_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_GetActiveJobHooksByTiming_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error)) *MockJobServiceHandler_GetActiveJobHooksByTiming_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetJob provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceHandler) GetJob(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 	ret := _m.Called(_a0, _a1)
