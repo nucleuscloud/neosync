@@ -61,3 +61,25 @@ func (s *Service) IsJobHookNameAvailable(
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (s *Service) UpdateJobHook(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.UpdateJobHookRequest],
+) (*connect.Response[mgmtv1alpha1.UpdateJobHookResponse], error) {
+	resp, err := s.hookService.UpdateJobHook(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *Service) SetJobHookEnabled(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse], error) {
+	resp, err := s.hookService.SetJobHookEnabled(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
