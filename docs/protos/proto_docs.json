@@ -14271,18 +14271,6 @@
               "defaultValue": ""
             },
             {
-              "name": "job_id",
-              "description": "The unique identifier of the job this hook belongs to.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "config",
               "description": "Hook-type specific configuration.",
               "label": "",

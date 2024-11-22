@@ -378,11 +378,16 @@ func (s *Service) SetJobHookEnabled(
 	if err != nil {
 		return nil, err
 	}
+	hookuuid, err := neosyncdb.ToUuid(getResp.GetHook().GetId())
+	if err != nil {
+		return nil, err
+	}
 
 	logger.Debug(fmt.Sprintf("attempting to update job hook enabled status from %v to %v", getResp.GetHook().GetEnabled(), req.GetEnabled()))
 	updatedHook, err := s.db.Q.SetJobHookEnabled(ctx, s.db.Db, db_queries.SetJobHookEnabledParams{
 		Enabled:         req.GetEnabled(),
 		UpdatedByUserID: *useruuid,
+		ID:              hookuuid,
 	})
 	if err != nil {
 		return nil, err

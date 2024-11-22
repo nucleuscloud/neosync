@@ -7140,23 +7140,16 @@ export class UpdateJobHookRequest extends Message<UpdateJobHookRequest> {
   description = "";
 
   /**
-   * The unique identifier of the job this hook belongs to.
-   *
-   * @generated from field: string job_id = 4;
-   */
-  jobId = "";
-
-  /**
    * Hook-type specific configuration.
    *
-   * @generated from field: mgmt.v1alpha1.JobHookConfig config = 5;
+   * @generated from field: mgmt.v1alpha1.JobHookConfig config = 4;
    */
   config?: JobHookConfig;
 
   /**
    * Whether or not the hook is enabled.
    *
-   * @generated from field: bool enabled = 6;
+   * @generated from field: bool enabled = 5;
    */
   enabled = false;
 
@@ -7164,7 +7157,7 @@ export class UpdateJobHookRequest extends Message<UpdateJobHookRequest> {
    * The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
    * Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
    *
-   * @generated from field: uint32 priority = 7;
+   * @generated from field: uint32 priority = 6;
    */
   priority = 0;
 
@@ -7179,10 +7172,9 @@ export class UpdateJobHookRequest extends Message<UpdateJobHookRequest> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "config", kind: "message", T: JobHookConfig },
-    { no: 6, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 7, name: "priority", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 4, name: "config", kind: "message", T: JobHookConfig },
+    { no: 5, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 6, name: "priority", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobHookRequest {

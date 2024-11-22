@@ -11372,11 +11372,6 @@ components:
           title: description
           minLength: 1
           description: Description of what this hook does.
-        jobId:
-          type: string
-          title: job_id
-          format: uuid
-          description: The unique identifier of the job this hook belongs to.
         config:
           allOf:
             - title: config

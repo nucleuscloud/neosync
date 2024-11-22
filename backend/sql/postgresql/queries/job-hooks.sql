@@ -42,7 +42,7 @@ SELECT NOT EXISTS(
 UPDATE neosync_api.job_hooks
 SET enabled = $1,
     updated_by_user_id = $2
-WHERE id = $2
+WHERE id = $3
 RETURNING *;
 
 

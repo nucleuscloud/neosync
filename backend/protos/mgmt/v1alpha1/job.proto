@@ -993,17 +993,15 @@ message UpdateJobHookRequest {
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Description of what this hook does.
   string description = 3 [(buf.validate.field).string.min_len = 1];
-  // The unique identifier of the job this hook belongs to.
-  string job_id = 4 [(buf.validate.field).string.uuid = true];
 
   // Hook-type specific configuration.
-  JobHookConfig config = 5;
+  JobHookConfig config = 4;
   // Whether or not the hook is enabled.
-  bool enabled = 6;
+  bool enabled = 5;
 
   // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
   // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
-  uint32 priority = 7 [(buf.validate.field).uint32 = {
+  uint32 priority = 6 [(buf.validate.field).uint32 = {
     gte: 0
     lte: 100
   }];

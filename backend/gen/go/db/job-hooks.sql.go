@@ -243,17 +243,18 @@ const setJobHookEnabled = `-- name: SetJobHookEnabled :one
 UPDATE neosync_api.job_hooks
 SET enabled = $1,
     updated_by_user_id = $2
-WHERE id = $2
+WHERE id = $3
 RETURNING id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
 `
 
 type SetJobHookEnabledParams struct {
 	Enabled         bool
 	UpdatedByUserID pgtype.UUID
+	ID              pgtype.UUID
 }
 
 func (q *Queries) SetJobHookEnabled(ctx context.Context, db DBTX, arg SetJobHookEnabledParams) (NeosyncApiJobHook, error) {
-	row := db.QueryRow(ctx, setJobHookEnabled, arg.Enabled, arg.UpdatedByUserID)
+	row := db.QueryRow(ctx, setJobHookEnabled, arg.Enabled, arg.UpdatedByUserID, arg.ID)
 	var i NeosyncApiJobHook
 	err := row.Scan(
 		&i.ID,
