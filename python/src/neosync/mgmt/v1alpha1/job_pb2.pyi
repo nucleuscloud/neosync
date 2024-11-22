@@ -1350,3 +1350,25 @@ class SetJobHookEnabledResponse(_message.Message):
     HOOK_FIELD_NUMBER: _ClassVar[int]
     hook: JobHook
     def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class GetActiveJobHooksByTimingRequest(_message.Message):
+    __slots__ = ("job_id", "timing")
+    class Timing(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        TIMING_UNSPECIFIED: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+        TIMING_PRESYNC: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+        TIMING_POSTSYNC: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+    TIMING_UNSPECIFIED: GetActiveJobHooksByTimingRequest.Timing
+    TIMING_PRESYNC: GetActiveJobHooksByTimingRequest.Timing
+    TIMING_POSTSYNC: GetActiveJobHooksByTimingRequest.Timing
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    TIMING_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    timing: GetActiveJobHooksByTimingRequest.Timing
+    def __init__(self, job_id: _Optional[str] = ..., timing: _Optional[_Union[GetActiveJobHooksByTimingRequest.Timing, str]] = ...) -> None: ...
+
+class GetActiveJobHooksByTimingResponse(_message.Message):
+    __slots__ = ("hooks",)
+    HOOKS_FIELD_NUMBER: _ClassVar[int]
+    hooks: _containers.RepeatedCompositeFieldContainer[JobHook]
+    def __init__(self, hooks: _Optional[_Iterable[_Union[JobHook, _Mapping]]] = ...) -> None: ...

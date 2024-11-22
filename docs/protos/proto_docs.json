@@ -8827,6 +8827,29 @@
           ]
         },
         {
+          "name": "Timing",
+          "longName": "GetActiveJobHooksByTimingRequest.Timing",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing",
+          "description": "",
+          "values": [
+            {
+              "name": "TIMING_UNSPECIFIED",
+              "number": "0",
+              "description": "If unspecified, returns all active job hooks"
+            },
+            {
+              "name": "TIMING_PRESYNC",
+              "number": "1",
+              "description": "Only returns presync hooks"
+            },
+            {
+              "name": "TIMING_POSTSYNC",
+              "number": "2",
+              "description": "Only returns postsync hooks"
+            }
+          ]
+        },
+        {
           "name": "JobRunStatus",
           "longName": "JobRunStatus",
           "fullName": "mgmt.v1alpha1.JobRunStatus",
@@ -10313,6 +10336,66 @@
               "type": "int64",
               "longType": "int64",
               "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveJobHooksByTimingRequest",
+          "longName": "GetActiveJobHooksByTimingRequest",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timing",
+              "description": "The timing desired.",
+              "label": "",
+              "type": "Timing",
+              "longType": "GetActiveJobHooksByTimingRequest.Timing",
+              "fullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveJobHooksByTimingResponse",
+          "longName": "GetActiveJobHooksByTimingResponse",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The active job hooks",
+              "label": "repeated",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -15154,6 +15237,18 @@
               "responseType": "SetJobHookEnabledResponse",
               "responseLongType": "SetJobHookEnabledResponse",
               "responseFullType": "mgmt.v1alpha1.SetJobHookEnabledResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetActiveJobHooksByTiming",
+              "description": "Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.",
+              "requestType": "GetActiveJobHooksByTimingRequest",
+              "requestLongType": "GetActiveJobHooksByTimingRequest",
+              "requestFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest",
+              "requestStreaming": false,
+              "responseType": "GetActiveJobHooksByTimingResponse",
+              "responseLongType": "GetActiveJobHooksByTimingResponse",
+              "responseFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
               "responseStreaming": false
             }
           ]

@@ -1022,6 +1022,26 @@ message SetJobHookEnabledResponse {
   JobHook hook = 1;
 }
 
+message GetActiveJobHooksByTimingRequest {
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The timing desired.
+  Timing timing = 2;
+
+  enum Timing {
+    // If unspecified, returns all active job hooks
+    TIMING_UNSPECIFIED = 0;
+    // Only returns presync hooks
+    TIMING_PRESYNC = 1;
+    // Only returns postsync hooks
+    TIMING_POSTSYNC = 2;
+  }
+}
+message GetActiveJobHooksByTimingResponse {
+  // The active job hooks
+  repeated JobHook hooks = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -1081,4 +1101,6 @@ service JobService {
   rpc UpdateJobHook(UpdateJobHookRequest) returns (UpdateJobHookResponse) {}
   // Enables or disables a job hook
   rpc SetJobHookEnabled(SetJobHookEnabledRequest) returns (SetJobHookEnabledResponse) {}
+  // Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+  rpc GetActiveJobHooksByTiming(GetActiveJobHooksByTimingRequest) returns (GetActiveJobHooksByTimingResponse) {}
 }

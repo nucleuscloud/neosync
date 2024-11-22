@@ -7319,3 +7319,121 @@ export class SetJobHookEnabledResponse extends Message<SetJobHookEnabledResponse
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetActiveJobHooksByTimingRequest
+ */
+export class GetActiveJobHooksByTimingRequest extends Message<GetActiveJobHooksByTimingRequest> {
+  /**
+   * The unique identifier of the job
+   *
+   * @generated from field: string job_id = 1;
+   */
+  jobId = "";
+
+  /**
+   * The timing desired.
+   *
+   * @generated from field: mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing timing = 2;
+   */
+  timing = GetActiveJobHooksByTimingRequest_Timing.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<GetActiveJobHooksByTimingRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "timing", kind: "enum", T: proto3.getEnumType(GetActiveJobHooksByTimingRequest_Timing) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetActiveJobHooksByTimingRequest {
+    return new GetActiveJobHooksByTimingRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetActiveJobHooksByTimingRequest {
+    return new GetActiveJobHooksByTimingRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetActiveJobHooksByTimingRequest {
+    return new GetActiveJobHooksByTimingRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetActiveJobHooksByTimingRequest | PlainMessage<GetActiveJobHooksByTimingRequest> | undefined, b: GetActiveJobHooksByTimingRequest | PlainMessage<GetActiveJobHooksByTimingRequest> | undefined): boolean {
+    return proto3.util.equals(GetActiveJobHooksByTimingRequest, a, b);
+  }
+}
+
+/**
+ * @generated from enum mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing
+ */
+export enum GetActiveJobHooksByTimingRequest_Timing {
+  /**
+   * If unspecified, returns all active job hooks
+   *
+   * @generated from enum value: TIMING_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Only returns presync hooks
+   *
+   * @generated from enum value: TIMING_PRESYNC = 1;
+   */
+  PRESYNC = 1,
+
+  /**
+   * Only returns postsync hooks
+   *
+   * @generated from enum value: TIMING_POSTSYNC = 2;
+   */
+  POSTSYNC = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetActiveJobHooksByTimingRequest_Timing)
+proto3.util.setEnumType(GetActiveJobHooksByTimingRequest_Timing, "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing", [
+  { no: 0, name: "TIMING_UNSPECIFIED" },
+  { no: 1, name: "TIMING_PRESYNC" },
+  { no: 2, name: "TIMING_POSTSYNC" },
+]);
+
+/**
+ * @generated from message mgmt.v1alpha1.GetActiveJobHooksByTimingResponse
+ */
+export class GetActiveJobHooksByTimingResponse extends Message<GetActiveJobHooksByTimingResponse> {
+  /**
+   * The active job hooks
+   *
+   * @generated from field: repeated mgmt.v1alpha1.JobHook hooks = 1;
+   */
+  hooks: JobHook[] = [];
+
+  constructor(data?: PartialMessage<GetActiveJobHooksByTimingResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "hooks", kind: "message", T: JobHook, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetActiveJobHooksByTimingResponse {
+    return new GetActiveJobHooksByTimingResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetActiveJobHooksByTimingResponse {
+    return new GetActiveJobHooksByTimingResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetActiveJobHooksByTimingResponse {
+    return new GetActiveJobHooksByTimingResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetActiveJobHooksByTimingResponse | PlainMessage<GetActiveJobHooksByTimingResponse> | undefined, b: GetActiveJobHooksByTimingResponse | PlainMessage<GetActiveJobHooksByTimingResponse> | undefined): boolean {
+    return proto3.util.equals(GetActiveJobHooksByTimingResponse, a, b);
+  }
+}
+

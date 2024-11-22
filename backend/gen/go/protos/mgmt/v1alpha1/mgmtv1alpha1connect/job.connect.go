@@ -131,6 +131,9 @@ const (
 	// JobServiceSetJobHookEnabledProcedure is the fully-qualified name of the JobService's
 	// SetJobHookEnabled RPC.
 	JobServiceSetJobHookEnabledProcedure = "/mgmt.v1alpha1.JobService/SetJobHookEnabled"
+	// JobServiceGetActiveJobHooksByTimingProcedure is the fully-qualified name of the JobService's
+	// GetActiveJobHooksByTiming RPC.
+	JobServiceGetActiveJobHooksByTimingProcedure = "/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -173,6 +176,7 @@ var (
 	jobServiceIsJobHookNameAvailableMethodDescriptor           = jobServiceServiceDescriptor.Methods().ByName("IsJobHookNameAvailable")
 	jobServiceUpdateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("UpdateJobHook")
 	jobServiceSetJobHookEnabledMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobHookEnabled")
+	jobServiceGetActiveJobHooksByTimingMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("GetActiveJobHooksByTiming")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -232,6 +236,8 @@ type JobServiceClient interface {
 	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
 	// Enables or disables a job hook
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
+	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -466,6 +472,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getActiveJobHooksByTiming: connect.NewClient[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse](
+			httpClient,
+			baseURL+JobServiceGetActiveJobHooksByTimingProcedure,
+			connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -508,6 +520,7 @@ type jobServiceClient struct {
 	isJobHookNameAvailable           *connect.Client[v1alpha1.IsJobHookNameAvailableRequest, v1alpha1.IsJobHookNameAvailableResponse]
 	updateJobHook                    *connect.Client[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse]
 	setJobHookEnabled                *connect.Client[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse]
+	getActiveJobHooksByTiming        *connect.Client[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -695,6 +708,11 @@ func (c *jobServiceClient) SetJobHookEnabled(ctx context.Context, req *connect.R
 	return c.setJobHookEnabled.CallUnary(ctx, req)
 }
 
+// GetActiveJobHooksByTiming calls mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming.
+func (c *jobServiceClient) GetActiveJobHooksByTiming(ctx context.Context, req *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	return c.getActiveJobHooksByTiming.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -752,6 +770,8 @@ type JobServiceHandler interface {
 	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
 	// Enables or disables a job hook
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
+	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -982,6 +1002,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetActiveJobHooksByTimingHandler := connect.NewUnaryHandler(
+		JobServiceGetActiveJobHooksByTimingProcedure,
+		svc.GetActiveJobHooksByTiming,
+		connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -1058,6 +1084,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceUpdateJobHookHandler.ServeHTTP(w, r)
 		case JobServiceSetJobHookEnabledProcedure:
 			jobServiceSetJobHookEnabledHandler.ServeHTTP(w, r)
+		case JobServiceGetActiveJobHooksByTimingProcedure:
+			jobServiceGetActiveJobHooksByTimingHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1213,4 +1241,8 @@ func (UnimplementedJobServiceHandler) UpdateJobHook(context.Context, *connect.Re
 
 func (UnimplementedJobServiceHandler) SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetJobHookEnabled is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming is not implemented"))
 }

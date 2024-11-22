@@ -1246,6 +1246,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledResponse'
+  /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetActiveJobHooksByTiming
+      description: Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+      operationId: mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse'
 components:
   schemas:
     mgmt.v1alpha1.ActivityStatus:
@@ -1289,6 +1325,13 @@ components:
         - GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST
         - GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK
         - GENERATE_IP_ADDRESS_TYPE_V6
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing:
+      type: string
+      title: Timing
+      enum:
+        - TIMING_UNSPECIFIED
+        - TIMING_PRESYNC
+        - TIMING_POSTSYNC
     mgmt.v1alpha1.InvalidEmailAction:
       type: string
       title: InvalidEmailAction
@@ -2611,6 +2654,32 @@ components:
     mgmt.v1alpha1.GenerateZipcode:
       type: object
       title: GenerateZipcode
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job
+        timing:
+          allOf:
+            - title: timing
+              description: The timing desired.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing'
+      title: GetActiveJobHooksByTimingRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hooks
+          description: The active job hooks
+      title: GetActiveJobHooksByTimingResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobHookRequest:
       type: object

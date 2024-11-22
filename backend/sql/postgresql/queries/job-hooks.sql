@@ -15,7 +15,7 @@ INSERT INTO neosync_api.job_hooks (
 )
 RETURNING *;
 
--- name: GetPreSyncJobHooksToExecute :many
+-- name: GetActivePreSyncJobHooks :many
 SELECT *
 FROM neosync_api.job_hooks
 WHERE job_id = $1
@@ -23,12 +23,19 @@ WHERE job_id = $1
   AND hook_timing = 'preSync'
 ORDER BY priority, created_at, id ASC;
 
--- name: GetPostSyncJobHooksToExecute :many
+-- name: GetActivePostSyncJobHooks :many
 SELECT *
 FROM neosync_api.job_hooks
 WHERE job_id = $1
   AND enabled = true
   AND hook_timing = 'postSync'
+ORDER BY priority, created_at, id ASC;
+
+-- name: GetActiveJobHooks :many
+SELECT *
+FROM neosync_api.job_hooks
+WHERE job_id = $1
+  AND enabled = true
 ORDER BY priority, created_at, id ASC;
 
 -- name: IsJobHookNameAvailable :one

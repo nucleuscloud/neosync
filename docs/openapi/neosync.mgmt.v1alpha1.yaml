@@ -2581,6 +2581,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/connect.error'
       security: []
+  /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetActiveJobHooksByTiming
+      description: >-
+        Returns job hooks that are enabled by a specific timing. They will be
+        sorted by priority, created_at, and id ascending.
+      operationId: mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security: []
   /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
     post:
       tags:
@@ -8553,6 +8594,13 @@ components:
         - STORAGE_CLASS_ONEZONE_IA
         - STORAGE_CLASS_INTELLIGENT_TIERING
         - STORAGE_CLASS_DEEP_ARCHIVE
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing:
+      type: string
+      title: Timing
+      enum:
+        - TIMING_UNSPECIFIED
+        - TIMING_PRESYNC
+        - TIMING_POSTSYNC
     mgmt.v1alpha1.JobRunStatus:
       type: string
       title: JobRunStatus
@@ -9362,6 +9410,33 @@ components:
           title: row_count
           minimum: 1
       title: GenerateSourceTableOption
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job
+        timing:
+          allOf:
+            - title: timing
+              description: The timing desired.
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing
+      title: GetActiveJobHooksByTimingRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hooks
+          description: The active job hooks
+      title: GetActiveJobHooksByTimingResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobHookRequest:
       type: object

@@ -61,6 +61,134 @@ func (q *Queries) CreateJobHook(ctx context.Context, db DBTX, arg CreateJobHookP
 	return i, err
 }
 
+const getActiveJobHooks = `-- name: GetActiveJobHooks :many
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
+FROM neosync_api.job_hooks
+WHERE job_id = $1
+  AND enabled = true
+ORDER BY priority, created_at, id ASC
+`
+
+func (q *Queries) GetActiveJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	rows, err := db.Query(ctx, getActiveJobHooks, jobID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiJobHook
+	for rows.Next() {
+		var i NeosyncApiJobHook
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.JobID,
+			&i.Config,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedByUserID,
+			&i.UpdatedAt,
+			&i.Enabled,
+			&i.Priority,
+			&i.HookTiming,
+			&i.ConnectionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActivePostSyncJobHooks = `-- name: GetActivePostSyncJobHooks :many
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
+FROM neosync_api.job_hooks
+WHERE job_id = $1
+  AND enabled = true
+  AND hook_timing = 'postSync'
+ORDER BY priority, created_at, id ASC
+`
+
+func (q *Queries) GetActivePostSyncJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	rows, err := db.Query(ctx, getActivePostSyncJobHooks, jobID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiJobHook
+	for rows.Next() {
+		var i NeosyncApiJobHook
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.JobID,
+			&i.Config,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedByUserID,
+			&i.UpdatedAt,
+			&i.Enabled,
+			&i.Priority,
+			&i.HookTiming,
+			&i.ConnectionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActivePreSyncJobHooks = `-- name: GetActivePreSyncJobHooks :many
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
+FROM neosync_api.job_hooks
+WHERE job_id = $1
+  AND enabled = true
+  AND hook_timing = 'preSync'
+ORDER BY priority, created_at, id ASC
+`
+
+func (q *Queries) GetActivePreSyncJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	rows, err := db.Query(ctx, getActivePreSyncJobHooks, jobID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiJobHook
+	for rows.Next() {
+		var i NeosyncApiJobHook
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.JobID,
+			&i.Config,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedByUserID,
+			&i.UpdatedAt,
+			&i.Enabled,
+			&i.Priority,
+			&i.HookTiming,
+			&i.ConnectionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getJobHookById = `-- name: GetJobHookById :one
 SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id from neosync_api.job_hooks WHERE id = $1
 `
@@ -92,92 +220,6 @@ SELECT id, name, description, job_id, config, created_by_user_id, created_at, up
 
 func (q *Queries) GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
 	rows, err := db.Query(ctx, getJobHooksByJob, jobID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []NeosyncApiJobHook
-	for rows.Next() {
-		var i NeosyncApiJobHook
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Description,
-			&i.JobID,
-			&i.Config,
-			&i.CreatedByUserID,
-			&i.CreatedAt,
-			&i.UpdatedByUserID,
-			&i.UpdatedAt,
-			&i.Enabled,
-			&i.Priority,
-			&i.HookTiming,
-			&i.ConnectionID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPostSyncJobHooksToExecute = `-- name: GetPostSyncJobHooksToExecute :many
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
-FROM neosync_api.job_hooks
-WHERE job_id = $1
-  AND enabled = true
-  AND hook_timing = 'postSync'
-ORDER BY priority, created_at, id ASC
-`
-
-func (q *Queries) GetPostSyncJobHooksToExecute(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
-	rows, err := db.Query(ctx, getPostSyncJobHooksToExecute, jobID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []NeosyncApiJobHook
-	for rows.Next() {
-		var i NeosyncApiJobHook
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Description,
-			&i.JobID,
-			&i.Config,
-			&i.CreatedByUserID,
-			&i.CreatedAt,
-			&i.UpdatedByUserID,
-			&i.UpdatedAt,
-			&i.Enabled,
-			&i.Priority,
-			&i.HookTiming,
-			&i.ConnectionID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPreSyncJobHooksToExecute = `-- name: GetPreSyncJobHooksToExecute :many
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
-FROM neosync_api.job_hooks
-WHERE job_id = $1
-  AND enabled = true
-  AND hook_timing = 'preSync'
-ORDER BY priority, created_at, id ASC
-`
-
-func (q *Queries) GetPreSyncJobHooksToExecute(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
-	rows, err := db.Query(ctx, getPreSyncJobHooksToExecute, jobID)
 	if err != nil {
 		return nil, err
 	}

@@ -83,3 +83,14 @@ func (s *Service) SetJobHookEnabled(
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (s *Service) GetActiveJobHooksByTiming(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest],
+) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	resp, err := s.hookService.GetActiveJobHooksByTiming(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}

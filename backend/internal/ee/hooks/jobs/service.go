@@ -32,6 +32,7 @@ type Interface interface {
 	IsJobHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsJobHookNameAvailableRequest) (*mgmtv1alpha1.IsJobHookNameAvailableResponse, error)
 	UpdateJobHook(ctx context.Context, req *mgmtv1alpha1.UpdateJobHookRequest) (*mgmtv1alpha1.UpdateJobHookResponse, error)
 	SetJobHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetJobHookEnabledRequest) (*mgmtv1alpha1.SetJobHookEnabledResponse, error)
+	GetActiveJobHooksByTiming(ctx context.Context, req *mgmtv1alpha1.GetActiveJobHooksByTimingRequest) (*mgmtv1alpha1.GetActiveJobHooksByTimingResponse, error)
 }
 
 type config struct {
@@ -82,14 +83,9 @@ func (s *Service) GetJobHooks(
 	}
 	logger.Debug(fmt.Sprintf("found %d hooks", len(hooks)))
 
-	dtos := make([]*mgmtv1alpha1.JobHook, len(hooks))
-	for idx := range hooks {
-		hook := hooks[idx]
-		dto, err := dtomaps.ToJobHookDto(&hook)
-		if err != nil {
-			return nil, err
-		}
-		dtos = append(dtos, dto)
+	dtos, err := dtomaps.ToJobHooksDto(hooks)
+	if err != nil {
+		return nil, err
 	}
 
 	return &mgmtv1alpha1.GetJobHooksResponse{Hooks: dtos}, nil
@@ -399,6 +395,62 @@ func (s *Service) SetJobHookEnabled(
 	}
 
 	return &mgmtv1alpha1.SetJobHookEnabledResponse{Hook: dto}, nil
+}
+
+func (s *Service) GetActiveJobHooksByTiming(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetActiveJobHooksByTimingRequest,
+) (*mgmtv1alpha1.GetActiveJobHooksByTimingResponse, error) {
+	if !s.cfg.isEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure)
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.GetJobId())
+
+	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId())
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("accountId", neosyncdb.UUIDString(verifyResp.AccountUuid))
+
+	jobuuid, err := neosyncdb.ToUuid(req.GetJobId())
+	if err != nil {
+		return nil, err
+	}
+
+	var hooks []db_queries.NeosyncApiJobHook
+	switch req.GetTiming() {
+	case mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_UNSPECIFIED:
+		logger.Debug("searching for active job hooks")
+		hooks, err = s.db.Q.GetActiveJobHooks(ctx, s.db.Db, jobuuid)
+		if err != nil {
+			return nil, err
+		}
+	case mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC:
+		logger.Debug("searching for active job presync hooks")
+		hooks, err = s.db.Q.GetActivePreSyncJobHooks(ctx, s.db.Db, jobuuid)
+		if err != nil {
+			return nil, err
+		}
+	case mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC:
+		logger.Debug("searching for active job postsync hooks")
+		hooks, err = s.db.Q.GetActivePostSyncJobHooks(ctx, s.db.Db, jobuuid)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("invalid hook timing: %T", req.GetTiming()))
+	}
+
+	logger.Debug(fmt.Sprintf("found %d hooks", len(hooks)))
+
+	dtos, err := dtomaps.ToJobHooksDto(hooks)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: dtos}, nil
 }
 
 type verifyUserJobResponse struct {

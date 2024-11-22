@@ -40,3 +40,18 @@ func ToJobHookDto(
 
 	return output, nil
 }
+
+func ToJobHooksDto(
+	input []db_queries.NeosyncApiJobHook,
+) ([]*mgmtv1alpha1.JobHook, error) {
+	dtos := make([]*mgmtv1alpha1.JobHook, len(input))
+	for idx := range input {
+		hook := input[idx]
+		dto, err := ToJobHookDto(&hook)
+		if err != nil {
+			return nil, err
+		}
+		dtos[idx] = dto
+	}
+	return dtos, nil
+}

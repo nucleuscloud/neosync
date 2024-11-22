@@ -199,6 +199,11 @@ class JobServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.FromString,
                 _registered_method=True)
+        self.GetActiveJobHooksByTiming = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.FromString,
+                _registered_method=True)
 
 
 class JobServiceServicer(object):
@@ -444,6 +449,13 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetActiveJobHooksByTiming(self, request, context):
+        """Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_JobServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -631,6 +643,11 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.SetJobHookEnabled,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.SerializeToString,
+            ),
+            'GetActiveJobHooksByTiming': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetActiveJobHooksByTiming,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1632,6 +1649,33 @@ class JobService(object):
             '/mgmt.v1alpha1.JobService/SetJobHookEnabled',
             mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetActiveJobHooksByTiming(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming',
+            mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.FromString,
             options,
             channel_credentials,
             insecure,
