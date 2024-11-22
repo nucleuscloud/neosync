@@ -484,7 +484,7 @@ func safeInt32(v uint32) (int32, error) {
 	if v > math.MaxInt32 {
 		return 0, fmt.Errorf("value %d exceeds max int32", v)
 	}
-	return int32(v), nil //nolint:gosec // safe due to check above
+	return int32(v), nil
 }
 
 func (s *Service) verifyHookHasValidConnections(
