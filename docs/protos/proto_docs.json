@@ -11639,8 +11639,8 @@
               "defaultValue": ""
             },
             {
-              "name": "weight",
-              "description": "The weight of the hook. This determines the execution order. Lower values are higher priority.",
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
               "label": "",
               "type": "uint32",
               "longType": "uint32",
@@ -13172,8 +13172,8 @@
               "defaultValue": ""
             },
             {
-              "name": "weight",
-              "description": "The weight of the hook. This determines the execution order. Lower values are higher priority.",
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
               "label": "",
               "type": "uint32",
               "longType": "uint32",

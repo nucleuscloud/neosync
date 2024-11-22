@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
   updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   enabled boolean NOT NULL DEFAULT true,
-  weight integer NOT NULL DEFAULT 0,
+  priority integer NOT NULL DEFAULT 0,
 
   hook_timing text GENERATED ALWAYS AS (
     CASE
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
     REFERENCES neosync_api.jobs(id)
     ON DELETE CASCADE,
 
-  CONSTRAINT job_hooks_weight_check CHECK (weight >= 0),
+  CONSTRAINT job_hooks_priority_check CHECK (priority >= 0),
 
   CONSTRAINT job_hooks_name_unique UNIQUE (name)
 );
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
 CREATE INDEX IF NOT EXISTS idx_job_hooks_job_id
   ON neosync_api.job_hooks(job_id);
 
-CREATE INDEX IF NOT EXISTS idx_job_hooks_weight
-  ON neosync_api.job_hooks(weight);
+CREATE INDEX IF NOT EXISTS idx_job_hooks_priority
+  ON neosync_api.job_hooks(priority);
 
 CREATE INDEX IF NOT EXISTS idx_job_hooks_enabled
   ON neosync_api.job_hooks(enabled)

@@ -874,15 +874,19 @@ message JobHook {
   // Whether or not the hook is enabled.
   bool enabled = 10;
 
-  // The weight of the hook. This determines the execution order. Lower values are higher priority.
-  uint32 weight = 11;
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 11 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
 }
 
 message NewJobHook {
   // Name of the hook for display/reference.
-  string name = 1;
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Description of what this hook does.
-  string description = 2;
+  string description = 2 [(buf.validate.field).string.min_len = 1];
 
   // Hook-type specific configuration.
   JobHookConfig config = 3;
@@ -890,8 +894,12 @@ message NewJobHook {
   // Whether or not the hook is enabled.
   bool enabled = 4;
 
-  // The weight of the hook. This determines the execution order. Lower values are higher priority.
-  uint32 weight = 5;
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 5 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
 }
 
 // Contains the specific hook type configurations.
@@ -905,10 +913,10 @@ message JobHookConfig {
   // Configuration for SQL-based hooks
   message JobSqlHook {
     // The SQL query to execute
-    string query = 1;
+    string query = 1 [(buf.validate.field).string.min_len = 1];
 
     // Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
-    string connection_id = 2;
+    string connection_id = 2 [(buf.validate.field).string.uuid = true];
 
     // The timing of when the hook will run
     Timing timing = 3;

@@ -103,7 +103,7 @@ type NeosyncApiJobHook struct {
 	UpdatedByUserID pgtype.UUID
 	UpdatedAt       pgtype.Timestamptz
 	Enabled         bool
-	Weight          int32
+	Priority        int32
 	HookTiming      pgtype.Text
 }
 

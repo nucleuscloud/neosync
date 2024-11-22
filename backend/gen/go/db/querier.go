@@ -22,6 +22,7 @@ type Querier interface {
 	CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error)
 	CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)
 	CreateJobConnectionDestinations(ctx context.Context, db DBTX, arg []CreateJobConnectionDestinationsParams) (int64, error)
+	CreateJobHook(ctx context.Context, db DBTX, arg CreateJobHookParams) (NeosyncApiJobHook, error)
 	CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreatePersonalAccount(ctx context.Context, db DBTX, arg CreatePersonalAccountParams) (NeosyncApiAccount, error)
@@ -50,8 +51,12 @@ type Querier interface {
 	GetJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error)
 	GetJobConnectionDestinations(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error)
 	GetJobConnectionDestinationsByJobIds(ctx context.Context, db DBTX, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error)
+	GetJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobHook, error)
+	GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error)
 	GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error)
 	GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error)
+	GetPostSyncJobHooksToExecute(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error)
+	GetPreSyncJobHooksToExecute(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error)
 	GetRunContextByKey(ctx context.Context, db DBTX, arg GetRunContextByKeyParams) (NeosyncApiRuncontext, error)
 	GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error)
@@ -78,6 +83,7 @@ type Querier interface {
 	RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
+	RemoveJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error)
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams) (NeosyncApiJob, error)

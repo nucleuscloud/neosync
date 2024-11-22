@@ -3161,10 +3161,13 @@ components:
           type: boolean
           title: enabled
           description: Whether or not the hook is enabled.
-        weight:
+        priority:
           type: integer
-          title: weight
-          description: The weight of the hook. This determines the execution order. Lower values are higher priority.
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
       title: JobHook
       additionalProperties: false
     mgmt.v1alpha1.JobHookConfig:
@@ -3199,10 +3202,12 @@ components:
         query:
           type: string
           title: query
+          minLength: 1
           description: The SQL query to execute
         connectionId:
           type: string
           title: connection_id
+          format: uuid
           description: Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
         timing:
           allOf:
@@ -3939,10 +3944,12 @@ components:
         name:
           type: string
           title: name
+          pattern: ^[a-z0-9-]{3,100}$
           description: Name of the hook for display/reference.
         description:
           type: string
           title: description
+          minLength: 1
           description: Description of what this hook does.
         config:
           allOf:
@@ -3953,10 +3960,13 @@ components:
           type: boolean
           title: enabled
           description: Whether or not the hook is enabled.
-        weight:
+        priority:
           type: integer
-          title: weight
-          description: The weight of the hook. This determines the execution order. Lower values are higher priority.
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
       title: NewJobHook
       additionalProperties: false
     mgmt.v1alpha1.Null:

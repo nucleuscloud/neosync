@@ -6375,11 +6375,12 @@ export class JobHook extends Message<JobHook> {
   enabled = false;
 
   /**
-   * The weight of the hook. This determines the execution order. Lower values are higher priority.
+   * The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+   * Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
    *
-   * @generated from field: uint32 weight = 11;
+   * @generated from field: uint32 priority = 11;
    */
-  weight = 0;
+  priority = 0;
 
   constructor(data?: PartialMessage<JobHook>) {
     super();
@@ -6399,7 +6400,7 @@ export class JobHook extends Message<JobHook> {
     { no: 8, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "updated_at", kind: "message", T: Timestamp },
     { no: 10, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 11, name: "weight", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 11, name: "priority", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobHook {
@@ -6452,11 +6453,12 @@ export class NewJobHook extends Message<NewJobHook> {
   enabled = false;
 
   /**
-   * The weight of the hook. This determines the execution order. Lower values are higher priority.
+   * The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+   * Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
    *
-   * @generated from field: uint32 weight = 5;
+   * @generated from field: uint32 priority = 5;
    */
-  weight = 0;
+  priority = 0;
 
   constructor(data?: PartialMessage<NewJobHook>) {
     super();
@@ -6470,7 +6472,7 @@ export class NewJobHook extends Message<NewJobHook> {
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "config", kind: "message", T: JobHookConfig },
     { no: 4, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 5, name: "weight", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 5, name: "priority", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewJobHook {
