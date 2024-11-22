@@ -985,6 +985,45 @@ message IsJobHookNameAvailableResponse {
   bool is_available = 1;
 }
 
+message UpdateJobHookRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Name of the hook for display/reference.
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Description of what this hook does.
+  string description = 3 [(buf.validate.field).string.min_len = 1];
+  // The unique identifier of the job this hook belongs to.
+  string job_id = 4 [(buf.validate.field).string.uuid = true];
+
+  // Hook-type specific configuration.
+  JobHookConfig config = 5;
+  // Whether or not the hook is enabled.
+  bool enabled = 6;
+
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 7 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
+}
+message UpdateJobHookResponse {
+  // The updated job hook
+  JobHook hook = 1;
+}
+
+message SetJobHookEnabledRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // Whether or not the hook is enabled.
+  bool enabled = 2;
+}
+message SetJobHookEnabledResponse {
+  // The updated job hook
+  JobHook hook = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -1040,4 +1079,8 @@ service JobService {
   rpc DeleteJobHook(DeleteJobHookRequest) returns (DeleteJobHookResponse) {}
   // Check if a specific job hook name is available
   rpc IsJobHookNameAvailable(IsJobHookNameAvailableRequest) returns (IsJobHookNameAvailableResponse) {}
+  // Updates a job hook
+  rpc UpdateJobHook(UpdateJobHookRequest) returns (UpdateJobHookResponse) {}
+  // Enables or disables a job hook
+  rpc SetJobHookEnabled(SetJobHookEnabledRequest) returns (SetJobHookEnabledResponse) {}
 }

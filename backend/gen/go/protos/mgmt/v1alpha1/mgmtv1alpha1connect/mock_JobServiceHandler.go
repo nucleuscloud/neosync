@@ -1488,6 +1488,65 @@ func (_c *MockJobServiceHandler_PauseJob_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// SetJobHookEnabled provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) SetJobHookEnabled(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]) (*connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobHookEnabled")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]) (*connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]) *connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_SetJobHookEnabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobHookEnabled'
+type MockJobServiceHandler_SetJobHookEnabled_Call struct {
+	*mock.Call
+}
+
+// SetJobHookEnabled is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]
+func (_e *MockJobServiceHandler_Expecter) SetJobHookEnabled(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_SetJobHookEnabled_Call {
+	return &MockJobServiceHandler_SetJobHookEnabled_Call{Call: _e.mock.On("SetJobHookEnabled", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_SetJobHookEnabled_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest])) *MockJobServiceHandler_SetJobHookEnabled_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobHookEnabled_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse], _a1 error) *MockJobServiceHandler_SetJobHookEnabled_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobHookEnabled_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetJobHookEnabledRequest]) (*connect.Response[mgmtv1alpha1.SetJobHookEnabledResponse], error)) *MockJobServiceHandler_SetJobHookEnabled_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetJobSourceSqlConnectionSubsets provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceHandler) SetJobSourceSqlConnectionSubsets(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest]) (*connect.Response[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -1897,6 +1956,65 @@ func (_c *MockJobServiceHandler_UpdateJobDestinationConnection_Call) Return(_a0 
 }
 
 func (_c *MockJobServiceHandler_UpdateJobDestinationConnection_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse], error)) *MockJobServiceHandler_UpdateJobDestinationConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateJobHook provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) UpdateJobHook(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobHookResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobHook")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.UpdateJobHookResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobHookResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]) *connect.Response[mgmtv1alpha1.UpdateJobHookResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.UpdateJobHookResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_UpdateJobHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobHook'
+type MockJobServiceHandler_UpdateJobHook_Call struct {
+	*mock.Call
+}
+
+// UpdateJobHook is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]
+func (_e *MockJobServiceHandler_Expecter) UpdateJobHook(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_UpdateJobHook_Call {
+	return &MockJobServiceHandler_UpdateJobHook_Call{Call: _e.mock.On("UpdateJobHook", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_UpdateJobHook_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateJobHookRequest])) *MockJobServiceHandler_UpdateJobHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.UpdateJobHookRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_UpdateJobHook_Call) Return(_a0 *connect.Response[mgmtv1alpha1.UpdateJobHookResponse], _a1 error) *MockJobServiceHandler_UpdateJobHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_UpdateJobHook_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobHookRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobHookResponse], error)) *MockJobServiceHandler_UpdateJobHook_Call {
 	_c.Call.Return(run)
 	return _c
 }

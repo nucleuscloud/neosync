@@ -189,6 +189,16 @@ class JobServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableResponse.FromString,
                 _registered_method=True)
+        self.UpdateJobHook = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/UpdateJobHook',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookResponse.FromString,
+                _registered_method=True)
+        self.SetJobHookEnabled = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/SetJobHookEnabled',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.FromString,
+                _registered_method=True)
 
 
 class JobServiceServicer(object):
@@ -420,6 +430,20 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UpdateJobHook(self, request, context):
+        """Updates a job hook
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SetJobHookEnabled(self, request, context):
+        """Enables or disables a job hook
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_JobServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -597,6 +621,16 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.IsJobHookNameAvailable,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableResponse.SerializeToString,
+            ),
+            'UpdateJobHook': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateJobHook,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookResponse.SerializeToString,
+            ),
+            'SetJobHookEnabled': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetJobHookEnabled,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1544,6 +1578,60 @@ class JobService(object):
             '/mgmt.v1alpha1.JobService/IsJobHookNameAvailable',
             mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_job__pb2.IsJobHookNameAvailableResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateJobHook(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/UpdateJobHook',
+            mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.UpdateJobHookResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SetJobHookEnabled(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/SetJobHookEnabled',
+            mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.SetJobHookEnabledResponse.FromString,
             options,
             channel_credentials,
             insecure,

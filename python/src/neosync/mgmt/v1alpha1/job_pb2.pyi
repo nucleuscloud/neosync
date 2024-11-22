@@ -1314,3 +1314,41 @@ class IsJobHookNameAvailableResponse(_message.Message):
     IS_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
     is_available: bool
     def __init__(self, is_available: bool = ...) -> None: ...
+
+class UpdateJobHookRequest(_message.Message):
+    __slots__ = ("id", "name", "description", "job_id", "config", "enabled", "priority")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    PRIORITY_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    name: str
+    description: str
+    job_id: str
+    config: JobHookConfig
+    enabled: bool
+    priority: int
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., job_id: _Optional[str] = ..., config: _Optional[_Union[JobHookConfig, _Mapping]] = ..., enabled: bool = ..., priority: _Optional[int] = ...) -> None: ...
+
+class UpdateJobHookResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class SetJobHookEnabledRequest(_message.Message):
+    __slots__ = ("id", "enabled")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    enabled: bool
+    def __init__(self, id: _Optional[str] = ..., enabled: bool = ...) -> None: ...
+
+class SetJobHookEnabledResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...

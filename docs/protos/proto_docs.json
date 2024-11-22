@@ -13748,6 +13748,66 @@
           ]
         },
         {
+          "name": "SetJobHookEnabledRequest",
+          "longName": "SetJobHookEnabledRequest",
+          "fullName": "mgmt.v1alpha1.SetJobHookEnabledRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobHookEnabledResponse",
+          "longName": "SetJobHookEnabledResponse",
+          "fullName": "mgmt.v1alpha1.SetJobHookEnabledResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated job hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SetJobSourceSqlConnectionSubsetsRequest",
           "longName": "SetJobSourceSqlConnectionSubsetsRequest",
           "fullName": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest",
@@ -14157,6 +14217,126 @@
               "type": "Job",
               "longType": "Job",
               "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateJobHookRequest",
+          "longName": "UpdateJobHookRequest",
+          "fullName": "mgmt.v1alpha1.UpdateJobHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job this hook belongs to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "JobHookConfig",
+              "longType": "JobHookConfig",
+              "fullType": "mgmt.v1alpha1.JobHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
+              "label": "",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateJobHookResponse",
+          "longName": "UpdateJobHookResponse",
+          "fullName": "mgmt.v1alpha1.UpdateJobHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated job hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -14962,6 +15142,30 @@
               "responseType": "IsJobHookNameAvailableResponse",
               "responseLongType": "IsJobHookNameAvailableResponse",
               "responseFullType": "mgmt.v1alpha1.IsJobHookNameAvailableResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "UpdateJobHook",
+              "description": "Updates a job hook",
+              "requestType": "UpdateJobHookRequest",
+              "requestLongType": "UpdateJobHookRequest",
+              "requestFullType": "mgmt.v1alpha1.UpdateJobHookRequest",
+              "requestStreaming": false,
+              "responseType": "UpdateJobHookResponse",
+              "responseLongType": "UpdateJobHookResponse",
+              "responseFullType": "mgmt.v1alpha1.UpdateJobHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetJobHookEnabled",
+              "description": "Enables or disables a job hook",
+              "requestType": "SetJobHookEnabledRequest",
+              "requestLongType": "SetJobHookEnabledRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobHookEnabledRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobHookEnabledResponse",
+              "responseLongType": "SetJobHookEnabledResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobHookEnabledResponse",
               "responseStreaming": false
             }
           ]

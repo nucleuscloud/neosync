@@ -1174,6 +1174,78 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobHook
+      description: Updates a job hook
+      operationId: mgmt.v1alpha1.JobService.UpdateJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookResponse'
+  /mgmt.v1alpha1.JobService/SetJobHookEnabled:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobHookEnabled
+      description: Enables or disables a job hook
+      operationId: mgmt.v1alpha1.JobService.SetJobHookEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledResponse'
 components:
   schemas:
     mgmt.v1alpha1.ActivityStatus:
@@ -4472,6 +4544,30 @@ components:
           description: The Neosync Account ID
       title: RunContextKey
       additionalProperties: false
+    mgmt.v1alpha1.SetJobHookEnabledRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: SetJobHookEnabledRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetJobHookEnabledResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The updated job hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: SetJobHookEnabledResponse
+      additionalProperties: false
     mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest:
       type: object
       properties:
@@ -5541,6 +5637,57 @@ components:
             - title: job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: UpdateJobDestinationConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateJobHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job this hook belongs to.
+        config:
+          allOf:
+            - title: config
+              description: Hook-type specific configuration.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+        priority:
+          type: integer
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+      title: UpdateJobHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateJobHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The updated job hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: UpdateJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobScheduleRequest:
       type: object

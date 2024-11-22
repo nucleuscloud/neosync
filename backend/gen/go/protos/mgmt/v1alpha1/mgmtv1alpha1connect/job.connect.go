@@ -125,6 +125,12 @@ const (
 	// JobServiceIsJobHookNameAvailableProcedure is the fully-qualified name of the JobService's
 	// IsJobHookNameAvailable RPC.
 	JobServiceIsJobHookNameAvailableProcedure = "/mgmt.v1alpha1.JobService/IsJobHookNameAvailable"
+	// JobServiceUpdateJobHookProcedure is the fully-qualified name of the JobService's UpdateJobHook
+	// RPC.
+	JobServiceUpdateJobHookProcedure = "/mgmt.v1alpha1.JobService/UpdateJobHook"
+	// JobServiceSetJobHookEnabledProcedure is the fully-qualified name of the JobService's
+	// SetJobHookEnabled RPC.
+	JobServiceSetJobHookEnabledProcedure = "/mgmt.v1alpha1.JobService/SetJobHookEnabled"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -165,6 +171,8 @@ var (
 	jobServiceCreateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("CreateJobHook")
 	jobServiceDeleteJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("DeleteJobHook")
 	jobServiceIsJobHookNameAvailableMethodDescriptor           = jobServiceServiceDescriptor.Methods().ByName("IsJobHookNameAvailable")
+	jobServiceUpdateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("UpdateJobHook")
+	jobServiceSetJobHookEnabledMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobHookEnabled")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -220,6 +228,10 @@ type JobServiceClient interface {
 	DeleteJobHook(context.Context, *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error)
 	// Check if a specific job hook name is available
 	IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error)
+	// Updates a job hook
+	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
+	// Enables or disables a job hook
+	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -442,6 +454,18 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceIsJobHookNameAvailableMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		updateJobHook: connect.NewClient[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse](
+			httpClient,
+			baseURL+JobServiceUpdateJobHookProcedure,
+			connect.WithSchema(jobServiceUpdateJobHookMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setJobHookEnabled: connect.NewClient[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse](
+			httpClient,
+			baseURL+JobServiceSetJobHookEnabledProcedure,
+			connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -482,6 +506,8 @@ type jobServiceClient struct {
 	createJobHook                    *connect.Client[v1alpha1.CreateJobHookRequest, v1alpha1.CreateJobHookResponse]
 	deleteJobHook                    *connect.Client[v1alpha1.DeleteJobHookRequest, v1alpha1.DeleteJobHookResponse]
 	isJobHookNameAvailable           *connect.Client[v1alpha1.IsJobHookNameAvailableRequest, v1alpha1.IsJobHookNameAvailableResponse]
+	updateJobHook                    *connect.Client[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse]
+	setJobHookEnabled                *connect.Client[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -659,6 +685,16 @@ func (c *jobServiceClient) IsJobHookNameAvailable(ctx context.Context, req *conn
 	return c.isJobHookNameAvailable.CallUnary(ctx, req)
 }
 
+// UpdateJobHook calls mgmt.v1alpha1.JobService.UpdateJobHook.
+func (c *jobServiceClient) UpdateJobHook(ctx context.Context, req *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error) {
+	return c.updateJobHook.CallUnary(ctx, req)
+}
+
+// SetJobHookEnabled calls mgmt.v1alpha1.JobService.SetJobHookEnabled.
+func (c *jobServiceClient) SetJobHookEnabled(ctx context.Context, req *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error) {
+	return c.setJobHookEnabled.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -712,6 +748,10 @@ type JobServiceHandler interface {
 	DeleteJobHook(context.Context, *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error)
 	// Check if a specific job hook name is available
 	IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error)
+	// Updates a job hook
+	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
+	// Enables or disables a job hook
+	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -930,6 +970,18 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceIsJobHookNameAvailableMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceUpdateJobHookHandler := connect.NewUnaryHandler(
+		JobServiceUpdateJobHookProcedure,
+		svc.UpdateJobHook,
+		connect.WithSchema(jobServiceUpdateJobHookMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceSetJobHookEnabledHandler := connect.NewUnaryHandler(
+		JobServiceSetJobHookEnabledProcedure,
+		svc.SetJobHookEnabled,
+		connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -1002,6 +1054,10 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceDeleteJobHookHandler.ServeHTTP(w, r)
 		case JobServiceIsJobHookNameAvailableProcedure:
 			jobServiceIsJobHookNameAvailableHandler.ServeHTTP(w, r)
+		case JobServiceUpdateJobHookProcedure:
+			jobServiceUpdateJobHookHandler.ServeHTTP(w, r)
+		case JobServiceSetJobHookEnabledProcedure:
+			jobServiceSetJobHookEnabledHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1149,4 +1205,12 @@ func (UnimplementedJobServiceHandler) DeleteJobHook(context.Context, *connect.Re
 
 func (UnimplementedJobServiceHandler) IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.IsJobHookNameAvailable is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobHook is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetJobHookEnabled is not implemented"))
 }

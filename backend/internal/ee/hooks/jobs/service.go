@@ -30,6 +30,8 @@ type Interface interface {
 	CreateJobHook(ctx context.Context, req *mgmtv1alpha1.CreateJobHookRequest) (*mgmtv1alpha1.CreateJobHookResponse, error)
 	DeleteJobHook(ctx context.Context, req *mgmtv1alpha1.DeleteJobHookRequest) (*mgmtv1alpha1.DeleteJobHookResponse, error)
 	IsJobHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsJobHookNameAvailableRequest) (*mgmtv1alpha1.IsJobHookNameAvailableResponse, error)
+	UpdateJobHook(ctx context.Context, req *mgmtv1alpha1.UpdateJobHookRequest) (*mgmtv1alpha1.UpdateJobHookResponse, error)
+	SetJobHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetJobHookEnabledRequest) (*mgmtv1alpha1.SetJobHookEnabledResponse, error)
 }
 
 type config struct {
@@ -283,6 +285,115 @@ func (s *Service) CreateJobHook(
 		return nil, err
 	}
 	return &mgmtv1alpha1.CreateJobHookResponse{Hook: dto}, nil
+}
+
+func (s *Service) UpdateJobHook(
+	ctx context.Context,
+	req *mgmtv1alpha1.UpdateJobHookRequest,
+) (*mgmtv1alpha1.UpdateJobHookResponse, error) {
+	getResp, err := s.GetJobHook(ctx, &mgmtv1alpha1.GetJobHookRequest{Id: req.GetId()})
+	if err != nil {
+		return nil, err
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("hookId", req.GetId())
+
+	useruuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	jobuuid, err := neosyncdb.ToUuid(getResp.GetHook().GetJobId())
+	if err != nil {
+		return nil, err
+	}
+
+	isValid, err := s.verifyHookHasValidConnections(
+		ctx,
+		req.GetConfig(),
+		jobuuid,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to validate if job hook has valid connections: %w", err)
+	}
+	if !isValid {
+		logger.Debug("job hook creation did not pass connection id verification")
+		return nil, nucleuserrors.NewBadRequest("connection id specified in hook is not a part of job")
+	}
+
+	config, err := req.GetConfig().MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("unable to map config to valid json for db storage: %w", err)
+	}
+
+	priority, err := safeInt32(req.GetPriority())
+	if err != nil {
+		return nil, err
+	}
+
+	hookuuid, err := neosyncdb.ToUuid(getResp.GetHook().GetId())
+	if err != nil {
+		return nil, err
+	}
+
+	updatedhook, err := s.db.Q.UpdateJobHook(ctx, s.db.Db, db_queries.UpdateJobHookParams{
+		Name:            req.GetName(),
+		Description:     req.GetDescription(),
+		Config:          config,
+		Enabled:         req.GetEnabled(),
+		Priority:        priority,
+		UpdatedByUserID: *useruuid,
+		ID:              hookuuid,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to update job hook: %w", err)
+	}
+
+	dto, err := dtomaps.ToJobHookDto(&updatedhook)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.UpdateJobHookResponse{Hook: dto}, nil
+}
+
+func (s *Service) SetJobHookEnabled(
+	ctx context.Context,
+	req *mgmtv1alpha1.SetJobHookEnabledRequest,
+) (*mgmtv1alpha1.SetJobHookEnabledResponse, error) {
+	getResp, err := s.GetJobHook(ctx, &mgmtv1alpha1.GetJobHookRequest{Id: req.GetId()})
+	if err != nil {
+		return nil, err
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("hookId", req.GetId())
+
+	if req.GetEnabled() == getResp.GetHook().GetEnabled() {
+		logger.Debug("hook enabled flag unchanged, no need to update")
+		return &mgmtv1alpha1.SetJobHookEnabledResponse{Hook: getResp.GetHook()}, nil
+	}
+
+	useruuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug(fmt.Sprintf("attempting to update job hook enabled status from %v to %v", getResp.GetHook().GetEnabled(), req.GetEnabled()))
+	updatedHook, err := s.db.Q.SetJobHookEnabled(ctx, s.db.Db, db_queries.SetJobHookEnabledParams{
+		Enabled:         req.GetEnabled(),
+		UpdatedByUserID: *useruuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	dto, err := dtomaps.ToJobHookDto(&updatedHook)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.SetJobHookEnabledResponse{Hook: dto}, nil
 }
 
 type verifyUserJobResponse struct {

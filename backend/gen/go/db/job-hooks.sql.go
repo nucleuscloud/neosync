@@ -129,7 +129,7 @@ SELECT id, name, description, job_id, config, created_by_user_id, created_at, up
 FROM neosync_api.job_hooks
 WHERE job_id = $1
   AND enabled = true
-  AND hook_timing = 'post_sync'
+  AND hook_timing = 'postSync'
 ORDER BY priority, created_at, id ASC
 `
 
@@ -172,7 +172,7 @@ SELECT id, name, description, job_id, config, created_by_user_id, created_at, up
 FROM neosync_api.job_hooks
 WHERE job_id = $1
   AND enabled = true
-  AND hook_timing = 'pre_sync'
+  AND hook_timing = 'preSync'
 ORDER BY priority, created_at, id ASC
 `
 
@@ -237,4 +237,89 @@ DELETE FROM neosync_api.job_hooks WHERE id = $1
 func (q *Queries) RemoveJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	_, err := db.Exec(ctx, removeJobHookById, id)
 	return err
+}
+
+const setJobHookEnabled = `-- name: SetJobHookEnabled :one
+UPDATE neosync_api.job_hooks
+SET enabled = $1,
+    updated_by_user_id = $2
+WHERE id = $2
+RETURNING id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
+`
+
+type SetJobHookEnabledParams struct {
+	Enabled         bool
+	UpdatedByUserID pgtype.UUID
+}
+
+func (q *Queries) SetJobHookEnabled(ctx context.Context, db DBTX, arg SetJobHookEnabledParams) (NeosyncApiJobHook, error) {
+	row := db.QueryRow(ctx, setJobHookEnabled, arg.Enabled, arg.UpdatedByUserID)
+	var i NeosyncApiJobHook
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.JobID,
+		&i.Config,
+		&i.CreatedByUserID,
+		&i.CreatedAt,
+		&i.UpdatedByUserID,
+		&i.UpdatedAt,
+		&i.Enabled,
+		&i.Priority,
+		&i.HookTiming,
+		&i.ConnectionID,
+	)
+	return i, err
+}
+
+const updateJobHook = `-- name: UpdateJobHook :one
+UPDATE neosync_api.job_hooks
+SET name = $1,
+    description = $2,
+    config = $3,
+    enabled = $4,
+    priority = $5,
+    updated_by_user_id = $6
+WHERE id = $7
+RETURNING id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
+`
+
+type UpdateJobHookParams struct {
+	Name            string
+	Description     string
+	Config          []byte
+	Enabled         bool
+	Priority        int32
+	UpdatedByUserID pgtype.UUID
+	ID              pgtype.UUID
+}
+
+func (q *Queries) UpdateJobHook(ctx context.Context, db DBTX, arg UpdateJobHookParams) (NeosyncApiJobHook, error) {
+	row := db.QueryRow(ctx, updateJobHook,
+		arg.Name,
+		arg.Description,
+		arg.Config,
+		arg.Enabled,
+		arg.Priority,
+		arg.UpdatedByUserID,
+		arg.ID,
+	)
+	var i NeosyncApiJobHook
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.JobID,
+		&i.Config,
+		&i.CreatedByUserID,
+		&i.CreatedAt,
+		&i.UpdatedByUserID,
+		&i.UpdatedAt,
+		&i.Enabled,
+		&i.Priority,
+		&i.HookTiming,
+		&i.ConnectionID,
+	)
+	return i, err
 }

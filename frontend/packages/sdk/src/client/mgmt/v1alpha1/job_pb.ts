@@ -7114,3 +7114,216 @@ export class IsJobHookNameAvailableResponse extends Message<IsJobHookNameAvailab
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.UpdateJobHookRequest
+ */
+export class UpdateJobHookRequest extends Message<UpdateJobHookRequest> {
+  /**
+   * The unique identifier of the hook
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * Name of the hook for display/reference.
+   *
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * Description of what this hook does.
+   *
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  /**
+   * The unique identifier of the job this hook belongs to.
+   *
+   * @generated from field: string job_id = 4;
+   */
+  jobId = "";
+
+  /**
+   * Hook-type specific configuration.
+   *
+   * @generated from field: mgmt.v1alpha1.JobHookConfig config = 5;
+   */
+  config?: JobHookConfig;
+
+  /**
+   * Whether or not the hook is enabled.
+   *
+   * @generated from field: bool enabled = 6;
+   */
+  enabled = false;
+
+  /**
+   * The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+   * Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+   *
+   * @generated from field: uint32 priority = 7;
+   */
+  priority = 0;
+
+  constructor(data?: PartialMessage<UpdateJobHookRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobHookRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "config", kind: "message", T: JobHookConfig },
+    { no: 6, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 7, name: "priority", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobHookRequest {
+    return new UpdateJobHookRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobHookRequest {
+    return new UpdateJobHookRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobHookRequest {
+    return new UpdateJobHookRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateJobHookRequest | PlainMessage<UpdateJobHookRequest> | undefined, b: UpdateJobHookRequest | PlainMessage<UpdateJobHookRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateJobHookRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UpdateJobHookResponse
+ */
+export class UpdateJobHookResponse extends Message<UpdateJobHookResponse> {
+  /**
+   * The updated job hook
+   *
+   * @generated from field: mgmt.v1alpha1.JobHook hook = 1;
+   */
+  hook?: JobHook;
+
+  constructor(data?: PartialMessage<UpdateJobHookResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobHookResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "hook", kind: "message", T: JobHook },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobHookResponse {
+    return new UpdateJobHookResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobHookResponse {
+    return new UpdateJobHookResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobHookResponse {
+    return new UpdateJobHookResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateJobHookResponse | PlainMessage<UpdateJobHookResponse> | undefined, b: UpdateJobHookResponse | PlainMessage<UpdateJobHookResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateJobHookResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobHookEnabledRequest
+ */
+export class SetJobHookEnabledRequest extends Message<SetJobHookEnabledRequest> {
+  /**
+   * The unique identifier of the hook
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * Whether or not the hook is enabled.
+   *
+   * @generated from field: bool enabled = 2;
+   */
+  enabled = false;
+
+  constructor(data?: PartialMessage<SetJobHookEnabledRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobHookEnabledRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobHookEnabledRequest {
+    return new SetJobHookEnabledRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobHookEnabledRequest {
+    return new SetJobHookEnabledRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobHookEnabledRequest {
+    return new SetJobHookEnabledRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobHookEnabledRequest | PlainMessage<SetJobHookEnabledRequest> | undefined, b: SetJobHookEnabledRequest | PlainMessage<SetJobHookEnabledRequest> | undefined): boolean {
+    return proto3.util.equals(SetJobHookEnabledRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobHookEnabledResponse
+ */
+export class SetJobHookEnabledResponse extends Message<SetJobHookEnabledResponse> {
+  /**
+   * The updated job hook
+   *
+   * @generated from field: mgmt.v1alpha1.JobHook hook = 1;
+   */
+  hook?: JobHook;
+
+  constructor(data?: PartialMessage<SetJobHookEnabledResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobHookEnabledResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "hook", kind: "message", T: JobHook },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobHookEnabledResponse {
+    return new SetJobHookEnabledResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobHookEnabledResponse {
+    return new SetJobHookEnabledResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobHookEnabledResponse {
+    return new SetJobHookEnabledResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobHookEnabledResponse | PlainMessage<SetJobHookEnabledResponse> | undefined, b: SetJobHookEnabledResponse | PlainMessage<SetJobHookEnabledResponse> | undefined): boolean {
+    return proto3.util.equals(SetJobHookEnabledResponse, a, b);
+  }
+}
+
