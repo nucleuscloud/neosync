@@ -205,6 +205,26 @@ func (q *Queries) GetPreSyncJobHooksToExecute(ctx context.Context, db DBTX, jobI
 	return items, nil
 }
 
+const isJobHookNameAvailable = `-- name: IsJobHookNameAvailable :one
+SELECT NOT EXISTS(
+  SELECT 1
+  FROM neosync_api.job_hooks
+  WHERE job_id = $1 and name = $2
+)
+`
+
+type IsJobHookNameAvailableParams struct {
+	JobID pgtype.UUID
+	Name  string
+}
+
+func (q *Queries) IsJobHookNameAvailable(ctx context.Context, db DBTX, arg IsJobHookNameAvailableParams) (bool, error) {
+	row := db.QueryRow(ctx, isJobHookNameAvailable, arg.JobID, arg.Name)
+	var not_exists bool
+	err := row.Scan(&not_exists)
+	return not_exists, err
+}
+
 const removeJobHookById = `-- name: RemoveJobHookById :exec
 DELETE FROM neosync_api.job_hooks WHERE id = $1
 `

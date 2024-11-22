@@ -30,3 +30,10 @@ WHERE job_id = $1
   AND enabled = true
   AND hook_timing = 'post_sync'
 ORDER BY priority, created_at, id ASC;
+
+-- name: IsJobHookNameAvailable :one
+SELECT NOT EXISTS(
+  SELECT 1
+  FROM neosync_api.job_hooks
+  WHERE job_id = $1 and name = $2
+);
