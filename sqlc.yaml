@@ -73,12 +73,6 @@ sql:
               package: pg_models
               type: AccountOnboardingConfig
               pointer: true
-          # - column: neosync_api.job_hooks.config
-          #   go_type:
-          #     import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-          #     package: pg_models
-          #     type: JobHookConfig
-          #     pointer: true
 
   - engine: "mysql"
     queries: "backend/pkg/dbschemas/sql/mysql/queries"
