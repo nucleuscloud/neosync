@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/lib/pq"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
@@ -177,6 +177,9 @@ func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string
 	for _, row := range rows {
 		newRow := []any{}
 		for i, a := range row {
+			fmt.Println()
+			fmt.Println("v", a, "type", reflect.TypeOf(a))
+			fmt.Println()
 			var colDataType string
 			if i < len(columnDataTypes) {
 				colDataType = columnDataTypes[i]
@@ -195,14 +198,6 @@ func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string
 				newRow = append(newRow, bits)
 			} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
 				newRow = append(newRow, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
-			} else if gotypeutil.IsSlice(a) {
-				s, err := gotypeutil.ParseSlice(a)
-				if err != nil {
-					logger.Error("unable to parse slice", "error", err.Error())
-					newRow = append(newRow, a)
-					continue
-				}
-				newRow = append(newRow, pq.Array(s))
 			} else if colDefaults != nil && colDefaults.HasDefaultTransformer {
 				newRow = append(newRow, goqu.Literal(defaultStr))
 			} else {
@@ -211,6 +206,8 @@ func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string
 		}
 		newVals = append(newVals, newRow)
 	}
+	jsonF, _ := json.MarshalIndent(newVals, "", " ")
+	fmt.Printf("newVals: %s \n", string(jsonF))
 	return newVals
 }
 

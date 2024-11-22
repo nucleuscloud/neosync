@@ -9,11 +9,12 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 type PgxArray[T any] struct {
 	pgtype.Array[T]
-	colDataType string
+	ColDataType string
 }
 
 // custom PGX array scanner
@@ -80,13 +81,13 @@ func (a *PgxArray[T]) Scan(src any) error {
 	var pgt *pgtype.Type
 	var ok bool
 
-	if oid, err := strconv.Atoi(a.colDataType); err == nil {
+	if oid, err := strconv.Atoi(a.ColDataType); err == nil {
 		pgt, ok = m.TypeForOID(uint32(oid)) //nolint:gosec
 	} else {
-		pgt, ok = m.TypeForName(strings.ToLower(a.colDataType))
+		pgt, ok = m.TypeForName(strings.ToLower(a.ColDataType))
 	}
 	if !ok {
-		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.colDataType)
+		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.ColDataType)
 	}
 
 	v := &a.Array
@@ -163,8 +164,15 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case IsJsonPgDataType(dbTypeName):
 			values[i] = &NullableJSON{}
 			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_interval"):
+			values[i] = &PgxArray[*pgtype.Interval]{ColDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
 		case isPgxPgArrayType(dbTypeName):
-			values[i] = &PgxArray[any]{colDataType: dbTypeName}
+			values[i] = &PgxArray[any]{ColDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		// create custom scan that handles this?
+		case strings.EqualFold(dbTypeName, "interval"):
+			values[i] = &pgtype.Interval{}
 			scanTargets = append(scanTargets, values[i])
 		default:
 			scanTargets = append(scanTargets, &values[i])
@@ -175,12 +183,21 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	}
 
 	jObj := parsePgRowValues(values, columnNames)
+	fmt.Println()
+	jsonF, _ := json.MarshalIndent(jObj, "", " ")
+	fmt.Printf("jObj: %s \n", string(jsonF))
+	fmt.Println()
 	return jObj, nil
 }
 
 func parsePgRowValues(values []any, columnNames []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
+		// fmt.Println()
+		// fmt.Println("v", v, "type", reflect.TypeOf(v))
+		// fmt.Println()
+		// jsonF, _ := json.MarshalIndent(v, "", " ")
+		// fmt.Printf("%s \n", string(jsonF))
 		col := columnNames[i]
 		switch t := v.(type) {
 		case nil:
@@ -197,8 +214,21 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				js = t
 			}
 			jObj[col] = js
+		case *PgxArray[*pgtype.Interval]:
+			jObj[col] = toIntervalArray(t)
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
+		case *pgtype.Interval:
+			if !t.Valid {
+				jObj[col] = nil
+				continue
+			}
+			neoInterval := neosynctypes.NewInterval()
+			err := neoInterval.ScanPgx(t)
+			if err != nil {
+				// do something
+			}
+			jObj[col] = neoInterval
 		default:
 			jObj[col] = t
 		}
@@ -221,6 +251,62 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
 }
 
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) any {
+	if array.Elements == nil {
+		return nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		// dims := []int{}
+		// for _, d := range dim {
+		// 	dims = append(dims, int(d.Length))
+		// }
+
+		// valueSlice, err := gotypeutil.ParseSlice(array.Elements)
+		// if err != nil {
+		// 	return err
+		// }
+		// nested := CreateMultiDimSlice(dims, valueSlice)
+
+		// multiArray := neosynctypes.NewMultiDimArray(neosynctypes.Pgx, len(dims), dims, func() *neosynctypes.Interval {
+		// 	return neosynctypes.NewInterval()
+		// })
+		// err = multiArray.MultiDimArrayScan(nested)
+		// if err != nil {
+		// 	// handle error
+		// 	fmt.Println(err.Error())
+		// }
+
+		// fmt.Println()
+		// jsonF, _ := json.MarshalIndent(multiArray, "", " ")
+		// fmt.Printf("multiArray: %s \n", string(jsonF))
+		// fmt.Println()
+
+		// return multiArray
+		return array.Elements
+	}
+
+	// neoInterval := neosynctypes.NewArray(neosynctypes.Pgx, len(array.Elements), func() *neosynctypes.Interval {
+	// 	return neosynctypes.NewInterval()
+	// })
+	// err := neoInterval.ArrayScan(array.Elements)
+	// if err != nil {
+	// 	// do something
+	// 	fmt.Println(err.Error())
+	// }
+
+	neoIntervalArray := neosynctypes.NewIntervalArray(len(array.Elements), []neosynctypes.NeosyncTypeOption[*neosynctypes.Interval]{})
+	err := neoIntervalArray.ScanArrayPgx(array.Elements)
+	if err != nil {
+		// handle error
+		fmt.Println(err.Error())
+	}
+	// return neoInterval
+	return neoIntervalArray
+
+}
+
 func pgArrayToGoSlice(array *PgxArray[any]) any {
 	if array.Elements == nil {
 		return nil
@@ -234,6 +320,7 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		}
 		return CreateMultiDimSlice(dims, array.Elements)
 	}
+
 	return array.Elements
 }
 

@@ -9,6 +9,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -189,12 +190,18 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 			}, nil
 		}
 	}
+	registry := neosynctypes.NewTypeRegistry()
+
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
-			valuesMap[col] = val
+			newVal, err := neosynctypes.UnmarshalWithRegistry(val, registry)
+			if err != nil {
+				// handle error
+			}
+			valuesMap[col] = newVal
 		}
 	}
 
