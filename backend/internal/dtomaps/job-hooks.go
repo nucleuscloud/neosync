@@ -18,18 +18,11 @@ func ToJobHookDto(
 		priority = uint32(input.Priority)
 	}
 
-	var config *mgmtv1alpha1.JobHookConfig
+	config := &mgmtv1alpha1.JobHookConfig{}
 	err := config.UnmarshalJSON(input.Config)
 	if err != nil {
 		return nil, err
 	}
-	// if input.Config != nil {
-	// 	var err error
-	// 	config, err = input.Config.ToDto()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
 
 	output := &mgmtv1alpha1.JobHook{
 		Id:              neosyncdb.UUIDString(input.ID),

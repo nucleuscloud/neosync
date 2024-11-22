@@ -2,6 +2,7 @@ package jobhooks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -236,9 +237,21 @@ func (s *Service) CreateJobHook(
 		return nil, err
 	}
 
-	// todo: verify all connections are within the account as well as the job
 	hookReq := req.GetHook()
 	logger.Debug(fmt.Sprintf("attempting to create new job hook %q", hookReq.GetName()))
+
+	isValid, err := s.verifyHookHasValidConnections(
+		ctx,
+		hookReq.GetConfig(),
+		jobuuid,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to validate if job hook has valid connections: %w", err)
+	}
+	if !isValid {
+		logger.Debug("job hook creation did not pass connection id verification")
+		return nil, nucleuserrors.NewBadRequest("connection id specified in hook is not a part of job")
+	}
 
 	config, err := hookReq.GetConfig().MarshalJSON()
 	if err != nil {
@@ -263,6 +276,7 @@ func (s *Service) CreateJobHook(
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job hook: %w", err)
 	}
+	logger.Debug("created job hook")
 
 	dto, err := dtomaps.ToJobHookDto(&hook)
 	if err != nil {
@@ -303,4 +317,27 @@ func safeInt32(v uint32) (int32, error) {
 		return 0, fmt.Errorf("value %d exceeds max int32", v)
 	}
 	return int32(v), nil //nolint:gosec // safe due to check above
+}
+
+func (s *Service) verifyHookHasValidConnections(
+	ctx context.Context,
+	config *mgmtv1alpha1.JobHookConfig,
+	jobuuid pgtype.UUID,
+) (bool, error) {
+	switch cfg := config.GetConfig().(type) {
+	case *mgmtv1alpha1.JobHookConfig_Sql:
+		if cfg.Sql == nil {
+			return false, errors.New("job hook config was type Sql, but the config was nil")
+		}
+		connuuid, err := neosyncdb.ToUuid(cfg.Sql.GetConnectionId())
+		if err != nil {
+			return false, err
+		}
+		return s.db.Q.DoesJobHaveConnectionId(ctx, s.db.Db, db_queries.DoesJobHaveConnectionIdParams{
+			JobId:        jobuuid,
+			ConnectionId: connuuid,
+		})
+	default:
+		return false, fmt.Errorf("job hook config %T is not currently supported when checking valid connections", cfg)
+	}
 }

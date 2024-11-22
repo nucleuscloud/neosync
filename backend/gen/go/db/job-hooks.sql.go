@@ -17,7 +17,7 @@ INSERT INTO neosync_api.job_hooks (
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8
 )
-RETURNING id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing
+RETURNING id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
 `
 
 type CreateJobHookParams struct {
@@ -56,12 +56,13 @@ func (q *Queries) CreateJobHook(ctx context.Context, db DBTX, arg CreateJobHookP
 		&i.Enabled,
 		&i.Priority,
 		&i.HookTiming,
+		&i.ConnectionID,
 	)
 	return i, err
 }
 
 const getJobHookById = `-- name: GetJobHookById :one
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing from neosync_api.job_hooks WHERE id = $1
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id from neosync_api.job_hooks WHERE id = $1
 `
 
 func (q *Queries) GetJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobHook, error) {
@@ -80,12 +81,13 @@ func (q *Queries) GetJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) (
 		&i.Enabled,
 		&i.Priority,
 		&i.HookTiming,
+		&i.ConnectionID,
 	)
 	return i, err
 }
 
 const getJobHooksByJob = `-- name: GetJobHooksByJob :many
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing from neosync_api.job_hooks WHERE job_id = $1
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id from neosync_api.job_hooks WHERE job_id = $1
 `
 
 func (q *Queries) GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
@@ -110,6 +112,7 @@ func (q *Queries) GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UU
 			&i.Enabled,
 			&i.Priority,
 			&i.HookTiming,
+			&i.ConnectionID,
 		); err != nil {
 			return nil, err
 		}
@@ -122,7 +125,7 @@ func (q *Queries) GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UU
 }
 
 const getPostSyncJobHooksToExecute = `-- name: GetPostSyncJobHooksToExecute :many
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
 FROM neosync_api.job_hooks
 WHERE job_id = $1
   AND enabled = true
@@ -152,6 +155,7 @@ func (q *Queries) GetPostSyncJobHooksToExecute(ctx context.Context, db DBTX, job
 			&i.Enabled,
 			&i.Priority,
 			&i.HookTiming,
+			&i.ConnectionID,
 		); err != nil {
 			return nil, err
 		}
@@ -164,7 +168,7 @@ func (q *Queries) GetPostSyncJobHooksToExecute(ctx context.Context, db DBTX, job
 }
 
 const getPreSyncJobHooksToExecute = `-- name: GetPreSyncJobHooksToExecute :many
-SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing
+SELECT id, name, description, job_id, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, priority, hook_timing, connection_id
 FROM neosync_api.job_hooks
 WHERE job_id = $1
   AND enabled = true
@@ -194,6 +198,7 @@ func (q *Queries) GetPreSyncJobHooksToExecute(ctx context.Context, db DBTX, jobI
 			&i.Enabled,
 			&i.Priority,
 			&i.HookTiming,
+			&i.ConnectionID,
 		); err != nil {
 			return nil, err
 		}

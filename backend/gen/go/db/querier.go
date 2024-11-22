@@ -30,6 +30,7 @@ type Querier interface {
 	CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error)
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
 	DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
+	DoesJobHaveConnectionId(ctx context.Context, db DBTX, arg DoesJobHaveConnectionIdParams) (bool, error)
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
 	GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error)
 	GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error)

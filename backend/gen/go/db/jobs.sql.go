@@ -117,6 +117,61 @@ func (q *Queries) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error 
 	return err
 }
 
+const doesJobHaveConnectionId = `-- name: DoesJobHaveConnectionId :one
+SELECT EXISTS (
+    SELECT 1
+    FROM (
+        -- Check direct associations in the job_destination_connection_associations table
+        SELECT connection_id
+        FROM neosync_api.job_destination_connection_associations
+        WHERE job_id = $1
+            AND connection_id = $2
+
+        UNION
+
+        -- Check connection IDs embedded in the jobs table connection_options
+        SELECT connection_id
+        FROM (
+            SELECT CASE
+                -- Generate options FK source connection
+                WHEN connection_options->'generateOptions'->>'fkSourceConnectionId' IS NOT NULL THEN
+                    (connection_options->'generateOptions'->>'fkSourceConnectionId')::uuid
+                -- Postgres connection
+                WHEN connection_options->'postgresOptions'->>'connectionId' IS NOT NULL THEN
+                    (connection_options->'postgresOptions'->>'connectionId')::uuid
+                -- MSSQL connection
+                WHEN connection_options->'mssqlOptions'->>'connectionId' IS NOT NULL THEN
+                    (connection_options->'mssqlOptions'->>'connectionId')::uuid
+                -- MySQL connection
+                WHEN connection_options->'mysqlOptions'->>'connectionId' IS NOT NULL THEN
+                    (connection_options->'mysqlOptions'->>'connectionId')::uuid
+                -- Mongo connection
+                WHEN connection_options->'mongoOptions'->>'connectionId' IS NOT NULL THEN
+                    (connection_options->'mongoOptions'->>'connectionId')::uuid
+                -- DynamoDB connection
+                WHEN connection_options->'dynamoDBOptions'->>'connectionId' IS NOT NULL THEN
+                    (connection_options->'dynamoDBOptions'->>'connectionId')::uuid
+            END AS connection_id
+            FROM neosync_api.jobs
+            WHERE id = $1
+        ) embedded_connections
+        WHERE connection_id = $2
+    ) all_connections
+)
+`
+
+type DoesJobHaveConnectionIdParams struct {
+	JobId        pgtype.UUID
+	ConnectionId pgtype.UUID
+}
+
+func (q *Queries) DoesJobHaveConnectionId(ctx context.Context, db DBTX, arg DoesJobHaveConnectionIdParams) (bool, error) {
+	row := db.QueryRow(ctx, doesJobHaveConnectionId, arg.JobId, arg.ConnectionId)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getAccountIdFromJobId = `-- name: GetAccountIdFromJobId :one
 SELECT account_id
 FROM neosync_api.jobs

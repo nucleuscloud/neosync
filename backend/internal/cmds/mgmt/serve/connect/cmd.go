@@ -479,9 +479,9 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if getIsNeosyncCloud() || eelicense.IsValid() {
-		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
-	}
+	// if getIsNeosyncCloud() || eelicense.IsValid() {
+	jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
+	// }
 
 	jobhookService := jobhooks.New(
 		db,

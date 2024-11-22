@@ -17,12 +17,24 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_hooks (
 
   hook_timing text GENERATED ALWAYS AS (
     CASE
-      WHEN config->'sql'->>'pre_sync' IS NOT NULL THEN 'pre_sync'
-      WHEN config->'sql'->>'post_sync' IS NOT NULL THEN 'post_sync'
+      WHEN config->'sql'->'timing'->>'preSync' IS NOT NULL THEN 'preSync'
+      WHEN config->'sql'->'timing'->>'postSync' IS NOT NULL THEN 'postSync'
       ELSE NULL
     END
   ) STORED,
   CONSTRAINT hook_timing_not_null CHECK (hook_timing IS NOT NULL), -- Ensures we always have valid hook timings
+
+  connection_id uuid GENERATED ALWAYS AS (
+    CASE
+      WHEN config ? 'sql' THEN (config->'sql'->>'connectionId')::uuid
+      ELSE NULL
+    END
+  ) STORED,
+
+  CONSTRAINT fk_job_hooks_connection
+    FOREIGN KEY (connection_id)
+    REFERENCES neosync_api.connections(id)
+    ON DELETE RESTRICT,
 
   CONSTRAINT fk_job_hooks_job
     FOREIGN KEY (job_id)

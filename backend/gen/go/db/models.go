@@ -105,6 +105,7 @@ type NeosyncApiJobHook struct {
 	Enabled         bool
 	Priority        int32
 	HookTiming      pgtype.Text
+	ConnectionID    pgtype.UUID
 }
 
 type NeosyncApiRuncontext struct {
