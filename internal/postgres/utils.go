@@ -183,10 +183,6 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	}
 
 	jObj := parsePgRowValues(values, columnNames)
-	fmt.Println()
-	jsonF, _ := json.MarshalIndent(jObj, "", " ")
-	fmt.Printf("jObj: %s \n", string(jsonF))
-	fmt.Println()
 	return jObj, nil
 }
 

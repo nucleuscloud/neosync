@@ -13,22 +13,22 @@ type NeosyncArray struct {
 
 func NewNeosyncArray(
 	elements []NeosyncAdapter,
-	arrayOpts ...NeosyncTypeOption,
-) *NeosyncArray {
+	opts ...NeosyncTypeOption,
+) (*NeosyncArray, error) {
 	pgArray := &NeosyncArray{
 		Elements: elements,
 	}
 	pgArray.Neosync.TypeId = NeosyncArrayId
-	pgArray.SetVersion(LatestVersion)
+	pgArray.setVersion(LatestVersion)
 
-	for _, opt := range arrayOpts {
-		opt(pgArray)
+	if err := applyOptions(pgArray, opts...); err != nil {
+		return nil, err
 	}
 
-	return pgArray
+	return pgArray, nil
 }
 
-func (a *NeosyncArray) SetVersion(v Version) {
+func (a *NeosyncArray) setVersion(v Version) {
 	a.Neosync.Version = v
 }
 
@@ -65,9 +65,9 @@ func (a *NeosyncArray) ValuePgx() (any, error) {
 }
 
 func (a *NeosyncArray) ScanJson(value any) error {
-	valueSlice, ok := value.([]any)
-	if !ok {
-		return fmt.Errorf("expected []any, got %T", value)
+	valueSlice, err := gotypeutil.ParseSlice(value)
+	if err != nil {
+		return err
 	}
 	if len(valueSlice) != len(a.Elements) {
 		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))

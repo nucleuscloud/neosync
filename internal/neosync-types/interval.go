@@ -55,7 +55,7 @@ func (i *Interval) ValueJson() (any, error) {
 	return json.Marshal(i)
 }
 
-func (i *Interval) SetVersion(v Version) {
+func (i *Interval) setVersion(v Version) {
 	i.Neosync.Version = v
 }
 
@@ -64,35 +64,41 @@ func (i *Interval) GetVersion() Version {
 }
 
 func NewIntervalFromPgx(value any, opts ...NeosyncTypeOption) (*Interval, error) {
-	interval := NewInterval(opts...)
-	err := interval.ScanPgx(value)
+	interval, err := NewInterval(opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = interval.ScanPgx(value)
 	if err != nil {
 		return nil, err
 	}
 	return interval, nil
 }
 
-func NewInterval(opts ...NeosyncTypeOption) *Interval {
+func NewInterval(opts ...NeosyncTypeOption) (*Interval, error) {
 	interval := &Interval{}
 	interval.Neosync.TypeId = NeosyncIntervalId
-	interval.SetVersion(LatestVersion)
+	interval.setVersion(LatestVersion)
 
-	for _, opt := range opts {
-		opt(interval)
+	if err := applyOptions(interval, opts...); err != nil {
+		return nil, err
 	}
-	return interval
+	return interval, nil
 }
 
 func NewIntervalArrayFromPgx(elements []*pgtype.Interval, opts []NeosyncTypeOption, arrayOpts ...NeosyncTypeOption) (*NeosyncArray, error) {
 	neosyncAdapters := make([]NeosyncAdapter, len(elements))
 	for i, e := range elements {
-		neosyncAdapters[i] = NewInterval(opts...)
-		err := neosyncAdapters[i].ScanPgx(e)
+		newInterval, err := NewInterval(opts...)
+		if err != nil {
+			return nil, err
+		}
+		neosyncAdapters[i] = newInterval
+		err = neosyncAdapters[i].ScanPgx(e)
 		if err != nil {
 			return nil, err
 		}
 	}
-	arrayAdapter := NewNeosyncArray(neosyncAdapters)
-	return arrayAdapter, nil
+	return NewNeosyncArray(neosyncAdapters)
 
 }

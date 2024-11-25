@@ -3,6 +3,7 @@ package neosync_benthos_connectiondata
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"sync"
 
 	"connectrpc.com/connect"
@@ -26,7 +27,7 @@ var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 func newNeosyncConnectionDataInput(
 	conf *service.ParsedConfig,
 	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient,
-	mgr *service.Resources,
+	logger *slog.Logger,
 ) (service.Input, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
@@ -74,15 +75,19 @@ func newNeosyncConnectionDataInput(
 			jobRunId: jobRunId,
 		},
 		neosyncConnectApi: neosyncConnectApi,
-		logger:            mgr.Logger(),
+		logger:            logger,
 	}), nil
 }
 
-func RegisterNeosyncConnectionDataInput(env *service.Environment, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) error {
+func RegisterNeosyncConnectionDataInput(
+	env *service.Environment,
+	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient,
+	logger *slog.Logger,
+) error {
 	return env.RegisterInput(
 		"neosync_connection_data", neosyncConnectionDataConfigSpec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			return newNeosyncConnectionDataInput(conf, neosyncConnectApi, mgr)
+			return newNeosyncConnectionDataInput(conf, neosyncConnectApi, logger)
 		},
 	)
 }
@@ -101,7 +106,7 @@ type neosyncInput struct {
 	schema         string
 	table          string
 
-	logger            *service.Logger
+	logger            *slog.Logger
 	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient
 
 	recvMut sync.Mutex
