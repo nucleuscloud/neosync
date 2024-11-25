@@ -24,6 +24,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -259,10 +260,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not receive Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -433,10 +434,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err := env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.mssql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -621,7 +622,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
-	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
@@ -820,10 +821,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.mysql.Target.DB.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -1019,10 +1020,10 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						out, err := s.dynamo.dynamoclient.Scan(s.ctx, &dynamodb.ScanInput{
@@ -1304,10 +1305,10 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						col := s.mongodb.target.client.Database(dbName).Collection(collectionName)
@@ -1550,7 +1551,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
-	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
 
 	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
 	require.NoError(s.T(), err)
@@ -1611,6 +1612,8 @@ func executeWorkflow(
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, nil, true)
 	accountStatusActivity := accountstatus_activity.New(userclient)
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager)
+
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
@@ -1618,6 +1621,7 @@ func executeWorkflow(
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
+	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
