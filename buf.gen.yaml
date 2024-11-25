@@ -42,6 +42,10 @@ plugins:
     opt:
       - content-types=json,base=neosync.openapi.template.yaml
 
+  - remote: buf.build/community/mfridman-go-json:v1.4.1
+    out: backend/gen/go/protos
+    opt: paths=source_relative
+
   - remote: buf.build/protocolbuffers/python:v28.2 # generates messages and enums
     out: python/src/neosync
     include_imports: true

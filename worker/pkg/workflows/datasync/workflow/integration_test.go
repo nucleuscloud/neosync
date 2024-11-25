@@ -134,7 +134,7 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	connstr, err := mssqlcontainer.ConnectionString(s.ctx)
+	connstr, err := mssqlcontainer.ConnectionString(s.ctx, "encrypt=disable")
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func createMssqlTest(ctx context.Context, mssqlcontainer *testmssql.MSSQLServerC
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx, fmt.Sprintf("database=%s", database))
+	connStr, err := mssqlcontainer.ConnectionString(ctx, fmt.Sprintf("database=%s", database), "encrypt=disable")
 	if err != nil {
 		return nil, err
 	}

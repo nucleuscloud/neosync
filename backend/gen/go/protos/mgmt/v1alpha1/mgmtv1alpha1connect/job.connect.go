@@ -112,6 +112,28 @@ const (
 	// JobServiceSetRunContextsProcedure is the fully-qualified name of the JobService's SetRunContexts
 	// RPC.
 	JobServiceSetRunContextsProcedure = "/mgmt.v1alpha1.JobService/SetRunContexts"
+	// JobServiceGetJobHooksProcedure is the fully-qualified name of the JobService's GetJobHooks RPC.
+	JobServiceGetJobHooksProcedure = "/mgmt.v1alpha1.JobService/GetJobHooks"
+	// JobServiceGetJobHookProcedure is the fully-qualified name of the JobService's GetJobHook RPC.
+	JobServiceGetJobHookProcedure = "/mgmt.v1alpha1.JobService/GetJobHook"
+	// JobServiceCreateJobHookProcedure is the fully-qualified name of the JobService's CreateJobHook
+	// RPC.
+	JobServiceCreateJobHookProcedure = "/mgmt.v1alpha1.JobService/CreateJobHook"
+	// JobServiceDeleteJobHookProcedure is the fully-qualified name of the JobService's DeleteJobHook
+	// RPC.
+	JobServiceDeleteJobHookProcedure = "/mgmt.v1alpha1.JobService/DeleteJobHook"
+	// JobServiceIsJobHookNameAvailableProcedure is the fully-qualified name of the JobService's
+	// IsJobHookNameAvailable RPC.
+	JobServiceIsJobHookNameAvailableProcedure = "/mgmt.v1alpha1.JobService/IsJobHookNameAvailable"
+	// JobServiceUpdateJobHookProcedure is the fully-qualified name of the JobService's UpdateJobHook
+	// RPC.
+	JobServiceUpdateJobHookProcedure = "/mgmt.v1alpha1.JobService/UpdateJobHook"
+	// JobServiceSetJobHookEnabledProcedure is the fully-qualified name of the JobService's
+	// SetJobHookEnabled RPC.
+	JobServiceSetJobHookEnabledProcedure = "/mgmt.v1alpha1.JobService/SetJobHookEnabled"
+	// JobServiceGetActiveJobHooksByTimingProcedure is the fully-qualified name of the JobService's
+	// GetActiveJobHooksByTiming RPC.
+	JobServiceGetActiveJobHooksByTimingProcedure = "/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -147,6 +169,14 @@ var (
 	jobServiceGetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("GetRunContext")
 	jobServiceSetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("SetRunContext")
 	jobServiceSetRunContextsMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("SetRunContexts")
+	jobServiceGetJobHooksMethodDescriptor                      = jobServiceServiceDescriptor.Methods().ByName("GetJobHooks")
+	jobServiceGetJobHookMethodDescriptor                       = jobServiceServiceDescriptor.Methods().ByName("GetJobHook")
+	jobServiceCreateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("CreateJobHook")
+	jobServiceDeleteJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("DeleteJobHook")
+	jobServiceIsJobHookNameAvailableMethodDescriptor           = jobServiceServiceDescriptor.Methods().ByName("IsJobHookNameAvailable")
+	jobServiceUpdateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("UpdateJobHook")
+	jobServiceSetJobHookEnabledMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobHookEnabled")
+	jobServiceGetActiveJobHooksByTimingMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("GetActiveJobHooksByTiming")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -192,6 +222,22 @@ type JobServiceClient interface {
 	SetRunContext(context.Context, *connect.Request[v1alpha1.SetRunContextRequest]) (*connect.Response[v1alpha1.SetRunContextResponse], error)
 	// Sets a stream of run contexts to be used by a workflow run
 	SetRunContexts(context.Context) *connect.ClientStreamForClient[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
+	// Retrieves all job hooks
+	GetJobHooks(context.Context, *connect.Request[v1alpha1.GetJobHooksRequest]) (*connect.Response[v1alpha1.GetJobHooksResponse], error)
+	// Retrieves a specific job hook
+	GetJobHook(context.Context, *connect.Request[v1alpha1.GetJobHookRequest]) (*connect.Response[v1alpha1.GetJobHookResponse], error)
+	// Creates a new job hook
+	CreateJobHook(context.Context, *connect.Request[v1alpha1.CreateJobHookRequest]) (*connect.Response[v1alpha1.CreateJobHookResponse], error)
+	// Removes a job hook
+	DeleteJobHook(context.Context, *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error)
+	// Check if a specific job hook name is available
+	IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error)
+	// Updates a job hook
+	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
+	// Enables or disables a job hook
+	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
+	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -384,6 +430,54 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceSetRunContextsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getJobHooks: connect.NewClient[v1alpha1.GetJobHooksRequest, v1alpha1.GetJobHooksResponse](
+			httpClient,
+			baseURL+JobServiceGetJobHooksProcedure,
+			connect.WithSchema(jobServiceGetJobHooksMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getJobHook: connect.NewClient[v1alpha1.GetJobHookRequest, v1alpha1.GetJobHookResponse](
+			httpClient,
+			baseURL+JobServiceGetJobHookProcedure,
+			connect.WithSchema(jobServiceGetJobHookMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		createJobHook: connect.NewClient[v1alpha1.CreateJobHookRequest, v1alpha1.CreateJobHookResponse](
+			httpClient,
+			baseURL+JobServiceCreateJobHookProcedure,
+			connect.WithSchema(jobServiceCreateJobHookMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		deleteJobHook: connect.NewClient[v1alpha1.DeleteJobHookRequest, v1alpha1.DeleteJobHookResponse](
+			httpClient,
+			baseURL+JobServiceDeleteJobHookProcedure,
+			connect.WithSchema(jobServiceDeleteJobHookMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		isJobHookNameAvailable: connect.NewClient[v1alpha1.IsJobHookNameAvailableRequest, v1alpha1.IsJobHookNameAvailableResponse](
+			httpClient,
+			baseURL+JobServiceIsJobHookNameAvailableProcedure,
+			connect.WithSchema(jobServiceIsJobHookNameAvailableMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		updateJobHook: connect.NewClient[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse](
+			httpClient,
+			baseURL+JobServiceUpdateJobHookProcedure,
+			connect.WithSchema(jobServiceUpdateJobHookMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setJobHookEnabled: connect.NewClient[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse](
+			httpClient,
+			baseURL+JobServiceSetJobHookEnabledProcedure,
+			connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getActiveJobHooksByTiming: connect.NewClient[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse](
+			httpClient,
+			baseURL+JobServiceGetActiveJobHooksByTimingProcedure,
+			connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -419,6 +513,14 @@ type jobServiceClient struct {
 	getRunContext                    *connect.Client[v1alpha1.GetRunContextRequest, v1alpha1.GetRunContextResponse]
 	setRunContext                    *connect.Client[v1alpha1.SetRunContextRequest, v1alpha1.SetRunContextResponse]
 	setRunContexts                   *connect.Client[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
+	getJobHooks                      *connect.Client[v1alpha1.GetJobHooksRequest, v1alpha1.GetJobHooksResponse]
+	getJobHook                       *connect.Client[v1alpha1.GetJobHookRequest, v1alpha1.GetJobHookResponse]
+	createJobHook                    *connect.Client[v1alpha1.CreateJobHookRequest, v1alpha1.CreateJobHookResponse]
+	deleteJobHook                    *connect.Client[v1alpha1.DeleteJobHookRequest, v1alpha1.DeleteJobHookResponse]
+	isJobHookNameAvailable           *connect.Client[v1alpha1.IsJobHookNameAvailableRequest, v1alpha1.IsJobHookNameAvailableResponse]
+	updateJobHook                    *connect.Client[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse]
+	setJobHookEnabled                *connect.Client[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse]
+	getActiveJobHooksByTiming        *connect.Client[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -571,6 +673,46 @@ func (c *jobServiceClient) SetRunContexts(ctx context.Context) *connect.ClientSt
 	return c.setRunContexts.CallClientStream(ctx)
 }
 
+// GetJobHooks calls mgmt.v1alpha1.JobService.GetJobHooks.
+func (c *jobServiceClient) GetJobHooks(ctx context.Context, req *connect.Request[v1alpha1.GetJobHooksRequest]) (*connect.Response[v1alpha1.GetJobHooksResponse], error) {
+	return c.getJobHooks.CallUnary(ctx, req)
+}
+
+// GetJobHook calls mgmt.v1alpha1.JobService.GetJobHook.
+func (c *jobServiceClient) GetJobHook(ctx context.Context, req *connect.Request[v1alpha1.GetJobHookRequest]) (*connect.Response[v1alpha1.GetJobHookResponse], error) {
+	return c.getJobHook.CallUnary(ctx, req)
+}
+
+// CreateJobHook calls mgmt.v1alpha1.JobService.CreateJobHook.
+func (c *jobServiceClient) CreateJobHook(ctx context.Context, req *connect.Request[v1alpha1.CreateJobHookRequest]) (*connect.Response[v1alpha1.CreateJobHookResponse], error) {
+	return c.createJobHook.CallUnary(ctx, req)
+}
+
+// DeleteJobHook calls mgmt.v1alpha1.JobService.DeleteJobHook.
+func (c *jobServiceClient) DeleteJobHook(ctx context.Context, req *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error) {
+	return c.deleteJobHook.CallUnary(ctx, req)
+}
+
+// IsJobHookNameAvailable calls mgmt.v1alpha1.JobService.IsJobHookNameAvailable.
+func (c *jobServiceClient) IsJobHookNameAvailable(ctx context.Context, req *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error) {
+	return c.isJobHookNameAvailable.CallUnary(ctx, req)
+}
+
+// UpdateJobHook calls mgmt.v1alpha1.JobService.UpdateJobHook.
+func (c *jobServiceClient) UpdateJobHook(ctx context.Context, req *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error) {
+	return c.updateJobHook.CallUnary(ctx, req)
+}
+
+// SetJobHookEnabled calls mgmt.v1alpha1.JobService.SetJobHookEnabled.
+func (c *jobServiceClient) SetJobHookEnabled(ctx context.Context, req *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error) {
+	return c.setJobHookEnabled.CallUnary(ctx, req)
+}
+
+// GetActiveJobHooksByTiming calls mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming.
+func (c *jobServiceClient) GetActiveJobHooksByTiming(ctx context.Context, req *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	return c.getActiveJobHooksByTiming.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -614,6 +756,22 @@ type JobServiceHandler interface {
 	SetRunContext(context.Context, *connect.Request[v1alpha1.SetRunContextRequest]) (*connect.Response[v1alpha1.SetRunContextResponse], error)
 	// Sets a stream of run contexts to be used by a workflow run
 	SetRunContexts(context.Context, *connect.ClientStream[v1alpha1.SetRunContextsRequest]) (*connect.Response[v1alpha1.SetRunContextsResponse], error)
+	// Retrieves all job hooks
+	GetJobHooks(context.Context, *connect.Request[v1alpha1.GetJobHooksRequest]) (*connect.Response[v1alpha1.GetJobHooksResponse], error)
+	// Retrieves a specific job hook
+	GetJobHook(context.Context, *connect.Request[v1alpha1.GetJobHookRequest]) (*connect.Response[v1alpha1.GetJobHookResponse], error)
+	// Creates a new job hook
+	CreateJobHook(context.Context, *connect.Request[v1alpha1.CreateJobHookRequest]) (*connect.Response[v1alpha1.CreateJobHookResponse], error)
+	// Removes a job hook
+	DeleteJobHook(context.Context, *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error)
+	// Check if a specific job hook name is available
+	IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error)
+	// Updates a job hook
+	UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error)
+	// Enables or disables a job hook
+	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
+	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -802,6 +960,54 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceSetRunContextsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetJobHooksHandler := connect.NewUnaryHandler(
+		JobServiceGetJobHooksProcedure,
+		svc.GetJobHooks,
+		connect.WithSchema(jobServiceGetJobHooksMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceGetJobHookHandler := connect.NewUnaryHandler(
+		JobServiceGetJobHookProcedure,
+		svc.GetJobHook,
+		connect.WithSchema(jobServiceGetJobHookMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceCreateJobHookHandler := connect.NewUnaryHandler(
+		JobServiceCreateJobHookProcedure,
+		svc.CreateJobHook,
+		connect.WithSchema(jobServiceCreateJobHookMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceDeleteJobHookHandler := connect.NewUnaryHandler(
+		JobServiceDeleteJobHookProcedure,
+		svc.DeleteJobHook,
+		connect.WithSchema(jobServiceDeleteJobHookMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceIsJobHookNameAvailableHandler := connect.NewUnaryHandler(
+		JobServiceIsJobHookNameAvailableProcedure,
+		svc.IsJobHookNameAvailable,
+		connect.WithSchema(jobServiceIsJobHookNameAvailableMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceUpdateJobHookHandler := connect.NewUnaryHandler(
+		JobServiceUpdateJobHookProcedure,
+		svc.UpdateJobHook,
+		connect.WithSchema(jobServiceUpdateJobHookMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceSetJobHookEnabledHandler := connect.NewUnaryHandler(
+		JobServiceSetJobHookEnabledProcedure,
+		svc.SetJobHookEnabled,
+		connect.WithSchema(jobServiceSetJobHookEnabledMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceGetActiveJobHooksByTimingHandler := connect.NewUnaryHandler(
+		JobServiceGetActiveJobHooksByTimingProcedure,
+		svc.GetActiveJobHooksByTiming,
+		connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -864,6 +1070,22 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetRunContextHandler.ServeHTTP(w, r)
 		case JobServiceSetRunContextsProcedure:
 			jobServiceSetRunContextsHandler.ServeHTTP(w, r)
+		case JobServiceGetJobHooksProcedure:
+			jobServiceGetJobHooksHandler.ServeHTTP(w, r)
+		case JobServiceGetJobHookProcedure:
+			jobServiceGetJobHookHandler.ServeHTTP(w, r)
+		case JobServiceCreateJobHookProcedure:
+			jobServiceCreateJobHookHandler.ServeHTTP(w, r)
+		case JobServiceDeleteJobHookProcedure:
+			jobServiceDeleteJobHookHandler.ServeHTTP(w, r)
+		case JobServiceIsJobHookNameAvailableProcedure:
+			jobServiceIsJobHookNameAvailableHandler.ServeHTTP(w, r)
+		case JobServiceUpdateJobHookProcedure:
+			jobServiceUpdateJobHookHandler.ServeHTTP(w, r)
+		case JobServiceSetJobHookEnabledProcedure:
+			jobServiceSetJobHookEnabledHandler.ServeHTTP(w, r)
+		case JobServiceGetActiveJobHooksByTimingProcedure:
+			jobServiceGetActiveJobHooksByTimingHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -991,4 +1213,36 @@ func (UnimplementedJobServiceHandler) SetRunContext(context.Context, *connect.Re
 
 func (UnimplementedJobServiceHandler) SetRunContexts(context.Context, *connect.ClientStream[v1alpha1.SetRunContextsRequest]) (*connect.Response[v1alpha1.SetRunContextsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetRunContexts is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobHooks(context.Context, *connect.Request[v1alpha1.GetJobHooksRequest]) (*connect.Response[v1alpha1.GetJobHooksResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobHooks is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobHook(context.Context, *connect.Request[v1alpha1.GetJobHookRequest]) (*connect.Response[v1alpha1.GetJobHookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobHook is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) CreateJobHook(context.Context, *connect.Request[v1alpha1.CreateJobHookRequest]) (*connect.Response[v1alpha1.CreateJobHookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.CreateJobHook is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) DeleteJobHook(context.Context, *connect.Request[v1alpha1.DeleteJobHookRequest]) (*connect.Response[v1alpha1.DeleteJobHookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.DeleteJobHook is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) IsJobHookNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobHookNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobHookNameAvailableResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.IsJobHookNameAvailable is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) UpdateJobHook(context.Context, *connect.Request[v1alpha1.UpdateJobHookRequest]) (*connect.Response[v1alpha1.UpdateJobHookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobHook is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetJobHookEnabled is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming is not implemented"))
 }

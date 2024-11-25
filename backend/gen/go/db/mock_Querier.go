@@ -594,6 +594,64 @@ func (_c *MockQuerier_CreateJobConnectionDestinations_Call) RunAndReturn(run fun
 	return _c
 }
 
+// CreateJobHook provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateJobHook(ctx context.Context, db DBTX, arg CreateJobHookParams) (NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobHook")
+	}
+
+	var r0 NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateJobHookParams) (NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateJobHookParams) NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJobHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateJobHookParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateJobHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJobHook'
+type MockQuerier_CreateJobHook_Call struct {
+	*mock.Call
+}
+
+// CreateJobHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateJobHookParams
+func (_e *MockQuerier_Expecter) CreateJobHook(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateJobHook_Call {
+	return &MockQuerier_CreateJobHook_Call{Call: _e.mock.On("CreateJobHook", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateJobHook_Call) Run(run func(ctx context.Context, db DBTX, arg CreateJobHookParams)) *MockQuerier_CreateJobHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateJobHookParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateJobHook_Call) Return(_a0 NeosyncApiJobHook, _a1 error) *MockQuerier_CreateJobHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateJobHook_Call) RunAndReturn(run func(context.Context, DBTX, CreateJobHookParams) (NeosyncApiJobHook, error)) *MockQuerier_CreateJobHook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateMachineUser provides a mock function with given fields: ctx, db
 func (_m *MockQuerier) CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
@@ -978,6 +1036,64 @@ func (_c *MockQuerier_DeleteUserDefinedTransformerById_Call) RunAndReturn(run fu
 	return _c
 }
 
+// DoesJobHaveConnectionId provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) DoesJobHaveConnectionId(ctx context.Context, db DBTX, arg DoesJobHaveConnectionIdParams) (bool, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DoesJobHaveConnectionId")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, DoesJobHaveConnectionIdParams) (bool, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, DoesJobHaveConnectionIdParams) bool); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, DoesJobHaveConnectionIdParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_DoesJobHaveConnectionId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoesJobHaveConnectionId'
+type MockQuerier_DoesJobHaveConnectionId_Call struct {
+	*mock.Call
+}
+
+// DoesJobHaveConnectionId is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg DoesJobHaveConnectionIdParams
+func (_e *MockQuerier_Expecter) DoesJobHaveConnectionId(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_DoesJobHaveConnectionId_Call {
+	return &MockQuerier_DoesJobHaveConnectionId_Call{Call: _e.mock.On("DoesJobHaveConnectionId", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_DoesJobHaveConnectionId_Call) Run(run func(ctx context.Context, db DBTX, arg DoesJobHaveConnectionIdParams)) *MockQuerier_DoesJobHaveConnectionId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(DoesJobHaveConnectionIdParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_DoesJobHaveConnectionId_Call) Return(_a0 bool, _a1 error) *MockQuerier_DoesJobHaveConnectionId_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_DoesJobHaveConnectionId_Call) RunAndReturn(run func(context.Context, DBTX, DoesJobHaveConnectionIdParams) (bool, error)) *MockQuerier_DoesJobHaveConnectionId_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccount provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, id)
@@ -1208,6 +1324,64 @@ func (_c *MockQuerier_GetAccountApiKeys_Call) Return(_a0 []NeosyncApiAccountApiK
 }
 
 func (_c *MockQuerier_GetAccountApiKeys_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountApiKey, error)) *MockQuerier_GetAccountApiKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountIdFromJobId provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetAccountIdFromJobId(ctx context.Context, db DBTX, id pgtype.UUID) (pgtype.UUID, error) {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountIdFromJobId")
+	}
+
+	var r0 pgtype.UUID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (pgtype.UUID, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) pgtype.UUID); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(pgtype.UUID)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountIdFromJobId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountIdFromJobId'
+type MockQuerier_GetAccountIdFromJobId_Call struct {
+	*mock.Call
+}
+
+// GetAccountIdFromJobId is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountIdFromJobId(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetAccountIdFromJobId_Call {
+	return &MockQuerier_GetAccountIdFromJobId_Call{Call: _e.mock.On("GetAccountIdFromJobId", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetAccountIdFromJobId_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetAccountIdFromJobId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountIdFromJobId_Call) Return(_a0 pgtype.UUID, _a1 error) *MockQuerier_GetAccountIdFromJobId_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountIdFromJobId_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (pgtype.UUID, error)) *MockQuerier_GetAccountIdFromJobId_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1562,6 +1736,186 @@ func (_c *MockQuerier_GetActiveAccountInvites_Call) Return(_a0 []NeosyncApiAccou
 }
 
 func (_c *MockQuerier_GetActiveAccountInvites_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountInvite, error)) *MockQuerier_GetActiveAccountInvites_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActiveJobHooks provides a mock function with given fields: ctx, db, jobID
+func (_m *MockQuerier) GetActiveJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, jobID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveJobHooks")
+	}
+
+	var r0 []NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, jobID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, jobID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiJobHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, jobID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetActiveJobHooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActiveJobHooks'
+type MockQuerier_GetActiveJobHooks_Call struct {
+	*mock.Call
+}
+
+// GetActiveJobHooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - jobID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetActiveJobHooks(ctx interface{}, db interface{}, jobID interface{}) *MockQuerier_GetActiveJobHooks_Call {
+	return &MockQuerier_GetActiveJobHooks_Call{Call: _e.mock.On("GetActiveJobHooks", ctx, db, jobID)}
+}
+
+func (_c *MockQuerier_GetActiveJobHooks_Call) Run(run func(ctx context.Context, db DBTX, jobID pgtype.UUID)) *MockQuerier_GetActiveJobHooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetActiveJobHooks_Call) Return(_a0 []NeosyncApiJobHook, _a1 error) *MockQuerier_GetActiveJobHooks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetActiveJobHooks_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)) *MockQuerier_GetActiveJobHooks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActivePostSyncJobHooks provides a mock function with given fields: ctx, db, jobID
+func (_m *MockQuerier) GetActivePostSyncJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, jobID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActivePostSyncJobHooks")
+	}
+
+	var r0 []NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, jobID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, jobID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiJobHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, jobID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetActivePostSyncJobHooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActivePostSyncJobHooks'
+type MockQuerier_GetActivePostSyncJobHooks_Call struct {
+	*mock.Call
+}
+
+// GetActivePostSyncJobHooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - jobID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetActivePostSyncJobHooks(ctx interface{}, db interface{}, jobID interface{}) *MockQuerier_GetActivePostSyncJobHooks_Call {
+	return &MockQuerier_GetActivePostSyncJobHooks_Call{Call: _e.mock.On("GetActivePostSyncJobHooks", ctx, db, jobID)}
+}
+
+func (_c *MockQuerier_GetActivePostSyncJobHooks_Call) Run(run func(ctx context.Context, db DBTX, jobID pgtype.UUID)) *MockQuerier_GetActivePostSyncJobHooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetActivePostSyncJobHooks_Call) Return(_a0 []NeosyncApiJobHook, _a1 error) *MockQuerier_GetActivePostSyncJobHooks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetActivePostSyncJobHooks_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)) *MockQuerier_GetActivePostSyncJobHooks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActivePreSyncJobHooks provides a mock function with given fields: ctx, db, jobID
+func (_m *MockQuerier) GetActivePreSyncJobHooks(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, jobID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActivePreSyncJobHooks")
+	}
+
+	var r0 []NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, jobID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, jobID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiJobHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, jobID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetActivePreSyncJobHooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActivePreSyncJobHooks'
+type MockQuerier_GetActivePreSyncJobHooks_Call struct {
+	*mock.Call
+}
+
+// GetActivePreSyncJobHooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - jobID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetActivePreSyncJobHooks(ctx interface{}, db interface{}, jobID interface{}) *MockQuerier_GetActivePreSyncJobHooks_Call {
+	return &MockQuerier_GetActivePreSyncJobHooks_Call{Call: _e.mock.On("GetActivePreSyncJobHooks", ctx, db, jobID)}
+}
+
+func (_c *MockQuerier_GetActivePreSyncJobHooks_Call) Run(run func(ctx context.Context, db DBTX, jobID pgtype.UUID)) *MockQuerier_GetActivePreSyncJobHooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetActivePreSyncJobHooks_Call) Return(_a0 []NeosyncApiJobHook, _a1 error) *MockQuerier_GetActivePreSyncJobHooks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetActivePreSyncJobHooks_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)) *MockQuerier_GetActivePreSyncJobHooks_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2209,6 +2563,124 @@ func (_c *MockQuerier_GetJobConnectionDestinationsByJobIds_Call) Return(_a0 []Ne
 }
 
 func (_c *MockQuerier_GetJobConnectionDestinationsByJobIds_Call) RunAndReturn(run func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error)) *MockQuerier_GetJobConnectionDestinationsByJobIds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetJobHookById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobHookById")
+	}
+
+	var r0 NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJobHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetJobHookById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobHookById'
+type MockQuerier_GetJobHookById_Call struct {
+	*mock.Call
+}
+
+// GetJobHookById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetJobHookById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetJobHookById_Call {
+	return &MockQuerier_GetJobHookById_Call{Call: _e.mock.On("GetJobHookById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetJobHookById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetJobHookById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetJobHookById_Call) Return(_a0 NeosyncApiJobHook, _a1 error) *MockQuerier_GetJobHookById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetJobHookById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiJobHook, error)) *MockQuerier_GetJobHookById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetJobHooksByJob provides a mock function with given fields: ctx, db, jobID
+func (_m *MockQuerier) GetJobHooksByJob(ctx context.Context, db DBTX, jobID pgtype.UUID) ([]NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, jobID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobHooksByJob")
+	}
+
+	var r0 []NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, jobID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, jobID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiJobHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, jobID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetJobHooksByJob_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobHooksByJob'
+type MockQuerier_GetJobHooksByJob_Call struct {
+	*mock.Call
+}
+
+// GetJobHooksByJob is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - jobID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetJobHooksByJob(ctx interface{}, db interface{}, jobID interface{}) *MockQuerier_GetJobHooksByJob_Call {
+	return &MockQuerier_GetJobHooksByJob_Call{Call: _e.mock.On("GetJobHooksByJob", ctx, db, jobID)}
+}
+
+func (_c *MockQuerier_GetJobHooksByJob_Call) Run(run func(ctx context.Context, db DBTX, jobID pgtype.UUID)) *MockQuerier_GetJobHooksByJob_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetJobHooksByJob_Call) Return(_a0 []NeosyncApiJobHook, _a1 error) *MockQuerier_GetJobHooksByJob_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetJobHooksByJob_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiJobHook, error)) *MockQuerier_GetJobHooksByJob_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3155,6 +3627,64 @@ func (_c *MockQuerier_IsConnectionNameAvailable_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// IsJobHookNameAvailable provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) IsJobHookNameAvailable(ctx context.Context, db DBTX, arg IsJobHookNameAvailableParams) (bool, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsJobHookNameAvailable")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsJobHookNameAvailableParams) (bool, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsJobHookNameAvailableParams) bool); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, IsJobHookNameAvailableParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_IsJobHookNameAvailable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsJobHookNameAvailable'
+type MockQuerier_IsJobHookNameAvailable_Call struct {
+	*mock.Call
+}
+
+// IsJobHookNameAvailable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg IsJobHookNameAvailableParams
+func (_e *MockQuerier_Expecter) IsJobHookNameAvailable(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_IsJobHookNameAvailable_Call {
+	return &MockQuerier_IsJobHookNameAvailable_Call{Call: _e.mock.On("IsJobHookNameAvailable", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_IsJobHookNameAvailable_Call) Run(run func(ctx context.Context, db DBTX, arg IsJobHookNameAvailableParams)) *MockQuerier_IsJobHookNameAvailable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(IsJobHookNameAvailableParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_IsJobHookNameAvailable_Call) Return(_a0 bool, _a1 error) *MockQuerier_IsJobHookNameAvailable_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_IsJobHookNameAvailable_Call) RunAndReturn(run func(context.Context, DBTX, IsJobHookNameAvailableParams) (bool, error)) *MockQuerier_IsJobHookNameAvailable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsJobNameAvailable provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -3771,6 +4301,54 @@ func (_c *MockQuerier_RemoveJobConnectionDestinations_Call) RunAndReturn(run fun
 	return _c
 }
 
+// RemoveJobHookById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) RemoveJobHookById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveJobHookById")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_RemoveJobHookById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveJobHookById'
+type MockQuerier_RemoveJobHookById_Call struct {
+	*mock.Call
+}
+
+// RemoveJobHookById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) RemoveJobHookById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_RemoveJobHookById_Call {
+	return &MockQuerier_RemoveJobHookById_Call{Call: _e.mock.On("RemoveJobHookById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_RemoveJobHookById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_RemoveJobHookById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_RemoveJobHookById_Call) Return(_a0 error) *MockQuerier_RemoveJobHookById_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_RemoveJobHookById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_RemoveJobHookById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetAccountCreatedAt provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -3882,6 +4460,64 @@ func (_c *MockQuerier_SetAnonymousUser_Call) Return(_a0 NeosyncApiUser, _a1 erro
 }
 
 func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_SetAnonymousUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetJobHookEnabled provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetJobHookEnabled(ctx context.Context, db DBTX, arg SetJobHookEnabledParams) (NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobHookEnabled")
+	}
+
+	var r0 NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobHookEnabledParams) (NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobHookEnabledParams) NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJobHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetJobHookEnabledParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_SetJobHookEnabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobHookEnabled'
+type MockQuerier_SetJobHookEnabled_Call struct {
+	*mock.Call
+}
+
+// SetJobHookEnabled is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetJobHookEnabledParams
+func (_e *MockQuerier_Expecter) SetJobHookEnabled(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetJobHookEnabled_Call {
+	return &MockQuerier_SetJobHookEnabled_Call{Call: _e.mock.On("SetJobHookEnabled", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetJobHookEnabled_Call) Run(run func(ctx context.Context, db DBTX, arg SetJobHookEnabledParams)) *MockQuerier_SetJobHookEnabled_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetJobHookEnabledParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetJobHookEnabled_Call) Return(_a0 NeosyncApiJobHook, _a1 error) *MockQuerier_SetJobHookEnabled_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_SetJobHookEnabled_Call) RunAndReturn(run func(context.Context, DBTX, SetJobHookEnabledParams) (NeosyncApiJobHook, error)) *MockQuerier_SetJobHookEnabled_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4452,6 +5088,64 @@ func (_c *MockQuerier_UpdateJobConnectionDestination_Call) Return(_a0 NeosyncApi
 }
 
 func (_c *MockQuerier_UpdateJobConnectionDestination_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)) *MockQuerier_UpdateJobConnectionDestination_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateJobHook provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateJobHook(ctx context.Context, db DBTX, arg UpdateJobHookParams) (NeosyncApiJobHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobHook")
+	}
+
+	var r0 NeosyncApiJobHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobHookParams) (NeosyncApiJobHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobHookParams) NeosyncApiJobHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJobHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateJobHookParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateJobHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobHook'
+type MockQuerier_UpdateJobHook_Call struct {
+	*mock.Call
+}
+
+// UpdateJobHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateJobHookParams
+func (_e *MockQuerier_Expecter) UpdateJobHook(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateJobHook_Call {
+	return &MockQuerier_UpdateJobHook_Call{Call: _e.mock.On("UpdateJobHook", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateJobHook_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateJobHookParams)) *MockQuerier_UpdateJobHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateJobHookParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobHook_Call) Return(_a0 NeosyncApiJobHook, _a1 error) *MockQuerier_UpdateJobHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobHook_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobHookParams) (NeosyncApiJobHook, error)) *MockQuerier_UpdateJobHook_Call {
 	_c.Call.Return(run)
 	return _c
 }

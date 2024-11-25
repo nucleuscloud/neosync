@@ -20,6 +20,7 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
@@ -129,6 +130,10 @@ func (s *NeosyncCloudClients) GetAnonymizeClient(authUserId string) mgmtv1alpha1
 	return mgmtv1alpha1connect.NewAnonymizationServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
+func (s *NeosyncCloudClients) GetJobClient(authUserId string) mgmtv1alpha1connect.JobServiceClient {
+	return mgmtv1alpha1connect.NewJobServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+}
+
 type AuthdClients struct {
 	httpsrv *httptest.Server
 }
@@ -223,6 +228,25 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 	)
+	neoCloudJobHookService := jobhooks.New(
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		neoCloudAuthdUserService,
+		jobhooks.WithEnabled(),
+	)
+	neoCloudJobService := v1alpha1_jobservice.New(
+		&v1alpha1_jobservice.Config{IsNeosyncCloud: true, IsAuthEnabled: true},
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		s.Mocks.TemporalClientManager,
+		neoCloudConnectionService,
+		neoCloudAuthdUserService,
+		sqlmanager.NewSqlManager(
+			&sync.Map{}, pg_queries.New(),
+			&sync.Map{}, mysql_queries.New(),
+			&sync.Map{}, mssql_queries.New(),
+			&sqlconnect.SqlOpenConnector{},
+		),
+		neoCloudJobHookService,
+	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{
@@ -246,6 +270,11 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		awsmanager.New(),
 	)
 
+	jobhookService := jobhooks.New(
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		unauthdUserService,
+	)
+
 	unauthdJobsService := v1alpha1_jobservice.New(
 		&v1alpha1_jobservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
@@ -258,6 +287,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 			&sync.Map{}, mssql_queries.New(),
 			&sqlconnect.SqlOpenConnector{},
 		),
+		jobhookService,
 	)
 
 	unauthdConnectionDataService := v1alpha1_connectiondataservice.New(
@@ -356,6 +386,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	))
 	ncauthmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(
 		neoCloudConnectionService,
+		authinterceptors,
+	))
+	ncauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(
+		neoCloudJobService,
 		authinterceptors,
 	))
 	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
