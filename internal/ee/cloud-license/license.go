@@ -76,7 +76,7 @@ func getFromEnv() (*licenseContents, bool, error) {
 
 	input := viper.GetString(cloudLicenseEvKey)
 	if input == "" {
-		return nil, false, fmt.Errorf("%s was true but no license was found", cloudEnabledEvKey)
+		return nil, false, fmt.Errorf("%s was true but no license was found at %s", cloudEnabledEvKey, cloudLicenseEvKey)
 	}
 	pk, err := parsePublicKey(publicKeyPEM)
 	if err != nil {
