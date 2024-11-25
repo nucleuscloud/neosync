@@ -300,7 +300,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
-	w.RegisterActivity(jobhookByTimingActivity.RunJobHookByTiming)
+	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal worker: %w", err)

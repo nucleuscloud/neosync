@@ -128,21 +128,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
-	logger.Info(fmt.Sprintf("scheduling RunJobHookByTiming for execution for timing %q", mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC.String()))
-	var preSyncTimingResp *jobhooks_by_timing_activity.RunJobHookByTimingResponse
-	var jobtimingActivity *jobhooks_by_timing_activity.Activity
-	err = workflow.ExecuteActivity(
-		withJobHookTimingActivityOptions(ctx),
-		jobtimingActivity.RunJobHookByTiming,
-		&jobhooks_by_timing_activity.RunJobHookByTimingRequest{
-			JobId:  req.JobId,
-			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
-		},
-	).Get(ctx, &preSyncTimingResp)
+	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC}, logger)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("completed %d RunJobHooksByTiming for timing %q", preSyncTimingResp.ExecCount, mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC.String())
 
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
@@ -327,23 +316,29 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	logger.Info("data syncs completed")
 
-	logger.Info(fmt.Sprintf("scheduling RunJobHookByTiming for execution for timing %q", mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC.String()))
-	var postSyncTimingResp *jobhooks_by_timing_activity.RunJobHookByTimingResponse
-	err = workflow.ExecuteActivity(
-		withJobHookTimingActivityOptions(ctx),
-		jobtimingActivity.RunJobHookByTiming,
-		&jobhooks_by_timing_activity.RunJobHookByTimingRequest{
-			JobId:  req.JobId,
-			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC,
-		},
-	).Get(ctx, &postSyncTimingResp)
+	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("completed %d RunJobHooksByTiming for timing %q", postSyncTimingResp.ExecCount, mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC.String())
 
 	logger.Info("data sync workflow completed")
 	return &WorkflowResponse{}, nil
+}
+
+func execRunJobHooksByTiming(ctx workflow.Context, req *jobhooks_by_timing_activity.RunJobHooksByTimingRequest, logger log.Logger) error {
+	logger.Info(fmt.Sprintf("scheduling %q RunJobHooksByTiming for execution", req.Timing))
+	var resp *jobhooks_by_timing_activity.RunJobHooksByTimingResponse
+	var timingActivity *jobhooks_by_timing_activity.Activity
+	err := workflow.ExecuteActivity(
+		withJobHookTimingActivityOptions(ctx),
+		timingActivity.RunJobHooksByTiming,
+		req,
+	).Get(ctx, &resp)
+	if err != nil {
+		return err
+	}
+	logger.Info(fmt.Sprintf("completed %d %q RunJobHooksByTiming", resp.ExecCount, req.Timing))
+	return nil
 }
 
 func retrieveActivityOptions(

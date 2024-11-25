@@ -113,12 +113,12 @@ func Test_Activity_Success(t *testing.T) {
 	activity := New(jobclient, connclient, mockSqlMgrClient)
 	env.RegisterActivity(activity)
 
-	val, err := env.ExecuteActivity(activity.RunJobHookByTiming, &RunJobHookByTimingRequest{
+	val, err := env.ExecuteActivity(activity.RunJobHooksByTiming, &RunJobHooksByTimingRequest{
 		JobId:  jobId,
 		Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
 	})
 	require.NoError(t, err)
-	res := &RunJobHookByTimingResponse{}
+	res := &RunJobHooksByTimingResponse{}
 	err = val.Get(res)
 	require.NoError(t, err)
 	require.Equal(t, uint(2), res.ExecCount)

@@ -30,20 +30,20 @@ func New(
 	return &Activity{jobclient: jobclient, connclient: connclient, sqlmanagerclient: sqlmanagerclient}
 }
 
-type RunJobHookByTimingRequest struct {
+type RunJobHooksByTimingRequest struct {
 	JobId  string
 	Timing mgmtv1alpha1.GetActiveJobHooksByTimingRequest_Timing
 }
 
-type RunJobHookByTimingResponse struct {
+type RunJobHooksByTimingResponse struct {
 	ExecCount uint
 }
 
 // Runs active job hooks by the provided timing value
-func (a *Activity) RunJobHookByTiming(
+func (a *Activity) RunJobHooksByTiming(
 	ctx context.Context,
-	req *RunJobHookByTimingRequest,
-) (*RunJobHookByTimingResponse, error) {
+	req *RunJobHooksByTimingRequest,
+) (*RunJobHooksByTimingResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
 	timingName, ok := mgmtv1alpha1.GetActiveJobHooksByTimingRequest_Timing_name[int32(req.Timing)]
 	if !ok {
@@ -74,7 +74,7 @@ func (a *Activity) RunJobHookByTiming(
 		}
 	}()
 
-	logger.Debug("running job hook by timing")
+	logger.Debug(fmt.Sprintf("retrieving job hooks by timing %q", req.Timing))
 
 	resp, err := a.jobclient.GetActiveJobHooksByTiming(ctx, connect.NewRequest(&mgmtv1alpha1.GetActiveJobHooksByTimingRequest{
 		JobId:  req.JobId,
@@ -118,7 +118,7 @@ func (a *Activity) RunJobHookByTiming(
 		}
 	}
 
-	return &RunJobHookByTimingResponse{ExecCount: execCount}, nil
+	return &RunJobHooksByTimingResponse{ExecCount: execCount}, nil
 }
 
 // Given a connection id, returns an initialized sql database connection
