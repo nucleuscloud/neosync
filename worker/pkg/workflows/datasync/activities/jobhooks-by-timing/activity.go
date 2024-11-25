@@ -30,18 +30,20 @@ func New(
 	return &Activity{jobclient: jobclient, connclient: connclient, sqlmanagerclient: sqlmanagerclient}
 }
 
-type JobHookByTimingRequest struct {
+type RunJobHookByTimingRequest struct {
 	JobId  string
 	Timing mgmtv1alpha1.GetActiveJobHooksByTimingRequest_Timing
 }
 
-type JobHookByTimingResponse struct{}
+type RunJobHookByTimingResponse struct {
+	ExecCount uint
+}
 
 // Runs active job hooks by the provided timing value
 func (a *Activity) RunJobHookByTiming(
 	ctx context.Context,
-	req *JobHookByTimingRequest,
-) (*JobHookByTimingResponse, error) {
+	req *RunJobHookByTimingRequest,
+) (*RunJobHookByTimingResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
 	timingName, ok := mgmtv1alpha1.GetActiveJobHooksByTimingRequest_Timing_name[int32(req.Timing)]
 	if !ok {
@@ -91,6 +93,8 @@ func (a *Activity) RunJobHookByTiming(
 		}
 	}()
 
+	execCount := uint(0)
+
 	for _, hook := range hooks {
 		logger.Debug(fmt.Sprintf("running hook %q", hook.GetName()))
 		logger := log.With(logger, "hookName", hook.GetName())
@@ -108,12 +112,13 @@ func (a *Activity) RunJobHookByTiming(
 			); err != nil {
 				return nil, fmt.Errorf("unable to execute sql hook: %w", err)
 			}
+			execCount++
 		default:
 			logger.Warn(fmt.Sprintf("hook config with type %T is not currently supported!", hookConfig))
 		}
 	}
 
-	return &JobHookByTimingResponse{}, nil
+	return &RunJobHookByTimingResponse{ExecCount: execCount}, nil
 }
 
 // Given a connection id, returns an initialized sql database connection
@@ -149,6 +154,7 @@ func (a *Activity) getCachedConnectionFn(
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize pooled sql connection: %W", err)
 		}
+		connections[connectionId] = sqlconnection
 		return sqlconnection.Db, nil
 	}
 }
