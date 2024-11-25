@@ -2569,13 +2569,6 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
    */
   virtualForeignKeys: VirtualForeignConstraint[] = [];
 
-  /**
-   * Specify and job hooks that should be created
-   *
-   * @generated from field: repeated mgmt.v1alpha1.NewJobHook hooks = 11;
-   */
-  hooks: NewJobHook[] = [];
-
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2594,7 +2587,6 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 8, name: "workflow_options", kind: "message", T: WorkflowOptions },
     { no: 9, name: "sync_options", kind: "message", T: ActivityOptions },
     { no: 10, name: "virtual_foreign_keys", kind: "message", T: VirtualForeignConstraint, repeated: true },
-    { no: 11, name: "hooks", kind: "message", T: NewJobHook, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {

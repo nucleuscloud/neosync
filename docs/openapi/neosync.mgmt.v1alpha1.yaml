@@ -9119,12 +9119,6 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
-        hooks:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.NewJobHook'
-          title: hooks
-          description: Specify and job hooks that should be created
       title: CreateJobRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobResponse:

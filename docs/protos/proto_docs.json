@@ -9734,18 +9734,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "hooks",
-              "description": "Specify and job hooks that should be created",
-              "label": "repeated",
-              "type": "NewJobHook",
-              "longType": "NewJobHook",
-              "fullType": "mgmt.v1alpha1.NewJobHook",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
             }
           ]
         },

@@ -346,7 +346,7 @@ message CreateJobRequest {
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 
   // Specify and job hooks that should be created
-  repeated NewJobHook hooks = 11;
+  // repeated NewJobHook hooks = 11;
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow

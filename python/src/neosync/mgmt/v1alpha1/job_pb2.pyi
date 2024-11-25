@@ -498,7 +498,7 @@ class BatchConfig(_message.Message):
     def __init__(self, count: _Optional[int] = ..., period: _Optional[str] = ...) -> None: ...
 
 class CreateJobRequest(_message.Message):
-    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys", "hooks")
+    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     JOB_NAME_FIELD_NUMBER: _ClassVar[int]
     CRON_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
@@ -509,7 +509,6 @@ class CreateJobRequest(_message.Message):
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
-    HOOKS_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     job_name: str
     cron_schedule: str
@@ -520,8 +519,7 @@ class CreateJobRequest(_message.Message):
     workflow_options: WorkflowOptions
     sync_options: ActivityOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    hooks: _containers.RepeatedCompositeFieldContainer[NewJobHook]
-    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., hooks: _Optional[_Iterable[_Union[NewJobHook, _Mapping]]] = ...) -> None: ...
+    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
 
 class WorkflowOptions(_message.Message):
     __slots__ = ("run_timeout",)
