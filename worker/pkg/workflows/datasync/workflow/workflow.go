@@ -8,11 +8,13 @@ import (
 	"sync"
 	"time"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -51,6 +53,16 @@ func withCheckAccountStatusActivityOptions(ctx workflow.Context) workflow.Contex
 		StartToCloseTimeout: 2 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	})
+}
+
+func withJobHookTimingActivityOptions(ctx workflow.Context) workflow.Context {
+	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 2 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
 		},
 		HeartbeatTimeout: 1 * time.Minute,
 	})
@@ -115,6 +127,22 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		logger.Info("found 0 benthos configs, ending workflow.")
 		return &WorkflowResponse{}, nil
 	}
+
+	logger.Info(fmt.Sprintf("scheduling RunJobHookByTiming for execution for timing %q", mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC.String()))
+	var preSyncTimingResp *jobhooks_by_timing_activity.RunJobHookByTimingResponse
+	var jobtimingActivity *jobhooks_by_timing_activity.Activity
+	err = workflow.ExecuteActivity(
+		withJobHookTimingActivityOptions(ctx),
+		jobtimingActivity.RunJobHookByTiming,
+		&jobhooks_by_timing_activity.RunJobHookByTimingRequest{
+			JobId:  req.JobId,
+			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
+		},
+	).Get(ctx, &preSyncTimingResp)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("completed %d RunJobHooksByTiming for timing %q", preSyncTimingResp.ExecCount, mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC.String())
 
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
@@ -296,6 +324,24 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			executeSyncActivity(bc, log.With(logger, withBenthosConfigResponseLoggerTags(bc)...))
 		}
 	}
+
+	logger.Info("data syncs completed")
+
+	logger.Info(fmt.Sprintf("scheduling RunJobHookByTiming for execution for timing %q", mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC.String()))
+	var postSyncTimingResp *jobhooks_by_timing_activity.RunJobHookByTimingResponse
+	err = workflow.ExecuteActivity(
+		withJobHookTimingActivityOptions(ctx),
+		jobtimingActivity.RunJobHookByTiming,
+		&jobhooks_by_timing_activity.RunJobHookByTimingRequest{
+			JobId:  req.JobId,
+			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC,
+		},
+	).Get(ctx, &postSyncTimingResp)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("completed %d RunJobHooksByTiming for timing %q", postSyncTimingResp.ExecCount, mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC.String())
+
 	logger.Info("data sync workflow completed")
 	return &WorkflowResponse{}, nil
 }
