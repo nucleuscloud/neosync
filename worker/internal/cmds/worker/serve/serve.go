@@ -28,6 +28,7 @@ import (
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -289,6 +290,7 @@ func serve(ctx context.Context) error {
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, eelicense, isNeosyncCloud)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
+	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
@@ -298,6 +300,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
+	w.RegisterActivity(jobhookByTimingActivity.RunJobHookByTiming)
 
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal worker: %w", err)
