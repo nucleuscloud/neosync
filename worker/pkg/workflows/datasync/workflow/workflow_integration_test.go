@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/google/uuid"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -132,6 +134,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						}
 					}
 
+					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					srcConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
 					mux := http.NewServeMux()
 					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
@@ -144,13 +150,13 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        jobId,
 									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
 												Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-													ConnectionId:                  "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+													ConnectionId:                  srcConnId,
 													Schemas:                       schemas,
 													SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 												},
@@ -159,7 +165,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 									Destinations: []*mgmtv1alpha1.JobDestination{
 										{
-											ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+											ConnectionId: destConnId,
 											Options:      destinationOptions,
 										},
 									},
@@ -172,10 +178,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-							if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+							if r.Msg.GetId() == srcConnId {
 								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 									Connection: &mgmtv1alpha1.Connection{
-										Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+										Id:   srcConnId,
 										Name: "source",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -189,10 +195,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 								}), nil
 							}
-							if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+							if r.Msg.GetId() == destConnId {
 								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 									Connection: &mgmtv1alpha1.Connection{
-										Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+										Id:   destConnId,
 										Name: "target",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -206,13 +212,50 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 								}), nil
 							}
-							return nil, nil
+							return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test connection id"))
+						},
+					))
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+							if r.Msg.GetJobId() != jobId {
+								return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test job id"))
+							}
+							hooks := []*mgmtv1alpha1.JobHook{}
+							if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-presync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: srcConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							} else if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-postsync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: destConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							}
+							return connect.NewResponse(&mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: hooks}), nil
 						},
 					))
 
 					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -384,6 +427,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					))
 
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
@@ -411,6 +455,16 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 			}
 		})
 	}
+}
+
+// Used if there is no plan for jobhooks in the test and just need to satisfy the impl
+func addEmptyJobHooksProcedureMux(mux *http.ServeMux) {
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: []*mgmtv1alpha1.JobHook{}}), nil
+		},
+	))
 }
 
 func addRunContextProcedureMux(mux *http.ServeMux) {
@@ -561,6 +615,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	))
 
 	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	testName := "Virtual Foreign Key primary key transform"
 	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
@@ -759,6 +814,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
@@ -957,6 +1013,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
@@ -1241,6 +1298,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
@@ -1487,6 +1545,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	))
 
 	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
