@@ -38,3 +38,4 @@ venv2/
 python/dist/
 
 neosync_ee_ca.key
+neosync_cloud_ca.key
