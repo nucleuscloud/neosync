@@ -10162,12 +10162,16 @@ components:
         preSync:
           allOf:
             - title: pre_sync
-              description: A Pre-Sync timing. Will run before the first table sync.
+              description: |-
+                A Pre-Sync timing.
+                 Will run before the first table sync.
+                 Will run before Truncation, if enabled.
+                 Will run before Schema Init, if enabled.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPreSync'
         postSync:
           allOf:
             - title: post_sync
-              description: A Post-Sync timing. wIll run after the last table sync.
+              description: A Post-Sync timing. Will run after the last table sync.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPostSync'
       title: Timing
       additionalProperties: false
@@ -10180,7 +10184,10 @@ components:
       type: object
       title: JobHookTimingPreSync
       additionalProperties: false
-      description: Configures the job hook to run before the first table sync.
+      description: |-
+        Configures the job hook to run before the first table sync.
+         Will run before Truncation, if enabled.
+         Will run before Schema Init, if enabled.
     mgmt.v1alpha1.JobMapping:
       type: object
       properties:

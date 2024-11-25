@@ -6605,7 +6605,10 @@ export class JobHookConfig_JobSqlHook_Timing extends Message<JobHookConfig_JobSq
    */
   timing: {
     /**
-     * A Pre-Sync timing. Will run before the first table sync.
+     * A Pre-Sync timing.
+     * Will run before the first table sync.
+     * Will run before Truncation, if enabled.
+     * Will run before Schema Init, if enabled.
      *
      * @generated from field: mgmt.v1alpha1.JobHookTimingPreSync pre_sync = 3;
      */
@@ -6613,7 +6616,7 @@ export class JobHookConfig_JobSqlHook_Timing extends Message<JobHookConfig_JobSq
     case: "preSync";
   } | {
     /**
-     * A Post-Sync timing. wIll run after the last table sync.
+     * A Post-Sync timing. Will run after the last table sync.
      *
      * @generated from field: mgmt.v1alpha1.JobHookTimingPostSync post_sync = 4;
      */
@@ -6652,6 +6655,8 @@ export class JobHookConfig_JobSqlHook_Timing extends Message<JobHookConfig_JobSq
 
 /**
  * Configures the job hook to run before the first table sync.
+ * Will run before Truncation, if enabled.
+ * Will run before Schema Init, if enabled.
  *
  * @generated from message mgmt.v1alpha1.JobHookTimingPreSync
  */

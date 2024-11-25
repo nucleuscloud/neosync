@@ -326,7 +326,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `JobHookConfig.JobSqlHook.Timing`
-<ProtoMessage key={77} message={{"name":"Timing","longName":"JobHookConfig.JobSqlHook.Timing","fullName":"mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"pre_sync","description":"A Pre-Sync timing. Will run before the first table sync.","label":"","type":"JobHookTimingPreSync","longType":"JobHookTimingPreSync","fullType":"mgmt.v1alpha1.JobHookTimingPreSync","ismap":false,"isoneof":true,"oneofdecl":"timing","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/job.proto#jobhooktimingpresync"},{"name":"post_sync","description":"A Post-Sync timing. wIll run after the last table sync.","label":"","type":"JobHookTimingPostSync","longType":"JobHookTimingPostSync","fullType":"mgmt.v1alpha1.JobHookTimingPostSync","ismap":false,"isoneof":true,"oneofdecl":"timing","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/job.proto#jobhooktimingpostsync"}]}} />
+<ProtoMessage key={77} message={{"name":"Timing","longName":"JobHookConfig.JobSqlHook.Timing","fullName":"mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"pre_sync","description":"A Pre-Sync timing.\nWill run before the first table sync.\nWill run before Truncation, if enabled.\nWill run before Schema Init, if enabled.","label":"","type":"JobHookTimingPreSync","longType":"JobHookTimingPreSync","fullType":"mgmt.v1alpha1.JobHookTimingPreSync","ismap":false,"isoneof":true,"oneofdecl":"timing","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/job.proto#jobhooktimingpresync"},{"name":"post_sync","description":"A Post-Sync timing. Will run after the last table sync.","label":"","type":"JobHookTimingPostSync","longType":"JobHookTimingPostSync","fullType":"mgmt.v1alpha1.JobHookTimingPostSync","ismap":false,"isoneof":true,"oneofdecl":"timing","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/job.proto#jobhooktimingpostsync"}]}} />
 
 
 ### `JobHookTimingPostSync`
@@ -334,7 +334,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `JobHookTimingPreSync`
-<ProtoMessage key={79} message={{"name":"JobHookTimingPreSync","longName":"JobHookTimingPreSync","fullName":"mgmt.v1alpha1.JobHookTimingPreSync","description":"Configures the job hook to run before the first table sync.","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+<ProtoMessage key={79} message={{"name":"JobHookTimingPreSync","longName":"JobHookTimingPreSync","fullName":"mgmt.v1alpha1.JobHookTimingPreSync","description":"Configures the job hook to run before the first table sync.\nWill run before Truncation, if enabled.\nWill run before Schema Init, if enabled.","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
 
 
 ### `JobMapping`

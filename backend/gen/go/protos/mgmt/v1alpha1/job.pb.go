@@ -7986,6 +7986,8 @@ type JobHookConfig_Sql struct {
 func (*JobHookConfig_Sql) isJobHookConfig_Config() {}
 
 // Configures the job hook to run before the first table sync.
+// Will run before Truncation, if enabled.
+// Will run before Schema Init, if enabled.
 type JobHookTimingPreSync struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -9159,12 +9161,15 @@ type isJobHookConfig_JobSqlHook_Timing_Timing interface {
 }
 
 type JobHookConfig_JobSqlHook_Timing_PreSync struct {
-	// A Pre-Sync timing. Will run before the first table sync.
+	// A Pre-Sync timing.
+	// Will run before the first table sync.
+	// Will run before Truncation, if enabled.
+	// Will run before Schema Init, if enabled.
 	PreSync *JobHookTimingPreSync `protobuf:"bytes,3,opt,name=pre_sync,json=preSync,proto3,oneof"`
 }
 
 type JobHookConfig_JobSqlHook_Timing_PostSync struct {
-	// A Post-Sync timing. wIll run after the last table sync.
+	// A Post-Sync timing. Will run after the last table sync.
 	PostSync *JobHookTimingPostSync `protobuf:"bytes,4,opt,name=post_sync,json=postSync,proto3,oneof"`
 }
 

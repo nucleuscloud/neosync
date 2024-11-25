@@ -924,9 +924,12 @@ message JobHookConfig {
     message Timing {
       oneof timing {
         option (buf.validate.oneof).required = true;
-        // A Pre-Sync timing. Will run before the first table sync.
+        // A Pre-Sync timing.
+        // Will run before the first table sync.
+        // Will run before Truncation, if enabled.
+        // Will run before Schema Init, if enabled.
         JobHookTimingPreSync pre_sync = 3;
-        // A Post-Sync timing. wIll run after the last table sync.
+        // A Post-Sync timing. Will run after the last table sync.
         JobHookTimingPostSync post_sync = 4;
       }
     }
@@ -934,6 +937,8 @@ message JobHookConfig {
 }
 
 // Configures the job hook to run before the first table sync.
+// Will run before Truncation, if enabled.
+// Will run before Schema Init, if enabled.
 message JobHookTimingPreSync {}
 
 // Configures the job hook to run after the last table sync.
