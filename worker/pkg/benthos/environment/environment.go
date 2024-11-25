@@ -133,7 +133,7 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 	}
 
 	if config.connectionDataConfig != nil {
-		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi)
+		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi, logger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register neosync_connection_data input: %w", err)
 		}

@@ -1,6 +1,9 @@
 package neosynctypes
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Version uint
 
@@ -62,4 +65,21 @@ func applyOptions(t NeosyncAdapter, opts ...NeosyncTypeOption) error {
 
 func IsValidVersion(ver Version) bool {
 	return ver == V1 || ver == LatestVersion
+}
+
+type JsonScanner struct{}
+
+func (js *JsonScanner) ScanJson(value any, target any) error {
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, target)
+	case string:
+		return json.Unmarshal([]byte(v), target)
+	default:
+		return fmt.Errorf("unsupported scan type for Json: %T", value)
+	}
+}
+
+func (js *JsonScanner) ValueJson(value interface{}) (any, error) {
+	return json.Marshal(value)
 }

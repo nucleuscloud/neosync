@@ -1,7 +1,6 @@
 package neosynctypes
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -9,6 +8,7 @@ import (
 
 type Interval struct {
 	BaseType     `json:",inline"`
+	JsonScanner  `json:"-"`
 	Microseconds int64 `json:"microseconds"`
 	Days         int32 `json:"days"`
 	Months       int32 `json:"months"`
@@ -41,18 +41,11 @@ func (i *Interval) ValuePgx() (any, error) {
 }
 
 func (i *Interval) ScanJson(value any) error {
-	switch v := value.(type) {
-	case []byte:
-		return json.Unmarshal(v, i)
-	case string:
-		return json.Unmarshal([]byte(v), i)
-	default:
-		return fmt.Errorf("unsupported scan type for JsonInterval: %T", value)
-	}
+	return i.JsonScanner.ScanJson(value, i)
 }
 
 func (i *Interval) ValueJson() (any, error) {
-	return json.Marshal(i)
+	return i.JsonScanner.ValueJson(i)
 }
 
 func (i *Interval) setVersion(v Version) {
