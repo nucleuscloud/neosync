@@ -1566,9 +1566,9 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	require.NoError(s.T(), err)
 }
 
-type FakeEELicense struct{}
+type fakeEELicense struct{}
 
-func (f *FakeEELicense) IsValid() bool {
+func (f *fakeEELicense) IsValid() bool {
 	return true
 }
 
@@ -1616,9 +1616,9 @@ func executeWorkflow(
 	disableReaper := true
 	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &FakeEELicense{})
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
-	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &FakeEELicense{})
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
