@@ -18,10 +18,12 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-type FakeELicense struct{}
+type fakeELicense struct {
+	isValid bool
+}
 
-func (f *FakeELicense) IsValid() bool {
-	return true
+func (f *fakeELicense) IsValid() bool {
+	return f.isValid
 }
 
 func Test_New(t *testing.T) {
@@ -29,9 +31,32 @@ func Test_New(t *testing.T) {
 		mgmtv1alpha1connect.NewMockJobServiceClient(t),
 		mgmtv1alpha1connect.NewMockConnectionServiceClient(t),
 		sqlmanager.NewMockSqlManagerClient(t),
-		&FakeELicense{},
+		&fakeELicense{isValid: true},
 	)
 	require.NotNil(t, a)
+}
+
+func Test_Activity_EELicense_Skip(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activity := New(
+		mgmtv1alpha1connect.NewMockJobServiceClient(t),
+		mgmtv1alpha1connect.NewMockConnectionServiceClient(t),
+		sqlmanager.NewMockSqlManagerClient(t),
+		&fakeELicense{isValid: false},
+	)
+	env.RegisterActivity(activity)
+
+	val, err := env.ExecuteActivity(activity.RunJobHooksByTiming, &RunJobHooksByTimingRequest{
+		JobId:  uuid.NewString(),
+		Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
+	})
+	require.NoError(t, err)
+	res := &RunJobHooksByTimingResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+	require.Equal(t, uint(0), res.ExecCount)
 }
 
 func Test_Activity_Success(t *testing.T) {
@@ -117,7 +142,7 @@ func Test_Activity_Success(t *testing.T) {
 	mockSqlDb.On("Exec", mock.Anything, mock.Anything).Twice().Return(nil)
 	mockSqlDb.On("Close").Once().Return(nil)
 
-	activity := New(jobclient, connclient, mockSqlMgrClient, &FakeELicense{})
+	activity := New(jobclient, connclient, mockSqlMgrClient, &fakeELicense{isValid: true})
 	env.RegisterActivity(activity)
 
 	val, err := env.ExecuteActivity(activity.RunJobHooksByTiming, &RunJobHooksByTimingRequest{
