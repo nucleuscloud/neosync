@@ -1,0 +1,93 @@
+package neosynctypes
+
+import (
+	"fmt"
+
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+)
+
+type NeosyncArray struct {
+	BaseType `json:",inline"`
+	Elements []NeosyncAdapter `json:"elements"`
+}
+
+func NewNeosyncArray(
+	elements []NeosyncAdapter,
+	arrayOpts ...NeosyncTypeOption,
+) *NeosyncArray {
+	pgArray := &NeosyncArray{
+		Elements: elements,
+	}
+	pgArray.Neosync.TypeId = NeosyncArrayId
+	pgArray.SetVersion(LatestVersion)
+
+	for _, opt := range arrayOpts {
+		opt(pgArray)
+	}
+
+	return pgArray
+}
+
+func (a *NeosyncArray) SetVersion(v Version) {
+	a.Neosync.Version = v
+}
+
+func (a *NeosyncArray) GetVersion() Version {
+	return a.Neosync.Version
+}
+
+func (a *NeosyncArray) ScanPgx(value any) error {
+	valueSlice, err := gotypeutil.ParseSlice(value)
+	if err != nil {
+		return err
+	}
+	if len(valueSlice) != len(a.Elements) {
+		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+	}
+	for i, v := range valueSlice {
+		if err := a.Elements[i].ScanPgx(v); err != nil {
+			return fmt.Errorf("scanning element %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func (a *NeosyncArray) ValuePgx() (any, error) {
+	values := make([]any, len(a.Elements))
+	for i, e := range a.Elements {
+		v, err := e.ValuePgx()
+		if err != nil {
+			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
+		}
+		values[i] = v
+	}
+	return values, nil
+}
+
+func (a *NeosyncArray) ScanJson(value any) error {
+	valueSlice, ok := value.([]any)
+	if !ok {
+		return fmt.Errorf("expected []any, got %T", value)
+	}
+	if len(valueSlice) != len(a.Elements) {
+		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+	}
+	for i, v := range valueSlice {
+		if err := a.Elements[i].ScanJson(v); err != nil {
+			return fmt.Errorf("scanning element %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func (a *NeosyncArray) ValueJson() (any, error) {
+	values := make([]any, len(a.Elements))
+	for i, e := range a.Elements {
+		v, err := e.ValueJson()
+		if err != nil {
+			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
+		}
+		values[i] = v
+	}
+	return values, nil
+}

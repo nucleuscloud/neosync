@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/lib/pq"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -64,9 +64,6 @@ func (m *neosyncToPgxProcessor) Close(context.Context) error {
 }
 
 func (p *neosyncToPgxProcessor) transform(root any) any {
-	fmt.Println()
-	fmt.Println("root", root, "type", reflect.TypeOf(root))
-	fmt.Println()
 	switch v := root.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
@@ -78,23 +75,20 @@ func (p *neosyncToPgxProcessor) transform(root any) any {
 	case nil:
 		return v
 	default:
+		// jsonF, _ := json.MarshalIndent(v, "", " ")
+		// fmt.Printf("v: %s \n", string(jsonF))
 		// Check if the type implements Value() method
-		if valuer, ok := v.(neosynctypes.PgxAdapter); ok {
+		if valuer, ok := v.(neosynctypes.NeosyncAdapter); ok {
 			value, err := valuer.ValuePgx()
 			if err != nil {
 				// handle error
+				fmt.Println(err.Error())
 				return v
+			}
+			if gotypeutil.IsSlice(value) {
+				return pq.Array(value)
 			}
 			return value
-		}
-
-		if valuer, ok := v.(neosynctypes.PgxArrayAdapter); ok {
-			value, err := valuer.ValueArrayPgx()
-			if err != nil {
-				// handle error
-				return v
-			}
-			return pq.Array(value)
 		}
 
 		return v

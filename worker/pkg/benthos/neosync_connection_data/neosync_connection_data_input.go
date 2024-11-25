@@ -23,7 +23,11 @@ var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Field(service.NewStringField("job_id").Optional()).
 	Field(service.NewStringField("job_run_id").Optional())
 
-func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) (service.Input, error) {
+func newNeosyncConnectionDataInput(
+	conf *service.ParsedConfig,
+	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient,
+	mgr *service.Resources,
+) (service.Input, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -70,6 +74,7 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi
 			jobRunId: jobRunId,
 		},
 		neosyncConnectApi: neosyncConnectApi,
+		logger:            mgr.Logger(),
 	}), nil
 }
 
@@ -77,7 +82,7 @@ func RegisterNeosyncConnectionDataInput(env *service.Environment, neosyncConnect
 	return env.RegisterInput(
 		"neosync_connection_data", neosyncConnectionDataConfigSpec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			return newNeosyncConnectionDataInput(conf, neosyncConnectApi)
+			return newNeosyncConnectionDataInput(conf, neosyncConnectApi, mgr)
 		},
 	)
 }
@@ -96,6 +101,7 @@ type neosyncInput struct {
 	schema         string
 	table          string
 
+	logger            *service.Logger
 	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient
 
 	recvMut sync.Mutex
@@ -190,16 +196,16 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 			}, nil
 		}
 	}
-	registry := neosynctypes.NewTypeRegistry()
 
+	registry := neosynctypes.NewTypeRegistry(g.logger)
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
-			newVal, err := neosynctypes.UnmarshalWithRegistry(val, registry)
+			newVal, err := registry.Unmarshal(val)
 			if err != nil {
-				// handle error
+				return nil, nil, err
 			}
 			valuesMap[col] = newVal
 		}

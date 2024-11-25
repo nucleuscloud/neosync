@@ -3,25 +3,9 @@ package neosynctypes
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"log/slog"
 )
 
-// scan from source to neosync type
-// value from neosync type to destination
-
-// source is postgres write to S3 pull from S3 write to Postgres in cli sync
-// cli sync source is postgres convert to json bits stream to cli convert to pg types
-
-// DataFormat represents supported data formats
-type DataFormat int
-
-const (
-	Pgx DataFormat = iota
-	Json
-)
-
-// Version represents the data format version
 type Version uint
 
 const (
@@ -34,14 +18,12 @@ const (
 	NeosyncArrayId    = "NEOSYNC_ARRAY"
 )
 
-type PgxAdapter interface {
+type NeosyncAdapter interface {
+	NeosyncMetadataType
 	ScanPgx(value any) error
 	ValuePgx() (any, error)
-}
-
-type JsonAdapter interface {
-	ScanJson(value any)
-	ValueJson() ([]byte, error)
+	ScanJson(value any) error
+	ValueJson() (any, error)
 }
 
 type Neosync struct {
@@ -57,10 +39,10 @@ type NeosyncMetadataType interface {
 	GetVersion() Version
 }
 
-type NeosyncTypeOption[T NeosyncMetadataType] func(T)
+type NeosyncTypeOption func(NeosyncAdapter)
 
-func WithVersion[T NeosyncMetadataType](version Version) NeosyncTypeOption[T] {
-	return func(t T) {
+func WithVersion(version Version) NeosyncTypeOption {
+	return func(t NeosyncAdapter) {
 		if version == 0 {
 			t.SetVersion(LatestVersion)
 			return
@@ -69,241 +51,34 @@ func WithVersion[T NeosyncMetadataType](version Version) NeosyncTypeOption[T] {
 	}
 }
 
-type Interval struct {
-	BaseType     `json:",inline"`
-	Microseconds int64 `json:"microseconds"`
-	Days         int32 `json:"days"`
-	Months       int32 `json:"months"`
-}
-
-func (i *Interval) ScanPgx(value *pgtype.Interval) error {
-	if value == nil || !value.Valid {
-		return nil
-	}
-	i.Microseconds = value.Microseconds
-	i.Days = value.Days
-	i.Months = value.Months
-	return nil
-}
-
-func (i *Interval) ValuePgx() (*pgtype.Interval, error) {
-	return &pgtype.Interval{
-		Microseconds: i.Microseconds,
-		Days:         i.Days,
-		Months:       i.Months,
-		Valid:        true,
-	}, nil
-}
-
-func (i *Interval) ScanJson(value any) error {
-	switch v := value.(type) {
-	case []byte:
-		return json.Unmarshal(v, i)
-	case string:
-		return json.Unmarshal([]byte(v), i)
-	default:
-		return fmt.Errorf("unsupported scan type for JsonInterval: %T", value)
-	}
-}
-
-func (i *Interval) ValueJson() ([]byte, error) {
-	return json.Marshal(i)
-}
-
-func (i *Interval) SetVersion(v Version) {
-	i.Neosync.Version = v
-}
-
-func (i *Interval) GetVersion() Version {
-	return i.Neosync.Version
-}
-
-func NewInterval(opts ...NeosyncTypeOption[*Interval]) *Interval {
-	interval := &Interval{}
-	interval.Neosync.TypeId = NeosyncIntervalId
-	interval.SetVersion(LatestVersion)
-
-	for _, opt := range opts {
-		opt(interval)
-	}
-	return interval
-}
-
-type IntervalArray struct {
-	*NeosyncArray[*Interval, *pgtype.Interval]
-}
-
-func NewIntervalArray(size int, intervalOpts []NeosyncTypeOption[*Interval], arrayOpts ...NeosyncTypeOption[*NeosyncArray[*Interval, *pgtype.Interval]]) *IntervalArray {
-	return &IntervalArray{
-		NeosyncArray: NewArrayAdapter(size, NewInterval, intervalOpts, arrayOpts...),
-	}
-}
-
-type NeosyncAdapter[V any] interface {
-	NeosyncMetadataType
-	ScanPgx(value V) error
-	ValuePgx() (V, error)
-	ScanJson(value any) error
-	ValueJson() ([]byte, error)
-}
-type PgxNeosyncAdapter[V any] interface {
-	NeosyncMetadataType
-	ScanPgx(value V) error
-	ValuePgx() (V, error)
-}
-
-type JsonNeosyncAdapter interface {
-	NeosyncMetadataType
-	ScanJson(value any)
-	ValueJson() ([]byte, error)
-}
-
-type NeosyncArray[T NeosyncAdapter[V], V any] struct {
-	BaseType `json:",inline"`
-	Elements []T
-}
-
-func NewArrayAdapter[T NeosyncAdapter[V], V any](
-	size int,
-	intializer func(...NeosyncTypeOption[T]) T,
-	initializerOpts []NeosyncTypeOption[T],
-	arrayOpts ...NeosyncTypeOption[*NeosyncArray[T, V]],
-) *NeosyncArray[T, V] {
-	elements := make([]T, size)
-	for i := range elements {
-		elements[i] = intializer(initializerOpts...)
-	}
-	pgArray := &NeosyncArray[T, V]{
-		Elements: elements,
-	}
-	pgArray.Neosync.TypeId = NeosyncArrayId
-	pgArray.SetVersion(LatestVersion)
-
-	for _, opt := range arrayOpts {
-		opt(pgArray)
-	}
-
-	return &NeosyncArray[T, V]{
-		Elements: elements,
-	}
-}
-
-type PgxArrayAdapter interface {
-	ScanArrayPgx(value any) error
-	ValueArrayPgx() (any, error)
-}
-
-type JsonArrayAdapter interface {
-	ScanArrayJson(value any) error
-	ValueArrayJson() (any, error)
-}
-
-func (a *NeosyncArray[T, V]) SetVersion(v Version) {
-	a.Neosync.Version = v
-}
-
-func (a *NeosyncArray[T, V]) GetVersion() Version {
-	return a.Neosync.Version
-}
-
-func (a *NeosyncArray[T, V]) ScanArrayPgx(value any) error {
-	valueSlice, ok := value.([]V)
-	if !ok {
-		return fmt.Errorf("expected []V, got %T", value)
-	}
-	if len(valueSlice) != len(a.Elements) {
-		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
-	}
-	for i, v := range valueSlice {
-		if err := a.Elements[i].ScanPgx(v); err != nil {
-			return fmt.Errorf("scanning element %d: %w", i, err)
-		}
-	}
-	return nil
-}
-
-func (a *NeosyncArray[T, V]) ValueArrayPgx() (any, error) {
-	values := make([]any, len(a.Elements))
-	for i, e := range a.Elements {
-		v, err := e.ValuePgx()
-		if err != nil {
-			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
-		}
-		values[i] = v
-	}
-	return values, nil
-}
-
-func (a *NeosyncArray[T, V]) ScanArrayJson(value any) error {
-	valueSlice, ok := value.([]V)
-	if !ok {
-		return fmt.Errorf("expected []V, got %T", value)
-	}
-	if len(valueSlice) != len(a.Elements) {
-		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
-	}
-	for i, v := range valueSlice {
-		if err := a.Elements[i].ScanJson(v); err != nil {
-			return fmt.Errorf("scanning element %d: %w", i, err)
-		}
-	}
-	return nil
-}
-
-func (a *NeosyncArray[T, V]) ValueArrayJson() (any, error) {
-	values := make([]any, len(a.Elements))
-	for i, e := range a.Elements {
-		v, err := e.ValueJson()
-		if err != nil {
-			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
-		}
-		values[i] = v
-	}
-	return values, nil
-}
-
 type TypeRegistry struct {
-	types      map[string]map[Version]func() any
-	arrayTypes map[string]map[Version]func(size int) any
+	types map[string]map[Version]func() NeosyncAdapter
 }
 
-func NewTypeRegistry() *TypeRegistry {
+func NewTypeRegistry(logger *slog.Logger) *TypeRegistry {
 	registry := &TypeRegistry{
-		types: make(map[string]map[Version]func() any),
+		types: make(map[string]map[Version]func() NeosyncAdapter),
 	}
 
-	registry.Register(NeosyncIntervalId, LatestVersion, func() any {
-		return NewInterval(WithVersion[*Interval](LatestVersion))
+	registry.Register(NeosyncIntervalId, LatestVersion, func() NeosyncAdapter {
+		return NewInterval(WithVersion(LatestVersion))
 	})
 
-	registry.RegisterArrayType(NeosyncArrayId, LatestVersion, func(size int) any {
-		return NewIntervalArray(
-			size,
-			[]NeosyncTypeOption[*Interval]{WithVersion[*Interval](LatestVersion)},
-			WithVersion[*NeosyncArray[*Interval, *pgtype.Interval]](LatestVersion),
-		)
+	registry.Register(NeosyncArrayId, LatestVersion, func() NeosyncAdapter {
+		return NewNeosyncArray([]NeosyncAdapter{}, WithVersion(LatestVersion))
 	})
 
 	return registry
 }
 
-func (r *TypeRegistry) RegisterArrayType(typeId string, version Version, newArrayFunc func(size int) any) {
-	if _, exists := r.arrayTypes[typeId]; !exists {
-		r.arrayTypes[typeId] = make(map[Version]func(size int) any)
-	}
-	r.arrayTypes[typeId][version] = func(size int) any {
-		return newArrayFunc(size) // Default size of 0, will be resized during unmarshal
-	}
-}
-
-func (r *TypeRegistry) Register(typeId string, version Version, newTypeFunc func() any) {
+func (r *TypeRegistry) Register(typeId string, version Version, newTypeFunc func() NeosyncAdapter) {
 	if _, exists := r.types[typeId]; !exists {
-		r.types[typeId] = make(map[Version]func() any)
+		r.types[typeId] = make(map[Version]func() NeosyncAdapter)
 	}
 	r.types[typeId][version] = newTypeFunc
 }
 
-func (r *TypeRegistry) New(typeId string, version Version) (any, error) {
+func (r *TypeRegistry) New(typeId string, version Version) (NeosyncAdapter, error) {
 	versionedTypes, ok := r.types[typeId]
 	if !ok {
 		return nil, fmt.Errorf("unknown type ID: %s", typeId)
@@ -324,8 +99,11 @@ func (r *TypeRegistry) New(typeId string, version Version) (any, error) {
 	return nil, fmt.Errorf("unknown version %d for type ID: %s", version, typeId)
 }
 
-// TODO add versioning here
-func UnmarshalWithRegistry(data []byte, registry *TypeRegistry) (any, error) {
+func (r *TypeRegistry) Unmarshal(data []byte) (any, error) {
+	isValidJson := json.Valid(data)
+	if !isValidJson {
+		return data, nil
+	}
 	var anyValue any
 	if err := json.Unmarshal(data, &anyValue); err != nil {
 		return nil, err
@@ -333,19 +111,19 @@ func UnmarshalWithRegistry(data []byte, registry *TypeRegistry) (any, error) {
 
 	rawMsg, ok := anyValue.(map[string]any)
 	if !ok {
-		return anyValue, nil
+		return data, nil
 	}
 
 	neosyncRaw, ok := rawMsg["_neosync"].(map[string]any)
 	if !ok {
 		// debug log
-		return rawMsg, nil
+		return data, nil
 	}
 
 	typeId, ok := neosyncRaw["type_id"].(string)
 	if !ok {
 		// do something
-		return rawMsg, nil
+		return data, nil
 	}
 
 	version, ok := neosyncRaw["version"].(Version)
@@ -353,22 +131,41 @@ func UnmarshalWithRegistry(data []byte, registry *TypeRegistry) (any, error) {
 		version = LatestVersion
 	}
 
-	obj, err := registry.New(typeId, version)
+	obj, err := r.New(typeId, version)
 	if err != nil {
 		return nil, err
 	}
 
 	// Handle arrays
 	if typeId == NeosyncArrayId {
-		elements, ok := rawMsg["Elements"].([]any)
+		elements, ok := rawMsg["elements"].([]any)
 		if !ok {
-			return nil, fmt.Errorf("invalid array format: Elements field missing or not an array")
+			return nil, fmt.Errorf("invalid array elements")
 		}
 
-		// Create a new array with the correct size
-		if arrayFactory, ok := registry.arrayTypes[typeId][version]; ok {
-			obj = arrayFactory(len(elements))
+		neosyncArray := obj.(*NeosyncArray)
+		neosyncArray.Elements = make([]NeosyncAdapter, len(elements))
+
+		for i, element := range elements {
+			elementBytes, err := json.Marshal(element)
+			if err != nil {
+				return nil, fmt.Errorf("error marshaling array element %d: %w", i, err)
+			}
+
+			// Recursively unmarshal each element
+			unmarshaledElement, err := r.Unmarshal(elementBytes)
+			if err != nil {
+				return nil, fmt.Errorf("error unmarshaling array element %d: %w", i, err)
+			}
+
+			adapter, ok := unmarshaledElement.(NeosyncAdapter)
+			if !ok {
+				return nil, fmt.Errorf("array element %d is not a NeosyncAdapter", i)
+			}
+
+			neosyncArray.Elements[i] = adapter
 		}
+		return neosyncArray, nil
 	}
 
 	if err := json.Unmarshal(data, obj); err != nil {

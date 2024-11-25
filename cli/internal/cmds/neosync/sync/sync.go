@@ -498,6 +498,9 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosbuilde
 	if err != nil {
 		return err
 	}
+	fmt.Println()
+	fmt.Println(string(configbits))
+	fmt.Println()
 
 	benthosStreamMutex := syncmap.Mutex{}
 	var benthosStream *service.Stream

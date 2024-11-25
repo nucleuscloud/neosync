@@ -193,11 +193,7 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 func parsePgRowValues(values []any, columnNames []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
-		// fmt.Println()
-		// fmt.Println("v", v, "type", reflect.TypeOf(v))
-		// fmt.Println()
-		// jsonF, _ := json.MarshalIndent(v, "", " ")
-		// fmt.Printf("%s \n", string(jsonF))
+
 		col := columnNames[i]
 		switch t := v.(type) {
 		case nil:
@@ -223,10 +219,11 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				jObj[col] = nil
 				continue
 			}
-			neoInterval := neosynctypes.NewInterval()
-			err := neoInterval.ScanPgx(t)
+			// this should be one call
+			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
+			// err := neoInterval.ScanPgx(t)
 			if err != nil {
-				// do something
+				// 	// do something
 			}
 			jObj[col] = neoInterval
 		default:
@@ -258,51 +255,15 @@ func toIntervalArray(array *PgxArray[*pgtype.Interval]) any {
 
 	dim := array.Dimensions()
 	if len(dim) > 1 {
-		// dims := []int{}
-		// for _, d := range dim {
-		// 	dims = append(dims, int(d.Length))
-		// }
 
-		// valueSlice, err := gotypeutil.ParseSlice(array.Elements)
-		// if err != nil {
-		// 	return err
-		// }
-		// nested := CreateMultiDimSlice(dims, valueSlice)
-
-		// multiArray := neosynctypes.NewMultiDimArray(neosynctypes.Pgx, len(dims), dims, func() *neosynctypes.Interval {
-		// 	return neosynctypes.NewInterval()
-		// })
-		// err = multiArray.MultiDimArrayScan(nested)
-		// if err != nil {
-		// 	// handle error
-		// 	fmt.Println(err.Error())
-		// }
-
-		// fmt.Println()
-		// jsonF, _ := json.MarshalIndent(multiArray, "", " ")
-		// fmt.Printf("multiArray: %s \n", string(jsonF))
-		// fmt.Println()
-
-		// return multiArray
 		return array.Elements
 	}
 
-	// neoInterval := neosynctypes.NewArray(neosynctypes.Pgx, len(array.Elements), func() *neosynctypes.Interval {
-	// 	return neosynctypes.NewInterval()
-	// })
-	// err := neoInterval.ArrayScan(array.Elements)
-	// if err != nil {
-	// 	// do something
-	// 	fmt.Println(err.Error())
-	// }
-
-	neoIntervalArray := neosynctypes.NewIntervalArray(len(array.Elements), []neosynctypes.NeosyncTypeOption[*neosynctypes.Interval]{})
-	err := neoIntervalArray.ScanArrayPgx(array.Elements)
+	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
 	if err != nil {
 		// handle error
 		fmt.Println(err.Error())
 	}
-	// return neoInterval
 	return neoIntervalArray
 
 }
