@@ -51,6 +51,7 @@ func Test_getLicense(t *testing.T) {
 
 func Test_NewFromEnv(t *testing.T) {
 	t.Run("present", func(t *testing.T) {
+		viper.Set(cloudEnabledEvKey, true)
 		viper.Set(cloudLicenseEvKey, validExpiredTestLicense)
 		eelicense, err := NewFromEnv()
 		require.NoError(t, err)

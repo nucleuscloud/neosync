@@ -24,6 +24,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
@@ -76,8 +77,11 @@ func serve(ctx context.Context) error {
 	}
 	logger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
 
-	isNeosyncCloud := getIsNeosyncCloud()
-	logger.Debug(fmt.Sprintf("neosync cloud enabled: %t", isNeosyncCloud))
+	ncloudlicense, err := cloudlicense.NewFromEnv()
+	if err != nil {
+		return err
+	}
+	logger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
 	var syncActivityMeter metric.Meter
 	temporalClientInterceptors := []interceptor.ClientInterceptor{}
@@ -259,7 +263,7 @@ func serve(ctx context.Context) error {
 	_ = w
 
 	cascadelicense := license.NewCascadeLicense(
-		license.NewCloudLicenseFromEnv(),
+		ncloudlicense,
 		eelicense,
 	)
 
@@ -410,8 +414,4 @@ func getTemporalAuthCertificate() ([]tls.Certificate, error) {
 		return []tls.Certificate{cert}, nil
 	}
 	return []tls.Certificate{}, nil
-}
-
-func getIsNeosyncCloud() bool {
-	return viper.GetBool("NEOSYNC_CLOUD")
 }

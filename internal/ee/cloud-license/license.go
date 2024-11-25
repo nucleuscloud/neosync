@@ -65,10 +65,11 @@ func (l *licenseContents) IsValid() bool {
 
 const (
 	cloudLicenseEvKey = "NEOSYNC_CLOUD_LICENSE"
+	cloudEnabledEvKey = "NEOSYNC_CLOUD"
 )
 
 func getFromEnv() (*licenseContents, bool, error) {
-	isCloud := viper.GetBool("NEOSYNC_CLOUD")
+	isCloud := viper.GetBool(cloudEnabledEvKey)
 	if !isCloud {
 		return nil, false, nil
 	}
