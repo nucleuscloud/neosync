@@ -26,29 +26,26 @@ const (
 )
 
 type initStatementBuilder struct {
-	sqlmanager     sql_manager.SqlManagerClient
-	jobclient      mgmtv1alpha1connect.JobServiceClient
-	connclient     mgmtv1alpha1connect.ConnectionServiceClient
-	eelicense      *license.EELicense
-	isNeosyncCloud bool
-	workflowId     string
+	sqlmanager sql_manager.SqlManagerClient
+	jobclient  mgmtv1alpha1connect.JobServiceClient
+	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	eelicense  license.EEInterface
+	workflowId string
 }
 
 func newInitStatementBuilder(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	eelicense *license.EELicense,
-	isNeosyncCloud bool,
+	eelicense license.EEInterface,
 	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager:     sqlmanager,
-		jobclient:      jobclient,
-		connclient:     connclient,
-		eelicense:      eelicense,
-		isNeosyncCloud: isNeosyncCloud,
-		workflowId:     workflowId,
+		sqlmanager: sqlmanager,
+		jobclient:  jobclient,
+		connclient: connclient,
+		eelicense:  eelicense,
+		workflowId: workflowId,
 	}
 }
 
@@ -297,8 +294,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 			// init statements
 			if sqlopts.InitSchema {
-				if !b.isNeosyncCloud && !b.eelicense.IsValid() {
-					return nil, fmt.Errorf("Invalid license, Neosync Cloud not detected. SQL Server schema init requires Enterprise license.")
+				if !b.eelicense.IsValid() {
+					return nil, fmt.Errorf("invalid or non-existent Neosync License. SQL Server schema init requires valid Enterprise license.")
 				}
 				tables := []*sqlmanager_shared.SchemaTable{}
 				for tableKey := range uniqueTables {

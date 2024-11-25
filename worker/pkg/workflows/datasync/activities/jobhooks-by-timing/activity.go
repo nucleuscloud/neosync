@@ -16,18 +16,24 @@ import (
 	"go.temporal.io/sdk/log"
 )
 
+type License interface {
+	IsValid() bool
+}
+
 type Activity struct {
 	jobclient        mgmtv1alpha1connect.JobServiceClient
 	connclient       mgmtv1alpha1connect.ConnectionServiceClient
 	sqlmanagerclient sqlmanager.SqlManagerClient
+	license          License
 }
 
 func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
+	license License,
 ) *Activity {
-	return &Activity{jobclient: jobclient, connclient: connclient, sqlmanagerclient: sqlmanagerclient}
+	return &Activity{jobclient: jobclient, connclient: connclient, sqlmanagerclient: sqlmanagerclient, license: license}
 }
 
 type RunJobHooksByTimingRequest struct {
@@ -73,6 +79,10 @@ func (a *Activity) RunJobHooksByTiming(
 			}
 		}
 	}()
+	if !a.license.IsValid() {
+		logger.Debug("skipping job hooks due to EE license not being active")
+		return &RunJobHooksByTimingResponse{ExecCount: 0}, nil
+	}
 
 	logger.Debug(fmt.Sprintf("retrieving job hooks by timing %q", req.Timing))
 

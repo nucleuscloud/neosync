@@ -258,6 +258,11 @@ func serve(ctx context.Context) error {
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
+	cascadelicense := license.NewCascadeLicense(
+		license.NewCloudLicenseFromEnv(),
+		eelicense,
+	)
+
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
 	mssqlpoolmap := &sync.Map{}
@@ -287,10 +292,10 @@ func serve(ctx context.Context) error {
 	disableReaper := false
 	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, eelicense, isNeosyncCloud)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
-	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager)
+	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)

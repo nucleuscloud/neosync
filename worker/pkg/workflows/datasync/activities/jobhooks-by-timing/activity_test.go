@@ -18,11 +18,18 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
+type FakeELicense struct{}
+
+func (f *FakeELicense) IsValid() bool {
+	return true
+}
+
 func Test_New(t *testing.T) {
 	a := New(
 		mgmtv1alpha1connect.NewMockJobServiceClient(t),
 		mgmtv1alpha1connect.NewMockConnectionServiceClient(t),
 		sqlmanager.NewMockSqlManagerClient(t),
+		&FakeELicense{},
 	)
 	require.NotNil(t, a)
 }
@@ -110,7 +117,7 @@ func Test_Activity_Success(t *testing.T) {
 	mockSqlDb.On("Exec", mock.Anything, mock.Anything).Twice().Return(nil)
 	mockSqlDb.On("Close").Once().Return(nil)
 
-	activity := New(jobclient, connclient, mockSqlMgrClient)
+	activity := New(jobclient, connclient, mockSqlMgrClient, &FakeELicense{})
 	env.RegisterActivity(activity)
 
 	val, err := env.ExecuteActivity(activity.RunJobHooksByTiming, &RunJobHooksByTimingRequest{
