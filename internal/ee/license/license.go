@@ -78,11 +78,11 @@ func getLicenseFromEnv() (*licenseContents, bool, error) {
 	}
 	pk, err := parsePublicKey(publicKeyPEM)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("unable to parse ee public key: %w", err)
 	}
 	contents, err := getLicense(input, pk)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to parse provided ee license: %w", err)
 	}
 	return contents, true, nil
 }

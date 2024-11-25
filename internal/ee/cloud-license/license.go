@@ -80,11 +80,11 @@ func getFromEnv() (*licenseContents, bool, error) {
 	}
 	pk, err := parsePublicKey(publicKeyPEM)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("unable to parse neosync cloud public key: %w", err)
 	}
 	contents, err := getLicense(input, pk)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to parse provided license: %w", err)
 	}
 	return contents, true, nil
 }
@@ -127,7 +127,7 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 func parsePublicKey(data string) (ed25519.PublicKey, error) {
 	block, _ := pem.Decode([]byte(data))
 	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the ee public key")
+		return nil, errors.New("failed to parse PEM block containing the public key")
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
