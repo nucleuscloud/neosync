@@ -18,23 +18,20 @@ type Activity struct {
 
 	sqlmanager sql_manager.SqlManagerClient
 
-	eelicense      *license.EELicense
-	isNeosyncCloud bool
+	eelicense license.EEInterface
 }
 
 func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
-	eelicense *license.EELicense,
-	isNeosyncCloud bool,
+	eelicense license.EEInterface,
 ) *Activity {
 	return &Activity{
-		jobclient:      jobclient,
-		connclient:     connclient,
-		sqlmanager:     sqlmanager,
-		eelicense:      eelicense,
-		isNeosyncCloud: isNeosyncCloud,
+		jobclient:  jobclient,
+		connclient: connclient,
+		sqlmanager: sqlmanager,
+		eelicense:  eelicense,
 	}
 }
 
@@ -74,7 +71,6 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.jobclient,
 		a.connclient,
 		a.eelicense,
-		a.isNeosyncCloud,
 		info.WorkflowExecution.ID,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(
