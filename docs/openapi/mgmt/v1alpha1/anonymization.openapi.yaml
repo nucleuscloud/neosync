@@ -1183,6 +1183,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformPiiText:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - language
+            - not:
+                anyOf:
+                  - required:
+                      - language
+      anyOf:
+        - required:
+            - language
+        - not:
+            anyOf:
+              - required:
+                  - language
       properties:
         scoreThreshold:
           type: number
@@ -1215,6 +1230,13 @@ components:
             type: string
           title: allowed_phrases
           description: Exact match of PII phrases identified by the analysis engine.
+        language:
+          type: string
+          title: language
+          description: |-
+            Two characters for the desired language in ISO_639-1 format.
+             If not provided, will use a default language if specified on the server.
+             Depending on the server configuration, may attempt to autodetect from input.
       title: TransformPiiText
       additionalProperties: false
       description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text

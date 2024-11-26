@@ -1765,6 +1765,15 @@ export class TransformPiiText extends Message<TransformPiiText> {
    */
   allowedPhrases: string[] = [];
 
+  /**
+   * Two characters for the desired language in ISO_639-1 format.
+   * If not provided, will use a default language if specified on the server.
+   * Depending on the server configuration, may attempt to autodetect from input.
+   *
+   * @generated from field: optional string language = 6;
+   */
+  language?: string;
+
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1778,6 +1787,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
     { no: 3, name: "deny_recognizers", kind: "message", T: PiiDenyRecognizer, repeated: true },
     { no: 4, name: "allowed_entities", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 5, name: "allowed_phrases", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "language", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
