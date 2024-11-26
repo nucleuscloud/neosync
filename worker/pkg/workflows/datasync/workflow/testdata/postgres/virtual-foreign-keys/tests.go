@@ -8,10 +8,14 @@ import (
 func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
-			Name:               "Virtual Foreign Keys sync",
-			Folder:             "testdata/postgres/virtual-foreign-keys",
-			SourceFilePaths:    []string{"source-setup.sql"},
-			TargetFilePaths:    []string{"target-setup.sql"},
+			Name:            "Virtual Foreign Keys sync",
+			Folder:          "testdata/postgres/virtual-foreign-keys",
+			SourceFilePaths: []string{"source-setup.sql"},
+			TargetFilePaths: []string{"target-setup.sql"},
+			JobOptions: &workflow_testdata.TestJobOptions{
+				Truncate:        false,
+				TruncateCascade: false,
+			},
 			JobMappings:        GetDefaultSyncJobMappings(),
 			VirtualForeignKeys: GetVirtualForeignKeys(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{

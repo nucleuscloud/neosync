@@ -3,12 +3,14 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 type PgxArray[T any] struct {
@@ -163,6 +165,12 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case IsJsonPgDataType(dbTypeName):
 			values[i] = &NullableJSON{}
 			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_interval"):
+			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "interval"):
+			values[i] = &pgtype.Interval{}
+			scanTargets = append(scanTargets, values[i])
 		case isPgxPgArrayType(dbTypeName):
 			values[i] = &PgxArray[any]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
@@ -197,8 +205,26 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				js = t
 			}
 			jObj[col] = js
+		case *PgxArray[*pgtype.Interval]:
+			ia, err := toIntervalArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ia
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
+		case *pgtype.Interval:
+			if !t.Valid {
+				jObj[col] = nil
+				continue
+			}
+			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = neoInterval
 		default:
 			jObj[col] = t
 		}
@@ -221,6 +247,23 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
 }
 
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return neoIntervalArray, nil
+}
+
 func pgArrayToGoSlice(array *PgxArray[any]) any {
 	if array.Elements == nil {
 		return nil
@@ -234,6 +277,7 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		}
 		return CreateMultiDimSlice(dims, array.Elements)
 	}
+
 	return array.Elements
 }
 

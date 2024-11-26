@@ -474,10 +474,14 @@ type Batching struct {
 }
 
 type BatchProcessor struct {
-	Archive   *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
-	Compress  *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
-	SqlToJson *SqlToJsonConfig   `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
-	JsonToSql *JsonToSqlConfig   `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
+	Archive      *ArchiveProcessor   `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress     *CompressProcessor  `json:"compress,omitempty" yaml:"compress,omitempty"`
+	SqlToJson    *SqlToJsonConfig    `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
+	JsonToSql    *JsonToSqlConfig    `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
+	NeosyncToPgx *NeosyncToPgxConfig `json:"neosync_to_pgx,omitempty" yaml:"neosync_to_pgx,omitempty"`
+}
+
+type NeosyncToPgxConfig struct {
 }
 
 type JsonToSqlConfig struct {

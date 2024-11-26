@@ -402,6 +402,9 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
 			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
 		}
+		if b.driver == sqlmanager_shared.PostgresDriver || strings.EqualFold(b.driver, "postgres") {
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
+		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{

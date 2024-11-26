@@ -117,7 +117,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+							PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -331,7 +335,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{
+							MssqlOptions: &mgmtv1alpha1.MssqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -567,6 +575,11 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 					Destinations: []*mgmtv1alpha1.JobDestination{
 						{
 							ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+							Options: &mgmtv1alpha1.JobDestinationOptions{
+								Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+									PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+								},
+							},
 						},
 					},
 				},
@@ -719,7 +732,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+							MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
