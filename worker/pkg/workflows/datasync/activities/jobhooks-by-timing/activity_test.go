@@ -12,7 +12,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -135,10 +134,9 @@ func Test_Activity_Success(t *testing.T) {
 	mockSqlMgrClient := sqlmanager.NewMockSqlManagerClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 
-	mockSqlMgrClient.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Once().Return(&sqlmanager.SqlConnection{
-		Db:     mockSqlDb,
-		Driver: sqlmanager_shared.PostgresDriver,
-	}, nil)
+	mockSqlMgrClient.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything).Once().Return(
+		sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil,
+	)
 	mockSqlDb.On("Exec", mock.Anything, mock.Anything).Twice().Return(nil)
 	mockSqlDb.On("Close").Once().Return(nil)
 

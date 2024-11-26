@@ -239,7 +239,7 @@ func newCliSyncFromCmd(
 	logger.Info("Starting sync")
 
 	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
-	sqlmanagerclient := sqlmanager.NewSqlManager(connmanager)
+	sqlmanagerclient := sqlmanager.NewSqlManager(sqlmanager.WithConnectionManager(connmanager))
 
 	sync := &clisync{
 		connectiondataclient: connectiondataclient,

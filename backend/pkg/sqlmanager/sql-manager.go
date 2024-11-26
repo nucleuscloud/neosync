@@ -10,11 +10,13 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
@@ -36,32 +38,38 @@ type SqlDatabase interface {
 }
 
 type SqlManager struct {
-	connectionManager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]
-	config            *sqlManagerConfig
+	config *sqlManagerConfig
 }
 
 type sqlManagerConfig struct {
 	pgQuerier    pg_queries.Querier
 	mysqlQuerier mysql_queries.Querier
 	mssqlQuerier mssql_queries.Querier
+
+	mgr connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]
 }
 type SqlManagerOption func(*sqlManagerConfig)
 
 func NewSqlManager(
-	connectionManager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx],
 	opts ...SqlManagerOption,
 ) *SqlManager {
 	config := &sqlManagerConfig{
 		pgQuerier:    pg_queries.New(),
 		mysqlQuerier: mysql_queries.New(),
 		mssqlQuerier: mssql_queries.New(),
+		mgr:          connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{})),
 	}
 	for _, opt := range opts {
 		opt(config)
 	}
 	return &SqlManager{
-		connectionManager: connectionManager,
-		config:            config,
+		config: config,
+	}
+}
+
+func WithConnectionManager(manager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mgr = manager
 	}
 }
 
@@ -91,52 +99,33 @@ type SqlManagerClient interface {
 
 var _ SqlManagerClient = &SqlManager{}
 
-type SqlConnection struct {
-	database SqlDatabase
-	driver   string
-}
-
-func (s *SqlConnection) Db() SqlDatabase {
-	return s.database
-}
-func (s *SqlConnection) Driver() string {
-	return s.driver
-}
-func newSqlConnection(database SqlDatabase, driver string) *SqlConnection {
-	return &SqlConnection{database: database, driver: driver}
-}
-
 func (s *SqlManager) NewSqlConnection(
 	ctx context.Context,
 	connection connectionmanager.ConnectionInput,
 	slogger *slog.Logger,
 ) (*SqlConnection, error) {
-	var db SqlDatabase
-	var driver string
 	session := uuid.NewString()
-	connclient, err := s.connectionManager.GetConnection(session, connection, slogger)
+	connclient, err := s.config.mgr.GetConnection(session, connection, slogger)
 	if err != nil {
 		return nil, err
 	}
 	closer := func() {
-		s.connectionManager.ReleaseSession(session)
+		s.config.mgr.ReleaseSession(session)
 	}
 
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		db = sqlmanager_postgres.NewManager(s.config.pgQuerier, connclient, closer)
-		driver = sqlmanager_shared.PostgresDriver
+		db := sqlmanager_postgres.NewManager(s.config.pgQuerier, connclient, closer)
+		return NewPostgresSqlConnection(db), nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		db = sqlmanager_mysql.NewManager(s.config.mysqlQuerier, connclient, closer)
-		driver = sqlmanager_shared.MysqlDriver
+		db := sqlmanager_mysql.NewManager(s.config.mysqlQuerier, connclient, closer)
+		return NewMysqlSqlConnection(db), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db = sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer)
-		driver = sqlmanager_shared.MssqlDriver
+		db := sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer)
+		return NewMssqlSqlConnection(db), nil
 	default:
 		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.GetConnectionConfig().GetConfig())
 	}
-
-	return newSqlConnection(db, driver), nil
 }
 
 func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {

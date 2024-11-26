@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/require"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 
@@ -14,14 +13,12 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/microsoft/go-mssqldb"
 
-	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 )
 
-func Test_NewSqlConnection(t *testing.T) {
+func Test_Manager_NewSqlConnection(t *testing.T) {
 	ok := testutil.ShouldRunIntegrationTest()
 	if !ok {
 		return
@@ -29,9 +26,7 @@ func Test_NewSqlConnection(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	manager := NewSqlManager(connectionmanager.NewConnectionManager(
-		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
-	))
+	manager := NewSqlManager()
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()

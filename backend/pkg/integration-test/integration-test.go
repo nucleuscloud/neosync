@@ -35,8 +35,6 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
-	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
@@ -455,7 +453,5 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 }
 
 func NewTestSqlManagerClient() *sqlmanager.SqlManager {
-	return sqlmanager.NewSqlManager(
-		connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{})),
-	)
+	return sqlmanager.NewSqlManager()
 }

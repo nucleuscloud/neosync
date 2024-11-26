@@ -18,8 +18,6 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -468,7 +466,6 @@ func serve(ctx context.Context) error {
 	mssqlquerier := mssql_queries.New()
 
 	sqlmanager := sql_manager.NewSqlManager(
-		connectionmanager.NewConnectionManager(sqlprovider.NewProvider(sqlConnector)),
 		sql_manager.WithPostgresQuerier(pgquerier),
 		sql_manager.WithMysqlQuerier(mysqlquerier),
 		sql_manager.WithMssqlQuerier(mssqlquerier),
