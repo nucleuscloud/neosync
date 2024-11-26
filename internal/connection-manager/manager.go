@@ -20,10 +20,10 @@ type ConnectionManager[T any] struct {
 	config *managerConfig
 
 	sessionMap map[string]map[string]struct{}
-	sessionMu  sync.RWMutex
+	sessionMu  *sync.RWMutex
 
 	connMap map[string]T
-	connMu  sync.RWMutex
+	connMu  *sync.RWMutex
 
 	shutdown chan any
 }
@@ -35,7 +35,6 @@ type ConnectionInput interface {
 
 type Interface[T any] interface {
 	GetConnection(session string, connection ConnectionInput, logger *slog.Logger) (T, error)
-
 	ReleaseSession(session string) bool
 	Shutdown()
 	Reaper()
@@ -68,6 +67,9 @@ func NewConnectionManager[T any](
 		sessionMap:         map[string]map[string]struct{}{},
 		connMap:            map[string]T{},
 		config:             cfg,
+		shutdown:           make(chan any),
+		sessionMu:          &sync.RWMutex{},
+		connMu:             &sync.RWMutex{},
 	}
 }
 
@@ -76,65 +78,91 @@ func (c *ConnectionManager[T]) GetConnection(
 	connection ConnectionInput,
 	logger *slog.Logger,
 ) (T, error) {
+	// First check if we need to create a new connection
+	c.sessionMu.RLock()
 	c.connMu.RLock()
-	existingDb, ok := c.connMap[connection.GetId()]
-	if ok {
-		c.bindSession(session, connection.GetId())
+	existingDb, exists := c.connMap[connection.GetId()]
+	if exists {
+		// Check if session binding exists
+		_, sessionExists := c.sessionMap[session]
+		c.sessionMu.RUnlock()
 		c.connMu.RUnlock()
+
+		if !sessionExists {
+			return c.handleExistingConnection(session, connection.GetId(), existingDb)
+		}
 		return existingDb, nil
 	}
+	c.sessionMu.RUnlock()
 	c.connMu.RUnlock()
+
+	// Need write locks to create new connection
+	c.sessionMu.Lock()
 	c.connMu.Lock()
 	defer c.connMu.Unlock()
+	defer c.sessionMu.Unlock()
 
-	existingDb, ok = c.connMap[connection.GetId()]
-	if ok {
-		c.bindSession(session, connection.GetId())
+	// Check again under write lock to prevent duplicate creation
+	if existingDb, exists := c.connMap[connection.GetId()]; exists {
+		if _, ok := c.sessionMap[session]; !ok {
+			c.sessionMap[session] = make(map[string]struct{})
+		}
+		c.sessionMap[session][connection.GetId()] = struct{}{}
 		return existingDb, nil
 	}
 
+	// Create new connection
 	connectionClient, err := c.connectionProvider.GetConnectionClient(connection.GetConnectionConfig())
 	if err != nil {
 		var result T
 		return result, err
 	}
 
+	// Store new connection and bind session
 	c.connMap[connection.GetId()] = connectionClient
-	c.bindSession(session, connection.GetId())
+	if _, ok := c.sessionMap[session]; !ok {
+		c.sessionMap[session] = make(map[string]struct{})
+	}
+	c.sessionMap[session][connection.GetId()] = struct{}{}
+
 	return connectionClient, nil
 }
 
+func (c *ConnectionManager[T]) handleExistingConnection(session, connId string, client T) (T, error) {
+	c.sessionMu.Lock()
+	if _, ok := c.sessionMap[session]; !ok {
+		c.sessionMap[session] = make(map[string]struct{})
+	}
+	c.sessionMap[session][connId] = struct{}{}
+	c.sessionMu.Unlock()
+	return client, nil
+}
+
 func (c *ConnectionManager[T]) ReleaseSession(session string) bool {
-	c.sessionMu.RLock()
+	c.sessionMu.Lock()
 	connMap, ok := c.sessionMap[session]
 	if !ok || len(connMap) == 0 {
-		c.sessionMu.RUnlock()
-		return false
-	}
-	c.sessionMu.RUnlock()
-	c.sessionMu.Lock()
-	defer c.sessionMu.Unlock()
-	connMap, ok = c.sessionMap[session]
-	if !ok || len(connMap) == 0 {
+		c.sessionMu.Unlock()
 		return false
 	}
 
 	sessionConnIds := getConnectionIds(connMap)
+
 	delete(c.sessionMap, session)
+	remainingConns := getUniqueConnectionIdsFromSessions(c.sessionMap)
+	c.sessionMu.Unlock()
+
 	if c.config.closeOnRelease {
-		c.closeUnusedConnections(sessionConnIds)
+		c.closeSpecificConnections(sessionConnIds, remainingConns)
 	}
 	return true
 }
 
-func (c *ConnectionManager[T]) closeUnusedConnections(candidateConnIds []string) {
-	remainingConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
-
+func (c *ConnectionManager[T]) closeSpecificConnections(candidateConnIds []string, remainingConns map[string]struct{}) {
 	c.connMu.Lock()
 	defer c.connMu.Unlock()
-
 	for _, connId := range candidateConnIds {
-		if _, stillInUse := remainingConnections[connId]; !stillInUse {
+		if _, stillInUse := remainingConns[connId]; !stillInUse {
 			if dbConn, exists := c.connMap[connId]; exists {
 				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
 					slog.Error(fmt.Sprintf("unable to close client connection during release: %s", err.Error()))
@@ -143,24 +171,6 @@ func (c *ConnectionManager[T]) closeUnusedConnections(candidateConnIds []string)
 			}
 		}
 	}
-}
-
-func (c *ConnectionManager[T]) bindSession(session, connectionId string) {
-	c.sessionMu.RLock()
-	connmap, ok := c.sessionMap[session]
-	if ok {
-		if _, ok := connmap[connectionId]; ok {
-			c.sessionMu.RUnlock()
-			return
-		}
-	}
-	c.sessionMu.RUnlock()
-	c.sessionMu.Lock()
-	defer c.sessionMu.Unlock()
-	if _, ok := c.sessionMap[session]; !ok {
-		c.sessionMap[session] = map[string]struct{}{}
-	}
-	c.sessionMap[session][connectionId] = struct{}{}
 }
 
 func (c *ConnectionManager[T]) Shutdown() {
@@ -174,43 +184,49 @@ func (c *ConnectionManager[T]) Reaper() {
 			c.hardClose()
 			return
 		case <-time.After(1 * time.Minute):
-			c.close()
+			c.cleanUnusedConnections()
 		}
 	}
 }
 
 func (c *ConnectionManager[T]) hardClose() {
-	c.connMu.Lock()
+	// Acquire locks in consistent order
 	c.sessionMu.Lock()
+	c.connMu.Lock()
+
+	// Close all connections
 	for connId, dbConn := range c.connMap {
-		err := c.connectionProvider.CloseClientConnection(dbConn)
-		if err != nil {
+		if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
 			slog.Error(fmt.Sprintf("unable to fully close client connection during hard close: %s", err.Error()))
 		}
 		delete(c.connMap, connId)
 	}
 
+	// Clear all sessions
 	for sessionId := range c.sessionMap {
 		delete(c.sessionMap, sessionId)
 	}
+
 	c.connMu.Unlock()
 	c.sessionMu.Unlock()
 }
 
-func (c *ConnectionManager[T]) close() {
-	c.connMu.Lock()
-	c.sessionMu.Lock()
+func (c *ConnectionManager[T]) cleanUnusedConnections() {
+	// Get session info first
+	c.sessionMu.RLock()
 	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
+	c.sessionMu.RUnlock()
+
+	// Then handle connections
+	c.connMu.Lock()
 	for connId, dbConn := range c.connMap {
 		if _, ok := sessionConnections[connId]; !ok {
-			err := c.connectionProvider.CloseClientConnection(dbConn)
-			if err != nil {
-				slog.Error(fmt.Sprintf("unable to fully close client connection during close: %s", err.Error()))
+			if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
+				slog.Error(fmt.Sprintf("unable to fully close client connection during cleanup: %s", err.Error()))
 			}
 			delete(c.connMap, connId)
 		}
 	}
-	c.sessionMu.Unlock()
 	c.connMu.Unlock()
 }
 
