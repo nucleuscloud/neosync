@@ -575,6 +575,11 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 					Destinations: []*mgmtv1alpha1.JobDestination{
 						{
 							ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+							Options: &mgmtv1alpha1.JobDestinationOptions{
+								Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+									PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+								},
+							},
 						},
 					},
 				},
