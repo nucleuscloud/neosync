@@ -595,6 +595,9 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
 		}
 		config := transformerConfig.GetTransformPiiTextConfig()
+		if config == nil {
+			config = &mgmtv1alpha1.TransformPiiText{}
+		}
 		if config.GetLanguage() == "" && execCfg.transformPiiText.defaultLanguage != nil {
 			config.Language = execCfg.transformPiiText.defaultLanguage
 		}
