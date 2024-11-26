@@ -12,11 +12,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
@@ -30,14 +27,13 @@ import (
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -186,7 +182,7 @@ type clisync struct {
 	connectionclient      mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient     mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient      *sqlmanager.SqlManager
-	sqlconnector          *sqlconnect.SqlOpenConnector
+	connmanager           connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]
 	benv                  *service.Environment
 	sourceConnection      *mgmtv1alpha1.Connection
 	destinationConnection *mgmtv1alpha1.Connection
@@ -242,21 +238,15 @@ func newCliSyncFromCmd(
 
 	logger.Info("Starting sync")
 
-	pgpoolmap := &syncmap.Map{}
-	mysqlpoolmap := &syncmap.Map{}
-	mssqlpoolmap := &syncmap.Map{}
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
-	mssqlquerier := mssql_queries.New()
-	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
+	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	sqlmanagerclient := sqlmanager.NewSqlManager(connmanager)
 
 	sync := &clisync{
 		connectiondataclient: connectiondataclient,
 		connectionclient:     connectionclient,
 		transformerclient:    transformerclient,
 		sqlmanagerclient:     sqlmanagerclient,
-		sqlconnector:         sqlConnector,
+		connmanager:          connmanager,
 		cmd:                  cmdCfg,
 		logger:               logger,
 		ctx:                  ctx,
@@ -276,15 +266,10 @@ func (c *clisync) configureAndRunSync() error {
 	sourceConnection := connResp.Msg.GetConnection()
 	c.sourceConnection = sourceConnection
 
-	connectionprovider := providers.NewProvider(
-		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(c.sqlconnector),
-	)
-	tunnelmanager := connectionmanager.NewConnectionManager(connectionprovider)
 	session := uuid.NewString()
 	// might not need this in cli context
 	defer func() {
-		tunnelmanager.ReleaseSession(session)
+		c.connmanager.ReleaseSession(session)
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
@@ -316,7 +301,7 @@ func (c *clisync) configureAndRunSync() error {
 		c.logger,
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
 			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(
-				tunnelmanager,
+				c.connmanager,
 				dsnToConnIdMap,
 				map[string]*mgmtv1alpha1.Connection{
 					destConnection.Id:   destConnection,
@@ -762,11 +747,12 @@ func (c *clisync) runDestinationInitStatements(
 	schemaConfig *schemaConfig,
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
-	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(c.ctx, string(c.cmd.Destination.Driver), c.cmd.Destination.ConnectionUrl)
+	destConnection := cmdConfigToDestinationConnection(c.cmd)
+	db, err := c.sqlmanagerclient.NewSqlConnection(c.ctx, destConnection, c.logger)
 	if err != nil {
 		return err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 	if c.cmd.Destination.InitSchema {
 		if len(schemaConfig.InitSchemaStatements) != 0 {
 			for _, block := range schemaConfig.InitSchemaStatements {
@@ -774,7 +760,7 @@ func (c *clisync) runDestinationInitStatements(
 				if len(block.Statements) == 0 {
 					continue
 				}
-				err = db.Db.BatchExec(c.ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
+				err = db.Db().BatchExec(c.ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
 				if err != nil {
 					c.logger.Error(fmt.Sprintf("Error creating tables: %v", err))
 					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
@@ -794,7 +780,7 @@ func (c *clisync) runDestinationInitStatements(
 				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t.String()])
 			}
 
-			err = db.Db.BatchExec(c.ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
+			err = db.Db().BatchExec(c.ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error creating tables: %v", err))
 				return err
@@ -810,7 +796,7 @@ func (c *clisync) runDestinationInitStatements(
 					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
 				}
 			}
-			err = db.Db.BatchExec(c.ctx, batchSize, truncateCascadeStmts, &sql_manager.BatchExecOpts{})
+			err = db.Db().BatchExec(c.ctx, batchSize, truncateCascadeStmts, &sql_manager.BatchExecOpts{})
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error truncate cascade tables: %v", err))
 				return err
@@ -824,7 +810,7 @@ func (c *clisync) runDestinationInitStatements(
 			if err != nil {
 				return err
 			}
-			err = db.Db.Exec(c.ctx, orderedTruncateStatement)
+			err = db.Db().Exec(c.ctx, orderedTruncateStatement)
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error truncating tables: %v", err))
 				return err
@@ -840,7 +826,7 @@ func (c *clisync) runDestinationInitStatements(
 			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t.String()])
 		}
 		disableFkChecks := sql_manager.DisableForeignKeyChecks
-		err = db.Db.BatchExec(c.ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
+		err = db.Db().BatchExec(c.ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
 		if err != nil {
 			c.logger.Error(fmt.Sprintf("Error truncating tables: %v", err))
 			return err
@@ -1103,13 +1089,14 @@ func (c *clisync) getDestinationSchemaConfig(
 func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager.TableConstraints, error) {
 	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(cctx, string(c.cmd.Destination.Driver), c.cmd.Destination.ConnectionUrl)
+	destConnection := cmdConfigToDestinationConnection(c.cmd)
+	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, destConnection, c.logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	constraints, err := db.Db.GetTableConstraintsBySchema(cctx, schemas)
+	constraints, err := db.Db().GetTableConstraintsBySchema(cctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1120,13 +1107,14 @@ func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager
 func (c *clisync) getDestinationSchemas() ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(cctx, string(c.cmd.Destination.Driver), c.cmd.Destination.ConnectionUrl)
+	destConnection := cmdConfigToDestinationConnection(c.cmd)
+	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, destConnection, c.logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	dbschema, err := db.Db.GetDatabaseSchema(cctx)
+	dbschema, err := db.Db().GetDatabaseSchema(cctx)
 	if err != nil {
 		return nil, err
 	}

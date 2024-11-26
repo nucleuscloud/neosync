@@ -104,13 +104,13 @@ func (a *Activity) RunPostTableSync(
 		}
 		switch destinationConnection.GetConnectionConfig().GetConfig().(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			destDb, err := a.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, destinationConnection, slogger)
 			if err != nil {
-				destDb.Db.Close()
+				destDb.Db().Close()
 				slogger.Error("unable to connection to destination", "connectionId", destConnectionId)
 				continue
 			}
-			err = destDb.Db.BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
+			err = destDb.Db().BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
 			if err != nil {
 				slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
 				continue

@@ -489,14 +489,13 @@ func (s *Service) GetConnectionSchema(
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		connectionTimeout := 5
-		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection, &connectionTimeout)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connection, logger)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db.Close()
+		defer db.Db().Close()
 
-		dbschema, err := db.Db.GetDatabaseSchema(ctx)
+		dbschema, err := db.Db().GetDatabaseSchema(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -772,13 +771,12 @@ func (s *Service) GetConnectionForeignConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
-	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	defer db.Db().Close()
+	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -836,14 +834,13 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -887,12 +884,11 @@ func (s *Service) GetConnectionInitStatements(
 		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
 	createStmtsMap := map[string]string{}
 	truncateStmtsMap := map[string]string{}
@@ -900,14 +896,14 @@ func (s *Service) GetConnectionInitStatements(
 	if req.Msg.GetOptions().GetInitSchema() {
 		tables := []*sqlmanager_shared.SchemaTable{}
 		for k, v := range schemaTableMap {
-			stmt, err := db.Db.GetCreateTableStatement(ctx, v.Schema, v.Table)
+			stmt, err := db.Db().GetCreateTableStatement(ctx, v.Schema, v.Table)
 			if err != nil {
 				return nil, err
 			}
 			createStmtsMap[k] = stmt
 			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
 		}
-		initBlocks, err := db.Db.GetSchemaInitStatements(ctx, tables)
+		initBlocks, err := db.Db().GetSchemaInitStatements(ctx, tables)
 		if err != nil {
 			return nil, err
 		}
@@ -1235,14 +1231,13 @@ func (s *Service) GetConnectionUniqueConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1397,13 +1392,12 @@ func (s *Service) GetConnectionTableConstraints(
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		connectionTimeout := 5
-		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db.Close()
-		tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+		defer db.Db().Close()
+		tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 		if err != nil {
 			return nil, err
 		}
@@ -1470,14 +1464,13 @@ func (s *Service) GetTableRowCount(
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		connectionTimeout := 5
-		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db.Close()
+		defer db.Db().Close()
 
-		count, err := db.Db.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
+		count, err := db.Db().GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
 		if err != nil {
 			return nil, err
 		}

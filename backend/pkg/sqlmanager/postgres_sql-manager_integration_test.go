@@ -2,18 +2,17 @@ package sqlmanager
 
 import (
 	context "context"
-	slog "log/slog"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 )
@@ -58,7 +57,9 @@ func (s *PostgresIntegrationTestSuite) SetupSuite() {
 }
 
 func (s *PostgresIntegrationTestSuite) SetupTest() {
-	s.sqlmanager = NewSqlManager(&sync.Map{}, pg_queries.New(), nil, nil, nil, nil, &sqlconnect.SqlOpenConnector{})
+	s.sqlmanager = NewSqlManager(connectionmanager.NewConnectionManager(
+		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+	))
 }
 
 func (s *PostgresIntegrationTestSuite) TearDownTest() {
@@ -84,44 +85,44 @@ func TestPostgresIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(PostgresIntegrationTestSuite))
 }
 
-func (s *PostgresIntegrationTestSuite) Test_NewPooledSqlDb() {
+func (s *PostgresIntegrationTestSuite) Test_NewSqlConnection() {
 	t := s.T()
 
-	conn, err := s.sqlmanager.NewPooledSqlDb(s.ctx, slog.Default(), s.mgmtconn)
+	conn, err := s.sqlmanager.NewSqlConnection(s.ctx, s.mgmtconn, testutil.GetTestLogger(t))
 	requireNoConnErr(t, conn, err)
+	defer conn.Db().Close()
 	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
-	conn.Db.Close()
 }
 
-func (s *PostgresIntegrationTestSuite) Test_NewSqlDb() {
-	t := s.T()
+// func (s *PostgresIntegrationTestSuite) Test_NewSqlDb() {
+// 	t := s.T()
 
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
-	requireNoConnErr(t, conn, err)
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *PostgresIntegrationTestSuite) Test_NewSqlDbFromUrl() {
-	t := s.T()
-	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "postgres", s.pgcfg.GetUrl())
-	requireNoConnErr(t, conn, err)
+// func (s *PostgresIntegrationTestSuite) Test_NewSqlDbFromUrl() {
+// 	t := s.T()
+// 	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "postgres", s.pgcfg.GetUrl())
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *PostgresIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
-	t := s.T()
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
-	requireNoConnErr(t, conn, err)
+// func (s *PostgresIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
+// 	t := s.T()
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "pgx", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
 func requireNoConnErr(t testing.TB, conn *SqlConnection, err error) {
 	require.NoError(t, err)
@@ -130,6 +131,6 @@ func requireNoConnErr(t testing.TB, conn *SqlConnection, err error) {
 
 func requireValidDatabase(t testing.TB, ctx context.Context, conn *SqlConnection, driver, statement string) { //nolint
 	require.Equal(t, conn.Driver, driver)
-	err := conn.Db.Exec(ctx, statement)
+	err := conn.Db().Exec(ctx, statement)
 	require.NoError(t, err)
 }

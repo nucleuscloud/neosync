@@ -2,17 +2,16 @@ package sqlmanager
 
 import (
 	context "context"
-	slog "log/slog"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/suite"
 
 	_ "github.com/go-sql-driver/mysql"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 )
@@ -57,7 +56,9 @@ func (s *MysqlIntegrationTestSuite) SetupSuite() {
 }
 
 func (s *MysqlIntegrationTestSuite) SetupTest() {
-	s.sqlmanager = NewSqlManager(nil, nil, &sync.Map{}, mysql_queries.New(), nil, nil, &sqlconnect.SqlOpenConnector{})
+	s.sqlmanager = NewSqlManager(connectionmanager.NewConnectionManager(
+		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+	))
 }
 
 func (s *MysqlIntegrationTestSuite) TearDownTest() {
@@ -83,41 +84,41 @@ func TestMysqlIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(MysqlIntegrationTestSuite))
 }
 
-func (s *MysqlIntegrationTestSuite) Test_NewPooledSqlDb() {
+func (s *MysqlIntegrationTestSuite) Test_NewSqlConnection() {
 	t := s.T()
 
-	conn, err := s.sqlmanager.NewPooledSqlDb(s.ctx, slog.Default(), s.mgmtconn)
+	conn, err := s.sqlmanager.NewSqlConnection(s.ctx, s.mgmtconn, testutil.GetTestLogger(t))
 	requireNoConnErr(t, conn, err)
+	defer conn.Db().Close()
 	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
-	conn.Db.Close()
 }
 
-func (s *MysqlIntegrationTestSuite) Test_NewSqlDb() {
-	t := s.T()
+// func (s *MysqlIntegrationTestSuite) Test_NewSqlDb() {
+// 	t := s.T()
 
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
-	requireNoConnErr(t, conn, err)
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *MysqlIntegrationTestSuite) Test_NewSqlDbFromUrl() {
-	t := s.T()
-	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "mysql", s.mysqlcontainer.URL)
-	requireNoConnErr(t, conn, err)
+// func (s *MysqlIntegrationTestSuite) Test_NewSqlDbFromUrl() {
+// 	t := s.T()
+// 	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "mysql", s.mysqlcontainer.URL)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *MysqlIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
-	t := s.T()
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
-	requireNoConnErr(t, conn, err)
+// func (s *MysqlIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
+// 	t := s.T()
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "mysql", "SELECT 1")
+// 	conn.Db.Close()
+// }

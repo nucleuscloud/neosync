@@ -51,17 +51,17 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
 
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping)
 	sourceTableOpts := groupGenerateSourceOptionsByTable(sourceOptions.Schemas)
-	groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
+	groupedSchemas, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
@@ -139,7 +139,7 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		}
 
 		columns := buildPlainColumns(tableMapping.Mappings)
-		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, columns, tableColInfo, tableColTransformers)
+		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver(), columns, tableColInfo, tableColTransformers)
 		if err != nil {
 			return nil, err
 		}

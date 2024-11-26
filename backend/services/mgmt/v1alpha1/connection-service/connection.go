@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/google/uuid"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -24,6 +25,18 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+type connInput struct {
+	cc *mgmtv1alpha1.ConnectionConfig
+	id string
+}
+
+func (c *connInput) GetId() string {
+	return c.id
+}
+func (c *connInput) GetConnectionConfig() *mgmtv1alpha1.ConnectionConfig {
+	return c.cc
+}
+
 func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
@@ -36,13 +49,13 @@ func (s *Service) CheckConnectionConfig(
 		if err != nil {
 			return nil, err
 		}
-		connTimeout := 5
-		db, err := s.sqlmanager.NewSqlDbFromConnectionConfig(ctx, logger, req.Msg.GetConnectionConfig(), &connTimeout)
+		s.sqlmanager.NewSqlConnection(ctx, &mgmtv1alpha1.Connection{ConnectionConfig: req.Msg.GetConnectionConfig()}, logger)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db.Close()
-		schematablePrivsMap, err := db.Db.GetRolePermissionsMap(ctx)
+		defer db.Db().Close()
+		schematablePrivsMap, err := db.Db().GetRolePermissionsMap(ctx)
 		if err != nil {
 			errmsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{

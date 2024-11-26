@@ -99,7 +99,7 @@ func (a *Activity) RunJobHooksByTiming(
 	connections := make(map[string]*sqlmanager.SqlConnection)
 	defer func() {
 		for _, conn := range connections {
-			conn.Db.Close()
+			conn.Db().Close()
 		}
 	}()
 
@@ -143,7 +143,7 @@ func (a *Activity) getCachedConnectionFn(
 		conn, ok := connections[connectionId]
 		if ok {
 			logger.Debug("found cached connection when running hook")
-			return conn.Db, nil
+			return conn.Db(), nil
 		}
 		logger.Debug("initializing connection for hook")
 		connectionResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
@@ -153,19 +153,19 @@ func (a *Activity) getCachedConnectionFn(
 			return nil, err
 		}
 		connection := connectionResp.Msg.GetConnection()
-		sqlconnection, err := a.sqlmanagerclient.NewPooledSqlDb(
+		sqlconnection, err := a.sqlmanagerclient.NewSqlConnection(
 			ctx,
+			connection,
 			slogger.With(
 				"connectionId", connection.GetId(),
 				"accountId", connection.GetAccountId(),
 			),
-			connection,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize pooled sql connection: %W", err)
 		}
 		connections[connectionId] = sqlconnection
-		return sqlconnection.Db, nil
+		return sqlconnection.Db(), nil
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 )
 
-type Getter = func(url string) (neosync_benthos_mongodb.MongoClient, error)
+type Getter func(url string) (neosync_benthos_mongodb.MongoClient, error)
 
 // wrapper used for benthos mongo-based connections to retrieve the connection they need
 type Provider struct {

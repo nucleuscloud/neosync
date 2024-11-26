@@ -1507,14 +1507,13 @@ func (s *Service) ValidateJobMappings(
 		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	colInfoMap, err := db.Db.GetSchemaColumnMap(ctx)
+	colInfoMap, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1530,7 +1529,7 @@ func (s *Service) ValidateJobMappings(
 		schemas = append(schemas, s)
 	}
 
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}

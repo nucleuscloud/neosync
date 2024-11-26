@@ -3,15 +3,14 @@ package sqlmanager
 import (
 	context "context"
 	"fmt"
-	slog "log/slog"
 	"net/url"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/suite"
 
@@ -71,7 +70,9 @@ func (s *MssqlIntegrationTestSuite) SetupSuite() {
 }
 
 func (s *MssqlIntegrationTestSuite) SetupTest() {
-	s.sqlmanager = NewSqlManager(nil, nil, nil, nil, &sync.Map{}, mssql_queries.New(), &sqlconnect.SqlOpenConnector{})
+	s.sqlmanager = NewSqlManager(connectionmanager.NewConnectionManager(
+		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+	))
 }
 
 func (s *MssqlIntegrationTestSuite) TearDownTest() {
@@ -97,41 +98,41 @@ func TestMssqlIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(MssqlIntegrationTestSuite))
 }
 
-func (s *MssqlIntegrationTestSuite) Test_NewPooledSqlDb() {
+func (s *MssqlIntegrationTestSuite) Test_NewSqlConnection() {
 	t := s.T()
 
-	conn, err := s.sqlmanager.NewPooledSqlDb(s.ctx, slog.Default(), s.mgmtconn)
+	conn, err := s.sqlmanager.NewSqlConnection(s.ctx, s.mgmtconn, testutil.GetTestLogger(t))
 	requireNoConnErr(t, conn, err)
+	defer conn.Db().Close()
 	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
-	conn.Db.Close()
 }
 
-func (s *MssqlIntegrationTestSuite) Test_NewSqlDb() {
-	t := s.T()
+// func (s *MssqlIntegrationTestSuite) Test_NewSqlDb() {
+// 	t := s.T()
 
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
-	requireNoConnErr(t, conn, err)
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDb(s.ctx, slog.Default(), s.mgmtconn, &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *MssqlIntegrationTestSuite) Test_NewSqlDbFromUrl() {
-	t := s.T()
-	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "sqlserver", s.conncfg.GetUrl())
-	requireNoConnErr(t, conn, err)
+// func (s *MssqlIntegrationTestSuite) Test_NewSqlDbFromUrl() {
+// 	t := s.T()
+// 	conn, err := s.sqlmanager.NewSqlDbFromUrl(s.ctx, "sqlserver", s.conncfg.GetUrl())
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
+// 	conn.Db.Close()
+// }
 
-func (s *MssqlIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
-	t := s.T()
-	connTimeout := 5
-	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
-	requireNoConnErr(t, conn, err)
+// func (s *MssqlIntegrationTestSuite) Test_NewSqlDbFromConnectionConfig() {
+// 	t := s.T()
+// 	connTimeout := 5
+// 	conn, err := s.sqlmanager.NewSqlDbFromConnectionConfig(s.ctx, slog.Default(), s.mgmtconn.GetConnectionConfig(), &connTimeout)
+// 	requireNoConnErr(t, conn, err)
 
-	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
-	conn.Db.Close()
-}
+// 	requireValidDatabase(t, s.ctx, conn, "sqlserver", "SELECT 1")
+// 	conn.Db.Close()
+// }

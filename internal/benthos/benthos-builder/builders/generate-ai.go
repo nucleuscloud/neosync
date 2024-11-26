@@ -67,13 +67,13 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 	if err != nil {
 		return nil, err
 	}
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, params.Logger, constraintConnection)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, constraintConnection, params.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
+	groupedSchemas, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}

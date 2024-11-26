@@ -85,13 +85,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	groupedColumnInfo, err := db.Db.GetSchemaColumnMap(ctx)
+	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
@@ -113,7 +113,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve database table constraints: %w", err)
 	}
@@ -141,12 +141,12 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver(), tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -490,20 +490,20 @@ func getSqlSchemaColumnMap(
 	schemaColMap := sourceSchemaColumnInfoMap
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, destinationConnection, slogger)
 		if err != nil {
-			destDb.Db.Close()
+			destDb.Db().Close()
 			return schemaColMap
 		}
-		destColMap, err := destDb.Db.GetSchemaColumnMap(ctx)
+		destColMap, err := destDb.Db().GetSchemaColumnMap(ctx)
 		if err != nil {
-			destDb.Db.Close()
+			destDb.Db().Close()
 			return schemaColMap
 		}
 		if len(destColMap) != 0 {
 			return mergeSourceDestinationColumnInfo(sourceSchemaColumnInfoMap, destColMap)
 		}
-		destDb.Db.Close()
+		destDb.Db().Close()
 	}
 	return schemaColMap
 }

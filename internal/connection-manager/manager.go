@@ -26,19 +26,20 @@ type ConnectionManager[T any] struct {
 	shutdown chan any
 }
 
-type ConnectionDetails interface {
-	String() string
+type ConnectionInput interface {
+	GetId() string
+	GetConnectionConfig() *mgmtv1alpha1.ConnectionConfig
 }
 
 type Interface[T any] interface {
-	GetConnection(session string, connection *mgmtv1alpha1.Connection, logger *slog.Logger) (T, error)
+	GetConnection(session string, connection ConnectionInput, logger *slog.Logger) (T, error)
 
 	ReleaseSession(session string) bool
 	Shutdown()
 	Reaper()
 }
 
-var _ Interface[any] = &ConnectionManager[any]{} // enforces ConnectionManager always conforms to the interface
+var _ Interface[any] = &ConnectionManager[any]{}
 
 func NewConnectionManager[T any](connectionProvider ConnectionProvider[T]) *ConnectionManager[T] {
 	return &ConnectionManager[T]{
@@ -50,13 +51,13 @@ func NewConnectionManager[T any](connectionProvider ConnectionProvider[T]) *Conn
 
 func (c *ConnectionManager[T]) GetConnection(
 	session string,
-	connection *mgmtv1alpha1.Connection,
+	connection ConnectionInput,
 	logger *slog.Logger,
 ) (T, error) {
 	c.connMu.RLock()
-	existingDb, ok := c.connMap[connection.Id]
+	existingDb, ok := c.connMap[connection.GetId()]
 	if ok {
-		c.bindSession(session, connection.Id)
+		c.bindSession(session, connection.GetId())
 		c.connMu.RUnlock()
 		return existingDb, nil
 	}
@@ -64,9 +65,9 @@ func (c *ConnectionManager[T]) GetConnection(
 	c.connMu.Lock()
 	defer c.connMu.Unlock()
 
-	existingDb, ok = c.connMap[connection.Id]
+	existingDb, ok = c.connMap[connection.GetId()]
 	if ok {
-		c.bindSession(session, connection.Id)
+		c.bindSession(session, connection.GetId())
 		return existingDb, nil
 	}
 
@@ -76,8 +77,8 @@ func (c *ConnectionManager[T]) GetConnection(
 		return result, err
 	}
 
-	c.connMap[connection.Id] = connectionClient
-	c.bindSession(session, connection.Id)
+	c.connMap[connection.GetId()] = connectionClient
+	c.bindSession(session, connection.GetId())
 	return connectionClient, nil
 }
 
