@@ -104,7 +104,7 @@ func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectionmanage
 		mongoprovider.NewProvider(),
 		sqlprovider.NewProvider(a.sqlconnector),
 	)
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager[any](connectionProvider))
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager(connectionProvider))
 	manager, ok := val.(connectionmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
