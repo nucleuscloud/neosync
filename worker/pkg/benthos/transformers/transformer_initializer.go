@@ -24,13 +24,16 @@ type TransformerExecutorConfig struct {
 type transformPiiTextConfig struct {
 	analyze   presidioapi.AnalyzeInterface
 	anonymize presidioapi.AnonymizeInterface
+
+	defaultLanguage *string
 }
 
-func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface) TransformerExecutorOption {
+func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, defaultLanguage *string) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.transformPiiText = &transformPiiTextConfig{
-			analyze:   analyze,
-			anonymize: anonymize,
+			analyze:         analyze,
+			anonymize:       anonymize,
+			defaultLanguage: defaultLanguage,
 		}
 	}
 }
@@ -592,6 +595,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
 		}
 		config := transformerConfig.GetTransformPiiTextConfig()
+		if config == nil {
+			config = &mgmtv1alpha1.TransformPiiText{}
+		}
+		if config.GetLanguage() == "" && execCfg.transformPiiText.defaultLanguage != nil {
+			config.Language = execCfg.transformPiiText.defaultLanguage
+		}
 
 		return &TransformerExecutor{
 			Opts: nil,
@@ -603,7 +612,8 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				return ee_transformer_fns.TransformPiiText(
 					context.Background(),
 					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
-					config, valueStr,
+					config,
+					valueStr,
 				)
 			},
 		}, nil

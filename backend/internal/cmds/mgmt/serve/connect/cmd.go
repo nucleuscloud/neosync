@@ -560,9 +560,10 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled: ncloudlicense.IsValid(),
-		IsAuthEnabled:     isAuthEnabled,
-		IsNeosyncCloud:    ncloudlicense.IsValid(),
+		IsPresidioEnabled:       ncloudlicense.IsValid(),
+		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
+		IsAuthEnabled:           isAuthEnabled,
+		IsNeosyncCloud:          ncloudlicense.IsValid(),
 	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
@@ -630,6 +631,14 @@ func serve(ctx context.Context) error {
 		slogger.Error(err.Error())
 	}
 	return nil
+}
+
+func getPresidioDefaultLanguage() *string {
+	lang := viper.GetString("PRESIDIO_DEFAULT_LANGUAGE")
+	if lang == "" {
+		return nil
+	}
+	return &lang
 }
 
 func getPromClientFromEnvironment() (promapi.Client, error) {
