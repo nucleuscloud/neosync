@@ -62,6 +62,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
@@ -115,9 +116,11 @@ func serve(ctx context.Context) error {
 	}
 	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
 
-	if getIsNeosyncCloud() {
-		slogger.Debug("neosync cloud is enabled")
+	ncloudlicense, err := cloudlicense.NewFromEnv()
+	if err != nil {
+		return err
 	}
+	slogger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
 	mux := http.NewServeMux()
 
@@ -301,7 +304,7 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(getIsNeosyncCloud()), []string{
+		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(ncloudlicense.IsValid()), []string{
 			mgmtv1alpha1connect.JobServiceGetJobProcedure,
 			mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 			mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
@@ -431,7 +434,7 @@ func serve(ctx context.Context) error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
-		IsNeosyncCloud:           getIsNeosyncCloud(),
+		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
 	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
 	api.Handle(
@@ -480,7 +483,7 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if getIsNeosyncCloud() || eelicense.IsValid() {
+	if ncloudlicense.IsValid() || eelicense.IsValid() {
 		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
 	}
 
@@ -497,7 +500,7 @@ func serve(ctx context.Context) error {
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled:  isAuthEnabled,
-		IsNeosyncCloud: getIsNeosyncCloud(),
+		IsNeosyncCloud: ncloudlicense.IsValid(),
 		RunLogConfig:   runLogConfig,
 	}
 	jobService := v1alpha1_jobservice.New(
@@ -522,7 +525,7 @@ func serve(ctx context.Context) error {
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 	var presEntityClient presidioapi.EntityInterface
-	if getIsNeosyncCloud() {
+	if ncloudlicense.IsValid() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
 			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
@@ -543,8 +546,8 @@ func serve(ctx context.Context) error {
 	}
 
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
-		IsPresidioEnabled: getIsNeosyncCloud(),
-		IsNeosyncCloud:    getIsNeosyncCloud(),
+		IsPresidioEnabled: ncloudlicense.IsValid(),
+		IsNeosyncCloud:    ncloudlicense.IsValid(),
 	}, db, useraccountService, presEntityClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
@@ -557,9 +560,9 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled: getIsNeosyncCloud(),
+		IsPresidioEnabled: ncloudlicense.IsValid(),
 		IsAuthEnabled:     isAuthEnabled,
-		IsNeosyncCloud:    getIsNeosyncCloud(),
+		IsNeosyncCloud:    ncloudlicense.IsValid(),
 	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
@@ -889,10 +892,6 @@ func getAuthApiClientSecret() string {
 
 func getAuthApiProvider() string {
 	return viper.GetString("AUTH_API_PROVIDER")
-}
-
-func getIsNeosyncCloud() bool {
-	return viper.GetBool("NEOSYNC_CLOUD")
 }
 
 func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {

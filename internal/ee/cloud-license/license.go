@@ -1,4 +1,4 @@
-package license
+package cloudlicense
 
 import (
 	"crypto/ed25519"
@@ -14,75 +14,77 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:embed neosync_ee_pub.pem
+//go:embed neosync_cloud_pub.pem
 var publicKeyPEM string
 
-const (
-	eeLicenseEvKey = "EE_LICENSE"
-)
-
-// The expected base64 decoded structure of the EE_LICENSE file
+// The expected base64 decoded structure of the NEOSYNC_CLOUD_LICENSE file
 type licenseFile struct {
 	License   string `json:"license"`
 	Signature string `json:"signature"`
 }
 
-type EEInterface interface {
+type Interface interface {
 	IsValid() bool
 }
 
-var _ EEInterface = (*EELicense)(nil)
+var _ Interface = (*CloudLicense)(nil)
 
-type EELicense struct {
+type CloudLicense struct {
 	contents *licenseContents
 }
 
-func (e *EELicense) IsValid() bool {
-	return e.contents != nil && e.contents.IsValid()
-}
-
-// Retrieves the EE license from the environment
-// If not enabled, will still return valid struct.
-// Errors if not able to properly parse a provided EE license from the environment
-func NewFromEnv() (*EELicense, error) {
-	lc, _, err := getLicenseFromEnv()
+// Determines if Neosync Cloud is enabled.
+// If not enabled, returns a valid struct where IsValid returns false
+// If enabled but no license if provided, returns an error
+func NewFromEnv() (*CloudLicense, error) {
+	lc, isEnabled, err := getFromEnv()
 	if err != nil {
 		return nil, err
 	}
-	return newFromLicenseContents(lc), nil
+	if !isEnabled {
+		return &CloudLicense{contents: nil}, nil
+	}
+	return &CloudLicense{contents: lc}, nil
 }
 
-func newFromLicenseContents(contents *licenseContents) *EELicense {
-	return &EELicense{contents: contents}
+func (c *CloudLicense) IsValid() bool {
+	return c.contents != nil && c.contents.IsValid()
 }
 
-// The expected base64 decoded structure of the EE_LICENSE.contents file
 type licenseContents struct {
-	Version    string    `json:"version"`
-	Id         string    `json:"id"`
-	IssuedTo   string    `json:"issued_to"`
-	CustomerId string    `json:"customer_id"`
-	IssuedAt   time.Time `json:"issued_at"`
-	ExpiresAt  time.Time `json:"expires_at"`
+	Version   string    `json:"version"`
+	Id        string    `json:"id"`
+	IssuedTo  string    `json:"issued_to"`
+	IssuedAt  time.Time `json:"issued_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 func (l *licenseContents) IsValid() bool {
 	return time.Now().UTC().Before(l.ExpiresAt)
 }
 
-// Retrieves the EE license from the environment
-func getLicenseFromEnv() (*licenseContents, bool, error) {
-	input := viper.GetString(eeLicenseEvKey)
-	if input == "" {
+const (
+	cloudLicenseEvKey = "NEOSYNC_CLOUD_LICENSE"
+	cloudEnabledEvKey = "NEOSYNC_CLOUD"
+)
+
+func getFromEnv() (*licenseContents, bool, error) {
+	isCloud := viper.GetBool(cloudEnabledEvKey)
+	if !isCloud {
 		return nil, false, nil
+	}
+
+	input := viper.GetString(cloudLicenseEvKey)
+	if input == "" {
+		return nil, false, fmt.Errorf("%s was true but no license was found at %s", cloudEnabledEvKey, cloudLicenseEvKey)
 	}
 	pk, err := parsePublicKey(publicKeyPEM)
 	if err != nil {
-		return nil, false, fmt.Errorf("unable to parse ee public key: %w", err)
+		return nil, false, fmt.Errorf("unable to parse neosync cloud public key: %w", err)
 	}
 	contents, err := getLicense(input, pk)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to parse provided ee license: %w", err)
+		return nil, false, fmt.Errorf("failed to parse provided license: %w", err)
 	}
 	return contents, true, nil
 }
@@ -125,7 +127,7 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 func parsePublicKey(data string) (ed25519.PublicKey, error) {
 	block, _ := pem.Decode([]byte(data))
 	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the ee public key")
+		return nil, errors.New("failed to parse PEM block containing the public key")
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
