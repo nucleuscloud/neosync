@@ -17,6 +17,8 @@ type ConnectionProvider[T any] interface {
 type ConnectionManager[T any] struct {
 	connectionProvider ConnectionProvider[T]
 
+	config *managerConfig
+
 	sessionMap map[string]map[string]struct{}
 	sessionMu  sync.RWMutex
 
@@ -41,11 +43,31 @@ type Interface[T any] interface {
 
 var _ Interface[any] = &ConnectionManager[any]{}
 
-func NewConnectionManager[T any](connectionProvider ConnectionProvider[T]) *ConnectionManager[T] {
+type managerConfig struct {
+	closeOnRelease bool
+}
+
+func WithCloseOnRelease() ManagerOption {
+	return func(mc *managerConfig) {
+		mc.closeOnRelease = true
+	}
+}
+
+type ManagerOption func(*managerConfig)
+
+func NewConnectionManager[T any](
+	connectionProvider ConnectionProvider[T],
+	opts ...ManagerOption,
+) *ConnectionManager[T] {
+	cfg := &managerConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
 	return &ConnectionManager[T]{
 		connectionProvider: connectionProvider,
 		sessionMap:         map[string]map[string]struct{}{},
 		connMap:            map[string]T{},
+		config:             cfg,
 	}
 }
 
@@ -96,8 +118,31 @@ func (c *ConnectionManager[T]) ReleaseSession(session string) bool {
 	if !ok || len(connMap) == 0 {
 		return false
 	}
+
+	sessionConnIds := getConnectionIds(connMap)
 	delete(c.sessionMap, session)
+	if c.config.closeOnRelease {
+		c.closeUnusedConnections(sessionConnIds)
+	}
 	return true
+}
+
+func (c *ConnectionManager[T]) closeUnusedConnections(candidateConnIds []string) {
+	remainingConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
+
+	c.connMu.Lock()
+	defer c.connMu.Unlock()
+
+	for _, connId := range candidateConnIds {
+		if _, stillInUse := remainingConnections[connId]; !stillInUse {
+			if dbConn, exists := c.connMap[connId]; exists {
+				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
+					slog.Error(fmt.Sprintf("unable to close client connection during release: %s", err.Error()))
+				}
+				delete(c.connMap, connId)
+			}
+		}
+	}
 }
 
 func (c *ConnectionManager[T]) bindSession(session, connectionId string) {
@@ -177,4 +222,12 @@ func getUniqueConnectionIdsFromSessions(sessionMap map[string]map[string]struct{
 		}
 	}
 	return connSet
+}
+
+func getConnectionIds(connMap map[string]struct{}) []string {
+	ids := make([]string, 0, len(connMap))
+	for connId := range connMap {
+		ids = append(ids, connId)
+	}
+	return ids
 }
