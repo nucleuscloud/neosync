@@ -18,6 +18,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -1588,7 +1589,9 @@ func executeWorkflow(
 	}
 	temporalClientMock := temporalmocks.NewClient(t)
 
-	sqlmanager := sql_manager.NewSqlManager()
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
+	)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}

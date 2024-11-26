@@ -46,6 +46,8 @@ type managerConfig struct {
 	closeOnRelease bool
 }
 
+// Causes the ConnectionManager to automatically close connections when the last session is released
+// If this is not provided, connections will be held on to until Shutdown() or Reaper() is enabled
 func WithCloseOnRelease() ManagerOption {
 	return func(mc *managerConfig) {
 		mc.closeOnRelease = true

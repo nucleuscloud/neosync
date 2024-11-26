@@ -73,6 +73,13 @@ func WithConnectionManager(manager connectionmanager.Interface[neosync_benthos_s
 	}
 }
 
+// Initializes a default SQL-enabled connection manager, but allows for providing options
+func WithConnectionManagerOpts(opts ...connectionmanager.ManagerOption) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mgr = connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), opts...)
+	}
+}
+
 func WithPostgresQuerier(querier pg_queries.Querier) SqlManagerOption {
 	return func(smc *sqlManagerConfig) {
 		smc.pgQuerier = querier

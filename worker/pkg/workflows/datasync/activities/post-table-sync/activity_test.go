@@ -15,6 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -206,7 +207,9 @@ func mockPostTableSyncConfigs(name, destConnId string) map[string]*shared.PostTa
 }
 
 func mockSqlManager() *sqlmanager.SqlManager {
-	return sql_manager.NewSqlManager()
+	return sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
+	)
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
