@@ -28,11 +28,11 @@ import (
 	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
-	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -280,7 +280,7 @@ func (c *clisync) configureAndRunSync() error {
 		mongoprovider.NewProvider(),
 		sqlprovider.NewProvider(c.sqlconnector),
 	)
-	tunnelmanager := connectiontunnelmanager.NewConnectionTunnelManager(connectionprovider)
+	tunnelmanager := connectionmanager.NewConnectionManager(connectionprovider)
 	session := uuid.NewString()
 	// might not need this in cli context
 	defer func() {

@@ -4,21 +4,21 @@ import (
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
 type Provider struct {
-	mp connectiontunnelmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient]
-	sp connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx]
+	mp connectionmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient]
+	sp connectionmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx]
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[any] = &Provider{}
+var _ connectionmanager.ConnectionProvider[any] = &Provider{}
 
 func NewProvider(
-	mp connectiontunnelmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient],
-	sp connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx],
+	mp connectionmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient],
+	sp connectionmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx],
 ) *Provider {
 	return &Provider{
 		mp: mp,

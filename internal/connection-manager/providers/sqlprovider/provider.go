@@ -5,7 +5,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
@@ -19,7 +19,7 @@ func NewProvider(
 	return &Provider{connector: sqlconnector}
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
+var _ connectionmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
 
 type sqlDbtxWrapper struct {
 	sqlconnect.SqlDBTX

@@ -1,4 +1,4 @@
-package connectiontunnelmanager
+package connectionmanager
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type ConnectionProvider[T any] interface {
 	CloseClientConnection(client T) error
 }
 
-type ConnectionTunnelManager[T any] struct {
+type ConnectionManager[T any] struct {
 	connectionProvider ConnectionProvider[T]
 
 	sessionMap map[string]map[string]struct{}
@@ -38,17 +38,17 @@ type Interface[T any] interface {
 	Reaper()
 }
 
-var _ Interface[any] = &ConnectionTunnelManager[any]{} // enforces ConnectionTunnelManager always conforms to the interface
+var _ Interface[any] = &ConnectionManager[any]{} // enforces ConnectionManager always conforms to the interface
 
-func NewConnectionTunnelManager[T any](connectionProvider ConnectionProvider[T]) *ConnectionTunnelManager[T] {
-	return &ConnectionTunnelManager[T]{
+func NewConnectionManager[T any](connectionProvider ConnectionProvider[T]) *ConnectionManager[T] {
+	return &ConnectionManager[T]{
 		connectionProvider: connectionProvider,
 		sessionMap:         map[string]map[string]struct{}{},
 		connMap:            map[string]T{},
 	}
 }
 
-func (c *ConnectionTunnelManager[T]) GetConnection(
+func (c *ConnectionManager[T]) GetConnection(
 	session string,
 	connection *mgmtv1alpha1.Connection,
 	logger *slog.Logger,
@@ -81,7 +81,7 @@ func (c *ConnectionTunnelManager[T]) GetConnection(
 	return connectionClient, nil
 }
 
-func (c *ConnectionTunnelManager[T]) ReleaseSession(session string) bool {
+func (c *ConnectionManager[T]) ReleaseSession(session string) bool {
 	c.sessionMu.RLock()
 	connMap, ok := c.sessionMap[session]
 	if !ok || len(connMap) == 0 {
@@ -99,7 +99,7 @@ func (c *ConnectionTunnelManager[T]) ReleaseSession(session string) bool {
 	return true
 }
 
-func (c *ConnectionTunnelManager[T]) bindSession(session, connectionId string) {
+func (c *ConnectionManager[T]) bindSession(session, connectionId string) {
 	c.sessionMu.RLock()
 	connmap, ok := c.sessionMap[session]
 	if ok {
@@ -117,11 +117,11 @@ func (c *ConnectionTunnelManager[T]) bindSession(session, connectionId string) {
 	c.sessionMap[session][connectionId] = struct{}{}
 }
 
-func (c *ConnectionTunnelManager[T]) Shutdown() {
+func (c *ConnectionManager[T]) Shutdown() {
 	c.shutdown <- struct{}{}
 }
 
-func (c *ConnectionTunnelManager[T]) Reaper() {
+func (c *ConnectionManager[T]) Reaper() {
 	for {
 		select {
 		case <-c.shutdown:
@@ -133,7 +133,7 @@ func (c *ConnectionTunnelManager[T]) Reaper() {
 	}
 }
 
-func (c *ConnectionTunnelManager[T]) hardClose() {
+func (c *ConnectionManager[T]) hardClose() {
 	c.connMu.Lock()
 	c.sessionMu.Lock()
 	for connId, dbConn := range c.connMap {
@@ -151,7 +151,7 @@ func (c *ConnectionTunnelManager[T]) hardClose() {
 	c.sessionMu.Unlock()
 }
 
-func (c *ConnectionTunnelManager[T]) close() {
+func (c *ConnectionManager[T]) close() {
 	c.connMu.Lock()
 	c.sessionMu.Lock()
 	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)

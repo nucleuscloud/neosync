@@ -22,12 +22,12 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
-	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/mongo"
-	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
-	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
+	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
@@ -99,13 +99,13 @@ type Activity struct {
 	disableReaper        bool
 }
 
-func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
+func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectionmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
 		mongoprovider.NewProvider(),
 		sqlprovider.NewProvider(a.sqlconnector),
 	)
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any](connectionProvider))
-	manager, ok := val.(connectiontunnelmanager.Interface[any])
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager[any](connectionProvider))
+	manager, ok := val.(connectionmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
 	}

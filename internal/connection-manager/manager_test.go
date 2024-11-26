@@ -1,4 +1,4 @@
-package connectiontunnelmanager
+package connectionmanager
 
 import (
 	"io"
@@ -16,12 +16,12 @@ var (
 )
 
 func Test_NewConnectionTunnelManager(t *testing.T) {
-	require.NotNil(t, NewConnectionTunnelManager[any](nil))
+	require.NotNil(t, NewConnectionManager[any](nil))
 }
 
 func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
-	mgr := NewConnectionTunnelManager(provider)
+	mgr := NewConnectionManager(provider)
 
 	conn := &mgmtv1alpha1.Connection{
 		Id: "1",
@@ -39,7 +39,7 @@ func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 
 func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connection(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
-	mgr := NewConnectionTunnelManager(provider)
+	mgr := NewConnectionManager(provider)
 
 	cc := &mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
@@ -71,7 +71,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 
 func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
-	mgr := NewConnectionTunnelManager(provider)
+	mgr := NewConnectionManager(provider)
 
 	require.False(t, mgr.ReleaseSession("111"), "currently no session")
 
@@ -92,7 +92,7 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 
 func Test_ConnectionTunnelManager_close(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
-	mgr := NewConnectionTunnelManager(provider)
+	mgr := NewConnectionManager(provider)
 
 	require.False(t, mgr.ReleaseSession("111"), "currently no session")
 
@@ -121,7 +121,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 
 func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
-	mgr := NewConnectionTunnelManager(provider)
+	mgr := NewConnectionManager(provider)
 
 	require.False(t, mgr.ReleaseSession("111"), "currently no session")
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/stretchr/testify/mock"
@@ -13,8 +13,8 @@ import (
 )
 
 func Test_NewProvider(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+	mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+	mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 
 	require.NotNil(t, NewProvider(mockMp, mockSp))
 }
@@ -22,8 +22,8 @@ func Test_NewProvider(t *testing.T) {
 func Test_Provider_GetConnectionClient(t *testing.T) {
 	t.Run("mongo", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 
 		provider := NewProvider(mockMp, mockSp)
 
@@ -39,8 +39,8 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 		mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
 		provider := NewProvider(mockMp, mockSp)
@@ -57,8 +57,8 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 		mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
 		provider := NewProvider(mockMp, mockSp)
@@ -75,8 +75,8 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 		mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
 		provider := NewProvider(mockMp, mockSp)
@@ -95,8 +95,8 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 func Test_Provider_CloseClientConnection(t *testing.T) {
 	t.Run("mongo", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 
 		provider := NewProvider(mockMp, mockSp)
 
@@ -109,8 +109,8 @@ func Test_Provider_CloseClientConnection(t *testing.T) {
 
 	t.Run("sql", func(t *testing.T) {
 		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
+		mockMp := connectionmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
+		mockSp := connectionmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
 		mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
 		provider := NewProvider(mockMp, mockSp)

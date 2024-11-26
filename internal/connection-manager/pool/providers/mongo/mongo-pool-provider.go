@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 )
 
@@ -31,7 +31,7 @@ func (p *Provider) GetClient(url string) (neosync_benthos_mongodb.MongoClient, e
 // Returns a function that converts a raw DSN directly to the relevant pooled sql client.
 // Allows sharing connections across activities for effective pooling and SSH tunnel management.
 func GetMongoPoolProviderGetter(
-	tunnelmanager connectiontunnelmanager.Interface[any],
+	tunnelmanager connectionmanager.Interface[any],
 	dsnToConnectionIdMap *sync.Map,
 	connectionMap map[string]*mgmtv1alpha1.Connection,
 	session string,
