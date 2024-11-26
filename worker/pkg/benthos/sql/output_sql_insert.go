@@ -209,7 +209,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	if err != nil {
 		return nil, err
 	}
-	driver = "pgx"
 
 	output := &pooledInsertOutput{
 		driver:                   driver,

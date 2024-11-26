@@ -93,5 +93,4 @@ func NewIntervalArrayFromPgx(elements []*pgtype.Interval, opts []NeosyncTypeOpti
 		}
 	}
 	return NewNeosyncArray(neosyncAdapters)
-
 }

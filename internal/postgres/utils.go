@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -167,12 +168,11 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case strings.EqualFold(dbTypeName, "_interval"):
 			values[i] = &PgxArray[*pgtype.Interval]{ColDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
-		case isPgxPgArrayType(dbTypeName):
-			values[i] = &PgxArray[any]{ColDataType: dbTypeName}
-			scanTargets = append(scanTargets, values[i])
-		// create custom scan that handles this?
 		case strings.EqualFold(dbTypeName, "interval"):
 			values[i] = &pgtype.Interval{}
+			scanTargets = append(scanTargets, values[i])
+		case isPgxPgArrayType(dbTypeName):
+			values[i] = &PgxArray[any]{ColDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
 		default:
 			scanTargets = append(scanTargets, &values[i])
@@ -189,7 +189,6 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 func parsePgRowValues(values []any, columnNames []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
-
 		col := columnNames[i]
 		switch t := v.(type) {
 		case nil:
@@ -207,7 +206,12 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 			}
 			jObj[col] = js
 		case *PgxArray[*pgtype.Interval]:
-			jObj[col] = toIntervalArray(t)
+			ia, err := toIntervalArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ia
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
 		case *pgtype.Interval:
@@ -215,11 +219,10 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				jObj[col] = nil
 				continue
 			}
-			// this should be one call
 			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
-			// err := neoInterval.ScanPgx(t)
 			if err != nil {
-				// 	// do something
+				jObj[col] = t
+				continue
 			}
 			jObj[col] = neoInterval
 		default:
@@ -244,24 +247,21 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
 }
 
-func toIntervalArray(array *PgxArray[*pgtype.Interval]) any {
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {
 	if array.Elements == nil {
-		return nil
+		return nil, nil
 	}
 
 	dim := array.Dimensions()
 	if len(dim) > 1 {
-
-		return array.Elements
+		return nil, errors.ErrUnsupported
 	}
 
 	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
 	if err != nil {
-		// handle error
-		fmt.Println(err.Error())
+		return nil, err
 	}
-	return neoIntervalArray
-
+	return neoIntervalArray, nil
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {

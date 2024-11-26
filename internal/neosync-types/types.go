@@ -69,7 +69,7 @@ func IsValidVersion(ver Version) bool {
 
 type JsonScanner struct{}
 
-func (js *JsonScanner) ScanJson(value any, target any) error {
+func (js *JsonScanner) ScanJson(value, target any) error {
 	switch v := value.(type) {
 	case []byte:
 		return json.Unmarshal(v, target)
@@ -80,6 +80,6 @@ func (js *JsonScanner) ScanJson(value any, target any) error {
 	}
 }
 
-func (js *JsonScanner) ValueJson(value interface{}) (any, error) {
+func (js *JsonScanner) ValueJson(value any) (any, error) {
 	return json.Marshal(value)
 }
