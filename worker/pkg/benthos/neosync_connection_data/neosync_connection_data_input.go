@@ -65,6 +65,8 @@ func newNeosyncConnectionDataInput(
 		jobRunId = &jobRunIdStr
 	}
 
+	registry := neosynctypes.NewTypeRegistry(logger)
+
 	return service.AutoRetryNacks(&neosyncInput{
 		connectionId:   connectionId,
 		connectionType: connectionType,
@@ -74,8 +76,9 @@ func newNeosyncConnectionDataInput(
 			jobId:    jobId,
 			jobRunId: jobRunId,
 		},
-		neosyncConnectApi: neosyncConnectApi,
-		logger:            logger,
+		neosyncConnectApi:   neosyncConnectApi,
+		neosyncTypeRegistry: registry,
+		logger:              logger,
 	}), nil
 }
 
@@ -106,8 +109,9 @@ type neosyncInput struct {
 	schema         string
 	table          string
 
-	logger            *slog.Logger
-	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient
+	logger              *slog.Logger
+	neosyncConnectApi   mgmtv1alpha1connect.ConnectionDataServiceClient
+	neosyncTypeRegistry *neosynctypes.TypeRegistry
 
 	recvMut sync.Mutex
 
@@ -202,13 +206,12 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		}
 	}
 
-	registry := neosynctypes.NewTypeRegistry(g.logger)
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
-			newVal, err := registry.Unmarshal(val)
+			newVal, err := g.neosyncTypeRegistry.Unmarshal(val)
 			if err != nil {
 				return nil, nil, err
 			}

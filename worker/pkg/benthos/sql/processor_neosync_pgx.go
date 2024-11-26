@@ -70,7 +70,7 @@ func (p *neosyncToPgxProcessor) transform(root any) any {
 		return v
 	default:
 		// Check if the type implements Value() method
-		if valuer, ok := v.(neosynctypes.NeosyncAdapter); ok {
+		if valuer, ok := v.(neosynctypes.NeosyncPgxValuer); ok {
 			value, err := valuer.ValuePgx()
 			if err != nil {
 				p.logger.Warn(fmt.Sprintf("unable to get PGX value: %v", err))

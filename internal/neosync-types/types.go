@@ -25,6 +25,14 @@ type NeosyncAdapter interface {
 	ValueJson() (any, error)
 }
 
+type NeosyncPgxValuer interface {
+	ValuePgx() (any, error)
+}
+
+type NeosyncJsonValuer interface {
+	ValueJson() (any, error)
+}
+
 type Neosync struct {
 	Version Version `json:"version"`
 	TypeId  string  `json:"type_id"`
