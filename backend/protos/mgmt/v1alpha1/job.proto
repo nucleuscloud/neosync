@@ -344,6 +344,9 @@ message CreateJobRequest {
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 9;
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
+
+  // Specify and job hooks that should be created
+  // repeated NewJobHook hooks = 11;
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow
@@ -566,6 +569,8 @@ message Job {
 
   // Specify timeouts and other workflow options for the underlying temporal workflow
   WorkflowOptions workflow_options = 13;
+
+  // Any virtual foreign keys that are configured as a part of this job
   repeated VirtualForeignConstraint virtual_foreign_keys = 14;
 }
 
@@ -843,6 +848,205 @@ message SetRunContextsRequest {
 }
 message SetRunContextsResponse {}
 
+message JobHook {
+  // The unique identifier of this hook.
+  string id = 1;
+  // Name of the hook for display/reference.
+  string name = 2;
+  // Description of what this hook does.
+  string description = 3;
+  // The unique identifier of the job this hook belongs to.
+  string job_id = 4;
+
+  // Hook-type specific configuration.
+  JobHookConfig config = 5;
+
+  // The user that created this hook.
+  string created_by_user_id = 6;
+  // The time this hook was created.
+  google.protobuf.Timestamp created_at = 7;
+
+  // The user that last updated this hook.
+  string updated_by_user_id = 8;
+  // The last time this hook was updated.
+  google.protobuf.Timestamp updated_at = 9;
+
+  // Whether or not the hook is enabled.
+  bool enabled = 10;
+
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 11 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
+}
+
+message NewJobHook {
+  // Name of the hook for display/reference.
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Description of what this hook does.
+  string description = 2 [(buf.validate.field).string.min_len = 1];
+
+  // Hook-type specific configuration.
+  JobHookConfig config = 3;
+
+  // Whether or not the hook is enabled.
+  bool enabled = 4;
+
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 5 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
+}
+
+// Contains the specific hook type configurations.
+message JobHookConfig {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+    // Configuration for SQL-specific hooks.
+    JobSqlHook sql = 5;
+  }
+
+  // Configuration for SQL-based hooks
+  message JobSqlHook {
+    // The SQL query to execute
+    string query = 1 [(buf.validate.field).string.min_len = 1];
+
+    // Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
+    string connection_id = 2 [(buf.validate.field).string.uuid = true];
+
+    // The timing of when the hook will run
+    Timing timing = 3;
+
+    message Timing {
+      oneof timing {
+        option (buf.validate.oneof).required = true;
+        // A Pre-Sync timing.
+        // Will run before the first table sync.
+        // Will run before Truncation, if enabled.
+        // Will run before Schema Init, if enabled.
+        JobHookTimingPreSync pre_sync = 3;
+        // A Post-Sync timing. Will run after the last table sync.
+        JobHookTimingPostSync post_sync = 4;
+      }
+    }
+  }
+}
+
+// Configures the job hook to run before the first table sync.
+// Will run before Truncation, if enabled.
+// Will run before Schema Init, if enabled.
+message JobHookTimingPreSync {}
+
+// Configures the job hook to run after the last table sync.
+message JobHookTimingPostSync {}
+
+message GetJobHooksRequest {
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetJobHooksResponse {
+  // The list of hooks found attached to the job
+  repeated JobHook hooks = 1;
+}
+
+message GetJobHookRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetJobHookResponse {
+  // The found hook
+  JobHook hook = 1;
+}
+
+message CreateJobHookRequest {
+  // The unique identifier of the job
+  string job_id = 1;
+  // The new hook configuration
+  NewJobHook hook = 2;
+}
+message CreateJobHookResponse {
+  // The newly created hook
+  JobHook hook = 1;
+}
+
+message DeleteJobHookRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message DeleteJobHookResponse {}
+
+message IsJobHookNameAvailableRequest {
+  // The unique identifier of the job
+  string job_id = 1;
+  // The hook name to check.
+  string name = 2;
+}
+message IsJobHookNameAvailableResponse {
+  // Whether or not the hook name is available
+  bool is_available = 1;
+}
+
+message UpdateJobHookRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Name of the hook for display/reference.
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Description of what this hook does.
+  string description = 3 [(buf.validate.field).string.min_len = 1];
+
+  // Hook-type specific configuration.
+  JobHookConfig config = 4;
+  // Whether or not the hook is enabled.
+  bool enabled = 5;
+
+  // The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+  // Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+  uint32 priority = 6 [(buf.validate.field).uint32 = {
+    gte: 0
+    lte: 100
+  }];
+}
+message UpdateJobHookResponse {
+  // The updated job hook
+  JobHook hook = 1;
+}
+
+message SetJobHookEnabledRequest {
+  // The unique identifier of the hook
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // Whether or not the hook is enabled.
+  bool enabled = 2;
+}
+message SetJobHookEnabledResponse {
+  // The updated job hook
+  JobHook hook = 1;
+}
+
+message GetActiveJobHooksByTimingRequest {
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The timing desired.
+  Timing timing = 2;
+
+  enum Timing {
+    // If unspecified, returns all active job hooks
+    TIMING_UNSPECIFIED = 0;
+    // Only returns presync hooks
+    TIMING_PRESYNC = 1;
+    // Only returns postsync hooks
+    TIMING_POSTSYNC = 2;
+  }
+}
+message GetActiveJobHooksByTimingResponse {
+  // The active job hooks
+  repeated JobHook hooks = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -887,4 +1091,21 @@ service JobService {
   rpc SetRunContext(SetRunContextRequest) returns (SetRunContextResponse) {}
   // Sets a stream of run contexts to be used by a workflow run
   rpc SetRunContexts(stream SetRunContextsRequest) returns (SetRunContextsResponse) {}
+
+  // Retrieves all job hooks
+  rpc GetJobHooks(GetJobHooksRequest) returns (GetJobHooksResponse) {}
+  // Retrieves a specific job hook
+  rpc GetJobHook(GetJobHookRequest) returns (GetJobHookResponse) {}
+  // Creates a new job hook
+  rpc CreateJobHook(CreateJobHookRequest) returns (CreateJobHookResponse) {}
+  // Removes a job hook
+  rpc DeleteJobHook(DeleteJobHookRequest) returns (DeleteJobHookResponse) {}
+  // Check if a specific job hook name is available
+  rpc IsJobHookNameAvailable(IsJobHookNameAvailableRequest) returns (IsJobHookNameAvailableResponse) {}
+  // Updates a job hook
+  rpc UpdateJobHook(UpdateJobHookRequest) returns (UpdateJobHookResponse) {}
+  // Enables or disables a job hook
+  rpc SetJobHookEnabled(SetJobHookEnabledRequest) returns (SetJobHookEnabledResponse) {}
+  // Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+  rpc GetActiveJobHooksByTiming(GetActiveJobHooksByTimingRequest) returns (GetActiveJobHooksByTimingResponse) {}
 }

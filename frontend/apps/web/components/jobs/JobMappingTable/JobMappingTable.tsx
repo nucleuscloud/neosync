@@ -180,7 +180,12 @@ export default function JobMappingTable<TData, TValue>(
                   return (
                     <TableHead
                       key={header.id}
-                      style={{ minWidth: `${header.column.getSize()}px` }}
+                      style={{
+                        width:
+                          header.column.columnDef.id != 'isSelected'
+                            ? '187px'
+                            : '20px',
+                      }}
                       colSpan={header.colSpan}
                       className="flex items-center"
                     >
@@ -243,7 +248,7 @@ const MemoizedRow = memo(
           transform: `translateY(${virtualRow.start}px)`,
           height: `${virtualRow.size}px`,
         }}
-        className="items-center flex absolute w-full justify-between px-2"
+        className="items-center flex absolute w-full justify-between px-2 gap-0 space-x-0"
       >
         {row.getVisibleCells().map((cell) => (
           <td
@@ -251,6 +256,8 @@ const MemoizedRow = memo(
             className="py-2"
             style={{
               minWidth: cell.column.getSize(),
+              width:
+                cell.column.columnDef.id != 'isSelected' ? '187px' : '20px',
             }}
           >
             <MemoizedCell cell={cell as Cell<unknown, unknown>} />

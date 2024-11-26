@@ -1180,3 +1180,193 @@ class SetRunContextsRequest(_message.Message):
 class SetRunContextsResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class JobHook(_message.Message):
+    __slots__ = ("id", "name", "description", "job_id", "config", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "enabled", "priority")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    CREATED_BY_USER_ID_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_BY_USER_ID_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    PRIORITY_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    name: str
+    description: str
+    job_id: str
+    config: JobHookConfig
+    created_by_user_id: str
+    created_at: _timestamp_pb2.Timestamp
+    updated_by_user_id: str
+    updated_at: _timestamp_pb2.Timestamp
+    enabled: bool
+    priority: int
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., job_id: _Optional[str] = ..., config: _Optional[_Union[JobHookConfig, _Mapping]] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., enabled: bool = ..., priority: _Optional[int] = ...) -> None: ...
+
+class NewJobHook(_message.Message):
+    __slots__ = ("name", "description", "config", "enabled", "priority")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    PRIORITY_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    description: str
+    config: JobHookConfig
+    enabled: bool
+    priority: int
+    def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., config: _Optional[_Union[JobHookConfig, _Mapping]] = ..., enabled: bool = ..., priority: _Optional[int] = ...) -> None: ...
+
+class JobHookConfig(_message.Message):
+    __slots__ = ("sql",)
+    class JobSqlHook(_message.Message):
+        __slots__ = ("query", "connection_id", "timing")
+        class Timing(_message.Message):
+            __slots__ = ("pre_sync", "post_sync")
+            PRE_SYNC_FIELD_NUMBER: _ClassVar[int]
+            POST_SYNC_FIELD_NUMBER: _ClassVar[int]
+            pre_sync: JobHookTimingPreSync
+            post_sync: JobHookTimingPostSync
+            def __init__(self, pre_sync: _Optional[_Union[JobHookTimingPreSync, _Mapping]] = ..., post_sync: _Optional[_Union[JobHookTimingPostSync, _Mapping]] = ...) -> None: ...
+        QUERY_FIELD_NUMBER: _ClassVar[int]
+        CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
+        TIMING_FIELD_NUMBER: _ClassVar[int]
+        query: str
+        connection_id: str
+        timing: JobHookConfig.JobSqlHook.Timing
+        def __init__(self, query: _Optional[str] = ..., connection_id: _Optional[str] = ..., timing: _Optional[_Union[JobHookConfig.JobSqlHook.Timing, _Mapping]] = ...) -> None: ...
+    SQL_FIELD_NUMBER: _ClassVar[int]
+    sql: JobHookConfig.JobSqlHook
+    def __init__(self, sql: _Optional[_Union[JobHookConfig.JobSqlHook, _Mapping]] = ...) -> None: ...
+
+class JobHookTimingPreSync(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class JobHookTimingPostSync(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class GetJobHooksRequest(_message.Message):
+    __slots__ = ("job_id",)
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    def __init__(self, job_id: _Optional[str] = ...) -> None: ...
+
+class GetJobHooksResponse(_message.Message):
+    __slots__ = ("hooks",)
+    HOOKS_FIELD_NUMBER: _ClassVar[int]
+    hooks: _containers.RepeatedCompositeFieldContainer[JobHook]
+    def __init__(self, hooks: _Optional[_Iterable[_Union[JobHook, _Mapping]]] = ...) -> None: ...
+
+class GetJobHookRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class GetJobHookResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class CreateJobHookRequest(_message.Message):
+    __slots__ = ("job_id", "hook")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    hook: NewJobHook
+    def __init__(self, job_id: _Optional[str] = ..., hook: _Optional[_Union[NewJobHook, _Mapping]] = ...) -> None: ...
+
+class CreateJobHookResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class DeleteJobHookRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class DeleteJobHookResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class IsJobHookNameAvailableRequest(_message.Message):
+    __slots__ = ("job_id", "name")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    name: str
+    def __init__(self, job_id: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
+
+class IsJobHookNameAvailableResponse(_message.Message):
+    __slots__ = ("is_available",)
+    IS_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    is_available: bool
+    def __init__(self, is_available: bool = ...) -> None: ...
+
+class UpdateJobHookRequest(_message.Message):
+    __slots__ = ("id", "name", "description", "config", "enabled", "priority")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    PRIORITY_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    name: str
+    description: str
+    config: JobHookConfig
+    enabled: bool
+    priority: int
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., config: _Optional[_Union[JobHookConfig, _Mapping]] = ..., enabled: bool = ..., priority: _Optional[int] = ...) -> None: ...
+
+class UpdateJobHookResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class SetJobHookEnabledRequest(_message.Message):
+    __slots__ = ("id", "enabled")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    enabled: bool
+    def __init__(self, id: _Optional[str] = ..., enabled: bool = ...) -> None: ...
+
+class SetJobHookEnabledResponse(_message.Message):
+    __slots__ = ("hook",)
+    HOOK_FIELD_NUMBER: _ClassVar[int]
+    hook: JobHook
+    def __init__(self, hook: _Optional[_Union[JobHook, _Mapping]] = ...) -> None: ...
+
+class GetActiveJobHooksByTimingRequest(_message.Message):
+    __slots__ = ("job_id", "timing")
+    class Timing(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        TIMING_UNSPECIFIED: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+        TIMING_PRESYNC: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+        TIMING_POSTSYNC: _ClassVar[GetActiveJobHooksByTimingRequest.Timing]
+    TIMING_UNSPECIFIED: GetActiveJobHooksByTimingRequest.Timing
+    TIMING_PRESYNC: GetActiveJobHooksByTimingRequest.Timing
+    TIMING_POSTSYNC: GetActiveJobHooksByTimingRequest.Timing
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    TIMING_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    timing: GetActiveJobHooksByTimingRequest.Timing
+    def __init__(self, job_id: _Optional[str] = ..., timing: _Optional[_Union[GetActiveJobHooksByTimingRequest.Timing, str]] = ...) -> None: ...
+
+class GetActiveJobHooksByTimingResponse(_message.Message):
+    __slots__ = ("hooks",)
+    HOOKS_FIELD_NUMBER: _ClassVar[int]
+    hooks: _containers.RepeatedCompositeFieldContainer[JobHook]
+    def __init__(self, hooks: _Optional[_Iterable[_Union[JobHook, _Mapping]]] = ...) -> None: ...

@@ -111,7 +111,7 @@ func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, er
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx)
+	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=disable")
 	if err != nil {
 		return nil, err
 	}

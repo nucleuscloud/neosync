@@ -57,8 +57,9 @@ func DeleteRedisHash(
 	if err != nil {
 		return nil, err
 	}
+	slogger.Debug("redis client created")
 
-	err = deleteRedisHashByKey(slogger, ctx, redisClient, req.HashKey)
+	err = deleteRedisHashByKey(ctx, redisClient, req.HashKey)
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +67,10 @@ func DeleteRedisHash(
 	return &DeleteRedisHashResponse{}, nil
 }
 
-func deleteRedisHashByKey(logger *slog.Logger, ctx context.Context, client redis.UniversalClient, key string) error {
+func deleteRedisHashByKey(ctx context.Context, client redis.UniversalClient, key string) error {
 	err := client.Del(ctx, key).Err()
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to delete redis hash: %v", err))
-		return err
+		return fmt.Errorf("failed to delete redis hash: %w", err)
 	}
 	return nil
 }

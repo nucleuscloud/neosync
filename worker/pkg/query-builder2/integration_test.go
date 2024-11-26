@@ -3,6 +3,7 @@ package querybuilder2
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 
@@ -44,25 +45,26 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 		testmssql.WithPassword("mssqlPASSword1"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to run mssql server container: %w", err)
 	}
-	connstr, err := mssqlcontainer.ConnectionString(s.ctx)
+	// disabling tls encryption here to fix flaky startup and we also aren't concerned about TLS for a local container
+	connstr, err := mssqlcontainer.ConnectionString(s.ctx, "encrypt=disable")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get mssql connection string: %w", err)
 	}
 	setupSql, err := os.ReadFile("./testdata/mssql/setup.sql")
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to read mssql setup file: %w", err)
 	}
 
 	conn, err := sql.Open(sqlmanager_shared.MssqlDriver, connstr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to open mssql driver: %w", err)
 	}
 
 	_, err = conn.ExecContext(s.ctx, string(setupSql))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to exec mssql setup sql: %w", err)
 	}
 
 	return &mssqlTest{

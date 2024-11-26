@@ -217,10 +217,9 @@ func (s *Service) GetConnectionDataStream(
 		awsS3Config := config.AwsS3Config
 		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
 		if err != nil {
-			logger.Error("unable to create AWS S3 client")
-			return err
+			return fmt.Errorf("unable to create AWS S3 client: %w", err)
 		}
-		logger.Info("created AWS S3 client")
+		logger.Debug("created AWS S3 client")
 
 		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
 		s3pathpieces := []string{}
@@ -266,7 +265,7 @@ func (s *Service) GetConnectionDataStream(
 				return err
 			}
 			if output == nil {
-				logger.Info(fmt.Sprintf("0 files found for path: %s", path))
+				logger.Debug(fmt.Sprintf("0 files found for path: %s", path))
 				break
 			}
 			for _, item := range output.Contents {
@@ -566,7 +565,7 @@ func (s *Service) GetConnectionSchema(
 		if err != nil {
 			return nil, err
 		}
-		logger.Info("created S3 AWS session")
+		logger.Debug("created S3 AWS session")
 
 		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
 		s3pathpieces := []string{}
@@ -626,7 +625,7 @@ func (s *Service) GetConnectionSchema(
 					return nil, err
 				}
 				if out == nil {
-					logger.Info(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
+					logger.Warn(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
 					continue
 				}
 				item := out.Contents[0]
@@ -638,7 +637,7 @@ func (s *Service) GetConnectionSchema(
 					return nil, err
 				}
 				if result.ContentLength == nil || *result.ContentLength == 0 {
-					logger.Info(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
+					logger.Warn(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
 					continue
 				}
 

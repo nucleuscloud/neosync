@@ -78,12 +78,15 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
         </div>
       );
     },
-    maxSize: 30,
+    maxSize: 20,
   });
 
   const schemaColumn = columnHelper.accessor('schema', {
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Schema" />;
+    },
+    cell({ getValue }) {
+      return <TruncatedText text={getValue()} />;
     },
   });
 
@@ -92,6 +95,9 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Table" />;
     },
+    cell({ getValue }) {
+      return <TruncatedText text={getValue()} maxWidth={150} />;
+    },
   });
 
   const columnColumn = columnHelper.accessor('column', {
@@ -99,7 +105,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
       return <SchemaColumnHeader column={column} title="Column" />;
     },
     cell({ getValue }) {
-      return <TruncatedText text={getValue()} />;
+      return <TruncatedText text={getValue()} maxWidth={150} />;
     },
   });
 
@@ -172,7 +178,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
       if (row.transformer.config.case) {
         return row.transformer.config.case.toLowerCase();
       }
-      return 'select transformer';
+      return 'transformer';
     },
     {
       id: 'transformer',
@@ -195,7 +201,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
                   }
                 }
                 buttonText={getTransformerSelectButtonText(transformer)}
-                buttonClassName="w-[175px]"
+                buttonClassName="w-[140px]"
                 value={transformerForm}
                 onSelect={(updatedValue) =>
                   table.options.meta?.onTransformerUpdate(

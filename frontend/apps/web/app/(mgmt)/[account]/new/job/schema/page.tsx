@@ -57,6 +57,7 @@ import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { useOnApplyDefaultClick } from '../../../jobs/[id]/source/components/useOnApplyDefaultClick';
 import { useOnImportMappings } from '../../../jobs/[id]/source/components/useOnImportMappings';
+import { useOnTransformerBulkUpdateClick } from '../../../jobs/[id]/source/components/useOnTransformerBulkUpdateClick';
 import {
   getDestinationDetailsRecord,
   getFilteredTransformersForBulkSet,
@@ -419,8 +420,30 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     getMappings() {
       return form.getValues('mappings');
     },
-    setTransformer: onTransformerUpdate,
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
     constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
+  const { onClick: onTransformerBulkUpdate } = useOnTransformerBulkUpdateClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
     triggerUpdate() {
       form.trigger('mappings');
     },
@@ -473,18 +496,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       column: val.column,
       transformer,
     });
-  }
-
-  function onTransformerBulkUpdate(
-    indices: number[],
-    config: JobMappingTransformerForm
-  ): void {
-    indices.forEach((idx) => {
-      onTransformerUpdate(idx, config);
-    });
-    setTimeout(() => {
-      form.trigger('mappings');
-    }, 0);
   }
 
   return (

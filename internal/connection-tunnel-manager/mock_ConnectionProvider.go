@@ -82,7 +82,9 @@ func (_m *MockConnectionProvider[T]) GetConnectionClient(connectionConfig *mgmtv
 	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig) T); ok {
 		r0 = rf(connectionConfig)
 	} else {
-		r0 = ret.Get(0).(T)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(T)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(*mgmtv1alpha1.ConnectionConfig) error); ok {

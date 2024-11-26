@@ -236,7 +236,7 @@ func (s *Service) CreateJobRun(
 		return nil, err
 	}
 
-	logger.Info("creating job run")
+	logger.Debug("creating job run by triggering temporal schedule")
 	err = s.temporalmgr.TriggerSchedule(
 		ctx,
 		neosyncdb.UUIDString(job.AccountID),
@@ -245,8 +245,7 @@ func (s *Service) CreateJobRun(
 		logger,
 	)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to create job run: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to create job run by triggering temporal schedule: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobRunResponse{}), nil
@@ -344,28 +343,24 @@ func (s *Service) streamK8sWorkerPodLogs(
 
 	kubeConfig, err := rest.InClusterConfig()
 	if err != nil {
-		logger.Error(fmt.Errorf("error getting kubernetes config: %w", err).Error())
-		return err
+		return fmt.Errorf("unable to retrieve k8s in cluster config: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		logger.Error(fmt.Errorf("error getting kubernetes clientset: %w", err).Error())
-		return err
+		return fmt.Errorf("unable to create kubernetes clientset: %w", err)
 	}
 
 	appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogConfig.RunLogPodConfig.WorkerAppName})
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
-		return err
+		return fmt.Errorf("unable to build label selector when finding k8s logs: %w", err)
 	}
 	podclient := clientset.CoreV1().Pods(s.cfg.RunLogConfig.RunLogPodConfig.Namespace)
 	pods, err := podclient.List(ctx, metav1.ListOptions{
 		LabelSelector: appNameSelector.String(),
 	})
 	if err != nil {
-		logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
-		return err
+		return fmt.Errorf("unable to retrieve list of pods from k8s: %w", err)
 	}
 
 	loglevels := getLogLevelFilters(req.Msg.GetLogLevels())

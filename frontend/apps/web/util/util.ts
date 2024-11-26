@@ -181,7 +181,7 @@ export function useTransformerSelectButtonText(
 
 export function getTransformerSelectButtonText(
   transformer: Transformer,
-  defaultText: string = 'Select Transformer'
+  defaultText: string = 'Transformer'
 ): string {
   return isInvalidTransformer(transformer) ? defaultText : transformer.name;
 }
