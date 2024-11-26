@@ -172,6 +172,7 @@ func (d *PostgresDriver) BuildPreparedInsertArgs(rows [][]any) [][]any {
 	return getPostgresVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults)
 }
 
+// TODO move this logic to PGX processor
 func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) [][]any {
 	newVals := [][]any{}
 	for _, row := range rows {

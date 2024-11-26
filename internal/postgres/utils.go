@@ -15,7 +15,7 @@ import (
 
 type PgxArray[T any] struct {
 	pgtype.Array[T]
-	ColDataType string
+	colDataType string
 }
 
 // custom PGX array scanner
@@ -82,13 +82,13 @@ func (a *PgxArray[T]) Scan(src any) error {
 	var pgt *pgtype.Type
 	var ok bool
 
-	if oid, err := strconv.Atoi(a.ColDataType); err == nil {
+	if oid, err := strconv.Atoi(a.colDataType); err == nil {
 		pgt, ok = m.TypeForOID(uint32(oid)) //nolint:gosec
 	} else {
-		pgt, ok = m.TypeForName(strings.ToLower(a.ColDataType))
+		pgt, ok = m.TypeForName(strings.ToLower(a.colDataType))
 	}
 	if !ok {
-		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.ColDataType)
+		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.colDataType)
 	}
 
 	v := &a.Array
@@ -166,13 +166,13 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 			values[i] = &NullableJSON{}
 			scanTargets = append(scanTargets, values[i])
 		case strings.EqualFold(dbTypeName, "_interval"):
-			values[i] = &PgxArray[*pgtype.Interval]{ColDataType: dbTypeName}
+			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
 		case strings.EqualFold(dbTypeName, "interval"):
 			values[i] = &pgtype.Interval{}
 			scanTargets = append(scanTargets, values[i])
 		case isPgxPgArrayType(dbTypeName):
-			values[i] = &PgxArray[any]{ColDataType: dbTypeName}
+			values[i] = &PgxArray[any]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
 		default:
 			scanTargets = append(scanTargets, &values[i])
