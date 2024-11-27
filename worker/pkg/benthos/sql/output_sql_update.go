@@ -28,6 +28,11 @@ type DbPoolProvider interface {
 	GetDb(driver, dsn string) (SqlDbtx, error)
 }
 
+type ConnectionProvider interface {
+	GetDb(ctx context.Context, connectionId string) (SqlDbtx, error)
+	GetDriver(connectionId string) (string, error)
+}
+
 func sqlUpdateOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("driver")).
@@ -45,7 +50,7 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider DbPoolProvider) error {
+func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider ConnectionProvider) error {
 	return env.RegisterBatchOutput(
 		"pooled_sql_update", sqlUpdateOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
@@ -70,12 +75,12 @@ func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider DbPoolPr
 var _ service.BatchOutput = &pooledUpdateOutput{}
 
 type pooledUpdateOutput struct {
-	driver   string
-	dsn      string
-	provider DbPoolProvider
-	dbMut    sync.RWMutex
-	db       SqlDbtx
-	logger   *service.Logger
+	driver       string
+	connectionId string
+	provider     ConnectionProvider
+	dbMut        sync.RWMutex
+	db           SqlDbtx
+	logger       *service.Logger
 
 	schema                   string
 	table                    string
@@ -90,12 +95,8 @@ type pooledUpdateOutput struct {
 	retryDelay       time.Duration
 }
 
-func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledUpdateOutput, error) {
-	driver, err := conf.FieldString("driver")
-	if err != nil {
-		return nil, err
-	}
-	dsn, err := conf.FieldString("dsn")
+func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider) (*pooledUpdateOutput, error) {
+	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +150,14 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	driver, err := provider.GetDriver(connectionId)
+	if err != nil {
+		return nil, err
+	}
+
 	output := &pooledUpdateOutput{
 		driver:                   driver,
-		dsn:                      dsn,
+		connectionId:             connectionId,
 		logger:                   mgr.Logger(),
 		shutSig:                  shutdown.NewSignaller(),
 		argsMapping:              argsMapping,
@@ -175,7 +181,7 @@ func (s *pooledUpdateOutput) Connect(ctx context.Context) error {
 		return nil
 	}
 
-	db, err := s.provider.GetDb(s.driver, s.dsn)
+	db, err := s.provider.GetDb(ctx, s.connectionId)
 	if err != nil {
 		return err
 	}

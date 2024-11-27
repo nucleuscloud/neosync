@@ -69,7 +69,7 @@ func WithBlobEnv(b *bloblang.Environment) Option {
 }
 
 type SqlConfig struct {
-	Provider neosync_benthos_sql.DbPoolProvider
+	Provider neosync_benthos_sql.ConnectionProvider
 	IsRetry  bool
 }
 

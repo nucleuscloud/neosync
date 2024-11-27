@@ -20,14 +20,13 @@ import (
 
 func sqlRawInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
-		Field(service.NewStringField("driver")).
-		Field(service.NewStringField("dsn")).
+		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("query")).
 		Field(service.NewBloblangField("args_mapping").Optional())
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan<- error) error {
+func RegisterPooledSqlRawInput(env *service.Environment, dbprovider ConnectionProvider, stopActivityChannel chan<- error) error {
 	return env.RegisterInput(
 		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
@@ -41,10 +40,10 @@ func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvid
 }
 
 type pooledInput struct {
-	driver   string
-	dsn      string
-	provider DbPoolProvider
-	logger   *service.Logger
+	provider     ConnectionProvider
+	logger       *service.Logger
+	connectionId string
+	driver       string
 
 	argsMapping *bloblang.Executor
 	queryStatic string
@@ -58,13 +57,8 @@ type pooledInput struct {
 	stopActivityChannel chan<- error
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan<- error) (*pooledInput, error) {
-	driver, err := conf.FieldString("driver")
-	if err != nil {
-		return nil, err
-	}
-
-	dsn, err := conf.FieldString("dsn")
+func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider ConnectionProvider, channel chan<- error) (*pooledInput, error) {
+	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
 	}
@@ -82,11 +76,16 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbP
 		}
 	}
 
+	driver, err := dbprovider.GetDriver(connectionId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pooledInput{
 		logger:              mgr.Logger(),
 		shutSig:             shutdown.NewSignaller(),
+		connectionId:        connectionId,
 		driver:              driver,
-		dsn:                 dsn,
 		queryStatic:         queryStatic,
 		argsMapping:         argsMapping,
 		provider:            dbprovider,
@@ -105,7 +104,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		return nil
 	}
 
-	db, err := s.provider.GetDb(s.driver, s.dsn)
+	db, err := s.provider.GetDb(ctx, s.connectionId)
 	if err != nil {
 		return nil
 	}
