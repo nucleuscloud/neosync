@@ -21,7 +21,7 @@ args_mapping: 'root = [this.id]'
 	updateConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	updateOutput, err := newUpdateOutput(updateConfig, service.MockResources(), nil)
+	updateOutput, err := newUpdateOutput(updateConfig, service.MockResources(), &fakeConnectionProvider{})
 	require.NoError(t, err)
 	require.NoError(t, updateOutput.Close(context.Background()))
 }

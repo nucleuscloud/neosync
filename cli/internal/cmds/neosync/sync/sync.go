@@ -273,14 +273,7 @@ func (c *clisync) configureAndRunSync() error {
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
-	dsnToConnIdMap := &syncmap.Map{}
-	var sqlDsn string
-	if c.cmd.Destination != nil {
-		sqlDsn = c.cmd.Destination.ConnectionUrl
-	}
-	dsnToConnIdMap.Store(sqlDsn, destConnection.Id)
-	dsnToConnIdMap.Store(sourceConnection.Id, sourceConnection.Id)
-	dsnToConnIdMap.Store(destConnection.Id, destConnection.Id)
+
 	stopChan := make(chan error, 3)
 	ctx, cancel := context.WithCancel(c.ctx)
 	defer cancel()
