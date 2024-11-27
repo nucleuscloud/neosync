@@ -36,14 +36,14 @@ type initStatementBuilder struct {
 }
 
 func newInitStatementBuilder(
-	sqlmanager sql_manager.SqlManagerClient,
+	sqlmanagerclient sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	eelicense license.EEInterface,
 	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager: sqlmanager,
+		sqlmanager: sqlmanagerclient,
 		jobclient:  jobclient,
 		connclient: connclient,
 		eelicense:  eelicense,
