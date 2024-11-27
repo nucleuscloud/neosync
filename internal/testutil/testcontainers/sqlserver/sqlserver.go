@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/url"
 	"os"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -111,7 +110,7 @@ func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, er
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=disable")
+	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=disable", "database", "testdb")
 	if err != nil {
 		return nil, err
 	}
@@ -127,18 +126,14 @@ func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, er
 		return nil, err
 	}
 
-	queryvals := url.Values{}
-	queryvals.Add("database", "testdb")
-	dbConnStr := connStr + queryvals.Encode()
-
-	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, dbConnStr)
+	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, connStr)
 	if err != nil {
 		return nil, err
 	}
 
 	return &MssqlTestContainer{
 		DB:            dbConn,
-		URL:           dbConnStr,
+		URL:           connStr,
 		TestContainer: mssqlcontainer,
 	}, nil
 }

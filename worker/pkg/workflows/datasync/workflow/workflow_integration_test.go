@@ -1572,11 +1572,12 @@ func (f *fakeEELicense) IsValid() bool {
 }
 
 func executeWorkflow(
-	t *testing.T,
+	t testing.TB,
 	srv *httptest.Server,
 	redisUrl string,
 	jobId string,
 ) *testsuite.TestWorkflowEnvironment {
+	t.Helper()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(srv.Client(), srv.URL)

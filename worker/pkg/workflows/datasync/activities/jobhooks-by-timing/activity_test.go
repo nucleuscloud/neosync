@@ -134,7 +134,7 @@ func Test_Activity_Success(t *testing.T) {
 	mockSqlMgrClient := sqlmanager.NewMockSqlManagerClient(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 
-	mockSqlMgrClient.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	mockSqlMgrClient.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
 		sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil,
 	)
 	mockSqlDb.On("Exec", mock.Anything, mock.Anything).Twice().Return(nil)

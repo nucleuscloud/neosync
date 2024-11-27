@@ -35,8 +35,7 @@ type ConnectionProvider interface {
 
 func sqlUpdateOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
-		Field(service.NewStringField("driver")).
-		Field(service.NewStringField("dsn")).
+		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
