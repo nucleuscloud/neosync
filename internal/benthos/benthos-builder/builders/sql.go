@@ -490,19 +490,17 @@ func getSqlSchemaColumnMap(
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
+		defer destDb.Db().Close()
 		if err != nil {
-			destDb.Db().Close()
 			return schemaColMap
 		}
 		destColMap, err := destDb.Db().GetSchemaColumnMap(ctx)
 		if err != nil {
-			destDb.Db().Close()
 			return schemaColMap
 		}
 		if len(destColMap) != 0 {
 			return mergeSourceDestinationColumnInfo(sourceSchemaColumnInfoMap, destColMap)
 		}
-		destDb.Db().Close()
 	}
 	return schemaColMap
 }

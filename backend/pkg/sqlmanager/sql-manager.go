@@ -131,6 +131,7 @@ func (s *SqlManager) NewSqlConnection(
 		db := sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer)
 		return NewMssqlSqlConnection(db), nil
 	default:
+		closer()
 		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.GetConnectionConfig().GetConfig())
 	}
 }

@@ -213,7 +213,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
 			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, slogger),
-			// Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),

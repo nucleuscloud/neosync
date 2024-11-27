@@ -3,6 +3,7 @@ package connectionmanager
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -256,7 +257,7 @@ func (c *ConnectionManager[T]) Reaper() {
 		case <-c.shutdown:
 			c.hardClose()
 			return
-		case <-time.After(1 * time.Minute):
+		case <-time.After(10 * time.Second):
 			c.cleanUnusedConnections()
 		}
 	}
@@ -267,6 +268,12 @@ func (c *ConnectionManager[T]) cleanUnusedConnections() {
 	groupSessionConnections := make(map[string]map[string]struct{})
 	for groupId, sessions := range c.groupSessionMap {
 		groupSessionConnections[groupId] = getUniqueConnectionIdsFromGroupSessions(sessions)
+
+		groupSessions := []string{}
+		for session := range sessions {
+			groupSessions = append(groupSessions, session)
+		}
+		slog.Debug(fmt.Sprintf("[ConnectionManager][Reaper] group %q with sessions %s", groupId, strings.Join(groupSessions, ",")))
 	}
 	c.sessionMu.RUnlock()
 

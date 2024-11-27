@@ -95,6 +95,13 @@ func (a *Activity) RunPostTableSync(
 		return &RunPostTableSyncResponse{}, nil
 	}
 
+	destconns := []*sqlmanager.SqlConnection{}
+	defer func() {
+		for _, conn := range destconns {
+			conn.Db().Close()
+		}
+	}()
+
 	for destConnectionId, destCfg := range config.DestinationConfigs {
 		slogger.Debug(fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)), "destinationConnectionId", destConnectionId)
 		if len(destCfg.Statements) == 0 {
@@ -108,10 +115,10 @@ func (a *Activity) RunPostTableSync(
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
 			if err != nil {
-				destDb.Db().Close()
 				slogger.Error("unable to connection to destination", "connectionId", destConnectionId)
 				continue
 			}
+			destconns = append(destconns, destDb)
 			err = destDb.Db().BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
 			if err != nil {
 				slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
