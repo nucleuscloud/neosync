@@ -10,8 +10,7 @@ import (
 
 func Test_SqlUpdateOutputEmptyShutdown(t *testing.T) {
 	conf := `
-driver: postgres
-dsn: foo
+connection_id: 123
 schema: bar
 table: baz
 args_mapping: 'root = [this.id]'

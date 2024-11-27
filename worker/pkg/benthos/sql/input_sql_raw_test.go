@@ -10,8 +10,7 @@ import (
 
 func Test_SqlRawInputEmptyShutdown(t *testing.T) {
 	conf := `
-driver: postgres
-dsn: foo
+connection_id: 123
 query: "select * from public.users"
 args_mapping: 'root = [this.id]'
 `
