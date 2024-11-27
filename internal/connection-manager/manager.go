@@ -217,7 +217,7 @@ func (c *ConnectionManager[T]) Reaper() {
 		case <-c.shutdown:
 			c.hardClose()
 			return
-		case <-time.After(5 * time.Second):
+		case <-time.After(1 * time.Minute):
 			c.cleanUnusedConnections()
 		}
 	}
