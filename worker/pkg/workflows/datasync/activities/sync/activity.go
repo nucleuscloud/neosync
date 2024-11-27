@@ -87,37 +87,6 @@ type Activity struct {
 	benthosStreamManager BenthosStreamManagerClient
 }
 
-// func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectionmanager.Interface[any], error) {
-// 	connectionProvider := providers.NewProvider(
-// 		mongoprovider.NewProvider(),
-// 		sqlprovider.NewProvider(a.sqlconnector),
-// 	)
-// 	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager(connectionProvider))
-// 	manager, ok := val.(connectionmanager.Interface[any])
-// 	if !ok {
-// 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
-// 	}
-// 	if a.disableReaper {
-// 		return manager, nil
-// 	}
-// 	if !loaded {
-// 		go manager.Reaper()
-// 		go func() {
-// 			// periodically waits for the workflow run to complete so that it can shut down the tunnel manager for that run
-// 			for {
-// 				time.Sleep(1 * time.Minute)
-// 				exec, err := a.temporalclient.DescribeWorkflowExecution(context.Background(), wfId, runId)
-// 				if (err != nil && errors.Is(err, &serviceerror.NotFound{})) || (err == nil && exec.GetWorkflowExecutionInfo().GetCloseTime() != nil) {
-// 					a.tunnelmanagermap.Delete(runId)
-// 					go manager.Shutdown()
-// 					return
-// 				}
-// 			}
-// 		}()
-// 	}
-// 	return manager, nil
-// }
-
 var (
 	// Hack that locks the instanced bento stream builder build step that causes data races if done in parallel
 	streamBuilderMu sync.Mutex
