@@ -132,7 +132,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		"metadata", metadata,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
-		"activitySession", session,
+		"activitySession", session.String(),
 	}
 	if req.AccountId != "" {
 		loggerKeyVals = append(loggerKeyVals, "accountId", req.AccountId)
