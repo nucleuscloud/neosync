@@ -25,6 +25,7 @@ import (
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -1590,8 +1591,10 @@ func executeWorkflow(
 		},
 	}
 
-	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	go sqlconnmanager.Reaper()
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper()
 
 	sqlmanager := sql_manager.NewSqlManager(
 		sql_manager.WithConnectionManager(sqlconnmanager),
@@ -1617,6 +1620,7 @@ func executeWorkflow(
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
@@ -1626,6 +1630,7 @@ func executeWorkflow(
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
+	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
