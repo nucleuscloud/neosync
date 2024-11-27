@@ -187,6 +187,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	defer func() {
+		logger.Debug("releasing session", "session", session.String())
 		a.sqlconnmanager.ReleaseSession(session)
 		a.mongoconnmanager.ReleaseSession(session)
 	}()

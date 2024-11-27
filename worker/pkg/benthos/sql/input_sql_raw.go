@@ -108,6 +108,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	if err != nil {
 		return nil
 	}
+	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
 
 	var args []any
 	if s.argsMapping != nil {
