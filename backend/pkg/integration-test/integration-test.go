@@ -196,6 +196,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
@@ -222,6 +223,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 	neoCloudJobHookService := jobhooks.New(
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
@@ -255,6 +257,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 
 	jobhookService := jobhooks.New(

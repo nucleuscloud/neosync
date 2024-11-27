@@ -480,6 +480,7 @@ func serve(ctx context.Context) error {
 		mongoconnector,
 		awsManager,
 		sqlmanager,
+		&sqlconnect.SqlOpenConnector{},
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
