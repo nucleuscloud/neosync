@@ -20,20 +20,17 @@ type generateBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient  sqlmanager.SqlManagerClient
 	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
-	driver            string
 }
 
 func NewGenerateBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	driver string,
 ) bb_internal.BenthosBuilder {
 	return &generateBuilder{
 		transformerclient: transformerclient,
 		sqlmanagerclient:  sqlmanagerclient,
 		connectionclient:  connectionclient,
-		driver:            driver,
 	}
 }
 
@@ -182,7 +179,7 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
 			{
@@ -194,8 +191,7 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 					Output: neosync_benthos.OutputConfig{
 						Outputs: neosync_benthos.Outputs{
 							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-								Driver: b.driver,
-								Dsn:    params.DSN,
+								ConnectionId: params.DestConnection.GetId(),
 
 								Schema:                  benthosConfig.TableSchema,
 								Table:                   benthosConfig.TableName,

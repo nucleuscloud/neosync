@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -525,22 +524,6 @@ func Test_getEnvVarLookupFn(t *testing.T) {
 	val, ok = fn("bar")
 	assert.False(t, ok)
 	assert.Empty(t, val)
-}
-
-func Test_syncMapToStringMap(t *testing.T) {
-	syncmap := sync.Map{}
-
-	syncmap.Store("foo", "bar")
-	syncmap.Store("bar", "baz")
-	syncmap.Store(1, "2")
-	syncmap.Store("3", 4)
-
-	out := syncMapToStringMap(&syncmap)
-	assert.Len(t, out, 2)
-	assert.Equal(t, out["foo"], "bar")
-	assert.Equal(t, out["bar"], "baz")
-
-	assert.Empty(t, syncMapToStringMap(nil))
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {

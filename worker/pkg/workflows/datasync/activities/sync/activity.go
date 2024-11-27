@@ -233,21 +233,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	// todo: add support for gcp cloud storage authentication
 
-	envKeyDsnSyncMap := sync.Map{}
-	errgrp := errgroup.Group{}
-	for idx, bdns := range req.BenthosDsns {
-		idx := idx
-		bdns := bdns
-		errgrp.Go(func() error {
-			connection := connections[idx]
-			envKeyDsnSyncMap.Store(bdns.EnvVarKey, connection.Id)
-			return nil
-		})
-	}
-	if err := errgrp.Wait(); err != nil {
-		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
-	}
-
 	getConnectionById := getConnectionByIdFn(connectionMap)
 
 	benenv, err := benthos_environment.NewEnvironment(
@@ -268,7 +253,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)
 	}
 
-	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
+	envKeyMap := map[string]string{}
 	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
 	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
 	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
@@ -368,25 +353,4 @@ func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) 
 		output, ok := input[key]
 		return output, ok
 	}
-}
-
-func syncMapToStringMap(incoming *sync.Map) map[string]string {
-	out := map[string]string{}
-	if incoming == nil {
-		return out
-	}
-
-	incoming.Range(func(key, value any) bool {
-		keyStr, ok := key.(string)
-		if !ok {
-			return true
-		}
-		valStr, ok := value.(string)
-		if !ok {
-			return true
-		}
-		out[keyStr] = valStr
-		return true
-	})
-	return out
 }

@@ -524,14 +524,6 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosbuilde
 		return fmt.Errorf("benthos env is nil")
 	}
 
-	envKeyDsnSyncMap := syncmap.Map{}
-	for _, bdsn := range cfg.BenthosDsns {
-		envKeyDsnSyncMap.Store(bdsn.EnvVarKey, bdsn.ConnectionId)
-	}
-
-	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
-	// This must come before SetYaml as otherwise it will not be invoked
-	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
 		return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -651,37 +643,6 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 		}
 	}
 	return &mgmtv1alpha1.Connection{}
-}
-
-func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {
-	return func(key string) (string, bool) {
-		if input == nil {
-			return "", false
-		}
-		out, ok := input[key]
-		return out, ok
-	}
-}
-
-func syncMapToStringMap(incoming *syncmap.Map) map[string]string {
-	out := map[string]string{}
-	if incoming == nil {
-		return out
-	}
-
-	incoming.Range(func(key, value any) bool {
-		keyStr, ok := key.(string)
-		if !ok {
-			return true
-		}
-		valStr, ok := value.(string)
-		if !ok {
-			return true
-		}
-		out[keyStr] = valStr
-		return true
-	})
-	return out
 }
 
 func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDestinationOptions {

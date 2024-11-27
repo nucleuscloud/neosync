@@ -39,7 +39,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 
 	b.logger.Debug(fmt.Sprintf("building %d destination configs", len(b.destinationConnections)))
 	responses := []*BenthosConfigResponse{}
-	for destIdx, destConnection := range b.destinationConnections {
+	for _, destConnection := range b.destinationConnections {
 		destBuilder, err := b.destinationProvider.GetBuilder(b.job, destConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create destination builder: %w", err)
@@ -52,16 +52,12 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		}
 
 		for _, sourceConfig := range sourceConfigs {
-			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
-			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 			destParams := &bb_internal.DestinationParams{
 				SourceConfig:    sourceConfig,
 				Job:             b.job,
 				RunId:           b.runId,
 				DestinationOpts: destOpts,
 				DestConnection:  destConnection,
-				DestEnvVarKey:   dstEnvVarKey,
-				DSN:             dsn,
 				Logger:          b.logger,
 			}
 

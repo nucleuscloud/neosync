@@ -3,17 +3,17 @@ package benthosbuilder_builders
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,6 @@ const (
 	mockRunId      = "26444272-0bb0-4325-ae60-17dcd9744785"
 )
 
-var dsn = "dsn"
 var driver = sqlmanager_shared.PostgresDriver
 
 func Test_ProcessorConfigEmpty(t *testing.T) {
@@ -95,7 +94,8 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	runconfigs := []*tabledependency.RunConfig{
 		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
 	}
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
+	connectionId := uuid.NewString()
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		logger,
@@ -103,8 +103,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		mockTransformerClient,
 		tableMappings,
 		runconfigs,
-		dsn,
-		driver,
+		connectionId,
 		queryMap,
 		groupedSchemas,
 		map[string][]*sqlmanager_shared.ForeignConstraint{},
@@ -189,16 +188,15 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	queryMap := map[string]map[tabledependency.RunType]string{
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
+	logger := testutil.GetTestLogger(t)
+	connectionId := uuid.NewString()
 	res, err := buildBenthosSqlSourceConfigResponses(
 		logger,
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
 		runconfigs,
-		dsn,
-		driver,
+		connectionId,
 		queryMap,
 		groupedSchemas,
 		map[string][]*sqlmanager_shared.ForeignConstraint{},

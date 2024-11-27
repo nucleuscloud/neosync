@@ -147,7 +147,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver(), tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -170,7 +170,6 @@ func buildBenthosSqlSourceConfigResponses(
 	groupedTableMapping map[string]*tableMapping,
 	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
-	driver string,
 	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
@@ -198,8 +197,7 @@ func buildBenthosSqlSourceConfigResponses(
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
-							Driver: driver,
-							Dsn:    "${SOURCE_CONNECTION_DSN}",
+							ConnectionId: dsnConnectionId,
 
 							Query: query,
 						},
@@ -253,7 +251,7 @@ func buildBenthosSqlSourceConfigResponses(
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
 			RunType:        config.RunType(),
 
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
@@ -322,7 +320,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
 		args = append(args, benthosConfig.PrimaryKeys...)
@@ -330,8 +328,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: b.driver,
-						Dsn:    params.DSN,
+						ConnectionId: params.DestConnection.GetId(),
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -409,8 +406,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-						Driver: b.driver,
-						Dsn:    params.DSN,
+						ConnectionId: params.DestConnection.GetId(),
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -430,6 +426,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 							Count:      destOpts.BatchCount,
 							Processors: batchProcessors,
 						},
+						MaxInFlight: int(destOpts.MaxInFlight),
 					},
 				},
 				// kills activity depending on error
