@@ -16,6 +16,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -85,7 +86,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -278,7 +279,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	// lazy load
 	if len(b.mergedSchemaColumnMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.mergedSchemaColumnMap = sqlSchemaColMap
 	}
 	if len(b.mergedSchemaColumnMap) == 0 {
@@ -482,6 +483,7 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 // if not uses source destination schema column info map
 func getSqlSchemaColumnMap(
 	ctx context.Context,
+	session connectionmanager.SessionInterface,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
@@ -490,7 +492,7 @@ func getSqlSchemaColumnMap(
 	schemaColMap := sourceSchemaColumnInfoMap
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, destinationConnection, slogger)
+		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
 		if err != nil {
 			destDb.Db().Close()
 			return schemaColMap

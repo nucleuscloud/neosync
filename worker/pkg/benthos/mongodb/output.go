@@ -114,7 +114,7 @@ func newOutputWriter(conf *service.ParsedConfig, res *service.Resources, clientP
 	db = &outputWriter{
 		log: res.Logger(),
 	}
-	mongoUrl, err := conf.FieldString(commonFieldClientURL)
+	neosyncConnectionid, err := conf.FieldString(commonFieldClientConnectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func newOutputWriter(conf *service.ParsedConfig, res *service.Resources, clientP
 	if err != nil {
 		return nil, err
 	}
-	mClient, err := clientProvider.GetClient(mongoUrl)
+	mClient, err := clientProvider.GetClient(context.Background(), neosyncConnectionid)
 	if err != nil {
 		return nil, err
 	}

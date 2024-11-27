@@ -2,7 +2,6 @@ package sync_activity
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -12,6 +11,8 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/mongodb"
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
@@ -20,12 +21,10 @@ import (
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
+	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
@@ -37,9 +36,7 @@ import (
 	"connectrpc.com/connect"
 	"go.opentelemetry.io/otel/metric"
 
-	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 
 	"golang.org/x/sync/errgroup"
@@ -66,66 +63,60 @@ type SyncResponse struct {
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
-	sqlconnector sqlconnect.SqlConnector,
-	tunnelmanagermap *sync.Map,
-	temporalclient client.Client,
+	sqlconnmanager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx],
+	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
 	meter metric.Meter,
 	benthosStreamManager BenthosStreamManagerClient,
-	disableReaper bool,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
 		jobclient:            jobclient,
-		sqlconnector:         sqlconnector,
-		tunnelmanagermap:     tunnelmanagermap,
-		temporalclient:       temporalclient,
+		sqlconnmanager:       sqlconnmanager,
+		mongoconnmanager:     mongoconnmanager,
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
-		disableReaper:        disableReaper,
 	}
 }
 
 type Activity struct {
-	sqlconnector         sqlconnect.SqlConnector
 	connclient           mgmtv1alpha1connect.ConnectionServiceClient
 	jobclient            mgmtv1alpha1connect.JobServiceClient
-	tunnelmanagermap     *sync.Map
-	temporalclient       client.Client
+	sqlconnmanager       connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]
+	mongoconnmanager     connectionmanager.Interface[neosync_benthos_mongodb.MongoClient]
 	meter                metric.Meter // optional
 	benthosStreamManager BenthosStreamManagerClient
-	disableReaper        bool
 }
 
-func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectionmanager.Interface[any], error) {
-	connectionProvider := providers.NewProvider(
-		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(a.sqlconnector),
-	)
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager(connectionProvider))
-	manager, ok := val.(connectionmanager.Interface[any])
-	if !ok {
-		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
-	}
-	if a.disableReaper {
-		return manager, nil
-	}
-	if !loaded {
-		go manager.Reaper()
-		go func() {
-			// periodically waits for the workflow run to complete so that it can shut down the tunnel manager for that run
-			for {
-				time.Sleep(1 * time.Minute)
-				exec, err := a.temporalclient.DescribeWorkflowExecution(context.Background(), wfId, runId)
-				if (err != nil && errors.Is(err, &serviceerror.NotFound{})) || (err == nil && exec.GetWorkflowExecutionInfo().GetCloseTime() != nil) {
-					a.tunnelmanagermap.Delete(runId)
-					go manager.Shutdown()
-					return
-				}
-			}
-		}()
-	}
-	return manager, nil
-}
+// func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectionmanager.Interface[any], error) {
+// 	connectionProvider := providers.NewProvider(
+// 		mongoprovider.NewProvider(),
+// 		sqlprovider.NewProvider(a.sqlconnector),
+// 	)
+// 	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectionmanager.NewConnectionManager(connectionProvider))
+// 	manager, ok := val.(connectionmanager.Interface[any])
+// 	if !ok {
+// 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
+// 	}
+// 	if a.disableReaper {
+// 		return manager, nil
+// 	}
+// 	if !loaded {
+// 		go manager.Reaper()
+// 		go func() {
+// 			// periodically waits for the workflow run to complete so that it can shut down the tunnel manager for that run
+// 			for {
+// 				time.Sleep(1 * time.Minute)
+// 				exec, err := a.temporalclient.DescribeWorkflowExecution(context.Background(), wfId, runId)
+// 				if (err != nil && errors.Is(err, &serviceerror.NotFound{})) || (err == nil && exec.GetWorkflowExecutionInfo().GetCloseTime() != nil) {
+// 					a.tunnelmanagermap.Delete(runId)
+// 					go manager.Shutdown()
+// 					return
+// 				}
+// 			}
+// 		}()
+// 	}
+// 	return manager, nil
+// }
 
 var (
 	// Hack that locks the instanced bento stream builder build step that causes data races if done in parallel
@@ -226,12 +217,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("must provide means to retrieve benthos config either directly or via runcontext")
 	}
 
-	tunnelmanager, err := a.getTunnelManagerByRunId(info.WorkflowExecution.ID, info.WorkflowExecution.RunID)
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
-		tunnelmanager.ReleaseSession(session)
+		a.sqlconnmanager.ReleaseSession(session)
+		a.mongoconnmanager.ReleaseSession(session)
 	}()
 
 	connections, err := getConnectionsFromBenthosDsns(ctx, a.connclient, req.BenthosDsns)
@@ -260,15 +248,17 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
+	getConnectionById := getConnectionByIdFn(connectionMap)
+
 	benenv, err := benthos_environment.NewEnvironment(
 		slogger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			// Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetGenericSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
-			Provider: nil,
+			Provider: pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, slogger),
 			IsRetry:  isRetry,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
+			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, slogger),
 			// Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
@@ -332,6 +322,16 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	logger.Info("sync complete")
 	return &SyncResponse{Schema: metadata.Schema, Table: metadata.Table}, nil
+}
+
+func getConnectionByIdFn(connectionCache map[string]*mgmtv1alpha1.Connection) func(connectionId string) (connectionmanager.ConnectionInput, error) {
+	return func(connectionId string) (connectionmanager.ConnectionInput, error) {
+		connection, ok := connectionCache[connectionId]
+		if !ok {
+			return nil, fmt.Errorf("unable to find connection by id: %q", connectionId)
+		}
+		return connection, nil
+	}
 }
 
 func getConnectionsFromBenthosDsns(

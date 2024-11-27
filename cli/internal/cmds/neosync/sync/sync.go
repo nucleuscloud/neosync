@@ -189,6 +189,7 @@ type clisync struct {
 	cmd                   *cmdConfig
 	logger                *slog.Logger
 	ctx                   context.Context
+	session               connectionmanager.SessionInterface
 }
 
 func newCliSyncFromCmd(
@@ -250,6 +251,7 @@ func newCliSyncFromCmd(
 		cmd:                  cmdCfg,
 		logger:               logger,
 		ctx:                  ctx,
+		session:              connectionmanager.NewUniqueSession(),
 	}
 
 	return sync, nil
@@ -266,10 +268,8 @@ func (c *clisync) configureAndRunSync() error {
 	sourceConnection := connResp.Msg.GetConnection()
 	c.sourceConnection = sourceConnection
 
-	session := uuid.NewString()
-	// might not need this in cli context
 	defer func() {
-		c.connmanager.ReleaseSession(session)
+		c.connmanager.ReleaseSession(c.session)
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
@@ -297,20 +297,22 @@ func (c *clisync) configureAndRunSync() error {
 			}
 		}
 	}()
+	connCache := map[string]*mgmtv1alpha1.Connection{
+		destConnection.Id:   destConnection,
+		sourceConnection.Id: sourceConnection,
+	}
+	getConnectionById := func(connectionId string) (connectionmanager.ConnectionInput, error) {
+		connection, ok := connCache[connectionId]
+		if !ok {
+			return nil, fmt.Errorf("unable to find connection by id: %q", connectionId)
+		}
+		return connection, nil
+	}
 	benthosEnv, err := benthos_environment.NewEnvironment(
 		c.logger,
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(
-				c.connmanager,
-				dsnToConnIdMap,
-				map[string]*mgmtv1alpha1.Connection{
-					destConnection.Id:   destConnection,
-					sourceConnection.Id: sourceConnection,
-				},
-				session,
-				c.logger,
-			)),
-			IsRetry: false,
+			Provider: pool_sql_provider.NewConnectionProvider(c.connmanager, getConnectionById, c.session, c.logger),
+			IsRetry:  false,
 		}),
 		benthos_environment.WithConnectionDataConfig(&benthos_environment.ConnectionDataConfig{
 			NeosyncConnectionDataApi: c.connectiondataclient,
@@ -748,7 +750,7 @@ func (c *clisync) runDestinationInitStatements(
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
-	db, err := c.sqlmanagerclient.NewSqlConnection(c.ctx, destConnection, c.logger)
+	db, err := c.sqlmanagerclient.NewSqlConnection(c.ctx, c.session, destConnection, c.logger)
 	if err != nil {
 		return err
 	}
@@ -1090,7 +1092,7 @@ func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager
 	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
 	defer cancel()
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
-	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, destConnection, c.logger)
+	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, c.session, destConnection, c.logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1108,7 +1110,7 @@ func (c *clisync) getDestinationSchemas() ([]*mgmtv1alpha1.DatabaseColumn, error
 	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
 	defer cancel()
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
-	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, destConnection, c.logger)
+	db, err := c.sqlmanagerclient.NewSqlConnection(cctx, c.session, destConnection, c.logger)
 	if err != nil {
 		return nil, err
 	}
