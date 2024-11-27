@@ -16,14 +16,15 @@ type ConnectionProvider[T any] interface {
 
 type ConnectionManager[T any] struct {
 	connectionProvider ConnectionProvider[T]
+	config             *managerConfig
 
-	config *managerConfig
+	// Map of groupId -> sessionId -> connectionIds
+	groupSessionMap map[string]map[string]map[string]struct{}
+	sessionMu       *sync.RWMutex
 
-	sessionMap map[string]map[string]struct{}
-	sessionMu  *sync.RWMutex
-
-	connMap map[string]T
-	connMu  *sync.RWMutex
+	// Map of groupId -> connectionId -> connection
+	groupConnMap map[string]map[string]T
+	connMu       *sync.RWMutex
 
 	shutdown chan any
 }
@@ -34,8 +35,9 @@ type ConnectionInput interface {
 }
 
 type Interface[T any] interface {
-	GetConnection(session string, connection ConnectionInput, logger *slog.Logger) (T, error)
-	ReleaseSession(session string) bool
+	GetConnection(session SessionInterface, connection ConnectionInput, logger *slog.Logger) (T, error)
+	ReleaseSession(session SessionInterface) bool
+	ReleaseSessionGroup(grouper SessionGroupInterface) bool
 	Shutdown()
 	Reaper()
 }
@@ -46,8 +48,8 @@ type managerConfig struct {
 	closeOnRelease bool
 }
 
-// Causes the ConnectionManager to automatically close connections when the last session is released
-// If this is not provided, connections will be held on to until Shutdown() or Reaper() is enabled
+// When a session is closed, if no other sessions within that group exist, the connection will be closed.
+// Otherwise, the connection will not be closed until Shutdown() or a Repear() cycle occurs.
 func WithCloseOnRelease() ManagerOption {
 	return func(mc *managerConfig) {
 		mc.closeOnRelease = true
@@ -66,8 +68,8 @@ func NewConnectionManager[T any](
 	}
 	return &ConnectionManager[T]{
 		connectionProvider: connectionProvider,
-		sessionMap:         map[string]map[string]struct{}{},
-		connMap:            map[string]T{},
+		groupSessionMap:    map[string]map[string]map[string]struct{}{},
+		groupConnMap:       map[string]map[string]T{},
 		config:             cfg,
 		shutdown:           make(chan any),
 		sessionMu:          &sync.RWMutex{},
@@ -76,24 +78,30 @@ func NewConnectionManager[T any](
 }
 
 func (c *ConnectionManager[T]) GetConnection(
-	session string,
+	session SessionInterface,
 	connection ConnectionInput,
 	logger *slog.Logger,
 ) (T, error) {
-	// First check if we need to create a new connection
+	groupId := session.Group()
+	sessionId := session.Name()
+
+	// Check for existing connection in the group
 	c.sessionMu.RLock()
 	c.connMu.RLock()
-	existingDb, exists := c.connMap[connection.GetId()]
-	if exists {
-		// Check if session binding exists
-		_, sessionExists := c.sessionMap[session]
-		c.sessionMu.RUnlock()
-		c.connMu.RUnlock()
 
-		if !sessionExists {
-			return c.handleExistingConnection(session, connection.GetId(), existingDb)
+	if groupConns, exists := c.groupConnMap[groupId]; exists {
+		if existingDb, exists := groupConns[connection.GetId()]; exists {
+			// Check if session binding exists in the group
+			groupSessions, groupExists := c.groupSessionMap[groupId]
+			sessionExists := groupExists && groupSessions[sessionId] != nil
+			c.sessionMu.RUnlock()
+			c.connMu.RUnlock()
+
+			if !sessionExists {
+				return c.handleExistingConnection(session, connection.GetId(), existingDb)
+			}
+			return existingDb, nil
 		}
-		return existingDb, nil
 	}
 	c.sessionMu.RUnlock()
 	c.connMu.RUnlock()
@@ -104,13 +112,13 @@ func (c *ConnectionManager[T]) GetConnection(
 	defer c.connMu.Unlock()
 	defer c.sessionMu.Unlock()
 
-	// Check again under write lock to prevent duplicate creation
-	if existingDb, exists := c.connMap[connection.GetId()]; exists {
-		if _, ok := c.sessionMap[session]; !ok {
-			c.sessionMap[session] = make(map[string]struct{})
+	// Check again under write lock
+	if groupConns, exists := c.groupConnMap[groupId]; exists {
+		if existingDb, exists := groupConns[connection.GetId()]; exists {
+			c.ensureSessionMapsExist(groupId, sessionId)
+			c.groupSessionMap[groupId][sessionId][connection.GetId()] = struct{}{}
+			return existingDb, nil
 		}
-		c.sessionMap[session][connection.GetId()] = struct{}{}
-		return existingDb, nil
 	}
 
 	// Create new connection
@@ -120,58 +128,121 @@ func (c *ConnectionManager[T]) GetConnection(
 		return result, err
 	}
 
-	// Store new connection and bind session
-	c.connMap[connection.GetId()] = connectionClient
-	if _, ok := c.sessionMap[session]; !ok {
-		c.sessionMap[session] = make(map[string]struct{})
+	// Initialize maps if they don't exist
+	c.ensureSessionMapsExist(groupId, sessionId)
+	if _, ok := c.groupConnMap[groupId]; !ok {
+		c.groupConnMap[groupId] = make(map[string]T)
 	}
-	c.sessionMap[session][connection.GetId()] = struct{}{}
+
+	// Store new connection and bind session
+	c.groupConnMap[groupId][connection.GetId()] = connectionClient
+	c.groupSessionMap[groupId][sessionId][connection.GetId()] = struct{}{}
 
 	return connectionClient, nil
 }
 
-func (c *ConnectionManager[T]) handleExistingConnection(session, connId string, client T) (T, error) {
-	c.sessionMu.Lock()
-	if _, ok := c.sessionMap[session]; !ok {
-		c.sessionMap[session] = make(map[string]struct{})
+func (c *ConnectionManager[T]) ensureSessionMapsExist(groupId, sessionId string) {
+	if _, ok := c.groupSessionMap[groupId]; !ok {
+		c.groupSessionMap[groupId] = make(map[string]map[string]struct{})
 	}
-	c.sessionMap[session][connId] = struct{}{}
+	if _, ok := c.groupSessionMap[groupId][sessionId]; !ok {
+		c.groupSessionMap[groupId][sessionId] = make(map[string]struct{})
+	}
+}
+
+func (c *ConnectionManager[T]) handleExistingConnection(session SessionInterface, connId string, client T) (T, error) {
+	c.sessionMu.Lock()
+	c.ensureSessionMapsExist(session.Group(), session.Name())
+	c.groupSessionMap[session.Group()][session.Name()][connId] = struct{}{}
 	c.sessionMu.Unlock()
 	return client, nil
 }
 
-func (c *ConnectionManager[T]) ReleaseSession(session string) bool {
+func (c *ConnectionManager[T]) ReleaseSession(session SessionInterface) bool {
+	groupId := session.Group()
+	sessionId := session.Name()
+
 	c.sessionMu.Lock()
-	connMap, ok := c.sessionMap[session]
-	if !ok || len(connMap) == 0 {
+	groupSessions, groupExists := c.groupSessionMap[groupId]
+	if !groupExists {
 		c.sessionMu.Unlock()
 		return false
 	}
 
-	sessionConnIds := getConnectionIds(connMap)
+	sessionConns, sessionExists := groupSessions[sessionId]
+	if !sessionExists || len(sessionConns) == 0 {
+		c.sessionMu.Unlock()
+		return false
+	}
 
-	delete(c.sessionMap, session)
-	remainingConns := getUniqueConnectionIdsFromSessions(c.sessionMap)
+	sessionConnIds := getConnectionIds(sessionConns)
+	delete(groupSessions, sessionId)
+
+	// If this was the last session in the group, clean up the group
+	if len(groupSessions) == 0 {
+		delete(c.groupSessionMap, groupId)
+	}
+
+	remainingConns := getUniqueConnectionIdsFromGroupSessions(groupSessions)
 	c.sessionMu.Unlock()
 
 	if c.config.closeOnRelease {
-		c.closeSpecificConnections(sessionConnIds, remainingConns)
+		c.closeSpecificGroupConnections(groupId, sessionConnIds, remainingConns)
 	}
 	return true
 }
 
-func (c *ConnectionManager[T]) closeSpecificConnections(candidateConnIds []string, remainingConns map[string]struct{}) {
+func (c *ConnectionManager[T]) ReleaseSessionGroup(grouper SessionGroupInterface) bool {
+	groupId := grouper.Group()
+
+	c.sessionMu.Lock()
+	groupSessions, groupExists := c.groupSessionMap[groupId]
+	if !groupExists || len(groupSessions) == 0 {
+		c.sessionMu.Unlock()
+		return false
+	}
+
+	// Get all connection IDs that are in the group
+	connIds := make([]string, 0)
+	for _, sessionConns := range groupSessions {
+		connIds = append(connIds, getConnectionIds(sessionConns)...)
+	}
+
+	// Remove all sessions in the group
+	delete(c.groupSessionMap, groupId)
+	c.sessionMu.Unlock()
+
+	if c.config.closeOnRelease {
+		// Since we're removing the entire group, there are no remaining connections
+		c.closeSpecificGroupConnections(groupId, connIds, make(map[string]struct{}))
+	}
+
+	return len(connIds) > 0
+}
+
+func (c *ConnectionManager[T]) closeSpecificGroupConnections(groupId string, candidateConnIds []string, remainingConns map[string]struct{}) {
 	c.connMu.Lock()
 	defer c.connMu.Unlock()
+
+	groupConns, exists := c.groupConnMap[groupId]
+	if !exists {
+		return
+	}
+
 	for _, connId := range candidateConnIds {
 		if _, stillInUse := remainingConns[connId]; !stillInUse {
-			if dbConn, exists := c.connMap[connId]; exists {
+			if dbConn, exists := groupConns[connId]; exists {
 				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
 					slog.Error(fmt.Sprintf("unable to close client connection during release: %s", err.Error()))
 				}
-				delete(c.connMap, connId)
+				delete(groupConns, connId)
 			}
 		}
+	}
+
+	// If this was the last connection in the group, clean up the group
+	if len(groupConns) == 0 {
+		delete(c.groupConnMap, groupId)
 	}
 }
 
@@ -191,52 +262,61 @@ func (c *ConnectionManager[T]) Reaper() {
 	}
 }
 
+func (c *ConnectionManager[T]) cleanUnusedConnections() {
+	c.sessionMu.RLock()
+	groupSessionConnections := make(map[string]map[string]struct{})
+	for groupId, sessions := range c.groupSessionMap {
+		groupSessionConnections[groupId] = getUniqueConnectionIdsFromGroupSessions(sessions)
+	}
+	c.sessionMu.RUnlock()
+
+	c.connMu.Lock()
+	for groupId, groupConns := range c.groupConnMap {
+		sessionConns := groupSessionConnections[groupId]
+		for connId, dbConn := range groupConns {
+			if _, ok := sessionConns[connId]; !ok {
+				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
+					slog.Error(fmt.Sprintf("unable to fully close client connection during cleanup: %s", err.Error()))
+				}
+				delete(groupConns, connId)
+			}
+		}
+		if len(groupConns) == 0 {
+			delete(c.groupConnMap, groupId)
+		}
+	}
+	c.connMu.Unlock()
+}
+
 func (c *ConnectionManager[T]) hardClose() {
-	// Acquire locks in consistent order
 	c.sessionMu.Lock()
 	c.connMu.Lock()
 
-	// Close all connections
-	for connId, dbConn := range c.connMap {
-		if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-			slog.Error(fmt.Sprintf("unable to fully close client connection during hard close: %s", err.Error()))
+	// Close all connections in all groups
+	for groupId, groupConns := range c.groupConnMap {
+		for connId, dbConn := range groupConns {
+			if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
+				slog.Error(fmt.Sprintf("unable to fully close client connection during hard close: %s", err.Error()))
+			}
+			delete(groupConns, connId)
 		}
-		delete(c.connMap, connId)
+		delete(c.groupConnMap, groupId)
 	}
 
-	// Clear all sessions
-	for sessionId := range c.sessionMap {
-		delete(c.sessionMap, sessionId)
+	// Clear all sessions in all groups
+	for groupId := range c.groupSessionMap {
+		delete(c.groupSessionMap, groupId)
 	}
 
 	c.connMu.Unlock()
 	c.sessionMu.Unlock()
 }
 
-func (c *ConnectionManager[T]) cleanUnusedConnections() {
-	// Get session info first
-	c.sessionMu.RLock()
-	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
-	c.sessionMu.RUnlock()
-
-	// Then handle connections
-	c.connMu.Lock()
-	for connId, dbConn := range c.connMap {
-		if _, ok := sessionConnections[connId]; !ok {
-			if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-				slog.Error(fmt.Sprintf("unable to fully close client connection during cleanup: %s", err.Error()))
-			}
-			delete(c.connMap, connId)
-		}
-	}
-	c.connMu.Unlock()
-}
-
-func getUniqueConnectionIdsFromSessions(sessionMap map[string]map[string]struct{}) map[string]struct{} {
+func getUniqueConnectionIdsFromGroupSessions(sessions map[string]map[string]struct{}) map[string]struct{} {
 	connSet := map[string]struct{}{}
-	for _, sessConnSet := range sessionMap {
-		for key := range sessConnSet {
-			connSet[key] = struct{}{}
+	for _, sessionConns := range sessions {
+		for connId := range sessionConns {
+			connSet[connId] = struct{}{}
 		}
 	}
 	return connSet
