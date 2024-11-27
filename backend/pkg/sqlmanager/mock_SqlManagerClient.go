@@ -25,9 +25,9 @@ func (_m *MockSqlManagerClient) EXPECT() *MockSqlManagerClient_Expecter {
 	return &MockSqlManagerClient_Expecter{mock: &_m.Mock}
 }
 
-// NewSqlConnection provides a mock function with given fields: ctx, connection, slogger
-func (_m *MockSqlManagerClient) NewSqlConnection(ctx context.Context, connection connectionmanager.ConnectionInput, slogger *slog.Logger) (*SqlConnection, error) {
-	ret := _m.Called(ctx, connection, slogger)
+// NewSqlConnection provides a mock function with given fields: ctx, session, connection, slogger
+func (_m *MockSqlManagerClient) NewSqlConnection(ctx context.Context, session connectionmanager.SessionInterface, connection connectionmanager.ConnectionInput, slogger *slog.Logger) (*SqlConnection, error) {
+	ret := _m.Called(ctx, session, connection, slogger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewSqlConnection")
@@ -35,19 +35,19 @@ func (_m *MockSqlManagerClient) NewSqlConnection(ctx context.Context, connection
 
 	var r0 *SqlConnection
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, connectionmanager.ConnectionInput, *slog.Logger) (*SqlConnection, error)); ok {
-		return rf(ctx, connection, slogger)
+	if rf, ok := ret.Get(0).(func(context.Context, connectionmanager.SessionInterface, connectionmanager.ConnectionInput, *slog.Logger) (*SqlConnection, error)); ok {
+		return rf(ctx, session, connection, slogger)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, connectionmanager.ConnectionInput, *slog.Logger) *SqlConnection); ok {
-		r0 = rf(ctx, connection, slogger)
+	if rf, ok := ret.Get(0).(func(context.Context, connectionmanager.SessionInterface, connectionmanager.ConnectionInput, *slog.Logger) *SqlConnection); ok {
+		r0 = rf(ctx, session, connection, slogger)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*SqlConnection)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, connectionmanager.ConnectionInput, *slog.Logger) error); ok {
-		r1 = rf(ctx, connection, slogger)
+	if rf, ok := ret.Get(1).(func(context.Context, connectionmanager.SessionInterface, connectionmanager.ConnectionInput, *slog.Logger) error); ok {
+		r1 = rf(ctx, session, connection, slogger)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -62,15 +62,16 @@ type MockSqlManagerClient_NewSqlConnection_Call struct {
 
 // NewSqlConnection is a helper method to define mock.On call
 //   - ctx context.Context
+//   - session connectionmanager.SessionInterface
 //   - connection connectionmanager.ConnectionInput
 //   - slogger *slog.Logger
-func (_e *MockSqlManagerClient_Expecter) NewSqlConnection(ctx interface{}, connection interface{}, slogger interface{}) *MockSqlManagerClient_NewSqlConnection_Call {
-	return &MockSqlManagerClient_NewSqlConnection_Call{Call: _e.mock.On("NewSqlConnection", ctx, connection, slogger)}
+func (_e *MockSqlManagerClient_Expecter) NewSqlConnection(ctx interface{}, session interface{}, connection interface{}, slogger interface{}) *MockSqlManagerClient_NewSqlConnection_Call {
+	return &MockSqlManagerClient_NewSqlConnection_Call{Call: _e.mock.On("NewSqlConnection", ctx, session, connection, slogger)}
 }
 
-func (_c *MockSqlManagerClient_NewSqlConnection_Call) Run(run func(ctx context.Context, connection connectionmanager.ConnectionInput, slogger *slog.Logger)) *MockSqlManagerClient_NewSqlConnection_Call {
+func (_c *MockSqlManagerClient_NewSqlConnection_Call) Run(run func(ctx context.Context, session connectionmanager.SessionInterface, connection connectionmanager.ConnectionInput, slogger *slog.Logger)) *MockSqlManagerClient_NewSqlConnection_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(connectionmanager.ConnectionInput), args[2].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(connectionmanager.SessionInterface), args[2].(connectionmanager.ConnectionInput), args[3].(*slog.Logger))
 	})
 	return _c
 }
@@ -80,7 +81,7 @@ func (_c *MockSqlManagerClient_NewSqlConnection_Call) Return(_a0 *SqlConnection,
 	return _c
 }
 
-func (_c *MockSqlManagerClient_NewSqlConnection_Call) RunAndReturn(run func(context.Context, connectionmanager.ConnectionInput, *slog.Logger) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlConnection_Call {
+func (_c *MockSqlManagerClient_NewSqlConnection_Call) RunAndReturn(run func(context.Context, connectionmanager.SessionInterface, connectionmanager.ConnectionInput, *slog.Logger) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlConnection_Call {
 	_c.Call.Return(run)
 	return _c
 }

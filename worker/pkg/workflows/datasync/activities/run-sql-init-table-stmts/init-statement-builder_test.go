@@ -10,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
@@ -170,6 +171,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -271,6 +273,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -402,6 +405,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -541,6 +545,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -684,6 +689,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -795,6 +801,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)

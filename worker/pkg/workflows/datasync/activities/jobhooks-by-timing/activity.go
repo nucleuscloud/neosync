@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
@@ -103,6 +104,7 @@ func (a *Activity) RunJobHooksByTiming(
 		}
 	}()
 
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
 	execCount := uint(0)
 
 	for _, hook := range hooks {
@@ -118,7 +120,7 @@ func (a *Activity) RunJobHooksByTiming(
 			if err := a.executeSqlHook(
 				ctx,
 				hookConfig.Sql,
-				a.getCachedConnectionFn(connections, logger, slogger),
+				a.getCachedConnectionFn(connections, session, logger, slogger),
 			); err != nil {
 				return nil, fmt.Errorf("unable to execute sql hook: %w", err)
 			}
@@ -136,6 +138,7 @@ type getSqlDbFromConnectionId = func(ctx context.Context, connectionId string) (
 
 func (a *Activity) getCachedConnectionFn(
 	connections map[string]*sqlmanager.SqlConnection,
+	session connectionmanager.SessionInterface,
 	logger log.Logger,
 	slogger *slog.Logger,
 ) getSqlDbFromConnectionId {
@@ -155,6 +158,7 @@ func (a *Activity) getCachedConnectionFn(
 		connection := connectionResp.Msg.GetConnection()
 		sqlconnection, err := a.sqlmanagerclient.NewSqlConnection(
 			ctx,
+			session,
 			connection,
 			slogger.With(
 				"connectionId", connection.GetId(),

@@ -1,6 +1,10 @@
 package connectionmanager
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type Session struct {
 	name string
@@ -46,4 +50,8 @@ func NewSession(name string, opts ...SessionOption) *Session {
 		opt(cfg)
 	}
 	return &Session{name: name, cfg: cfg}
+}
+
+func NewUniqueSession(opts ...SessionOption) *Session {
+	return NewSession(uuid.NewString(), opts...)
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"golang.org/x/sync/errgroup"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -49,8 +50,8 @@ func (s *Service) CheckConnectionConfig(
 		if err != nil {
 			return nil, err
 		}
-		s.sqlmanager.NewSqlConnection(ctx, &mgmtv1alpha1.Connection{ConnectionConfig: req.Msg.GetConnectionConfig()}, logger)
-		db, err := s.sqlmanager.NewSqlConnection(ctx, &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
+
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
 		if err != nil {
 			return nil, err
 		}

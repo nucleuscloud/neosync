@@ -13,6 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/microsoft/go-mssqldb"
 
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -46,7 +47,7 @@ func Test_Manager_NewSqlConnection(t *testing.T) {
 				},
 			},
 		}
-		conn, err := manager.NewSqlConnection(ctx, mgmtconn, testutil.GetTestLogger(t))
+		conn, err := manager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), mgmtconn, testutil.GetTestLogger(t))
 		requireNoConnErr(t, conn, err)
 		defer conn.Db().Close()
 		requireValidDatabase(t, ctx, conn, "pgx", "SELECT 1")
@@ -70,7 +71,7 @@ func Test_Manager_NewSqlConnection(t *testing.T) {
 				},
 			},
 		}
-		conn, err := manager.NewSqlConnection(ctx, mgmtconn, testutil.GetTestLogger(t))
+		conn, err := manager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), mgmtconn, testutil.GetTestLogger(t))
 		requireNoConnErr(t, conn, err)
 		defer conn.Db().Close()
 		requireValidDatabase(t, ctx, conn, "mysql", "SELECT 1")
@@ -99,7 +100,7 @@ func Test_Manager_NewSqlConnection(t *testing.T) {
 			},
 		}
 
-		conn, err := manager.NewSqlConnection(ctx, mgmtconn, testutil.GetTestLogger(t))
+		conn, err := manager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), mgmtconn, testutil.GetTestLogger(t))
 		requireNoConnErr(t, conn, err)
 		defer conn.Db().Close()
 		requireValidDatabase(t, ctx, conn, "sqlserver", "SELECT 1")

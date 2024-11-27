@@ -23,8 +23,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
-	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
@@ -44,7 +42,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 
-	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -137,8 +134,8 @@ var (
 
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
 func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-	session := uuid.NewString()
 	info := activity.GetInfo(ctx)
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.RunID))
 	isRetry := info.Attempt > 1
 	loggerKeyVals := []any{
 		"metadata", metadata,
@@ -249,7 +246,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	// todo: add support for gcp cloud storage authentication
 
 	envKeyDsnSyncMap := sync.Map{}
-	dsnToConnectionIdMap := sync.Map{}
 	errgrp := errgroup.Group{}
 	for idx, bdns := range req.BenthosDsns {
 		idx := idx
@@ -257,7 +253,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		errgrp.Go(func() error {
 			connection := connections[idx]
 			envKeyDsnSyncMap.Store(bdns.EnvVarKey, connection.Id)
-			dsnToConnectionIdMap.Store(connection.Id, connection.Id)
 			return nil
 		})
 	}
@@ -269,11 +264,12 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		slogger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetGenericSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			// Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetGenericSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			Provider: nil,
 			IsRetry:  isRetry,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
-			Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			// Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),

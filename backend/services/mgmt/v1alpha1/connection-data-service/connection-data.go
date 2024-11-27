@@ -28,6 +28,7 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"go.mongodb.org/mongo-driver/bson"
@@ -489,7 +490,7 @@ func (s *Service) GetConnectionSchema(
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connection, logger)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -771,7 +772,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		schemas = append(schemas, s)
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -834,7 +835,7 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		schemas = append(schemas, s)
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -884,7 +885,7 @@ func (s *Service) GetConnectionInitStatements(
 		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1231,7 +1232,7 @@ func (s *Service) GetConnectionUniqueConstraints(
 		schemas = append(schemas, s)
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1392,7 +1393,7 @@ func (s *Service) GetConnectionTableConstraints(
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 		if err != nil {
 			return nil, err
 		}
@@ -1464,7 +1465,7 @@ func (s *Service) GetTableRowCount(
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connection.Msg.GetConnection(), logger)
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 		if err != nil {
 			return nil, err
 		}

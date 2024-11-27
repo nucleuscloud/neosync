@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/google/uuid"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -99,6 +98,7 @@ func WithMssqlQuerier(querier mssql_queries.Querier) SqlManagerOption {
 type SqlManagerClient interface {
 	NewSqlConnection(
 		ctx context.Context,
+		session connectionmanager.SessionInterface,
 		connection connectionmanager.ConnectionInput,
 		slogger *slog.Logger,
 	) (*SqlConnection, error)
@@ -108,10 +108,10 @@ var _ SqlManagerClient = &SqlManager{}
 
 func (s *SqlManager) NewSqlConnection(
 	ctx context.Context,
+	session connectionmanager.SessionInterface,
 	connection connectionmanager.ConnectionInput,
 	slogger *slog.Logger,
 ) (*SqlConnection, error) {
-	session := uuid.NewString()
 	connclient, err := s.config.mgr.GetConnection(session, connection, slogger)
 	if err != nil {
 		return nil, err

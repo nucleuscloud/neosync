@@ -12,6 +12,7 @@ import (
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -48,6 +49,7 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
@@ -104,7 +106,7 @@ func (a *Activity) RunPostTableSync(
 		}
 		switch destinationConnection.GetConnectionConfig().GetConfig().(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, destinationConnection, slogger)
+			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
 			if err != nil {
 				destDb.Db().Close()
 				slogger.Error("unable to connection to destination", "connectionId", destConnectionId)
