@@ -272,11 +272,14 @@ func (c *ConnectionManager[T]) cleanUnusedConnections() {
 
 	c.connMu.Lock()
 	for groupId, groupConns := range c.groupConnMap {
+		slog.Debug(fmt.Sprintf("[ConnectionManager][Reaper] checking group %q with %d connection(s)", groupId, len(groupConns)))
 		sessionConns := groupSessionConnections[groupId]
 		for connId, dbConn := range groupConns {
+			slog.Debug(fmt.Sprintf("[ConnectionManager][Reaper] checking group %q for connection %q", groupId, connId))
 			if _, ok := sessionConns[connId]; !ok {
+				slog.Debug(fmt.Sprintf("[ConnectionManager][Reaper] closing client connection: %q in group %q", connId, groupId))
 				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-					slog.Error(fmt.Sprintf("unable to fully close client connection during cleanup: %s", err.Error()))
+					slog.Warn(fmt.Sprintf("[ConnectionManager][Reaper] unable to fully close client connection %q in group %q during cleanup: %s", connId, groupId, err.Error()))
 				}
 				delete(groupConns, connId)
 			}
