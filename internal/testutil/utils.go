@@ -31,7 +31,7 @@ type testWriter struct {
 
 func (tw testWriter) Write(p []byte) (n int, err error) {
 	// removes extra line between log statements
-	msg := strings.TrimSpace(string(p))
+	msg := strings.TrimSuffix(string(p), "\n")
 	tw.t.Log(msg)
 	return len(p), nil
 }
