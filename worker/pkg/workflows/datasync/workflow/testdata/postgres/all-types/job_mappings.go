@@ -425,7 +425,247 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "int_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "smallint_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "bigint_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "real_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "double_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "text_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "varchar_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "char_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "boolean_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "date_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "time_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "timestamp_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "timestamptz_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "interval_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "point_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "line_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "lseg_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "path_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "polygon_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "circle_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "uuid_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "json_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "jsonb_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "bit_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "varbit_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "numeric_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "money_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "xml_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
+			Column: "int_double_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
 		{
 			Schema: "alltypes",
 			Table:  "json_data",
