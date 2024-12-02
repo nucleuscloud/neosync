@@ -1,10 +1,10 @@
 package testutil
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -31,7 +31,7 @@ type testWriter struct {
 
 func (tw testWriter) Write(p []byte) (n int, err error) {
 	// removes extra line between log statements
-	msg := strings.TrimSuffix(string(p), "\n")
-	tw.t.Log(msg)
+	msg := bytes.TrimSuffix(p, []byte("\n"))
+	tw.t.Log(string(msg))
 	return len(p), nil
 }
