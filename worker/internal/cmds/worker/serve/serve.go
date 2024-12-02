@@ -276,9 +276,11 @@ func serve(ctx context.Context) error {
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
 	go sqlconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
 
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
 	go mongoconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
 
 	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
 
