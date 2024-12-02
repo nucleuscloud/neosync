@@ -90,7 +90,7 @@ type NeosyncApiTestClient struct {
 // Option is a functional option for configuring Neosync Api Test Client
 type Option func(*NeosyncApiTestClient)
 
-func NewNeosyncApiTestClient(ctx context.Context, t *testing.T, opts ...Option) (*NeosyncApiTestClient, error) {
+func NewNeosyncApiTestClient(ctx context.Context, t testing.TB, opts ...Option) (*NeosyncApiTestClient, error) {
 	neoApi := &NeosyncApiTestClient{
 		migrationsDir: "../../../../sql/postgresql/schema",
 	}
@@ -144,7 +144,7 @@ func (s *AuthdClients) GetConnectionClient(authUserId string) mgmtv1alpha1connec
 	return mgmtv1alpha1connect.NewConnectionServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
-func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
+func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	pgcontainer, err := tcpostgres.NewPostgresTestContainer(ctx)
 	if err != nil {
 		return err
