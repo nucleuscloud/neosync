@@ -83,7 +83,7 @@ func NewConnectionManager[T any](
 		groupSessionMap:    map[string]map[string]map[string]struct{}{},
 		groupConnMap:       map[string]map[string]T{},
 		config:             cfg,
-		shutdown:           make(chan any, 1),
+		shutdown:           make(chan any),
 		mu:                 &sync.Mutex{},
 		isReaping:          &atomic.Bool{},
 	}
@@ -218,6 +218,7 @@ func (c *ConnectionManager[T]) Reaper(logger *slog.Logger) {
 		select {
 		case <-c.shutdown:
 			c.hardClose(logger)
+			c.isReaping.Store(false)
 			return
 		case <-time.After(c.config.reapDuration):
 			c.cleanUnusedConnections(logger)
