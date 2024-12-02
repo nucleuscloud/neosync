@@ -45,6 +45,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/lib/pq v1.10.9
 	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/neilotoole/slogt v1.1.0
 	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240830015744-041b46c70aa5
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.2-0.20241010152447-fd1f9b3e4488
 	github.com/oapi-codegen/runtime v1.1.1

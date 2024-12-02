@@ -21,37 +21,39 @@ func (h *temporalLogHandler) Enabled(ctx context.Context, level slog.Level) bool
 }
 
 func (h *temporalLogHandler) Handle(ctx context.Context, r slog.Record) error { //nolint:gocritic // Needs to conform to the slog.Handler interface
-	attrs := make([]any, 0, (r.NumAttrs()+len(h.attrs))*2)
+	// Combine pre-defined attrs with record attrs
+	allAttrs := make([]slog.Attr, 0, len(h.attrs)+r.NumAttrs())
+	allAttrs = append(allAttrs, h.attrs...)
 
-	// Add handler's attrs first
-	for _, attr := range h.attrs {
-		attrs = append(attrs, attr.Key, attr.Value.String())
-	}
-
-	// Add record's attrs
-	r.Attrs(func(a slog.Attr) bool {
-		if !a.Equal(slog.Attr{}) {
-			key := a.Key
-			// Apply groups to key
-			for _, group := range h.groups {
-				if group != "" {
-					key = group + "." + key
+	r.Attrs(func(attr slog.Attr) bool {
+		if !attr.Equal(slog.Attr{}) {
+			// Handle groups
+			if len(h.groups) > 0 {
+				last := h.groups[len(h.groups)-1]
+				if last != "" {
+					attr.Key = last + "." + attr.Key
 				}
 			}
-			attrs = append(attrs, key, a.Value.String())
+			allAttrs = append(allAttrs, attr)
 		}
 		return true
 	})
 
+	// Convert to key-value pairs for temporal logger
+	keyvals := make([]any, 0, len(allAttrs)*2)
+	for _, attr := range allAttrs {
+		keyvals = append(keyvals, attr.Key, attr.Value.Any())
+	}
+
 	switch r.Level {
 	case slog.LevelDebug:
-		h.logger.Debug(r.Message, attrs...)
+		h.logger.Debug(r.Message, keyvals...)
 	case slog.LevelInfo:
-		h.logger.Info(r.Message, attrs...)
+		h.logger.Info(r.Message, keyvals...)
 	case slog.LevelWarn:
-		h.logger.Warn(r.Message, attrs...)
+		h.logger.Warn(r.Message, keyvals...)
 	case slog.LevelError:
-		h.logger.Error(r.Message, attrs...)
+		h.logger.Error(r.Message, keyvals...)
 	}
 	return nil
 }
@@ -84,8 +86,12 @@ func (h *temporalLogHandler) WithGroup(name string) slog.Handler {
 	}
 }
 
+func newTemporalLogHandler(tlogger log.Logger) *temporalLogHandler {
+	return &temporalLogHandler{logger: tlogger}
+}
+
 // Returns a temporal logger wrapped as a slog.Logger to ease plugging in to the rest of the system
 func NewSlogger(tlogger log.Logger) *slog.Logger {
-	handler := &temporalLogHandler{logger: tlogger}
+	handler := newTemporalLogHandler(tlogger)
 	return slog.New(handler)
 }
