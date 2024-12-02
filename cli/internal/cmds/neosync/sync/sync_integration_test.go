@@ -51,8 +51,6 @@ func Test_Sync(t *testing.T) {
 		connclient,
 		accountId,
 		"s3-conn",
-		awsS3Config.AccessKeyId,
-		awsS3Config.SecretAccessKey,
 		awsS3Config.Bucket,
 		&awsS3Config.Region,
 	)

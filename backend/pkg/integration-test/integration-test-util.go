@@ -81,7 +81,6 @@ func CreateS3Connection(
 	t *testing.T,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	accountId, name string,
-	accessKeyId, secretAccessKey string,
 	bucket string,
 	region *string,
 ) *mgmtv1alpha1.Connection {
@@ -93,14 +92,11 @@ func CreateS3Connection(
 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
 					AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
-						Bucket:     bucket,
-						PathPrefix: nil,
-						Region:     region,
-						Endpoint:   nil,
-						Credentials: &mgmtv1alpha1.AwsS3Credentials{
-							AccessKeyId:     &accessKeyId,
-							SecretAccessKey: &secretAccessKey,
-						},
+						Bucket:      bucket,
+						PathPrefix:  nil,
+						Region:      region,
+						Endpoint:    nil,
+						Credentials: nil,
 					},
 				},
 			},
