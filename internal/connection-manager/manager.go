@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -29,7 +30,7 @@ type ConnectionManager[T any] struct {
 
 	shutdown chan any
 
-	isReaping bool
+	isReaping *atomic.Bool
 }
 
 type ConnectionInput interface {
@@ -84,7 +85,7 @@ func NewConnectionManager[T any](
 		config:             cfg,
 		shutdown:           make(chan any, 1),
 		mu:                 &sync.Mutex{},
-		isReaping:          false,
+		isReaping:          &atomic.Bool{},
 	}
 }
 
@@ -203,7 +204,7 @@ func (c *ConnectionManager[T]) closeSpecificGroupConnections(groupId string, can
 
 func (c *ConnectionManager[T]) Shutdown(logger *slog.Logger) {
 	c.shutdown <- struct{}{}
-	if !c.isReaping {
+	if !c.isReaping.Load() {
 		logger.Debug("reaper is not turned on, hard closing")
 		c.hardClose(logger)
 	} else {
@@ -212,6 +213,7 @@ func (c *ConnectionManager[T]) Shutdown(logger *slog.Logger) {
 }
 
 func (c *ConnectionManager[T]) Reaper(logger *slog.Logger) {
+	c.isReaping.Store(true)
 	for {
 		select {
 		case <-c.shutdown:
