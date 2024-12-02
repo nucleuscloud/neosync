@@ -47,6 +47,7 @@ var _ Interface[any] = &ConnectionManager[any]{}
 
 type managerConfig struct {
 	closeOnRelease bool
+	reapDuration   time.Duration
 }
 
 // When a session is closed, if no other sessions within that group exist, the connection will be closed.
@@ -57,13 +58,21 @@ func WithCloseOnRelease() ManagerOption {
 	}
 }
 
+func WithReaperPoll(duration time.Duration) ManagerOption {
+	return func(mc *managerConfig) {
+		mc.reapDuration = duration
+	}
+}
+
 type ManagerOption func(*managerConfig)
 
 func NewConnectionManager[T any](
 	connectionProvider ConnectionProvider[T],
 	opts ...ManagerOption,
 ) *ConnectionManager[T] {
-	cfg := &managerConfig{}
+	cfg := &managerConfig{
+		reapDuration: 1 * time.Minute,
+	}
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -217,7 +226,7 @@ func (c *ConnectionManager[T]) Reaper() {
 		case <-c.shutdown:
 			c.hardClose()
 			return
-		case <-time.After(1 * time.Minute):
+		case <-time.After(c.config.reapDuration):
 			c.cleanUnusedConnections()
 		}
 	}
