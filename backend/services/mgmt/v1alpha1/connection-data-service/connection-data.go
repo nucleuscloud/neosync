@@ -89,7 +89,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger, sqlconnect.WithMysqlParseTimeDisabled())
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout), sqlconnect.WithMysqlParseTimeDisabled())
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger, sqlconnect.WithDefaultPostgresDriver())
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(connectionTimeout), sqlconnect.WithDefaultPostgresDriver())
 		if err != nil {
 			return err
 		}
@@ -1028,7 +1028,7 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 	conntimeout := uint32(5)
 	switch connection.GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(conntimeout))
 		if err != nil {
 			return nil, err
 		}
@@ -1054,7 +1054,7 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 		}
 		return schemas, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(conntimeout))
 		if err != nil {
 			return nil, err
 		}

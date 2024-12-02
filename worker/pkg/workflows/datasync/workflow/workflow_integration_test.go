@@ -1591,7 +1591,7 @@ func executeWorkflow(
 		},
 	}
 
-	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
 	go sqlconnmanager.Reaper()
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
 	go mongoconnmanager.Reaper()

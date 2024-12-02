@@ -30,8 +30,10 @@ func (s *sqlDbtxWrapper) Close() error {
 	return s.close()
 }
 
+const defaultConnectionTimeoutSeconds = uint32(10)
+
 func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig) (neosync_benthos_sql.SqlDbtx, error) {
-	container, err := p.connector.NewDbFromConnectionConfig(cc, nil, slog.Default())
+	container, err := p.connector.NewDbFromConnectionConfig(cc, slog.Default(), sqlconnect.WithConnectionTimeout(defaultConnectionTimeoutSeconds))
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"golang.org/x/sync/errgroup"
@@ -437,7 +438,7 @@ func (s *Service) CheckSqlQuery(
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, nil, logger)
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(10))
 	if err != nil {
 		return nil, err
 	}
