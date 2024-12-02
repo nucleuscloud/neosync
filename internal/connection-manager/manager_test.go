@@ -26,7 +26,7 @@ func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 		},
 	}
 
-	provider.On("GetConnectionClient", mock.Anything).Return(&struct{}{}, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(&struct{}{}, nil)
 
 	db, err := mgr.GetConnection(NewSession("111"), conn, testutil.GetTestLogger(t))
 	require.NoError(t, err)
@@ -45,7 +45,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 		ConnectionConfig: cc,
 	}
 
-	provider.On("GetConnectionClient", cc).Return(&struct{}{}, nil)
+	provider.On("GetConnectionClient", cc, mock.Anything).Return(&struct{}{}, nil)
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -78,7 +78,7 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 		},
 	}
 
-	provider.On("GetConnectionClient", mock.Anything).
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).
 		Return(&struct{}{}, nil)
 	_, err := mgr.GetConnection(NewSession("111"), conn, testutil.GetTestLogger(t))
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func Test_ConnectionTunnelManager_cleanUnusedConnections(t *testing.T) {
 
 	mockDb := &struct{}{}
 
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	_, err := mgr.GetConnection(NewSession("111"), conn, testutil.GetTestLogger(t))
@@ -130,7 +130,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	}
 
 	mockDb := struct{}{}
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	_, err := mgr.GetConnection(session, conn, testutil.GetTestLogger(t))
@@ -169,8 +169,8 @@ func Test_ConnectionManager_CloseOnRelease_Option(t *testing.T) {
 	mockDb2 := &struct{}{}
 
 	// First call returns mockDb1, second call returns mockDb2
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb1, nil).Once()
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb2, nil).Once()
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb1, nil).Once()
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb2, nil).Once()
 	provider.On("CloseClientConnection", mockDb1).Return(nil).Once()
 	provider.On("CloseClientConnection", mockDb2).Return(nil).Once()
 
@@ -216,7 +216,7 @@ func Test_ConnectionManager_Concurrent_Sessions_Different_Connections(t *testing
 	mgr := NewConnectionManager(provider)
 
 	mockDb := &struct{}{}
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 
 	connections := make([]*mgmtv1alpha1.Connection, 10)
 	for i := 0; i < 10; i++ {
@@ -253,7 +253,7 @@ func Test_ConnectionManager_Error_During_Connection(t *testing.T) {
 		},
 	}
 
-	provider.On("GetConnectionClient", mock.Anything).Return(nil, fmt.Errorf("connection error"))
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("connection error"))
 
 	_, err := mgr.GetConnection(NewSession("session1"), conn, testutil.GetTestLogger(t))
 	require.Error(t, err)
@@ -266,7 +266,7 @@ func Test_ConnectionManager_Error_During_Close(t *testing.T) {
 	mgr := NewConnectionManager(provider, WithCloseOnRelease())
 
 	mockDb := &struct{}{}
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(fmt.Errorf("close error"))
 
 	conn := &mgmtv1alpha1.Connection{
@@ -290,7 +290,7 @@ func Test_ConnectionManager_Concurrent_GetConnection_And_Release(t *testing.T) {
 	mgr := NewConnectionManager(provider, WithCloseOnRelease())
 
 	mockDb := &struct{}{}
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	conn := &mgmtv1alpha1.Connection{
@@ -324,7 +324,7 @@ func Test_ConnectionManager_Reaper_With_Active_Sessions(t *testing.T) {
 	mgr := NewConnectionManager(provider)
 
 	mockDb := &struct{}{}
-	provider.On("GetConnectionClient", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", mock.Anything, mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	conn1 := &mgmtv1alpha1.Connection{
