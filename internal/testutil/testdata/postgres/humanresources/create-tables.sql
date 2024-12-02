@@ -1,6 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS humanresources;
-SET search_path TO humanresources;
-
 CREATE TABLE regions (
 	region_id SERIAL PRIMARY KEY,
 	region_name CHARACTER VARYING (25)

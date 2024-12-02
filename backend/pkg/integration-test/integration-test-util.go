@@ -76,6 +76,40 @@ func CreateMysqlConnection(
 	return resp.Msg.GetConnection()
 }
 
+func CreateS3Connection(
+	ctx context.Context,
+	t *testing.T,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	accountId, name string,
+	accessKeyId, secretAccessKey string,
+	bucket string,
+	region *string,
+) *mgmtv1alpha1.Connection {
+	resp, err := connclient.CreateConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
+			AccountId: accountId,
+			Name:      name,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
+					AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
+						Bucket:     bucket,
+						PathPrefix: nil,
+						Region:     region,
+						Endpoint:   nil,
+						Credentials: &mgmtv1alpha1.AwsS3Credentials{
+							AccessKeyId:     &accessKeyId,
+							SecretAccessKey: &secretAccessKey,
+						},
+					},
+				},
+			},
+		}),
+	)
+	RequireNoErrResp(t, resp, err)
+	return resp.Msg.GetConnection()
+}
+
 func SetUser(ctx context.Context, t *testing.T, client mgmtv1alpha1connect.UserAccountServiceClient) string {
 	resp, err := client.SetUser(ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
 	RequireNoErrResp(t, resp, err)

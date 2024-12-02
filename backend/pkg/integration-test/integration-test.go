@@ -42,6 +42,7 @@ import (
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -273,6 +274,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 	jobhookService := jobhooks.New(
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
+		jobhooks.WithEnabled(),
 	)
 
 	unauthdJobsService := v1alpha1_jobservice.New(
@@ -418,6 +420,27 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		return err
 	}
 	return nil
+}
+
+func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
+	s.Mocks.TemporalClientManager.
+		On(
+			"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return(true, nil).
+		Once()
+	s.Mocks.TemporalClientManager.
+		On(
+			"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return("sync-job", nil).
+		Once()
+	s.Mocks.TemporalClientManager.
+		On(
+			"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return(returnId, nil).
+		Once()
 }
 
 func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context) error {
