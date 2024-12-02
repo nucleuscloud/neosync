@@ -1621,8 +1621,8 @@ func executeWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestWorkflowEnvironment()
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
 	genbenthosActivity := genbenthosconfigs_activity.New(
