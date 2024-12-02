@@ -117,7 +117,7 @@ func (s *SqlManager) NewSqlConnection(
 		return nil, err
 	}
 	closer := func() {
-		s.config.mgr.ReleaseSession(session)
+		s.config.mgr.ReleaseSession(session, slogger)
 	}
 
 	switch connection.GetConnectionConfig().GetConfig().(type) {

@@ -188,8 +188,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	defer func() {
 		logger.Debug("releasing session", "session", session.String())
-		a.sqlconnmanager.ReleaseSession(session)
-		a.mongoconnmanager.ReleaseSession(session)
+		a.sqlconnmanager.ReleaseSession(session, slogger)
+		a.mongoconnmanager.ReleaseSession(session, slogger)
 	}()
 
 	connections, err := getConnectionsFromBenthosDsns(ctx, a.connclient, req.BenthosDsns)

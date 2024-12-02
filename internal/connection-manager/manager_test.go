@@ -69,7 +69,7 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
 	mgr := NewConnectionManager(provider)
 
-	require.False(t, mgr.ReleaseSession(NewSession("111")), "currently no session")
+	require.False(t, mgr.ReleaseSession(NewSession("111"), testutil.GetTestLogger(t)), "currently no session")
 
 	conn := &mgmtv1alpha1.Connection{
 		Id: "1",
@@ -83,14 +83,14 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 	_, err := mgr.GetConnection(NewSession("111"), conn, testutil.GetTestLogger(t))
 	require.NoError(t, err)
 
-	require.True(t, mgr.ReleaseSession(NewSession("111")), "released an existing session")
+	require.True(t, mgr.ReleaseSession(NewSession("111"), testutil.GetTestLogger(t)), "released an existing session")
 }
 
 func Test_ConnectionTunnelManager_cleanUnusedConnections(t *testing.T) {
 	provider := NewMockConnectionProvider[any](t)
 	mgr := NewConnectionManager(provider)
 
-	require.False(t, mgr.ReleaseSession(NewSession("111")), "currently no session")
+	require.False(t, mgr.ReleaseSession(NewSession("111"), testutil.GetTestLogger(t)), "currently no session")
 
 	conn := &mgmtv1alpha1.Connection{
 		Id: "1",
@@ -108,10 +108,10 @@ func Test_ConnectionTunnelManager_cleanUnusedConnections(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotEmpty(t, mgr.groupConnMap, "has an active connection")
-	mgr.cleanUnusedConnections()
+	mgr.cleanUnusedConnections(testutil.GetTestLogger(t))
 	require.NotEmpty(t, mgr.groupConnMap, "not empty due to active session")
-	require.True(t, mgr.ReleaseSession(NewSession("111")), "released an existing session")
-	mgr.cleanUnusedConnections()
+	require.True(t, mgr.ReleaseSession(NewSession("111"), testutil.GetTestLogger(t)), "released an existing session")
+	mgr.cleanUnusedConnections(testutil.GetTestLogger(t))
 	require.Empty(t, mgr.groupConnMap, "now empty due to no active sessions")
 }
 
@@ -120,7 +120,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	mgr := NewConnectionManager(provider)
 
 	session := NewSession("111")
-	require.False(t, mgr.ReleaseSession(session), "currently no session")
+	require.False(t, mgr.ReleaseSession(session, testutil.GetTestLogger(t)), "currently no session")
 
 	conn := &mgmtv1alpha1.Connection{
 		Id: "1",
@@ -137,7 +137,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotEmpty(t, mgr.groupConnMap, "has an active connection")
-	mgr.hardClose()
+	mgr.hardClose(testutil.GetTestLogger(t))
 	require.Empty(t, mgr.groupConnMap, "now empty due to no active sessions")
 }
 
@@ -201,12 +201,12 @@ func Test_ConnectionManager_CloseOnRelease_Option(t *testing.T) {
 	require.NoError(t, err)
 
 	// Release session1 - conn1 should stay alive due to session2, but conn2 should be closed
-	require.True(t, mgr.ReleaseSession(session1))
+	require.True(t, mgr.ReleaseSession(session1, testutil.GetTestLogger(t)))
 	require.Len(t, mgr.groupConnMap[""], 1)                     // Only conn1 should still exist
 	provider.AssertNumberOfCalls(t, "CloseClientConnection", 1) // Only conn2 should be closed
 
 	// Release session2 - conn1 should now be closed
-	require.True(t, mgr.ReleaseSession(session2))
+	require.True(t, mgr.ReleaseSession(session2, testutil.GetTestLogger(t)))
 	require.Empty(t, mgr.groupConnMap) // All connections should be closed
 	provider.AssertNumberOfCalls(t, "CloseClientConnection", 2)
 }
@@ -280,7 +280,7 @@ func Test_ConnectionManager_Error_During_Close(t *testing.T) {
 	require.NoError(t, err)
 
 	// Even with close error, session and connection should be removed
-	require.True(t, mgr.ReleaseSession(NewSession("session1")))
+	require.True(t, mgr.ReleaseSession(NewSession("session1"), testutil.GetTestLogger(t)))
 	require.Empty(t, mgr.groupConnMap)
 	require.Empty(t, mgr.groupSessionMap)
 }
@@ -310,7 +310,7 @@ func Test_ConnectionManager_Concurrent_GetConnection_And_Release(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				mgr.ReleaseSession(NewSession(sessionId))
+				mgr.ReleaseSession(NewSession(sessionId), testutil.GetTestLogger(t))
 			}
 			return nil
 		})
@@ -347,10 +347,10 @@ func Test_ConnectionManager_Reaper_With_Active_Sessions(t *testing.T) {
 	// Create and release session with conn2
 	_, err = mgr.GetConnection(NewSession("session2"), conn2, testutil.GetTestLogger(t))
 	require.NoError(t, err)
-	require.True(t, mgr.ReleaseSession(NewSession("session2")))
+	require.True(t, mgr.ReleaseSession(NewSession("session2"), testutil.GetTestLogger(t)))
 
 	// Run reaper
-	mgr.cleanUnusedConnections()
+	mgr.cleanUnusedConnections(testutil.GetTestLogger(t))
 
 	// Verify conn2 was cleaned up but conn1 remains
 	require.Len(t, mgr.groupConnMap, 1)

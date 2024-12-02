@@ -22,6 +22,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
@@ -1592,9 +1593,9 @@ func executeWorkflow(
 	}
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
-	go sqlconnmanager.Reaper()
+	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
-	go mongoconnmanager.Reaper()
+	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
 
 	sqlmanager := sql_manager.NewSqlManager(
 		sql_manager.WithConnectionManager(sqlconnmanager),

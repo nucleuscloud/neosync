@@ -275,10 +275,10 @@ func serve(ctx context.Context) error {
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
-	go sqlconnmanager.Reaper()
+	go sqlconnmanager.Reaper(logger)
 
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
-	go mongoconnmanager.Reaper()
+	go mongoconnmanager.Reaper(logger)
 
 	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
 

@@ -269,7 +269,7 @@ func (c *clisync) configureAndRunSync() error {
 	c.sourceConnection = sourceConnection
 
 	defer func() {
-		c.connmanager.ReleaseSession(c.session)
+		c.connmanager.ReleaseSession(c.session, c.logger)
 	}()
 
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
