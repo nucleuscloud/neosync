@@ -94,16 +94,21 @@ func (c *ConnectionManager[T]) GetConnection(
 	groupId := session.Group()
 	sessionId := session.Name()
 
+	logger = logger.With("session", session.String())
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if groupConns, exists := c.groupConnMap[groupId]; exists {
 		if existingDb, exists := groupConns[connection.GetId()]; exists {
+			logger.Debug("found existing connection for the session group")
 			c.ensureSessionMapsExist(groupId, sessionId)
 			c.groupSessionMap[groupId][sessionId][connection.GetId()] = struct{}{}
 			return existingDb, nil
 		}
 	}
+
+	logger.Debug("no cached connection found, creating new connection client")
 
 	// Create new connection
 	connectionClient, err := c.connectionProvider.GetConnectionClient(connection.GetConnectionConfig())
