@@ -2180,7 +2180,7 @@
           "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -2241,6 +2241,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "language",
+              "description": "Two characters for the desired language in ISO_639-1 format.\nIf not provided, will use a default language if specified on the server.\nDepending on the server configuration, may attempt to autodetect from input.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_language",
               "defaultValue": ""
             }
           ]

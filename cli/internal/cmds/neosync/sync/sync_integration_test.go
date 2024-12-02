@@ -8,7 +8,11 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -36,7 +40,8 @@ func Test_Sync(t *testing.T) {
 	connclient := neosyncApi.UnauthdClients.Connections
 	conndataclient := neosyncApi.UnauthdClients.ConnectionData
 	jobclient := neosyncApi.UnauthdClients.Jobs
-	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
+	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	sqlmanagerclient := sqlmanager.NewSqlManager(sqlmanager.WithConnectionManager(connmanager))
 
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	awsS3Config := testutil.GetTestAwsS3Config()
@@ -103,6 +108,8 @@ func Test_Sync(t *testing.T) {
 				ctx:                  ctx,
 				logger:               testlogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
@@ -277,6 +284,8 @@ func Test_Sync(t *testing.T) {
 				ctx:                  ctx,
 				logger:               testlogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)

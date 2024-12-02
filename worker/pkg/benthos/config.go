@@ -104,7 +104,7 @@ type OutputAwsDynamoDB struct {
 }
 
 type InputMongoDb struct {
-	Url             string         `json:"url" yaml:"url"`
+	ConnectionId    string         `json:"connection_id" yaml:"connection_id"`
 	Database        string         `json:"database" yaml:"database"`
 	Username        string         `json:"username,omitempty" yaml:"username,omitempty"`
 	Password        string         `json:"password,omitempty" yaml:"password,omitempty"`
@@ -119,7 +119,7 @@ type InputMongoDb struct {
 }
 
 type OutputMongoDb struct {
-	Url          string             `json:"url" yaml:"url"`
+	ConnectionId string             `json:"connection_id" yaml:"connection_id"`
 	Database     string             `json:"database" yaml:"database"`
 	Username     string             `json:"username,omitempty" yaml:"username,omitempty"`
 	Password     string             `json:"password,omitempty" yaml:"password,omitempty"`
@@ -160,10 +160,9 @@ type Generate struct {
 }
 
 type InputPooledSqlRaw struct {
-	Driver      string `json:"driver" yaml:"driver"`
-	Dsn         string `json:"dsn" yaml:"dsn"`
-	Query       string `json:"query" yaml:"query"`
-	ArgsMapping string `json:"args_mapping,omitempty" yaml:"args_mapping,omitempty"`
+	ConnectionId string `json:"connection_id" yaml:"connection_id"`
+	Query        string `json:"query" yaml:"query"`
+	ArgsMapping  string `json:"args_mapping,omitempty" yaml:"args_mapping,omitempty"`
 }
 
 type SqlSelect struct {
@@ -261,7 +260,6 @@ type OutputConfig struct {
 type Outputs struct {
 	SqlInsert       *SqlInsert             `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
 	SqlRaw          *SqlRaw                `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
-	PooledSqlRaw    *PooledSqlRaw          `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
 	PooledSqlInsert *PooledSqlInsert       `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
 	PooledSqlUpdate *PooledSqlUpdate       `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
 	AwsS3           *AwsS3Insert           `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
@@ -275,7 +273,6 @@ type Outputs struct {
 	RedisHashOutput *RedisHashOutputConfig `json:"redis_hash_output,omitempty" yaml:"redis_hash_output,omitempty"`
 	Error           *ErrorOutputConfig     `json:"error,omitempty" yaml:"error,omitempty"`
 	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
-	MongoDB         *OutputMongoDb         `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
 	PooledMongoDB   *OutputMongoDb         `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
 	AwsDynamoDB     *OutputAwsDynamoDB     `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
 }
@@ -358,22 +355,8 @@ type SqlRaw struct {
 	Batching        *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
-type PooledSqlRaw struct {
-	Driver        string `json:"driver" yaml:"driver"`
-	Dsn           string `json:"dsn" yaml:"dsn"`
-	Query         string `json:"query" yaml:"query"`
-	ArgsMapping   string `json:"args_mapping" yaml:"args_mapping"`
-	InitStatement string `json:"init_statement" yaml:"init_statement"`
-	// ConnMaxIdleTime string    `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty"`
-	// ConnMaxLifeTime string    `json:"conn_max_life_time,omitempty" yaml:"conn_max_life_time,omitempty"`
-	// ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
-	// ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
-	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
-}
-
 type PooledSqlUpdate struct {
-	Driver                   string    `json:"driver" yaml:"driver"`
-	Dsn                      string    `json:"dsn" yaml:"dsn"`
+	ConnectionId             string    `json:"connection_id" yaml:"connection_id"`
 	Schema                   string    `json:"schema" yaml:"schema"`
 	Table                    string    `json:"table" yaml:"table"`
 	Columns                  []string  `json:"columns" yaml:"columns"`
@@ -393,8 +376,7 @@ type ColumnDefaultProperties struct {
 }
 
 type PooledSqlInsert struct {
-	Driver                   string                              `json:"driver" yaml:"driver"`
-	Dsn                      string                              `json:"dsn" yaml:"dsn"`
+	ConnectionId             string                              `json:"connection_id" yaml:"connection_id"`
 	Schema                   string                              `json:"schema" yaml:"schema"`
 	Table                    string                              `json:"table" yaml:"table"`
 	Columns                  []string                            `json:"columns" yaml:"columns"`
@@ -474,10 +456,14 @@ type Batching struct {
 }
 
 type BatchProcessor struct {
-	Archive   *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
-	Compress  *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
-	SqlToJson *SqlToJsonConfig   `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
-	JsonToSql *JsonToSqlConfig   `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
+	Archive      *ArchiveProcessor   `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress     *CompressProcessor  `json:"compress,omitempty" yaml:"compress,omitempty"`
+	SqlToJson    *SqlToJsonConfig    `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
+	JsonToSql    *JsonToSqlConfig    `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
+	NeosyncToPgx *NeosyncToPgxConfig `json:"neosync_to_pgx,omitempty" yaml:"neosync_to_pgx,omitempty"`
+}
+
+type NeosyncToPgxConfig struct {
 }
 
 type JsonToSqlConfig struct {

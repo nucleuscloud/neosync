@@ -7,6 +7,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -78,5 +79,10 @@ func (a *Activity) RunSqlInitTableStatements(
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 	)
-	return builder.RunSqlInitTableStatements(ctx, req, slogger)
+	return builder.RunSqlInitTableStatements(
+		ctx,
+		req,
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.RunID)),
+		slogger,
+	)
 }

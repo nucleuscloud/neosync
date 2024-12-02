@@ -162,11 +162,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	}
 	if jobType == bb_internal.JobTypeGenerate {
 		for _, connectionType := range connectionTypes {
-			driver, err := bb_internal.GetSqlDriverByConnectionType(connectionType)
-			if err != nil {
-				return err
-			}
-			b.Register(bb_internal.JobTypeGenerate, connectionType, bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient, driver))
+			b.Register(bb_internal.JobTypeGenerate, connectionType, bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient))
 		}
 	}
 	return nil

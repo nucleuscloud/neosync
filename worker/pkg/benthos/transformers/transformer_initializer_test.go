@@ -1565,9 +1565,10 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Return(&presidioapi.PostAnonymizeResponse{
 				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
 			}, nil)
+		defaultLan := "en"
 
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)
@@ -1601,9 +1602,9 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Return(&presidioapi.PostAnonymizeResponse{
 				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
 			}, nil)
-
+		defaultLan := "en"
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)

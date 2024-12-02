@@ -190,7 +190,7 @@ func TestGetGoquVals(t *testing.T) {
 		require.Equal(t, 42, row[1])
 		require.Equal(t, true, row[2])
 		require.JSONEq(t, `{"key":"value"}`, string(row[3].([]byte)))
-		require.Equal(t, pq.Array([]any{1, 2, 3}), row[4])
+		require.Equal(t, pq.Array([]int{1, 2, 3}), row[4])
 	})
 
 	t.Run("Postgres JSON", func(t *testing.T) {

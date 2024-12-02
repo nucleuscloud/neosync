@@ -67,7 +67,7 @@ func (s *Service) AnonymizeMany(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
 		jsonanonymizer.WithHaltOnFailure(req.Msg.HaltOnFailure),
-		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize),
+		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
 	)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func (s *Service) AnonymizeSingle(
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
-		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize),
+		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
 	)
 	if err != nil {
 		return nil, err

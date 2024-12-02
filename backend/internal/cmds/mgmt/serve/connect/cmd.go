@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -19,6 +18,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -464,14 +464,24 @@ func serve(ctx context.Context) error {
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
 	mssqlquerier := mssql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithPostgresQuerier(pgquerier),
+		sql_manager.WithMysqlQuerier(mysqlquerier),
+		sql_manager.WithMssqlQuerier(mssqlquerier),
+		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
+	)
 	mongoconnector := mongoconnect.NewConnector()
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
-		mysqlquerier, mssqlquerier, mongoconnector, awsManager)
+	connectionService := v1alpha1_connectionservice.New(
+		&v1alpha1_connectionservice.Config{},
+		db,
+		useraccountService,
+		mongoconnector,
+		awsManager,
+		sqlmanager,
+		&sqlconnect.SqlOpenConnector{},
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -560,9 +570,10 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled: ncloudlicense.IsValid(),
-		IsAuthEnabled:     isAuthEnabled,
-		IsNeosyncCloud:    ncloudlicense.IsValid(),
+		IsPresidioEnabled:       ncloudlicense.IsValid(),
+		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
+		IsAuthEnabled:           isAuthEnabled,
+		IsNeosyncCloud:          ncloudlicense.IsValid(),
 	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
@@ -630,6 +641,14 @@ func serve(ctx context.Context) error {
 		slogger.Error(err.Error())
 	}
 	return nil
+}
+
+func getPresidioDefaultLanguage() *string {
+	lang := viper.GetString("PRESIDIO_DEFAULT_LANGUAGE")
+	if lang == "" {
+		return nil
+	}
+	return &lang
 }
 
 func getPromClientFromEnvironment() (promapi.Client, error) {

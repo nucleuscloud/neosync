@@ -69,7 +69,7 @@ func WithBlobEnv(b *bloblang.Environment) Option {
 }
 
 type SqlConfig struct {
-	Provider neosync_benthos_sql.DbPoolProvider
+	Provider neosync_benthos_sql.ConnectionProvider
 	IsRetry  bool
 }
 
@@ -133,7 +133,7 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 	}
 
 	if config.connectionDataConfig != nil {
-		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi)
+		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi, logger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register neosync_connection_data input: %w", err)
 		}
@@ -176,7 +176,12 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 
 	err = neosync_benthos_sql.RegisterJsonToSqlProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to regigster JSON to SQL processor to benthos instance: %w", err)
+		return nil, fmt.Errorf("unable to register JSON to SQL processor to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_sql.RegisterNeosyncToPgxProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register Neosync to PGX processor to benthos instance: %w", err)
 	}
 
 	if config.blobEnv != nil {

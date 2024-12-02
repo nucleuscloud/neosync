@@ -33,7 +33,7 @@ func GetInsertBuilder(
 	}
 
 	switch driver {
-	case sqlmanager_shared.PostgresDriver, "postgres":
+	case sqlmanager_shared.PostgresDriver, sqlmanager_shared.DefaultPostgresDriver:
 		return &PostgresDriver{
 			driver:  driver,
 			logger:  logger,
@@ -172,6 +172,7 @@ func (d *PostgresDriver) BuildPreparedInsertArgs(rows [][]any) [][]any {
 	return getPostgresVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults)
 }
 
+// TODO move this logic to PGX processor
 func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) [][]any {
 	newVals := [][]any{}
 	for _, row := range rows {
@@ -196,13 +197,7 @@ func getPostgresVals(logger *slog.Logger, rows [][]any, columnDataTypes []string
 			} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
 				newRow = append(newRow, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
 			} else if gotypeutil.IsSlice(a) {
-				s, err := gotypeutil.ParseSlice(a)
-				if err != nil {
-					logger.Error("unable to parse slice", "error", err.Error())
-					newRow = append(newRow, a)
-					continue
-				}
-				newRow = append(newRow, pq.Array(s))
+				newRow = append(newRow, pq.Array(a))
 			} else if colDefaults != nil && colDefaults.HasDefaultTransformer {
 				newRow = append(newRow, goqu.Literal(defaultStr))
 			} else {

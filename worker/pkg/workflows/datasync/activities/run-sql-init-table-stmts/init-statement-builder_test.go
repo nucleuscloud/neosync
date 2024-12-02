@@ -10,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
@@ -148,7 +149,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
 	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: []string{}},
@@ -170,6 +171,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -264,13 +266,14 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -392,7 +395,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
 	stmts := []string{"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;", "TRUNCATE \"public\".\"accounts\" RESTART IDENTITY CASCADE;"}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sqlmanager_shared.BatchExecOpts{}).Return(nil)
@@ -402,6 +405,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -523,7 +527,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
 			"public.users": {{
@@ -541,6 +545,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -663,8 +668,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, mock.Anything).Return([]*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: []string{}},
 		{Label: "create table", Statements: []string{"test-create-statement"}},
@@ -685,6 +689,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
@@ -789,13 +794,14 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewMysqlSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
+		connectionmanager.NewUniqueSession(),
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)

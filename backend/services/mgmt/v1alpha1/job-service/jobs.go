@@ -20,6 +20,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -1507,14 +1508,13 @@ func (s *Service) ValidateJobMappings(
 		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	colInfoMap, err := db.Db.GetSchemaColumnMap(ctx)
+	colInfoMap, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1530,7 +1530,7 @@ func (s *Service) ValidateJobMappings(
 		schemas = append(schemas, s)
 	}
 
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}

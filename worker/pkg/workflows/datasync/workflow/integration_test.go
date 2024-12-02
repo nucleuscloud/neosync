@@ -204,6 +204,10 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 		"docker.io/redis:7",
 		redis.WithSnapshotting(10, 1),
 		redis.WithLogLevel(redis.LogLevelVerbose),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("* Ready to accept connections"),
+			wait.ForExposedPort(),
+		),
 	)
 	if err != nil {
 		return nil, err

@@ -13,18 +13,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/google/uuid"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -54,7 +56,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
-	temporalmocks "go.temporal.io/sdk/mocks"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -117,7 +118,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+							PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -331,7 +336,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{
+							MssqlOptions: &mgmtv1alpha1.MssqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -567,6 +576,11 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 					Destinations: []*mgmtv1alpha1.JobDestination{
 						{
 							ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+							Options: &mgmtv1alpha1.JobDestinationOptions{
+								Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+									PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+								},
+							},
 						},
 					},
 				},
@@ -719,7 +733,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+							MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -1573,16 +1591,16 @@ func (f *fakeEELicense) IsValid() bool {
 }
 
 func executeWorkflow(
-	t *testing.T,
+	t testing.TB,
 	srv *httptest.Server,
 	redisUrl string,
 	jobId string,
 ) *testsuite.TestWorkflowEnvironment {
+	t.Helper()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(srv.Client(), srv.URL)
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
-	sqlconnector := &sqlconnect.SqlOpenConnector{}
 	redisconfig := &shared.RedisConfig{
 		Url:  redisUrl,
 		Kind: "simple",
@@ -1590,14 +1608,15 @@ func executeWorkflow(
 			Enabled: false,
 		},
 	}
-	temporalClientMock := temporalmocks.NewClient(t)
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
-	mssqlquerier := mssql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
+
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
+	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManager(sqlconnmanager),
+	)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -1613,12 +1632,13 @@ func executeWorkflow(
 		false,
 	)
 	var activityMeter metric.Meter
-	disableReaper := true
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+
+	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
@@ -1628,6 +1648,7 @@ func executeWorkflow(
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
+	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})

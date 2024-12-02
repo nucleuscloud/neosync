@@ -20,8 +20,7 @@ import (
 
 func sqlInsertOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
-		Field(service.NewStringField("driver")).
-		Field(service.NewStringField("dsn")).
+		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
@@ -41,7 +40,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider, isRetry bool, logger *slog.Logger) error {
+func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider ConnectionProvider, isRetry bool, logger *slog.Logger) error {
 	return env.RegisterBatchOutput(
 		"pooled_sql_insert", sqlInsertOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
@@ -66,13 +65,13 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 var _ service.BatchOutput = &pooledInsertOutput{}
 
 type pooledInsertOutput struct {
-	driver   string
-	dsn      string
-	provider DbPoolProvider
-	dbMut    sync.RWMutex
-	db       mysql_queries.DBTX
-	logger   *service.Logger
-	slogger  *slog.Logger
+	driver       string
+	connectionId string
+	provider     ConnectionProvider
+	dbMut        sync.RWMutex
+	db           mysql_queries.DBTX
+	logger       *service.Logger
+	slogger      *slog.Logger
 
 	schema                   string
 	table                    string
@@ -94,12 +93,8 @@ type pooledInsertOutput struct {
 	retryDelay       time.Duration
 }
 
-func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
-	driver, err := conf.FieldString("driver")
-	if err != nil {
-		return nil, err
-	}
-	dsn, err := conf.FieldString("dsn")
+func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
+	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
 	}
@@ -209,10 +204,14 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	if err != nil {
 		return nil, err
 	}
+	driver, err := provider.GetDriver(connectionId)
+	if err != nil {
+		return nil, err
+	}
 
 	output := &pooledInsertOutput{
+		connectionId:             connectionId,
 		driver:                   driver,
-		dsn:                      dsn,
 		logger:                   mgr.Logger(),
 		slogger:                  logger,
 		shutSig:                  shutdown.NewSignaller(),
@@ -244,7 +243,7 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 		return nil
 	}
 
-	db, err := s.provider.GetDb(s.driver, s.dsn)
+	db, err := s.provider.GetDb(ctx, s.connectionId)
 	if err != nil {
 		return err
 	}

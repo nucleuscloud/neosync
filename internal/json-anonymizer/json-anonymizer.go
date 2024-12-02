@@ -30,8 +30,9 @@ type JsonAnonymizer struct {
 }
 
 type anonymizeConfig struct {
-	analyze   presidioapi.AnalyzeInterface
-	anonymize presidioapi.AnonymizeInterface
+	analyze         presidioapi.AnalyzeInterface
+	anonymize       presidioapi.AnonymizeInterface
+	defaultLanguage *string
 }
 
 // Option is a functional option for configuring the Anonymizer
@@ -73,12 +74,13 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 }
 
 // WithAnonymizeConfig sets the analyze and anonymize clients for use by the presidio transformers only if isEnabled is true
-func WithConditionalAnonymizeConfig(isEnabled bool, analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface) Option {
+func WithConditionalAnonymizeConfig(isEnabled bool, analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, defaultLanguage *string) Option {
 	return func(ja *JsonAnonymizer) {
 		if isEnabled && analyze != nil && anonymize != nil {
 			ja.anonymizeConfig = &anonymizeConfig{
-				analyze:   analyze,
-				anonymize: anonymize,
+				analyze:         analyze,
+				anonymize:       anonymize,
+				defaultLanguage: defaultLanguage,
 			}
 		}
 	}
@@ -330,7 +332,7 @@ func initTransformerExecutors(
 	executors := []*transformer.TransformerExecutor{}
 	execOpts := []transformer.TransformerExecutorOption{}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize))
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
 	}
 
 	for _, mapping := range transformerMappings {
@@ -356,7 +358,7 @@ func initDefaultTransformerExecutors(
 ) (*DefaultExecutors, error) {
 	execOpts := []transformer.TransformerExecutorOption{}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize))
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
 	}
 
 	var stringExecutor, numberExecutor, booleanExecutor *transformer.TransformerExecutor

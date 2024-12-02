@@ -83,6 +83,7 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
+		// TODO move to pgx processor
 		if pgutil.IsPgArrayColumnDataType(datatype) {
 			pgarray, err := processPgArray(v, datatype)
 			if err != nil {

@@ -14,6 +14,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
@@ -39,6 +40,8 @@ type SqlConnectorOption func(*sqlConnectorOptions)
 type sqlConnectorOptions struct {
 	mysqlDisableParseTime bool
 	postgresDriver        string
+
+	connectionTimeoutSeconds *uint32
 }
 
 // WithMysqlParseTimeDisabled disables MySQL time parsing
@@ -51,26 +54,36 @@ func WithMysqlParseTimeDisabled() SqlConnectorOption {
 // WithPostgresDriver overrides default postgres driver
 func WithDefaultPostgresDriver() SqlConnectorOption {
 	return func(opts *sqlConnectorOptions) {
-		opts.postgresDriver = "postgres"
+		opts.postgresDriver = sqlmanager_shared.DefaultPostgresDriver
+	}
+}
+
+// Provide an integer number that corresponds to the number of seconds to wait before timing out attempting to connect.
+// Ex: 10 == 10 seconds
+func WithConnectionTimeout(timeoutSeconds uint32) SqlConnectorOption {
+	return func(sco *sqlConnectorOptions) {
+		sco.connectionTimeoutSeconds = &timeoutSeconds
 	}
 }
 
 type SqlConnector interface {
-	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error)
+	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
+func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
 	if cc == nil {
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
 	options := sqlConnectorOptions{
-		postgresDriver: "pgx",
+		postgresDriver: sqlmanager_shared.PostgresDriver,
 	}
 	for _, opt := range opts {
-		opt(&options)
+		if opt != nil {
+			opt(&options)
+		}
 	}
 
 	dbconnopts, err := getConnectionOptsFromConnectionConfig(cc)
@@ -86,7 +99,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				return nil, fmt.Errorf("unable to upsert client tls files: %w", err)
 			}
 		}
-		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout, logger)
+		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, options.connectionTimeoutSeconds, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +120,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 			return newStdlibContainer(options.postgresDriver, dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger, options.mysqlDisableParseTime)
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, options.connectionTimeoutSeconds, logger, options.mysqlDisableParseTime)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +140,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		}
 		return newStdlibContainer("mysql", dsn, dbconnopts), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
+		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, options.connectionTimeoutSeconds)
 		if err != nil {
 			return nil, err
 		}

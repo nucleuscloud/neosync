@@ -128,8 +128,6 @@ type DestinationParams struct {
 	RunId           string
 	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
 	DestConnection  *mgmtv1alpha1.Connection
-	DestEnvVarKey   string
-	DSN             string
 	Logger          *slog.Logger
 }
 

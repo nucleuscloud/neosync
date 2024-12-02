@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -17,13 +16,13 @@ import (
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
 	"github.com/go-logr/logr"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -267,13 +266,6 @@ func serve(ctx context.Context) error {
 		eelicense,
 	)
 
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
-	mssqlquerier := mssql_queries.New()
-
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
 	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
@@ -281,8 +273,17 @@ func serve(ctx context.Context) error {
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-	sqlconnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
+
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	go sqlconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
+
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
+
+	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
+
 	redisconfig := shared.GetRedisConfig()
 
 	genbenthosActivity := genbenthosconfigs_activity.New(
@@ -293,8 +294,15 @@ func serve(ctx context.Context) error {
 		redisconfig,
 		otelconfig.IsEnabled,
 	)
-	disableReaper := false
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+
+	syncActivity := sync_activity.New(
+		connclient,
+		jobclient,
+		sqlconnmanager,
+		mongoconnmanager,
+		syncActivityMeter,
+		sync_activity.NewBenthosStreamManager(),
+	)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)

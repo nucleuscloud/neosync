@@ -11,6 +11,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -19,20 +20,17 @@ type generateBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient  sqlmanager.SqlManagerClient
 	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
-	driver            string
 }
 
 func NewGenerateBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	driver string,
 ) bb_internal.BenthosBuilder {
 	return &generateBuilder{
 		transformerclient: transformerclient,
 		sqlmanagerclient:  sqlmanagerclient,
 		connectionclient:  connectionclient,
-		driver:            driver,
 	}
 }
 
@@ -51,17 +49,17 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
 
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping)
 	sourceTableOpts := groupGenerateSourceOptionsByTable(sourceOptions.Schemas)
-	groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
+	groupedSchemas, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
@@ -139,7 +137,7 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		}
 
 		columns := buildPlainColumns(tableMapping.Mappings)
-		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver, columns, tableColInfo, tableColTransformers)
+		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver(), columns, tableColInfo, tableColTransformers)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +179,7 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
 			{
@@ -193,8 +191,7 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 					Output: neosync_benthos.OutputConfig{
 						Outputs: neosync_benthos.Outputs{
 							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-								Driver: b.driver,
-								Dsn:    params.DSN,
+								ConnectionId: params.DestConnection.GetId(),
 
 								Schema:                  benthosConfig.TableSchema,
 								Table:                   benthosConfig.TableName,

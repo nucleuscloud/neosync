@@ -251,12 +251,12 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			logger.Info("config sync completed", "name", bc.Name)
 			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
 			if err != nil {
-				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
+				logger.Error(fmt.Sprintf("post table sync activity did not complete: %s", err.Error()), "schema", bc.TableSchema, "table", bc.TableName)
 			}
 			delete(redisDependsOn, bc.Name)
 			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
-				logger.Error("redis clean up activity did not complete")
+				logger.Error(fmt.Sprintf("redis clean up activity did not complete: %s", err))
 			}
 		})
 	}
