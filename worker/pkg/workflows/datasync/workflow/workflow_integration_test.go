@@ -56,6 +56,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -1621,6 +1622,7 @@ func executeWorkflow(
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 
 	// register activities
 	genbenthosActivity := genbenthosconfigs_activity.New(

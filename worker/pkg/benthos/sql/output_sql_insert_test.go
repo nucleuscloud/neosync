@@ -2,16 +2,14 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func Test_SqlInsertOutputEmptyShutdown(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	conf := `
 connection_id: 123
 schema: bar
@@ -24,7 +22,7 @@ args_mapping: 'root = [this.id]'
 	insertConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), &fakeConnectionProvider{}, false, logger)
+	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), &fakeConnectionProvider{}, false, testutil.GetTestLogger(t))
 	require.NoError(t, err)
 	require.NoError(t, insertOutput.Close(context.Background()))
 }

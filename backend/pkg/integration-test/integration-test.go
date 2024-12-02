@@ -2,8 +2,6 @@ package integrationtests_test
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,6 +38,7 @@ import (
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 )
 
@@ -393,16 +392,15 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		basepath: "/ncauth",
 	}
 
-	err = s.InitializeTest(ctx)
+	err = s.InitializeTest(ctx, t)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context) error {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, discardLogger)
+func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
+	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(t))
 	if err != nil {
 		return err
 	}
