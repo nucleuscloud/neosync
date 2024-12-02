@@ -274,8 +274,8 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
-		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
@@ -316,7 +316,7 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -370,7 +370,7 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -414,7 +414,7 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 		Connection: connection,
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -457,7 +457,7 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -510,7 +510,7 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -548,7 +548,7 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	m := createServiceMock(t)
 
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -602,7 +602,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -913,7 +913,7 @@ func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
@@ -959,7 +959,7 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 		Connection: connection,
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
 		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
 	)
 	m.DbMock.On("Close").Return(nil)
