@@ -80,7 +80,9 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		postgresDriver: "pgx",
 	}
 	for _, opt := range opts {
-		opt(&options)
+		if opt != nil {
+			opt(&options)
+		}
 	}
 
 	dbconnopts, err := getConnectionOptsFromConnectionConfig(cc)
