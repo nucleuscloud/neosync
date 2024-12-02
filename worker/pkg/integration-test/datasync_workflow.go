@@ -1,12 +1,15 @@
 package integrationtest
 
 import (
-	"sync"
 	"testing"
 	"time"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -19,7 +22,6 @@ import (
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/client"
-	temporalmocks "go.temporal.io/sdk/mocks"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -43,8 +45,15 @@ func ExecuteTestDataSyncWorkflow(
 			},
 		}
 	}
-	temporalClientMock := temporalmocks.NewClient(t)
-	sqlmanager := tcneosyncapi.NewTestSqlManagerClient()
+
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
+	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManager(sqlconnmanager),
+	)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -59,13 +68,14 @@ func ExecuteTestDataSyncWorkflow(
 		redisconfig,
 		false,
 	)
+
 	var activityMeter metric.Meter
-	disableReaper := true
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
+
 	env.RegisterWorkflow(datasync_workflow.Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
