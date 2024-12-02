@@ -10,9 +10,9 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
@@ -66,7 +66,7 @@ func (a *Activity) RunJobHooksByTiming(
 		activity.GetLogger(ctx),
 		loggerKeyVals...,
 	)
-	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := temporallogger.NewSlogger(logger)
 
 	go func() {
 		for {

@@ -16,11 +16,11 @@ type temporalLogHandler struct {
 }
 
 func (h *temporalLogHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	// Temporal logger doesn't provide level filtering, so we accept all levels
+	// We defer to the temporal logger and let it handle what leveling it wants to output
 	return true
 }
 
-func (h *temporalLogHandler) Handle(ctx context.Context, r slog.Record) error { //nolint:gocritic
+func (h *temporalLogHandler) Handle(ctx context.Context, r slog.Record) error { //nolint:gocritic // Needs to conform to the slog.Handler interface
 	attrs := make([]any, 0, (r.NumAttrs()+len(h.attrs))*2)
 
 	// Add handler's attrs first
@@ -84,6 +84,7 @@ func (h *temporalLogHandler) WithGroup(name string) slog.Handler {
 	}
 }
 
+// Returns a temporal logger wrapped as a slog.Logger to ease plugging in to the rest of the system
 func NewSlogger(tlogger log.Logger) *slog.Logger {
 	handler := &temporalLogHandler{logger: tlogger}
 	return slog.New(handler)
