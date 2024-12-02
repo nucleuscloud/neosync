@@ -15,22 +15,22 @@ type MockTemporalLogger struct {
 type LogMessage struct {
 	Level   string
 	Message string
-	KeyVals []interface{}
+	KeyVals []any
 }
 
-func (m *MockTemporalLogger) Debug(msg string, keyvals ...interface{}) {
+func (m *MockTemporalLogger) Debug(msg string, keyvals ...any) {
 	m.messages = append(m.messages, LogMessage{Level: "DEBUG", Message: msg, KeyVals: keyvals})
 }
 
-func (m *MockTemporalLogger) Info(msg string, keyvals ...interface{}) {
+func (m *MockTemporalLogger) Info(msg string, keyvals ...any) {
 	m.messages = append(m.messages, LogMessage{Level: "INFO", Message: msg, KeyVals: keyvals})
 }
 
-func (m *MockTemporalLogger) Warn(msg string, keyvals ...interface{}) {
+func (m *MockTemporalLogger) Warn(msg string, keyvals ...any) {
 	m.messages = append(m.messages, LogMessage{Level: "WARN", Message: msg, KeyVals: keyvals})
 }
 
-func (m *MockTemporalLogger) Error(msg string, keyvals ...interface{}) {
+func (m *MockTemporalLogger) Error(msg string, keyvals ...any) {
 	m.messages = append(m.messages, LogMessage{Level: "ERROR", Message: msg, KeyVals: keyvals})
 }
 
