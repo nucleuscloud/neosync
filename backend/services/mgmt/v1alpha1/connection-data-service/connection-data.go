@@ -162,7 +162,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery("postgres", table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.DefaultPostgresDriver, table, 1)
 		if err != nil {
 			return err
 		}
@@ -177,7 +177,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		selectQuery, err := querybuilder.BuildSelectQuery("postgres", table, columnNames, nil)
+		selectQuery, err := querybuilder.BuildSelectQuery(sqlmanager_shared.DefaultPostgresDriver, table, columnNames, nil)
 		if err != nil {
 			return err
 		}

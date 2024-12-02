@@ -732,7 +732,7 @@ func getAdditionalJobMappings(
 					})
 				} else {
 					switch driver {
-					case "postgres":
+					case sqlmanager_shared.DefaultPostgresDriver, sqlmanager_shared.PostgresDriver:
 						transformer, err := getJmTransformerByPostgresDataType(info)
 						if err != nil {
 							return nil, err

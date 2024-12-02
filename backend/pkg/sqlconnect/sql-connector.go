@@ -14,6 +14,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
@@ -53,7 +54,7 @@ func WithMysqlParseTimeDisabled() SqlConnectorOption {
 // WithPostgresDriver overrides default postgres driver
 func WithDefaultPostgresDriver() SqlConnectorOption {
 	return func(opts *sqlConnectorOptions) {
-		opts.postgresDriver = "postgres"
+		opts.postgresDriver = sqlmanager_shared.DefaultPostgresDriver
 	}
 }
 
@@ -77,7 +78,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 	}
 
 	options := sqlConnectorOptions{
-		postgresDriver: "pgx",
+		postgresDriver: sqlmanager_shared.PostgresDriver,
 	}
 	for _, opt := range opts {
 		if opt != nil {
