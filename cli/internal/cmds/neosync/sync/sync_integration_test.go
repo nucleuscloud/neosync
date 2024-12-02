@@ -5,7 +5,11 @@ import (
 	"testing"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -29,7 +33,8 @@ func Test_Sync(t *testing.T) {
 
 	connclient := neosyncApi.UnauthdClients.Connections
 	conndataclient := neosyncApi.UnauthdClients.ConnectionData
-	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
+	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	sqlmanagerclient := sqlmanager.NewSqlManager(sqlmanager.WithConnectionManager(connmanager))
 
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	outputType := output.PlainOutput
@@ -53,7 +58,7 @@ func Test_Sync(t *testing.T) {
 		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "postgres-source", postgres.Source.URL)
 
 		t.Run("sync", func(t *testing.T) {
-			discardLogger := testutil.GetTestLogger(t)
+			testlogger := testutil.GetTestLogger(t)
 			cmdConfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,
@@ -73,8 +78,10 @@ func Test_Sync(t *testing.T) {
 				connectionclient:     connclient,
 				sqlmanagerclient:     sqlmanagerclient,
 				ctx:                  ctx,
-				logger:               discardLogger,
+				logger:               testlogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
@@ -144,6 +151,8 @@ func Test_Sync(t *testing.T) {
 				ctx:                  ctx,
 				logger:               discardLogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)

@@ -853,7 +853,7 @@ func (p *PostgresManager) GetTableRowCount(
 	whereClause *string,
 ) (int64, error) {
 	tableName := sqlmanager_shared.BuildTable(schema, table)
-	builder := goqu.Dialect(sqlmanager_shared.PostgresDriver)
+	builder := getGoquDialect()
 	sqltable := goqu.I(tableName)
 
 	query := builder.From(sqltable).Select(goqu.COUNT("*"))
@@ -873,7 +873,7 @@ func (p *PostgresManager) GetTableRowCount(
 }
 
 func getGoquDialect() goqu.DialectWrapper {
-	return goqu.Dialect("postgres")
+	return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
 }
 
 func BuildPgTruncateStatement(

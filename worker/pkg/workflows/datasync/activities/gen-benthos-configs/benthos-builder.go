@@ -66,6 +66,7 @@ func newBenthosBuilder(
 
 type workflowMetadata struct {
 	WorkflowId string
+	RunId      string
 }
 
 func (b *benthosBuilder) GenerateBenthosConfigsNew(
@@ -96,7 +97,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Job:                    job,
 		SourceConnection:       sourceConnection,
 		DestinationConnections: destConnections,
-		RunId:                  wfmetadata.WorkflowId,
+		RunId:                  wfmetadata.RunId,
 		Logger:                 slogger,
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,

@@ -88,7 +88,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 			testmssql.WithPassword("mssqlPASSword1"),
 		)
 		require.NoError(t, err)
-		connstr, err := container.ConnectionString(ctx)
+		connstr, err := container.ConnectionString(ctx, "encrypt=disable")
 		require.NoError(t, err)
 
 		connector, cleanup, err := mssqltunconnector.New(dialer, connstr)

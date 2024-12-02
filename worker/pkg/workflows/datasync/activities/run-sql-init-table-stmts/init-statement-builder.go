@@ -10,12 +10,14 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -34,14 +36,14 @@ type initStatementBuilder struct {
 }
 
 func newInitStatementBuilder(
-	sqlmanager sql_manager.SqlManagerClient,
+	sqlmanagerclient sql_manager.SqlManagerClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	eelicense license.EEInterface,
 	workflowId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
-		sqlmanager: sqlmanager,
+		sqlmanager: sqlmanagerclient,
 		jobclient:  jobclient,
 		connclient: connclient,
 		eelicense:  eelicense,
@@ -52,6 +54,7 @@ func newInitStatementBuilder(
 func (b *initStatementBuilder) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
+	session connectionmanager.SessionInterface,
 	slogger *slog.Logger,
 ) (*RunSqlInitTableStatementsResponse, error) {
 	job, err := b.getJobById(ctx, req.JobId)
@@ -80,16 +83,23 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		return &RunSqlInitTableStatementsResponse{}, nil
 	}
 
-	sourcedb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
+	sourcedb, err := b.sqlmanager.NewSqlConnection(ctx, session, sourceConnection, slogger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer sourcedb.Db.Close()
+	defer sourcedb.Db().Close()
 
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
 	initSchemaRunContext := []*InitSchemaRunContext{}
+
+	destConns := []*sqlmanager.SqlConnection{}
+	defer func() {
+		for _, destconn := range destConns {
+			destconn.Db().Close()
+		}
+	}()
 
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
@@ -130,10 +140,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			continue
 		}
 
-		destdb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, destinationConnection)
+		destdb, err := b.sqlmanager.NewSqlConnection(ctx, session, destinationConnection, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
+		destConns = append(destConns, destdb)
 
 		switch destinationConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -149,7 +160,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 
-				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+				initblocks, err := sourcedb.Db().GetSchemaInitStatements(ctx, tables)
 				if err != nil {
 					return nil, err
 				}
@@ -159,9 +170,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					if len(block.Statements) == 0 {
 						continue
 					}
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+					err = destdb.Db().BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
-						destdb.Db.Close()
 						return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 					}
 				}
@@ -173,19 +183,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					schema, table := sqlmanager_shared.SplitTableKey(table)
 					stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(schema, table)
 					if err != nil {
-						destdb.Db.Close()
 						return nil, err
 					}
 					tableTruncateStmts = append(tableTruncateStmts, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate cascade tables", len(tableTruncateStmts)))
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncateStmts, &sqlmanager_shared.BatchExecOpts{})
+				err = destdb.Db().BatchExec(ctx, batchSizeConst, tableTruncateStmts, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
-					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 				}
 			} else if sqlopts.TruncateBeforeInsert {
-				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+				tableDependencies, err := sourcedb.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
 					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 				}
@@ -193,19 +201,16 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 				if err != nil {
-					destdb.Db.Close()
 					return nil, err
 				}
 
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTablesResp.OrderedTables)))
 				truncateStmt, err := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
 				if err != nil {
-					slogger.Error(fmt.Sprint("unable to build postgres truncate statement: %w", err))
-					return nil, err
+					return nil, fmt.Errorf("unable to build postgres truncate statement: %w", err)
 				}
-				err = destdb.Db.Exec(ctx, truncateStmt)
+				err = destdb.Db().Exec(ctx, truncateStmt)
 				if err != nil {
-					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
@@ -220,9 +225,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				resetSeqStmts := []string{}
 				for schema, tables := range schemaTableMap {
-					sequences, err := sourcedb.Db.GetSequencesByTables(ctx, schema, tables)
+					sequences, err := sourcedb.Db().GetSequencesByTables(ctx, schema, tables)
 					if err != nil {
-						destdb.Db.Close()
 						return nil, err
 					}
 					for _, seq := range sequences {
@@ -230,17 +234,15 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 				}
 				if len(resetSeqStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+					err = destdb.Db().BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
 						// handle not found errors
 						if !strings.Contains(err.Error(), `does not exist`) {
-							destdb.Db.Close()
 							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
 						}
 					}
 				}
 			}
-			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if sqlopts.InitSchema {
 				if sqlopts.InitSchema {
@@ -250,7 +252,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 					}
 
-					initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+					initblocks, err := sourcedb.Db().GetSchemaInitStatements(ctx, tables)
 					if err != nil {
 						return nil, err
 					}
@@ -260,9 +262,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						if len(block.Statements) == 0 {
 							continue
 						}
-						err = destdb.Db.BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+						err = destdb.Db().BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 						if err != nil {
-							destdb.Db.Close()
 							return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
 						}
 					}
@@ -275,20 +276,18 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					schema, table := sqlmanager_shared.SplitTableKey(table)
 					stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schema, table)
 					if err != nil {
-						destdb.Db.Close()
 						return nil, err
 					}
 					tableTruncate = append(tableTruncate, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
 				disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
+				err = destdb.Db().BatchExec(ctx, batchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
 				if err != nil {
-					destdb.Db.Close()
 					return nil, err
 				}
 			}
-			destdb.Db.Close()
+			destdb.Db().Close()
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
@@ -303,7 +302,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 
-				initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+				initblocks, err := sourcedb.Db().GetSchemaInitStatements(ctx, tables)
 				if err != nil {
 					return nil, err
 				}
@@ -315,7 +314,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						continue
 					}
 					for _, stmt := range block.Statements {
-						err = destdb.Db.Exec(ctx, stmt)
+						err = destdb.Db().Exec(ctx, stmt)
 						if err != nil {
 							slogger.Error("unable to exec mssql %s statements: %w", block.Label, err)
 							initErrors = append(initErrors, &InitSchemaError{
@@ -323,7 +322,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 								Error:     err.Error(),
 							})
 							if block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
-								destdb.Db.Close()
 								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
 							}
 						}
@@ -337,7 +335,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
-				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+				tableDependencies, err := sourcedb.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
 					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 				}
@@ -345,7 +343,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 				if err != nil {
-					destdb.Db.Close()
 					return nil, err
 				}
 
@@ -360,16 +357,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will delete from tables", len(orderedTableDelete)))
-				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
+				err = destdb.Db().BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
-					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
 				}
 
 				// reset identity column counts
-				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+				schemaColMap, err := sourcedb.Db().GetSchemaColumnMap(ctx)
 				if err != nil {
-					destdb.Db.Close()
 					return nil, err
 				}
 
@@ -387,14 +382,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 				}
 				if len(identityStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
+					err = destdb.Db().BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
-						destdb.Db.Close()
 						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
 					}
 				}
 			}
-			destdb.Db.Close()
 		default:
 			return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.ConnectionConfig.Config)
 		}

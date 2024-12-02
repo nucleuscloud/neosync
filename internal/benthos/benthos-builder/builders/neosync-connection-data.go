@@ -85,7 +85,7 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 			DependsOn: config.DependsOn(),
 			RunType:   config.RunType(),
 
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.Id, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.Id}},
 
 			TableSchema: schema,
 			TableName:   table,

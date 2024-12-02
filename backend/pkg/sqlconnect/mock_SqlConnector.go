@@ -22,14 +22,14 @@ func (_m *MockSqlConnector) EXPECT() *MockSqlConnector_Expecter {
 	return &MockSqlConnector_Expecter{mock: &_m.Mock}
 }
 
-// NewDbFromConnectionConfig provides a mock function with given fields: connectionConfig, connectionTimeout, logger, opts
-func (_m *MockSqlConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
+// NewDbFromConnectionConfig provides a mock function with given fields: connectionConfig, logger, opts
+func (_m *MockSqlConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, connectionConfig, connectionTimeout, logger)
+	_ca = append(_ca, connectionConfig, logger)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -39,19 +39,19 @@ func (_m *MockSqlConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 
 	var r0 SqlDbContainer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger, ...SqlConnectorOption) (SqlDbContainer, error)); ok {
-		return rf(connectionConfig, connectionTimeout, logger, opts...)
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *slog.Logger, ...SqlConnectorOption) (SqlDbContainer, error)); ok {
+		return rf(connectionConfig, logger, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger, ...SqlConnectorOption) SqlDbContainer); ok {
-		r0 = rf(connectionConfig, connectionTimeout, logger, opts...)
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *slog.Logger, ...SqlConnectorOption) SqlDbContainer); ok {
+		r0 = rf(connectionConfig, logger, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(SqlDbContainer)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger, ...SqlConnectorOption) error); ok {
-		r1 = rf(connectionConfig, connectionTimeout, logger, opts...)
+	if rf, ok := ret.Get(1).(func(*mgmtv1alpha1.ConnectionConfig, *slog.Logger, ...SqlConnectorOption) error); ok {
+		r1 = rf(connectionConfig, logger, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -66,23 +66,22 @@ type MockSqlConnector_NewDbFromConnectionConfig_Call struct {
 
 // NewDbFromConnectionConfig is a helper method to define mock.On call
 //   - connectionConfig *mgmtv1alpha1.ConnectionConfig
-//   - connectionTimeout *uint32
 //   - logger *slog.Logger
 //   - opts ...SqlConnectorOption
-func (_e *MockSqlConnector_Expecter) NewDbFromConnectionConfig(connectionConfig interface{}, connectionTimeout interface{}, logger interface{}, opts ...interface{}) *MockSqlConnector_NewDbFromConnectionConfig_Call {
+func (_e *MockSqlConnector_Expecter) NewDbFromConnectionConfig(connectionConfig interface{}, logger interface{}, opts ...interface{}) *MockSqlConnector_NewDbFromConnectionConfig_Call {
 	return &MockSqlConnector_NewDbFromConnectionConfig_Call{Call: _e.mock.On("NewDbFromConnectionConfig",
-		append([]interface{}{connectionConfig, connectionTimeout, logger}, opts...)...)}
+		append([]interface{}{connectionConfig, logger}, opts...)...)}
 }
 
-func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Run(run func(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger, opts ...SqlConnectorOption)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Run(run func(connectionConfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]SqlConnectorOption, len(args)-3)
-		for i, a := range args[3:] {
+		variadicArgs := make([]SqlConnectorOption, len(args)-2)
+		for i, a := range args[2:] {
 			if a != nil {
 				variadicArgs[i] = a.(SqlConnectorOption)
 			}
 		}
-		run(args[0].(*mgmtv1alpha1.ConnectionConfig), args[1].(*uint32), args[2].(*slog.Logger), variadicArgs...)
+		run(args[0].(*mgmtv1alpha1.ConnectionConfig), args[1].(*slog.Logger), variadicArgs...)
 	})
 	return _c
 }
@@ -92,7 +91,7 @@ func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Return(_a0 SqlDbConta
 	return _c
 }
 
-func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger, ...SqlConnectorOption) (SqlDbContainer, error)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *slog.Logger, ...SqlConnectorOption) (SqlDbContainer, error)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

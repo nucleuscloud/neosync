@@ -13,8 +13,7 @@ import (
 func Test_SqlInsertOutputEmptyShutdown(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	conf := `
-driver: postgres
-dsn: foo
+connection_id: 123
 schema: bar
 table: baz
 args_mapping: 'root = [this.id]'
@@ -25,7 +24,7 @@ args_mapping: 'root = [this.id]'
 	insertConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), nil, false, logger)
+	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), &fakeConnectionProvider{}, false, logger)
 	require.NoError(t, err)
 	require.NoError(t, insertOutput.Close(context.Background()))
 }

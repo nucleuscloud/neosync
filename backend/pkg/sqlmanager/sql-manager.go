@@ -2,25 +2,21 @@ package sqlmanager
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
-	"strings"
-	"sync"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	pgxslog "github.com/nucleuscloud/neosync/backend/internal/pgx-slog"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
 type SqlDatabase interface {
@@ -41,330 +37,108 @@ type SqlDatabase interface {
 }
 
 type SqlManager struct {
-	pgpool    *sync.Map
-	pgquerier pg_queries.Querier
-
-	mysqlpool    *sync.Map
-	mysqlquerier mysql_queries.Querier
-
-	mssqlpool    *sync.Map
-	mssqlquerier mssql_queries.Querier
-
-	sqlconnector sqlconnect.SqlConnector
+	config *sqlManagerConfig
 }
 
+type sqlManagerConfig struct {
+	pgQuerier    pg_queries.Querier
+	mysqlQuerier mysql_queries.Querier
+	mssqlQuerier mssql_queries.Querier
+
+	mgr connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]
+}
+type SqlManagerOption func(*sqlManagerConfig)
+
 func NewSqlManager(
-	pgpool *sync.Map,
-	pgquerier pg_queries.Querier,
-	mysqlpool *sync.Map,
-	mysqlquerier mysql_queries.Querier,
-	mssqlpool *sync.Map,
-	mssqlquerier mssql_queries.Querier,
-	sqlconnector sqlconnect.SqlConnector,
+	opts ...SqlManagerOption,
 ) *SqlManager {
+	config := &sqlManagerConfig{
+		pgQuerier:    pg_queries.New(),
+		mysqlQuerier: mysql_queries.New(),
+		mssqlQuerier: mssql_queries.New(),
+		mgr:          connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{})),
+	}
+	for _, opt := range opts {
+		opt(config)
+	}
 	return &SqlManager{
-		pgpool:       pgpool,
-		pgquerier:    pgquerier,
-		mysqlpool:    mysqlpool,
-		mysqlquerier: mysqlquerier,
-		mssqlpool:    mssqlpool,
-		mssqlquerier: mssqlquerier,
-		sqlconnector: sqlconnector,
+		config: config,
+	}
+}
+
+func WithConnectionManager(manager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mgr = manager
+	}
+}
+
+// Initializes a default SQL-enabled connection manager, but allows for providing options
+func WithConnectionManagerOpts(opts ...connectionmanager.ManagerOption) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mgr = connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), opts...)
+	}
+}
+
+func WithPostgresQuerier(querier pg_queries.Querier) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.pgQuerier = querier
+	}
+}
+func WithMysqlQuerier(querier mysql_queries.Querier) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mysqlQuerier = querier
+	}
+}
+func WithMssqlQuerier(querier mssql_queries.Querier) SqlManagerOption {
+	return func(smc *sqlManagerConfig) {
+		smc.mssqlQuerier = querier
 	}
 }
 
 type SqlManagerClient interface {
-	NewPooledSqlDb(
+	NewSqlConnection(
 		ctx context.Context,
+		session connectionmanager.SessionInterface,
+		connection connectionmanager.ConnectionInput,
 		slogger *slog.Logger,
-		connection *mgmtv1alpha1.Connection,
-	) (*SqlConnection, error)
-	NewSqlDb(
-		ctx context.Context,
-		slogger *slog.Logger,
-		connection *mgmtv1alpha1.Connection,
-		connectionTimeout *int,
-	) (*SqlConnection, error)
-	NewSqlDbFromUrl(
-		ctx context.Context,
-		driver, connectionUrl string,
-	) (*SqlConnection, error)
-	NewSqlDbFromConnectionConfig(
-		ctx context.Context,
-		slogger *slog.Logger,
-		connectionConfig *mgmtv1alpha1.ConnectionConfig,
-		connectionTimeout *int,
 	) (*SqlConnection, error)
 }
 
 var _ SqlManagerClient = &SqlManager{}
 
-type SqlConnection struct {
-	Db     SqlDatabase
-	Driver string
-}
-
-func (s *SqlManager) NewPooledSqlDb(
+func (s *SqlManager) NewSqlConnection(
 	ctx context.Context,
+	session connectionmanager.SessionInterface,
+	connection connectionmanager.ConnectionInput,
 	slogger *slog.Logger,
-	connection *mgmtv1alpha1.Connection,
 ) (*SqlConnection, error) {
-	var db SqlDatabase
-	var driver string
-	switch connection.ConnectionConfig.Config.(type) {
+	connclient, err := s.config.mgr.GetConnection(session, connection, slogger)
+	if err != nil {
+		return nil, err
+	}
+	closer := func() {
+		s.config.mgr.ReleaseSession(session, slogger)
+	}
+
+	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		var closer func()
-		if _, ok := s.pgpool.Load(connection.Id); !ok {
-			pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), sqlmanager_shared.Ptr(uint32(5)), slogger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
-			}
-			pool, err := pgconn.Open()
-			if err != nil {
-				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
-			}
-			s.pgpool.Store(connection.Id, pool)
-			closer = func() {
-				if pgconn != nil {
-					pgconn.Close()
-					s.pgpool.Delete(connection.Id)
-				}
-			}
-		}
-		val, _ := s.pgpool.Load(connection.Id)
-		pool, ok := val.(pg_queries.DBTX)
-		if !ok {
-			return nil, fmt.Errorf("pool found, but type assertion to pg_queries.DBTX failed")
-		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, closer)
-		driver = sqlmanager_shared.PostgresDriver
+		db := sqlmanager_postgres.NewManager(s.config.pgQuerier, connclient, closer)
+		return NewPostgresSqlConnection(db), nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		var closer func()
-		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
-			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
-			}
-			pool, err := conn.Open()
-			if err != nil {
-				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
-			}
-			s.mysqlpool.Store(connection.Id, pool)
-			closer = func() {
-				if conn != nil {
-					err := conn.Close()
-					if err != nil {
-						slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
-					}
-					s.mysqlpool.Delete(connection.Id)
-				}
-			}
-		}
-		val, _ := s.mysqlpool.Load(connection.Id)
-		pool, ok := val.(mysql_queries.DBTX)
-		if !ok {
-			return nil, fmt.Errorf("pool found, but type assertion to mysql_queries.DBTX failed")
-		}
-
-		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, closer)
-		driver = sqlmanager_shared.MysqlDriver
+		db := sqlmanager_mysql.NewManager(s.config.mysqlQuerier, connclient, closer)
+		return NewMysqlSqlConnection(db), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		var closer func()
-		if _, ok := s.mssqlpool.Load(connection.Id); !ok {
-			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new mssql pool from connection config: %w", err)
-			}
-			pool, err := conn.Open()
-			if err != nil {
-				return nil, fmt.Errorf("unable to open mssql connection: %w", err)
-			}
-			s.mssqlpool.Store(connection.Id, pool)
-			closer = func() {
-				if conn != nil {
-					err := conn.Close()
-					if err != nil {
-						slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
-					}
-					s.mssqlpool.Delete(connection.Id)
-				}
-			}
-		}
-		val, _ := s.mssqlpool.Load(connection.Id)
-		pool, ok := val.(mysql_queries.DBTX)
-		if !ok {
-			return nil, fmt.Errorf("pool found, but type assertion to mssql_queries.DBTX failed")
-		}
-
-		db = sqlmanager_mssql.NewManager(s.mssqlquerier, pool, closer)
-		driver = sqlmanager_shared.MssqlDriver
+		db := sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer)
+		return NewMssqlSqlConnection(db), nil
 	default:
-		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.ConnectionConfig.Config)
+		closer()
+		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.GetConnectionConfig().GetConfig())
 	}
-
-	return &SqlConnection{
-		Db:     db,
-		Driver: driver,
-	}, nil
-}
-
-func (s *SqlManager) NewSqlDb(
-	ctx context.Context,
-	slogger *slog.Logger,
-	connection *mgmtv1alpha1.Connection,
-	connectionTimeout *int,
-) (*SqlConnection, error) {
-	return s.NewSqlDbFromConnectionConfig(ctx, slogger, connection.GetConnectionConfig(), connectionTimeout)
-}
-
-func (s *SqlManager) NewSqlDbFromConnectionConfig(
-	ctx context.Context,
-	slogger *slog.Logger,
-	connectionConfig *mgmtv1alpha1.ConnectionConfig,
-	connectionTimeout *int,
-) (*SqlConnection, error) {
-	connTimeout := sqlmanager_shared.Ptr(uint32(5))
-	if connectionTimeout != nil {
-		timeout := uint32(*connectionTimeout) //nolint:gosec // Ignoring for now
-		connTimeout = &timeout
-	}
-
-	var db SqlDatabase
-	var driver string
-	switch connectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		pgconfig := connectionConfig.GetPgConfig()
-		if pgconfig == nil {
-			return nil, fmt.Errorf("source connection is not a postgres config")
-		}
-		pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
-		}
-		pool, err := pgconn.Open()
-		if err != nil {
-			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
-		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, func() {
-			if pgconn != nil {
-				pgconn.Close()
-			}
-		})
-		driver = sqlmanager_shared.PostgresDriver
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
-		}
-		pool, err := conn.Open()
-		if err != nil {
-			return nil, fmt.Errorf("unable to open mysql connection: %w", err)
-		}
-		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, func() {
-			if conn != nil {
-				err := conn.Close()
-				if err != nil {
-					slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
-				}
-			}
-		})
-		driver = sqlmanager_shared.MysqlDriver
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new mssql client from connection config: %w", err)
-		}
-		pool, err := conn.Open()
-		if err != nil {
-			return nil, fmt.Errorf("unable to open mssql connection: %w", err)
-		}
-		db = sqlmanager_mssql.NewManager(s.mssqlquerier, pool, func() {
-			if conn != nil {
-				err := conn.Close()
-				if err != nil {
-					slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
-				}
-			}
-		})
-		driver = sqlmanager_shared.MssqlDriver
-	default:
-		return nil, fmt.Errorf("unsupported sql database connection: %T", connectionConfig.Config)
-	}
-
-	return &SqlConnection{
-		Db:     db,
-		Driver: driver,
-	}, nil
-}
-
-func (s *SqlManager) NewSqlDbFromUrl(
-	ctx context.Context,
-	driver, connectionUrl string,
-) (*SqlConnection, error) {
-	var db SqlDatabase
-	switch driver {
-	case sqlmanager_shared.PostgresDriver, "postgres":
-		pgxconfig, err := pgx.ParseConfig(connectionUrl)
-		if err != nil {
-			return nil, err
-		}
-		pgxconfig.Tracer = &tracelog.TraceLog{
-			Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
-			LogLevel: pgxslog.GetDatabaseLogLevel(),
-		}
-		pgxconfig.DefaultQueryExecMode = pgx.QueryExecModeExec
-		pgconn, err := pgx.ConnectConfig(ctx, pgxconfig)
-		if err != nil {
-			return nil, err
-		}
-		sqldb := stdlib.OpenDB(*pgxconfig)
-		db = sqlmanager_postgres.NewManager(s.pgquerier, sqldb, func() {
-			if pgconn != nil {
-				sqldb.Close()
-			}
-		})
-		driver = sqlmanager_shared.PostgresDriver
-	case sqlmanager_shared.MysqlDriver:
-		if strings.Contains(connectionUrl, "?") {
-			connectionUrl = fmt.Sprintf("%s&multiStatements=true&parseTime=true", connectionUrl)
-		} else {
-			connectionUrl = fmt.Sprintf("%s?multiStatements=true&parseTime=true", connectionUrl)
-		}
-
-		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)
-		if err != nil {
-			return nil, err
-		}
-		db = sqlmanager_mysql.NewManager(s.mysqlquerier, conn, func() {
-			if conn != nil {
-				conn.Close()
-			}
-		})
-		driver = sqlmanager_shared.MysqlDriver
-	case sqlmanager_shared.MssqlDriver:
-		conn, err := sql.Open(sqlmanager_shared.MssqlDriver, connectionUrl)
-		if err != nil {
-			return nil, err
-		}
-		db = sqlmanager_mssql.NewManager(s.mssqlquerier, conn, func() {
-			if conn != nil {
-				conn.Close()
-			}
-		})
-		driver = sqlmanager_shared.MssqlDriver
-	default:
-		return nil, fmt.Errorf("unsupported sql driver: %s", driver)
-	}
-
-	return &SqlConnection{
-		Db:     db,
-		Driver: driver,
-	}, nil
 }
 
 func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {
 	switch driver {
-	case sqlmanager_shared.PostgresDriver, "postgres":
+	case sqlmanager_shared.PostgresDriver, sqlmanager_shared.DefaultPostgresDriver:
 		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MysqlDriver:

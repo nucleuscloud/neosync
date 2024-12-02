@@ -5,7 +5,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
@@ -19,7 +19,7 @@ func NewProvider(
 	return &Provider{connector: sqlconnector}
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
+var _ connectionmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
 
 type sqlDbtxWrapper struct {
 	sqlconnect.SqlDBTX
@@ -30,8 +30,10 @@ func (s *sqlDbtxWrapper) Close() error {
 	return s.close()
 }
 
-func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig) (neosync_benthos_sql.SqlDbtx, error) {
-	container, err := p.connector.NewDbFromConnectionConfig(cc, nil, slog.Default())
+const defaultConnectionTimeoutSeconds = uint32(10)
+
+func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (neosync_benthos_sql.SqlDbtx, error) {
+	container, err := p.connector.NewDbFromConnectionConfig(cc, logger, sqlconnect.WithConnectionTimeout(defaultConnectionTimeoutSeconds))
 	if err != nil {
 		return nil, err
 	}

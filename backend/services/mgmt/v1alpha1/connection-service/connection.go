@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/google/uuid"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -18,11 +19,25 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"golang.org/x/sync/errgroup"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+type connInput struct {
+	cc *mgmtv1alpha1.ConnectionConfig
+	id string
+}
+
+func (c *connInput) GetId() string {
+	return c.id
+}
+func (c *connInput) GetConnectionConfig() *mgmtv1alpha1.ConnectionConfig {
+	return c.cc
+}
 
 func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
@@ -36,13 +51,13 @@ func (s *Service) CheckConnectionConfig(
 		if err != nil {
 			return nil, err
 		}
-		connTimeout := 5
-		db, err := s.sqlmanager.NewSqlDbFromConnectionConfig(ctx, logger, req.Msg.GetConnectionConfig(), &connTimeout)
+
+		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db.Close()
-		schematablePrivsMap, err := db.Db.GetRolePermissionsMap(ctx)
+		defer db.Db().Close()
+		schematablePrivsMap, err := db.Db().GetRolePermissionsMap(ctx)
 		if err != nil {
 			errmsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -423,7 +438,7 @@ func (s *Service) CheckSqlQuery(
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, nil, logger)
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(10))
 	if err != nil {
 		return nil, err
 	}

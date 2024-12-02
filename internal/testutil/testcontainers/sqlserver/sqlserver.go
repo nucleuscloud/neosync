@@ -128,8 +128,8 @@ func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, er
 	}
 
 	queryvals := url.Values{}
-	queryvals.Add("database", "testdb")
-	dbConnStr := connStr + queryvals.Encode()
+	queryvals.Add("database", m.database)
+	dbConnStr := connStr + "&" + queryvals.Encode() // adding & due to existing query param above
 
 	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, dbConnStr)
 	if err != nil {

@@ -18,7 +18,7 @@ func ShouldRunIntegrationTest() bool {
 	return true
 }
 
-func GetTestLogger(t *testing.T) *slog.Logger {
+func GetTestLogger(t testing.TB) *slog.Logger {
 	testHandler := slog.NewTextHandler(testWriter{t}, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
@@ -26,7 +26,7 @@ func GetTestLogger(t *testing.T) *slog.Logger {
 }
 
 type testWriter struct {
-	t *testing.T
+	t testing.TB
 }
 
 func (tw testWriter) Write(p []byte) (n int, err error) {

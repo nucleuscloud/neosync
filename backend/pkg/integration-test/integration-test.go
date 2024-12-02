@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -26,7 +25,6 @@ import (
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
@@ -37,6 +35,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
@@ -188,16 +187,16 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		nil,
 	)
 
+	sqlmanagerclient := NewTestSqlManagerClient()
+
 	authdConnectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		authdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
@@ -221,12 +220,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		neoCloudAuthdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 	neoCloudJobHookService := jobhooks.New(
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
@@ -239,12 +236,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		neoCloudConnectionService,
 		neoCloudAuthdUserService,
-		sqlmanager.NewSqlManager(
-			&sync.Map{}, pg_queries.New(),
-			&sync.Map{}, mysql_queries.New(),
-			&sync.Map{}, mssql_queries.New(),
-			&sqlconnect.SqlOpenConnector{},
-		),
+		sqlmanagerclient,
 		neoCloudJobHookService,
 	)
 
@@ -262,12 +254,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 
 	jobhookService := jobhooks.New(
@@ -281,12 +271,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		unauthdConnectionsService,
 		unauthdUserService,
-		sqlmanager.NewSqlManager(
-			&sync.Map{}, pg_queries.New(),
-			&sync.Map{}, mysql_queries.New(),
-			&sync.Map{}, mssql_queries.New(),
-			&sqlconnect.SqlOpenConnector{},
-		),
+		sqlmanagerclient,
 		jobhookService,
 	)
 
@@ -300,12 +285,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		pg_queries.New(),
 		mysql_queries.New(),
 		mongoconnect.NewConnector(),
-		sqlmanager.NewSqlManager(
-			&sync.Map{}, pg_queries.New(),
-			&sync.Map{}, mysql_queries.New(),
-			&sync.Map{}, mssql_queries.New(),
-			&sqlconnect.SqlOpenConnector{},
-		),
+		sqlmanagerclient,
 		neosync_gcp.NewManager(),
 	)
 
@@ -478,9 +458,6 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 
 func NewTestSqlManagerClient() *sqlmanager.SqlManager {
 	return sqlmanager.NewSqlManager(
-		&sync.Map{}, pg_queries.New(),
-		&sync.Map{}, mysql_queries.New(),
-		&sync.Map{}, mssql_queries.New(),
-		&sqlconnect.SqlOpenConnector{},
+		sqlmanager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 }
