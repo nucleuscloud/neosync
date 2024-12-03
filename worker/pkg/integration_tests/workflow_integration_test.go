@@ -101,6 +101,7 @@ func Test_Workflow(t *testing.T) {
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
+	testlogger := testutil.GetTestLogger(t)
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
@@ -125,7 +126,6 @@ func Test_Workflow(t *testing.T) {
 						err = postgres.Target.RunSqlFiles(ctx, &tt.Folder, tt.TargetFilePaths)
 						require.NoError(t, err)
 						neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
-						testlogger := testutil.GetTestLogger(t)
 
 						schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
 						subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
