@@ -32,7 +32,7 @@ import (
 	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 
-	// testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
 	testdata_skipfkviolations "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/skip-fk-violations"
 
 	"connectrpc.com/connect"
@@ -43,6 +43,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
+	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/client"
@@ -63,7 +64,7 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
 	cdTests := testdata_circulardependencies.GetSyncTests()
 	javascriptTests := testdata_javascripttransformers.GetSyncTests()
-	// pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
 	subsettingTests := testdata_subsetting.GetSyncTests()
 	pgTypesTests := testdata_pgtypes.GetSyncTests()
 	skipFkViolationTests := testdata_skipfkviolations.GetSyncTests()
@@ -72,7 +73,7 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests["Virtual_Foreign_Keys"] = vfkTests
 	allTests["Circular_Dependencies"] = cdTests
 	allTests["Javascript_Transformers"] = javascriptTests
-	// allTests["Primary_Key_Transformers"] = pkTransformationTests
+	allTests["Primary_Key_Transformers"] = pkTransformationTests
 	allTests["Subsetting"] = subsettingTests
 	allTests["PG_Types"] = pgTypesTests
 	allTests["Skip_ForeignKey_Violations"] = skipFkViolationTests
@@ -92,10 +93,10 @@ func Test_Workflow(t *testing.T) {
 		panic(err)
 	}
 
-	// redis, err := tcredis.NewRedisTestContainer(ctx)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	redis, err := tcredis.NewRedisTestContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
@@ -195,7 +196,7 @@ func Test_Workflow(t *testing.T) {
 						}))
 						require.NoError(t, err)
 
-						env := executeTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), testlogger)
+						env := executeTestDataSyncWorkflow(t, neosyncApi, &redis.URL, job.Msg.GetJob().GetId(), testlogger)
 						require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 						err = env.GetWorkflowError()
 						if tt.ExpectError {
