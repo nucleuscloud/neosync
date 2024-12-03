@@ -308,6 +308,7 @@ func getAllMssqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 
 func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 	tests := getAllMssqlSyncTests()
+	testutil.GetTestLogger(s.T())
 	for groupName, group := range tests {
 		group := group
 		s.T().Run(groupName, func(t *testing.T) {
@@ -444,7 +445,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", testutil.GetTestLogger(t))
+					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", testlogger)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err := env.GetWorkflowError()
 					if tt.ExpectError {
@@ -703,6 +704,7 @@ func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 
 func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 	tests := getAllMysqlSyncTests()
+	testutil.GetTestLogger(s.T())
 	for groupName, group := range tests {
 		group := group
 		s.T().Run(groupName, func(t *testing.T) {
@@ -840,7 +842,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", testutil.GetTestLogger(t))
+					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", testlogger)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -872,6 +874,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 
 func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 	tests := getAllDynamoDBSyncTests()
+	testutil.GetTestLogger(s.T())
 	for groupName, group := range tests {
 		group := group
 		s.T().Run(groupName, func(t *testing.T) {
@@ -1039,7 +1042,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, jobId, testutil.GetTestLogger(t))
+					env := executeWorkflow(t, srv, s.redis.url, jobId, testlogger)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -1197,6 +1200,7 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 
 func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 	tests := getAllMongoDBSyncTests()
+	testlogger := testutil.GetTestLogger(s.T())
 	for groupName, group := range tests {
 		group := group
 		s.T().Run(groupName, func(t *testing.T) {
@@ -1324,7 +1328,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, jobId, testutil.GetTestLogger(t))
+					env := executeWorkflow(t, srv, s.redis.url, jobId, testlogger)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
