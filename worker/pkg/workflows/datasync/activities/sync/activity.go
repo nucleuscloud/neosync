@@ -95,7 +95,7 @@ var (
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
 func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	info := activity.GetInfo(ctx)
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.RunID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.ID))
 	isRetry := info.Attempt > 1
 	loggerKeyVals := []any{
 		"metadata", metadata,

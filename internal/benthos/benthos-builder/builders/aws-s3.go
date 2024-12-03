@@ -49,7 +49,7 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 	s3pathpieces = append(
 		s3pathpieces,
 		"workflows",
-		params.RunId,
+		params.WorkflowId,
 		"activities",
 		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
 		"data",

@@ -97,7 +97,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Job:                    job,
 		SourceConnection:       sourceConnection,
 		DestinationConnections: destConnections,
-		RunId:                  wfmetadata.RunId,
+		WorkflowId:             wfmetadata.WorkflowId,
 		Logger:                 slogger,
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
