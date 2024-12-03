@@ -76,7 +76,7 @@ func (a *Activity) RunSqlInitTableStatements(
 	return builder.RunSqlInitTableStatements(
 		ctx,
 		req,
-		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.RunID)),
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.ID)),
 		slogger,
 	)
 }

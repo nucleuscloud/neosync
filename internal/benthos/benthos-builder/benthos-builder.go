@@ -198,7 +198,7 @@ type BenthosConfigManager struct {
 	job                    *mgmtv1alpha1.Job
 	sourceConnection       *mgmtv1alpha1.Connection
 	destinationConnections []*mgmtv1alpha1.Connection
-	runId                  string
+	workflowId             string
 }
 
 // Manages all necessary configuration parameters for creating
@@ -249,7 +249,7 @@ func NewWorkerBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: config.DestinationConnections,
-		runId:                  config.WorkflowId,
+		workflowId:             config.WorkflowId,
 	}, nil
 }
 
@@ -305,7 +305,7 @@ func NewCliBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: []*mgmtv1alpha1.Connection{config.DestinationConnection},
-		runId:                  config.WorkflowId,
+		workflowId:             config.WorkflowId,
 	}, nil
 }
 

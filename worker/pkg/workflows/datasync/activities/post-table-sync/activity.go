@@ -49,7 +49,7 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
