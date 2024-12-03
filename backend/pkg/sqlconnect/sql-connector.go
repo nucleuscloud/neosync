@@ -175,7 +175,7 @@ func getTunnelConnectorFn(
 			return nil, nil, fmt.Errorf("unable to construct ssh tunnel config: %w", err)
 		}
 		logger.Debug("constructed tunnel config")
-		dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig)
+		dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig, tun.DefaultSSHDialerConfig(), logger)
 		conn, cleanup, err := getConnector(dialer)
 		if err != nil {
 			return nil, nil, fmt.Errorf("unable to build db connector: %w", err)
@@ -275,7 +275,7 @@ func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
 			User:            tunnel.GetUser(),
 			Auth:            authmethods,
 			HostKeyCallback: hostcallback,
-			Timeout:         10 * time.Second, // todo: make configurable
+			Timeout:         15 * time.Second, // todo: make configurable
 		},
 	}, nil
 }
