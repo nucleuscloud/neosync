@@ -31,7 +31,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
@@ -95,7 +95,7 @@ func Test_Activity_Success(t *testing.T) {
 
 func Test_Activity_RunContextNotFound(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 
 	env := testSuite.NewTestActivityEnvironment()
 
@@ -149,7 +149,7 @@ func Test_Activity_RunContextNotFound(t *testing.T) {
 
 func Test_Activity_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()

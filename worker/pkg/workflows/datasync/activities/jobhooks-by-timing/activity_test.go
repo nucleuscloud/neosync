@@ -39,7 +39,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_EELicense_Skip(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	activity := New(
@@ -63,7 +63,7 @@ func Test_Activity_EELicense_Skip(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	jobId := uuid.NewString()
