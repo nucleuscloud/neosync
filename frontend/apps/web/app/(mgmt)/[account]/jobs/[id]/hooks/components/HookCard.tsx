@@ -1,16 +1,22 @@
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
 import { JobHook } from '@neosync/sdk';
+import { deleteJobHook } from '@neosync/sdk/connectquery';
 import { ClockIcon, Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   hook: JobHook;
+  onDeleted(): void;
 }
 
 export default function HookCard(props: Props): ReactElement {
-  const { hook } = props;
+  const { hook, onDeleted } = props;
   return (
     <div id={`jobhook-${hook.id}`}>
       <Card
@@ -35,7 +41,9 @@ export default function HookCard(props: Props): ReactElement {
 
               {/* Description */}
               {hook.description && (
-                <p className="text-sm text-gray-600">{hook.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {hook.description}
+                </p>
               )}
 
               {/* URL */}
@@ -58,7 +66,7 @@ export default function HookCard(props: Props): ReactElement {
                   variant="secondary"
                   // className={getPriorityStyles(hook.priority)}
                 >
-                  {hook.priority} priority
+                  P{hook.priority}
                 </Badge>
               </div>
             </div>
@@ -70,23 +78,50 @@ export default function HookCard(props: Props): ReactElement {
                 size="sm"
                 variant="ghost"
                 className="text-gray-500 hover:text-gray-700"
-                // onClick={() => onEdit(hook)}
+                // onClick={() => onEditClicked()}
               >
                 <Pencil1Icon />
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="text-red-500 hover:text-red-700"
-                // onClick={() => onDelete(hook.id)}
-              >
-                <TrashIcon />
-              </Button>
+              <RemoveHookButton hook={hook} onDeleted={onDeleted} />
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+interface RemoveHookButtonProps {
+  onDeleted(): void;
+  hook: Pick<JobHook, 'id' | 'name'>;
+}
+function RemoveHookButton(props: RemoveHookButtonProps): ReactElement {
+  const { hook, onDeleted } = props;
+  const { mutateAsync: removeHook } = useMutation(deleteJobHook);
+
+  async function onDelete(): Promise<void> {
+    try {
+      await removeHook({ id: hook.id });
+      toast.success('Successfully removed job hook!');
+      onDeleted();
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to remove job hook', {
+        description: getErrorMessage(err),
+      });
+    }
+  }
+
+  return (
+    <DeleteConfirmationDialog
+      trigger={
+        <Button variant="destructive" type="button">
+          <TrashIcon />
+        </Button>
+      }
+      headerText={`Are you sure you want to delete job hook: ${hook.name}?`}
+      description="Deleting this hook is irreversable!"
+      onConfirm={async () => onDelete()}
+    />
   );
 }
