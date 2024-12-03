@@ -104,7 +104,7 @@ func (a *Activity) RunJobHooksByTiming(
 		}
 	}()
 
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
 	execCount := uint(0)
 
 	for _, hook := range hooks {
