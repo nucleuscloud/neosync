@@ -919,7 +919,7 @@ func EscapePgColumn(col string) string {
 func BuildPgIdentityColumnResetCurrentSql(
 	schema, table, column string,
 ) string {
-	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
+	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%q.%q', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
 }
 
 func BuildPgInsertIdentityAlwaysSql(
