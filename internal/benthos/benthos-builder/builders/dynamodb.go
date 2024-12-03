@@ -104,7 +104,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
-			params.RunId,
+			params.WorkflowId,
 			&shared.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},

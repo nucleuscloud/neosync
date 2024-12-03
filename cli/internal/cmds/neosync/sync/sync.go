@@ -393,7 +393,7 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 		SourceJobRunId:         jobRunId,
 		DestinationConnection:  c.destinationConnection,
 		SyncConfigs:            syncConfigs,
-		RunId:                  "cli-sync",
+		WorkflowId:             job.Id,
 		Logger:                 c.logger,
 		Sqlmanagerclient:       c.sqlmanagerclient,
 		Transformerclient:      c.transformerclient,

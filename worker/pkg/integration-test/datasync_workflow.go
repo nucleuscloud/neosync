@@ -14,6 +14,7 @@ import (
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -22,19 +23,22 @@ import (
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
 func ExecuteTestDataSyncWorkflow(
-	t *testing.T,
+	t testing.TB,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
 	redisUrl *string,
 	jobId string,
 ) *testsuite.TestWorkflowEnvironment {
+	t.Helper()
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
 	transformerclient := neosyncApi.UnauthdClients.Transformers
 	userclient := neosyncApi.UnauthdClients.Users
+
 	var redisconfig *shared.RedisConfig
 	if redisUrl != nil && *redisUrl != "" {
 		redisconfig = &shared.RedisConfig{
@@ -57,6 +61,7 @@ func ExecuteTestDataSyncWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
@@ -75,6 +80,7 @@ func ExecuteTestDataSyncWorkflow(
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
+	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 
 	env.RegisterWorkflow(datasync_workflow.Workflow)
 	env.RegisterActivity(syncActivity.Sync)
@@ -84,6 +90,7 @@ func ExecuteTestDataSyncWorkflow(
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
+	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})

@@ -209,6 +209,8 @@ func Test_Sync(t *testing.T) {
 					ctx:                  ctx,
 					logger:               testlogger,
 					cmd:                  cmdConfig,
+					connmanager:          connmanager,
+					session:              connectionmanager.NewUniqueSession(),
 				}
 				err := sync.configureAndRunSync()
 				require.NoError(t, err)
@@ -384,6 +386,8 @@ func Test_Sync(t *testing.T) {
 					ctx:                  ctx,
 					logger:               testlogger,
 					cmd:                  cmdConfig,
+					connmanager:          connmanager,
+					session:              connectionmanager.NewUniqueSession(),
 				}
 				err := sync.configureAndRunSync()
 				require.NoError(t, err)

@@ -66,7 +66,7 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 	if err != nil {
 		return nil, err
 	}
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), constraintConnection, params.Logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), constraintConnection, params.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
