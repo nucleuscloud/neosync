@@ -1670,21 +1670,13 @@ func executeWorkflow(
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.SetOnActivityCompletedListener(func(activityInfo *activity.Info, result converter.EncodedValue, err error) {
-		require.NoError(t, err)
-		if err == nil {
-			// Inspect the raw value to understand its structure
-			hasvalue := result.HasValue()
-			if hasvalue {
-				// Attempt to decode into the expected structure
-				var decodedResult any
-				if err := result.Get(&decodedResult); err != nil {
-					fmt.Printf("\n\n Failed to decode activity result: %v \n\n", err)
-					return
-				}
-				fmt.Printf("\n\n Activity %s completed successfully with result: %v \n\n", activityInfo.ActivityType.Name, decodedResult)
-			} else {
-				fmt.Printf("\n\n Activity %s failed with error: %v \n\n", activityInfo.ActivityType.Name, err)
-			}
+		require.NoError(t, err, "Activity %s failed", activityInfo.ActivityType.Name)
+		if activityInfo.ActivityType.Name == "RunPostTableSync" && result.HasValue() {
+			var postTableSyncResp posttablesync_activity.RunPostTableSyncResponse
+			decodeErr := result.Get(&postTableSyncResp)
+			require.NoError(t, decodeErr, "Failed to decode result for activity %s", activityInfo.ActivityType.Name)
+
+			require.Emptyf(t, postTableSyncResp.Errors, "Post table sync activity returned errors: %v", formatPostTableSyncErrors(postTableSyncResp.Errors))
 		}
 	})
 
@@ -1700,4 +1692,14 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 	srv.Start()
 	tb.Cleanup(srv.Close)
 	return srv
+}
+
+func formatPostTableSyncErrors(errors []*posttablesync_activity.PostTableSyncError) []string {
+	formatted := []string{}
+	for _, err := range errors {
+		for _, e := range err.Errors {
+			formatted = append(formatted, fmt.Sprintf("statement: %s  error: %s", e.Statement, e.Error))
+		}
+	}
+	return formatted
 }

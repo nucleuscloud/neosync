@@ -469,7 +469,7 @@ domain_defs AS (
         rct.schema_name,
         rct.type_name,
         rct.type,
-        'CREATE DOMAIN ' || rct.schema_name || '.' || rct.type_name || ' AS ' ||
+        'CREATE DOMAIN ' || quote_ident(rct.schema_name) || '.' || quote_ident(rct.type_name) || ' AS ' ||
         pg_catalog.format_type(t.typbasetype, t.typtypmod) ||
         CASE
             WHEN t.typnotnull THEN ' NOT NULL' ELSE ''
@@ -489,7 +489,7 @@ enum_defs AS (
         rct.schema_name,
         rct.type_name,
         rct.type,
-        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS ENUM (' ||
+        'CREATE TYPE ' || quote_ident(rct.schema_name) || '.' || quote_ident(rct.type_name) || ' AS ENUM (' ||
         string_agg('''' || e.enumlabel || '''', ', ') || ');' AS definition
     FROM
         relevant_custom_types rct
@@ -507,7 +507,7 @@ composite_defs AS (
         rct.schema_name,
         rct.type_name,
         rct.type,
-        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS (' ||
+        'CREATE TYPE ' || quote_ident(rct.schema_name) || '.' || quote_ident(rct.type_name) || ' AS (' ||
         string_agg(a.attname || ' ' || pg_catalog.format_type(a.atttypid, a.atttypmod), ', ') || ');' AS definition
     FROM
         relevant_custom_types rct
@@ -655,7 +655,7 @@ SELECT
     cws.sequence_schema_name,
     cws.sequence_name,
    (
-        'CREATE SEQUENCE ' || cws.sequence_schema_name || '.' || cws.sequence_name ||
+        'CREATE SEQUENCE ' || quote_ident(cws.sequence_schema_name) || '.' || quote_ident(cws.sequence_name) ||
         ' START WITH ' || seqs.start_value ||
         ' INCREMENT BY ' || seqs.increment_by ||
         ' MINVALUE ' || seqs.min_value ||
