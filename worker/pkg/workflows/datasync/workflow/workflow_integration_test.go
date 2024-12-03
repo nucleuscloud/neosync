@@ -56,6 +56,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -1652,6 +1654,25 @@ func executeWorkflow(
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
 	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
+
+	env.SetOnActivityCompletedListener(func(activityInfo *activity.Info, result converter.EncodedValue, err error) {
+		require.NoError(t, err)
+		if err == nil {
+			// Inspect the raw value to understand its structure
+			hasvalue := result.HasValue()
+			if hasvalue {
+				// Attempt to decode into the expected structure
+				var decodedResult any
+				if err := result.Get(&decodedResult); err != nil {
+					fmt.Printf("\n\n Failed to decode activity result: %v \n\n", err)
+					return
+				}
+				fmt.Printf("\n\n Activity %s completed successfully with result: %v \n\n", activityInfo.ActivityType.Name, decodedResult)
+			} else {
+				fmt.Printf("\n\n Activity %s failed with error: %v \n\n", activityInfo.ActivityType.Name, err)
+			}
+		}
+	})
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	return env
