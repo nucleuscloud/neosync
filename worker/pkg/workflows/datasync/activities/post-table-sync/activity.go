@@ -49,7 +49,7 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
@@ -133,5 +133,5 @@ func (a *Activity) RunPostTableSync(
 }
 
 func runContextNotFound(err error) bool {
-	return strings.Contains(err.Error(), "no run context exists")
+	return strings.Contains(err.Error(), "unable to find key")
 }
