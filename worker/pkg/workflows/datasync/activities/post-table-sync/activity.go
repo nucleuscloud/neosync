@@ -133,5 +133,5 @@ func (a *Activity) RunPostTableSync(
 }
 
 func runContextNotFound(err error) bool {
-	return strings.Contains(err.Error(), "no run context exists")
+	return strings.Contains(err.Error(), "unable to find key")
 }
