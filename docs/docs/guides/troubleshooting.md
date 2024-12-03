@@ -27,7 +27,7 @@ Since most issues occur in the worker, let's dive a little deeper there. Let's t
 
 This is likely due to an overabundance of connections against the database.
 
-You can resolve this by reducing the number of open connections in the "Connections" tab of Neosync. The default is at 80, the easiest way to debug is to start with something small like 10 and increase it until you hit the error again.
+You can resolve this by reducing the number of open connections in the "Connections" tab of Neosync. The default is at 50, the easiest way to debug is to start with something small like 10 and increase it until you hit the error again.
 
 ### `Maximum attempts reached`
 

@@ -5,8 +5,9 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"testing"
 
-	charmlog "github.com/charmbracelet/log"
+	"github.com/neilotoole/slogt"
 )
 
 func ShouldRunIntegrationTest() bool {
@@ -19,13 +20,12 @@ func ShouldRunIntegrationTest() bool {
 	return true
 }
 
-func GetTestSlogger() *slog.Logger {
-	return slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-}
-
-func GetTestCharmSlogger() *slog.Logger {
-	charmlogger := charmlog.NewWithOptions(io.Discard, charmlog.Options{
-		Level: charmlog.DebugLevel,
+func GetTestLogger(t testing.TB) *slog.Logger {
+	f := slogt.Factory(func(w io.Writer) slog.Handler {
+		return slog.NewTextHandler(w, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
 	})
-	return slog.New(charmlogger)
+
+	return slogt.New(t, f)
 }

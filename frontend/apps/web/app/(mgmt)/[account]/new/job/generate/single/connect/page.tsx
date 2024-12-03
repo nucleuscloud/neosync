@@ -1,7 +1,10 @@
 'use client';
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
-import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
+import {
+  getDefaultDestinationFormValueOptionsFromConnectionCase,
+  getNewJobSessionKeys,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import Spinner from '@/components/Spinner';
 import TestConnectionBadge from '@/components/connections/TestConnectionBadge';
 import OverviewContainer from '@/components/containers/OverviewContainer';
@@ -215,6 +218,27 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   'destination.connectionId',
                                   value
                                 );
+                                const destConnection = connections.find(
+                                  (c) => c.id === value
+                                );
+                                const destConnType = getConnectionType(
+                                  destConnection?.connectionConfig ??
+                                    new ConnectionConfig()
+                                );
+                                const newOpts =
+                                  getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                    destConnType,
+                                    () => new Set()
+                                  );
+                                form.setValue(
+                                  'destination.destinationOptions',
+                                  newOpts,
+                                  {
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                    shouldValidate: true,
+                                  }
+                                );
                               }
 
                               setIsSourceValidating(true);
@@ -329,9 +353,26 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 return;
                               }
                               field.onChange(value);
+                              const destConnection = connections.find(
+                                (c) => c.id === value
+                              );
+                              const destConnType = getConnectionType(
+                                destConnection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              const newOpts =
+                                getDefaultDestinationFormValueOptionsFromConnectionCase(
+                                  destConnType,
+                                  () => new Set()
+                                );
                               form.setValue(
                                 'destination.destinationOptions',
-                                {}
+                                newOpts,
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
                               );
                               setIsDestinationValidating(true);
                               try {

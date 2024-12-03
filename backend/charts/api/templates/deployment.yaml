@@ -81,6 +81,7 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       {{- end }}
 
+      {{- if .Values.migrations.enabled }}
       initContainers:
         - name: db-migration
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/api" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
@@ -117,6 +118,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ template "neosync-api.fullname" . }}-migration-evs
+      {{- end }}
 
       {{- with .Values.volumes }}
       volumes:
@@ -219,10 +221,6 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ template "neosync-api.fullname" . }}-service-evs
-          # {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
-          #   - configMapRef:
-          #       name: dev-config
-          # {{- end }}
 
       {{- if .Values.sidecarContainers }}
       {{- toYaml .Values.sidecarContainers | nindent 8 }}

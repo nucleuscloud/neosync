@@ -16,6 +16,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -26,13 +27,27 @@ type sqlSyncBuilder struct {
 	redisConfig        *shared.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
+	options            *SqlSyncOptions
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	primaryKeyToForeignKeysMap        map[string]map[string][]*bb_internal.ReferenceKey          // schema.table -> column -> ForeignKey
-	colTransformerMap                 map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
-	sqlSourceSchemaColumnInfoMap      map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
-	sqlDestinationSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	primaryKeyToForeignKeysMap   map[string]map[string][]*bb_internal.ReferenceKey          // schema.table -> column -> ForeignKey
+	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
+	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	// merged source and destination schema. with preference given to destination schema
+	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+}
+
+type SqlSyncOption func(*SqlSyncOptions)
+type SqlSyncOptions struct {
+	rawInsertMode bool
+}
+
+// WithRawInsertMode inserts data as is
+func WithRawInsertMode() SqlSyncOption {
+	return func(opts *SqlSyncOptions) {
+		opts.rawInsertMode = true
+	}
 }
 
 func NewSqlSyncBuilder(
@@ -41,13 +56,19 @@ func NewSqlSyncBuilder(
 	redisConfig *shared.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	opts ...SqlSyncOption,
 ) bb_internal.BenthosBuilder {
+	options := &SqlSyncOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
 	return &sqlSyncBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,
 		redisConfig:        redisConfig,
 		driver:             databaseDriver,
 		selectQueryBuilder: selectQueryBuilder,
+		options:            options,
 	}
 }
 
@@ -65,13 +86,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, logger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	groupedColumnInfo, err := db.Db.GetSchemaColumnMap(ctx)
+	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
@@ -93,7 +114,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve database table constraints: %w", err)
 	}
@@ -121,12 +142,12 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -149,7 +170,6 @@ func buildBenthosSqlSourceConfigResponses(
 	groupedTableMapping map[string]*tableMapping,
 	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
-	driver string,
 	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
@@ -177,8 +197,7 @@ func buildBenthosSqlSourceConfigResponses(
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
-							Driver: driver,
-							Dsn:    "${SOURCE_CONNECTION_DSN}",
+							ConnectionId: dsnConnectionId,
 
 							Query: query,
 						},
@@ -232,7 +251,7 @@ func buildBenthosSqlSourceConfigResponses(
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
 			RunType:        config.RunType(),
 
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
@@ -257,15 +276,22 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	// lazy load
-	if len(b.sqlDestinationSchemaColumnInfoMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
-		b.sqlDestinationSchemaColumnInfoMap = sqlSchemaColMap
+	if len(b.mergedSchemaColumnMap) == 0 {
+		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		b.mergedSchemaColumnMap = sqlSchemaColMap
+	}
+	if len(b.mergedSchemaColumnMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for either source or destination: %s", params.DestConnection.Name)
 	}
 
 	var colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow
-	colMap, ok := b.sqlDestinationSchemaColumnInfoMap[tableKey]
+	colMap, ok := b.mergedSchemaColumnMap[tableKey]
 	if ok {
 		colInfoMap = colMap
+	}
+
+	if len(colInfoMap) == 0 {
+		return nil, fmt.Errorf("unable to retrieve schema columns for destination: %s table: %s", params.DestConnection.Name, tableKey)
 	}
 
 	colTransformerMap := b.colTransformerMap
@@ -279,6 +305,10 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	tableColTransformers := colTransformerMap[tableKey]
+	if len(tableColTransformers) == 0 {
+		return nil, fmt.Errorf("column transformer mappings not found for table: %s", tableKey)
+	}
+
 	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
 	if err != nil {
 		return nil, err
@@ -290,7 +320,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
 		args = append(args, benthosConfig.PrimaryKeys...)
@@ -298,8 +328,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: b.driver,
-						Dsn:    params.DSN,
+						ConnectionId: params.DestConnection.GetId(),
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -355,14 +384,24 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			}
 		}
 
-		columnTypes := []string{}
+		columnTypes := []string{} // use map going forward
+		columnDataTypes := map[string]string{}
 		for _, c := range benthosConfig.Columns {
 			colType, ok := colInfoMap[c]
 			if ok {
+				columnDataTypes[c] = colType.DataType
 				columnTypes = append(columnTypes, colType.DataType)
 			} else {
 				columnTypes = append(columnTypes, "")
 			}
+		}
+
+		batchProcessors := []*neosync_benthos.BatchProcessor{}
+		if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
+		}
+		if b.driver == sqlmanager_shared.PostgresDriver || strings.EqualFold(b.driver, "postgres") {
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
@@ -370,8 +409,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			Fallback: []neosync_benthos.Outputs{
 				{
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-						Driver: b.driver,
-						Dsn:    params.DSN,
+						ConnectionId: params.DestConnection.GetId(),
 
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
@@ -380,15 +418,18 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						ColumnDefaultProperties:  columnDefaultProperties,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						RawInsertMode:            b.options.rawInsertMode,
 						TruncateOnRetry:          destOpts.Truncate,
 						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
 						Prefix:                   prefix,
 						Suffix:                   suffix,
 
 						Batching: &neosync_benthos.Batching{
-							Period: destOpts.BatchPeriod,
-							Count:  destOpts.BatchCount,
+							Period:     destOpts.BatchPeriod,
+							Count:      destOpts.BatchCount,
+							Processors: batchProcessors,
 						},
+						MaxInFlight: int(destOpts.MaxInFlight),
 					},
 				},
 				// kills activity depending on error
@@ -442,6 +483,7 @@ func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_be
 // if not uses source destination schema column info map
 func getSqlSchemaColumnMap(
 	ctx context.Context,
+	session connectionmanager.SessionInterface,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
@@ -450,20 +492,18 @@ func getSqlSchemaColumnMap(
 	schemaColMap := sourceSchemaColumnInfoMap
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		destDb, err := sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
+		defer destDb.Db().Close()
 		if err != nil {
-			destDb.Db.Close()
 			return schemaColMap
 		}
-		destColMap, err := destDb.Db.GetSchemaColumnMap(ctx)
+		destColMap, err := destDb.Db().GetSchemaColumnMap(ctx)
 		if err != nil {
-			destDb.Db.Close()
 			return schemaColMap
 		}
 		if len(destColMap) != 0 {
 			return mergeSourceDestinationColumnInfo(sourceSchemaColumnInfoMap, destColMap)
 		}
-		destDb.Db.Close()
 	}
 	return schemaColMap
 }

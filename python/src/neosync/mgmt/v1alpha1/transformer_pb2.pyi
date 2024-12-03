@@ -58,6 +58,7 @@ class TransformerSource(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TRANSFORMER_SOURCE_GENERATE_COUNTRY: _ClassVar[TransformerSource]
     TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT: _ClassVar[TransformerSource]
     TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME: _ClassVar[TransformerSource]
+    TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS: _ClassVar[TransformerSource]
 
 class TransformerDataType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -90,6 +91,18 @@ class InvalidEmailAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     INVALID_EMAIL_ACTION_NULL: _ClassVar[InvalidEmailAction]
     INVALID_EMAIL_ACTION_PASSTHROUGH: _ClassVar[InvalidEmailAction]
     INVALID_EMAIL_ACTION_GENERATE: _ClassVar[InvalidEmailAction]
+
+class GenerateIpAddressType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK: _ClassVar[GenerateIpAddressType]
+    GENERATE_IP_ADDRESS_TYPE_V6: _ClassVar[GenerateIpAddressType]
 TRANSFORMER_SOURCE_UNSPECIFIED: TransformerSource
 TRANSFORMER_SOURCE_PASSTHROUGH: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_DEFAULT: TransformerSource
@@ -138,6 +151,7 @@ TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_COUNTRY: TransformerSource
 TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME: TransformerSource
+TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS: TransformerSource
 TRANSFORMER_DATA_TYPE_UNSPECIFIED: TransformerDataType
 TRANSFORMER_DATA_TYPE_STRING: TransformerDataType
 TRANSFORMER_DATA_TYPE_INT64: TransformerDataType
@@ -158,6 +172,15 @@ INVALID_EMAIL_ACTION_REJECT: InvalidEmailAction
 INVALID_EMAIL_ACTION_NULL: InvalidEmailAction
 INVALID_EMAIL_ACTION_PASSTHROUGH: InvalidEmailAction
 INVALID_EMAIL_ACTION_GENERATE: InvalidEmailAction
+GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK: GenerateIpAddressType
+GENERATE_IP_ADDRESS_TYPE_V6: GenerateIpAddressType
 
 class GetSystemTransformersRequest(_message.Message):
     __slots__ = ()
@@ -312,7 +335,7 @@ class SystemTransformer(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., data_type: _Optional[_Union[TransformerDataType, str]] = ..., source: _Optional[_Union[TransformerSource, str]] = ..., config: _Optional[_Union[TransformerConfig, _Mapping]] = ..., data_types: _Optional[_Iterable[_Union[TransformerDataType, str]]] = ..., supported_job_types: _Optional[_Iterable[_Union[SupportedJobType, str]]] = ...) -> None: ...
 
 class TransformerConfig(_message.Message):
-    __slots__ = ("generate_email_config", "transform_email_config", "generate_bool_config", "generate_card_number_config", "generate_city_config", "generate_e164_phone_number_config", "generate_first_name_config", "generate_float64_config", "generate_full_address_config", "generate_full_name_config", "generate_gender_config", "generate_int64_phone_number_config", "generate_int64_config", "generate_last_name_config", "generate_sha256hash_config", "generate_ssn_config", "generate_state_config", "generate_street_address_config", "generate_string_phone_number_config", "generate_string_config", "generate_unixtimestamp_config", "generate_username_config", "generate_utctimestamp_config", "generate_uuid_config", "generate_zipcode_config", "transform_e164_phone_number_config", "transform_first_name_config", "transform_float64_config", "transform_full_name_config", "transform_int64_phone_number_config", "transform_int64_config", "transform_last_name_config", "transform_phone_number_config", "transform_string_config", "passthrough_config", "nullconfig", "user_defined_transformer_config", "generate_default_config", "transform_javascript_config", "generate_categorical_config", "transform_character_scramble_config", "generate_javascript_config", "generate_country_config", "transform_pii_text_config", "generate_business_name_config")
+    __slots__ = ("generate_email_config", "transform_email_config", "generate_bool_config", "generate_card_number_config", "generate_city_config", "generate_e164_phone_number_config", "generate_first_name_config", "generate_float64_config", "generate_full_address_config", "generate_full_name_config", "generate_gender_config", "generate_int64_phone_number_config", "generate_int64_config", "generate_last_name_config", "generate_sha256hash_config", "generate_ssn_config", "generate_state_config", "generate_street_address_config", "generate_string_phone_number_config", "generate_string_config", "generate_unixtimestamp_config", "generate_username_config", "generate_utctimestamp_config", "generate_uuid_config", "generate_zipcode_config", "transform_e164_phone_number_config", "transform_first_name_config", "transform_float64_config", "transform_full_name_config", "transform_int64_phone_number_config", "transform_int64_config", "transform_last_name_config", "transform_phone_number_config", "transform_string_config", "passthrough_config", "nullconfig", "user_defined_transformer_config", "generate_default_config", "transform_javascript_config", "generate_categorical_config", "transform_character_scramble_config", "generate_javascript_config", "generate_country_config", "transform_pii_text_config", "generate_business_name_config", "generate_ip_address_config")
     GENERATE_EMAIL_CONFIG_FIELD_NUMBER: _ClassVar[int]
     TRANSFORM_EMAIL_CONFIG_FIELD_NUMBER: _ClassVar[int]
     GENERATE_BOOL_CONFIG_FIELD_NUMBER: _ClassVar[int]
@@ -358,6 +381,7 @@ class TransformerConfig(_message.Message):
     GENERATE_COUNTRY_CONFIG_FIELD_NUMBER: _ClassVar[int]
     TRANSFORM_PII_TEXT_CONFIG_FIELD_NUMBER: _ClassVar[int]
     GENERATE_BUSINESS_NAME_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    GENERATE_IP_ADDRESS_CONFIG_FIELD_NUMBER: _ClassVar[int]
     generate_email_config: GenerateEmail
     transform_email_config: TransformEmail
     generate_bool_config: GenerateBool
@@ -403,21 +427,24 @@ class TransformerConfig(_message.Message):
     generate_country_config: GenerateCountry
     transform_pii_text_config: TransformPiiText
     generate_business_name_config: GenerateBusinessName
-    def __init__(self, generate_email_config: _Optional[_Union[GenerateEmail, _Mapping]] = ..., transform_email_config: _Optional[_Union[TransformEmail, _Mapping]] = ..., generate_bool_config: _Optional[_Union[GenerateBool, _Mapping]] = ..., generate_card_number_config: _Optional[_Union[GenerateCardNumber, _Mapping]] = ..., generate_city_config: _Optional[_Union[GenerateCity, _Mapping]] = ..., generate_e164_phone_number_config: _Optional[_Union[GenerateE164PhoneNumber, _Mapping]] = ..., generate_first_name_config: _Optional[_Union[GenerateFirstName, _Mapping]] = ..., generate_float64_config: _Optional[_Union[GenerateFloat64, _Mapping]] = ..., generate_full_address_config: _Optional[_Union[GenerateFullAddress, _Mapping]] = ..., generate_full_name_config: _Optional[_Union[GenerateFullName, _Mapping]] = ..., generate_gender_config: _Optional[_Union[GenerateGender, _Mapping]] = ..., generate_int64_phone_number_config: _Optional[_Union[GenerateInt64PhoneNumber, _Mapping]] = ..., generate_int64_config: _Optional[_Union[GenerateInt64, _Mapping]] = ..., generate_last_name_config: _Optional[_Union[GenerateLastName, _Mapping]] = ..., generate_sha256hash_config: _Optional[_Union[GenerateSha256Hash, _Mapping]] = ..., generate_ssn_config: _Optional[_Union[GenerateSSN, _Mapping]] = ..., generate_state_config: _Optional[_Union[GenerateState, _Mapping]] = ..., generate_street_address_config: _Optional[_Union[GenerateStreetAddress, _Mapping]] = ..., generate_string_phone_number_config: _Optional[_Union[GenerateStringPhoneNumber, _Mapping]] = ..., generate_string_config: _Optional[_Union[GenerateString, _Mapping]] = ..., generate_unixtimestamp_config: _Optional[_Union[GenerateUnixTimestamp, _Mapping]] = ..., generate_username_config: _Optional[_Union[GenerateUsername, _Mapping]] = ..., generate_utctimestamp_config: _Optional[_Union[GenerateUtcTimestamp, _Mapping]] = ..., generate_uuid_config: _Optional[_Union[GenerateUuid, _Mapping]] = ..., generate_zipcode_config: _Optional[_Union[GenerateZipcode, _Mapping]] = ..., transform_e164_phone_number_config: _Optional[_Union[TransformE164PhoneNumber, _Mapping]] = ..., transform_first_name_config: _Optional[_Union[TransformFirstName, _Mapping]] = ..., transform_float64_config: _Optional[_Union[TransformFloat64, _Mapping]] = ..., transform_full_name_config: _Optional[_Union[TransformFullName, _Mapping]] = ..., transform_int64_phone_number_config: _Optional[_Union[TransformInt64PhoneNumber, _Mapping]] = ..., transform_int64_config: _Optional[_Union[TransformInt64, _Mapping]] = ..., transform_last_name_config: _Optional[_Union[TransformLastName, _Mapping]] = ..., transform_phone_number_config: _Optional[_Union[TransformPhoneNumber, _Mapping]] = ..., transform_string_config: _Optional[_Union[TransformString, _Mapping]] = ..., passthrough_config: _Optional[_Union[Passthrough, _Mapping]] = ..., nullconfig: _Optional[_Union[Null, _Mapping]] = ..., user_defined_transformer_config: _Optional[_Union[UserDefinedTransformerConfig, _Mapping]] = ..., generate_default_config: _Optional[_Union[GenerateDefault, _Mapping]] = ..., transform_javascript_config: _Optional[_Union[TransformJavascript, _Mapping]] = ..., generate_categorical_config: _Optional[_Union[GenerateCategorical, _Mapping]] = ..., transform_character_scramble_config: _Optional[_Union[TransformCharacterScramble, _Mapping]] = ..., generate_javascript_config: _Optional[_Union[GenerateJavascript, _Mapping]] = ..., generate_country_config: _Optional[_Union[GenerateCountry, _Mapping]] = ..., transform_pii_text_config: _Optional[_Union[TransformPiiText, _Mapping]] = ..., generate_business_name_config: _Optional[_Union[GenerateBusinessName, _Mapping]] = ...) -> None: ...
+    generate_ip_address_config: GenerateIpAddress
+    def __init__(self, generate_email_config: _Optional[_Union[GenerateEmail, _Mapping]] = ..., transform_email_config: _Optional[_Union[TransformEmail, _Mapping]] = ..., generate_bool_config: _Optional[_Union[GenerateBool, _Mapping]] = ..., generate_card_number_config: _Optional[_Union[GenerateCardNumber, _Mapping]] = ..., generate_city_config: _Optional[_Union[GenerateCity, _Mapping]] = ..., generate_e164_phone_number_config: _Optional[_Union[GenerateE164PhoneNumber, _Mapping]] = ..., generate_first_name_config: _Optional[_Union[GenerateFirstName, _Mapping]] = ..., generate_float64_config: _Optional[_Union[GenerateFloat64, _Mapping]] = ..., generate_full_address_config: _Optional[_Union[GenerateFullAddress, _Mapping]] = ..., generate_full_name_config: _Optional[_Union[GenerateFullName, _Mapping]] = ..., generate_gender_config: _Optional[_Union[GenerateGender, _Mapping]] = ..., generate_int64_phone_number_config: _Optional[_Union[GenerateInt64PhoneNumber, _Mapping]] = ..., generate_int64_config: _Optional[_Union[GenerateInt64, _Mapping]] = ..., generate_last_name_config: _Optional[_Union[GenerateLastName, _Mapping]] = ..., generate_sha256hash_config: _Optional[_Union[GenerateSha256Hash, _Mapping]] = ..., generate_ssn_config: _Optional[_Union[GenerateSSN, _Mapping]] = ..., generate_state_config: _Optional[_Union[GenerateState, _Mapping]] = ..., generate_street_address_config: _Optional[_Union[GenerateStreetAddress, _Mapping]] = ..., generate_string_phone_number_config: _Optional[_Union[GenerateStringPhoneNumber, _Mapping]] = ..., generate_string_config: _Optional[_Union[GenerateString, _Mapping]] = ..., generate_unixtimestamp_config: _Optional[_Union[GenerateUnixTimestamp, _Mapping]] = ..., generate_username_config: _Optional[_Union[GenerateUsername, _Mapping]] = ..., generate_utctimestamp_config: _Optional[_Union[GenerateUtcTimestamp, _Mapping]] = ..., generate_uuid_config: _Optional[_Union[GenerateUuid, _Mapping]] = ..., generate_zipcode_config: _Optional[_Union[GenerateZipcode, _Mapping]] = ..., transform_e164_phone_number_config: _Optional[_Union[TransformE164PhoneNumber, _Mapping]] = ..., transform_first_name_config: _Optional[_Union[TransformFirstName, _Mapping]] = ..., transform_float64_config: _Optional[_Union[TransformFloat64, _Mapping]] = ..., transform_full_name_config: _Optional[_Union[TransformFullName, _Mapping]] = ..., transform_int64_phone_number_config: _Optional[_Union[TransformInt64PhoneNumber, _Mapping]] = ..., transform_int64_config: _Optional[_Union[TransformInt64, _Mapping]] = ..., transform_last_name_config: _Optional[_Union[TransformLastName, _Mapping]] = ..., transform_phone_number_config: _Optional[_Union[TransformPhoneNumber, _Mapping]] = ..., transform_string_config: _Optional[_Union[TransformString, _Mapping]] = ..., passthrough_config: _Optional[_Union[Passthrough, _Mapping]] = ..., nullconfig: _Optional[_Union[Null, _Mapping]] = ..., user_defined_transformer_config: _Optional[_Union[UserDefinedTransformerConfig, _Mapping]] = ..., generate_default_config: _Optional[_Union[GenerateDefault, _Mapping]] = ..., transform_javascript_config: _Optional[_Union[TransformJavascript, _Mapping]] = ..., generate_categorical_config: _Optional[_Union[GenerateCategorical, _Mapping]] = ..., transform_character_scramble_config: _Optional[_Union[TransformCharacterScramble, _Mapping]] = ..., generate_javascript_config: _Optional[_Union[GenerateJavascript, _Mapping]] = ..., generate_country_config: _Optional[_Union[GenerateCountry, _Mapping]] = ..., transform_pii_text_config: _Optional[_Union[TransformPiiText, _Mapping]] = ..., generate_business_name_config: _Optional[_Union[GenerateBusinessName, _Mapping]] = ..., generate_ip_address_config: _Optional[_Union[GenerateIpAddress, _Mapping]] = ...) -> None: ...
 
 class TransformPiiText(_message.Message):
-    __slots__ = ("score_threshold", "default_anonymizer", "deny_recognizers", "allowed_entities", "allowed_phrases")
+    __slots__ = ("score_threshold", "default_anonymizer", "deny_recognizers", "allowed_entities", "allowed_phrases", "language")
     SCORE_THRESHOLD_FIELD_NUMBER: _ClassVar[int]
     DEFAULT_ANONYMIZER_FIELD_NUMBER: _ClassVar[int]
     DENY_RECOGNIZERS_FIELD_NUMBER: _ClassVar[int]
     ALLOWED_ENTITIES_FIELD_NUMBER: _ClassVar[int]
     ALLOWED_PHRASES_FIELD_NUMBER: _ClassVar[int]
+    LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     score_threshold: float
     default_anonymizer: PiiAnonymizer
     deny_recognizers: _containers.RepeatedCompositeFieldContainer[PiiDenyRecognizer]
     allowed_entities: _containers.RepeatedScalarFieldContainer[str]
     allowed_phrases: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, score_threshold: _Optional[float] = ..., default_anonymizer: _Optional[_Union[PiiAnonymizer, _Mapping]] = ..., deny_recognizers: _Optional[_Iterable[_Union[PiiDenyRecognizer, _Mapping]]] = ..., allowed_entities: _Optional[_Iterable[str]] = ..., allowed_phrases: _Optional[_Iterable[str]] = ...) -> None: ...
+    language: str
+    def __init__(self, score_threshold: _Optional[float] = ..., default_anonymizer: _Optional[_Union[PiiAnonymizer, _Mapping]] = ..., deny_recognizers: _Optional[_Iterable[_Union[PiiDenyRecognizer, _Mapping]]] = ..., allowed_entities: _Optional[_Iterable[str]] = ..., allowed_phrases: _Optional[_Iterable[str]] = ..., language: _Optional[str] = ...) -> None: ...
 
 class PiiDenyRecognizer(_message.Message):
     __slots__ = ("name", "deny_words")
@@ -766,3 +793,9 @@ class GetTransformPiiEntitiesResponse(_message.Message):
 class GenerateBusinessName(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class GenerateIpAddress(_message.Message):
+    __slots__ = ("ip_type",)
+    IP_TYPE_FIELD_NUMBER: _ClassVar[int]
+    ip_type: GenerateIpAddressType
+    def __init__(self, ip_type: _Optional[_Union[GenerateIpAddressType, str]] = ...) -> None: ...

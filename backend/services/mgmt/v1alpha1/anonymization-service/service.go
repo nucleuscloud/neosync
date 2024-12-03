@@ -17,9 +17,10 @@ type Service struct {
 }
 
 type Config struct {
-	IsAuthEnabled     bool
-	IsPresidioEnabled bool
-	IsNeosyncCloud    bool
+	IsAuthEnabled           bool
+	IsPresidioEnabled       bool
+	PresidioDefaultLanguage *string
+	IsNeosyncCloud          bool
 }
 
 func New(

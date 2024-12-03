@@ -8,11 +8,13 @@ import (
 	"sync"
 	"time"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -51,6 +53,16 @@ func withCheckAccountStatusActivityOptions(ctx workflow.Context) workflow.Contex
 		StartToCloseTimeout: 2 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	})
+}
+
+func withJobHookTimingActivityOptions(ctx workflow.Context) workflow.Context {
+	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 2 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
 		},
 		HeartbeatTimeout: 1 * time.Minute,
 	})
@@ -114,6 +126,11 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	if len(bcResp.BenthosConfigs) == 0 {
 		logger.Info("found 0 benthos configs, ending workflow.")
 		return &WorkflowResponse{}, nil
+	}
+
+	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC}, logger)
+	if err != nil {
+		return nil, err
 	}
 
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
@@ -234,12 +251,12 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			logger.Info("config sync completed", "name", bc.Name)
 			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
 			if err != nil {
-				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
+				logger.Error(fmt.Sprintf("post table sync activity did not complete: %s", err.Error()), "schema", bc.TableSchema, "table", bc.TableName)
 			}
 			delete(redisDependsOn, bc.Name)
 			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
-				logger.Error("redis clean up activity did not complete")
+				logger.Error(fmt.Sprintf("redis clean up activity did not complete: %s", err))
 			}
 		})
 	}
@@ -296,8 +313,32 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			executeSyncActivity(bc, log.With(logger, withBenthosConfigResponseLoggerTags(bc)...))
 		}
 	}
+
+	logger.Info("data syncs completed")
+
+	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	logger.Info("data sync workflow completed")
 	return &WorkflowResponse{}, nil
+}
+
+func execRunJobHooksByTiming(ctx workflow.Context, req *jobhooks_by_timing_activity.RunJobHooksByTimingRequest, logger log.Logger) error {
+	logger.Info(fmt.Sprintf("scheduling %q RunJobHooksByTiming for execution", req.Timing))
+	var resp *jobhooks_by_timing_activity.RunJobHooksByTimingResponse
+	var timingActivity *jobhooks_by_timing_activity.Activity
+	err := workflow.ExecuteActivity(
+		withJobHookTimingActivityOptions(ctx),
+		timingActivity.RunJobHooksByTiming,
+		req,
+	).Get(ctx, &resp)
+	if err != nil {
+		return err
+	}
+	logger.Info(fmt.Sprintf("completed %d %q RunJobHooksByTiming", resp.ExecCount, req.Timing))
+	return nil
 }
 
 func retrieveActivityOptions(

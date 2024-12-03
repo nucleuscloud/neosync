@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobDestinationConnectionsRequest, CreateJobDestinationConnectionsResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobNextRunsRequest, GetJobNextRunsResponse, GetJobRecentRunsRequest, GetJobRecentRunsResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunLogsStreamRequest, GetJobRunLogsStreamResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetJobStatusesRequest, GetJobStatusesResponse, GetJobStatusRequest, GetJobStatusResponse, GetRunContextRequest, GetRunContextResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, PauseJobRequest, PauseJobResponse, SetJobSourceSqlConnectionSubsetsRequest, SetJobSourceSqlConnectionSubsetsResponse, SetJobSyncOptionsRequest, SetJobSyncOptionsResponse, SetJobWorkflowOptionsRequest, SetJobWorkflowOptionsResponse, SetRunContextRequest, SetRunContextResponse, SetRunContextsRequest, SetRunContextsResponse, TerminateJobRunRequest, TerminateJobRunResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse, ValidateJobMappingsRequest, ValidateJobMappingsResponse } from "./job_pb.js";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobDestinationConnectionsRequest, CreateJobDestinationConnectionsResponse, CreateJobHookRequest, CreateJobHookResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobHookRequest, DeleteJobHookResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetActiveJobHooksByTimingRequest, GetActiveJobHooksByTimingResponse, GetJobHookRequest, GetJobHookResponse, GetJobHooksRequest, GetJobHooksResponse, GetJobNextRunsRequest, GetJobNextRunsResponse, GetJobRecentRunsRequest, GetJobRecentRunsResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunLogsStreamRequest, GetJobRunLogsStreamResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetJobStatusesRequest, GetJobStatusesResponse, GetJobStatusRequest, GetJobStatusResponse, GetRunContextRequest, GetRunContextResponse, IsJobHookNameAvailableRequest, IsJobHookNameAvailableResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, PauseJobRequest, PauseJobResponse, SetJobHookEnabledRequest, SetJobHookEnabledResponse, SetJobSourceSqlConnectionSubsetsRequest, SetJobSourceSqlConnectionSubsetsResponse, SetJobSyncOptionsRequest, SetJobSyncOptionsResponse, SetJobWorkflowOptionsRequest, SetJobWorkflowOptionsResponse, SetRunContextRequest, SetRunContextResponse, SetRunContextsRequest, SetRunContextsResponse, TerminateJobRunRequest, TerminateJobRunResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobHookRequest, UpdateJobHookResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse, ValidateJobMappingsRequest, ValidateJobMappingsResponse } from "./job_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -303,6 +303,94 @@ export const JobService = {
       I: SetRunContextsRequest,
       O: SetRunContextsResponse,
       kind: MethodKind.ClientStreaming,
+    },
+    /**
+     * Retrieves all job hooks
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.GetJobHooks
+     */
+    getJobHooks: {
+      name: "GetJobHooks",
+      I: GetJobHooksRequest,
+      O: GetJobHooksResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Retrieves a specific job hook
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.GetJobHook
+     */
+    getJobHook: {
+      name: "GetJobHook",
+      I: GetJobHookRequest,
+      O: GetJobHookResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Creates a new job hook
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.CreateJobHook
+     */
+    createJobHook: {
+      name: "CreateJobHook",
+      I: CreateJobHookRequest,
+      O: CreateJobHookResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Removes a job hook
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.DeleteJobHook
+     */
+    deleteJobHook: {
+      name: "DeleteJobHook",
+      I: DeleteJobHookRequest,
+      O: DeleteJobHookResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Check if a specific job hook name is available
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.IsJobHookNameAvailable
+     */
+    isJobHookNameAvailable: {
+      name: "IsJobHookNameAvailable",
+      I: IsJobHookNameAvailableRequest,
+      O: IsJobHookNameAvailableResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Updates a job hook
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJobHook
+     */
+    updateJobHook: {
+      name: "UpdateJobHook",
+      I: UpdateJobHookRequest,
+      O: UpdateJobHookResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Enables or disables a job hook
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.SetJobHookEnabled
+     */
+    setJobHookEnabled: {
+      name: "SetJobHookEnabled",
+      I: SetJobHookEnabledRequest,
+      O: SetJobHookEnabledResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+     *
+     * @generated from rpc mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
+     */
+    getActiveJobHooksByTiming: {
+      name: "GetActiveJobHooksByTiming",
+      I: GetActiveJobHooksByTimingRequest,
+      O: GetActiveJobHooksByTimingResponse,
+      kind: MethodKind.Unary,
     },
   }
 } as const;

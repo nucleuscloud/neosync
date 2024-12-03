@@ -33,6 +33,59 @@
           ]
         },
         {
+          "name": "GenerateIpAddressType",
+          "longName": "GenerateIpAddressType",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddressType",
+          "description": "",
+          "values": [
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to ipv4"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC",
+              "number": "1",
+              "description": "Generates a random ipv4_public"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A",
+              "number": "2",
+              "description": "Generates a random ipv4_private_a"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B",
+              "number": "3",
+              "description": "Generates a random ipv4_private_b"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C",
+              "number": "4",
+              "description": "Generates a random ipv4_private_c"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL",
+              "number": "5",
+              "description": "Generates a random ipv4_linklocal"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST",
+              "number": "6",
+              "description": "Generates a random ipv4_multicast"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK",
+              "number": "7",
+              "description": "Generates a random ipv4_loopback"
+            },
+            {
+              "name": "GENERATE_IP_ADDRESS_TYPE_V6",
+              "number": "8",
+              "description": "Generates a random ipv6"
+            }
+          ]
+        },
+        {
           "name": "InvalidEmailAction",
           "longName": "InvalidEmailAction",
           "fullName": "mgmt.v1alpha1.InvalidEmailAction",
@@ -413,6 +466,11 @@
             {
               "name": "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME",
               "number": "48",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS",
+              "number": "49",
               "description": ""
             }
           ]
@@ -914,6 +972,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GenerateIpAddress",
+          "longName": "GenerateIpAddress",
+          "fullName": "mgmt.v1alpha1.GenerateIpAddress",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "ip_type",
+              "description": "",
+              "label": "optional",
+              "type": "GenerateIpAddressType",
+              "longType": "GenerateIpAddressType",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddressType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_ip_type",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateJavascript",
@@ -2098,7 +2180,7 @@
           "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -2159,6 +2241,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "language",
+              "description": "Two characters for the desired language in ISO_639-1 format.\nIf not provided, will use a default language if specified on the server.\nDepending on the server configuration, may attempt to autodetect from input.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_language",
               "defaultValue": ""
             }
           ]
@@ -2732,6 +2826,18 @@
               "type": "GenerateBusinessName",
               "longType": "GenerateBusinessName",
               "fullType": "mgmt.v1alpha1.GenerateBusinessName",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_ip_address_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateIpAddress",
+              "longType": "GenerateIpAddress",
+              "fullType": "mgmt.v1alpha1.GenerateIpAddress",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -8733,6 +8839,29 @@
           ]
         },
         {
+          "name": "Timing",
+          "longName": "GetActiveJobHooksByTimingRequest.Timing",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing",
+          "description": "",
+          "values": [
+            {
+              "name": "TIMING_UNSPECIFIED",
+              "number": "0",
+              "description": "If unspecified, returns all active job hooks"
+            },
+            {
+              "name": "TIMING_PRESYNC",
+              "number": "1",
+              "description": "Only returns presync hooks"
+            },
+            {
+              "name": "TIMING_POSTSYNC",
+              "number": "2",
+              "description": "Only returns postsync hooks"
+            }
+          ]
+        },
+        {
           "name": "JobRunStatus",
           "longName": "JobRunStatus",
           "fullName": "mgmt.v1alpha1.JobRunStatus",
@@ -9429,6 +9558,66 @@
           ]
         },
         {
+          "name": "CreateJobHookRequest",
+          "longName": "CreateJobHookRequest",
+          "fullName": "mgmt.v1alpha1.CreateJobHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "hook",
+              "description": "The new hook configuration",
+              "label": "",
+              "type": "NewJobHook",
+              "longType": "NewJobHook",
+              "fullType": "mgmt.v1alpha1.NewJobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CreateJobHookResponse",
+          "longName": "CreateJobHookResponse",
+          "fullName": "mgmt.v1alpha1.CreateJobHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The newly created hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CreateJobRequest",
           "longName": "CreateJobRequest",
           "fullName": "mgmt.v1alpha1.CreateJobRequest",
@@ -9671,6 +9860,41 @@
           "name": "DeleteJobDestinationConnectionResponse",
           "longName": "DeleteJobDestinationConnectionResponse",
           "fullName": "mgmt.v1alpha1.DeleteJobDestinationConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "DeleteJobHookRequest",
+          "longName": "DeleteJobHookRequest",
+          "fullName": "mgmt.v1alpha1.DeleteJobHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DeleteJobHookResponse",
+          "longName": "DeleteJobHookResponse",
+          "fullName": "mgmt.v1alpha1.DeleteJobHookResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -10112,6 +10336,162 @@
               "type": "int64",
               "longType": "int64",
               "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveJobHooksByTimingRequest",
+          "longName": "GetActiveJobHooksByTimingRequest",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timing",
+              "description": "The timing desired.",
+              "label": "",
+              "type": "Timing",
+              "longType": "GetActiveJobHooksByTimingRequest.Timing",
+              "fullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveJobHooksByTimingResponse",
+          "longName": "GetActiveJobHooksByTimingResponse",
+          "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The active job hooks",
+              "label": "repeated",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobHookRequest",
+          "longName": "GetJobHookRequest",
+          "fullName": "mgmt.v1alpha1.GetJobHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobHookResponse",
+          "longName": "GetJobHookResponse",
+          "fullName": "mgmt.v1alpha1.GetJobHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The found hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobHooksRequest",
+          "longName": "GetJobHooksRequest",
+          "fullName": "mgmt.v1alpha1.GetJobHooksRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobHooksResponse",
+          "longName": "GetJobHooksResponse",
+          "fullName": "mgmt.v1alpha1.GetJobHooksResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The list of hooks found attached to the job",
+              "label": "repeated",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10768,6 +11148,66 @@
           ]
         },
         {
+          "name": "IsJobHookNameAvailableRequest",
+          "longName": "IsJobHookNameAvailableRequest",
+          "fullName": "mgmt.v1alpha1.IsJobHookNameAvailableRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "The hook name to check.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsJobHookNameAvailableResponse",
+          "longName": "IsJobHookNameAvailableResponse",
+          "fullName": "mgmt.v1alpha1.IsJobHookNameAvailableResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_available",
+              "description": "Whether or not the hook name is available",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "IsJobNameAvailableRequest",
           "longName": "IsJobNameAvailableRequest",
           "fullName": "mgmt.v1alpha1.IsJobNameAvailableRequest",
@@ -10995,7 +11435,7 @@
             },
             {
               "name": "virtual_foreign_keys",
-              "description": "",
+              "description": "Any virtual foreign keys that are configured as a part of this job",
               "label": "repeated",
               "type": "VirtualForeignConstraint",
               "longType": "VirtualForeignConstraint",
@@ -11150,6 +11590,280 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "JobHook",
+          "longName": "JobHook",
+          "fullName": "mgmt.v1alpha1.JobHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_id",
+              "description": "The unique identifier of the job this hook belongs to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "JobHookConfig",
+              "longType": "JobHookConfig",
+              "fullType": "mgmt.v1alpha1.JobHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_by_user_id",
+              "description": "The user that created this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_at",
+              "description": "The time this hook was created.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_by_user_id",
+              "description": "The user that last updated this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_at",
+              "description": "The last time this hook was updated.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
+              "label": "",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobHookConfig",
+          "longName": "JobHookConfig",
+          "fullName": "mgmt.v1alpha1.JobHookConfig",
+          "description": "Contains the specific hook type configurations.",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "sql",
+              "description": "Configuration for SQL-specific hooks.",
+              "label": "",
+              "type": "JobSqlHook",
+              "longType": "JobHookConfig.JobSqlHook",
+              "fullType": "mgmt.v1alpha1.JobHookConfig.JobSqlHook",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobSqlHook",
+          "longName": "JobHookConfig.JobSqlHook",
+          "fullName": "mgmt.v1alpha1.JobHookConfig.JobSqlHook",
+          "description": "Configuration for SQL-based hooks",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "query",
+              "description": "The SQL query to execute",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timing",
+              "description": "The timing of when the hook will run",
+              "label": "",
+              "type": "Timing",
+              "longType": "JobHookConfig.JobSqlHook.Timing",
+              "fullType": "mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Timing",
+          "longName": "JobHookConfig.JobSqlHook.Timing",
+          "fullName": "mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "pre_sync",
+              "description": "A Pre-Sync timing.\nWill run before the first table sync.\nWill run before Truncation, if enabled.\nWill run before Schema Init, if enabled.",
+              "label": "",
+              "type": "JobHookTimingPreSync",
+              "longType": "JobHookTimingPreSync",
+              "fullType": "mgmt.v1alpha1.JobHookTimingPreSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "timing",
+              "defaultValue": ""
+            },
+            {
+              "name": "post_sync",
+              "description": "A Post-Sync timing. Will run after the last table sync.",
+              "label": "",
+              "type": "JobHookTimingPostSync",
+              "longType": "JobHookTimingPostSync",
+              "fullType": "mgmt.v1alpha1.JobHookTimingPostSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "timing",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobHookTimingPostSync",
+          "longName": "JobHookTimingPostSync",
+          "fullName": "mgmt.v1alpha1.JobHookTimingPostSync",
+          "description": "Configures the job hook to run after the last table sync.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "JobHookTimingPreSync",
+          "longName": "JobHookTimingPreSync",
+          "fullName": "mgmt.v1alpha1.JobHookTimingPreSync",
+          "description": "Configures the job hook to run before the first table sync.\nWill run before Truncation, if enabled.\nWill run before Schema Init, if enabled.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "JobMapping",
@@ -12483,6 +13197,78 @@
           ]
         },
         {
+          "name": "NewJobHook",
+          "longName": "NewJobHook",
+          "fullName": "mgmt.v1alpha1.NewJobHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "JobHookConfig",
+              "longType": "JobHookConfig",
+              "fullType": "mgmt.v1alpha1.JobHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
+              "label": "",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "PauseJobRequest",
           "longName": "PauseJobRequest",
           "fullName": "mgmt.v1alpha1.PauseJobRequest",
@@ -13045,6 +13831,66 @@
           ]
         },
         {
+          "name": "SetJobHookEnabledRequest",
+          "longName": "SetJobHookEnabledRequest",
+          "fullName": "mgmt.v1alpha1.SetJobHookEnabledRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobHookEnabledResponse",
+          "longName": "SetJobHookEnabledResponse",
+          "fullName": "mgmt.v1alpha1.SetJobHookEnabledResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated job hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SetJobSourceSqlConnectionSubsetsRequest",
           "longName": "SetJobSourceSqlConnectionSubsetsRequest",
           "fullName": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest",
@@ -13454,6 +14300,114 @@
               "type": "Job",
               "longType": "Job",
               "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateJobHookRequest",
+          "longName": "UpdateJobHookRequest",
+          "fullName": "mgmt.v1alpha1.UpdateJobHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the hook",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "JobHookConfig",
+              "longType": "JobHookConfig",
+              "fullType": "mgmt.v1alpha1.JobHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "priority",
+              "description": "The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).\nTie Breaking is determined by the following: (priority, created_at, id) in ascending order.",
+              "label": "",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateJobHookResponse",
+          "longName": "UpdateJobHookResponse",
+          "fullName": "mgmt.v1alpha1.UpdateJobHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated job hook",
+              "label": "",
+              "type": "JobHook",
+              "longType": "JobHook",
+              "fullType": "mgmt.v1alpha1.JobHook",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -14199,6 +15153,102 @@
               "responseType": "SetRunContextsResponse",
               "responseLongType": "SetRunContextsResponse",
               "responseFullType": "mgmt.v1alpha1.SetRunContextsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetJobHooks",
+              "description": "Retrieves all job hooks",
+              "requestType": "GetJobHooksRequest",
+              "requestLongType": "GetJobHooksRequest",
+              "requestFullType": "mgmt.v1alpha1.GetJobHooksRequest",
+              "requestStreaming": false,
+              "responseType": "GetJobHooksResponse",
+              "responseLongType": "GetJobHooksResponse",
+              "responseFullType": "mgmt.v1alpha1.GetJobHooksResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetJobHook",
+              "description": "Retrieves a specific job hook",
+              "requestType": "GetJobHookRequest",
+              "requestLongType": "GetJobHookRequest",
+              "requestFullType": "mgmt.v1alpha1.GetJobHookRequest",
+              "requestStreaming": false,
+              "responseType": "GetJobHookResponse",
+              "responseLongType": "GetJobHookResponse",
+              "responseFullType": "mgmt.v1alpha1.GetJobHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CreateJobHook",
+              "description": "Creates a new job hook",
+              "requestType": "CreateJobHookRequest",
+              "requestLongType": "CreateJobHookRequest",
+              "requestFullType": "mgmt.v1alpha1.CreateJobHookRequest",
+              "requestStreaming": false,
+              "responseType": "CreateJobHookResponse",
+              "responseLongType": "CreateJobHookResponse",
+              "responseFullType": "mgmt.v1alpha1.CreateJobHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "DeleteJobHook",
+              "description": "Removes a job hook",
+              "requestType": "DeleteJobHookRequest",
+              "requestLongType": "DeleteJobHookRequest",
+              "requestFullType": "mgmt.v1alpha1.DeleteJobHookRequest",
+              "requestStreaming": false,
+              "responseType": "DeleteJobHookResponse",
+              "responseLongType": "DeleteJobHookResponse",
+              "responseFullType": "mgmt.v1alpha1.DeleteJobHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "IsJobHookNameAvailable",
+              "description": "Check if a specific job hook name is available",
+              "requestType": "IsJobHookNameAvailableRequest",
+              "requestLongType": "IsJobHookNameAvailableRequest",
+              "requestFullType": "mgmt.v1alpha1.IsJobHookNameAvailableRequest",
+              "requestStreaming": false,
+              "responseType": "IsJobHookNameAvailableResponse",
+              "responseLongType": "IsJobHookNameAvailableResponse",
+              "responseFullType": "mgmt.v1alpha1.IsJobHookNameAvailableResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "UpdateJobHook",
+              "description": "Updates a job hook",
+              "requestType": "UpdateJobHookRequest",
+              "requestLongType": "UpdateJobHookRequest",
+              "requestFullType": "mgmt.v1alpha1.UpdateJobHookRequest",
+              "requestStreaming": false,
+              "responseType": "UpdateJobHookResponse",
+              "responseLongType": "UpdateJobHookResponse",
+              "responseFullType": "mgmt.v1alpha1.UpdateJobHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetJobHookEnabled",
+              "description": "Enables or disables a job hook",
+              "requestType": "SetJobHookEnabledRequest",
+              "requestLongType": "SetJobHookEnabledRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobHookEnabledRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobHookEnabledResponse",
+              "responseLongType": "SetJobHookEnabledResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobHookEnabledResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetActiveJobHooksByTiming",
+              "description": "Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.",
+              "requestType": "GetActiveJobHooksByTimingRequest",
+              "requestLongType": "GetActiveJobHooksByTimingRequest",
+              "requestFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest",
+              "requestStreaming": false,
+              "responseType": "GetActiveJobHooksByTimingResponse",
+              "responseLongType": "GetActiveJobHooksByTimingResponse",
+              "responseFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
               "responseStreaming": false
             }
           ]

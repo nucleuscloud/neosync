@@ -20,6 +20,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -36,15 +37,19 @@ func (s *Service) GetJobs(
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
+
 	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, err
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get jobs by account: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{Jobs: []*mgmtv1alpha1.Job{}}), nil
 	}
+
+	logger.Debug(fmt.Sprintf("found %d jobs", len(jobs)))
 
 	jobIds := []pgtype.UUID{}
 	for idx := range jobs {
@@ -55,9 +60,10 @@ func (s *Service) GetJobs(
 	var destinationAssociations []db_queries.NeosyncApiJobDestinationConnectionAssociation
 	if len(jobIds) > 0 {
 		destinationAssociations, err = s.db.Q.GetJobConnectionDestinationsByJobIds(ctx, s.db.Db, jobIds)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, err
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return nil, fmt.Errorf("unable to get job connection destinations by job ids: %w", err)
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			logger.Debug("found no job connection destinations by job ids")
 		}
 	}
 
@@ -103,8 +109,10 @@ func (s *Service) GetJob(
 	var job db_queries.NeosyncApiJob
 	errgrp.Go(func() error {
 		j, err := s.db.Q.GetJobById(errctx, s.db.Db, jobUuid)
-		if err != nil {
-			return err
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return fmt.Errorf("unable to get job by id: %w", err)
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nucleuserrors.NewNotFound("job with that id does not exist")
 		}
 		job = j
 		return nil
@@ -112,16 +120,15 @@ func (s *Service) GetJob(
 	var destConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation
 	errgrp.Go(func() error {
 		dcs, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, jobUuid)
-		if err != nil {
-			return err
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return fmt.Errorf("unable to get job connection destinations by job id: %w", err)
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nil
 		}
 		destConnections = dcs
 		return nil
 	})
-	if err = errgrp.Wait(); err != nil {
-		if neosyncdb.IsNoRows(err) {
-			return nil, nucleuserrors.NewNotFound("unable to find job by id")
-		}
+	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
 
@@ -146,8 +153,10 @@ func (s *Service) GetJobStatus(
 		return nil, err
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
-	if err != nil {
-		return nil, err
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -157,8 +166,7 @@ func (s *Service) GetJobStatus(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving job status: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobStatusResponse{
@@ -177,9 +185,10 @@ func (s *Service) GetJobStatuses(
 		return nil, err
 	}
 	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, err
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get jobs by account: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetJobStatusesResponse{Statuses: []*mgmtv1alpha1.JobStatusRecord{}}), nil
 	}
 
 	scheduleIds := make([]string, 0, len(jobs))
@@ -194,13 +203,13 @@ func (s *Service) GetJobStatuses(
 		logger,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedules when retrieving job statuses: %w", err)
 	}
 
 	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
 	for idx, resp := range responses {
 		if resp.Error != nil {
-			logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+			logger.Warn(fmt.Errorf("unable to describe temporal schedule when retrieving job statuses: %w", resp.Error).Error())
 		} else if resp.Schedule != nil {
 			dtos[idx] = &mgmtv1alpha1.JobStatusRecord{
 				JobId:  scheduleIds[idx],
@@ -225,8 +234,10 @@ func (s *Service) GetJobRecentRuns(
 		return nil, err
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
-	if err != nil {
-		return nil, err
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -236,8 +247,7 @@ func (s *Service) GetJobRecentRuns(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving job recent runs: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRecentRunsResponse{
@@ -256,8 +266,10 @@ func (s *Service) GetJobNextRuns(
 		return nil, err
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
-	if err != nil {
-		return nil, err
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -267,8 +279,7 @@ func (s *Service) GetJobNextRuns(
 
 	schedule, err := s.temporalmgr.DescribeSchedule(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to describe temporal schedule when retrieving job next runs: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobNextRunsResponse{
@@ -315,17 +326,16 @@ func (s *Service) CreateJob(
 		connectionUuids = append(connectionUuids, destUuid)
 	}
 
-	logger.Info("verifying connections")
+	logger.Debug("verifying connections")
 	count, err := s.db.Q.AreConnectionsInAccount(ctx, s.db.Db, db_queries.AreConnectionsInAccountParams{
 		AccountId:     *accountUuid,
 		ConnectionIds: connectionUuids,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to check if connections are in provided account: %w", err)
 	}
 	if count != int64(len(connectionUuids)) {
-		logger.Error("connection is not in account")
-		return nil, nucleuserrors.NewForbidden("provided connection id is not in account")
+		return nil, nucleuserrors.NewForbidden("provided connection id(s) are not all in account")
 	}
 
 	// we leave out generation fk source connection id as it might be set to a destination id
@@ -346,7 +356,6 @@ func (s *Service) CreateJob(
 	}
 
 	if !verifyConnectionIdsUnique(connectionIds) {
-		logger.Error("connection ids are not unqiue")
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
@@ -365,8 +374,7 @@ func (s *Service) CreateJob(
 		}
 		areConnectionsCompatible, err := verifyConnectionsAreCompatible(ctx, s.db, sourceUuid, destinations)
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to verify if connections are compatible: %w", err).Error())
-			return nil, err
+			return nil, fmt.Errorf("unable to verify if all connections are compatible: %w", err)
 		}
 		if !areConnectionsCompatible {
 			return nil, nucleuserrors.NewBadRequest("connection types are incompatible")
@@ -417,15 +425,12 @@ func (s *Service) CreateJob(
 		})
 	}
 
-	logger.Info("verifying temporal workspace")
+	logger.Debug("verifying temporal workspace")
 	hasNs, err := s.temporalmgr.DoesAccountHaveNamespace(ctx, req.Msg.AccountId, logger)
 	if err != nil {
-		wrappedErr := fmt.Errorf("unable to verify account's temporal workspace. error: %w", err)
-		logger.Error(wrappedErr.Error())
-		return nil, wrappedErr
+		return nil, fmt.Errorf("unable to verify account's temporal workspace. error: %w", err)
 	}
 	if !hasNs {
-		logger.Error("temporal namespace not configured")
 		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
 	}
 
@@ -462,7 +467,7 @@ func (s *Service) CreateJob(
 	}
 	jobUuid := neosyncdb.UUIDString(cj.ID)
 	logger = logger.With("jobId", jobUuid)
-	logger.Info("created job")
+	logger.Debug("created job record")
 
 	logger = logger.With("jobId", jobUuid)
 	schedule := neosyncdb.ToNullableString(cj.CronSchedule)
@@ -498,16 +503,18 @@ func (s *Service) CreateJob(
 	)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to create schedule workflow in temporal: %w", err).Error())
-		logger.Info("deleting newly created job")
+		logger.Debug("deleting newly created job")
 		removeJobErr := s.db.Q.RemoveJobById(ctx, s.db.Db, cj.ID)
 		if removeJobErr != nil {
 			return nil, fmt.Errorf("unable to create scheduled job and was unable to fully cleanup partially created resources: %w: %w", removeJobErr, err)
 		}
 		return nil, fmt.Errorf("unable to create scheduled job: %w", err)
 	}
-	logger.Info("scheduled workflow", "workflowId", scheduleId)
+	logger = logger.With("scheduleId", scheduleId)
+	logger.Debug("created new temporal schedule")
 
 	if req.Msg.InitiateJobRun {
+		logger.Debug("triggering initial job run")
 		// manually trigger job run
 		err := s.temporalmgr.TriggerSchedule(ctx, req.Msg.GetAccountId(), scheduleId, &temporalclient.ScheduleTriggerOptions{}, logger)
 		if err != nil {
@@ -550,6 +557,7 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 
+	logger.Debug("deleting temporal schedule")
 	err = s.temporalmgr.DeleteSchedule(
 		ctx,
 		neosyncdb.UUIDString(job.AccountID),
@@ -560,7 +568,7 @@ func (s *Service) DeleteJob(
 		return nil, fmt.Errorf("unable to remove schedule when deleting job")
 	}
 
-	logger.Info("deleting job")
+	logger.Debug("deleting job")
 	err = s.db.Q.RemoveJobById(ctx, s.db.Db, job.ID)
 	if err != nil {
 		return nil, err
@@ -583,7 +591,6 @@ func (s *Service) CreateJobDestinationConnections(
 		Id: req.Msg.JobId,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	accountUuid, err := s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
@@ -623,10 +630,10 @@ func (s *Service) CreateJobDestinationConnections(
 		return nil, err
 	}
 	if !isInSameAccount {
-		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
+		return nil, nucleuserrors.NewBadRequest("connections are not all within the provided account")
 	}
 
-	logger.Info("creating job destination connections", "connectionIds", connectionIds)
+	logger.Debug("creating job destination connections", "connectionIds", connectionIds)
 	connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
 	for _, dest := range destinations {
 		connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
@@ -660,16 +667,16 @@ func (s *Service) UpdateJobSchedule(
 ) (*connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job schedule")
+	logger.Debug("updating job schedule")
 	jobUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -721,8 +728,7 @@ func (s *Service) UpdateJobSchedule(
 			logger,
 		)
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
-			return err
+			return fmt.Errorf("unable to update temporal schedule: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -733,7 +739,6 @@ func (s *Service) UpdateJobSchedule(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -754,9 +759,9 @@ func (s *Service) PauseJob(
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -765,7 +770,7 @@ func (s *Service) PauseJob(
 	}
 
 	if req.Msg.Pause {
-		logger.Info("pausing job")
+		logger.Debug("pausing job")
 		err = s.temporalmgr.PauseSchedule(
 			ctx,
 			neosyncdb.UUIDString(job.AccountID),
@@ -777,7 +782,7 @@ func (s *Service) PauseJob(
 			return nil, err
 		}
 	} else {
-		logger.Info("unpausing job")
+		logger.Debug("unpausing job")
 		err = s.temporalmgr.UnpauseSchedule(
 			ctx,
 			neosyncdb.UUIDString(job.AccountID),
@@ -794,7 +799,6 @@ func (s *Service) PauseJob(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -809,17 +813,17 @@ func (s *Service) UpdateJobSourceConnection(
 ) (*connect.Response[mgmtv1alpha1.UpdateJobSourceConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job source connection and mappings")
+	logger.Debug("updating job source connection and mappings")
 	jobUuid, err := neosyncdb.ToUuid(req.Msg.Id)
-
 	if err != nil {
 		return nil, err
 	}
+
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -866,6 +870,9 @@ func (s *Service) UpdateJobSourceConnection(
 	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: connectionIdToVerify,
 	}))
+	if err != nil {
+		return nil, err
+	}
 
 	// Type checking that the connection config that we want to use for the job is the same as the incoming job source config type
 	switch cconfig := conn.Msg.Connection.ConnectionConfig.Config.(type) {
@@ -998,16 +1005,16 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 ) (*connect.Response[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job source sql connection subsets")
+	logger.Debug("updating job source sql connection subsets")
 	jobUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -1091,7 +1098,6 @@ func (s *Service) UpdateJobDestinationConnection(
 		Id: req.Msg.JobId,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
@@ -1119,7 +1125,7 @@ func (s *Service) UpdateJobDestinationConnection(
 
 	// todo(NEOS-1281):  need a lot more validation here for changing connection uuid, matching options, as well as creating a new destination
 	// if that destination is not supported with the source type
-	logger.Info("updating job destination connection")
+	logger.Debug("updating job destination connection")
 	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, s.db.Db, db_queries.UpdateJobConnectionDestinationParams{
 		ID:           destinationUuid,
 		ConnectionID: connectionUuid,
@@ -1128,7 +1134,7 @@ func (s *Service) UpdateJobDestinationConnection(
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		logger.Info("destination not found. creating job destination connection")
+		logger.Debug("destination not found. creating job destination connection")
 		_, err = s.db.Q.CreateJobConnectionDestination(ctx, s.db.Db, db_queries.CreateJobConnectionDestinationParams{
 			JobID:        jobUuid,
 			ConnectionID: connectionUuid,
@@ -1172,9 +1178,9 @@ func (s *Service) DeleteJobDestinationConnection(
 
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, destination.JobID)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -1194,12 +1200,12 @@ func (s *Service) DeleteJobDestinationConnection(
 		return nil, err
 	}
 
-	logger.Info("deleting job destination connection")
+	logger.Debug("deleting job destination connection")
 	err = s.db.Q.RemoveJobConnectionDestination(ctx, s.db.Db, destinationUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		logger.Info("destination not found")
+		logger.Debug("destination not found, during delete")
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
@@ -1352,7 +1358,6 @@ func (s *Service) SetJobWorkflowOptions(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
@@ -1404,7 +1409,6 @@ func (s *Service) SetJobWorkflowOptions(
 			logger,
 		)
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
 			return fmt.Errorf("unable to update workflow run timeout on temporal schedule: %w", err)
 		}
 		return nil
@@ -1416,7 +1420,6 @@ func (s *Service) SetJobWorkflowOptions(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -1434,14 +1437,10 @@ func (s *Service) SetJobSyncOptions(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest],
 ) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-
 	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
@@ -1476,7 +1475,6 @@ func (s *Service) SetJobSyncOptions(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{Job: updatedJob.Msg.Job}), nil
@@ -1510,14 +1508,13 @@ func (s *Service) ValidateJobMappings(
 		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Db.Close()
+	defer db.Db().Close()
 
-	colInfoMap, err := db.Db.GetSchemaColumnMap(ctx)
+	colInfoMap, err := db.Db().GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1533,7 +1530,7 @@ func (s *Service) ValidateJobMappings(
 		schemas = append(schemas, s)
 	}
 
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}

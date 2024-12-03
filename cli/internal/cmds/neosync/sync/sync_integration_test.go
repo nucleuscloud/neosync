@@ -5,7 +5,11 @@ import (
 	"testing"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -29,9 +33,9 @@ func Test_Sync(t *testing.T) {
 
 	connclient := neosyncApi.UnauthdClients.Connections
 	conndataclient := neosyncApi.UnauthdClients.ConnectionData
-	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
+	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	sqlmanagerclient := sqlmanager.NewSqlManager(sqlmanager.WithConnectionManager(connmanager))
 
-	discardLogger := testutil.GetTestCharmSlogger()
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	outputType := output.PlainOutput
 
@@ -43,17 +47,18 @@ func Test_Sync(t *testing.T) {
 		}
 
 		testdataFolder := "../../../../../internal/testutil/testdata/postgres"
-		err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-tables.sql"})
+		err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-tables.sql", "alltypes/create-tables.sql"})
 		if err != nil {
 			panic(err)
 		}
-		err = postgres.Target.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-schema.sql"})
+		err = postgres.Target.RunSqlFiles(ctx, &testdataFolder, []string{"humanresources/create-schema.sql", "alltypes/create-schema.sql"})
 		if err != nil {
 			panic(err)
 		}
 		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "postgres-source", postgres.Source.URL)
 
 		t.Run("sync", func(t *testing.T) {
+			testlogger := testutil.GetTestLogger(t)
 			cmdConfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,
@@ -73,8 +78,10 @@ func Test_Sync(t *testing.T) {
 				connectionclient:     connclient,
 				sqlmanagerclient:     sqlmanagerclient,
 				ctx:                  ctx,
-				logger:               discardLogger,
+				logger:               testlogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
@@ -86,6 +93,11 @@ func Test_Sync(t *testing.T) {
 			require.Greater(t, rowCount, 1)
 
 			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.generated_table;")
+			err = rows.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
+
+			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from alltypes.all_postgres_types;")
 			err = rows.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
@@ -118,6 +130,7 @@ func Test_Sync(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateMysqlConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "mysql-source", mysql.Source.URL)
 
 		t.Run("sync", func(t *testing.T) {
+			discardLogger := testutil.GetTestLogger(t)
 			cmdConfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,
@@ -138,6 +151,8 @@ func Test_Sync(t *testing.T) {
 				ctx:                  ctx,
 				logger:               discardLogger,
 				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
 			}
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)

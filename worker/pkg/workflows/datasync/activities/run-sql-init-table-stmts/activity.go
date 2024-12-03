@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
@@ -16,17 +18,21 @@ type Activity struct {
 	connclient mgmtv1alpha1connect.ConnectionServiceClient
 
 	sqlmanager sql_manager.SqlManagerClient
+
+	eelicense license.EEInterface
 }
 
 func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
+	eelicense license.EEInterface,
 ) *Activity {
 	return &Activity{
 		jobclient:  jobclient,
 		connclient: connclient,
 		sqlmanager: sqlmanager,
+		eelicense:  eelicense,
 	}
 }
 
@@ -48,8 +54,6 @@ func (a *Activity) RunSqlInitTableStatements(
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 	)
-	_ = logger
-
 	go func() {
 		for {
 			select {
@@ -65,11 +69,14 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.sqlmanager,
 		a.jobclient,
 		a.connclient,
+		a.eelicense,
+		info.WorkflowExecution.ID,
 	)
-	slogger := neosynclogger.NewJsonSLogger().With(
-		"jobId", req.JobId,
-		"WorkflowID", info.WorkflowExecution.ID,
-		"RunID", info.WorkflowExecution.RunID,
+	slogger := temporallogger.NewSlogger(logger)
+	return builder.RunSqlInitTableStatements(
+		ctx,
+		req,
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.RunID)),
+		slogger,
 	)
-	return builder.RunSqlInitTableStatements(ctx, req, slogger)
 }

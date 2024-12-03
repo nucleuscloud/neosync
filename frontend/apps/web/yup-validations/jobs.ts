@@ -68,6 +68,13 @@ export function convertTransformerConfigSchemaToTransformerConfig(
   }
 }
 
+const BatchFormValues = Yup.object({
+  count: Yup.number().min(0, 'Must be greater than or equal to 0').optional(),
+  period: Yup.string()
+    .optional()
+    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+});
+
 export const JobMappingFormValues = Yup.object({
   schema: Yup.string().required('A schema is required'),
   table: Yup.string().required('A table is required'),
@@ -182,28 +189,45 @@ const PostgresDbDestinationOptionsFormValues = Yup.object({
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
+export type PostgresDbDestinationOptionsFormValues = Yup.InferType<
+  typeof PostgresDbDestinationOptionsFormValues
+>;
 
 const MysqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
+export type MysqlDbDestinationOptionsFormValues = Yup.InferType<
+  typeof MysqlDbDestinationOptionsFormValues
+>;
 
 const MssqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  batch: BatchFormValues.optional(),
 });
-
-const BatchFormValues = Yup.object({
-  count: Yup.number().min(0, 'Must be greater than or equal to 0').optional(),
-  period: Yup.string()
-    .optional()
-    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
-});
+export type MssqlDbDestinationOptionsFormValues = Yup.InferType<
+  typeof MssqlDbDestinationOptionsFormValues
+>;
 
 export const AwsS3DestinationOptionsFormValues = Yup.object({
   storageClass: Yup.number().optional(),

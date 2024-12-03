@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -19,8 +18,9 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -37,10 +37,12 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
+	accountid_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/accountid"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
+	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
+	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
@@ -60,6 +62,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
@@ -112,6 +115,12 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("unable to initialize ee license from env: %w", err)
 	}
 	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
+
+	ncloudlicense, err := cloudlicense.NewFromEnv()
+	if err != nil {
+		return err
+	}
+	slogger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
 	mux := http.NewServeMux()
 
@@ -264,13 +273,16 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(slogger)
-	loggingInterceptor := logging_interceptor.NewInterceptor()
+	loggerAccountIdInterceptor := accountid_interceptor.NewInterceptor()
+	handlerBookendInterceptor := bookend_logging_interceptor.NewInterceptor(
+		bookend_logging_interceptor.WithLogLevel(slog.LevelInfo),
+	)
 
 	stdInterceptors = append(
 		stdInterceptors,
 		loggerInterceptor,
 		validateInterceptor,
-		loggingInterceptor,
+		loggerAccountIdInterceptor,
 	)
 
 	// standard auth interceptors that should be applied to most services
@@ -292,7 +304,7 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(getIsNeosyncCloud()), []string{
+		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(ncloudlicense.IsValid()), []string{
 			mgmtv1alpha1connect.JobServiceGetJobProcedure,
 			mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 			mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
@@ -307,6 +319,7 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
 			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
 			mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
+			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
@@ -368,6 +381,8 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
 			connect.WithInterceptors(authSvcInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -419,7 +434,7 @@ func serve(ctx context.Context) error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
-		IsNeosyncCloud:           getIsNeosyncCloud(),
+		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
 	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
 	api.Handle(
@@ -427,6 +442,7 @@ func serve(ctx context.Context) error {
 			useraccountService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -439,6 +455,7 @@ func serve(ctx context.Context) error {
 			apiKeyService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(jwtOnlyAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -447,21 +464,43 @@ func serve(ctx context.Context) error {
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
 	mssqlquerier := mssql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithPostgresQuerier(pgquerier),
+		sql_manager.WithMysqlQuerier(mysqlquerier),
+		sql_manager.WithMssqlQuerier(mssqlquerier),
+		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
+	)
 	mongoconnector := mongoconnect.NewConnector()
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
-		mysqlquerier, mssqlquerier, mongoconnector, awsManager)
+	connectionService := v1alpha1_connectionservice.New(
+		&v1alpha1_connectionservice.Config{},
+		db,
+		useraccountService,
+		mongoconnector,
+		awsManager,
+		sqlmanager,
+		&sqlconnect.SqlOpenConnector{},
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
+	)
+
+	jobhookOpts := []jobhooks.Option{}
+	if ncloudlicense.IsValid() || eelicense.IsValid() {
+		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
+	}
+
+	jobhookService := jobhooks.New(
+		db,
+		useraccountService,
+		jobhookOpts...,
 	)
 
 	runLogConfig, err := getRunLogConfig()
@@ -471,7 +510,7 @@ func serve(ctx context.Context) error {
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled:  isAuthEnabled,
-		IsNeosyncCloud: getIsNeosyncCloud(),
+		IsNeosyncCloud: ncloudlicense.IsValid(),
 		RunLogConfig:   runLogConfig,
 	}
 	jobService := v1alpha1_jobservice.New(
@@ -481,12 +520,14 @@ func serve(ctx context.Context) error {
 		connectionService,
 		useraccountService,
 		sqlmanager,
+		jobhookService,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -494,7 +535,7 @@ func serve(ctx context.Context) error {
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 	var presEntityClient presidioapi.EntityInterface
-	if getIsNeosyncCloud() {
+	if ncloudlicense.IsValid() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
 			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
@@ -515,28 +556,31 @@ func serve(ctx context.Context) error {
 	}
 
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
-		IsPresidioEnabled: getIsNeosyncCloud(),
-		IsNeosyncCloud:    getIsNeosyncCloud(),
+		IsPresidioEnabled: ncloudlicense.IsValid(),
+		IsNeosyncCloud:    ncloudlicense.IsValid(),
 	}, db, useraccountService, presEntityClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled: getIsNeosyncCloud(),
-		IsAuthEnabled:     isAuthEnabled,
-		IsNeosyncCloud:    getIsNeosyncCloud(),
+		IsPresidioEnabled:       ncloudlicense.IsValid(),
+		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
+		IsAuthEnabled:           isAuthEnabled,
+		IsNeosyncCloud:          ncloudlicense.IsValid(),
 	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -560,6 +604,7 @@ func serve(ctx context.Context) error {
 			connectionDataService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithInterceptors(handlerBookendInterceptor),
 			connect.WithRecover(recoverHandler),
 		),
 	)
@@ -576,6 +621,7 @@ func serve(ctx context.Context) error {
 				metricsService,
 				connect.WithInterceptors(stdInterceptors...),
 				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
 				connect.WithRecover(recoverHandler),
 			),
 		)
@@ -595,6 +641,14 @@ func serve(ctx context.Context) error {
 		slogger.Error(err.Error())
 	}
 	return nil
+}
+
+func getPresidioDefaultLanguage() *string {
+	lang := viper.GetString("PRESIDIO_DEFAULT_LANGUAGE")
+	if lang == "" {
+		return nil
+	}
+	return &lang
 }
 
 func getPromClientFromEnvironment() (promapi.Client, error) {
@@ -857,10 +911,6 @@ func getAuthApiClientSecret() string {
 
 func getAuthApiProvider() string {
 	return viper.GetString("AUTH_API_PROVIDER")
-}
-
-func getIsNeosyncCloud() bool {
-	return viper.GetBool("NEOSYNC_CLOUD")
 }
 
 func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {

@@ -5,6 +5,8 @@ import {
   getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
+import { TransformerResult } from '@/components/jobs/SchemaTable/transformer-handler';
+import { getTransformerFilter } from '@/components/jobs/SchemaTable/util';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,8 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getErrorMessage } from '@/util/util';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
+import { getErrorMessage, getTransformerFromField } from '@/util/util';
 import {
+  JobMappingTransformerForm,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -64,8 +68,13 @@ import {
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { useOnApplyDefaultClick } from './useOnApplyDefaultClick';
 import { useOnImportMappings } from './useOnImportMappings';
-import { getOnSelectedTableToggle } from './util';
+import { useOnTransformerBulkUpdateClick } from './useOnTransformerBulkUpdateClick';
+import {
+  getFilteredTransformersForBulkSet,
+  getOnSelectedTableToggle,
+} from './util';
 
 interface Props {
   jobId: string;
@@ -138,7 +147,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     [isSchemaMapValidating, isTableConstraintsValidating]
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
-  const { append, remove, fields } =
+  const { append, remove, fields, update } =
     useFieldArray<SingleTableEditSourceFormValues>({
       control: form.control,
       name: 'mappings',
@@ -220,6 +229,22 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { mutateAsync: validateJobMappingsAsync } =
     useMutation(validateJobMappings);
 
+  const { handler, isLoading: isGetTransformersLoading } =
+    useGetTransformersHandler(account?.id ?? '');
+
+  function onTransformerUpdate(
+    index: number,
+    transformer: JobMappingTransformerForm
+  ): void {
+    const val = form.getValues(`mappings.${index}`);
+    update(index, {
+      schema: val.schema,
+      table: val.table,
+      column: val.column,
+      transformer,
+    });
+  }
+
   const { onClick: onImportMappingsClick } = useOnImportMappings({
     setMappings(mappings) {
       form.setValue('mappings', mappings, {
@@ -247,7 +272,55 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     setSelectedTables: setSelectedTables,
   });
 
-  if (isJobLoading || isSchemaDataMapLoading) {
+  function getAvailableTransformers(idx: number): TransformerResult {
+    const row = fields[idx];
+    return handler.getFilteredTransformers(
+      getTransformerFilter(
+        schemaConstraintHandler,
+        {
+          schema: row.schema,
+          table: row.table,
+          column: row.column,
+        },
+        'sync'
+      )
+    );
+  }
+
+  const { onClick: onApplyDefaultClick } = useOnApplyDefaultClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    constraintHandler: schemaConstraintHandler,
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
+  const { onClick: onTransformerBulkUpdate } = useOnTransformerBulkUpdateClick({
+    getMappings() {
+      return form.getValues('mappings');
+    },
+    setMappings(mappings) {
+      form.setValue('mappings', mappings, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate() {
+      form.trigger('mappings');
+    },
+  });
+
+  if (isJobLoading || isSchemaDataMapLoading || isGetTransformersLoading) {
     return <SchemaPageSkeleton />;
   }
 
@@ -466,6 +539,28 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           isJobMappingsValidating={isValidatingMappings}
           onValidate={validateMappings}
           onImportMappingsClick={onImportMappingsClick}
+          onTransformerUpdate={(idx, cfg) => {
+            onTransformerUpdate(idx, cfg);
+          }}
+          getAvailableTransformers={getAvailableTransformers}
+          getTransformerFromField={(idx) => {
+            const row = fields[idx];
+            return getTransformerFromField(handler, row.transformer);
+          }}
+          getAvailableTransformersForBulk={(rows) => {
+            return getFilteredTransformersForBulkSet(
+              rows,
+              handler,
+              schemaConstraintHandler,
+              'generate',
+              'relational'
+            );
+          }}
+          getTransformerFromFieldValue={(fvalue) => {
+            return getTransformerFromField(handler, fvalue);
+          }}
+          onApplyDefaultClick={onApplyDefaultClick}
+          onTransformerBulkUpdate={onTransformerBulkUpdate}
         />
 
         {form.formState.errors.mappings && (

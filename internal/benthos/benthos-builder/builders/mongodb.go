@@ -38,10 +38,10 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						PooledMongoDB: &neosync_benthos.InputMongoDb{
-							Url:        "${SOURCE_CONNECTION_DSN}",
-							Database:   tableMapping.Schema,
-							Collection: tableMapping.Table,
-							Query:      "root = this",
+							ConnectionId: params.SourceConnection.GetId(),
+							Database:     tableMapping.Schema,
+							Collection:   tableMapping.Table,
+							Query:        "root = this",
 						},
 					},
 				},
@@ -95,7 +95,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			RunType:     tabledependency.RunTypeInsert,
 			DependsOn:   []*tabledependency.DependsOn{},
 			Columns:     columns,
-			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
+			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.GetId()}},
 
 			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
@@ -112,9 +112,9 @@ func (b *mongodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params 
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{EnvVarKey: params.DestEnvVarKey, ConnectionId: params.DestConnection.GetId()})
+	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.GetId()})
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
-		Url: params.DSN,
+		ConnectionId: params.DestConnection.GetId(),
 
 		Database:   benthosConfig.TableSchema,
 		Collection: benthosConfig.TableName,

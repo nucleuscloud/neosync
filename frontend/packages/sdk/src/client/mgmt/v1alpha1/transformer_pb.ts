@@ -251,6 +251,11 @@ export enum TransformerSource {
    * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
    */
   GENERATE_BUSINESS_NAME = 48,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
+   */
+  GENERATE_IP_ADDRESS = 49,
 }
 // Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
 proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
@@ -302,6 +307,7 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
   { no: 46, name: "TRANSFORMER_SOURCE_GENERATE_COUNTRY" },
   { no: 47, name: "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT" },
   { no: 48, name: "TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME" },
+  { no: 49, name: "TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS" },
 ]);
 
 /**
@@ -472,6 +478,86 @@ proto3.util.setEnumType(InvalidEmailAction, "mgmt.v1alpha1.InvalidEmailAction", 
   { no: 2, name: "INVALID_EMAIL_ACTION_NULL" },
   { no: 3, name: "INVALID_EMAIL_ACTION_PASSTHROUGH" },
   { no: 4, name: "INVALID_EMAIL_ACTION_GENERATE" },
+]);
+
+/**
+ * @generated from enum mgmt.v1alpha1.GenerateIpAddressType
+ */
+export enum GenerateIpAddressType {
+  /**
+   * Unspecified defaults to ipv4
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Generates a random ipv4_public
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC = 1;
+   */
+  V4_PUBLIC = 1,
+
+  /**
+   * Generates a random ipv4_private_a
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A = 2;
+   */
+  V4_PRIVATE_A = 2,
+
+  /**
+   * Generates a random ipv4_private_b
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B = 3;
+   */
+  V4_PRIVATE_B = 3,
+
+  /**
+   * Generates a random ipv4_private_c
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C = 4;
+   */
+  V4_PRIVATE_C = 4,
+
+  /**
+   * Generates a random ipv4_linklocal
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL = 5;
+   */
+  V4_LINK_LOCAL = 5,
+
+  /**
+   * Generates a random ipv4_multicast
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST = 6;
+   */
+  V4_MULTICAST = 6,
+
+  /**
+   * Generates a random ipv4_loopback
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK = 7;
+   */
+  V4_LOOPBACK = 7,
+
+  /**
+   * Generates a random ipv6
+   *
+   * @generated from enum value: GENERATE_IP_ADDRESS_TYPE_V6 = 8;
+   */
+  V6 = 8,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GenerateIpAddressType)
+proto3.util.setEnumType(GenerateIpAddressType, "mgmt.v1alpha1.GenerateIpAddressType", [
+  { no: 0, name: "GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED" },
+  { no: 1, name: "GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC" },
+  { no: 2, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A" },
+  { no: 3, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B" },
+  { no: 4, name: "GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C" },
+  { no: 5, name: "GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL" },
+  { no: 6, name: "GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST" },
+  { no: 7, name: "GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK" },
+  { no: 8, name: "GENERATE_IP_ADDRESS_TYPE_V6" },
 ]);
 
 /**
@@ -1555,6 +1641,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateBusinessName;
     case: "generateBusinessNameConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateIpAddress generate_ip_address_config = 46;
+     */
+    value: GenerateIpAddress;
+    case: "generateIpAddressConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1610,6 +1702,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 43, name: "generate_country_config", kind: "message", T: GenerateCountry, oneof: "config" },
     { no: 44, name: "transform_pii_text_config", kind: "message", T: TransformPiiText, oneof: "config" },
     { no: 45, name: "generate_business_name_config", kind: "message", T: GenerateBusinessName, oneof: "config" },
+    { no: 46, name: "generate_ip_address_config", kind: "message", T: GenerateIpAddress, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1672,6 +1765,15 @@ export class TransformPiiText extends Message<TransformPiiText> {
    */
   allowedPhrases: string[] = [];
 
+  /**
+   * Two characters for the desired language in ISO_639-1 format.
+   * If not provided, will use a default language if specified on the server.
+   * Depending on the server configuration, may attempt to autodetect from input.
+   *
+   * @generated from field: optional string language = 6;
+   */
+  language?: string;
+
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1685,6 +1787,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
     { no: 3, name: "deny_recognizers", kind: "message", T: PiiDenyRecognizer, repeated: true },
     { no: 4, name: "allowed_entities", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 5, name: "allowed_phrases", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "language", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
@@ -3888,6 +3991,43 @@ export class GenerateBusinessName extends Message<GenerateBusinessName> {
 
   static equals(a: GenerateBusinessName | PlainMessage<GenerateBusinessName> | undefined, b: GenerateBusinessName | PlainMessage<GenerateBusinessName> | undefined): boolean {
     return proto3.util.equals(GenerateBusinessName, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateIpAddress
+ */
+export class GenerateIpAddress extends Message<GenerateIpAddress> {
+  /**
+   * @generated from field: optional mgmt.v1alpha1.GenerateIpAddressType ip_type = 1;
+   */
+  ipType?: GenerateIpAddressType;
+
+  constructor(data?: PartialMessage<GenerateIpAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateIpAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ip_type", kind: "enum", T: proto3.getEnumType(GenerateIpAddressType), opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateIpAddress {
+    return new GenerateIpAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateIpAddress {
+    return new GenerateIpAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateIpAddress {
+    return new GenerateIpAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateIpAddress | PlainMessage<GenerateIpAddress> | undefined, b: GenerateIpAddress | PlainMessage<GenerateIpAddress> | undefined): boolean {
+    return proto3.util.equals(GenerateIpAddress, a, b);
   }
 }
 

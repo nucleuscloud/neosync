@@ -7,37 +7,39 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	slogdedup "github.com/veqryn/slog-dedup"
 )
 
 func NewLoggers() (slogger *slog.Logger, loglogger *log.Logger) {
-	handler := NewHandler()
+	handler := newHandler()
 	return slog.New(handler), slog.NewLogLogger(handler, getLogLevel())
 }
 
 func NewJsonSLogger() *slog.Logger {
-	return slog.New(NewJsonLogHandler())
+	return slog.New(newJsonLogHandler())
 }
 
 func NewJsonLogLogger() *log.Logger {
-	return slog.NewLogLogger(NewJsonLogHandler(), getLogLevel())
+	return slog.NewLogLogger(newJsonLogHandler(), getLogLevel())
 }
 
 // Returns either JSON or TEXT depending on the environment variable LOGS_FORMAT_JSON
 // Defaults to JSON
-func NewHandler() slog.Handler {
+func newHandler() slog.Handler {
 	if ShouldFormatAsJson() {
-		return NewJsonLogHandler()
+		return newJsonLogHandler()
 	}
-	return NewTextLogHandler()
+	return newTextLogHandler()
 }
 
-func NewJsonLogHandler() *slog.JSONHandler {
-	return slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+func newJsonLogHandler() slog.Handler {
+	jsonhandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: getLogLevel(),
 	})
+	return slogdedup.NewOverwriteHandler(jsonhandler, nil)
 }
 
-func NewTextLogHandler() *slog.TextHandler {
+func newTextLogHandler() *slog.TextHandler {
 	return slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: getLogLevel(),
 	})

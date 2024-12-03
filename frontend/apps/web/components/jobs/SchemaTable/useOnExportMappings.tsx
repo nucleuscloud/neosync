@@ -11,21 +11,20 @@ interface Props {
   jobMappings: JobMappingFormValues[];
 }
 
-interface UseOnExportMappingsResponse {
-  onClick(
-    selectedRows: Row<JobMappingFormValues>[],
-    shouldFormat: boolean
-  ): Promise<void>;
+interface UseOnExportMappingsResponse<T> {
+  onClick(selectedRows: Row<T>[], shouldFormat: boolean): Promise<void>;
 }
 
 // Hook that provides an onClick handler that will download job mappings to disk
-export function useOnExportMappings(props: Props): UseOnExportMappingsResponse {
+export function useOnExportMappings<T>(
+  props: Props
+): UseOnExportMappingsResponse<T> {
   const { jobMappings } = props;
   const { downloadFile } = useJsonFileDownload();
 
   return {
     onClick: async function (
-      selectedRows: Row<JobMappingFormValues>[],
+      selectedRows: Row<T>[],
       shouldFormat: boolean
     ): Promise<void> {
       // Using the raw jobMappings instead of the row due to tanstack sometimes not giving the most up to date values.

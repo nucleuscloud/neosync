@@ -1,12 +1,11 @@
 package benthosbuilder_builders
 
 import (
-	"io"
-	"log/slog"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -142,10 +141,6 @@ func BenchmarkCleanPostgresType(b *testing.B) {
 	}
 }
 
-var (
-	discardLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
-)
-
 func Test_getAdditionalMappings(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Run("none", func(t *testing.T) {
@@ -165,7 +160,7 @@ func Test_getAdditionalMappings(t *testing.T) {
 					},
 				}},
 				splitKeyToTablePieces,
-				discardLogger,
+				testutil.GetTestLogger(t),
 			)
 			require.NoError(t, err)
 			require.Empty(t, actual)
@@ -199,7 +194,7 @@ func Test_getAdditionalMappings(t *testing.T) {
 					},
 				}},
 				splitKeyToTablePieces,
-				discardLogger,
+				testutil.GetTestLogger(t),
 			)
 			require.NoError(t, err)
 			require.Len(t, actual, 4)

@@ -29,13 +29,13 @@ const (
 
 const (
 	// Common Client Fields
-	commonFieldClientURL      = "url"
-	commonFieldClientDatabase = "database"
+	commonFieldClientConnectionId = "connection_id"
+	commonFieldClientDatabase     = "database"
 )
 
 func clientFields() []*service.ConfigField {
 	return []*service.ConfigField{
-		service.NewURLField(commonFieldClientURL).
+		service.NewURLField(commonFieldClientConnectionId).
 			Description("The URL of the target MongoDB server.").
 			Example("mongodb://localhost:27017"),
 		service.NewStringField(commonFieldClientDatabase).

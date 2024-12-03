@@ -1,6 +1,7 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { FormDescription } from '@/components/ui/form';
-import { Input, InputProps } from '@/components/ui/input';
+import FormHeader from '@/components/FormHeader';
+import NumberedInput from '@/components/NumberedInput';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/libs/utils';
 import { getStorageClassString } from '@/util/util';
 import { AwsS3DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { AwsS3DestinationConnectionOptions_StorageClass } from '@neosync/sdk';
@@ -170,41 +170,4 @@ interface FormInputContainerProps {
 function FormInputContainer(props: FormInputContainerProps): ReactElement {
   const { children } = props;
   return <div className="flex flex-col gap-1">{children}</div>;
-}
-
-interface FormHeaderProps {
-  title: string;
-  description: string;
-  containerClassName?: string;
-  isErrored?: boolean;
-}
-function FormHeader(props: FormHeaderProps): ReactElement {
-  const { title, description, containerClassName, isErrored } = props;
-  return (
-    <div className={containerClassName}>
-      <label className={cn(isErrored ? 'text-red-500' : undefined)}>
-        {title}
-      </label>
-      <FormDescription>{description}</FormDescription>
-    </div>
-  );
-}
-
-interface NumberedInputProps extends Omit<InputProps, 'onChange'> {
-  onChange(value: number): void;
-}
-
-function NumberedInput(props: NumberedInputProps): ReactElement {
-  const { onChange, ...rest } = props;
-
-  return (
-    <Input
-      {...rest}
-      type="number"
-      onChange={(event) => {
-        const numVal = event.target.valueAsNumber;
-        if (!isNaN(numVal)) onChange(numVal);
-      }}
-    />
-  );
 }

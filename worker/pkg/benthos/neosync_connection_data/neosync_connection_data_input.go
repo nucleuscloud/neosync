@@ -3,12 +3,14 @@ package neosync_benthos_connectiondata
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"sync"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -22,7 +24,11 @@ var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Field(service.NewStringField("job_id").Optional()).
 	Field(service.NewStringField("job_run_id").Optional())
 
-func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) (service.Input, error) {
+func newNeosyncConnectionDataInput(
+	conf *service.ParsedConfig,
+	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient,
+	logger *slog.Logger,
+) (service.Input, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -59,6 +65,8 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi
 		jobRunId = &jobRunIdStr
 	}
 
+	registry := neosynctypes.NewTypeRegistry(logger)
+
 	return service.AutoRetryNacks(&neosyncInput{
 		connectionId:   connectionId,
 		connectionType: connectionType,
@@ -68,15 +76,21 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi
 			jobId:    jobId,
 			jobRunId: jobRunId,
 		},
-		neosyncConnectApi: neosyncConnectApi,
+		neosyncConnectApi:   neosyncConnectApi,
+		neosyncTypeRegistry: registry,
+		logger:              logger,
 	}), nil
 }
 
-func RegisterNeosyncConnectionDataInput(env *service.Environment, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) error {
+func RegisterNeosyncConnectionDataInput(
+	env *service.Environment,
+	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient,
+	logger *slog.Logger,
+) error {
 	return env.RegisterInput(
 		"neosync_connection_data", neosyncConnectionDataConfigSpec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			return newNeosyncConnectionDataInput(conf, neosyncConnectApi)
+			return newNeosyncConnectionDataInput(conf, neosyncConnectApi, logger)
 		},
 	)
 }
@@ -95,7 +109,9 @@ type neosyncInput struct {
 	schema         string
 	table          string
 
-	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient
+	logger              *slog.Logger
+	neosyncConnectApi   mgmtv1alpha1connect.ConnectionDataServiceClient
+	neosyncTypeRegistry *neosynctypes.TypeRegistry
 
 	recvMut sync.Mutex
 
@@ -189,12 +205,17 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 			}, nil
 		}
 	}
+
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
-			valuesMap[col] = val
+			newVal, err := g.neosyncTypeRegistry.Unmarshal(val)
+			if err != nil {
+				return nil, nil, err
+			}
+			valuesMap[col] = newVal
 		}
 	}
 

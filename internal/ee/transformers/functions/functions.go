@@ -28,7 +28,7 @@ func TransformPiiText(
 	allowedEntities := config.GetAllowedEntities()
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
 		Text:             value,
-		Language:         supportedLanguage,
+		Language:         config.GetLanguage(),
 		ScoreThreshold:   &threshold,
 		AdHocRecognizers: &adhocRecognizers,
 		Entities:         &allowedEntities,

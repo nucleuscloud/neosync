@@ -68,7 +68,7 @@ function FormBody(props: FormBodyProps): ReactElement {
                     isChecked={field.value}
                     onCheckedChange={field.onChange}
                     title="Override Mapped Transformers"
-                    description="Do you want to overwrite the Transformers you have already mapped."
+                    description="Do you want to overwrite the Transformers you have already mapped?"
                   />
                 </FormControl>
                 <FormMessage />

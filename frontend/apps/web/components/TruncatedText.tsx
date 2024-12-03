@@ -31,7 +31,7 @@ export default function TruncatedText(props: Props): ReactElement {
     <TooltipProvider>
       <Tooltip delayDuration={delayDuration}>
         <TooltipTrigger asChild>
-          <div className={cn(`relative max-w-[${maxWidth}px]`)}>
+          <div style={{ maxWidth: `${maxWidth}px` }} className="relative">
             <div
               className={cn(
                 'truncate font-medium',

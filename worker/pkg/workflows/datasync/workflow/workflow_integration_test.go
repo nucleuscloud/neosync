@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,17 +12,21 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -52,7 +57,7 @@ import (
 	// tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
-	temporalmocks "go.temporal.io/sdk/mocks"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -298,7 +303,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+							PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -316,6 +325,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						}
 					}
 
+					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					srcConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
 					mux := http.NewServeMux()
 					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
@@ -328,13 +341,13 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        jobId,
 									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
 												Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-													ConnectionId:                  "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+													ConnectionId:                  srcConnId,
 													Schemas:                       schemas,
 													SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 												},
@@ -343,7 +356,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 									Destinations: []*mgmtv1alpha1.JobDestination{
 										{
-											ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+											ConnectionId: destConnId,
 											Options:      destinationOptions,
 										},
 									},
@@ -356,10 +369,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-							if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+							if r.Msg.GetId() == srcConnId {
 								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 									Connection: &mgmtv1alpha1.Connection{
-										Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+										Id:   srcConnId,
 										Name: "source",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -373,10 +386,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 								}), nil
 							}
-							if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+							if r.Msg.GetId() == destConnId {
 								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 									Connection: &mgmtv1alpha1.Connection{
-										Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+										Id:   destConnId,
 										Name: "target",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -390,20 +403,57 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									},
 								}), nil
 							}
-							return nil, nil
+							return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test connection id"))
+						},
+					))
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+							if r.Msg.GetJobId() != jobId {
+								return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test job id"))
+							}
+							hooks := []*mgmtv1alpha1.JobHook{}
+							if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-presync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: srcConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							} else if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-postsync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: destConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							}
+							return connect.NewResponse(&mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: hooks}), nil
 						},
 					))
 
 					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not receive Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -471,7 +521,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{
+							MssqlOptions: &mgmtv1alpha1.MssqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -568,15 +622,16 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					))
 
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err := env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.mssql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -595,6 +650,16 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 			}
 		})
 	}
+}
+
+// Used if there is no plan for jobhooks in the test and just need to satisfy the impl
+func addEmptyJobHooksProcedureMux(mux *http.ServeMux) {
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: []*mgmtv1alpha1.JobHook{}}), nil
+		},
+	))
 }
 
 func addRunContextProcedureMux(mux *http.ServeMux) {
@@ -626,6 +691,17 @@ func addRunContextProcedureMux(mux *http.ServeMux) {
 				return nil, connect.NewError(connect.CodeUnknown, err)
 			}
 			return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceSetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+			rcmu.RLock()
+			defer rcmu.RUnlock()
+			rcmap[toRunContextKeyString(r.Msg.GetId())] = r.Msg.GetValue()
+
+			return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
 		},
 	))
 }
@@ -685,6 +761,11 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 					Destinations: []*mgmtv1alpha1.JobDestination{
 						{
 							ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+							Options: &mgmtv1alpha1.JobDestinationOptions{
+								Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+									PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+								},
+							},
 						},
 					},
 				},
@@ -734,12 +815,13 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	))
 
 	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	testName := "Virtual Foreign Key primary key transform"
 	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
-	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
@@ -836,7 +918,11 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					}
 
 					var subsetByForeignKeyConstraints bool
-					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+							MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{},
+						},
+					}
 					if tt.JobOptions != nil {
 						if tt.JobOptions.SubsetByForeignKeyConstraints {
 							subsetByForeignKeyConstraints = true
@@ -932,15 +1018,16 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						rows, err := s.mysql.Target.DB.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
@@ -1130,15 +1217,16 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						out, err := s.dynamo.dynamoclient.Scan(s.ctx, &dynamodb.ScanInput{
@@ -1414,15 +1502,16 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						},
 					))
 					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					env := executeWorkflow(t, srv, s.redis.url, jobId)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
-						require.Error(t, err, "Did not received Temporal Workflow Error", "testName", tt.Name)
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
 						return
 					}
-					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
 
 					for table, expected := range tt.Expected {
 						col := s.mongodb.target.client.Database(dbName).Collection(collectionName)
@@ -1660,11 +1749,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	))
 
 	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
-	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
 
 	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
 	require.NoError(s.T(), err)
@@ -1679,77 +1769,23 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	require.NoError(s.T(), err)
 }
 
-// func executeWorkflowNew(
-// 	t *testing.T,
-// 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-// 	redisUrl string,
-// 	jobId string,
-// ) *testsuite.TestWorkflowEnvironment {
-// 	connclient := neosyncApi.UnauthdClients.Connections
-// 	jobclient := neosyncApi.UnauthdClients.Jobs
-// 	transformerclient := neosyncApi.UnauthdClients.Transformers
-// 	userclient := neosyncApi.UnauthdClients.Users
-// 	// sqlconnector := &sqlconnect.SqlOpenConnector{}
-// 	redisconfig := &shared.RedisConfig{
-// 		Url:  redisUrl,
-// 		Kind: "simple",
-// 		Tls: &shared.RedisTlsConfig{
-// 			Enabled: false,
-// 		},
-// 	}
-// 	temporalClientMock := temporalmocks.NewClient(t)
-// 	// pgpoolmap := &sync.Map{}
-// 	// mysqlpoolmap := &sync.Map{}
-// 	// mssqlpoolmap := &sync.Map{}
-// 	// pgquerier := pg_queries.New()
-// 	// mysqlquerier := mysql_queries.New()
-// 	// mssqlquerier := mssql_queries.New()
-// 	// sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
-// 	sqlmanager := tcneosyncapi.NewTestSqlManagerClient()
+type fakeEELicense struct{}
 
-// 	// temporal workflow
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestWorkflowEnvironment()
-
-// 	// register activities
-// 	genbenthosActivity := genbenthosconfigs_activity.New(
-// 		jobclient,
-// 		connclient,
-// 		transformerclient,
-// 		sqlmanager,
-// 		redisconfig,
-// 		false,
-// 	)
-// 	var activityMeter metric.Meter
-// 	disableReaper := true
-// 	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
-// 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-// 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
-// 	accountStatusActivity := accountstatus_activity.New(userclient)
-// 	env.RegisterWorkflow(Workflow)
-// 	env.RegisterActivity(syncActivity.Sync)
-// 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
-// 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-// 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
-// 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-// 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
-// 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
-
-// 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
-// 	return env
-// }
+func (f *fakeEELicense) IsValid() bool {
+	return true
+}
 
 func executeWorkflow(
-	t *testing.T,
+	t testing.TB,
 	srv *httptest.Server,
 	redisUrl string,
 	jobId string,
 ) *testsuite.TestWorkflowEnvironment {
+	t.Helper()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(srv.Client(), srv.URL)
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
-	sqlconnector := &sqlconnect.SqlOpenConnector{}
 	redisconfig := &shared.RedisConfig{
 		Url:  redisUrl,
 		Kind: "simple",
@@ -1757,17 +1793,19 @@ func executeWorkflow(
 			Enabled: false,
 		},
 	}
-	temporalClientMock := temporalmocks.NewClient(t)
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
-	mssqlquerier := mssql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
+
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
+	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManager(sqlconnmanager),
+	)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
@@ -1780,11 +1818,14 @@ func executeWorkflow(
 		false,
 	)
 	var activityMeter metric.Meter
-	disableReaper := true
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+
+	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
+
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
@@ -1792,6 +1833,8 @@ func executeWorkflow(
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
+	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
+	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})

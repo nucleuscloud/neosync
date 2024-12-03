@@ -994,6 +994,294 @@ paths:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.SetRunContextResponse'
   /mgmt.v1alpha1.JobService/SetRunContexts: {}
+  /mgmt.v1alpha1.JobService/GetJobHooks:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobHooks
+      description: Retrieves all job hooks
+      operationId: mgmt.v1alpha1.JobService.GetJobHooks
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksResponse'
+  /mgmt.v1alpha1.JobService/GetJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobHook
+      description: Retrieves a specific job hook
+      operationId: mgmt.v1alpha1.JobService.GetJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookResponse'
+  /mgmt.v1alpha1.JobService/CreateJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CreateJobHook
+      description: Creates a new job hook
+      operationId: mgmt.v1alpha1.JobService.CreateJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookResponse'
+  /mgmt.v1alpha1.JobService/DeleteJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: DeleteJobHook
+      description: Removes a job hook
+      operationId: mgmt.v1alpha1.JobService.DeleteJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookResponse'
+  /mgmt.v1alpha1.JobService/IsJobHookNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: IsJobHookNameAvailable
+      description: Check if a specific job hook name is available
+      operationId: mgmt.v1alpha1.JobService.IsJobHookNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobHook
+      description: Updates a job hook
+      operationId: mgmt.v1alpha1.JobService.UpdateJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookResponse'
+  /mgmt.v1alpha1.JobService/SetJobHookEnabled:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobHookEnabled
+      description: Enables or disables a job hook
+      operationId: mgmt.v1alpha1.JobService.SetJobHookEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledResponse'
+  /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetActiveJobHooksByTiming
+      description: Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+      operationId: mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse'
 components:
   schemas:
     mgmt.v1alpha1.ActivityStatus:
@@ -1024,6 +1312,26 @@ components:
         - GENERATE_EMAIL_TYPE_UNSPECIFIED
         - GENERATE_EMAIL_TYPE_UUID_V4
         - GENERATE_EMAIL_TYPE_FULLNAME
+    mgmt.v1alpha1.GenerateIpAddressType:
+      type: string
+      title: GenerateIpAddressType
+      enum:
+        - GENERATE_IP_ADDRESS_TYPE_UNSPECIFIED
+        - GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_A
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_B
+        - GENERATE_IP_ADDRESS_TYPE_V4_PRIVATE_C
+        - GENERATE_IP_ADDRESS_TYPE_V4_LINK_LOCAL
+        - GENERATE_IP_ADDRESS_TYPE_V4_MULTICAST
+        - GENERATE_IP_ADDRESS_TYPE_V4_LOOPBACK
+        - GENERATE_IP_ADDRESS_TYPE_V6
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing:
+      type: string
+      title: Timing
+      enum:
+        - TIMING_UNSPECIFIED
+        - TIMING_PRESYNC
+        - TIMING_POSTSYNC
     mgmt.v1alpha1.InvalidEmailAction:
       type: string
       title: InvalidEmailAction
@@ -1133,6 +1441,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_COUNTRY
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
+        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -1527,6 +1836,30 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: CreateJobDestinationConnectionsResponse
       additionalProperties: false
+    mgmt.v1alpha1.CreateJobHookRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          description: The unique identifier of the job
+        hook:
+          allOf:
+            - title: hook
+              description: The new hook configuration
+            - $ref: '#/components/schemas/mgmt.v1alpha1.NewJobHook'
+      title: CreateJobHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CreateJobHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The newly created hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: CreateJobHookResponse
+      additionalProperties: false
     mgmt.v1alpha1.CreateJobRequest:
       type: object
       allOf:
@@ -1641,6 +1974,20 @@ components:
     mgmt.v1alpha1.DeleteJobDestinationConnectionResponse:
       type: object
       title: DeleteJobDestinationConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteJobHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+      title: DeleteJobHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteJobHookResponse:
+      type: object
+      title: DeleteJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobRequest:
       type: object
@@ -2071,6 +2418,30 @@ components:
       type: object
       title: GenerateInt64PhoneNumber
       additionalProperties: false
+    mgmt.v1alpha1.GenerateIpAddress:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - ipType
+            - not:
+                anyOf:
+                  - required:
+                      - ipType
+      anyOf:
+        - required:
+            - ipType
+        - not:
+            anyOf:
+              - required:
+                  - ipType
+      properties:
+        ipType:
+          allOf:
+            - title: ip_type
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
+      title: GenerateIpAddress
+      additionalProperties: false
     mgmt.v1alpha1.GenerateJavascript:
       type: object
       properties:
@@ -2277,6 +2648,73 @@ components:
     mgmt.v1alpha1.GenerateZipcode:
       type: object
       title: GenerateZipcode
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job
+        timing:
+          allOf:
+            - title: timing
+              description: The timing desired.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing'
+      title: GetActiveJobHooksByTimingRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveJobHooksByTimingResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hooks
+          description: The active job hooks
+      title: GetActiveJobHooksByTimingResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+      title: GetJobHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The found hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: GetJobHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobHooksRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job
+      title: GetJobHooksRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobHooksResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hooks
+          description: The list of hooks found attached to the job
+      title: GetJobHooksResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobNextRunsRequest:
       type: object
@@ -2573,6 +3011,28 @@ components:
           format: byte
       title: GetRunContextResponse
       additionalProperties: false
+    mgmt.v1alpha1.IsJobHookNameAvailableRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          description: The unique identifier of the job
+        name:
+          type: string
+          title: name
+          description: The hook name to check.
+      title: IsJobHookNameAvailableRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsJobHookNameAvailableResponse:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+          title: is_available
+          description: Whether or not the hook name is available
+      title: IsJobHookNameAvailableResponse
+      additionalProperties: false
     mgmt.v1alpha1.IsJobNameAvailableRequest:
       type: object
       properties:
@@ -2673,6 +3133,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
+          description: Any virtual foreign keys that are configured as a part of this job
       title: Job
       additionalProperties: false
     mgmt.v1alpha1.JobDestination:
@@ -2789,6 +3250,163 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlDestinationConnectionOptions'
       title: JobDestinationOptions
       additionalProperties: false
+    mgmt.v1alpha1.JobHook:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of this hook.
+        name:
+          type: string
+          title: name
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          description: Description of what this hook does.
+        jobId:
+          type: string
+          title: job_id
+          description: The unique identifier of the job this hook belongs to.
+        config:
+          allOf:
+            - title: config
+              description: Hook-type specific configuration.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+        createdByUserId:
+          type: string
+          title: created_by_user_id
+          description: The user that created this hook.
+        createdAt:
+          allOf:
+            - title: created_at
+              description: The time this hook was created.
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        updatedByUserId:
+          type: string
+          title: updated_by_user_id
+          description: The user that last updated this hook.
+        updatedAt:
+          allOf:
+            - title: updated_at
+              description: The last time this hook was updated.
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+        priority:
+          type: integer
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+      title: JobHook
+      additionalProperties: false
+    mgmt.v1alpha1.JobHookConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - sql
+            - not:
+                anyOf:
+                  - required:
+                      - sql
+      anyOf:
+        - required:
+            - sql
+        - not:
+            anyOf:
+              - required:
+                  - sql
+      properties:
+        sql:
+          allOf:
+            - title: sql
+              description: Configuration for SQL-specific hooks.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook'
+      title: JobHookConfig
+      additionalProperties: false
+      description: Contains the specific hook type configurations.
+    mgmt.v1alpha1.JobHookConfig.JobSqlHook:
+      type: object
+      properties:
+        query:
+          type: string
+          title: query
+          minLength: 1
+          description: The SQL query to execute
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
+        timing:
+          allOf:
+            - title: timing
+              description: The timing of when the hook will run
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing'
+      title: JobSqlHook
+      additionalProperties: false
+      description: Configuration for SQL-based hooks
+    mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - postSync
+            - required:
+                - preSync
+            - not:
+                anyOf:
+                  - required:
+                      - postSync
+                  - required:
+                      - preSync
+      anyOf:
+        - required:
+            - postSync
+        - required:
+            - preSync
+        - not:
+            anyOf:
+              - required:
+                  - postSync
+              - required:
+                  - preSync
+      properties:
+        preSync:
+          allOf:
+            - title: pre_sync
+              description: |-
+                A Pre-Sync timing.
+                 Will run before the first table sync.
+                 Will run before Truncation, if enabled.
+                 Will run before Schema Init, if enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPreSync'
+        postSync:
+          allOf:
+            - title: post_sync
+              description: A Post-Sync timing. Will run after the last table sync.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPostSync'
+      title: Timing
+      additionalProperties: false
+    mgmt.v1alpha1.JobHookTimingPostSync:
+      type: object
+      title: JobHookTimingPostSync
+      additionalProperties: false
+      description: Configures the job hook to run after the last table sync.
+    mgmt.v1alpha1.JobHookTimingPreSync:
+      type: object
+      title: JobHookTimingPreSync
+      additionalProperties: false
+      description: |-
+        Configures the job hook to run before the first table sync.
+         Will run before Truncation, if enabled.
+         Will run before Schema Init, if enabled.
     mgmt.v1alpha1.JobMapping:
       type: object
       properties:
@@ -3462,6 +4080,37 @@ components:
           title: truncate_before_insert
       title: MysqlTruncateTableConfig
       additionalProperties: false
+    mgmt.v1alpha1.NewJobHook:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        config:
+          allOf:
+            - title: config
+              description: Hook-type specific configuration.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+        priority:
+          type: integer
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+      title: NewJobHook
+      additionalProperties: false
     mgmt.v1alpha1.Null:
       type: object
       title: "Null"
@@ -3965,6 +4614,30 @@ components:
           description: The Neosync Account ID
       title: RunContextKey
       additionalProperties: false
+    mgmt.v1alpha1.SetJobHookEnabledRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: SetJobHookEnabledRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetJobHookEnabledResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The updated job hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: SetJobHookEnabledResponse
+      additionalProperties: false
     mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest:
       type: object
       properties:
@@ -4383,6 +5056,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TransformPiiText:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - language
+            - not:
+                anyOf:
+                  - required:
+                      - language
+      anyOf:
+        - required:
+            - language
+        - not:
+            anyOf:
+              - required:
+                  - language
       properties:
         scoreThreshold:
           type: number
@@ -4415,6 +5103,13 @@ components:
             type: string
           title: allowed_phrases
           description: Exact match of PII phrases identified by the analysis engine.
+        language:
+          type: string
+          title: language
+          description: |-
+            Two characters for the desired language in ISO_639-1 format.
+             If not provided, will use a default language if specified on the server.
+             Depending on the server configuration, may attempt to autodetect from input.
       title: TransformPiiText
       additionalProperties: false
       description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
@@ -4477,6 +5172,8 @@ components:
                 - generateInt64Config
             - required:
                 - generateInt64PhoneNumberConfig
+            - required:
+                - generateIpAddressConfig
             - required:
                 - generateJavascriptConfig
             - required:
@@ -4570,6 +5267,8 @@ components:
                   - required:
                       - generateInt64PhoneNumberConfig
                   - required:
+                      - generateIpAddressConfig
+                  - required:
                       - generateJavascriptConfig
                   - required:
                       - generateLastNameConfig
@@ -4660,6 +5359,8 @@ components:
             - generateInt64Config
         - required:
             - generateInt64PhoneNumberConfig
+        - required:
+            - generateIpAddressConfig
         - required:
             - generateJavascriptConfig
         - required:
@@ -4752,6 +5453,8 @@ components:
                   - generateInt64Config
               - required:
                   - generateInt64PhoneNumberConfig
+              - required:
+                  - generateIpAddressConfig
               - required:
                   - generateJavascriptConfig
               - required:
@@ -4992,6 +5695,10 @@ components:
           allOf:
             - title: generate_business_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
+        generateIpAddressConfig:
+          allOf:
+            - title: generate_ip_address_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobDestinationConnectionRequest:
@@ -5022,6 +5729,52 @@ components:
             - title: job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: UpdateJobDestinationConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateJobHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the hook
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        config:
+          allOf:
+            - title: config
+              description: Hook-type specific configuration.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+        priority:
+          type: integer
+          title: priority
+          maximum: 100
+          description: |-
+            The priority of the hook (0-100). This determines the execution order. Lower values are higher priority (priority=0 is the highest).
+             Tie Breaking is determined by the following: (priority, created_at, id) in ascending order.
+      title: UpdateJobHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateJobHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - title: hook
+              description: The updated job hook
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+      title: UpdateJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobScheduleRequest:
       type: object

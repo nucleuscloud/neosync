@@ -12,7 +12,11 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "testdata/javascript-transformers",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
-			JobMappings:     getJsTransformerJobmappings(),
+			JobOptions: &workflow_testdata.TestJobOptions{
+				Truncate:        false,
+				TruncateCascade: false,
+			},
+			JobMappings: getJsTransformerJobmappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 13},
 			},
@@ -22,7 +26,11 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "testdata/javascript-transformers",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
-			JobMappings:     getJsGeneratorJobmappings(),
+			JobOptions: &workflow_testdata.TestJobOptions{
+				Truncate:        false,
+				TruncateCascade: false,
+			},
+			JobMappings: getJsGeneratorJobmappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 13},
 			},

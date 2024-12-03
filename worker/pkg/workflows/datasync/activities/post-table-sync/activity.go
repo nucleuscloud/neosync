@@ -9,9 +9,10 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -48,6 +49,7 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
@@ -60,7 +62,7 @@ func (a *Activity) RunPostTableSync(
 		loggerKeyVals...,
 	)
 	logger.Debug("running post table sync activity")
-	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := temporallogger.NewSlogger(logger)
 
 	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
@@ -70,7 +72,7 @@ func (a *Activity) RunPostTableSync(
 		},
 	}))
 	if err != nil && runContextNotFound(err) {
-		slogger.Info("no runcontext found. continuing")
+		slogger.Debug("no runcontext found. continuing")
 		return nil, nil
 	} else if err != nil && !runContextNotFound(err) {
 		return nil, fmt.Errorf("unable to retrieve posttablesync runcontext for %s: %w", req.Name, err)
@@ -93,6 +95,13 @@ func (a *Activity) RunPostTableSync(
 		return &RunPostTableSyncResponse{}, nil
 	}
 
+	destconns := []*sqlmanager.SqlConnection{}
+	defer func() {
+		for _, conn := range destconns {
+			conn.Db().Close()
+		}
+	}()
+
 	for destConnectionId, destCfg := range config.DestinationConfigs {
 		slogger.Debug(fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)), "destinationConnectionId", destConnectionId)
 		if len(destCfg.Statements) == 0 {
@@ -104,13 +113,13 @@ func (a *Activity) RunPostTableSync(
 		}
 		switch destinationConnection.GetConnectionConfig().GetConfig().(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			destDb, err := a.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
 			if err != nil {
-				destDb.Db.Close()
 				slogger.Error("unable to connection to destination", "connectionId", destConnectionId)
 				continue
 			}
-			err = destDb.Db.BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
+			destconns = append(destconns, destDb)
+			err = destDb.Db().BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
 			if err != nil {
 				slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
 				continue

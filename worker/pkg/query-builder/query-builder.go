@@ -1,23 +1,16 @@
 package querybuilder
 
 import (
-	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
-	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
-	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
 const defaultStr = "DEFAULT"
@@ -35,7 +28,7 @@ type SubsetColumnConstraint struct {
 
 func getGoquDialect(driver string) goqu.DialectWrapper {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return goqu.Dialect("postgres")
+		return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
 	}
 	return goqu.Dialect(driver)
 }
@@ -82,110 +75,11 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
-	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(logger, row, columnDataTypes, columnDefaultProperties)
-	}
-	if driver == sqlmanager_shared.MysqlDriver {
-		return getMysqlGoquVals(logger, row, columnDataTypes, columnDefaultProperties)
-	}
-	gval := goqu.Vals{}
-	for idx, a := range row {
-		var colDefaults *neosync_benthos.ColumnDefaultProperties
-		if idx < len(columnDefaultProperties) {
-			colDefaults = columnDefaultProperties[idx]
-		}
-		if colDefaults != nil && colDefaults.HasDefaultTransformer {
-			gval = append(gval, goqu.Literal(defaultStr))
-		} else if gotypeutil.IsMap(a) {
-			bits, err := gotypeutil.MapToJson(a)
-			if err != nil {
-				logger.Error("unable to marshal map to JSON", "error", err.Error())
-				gval = append(gval, a)
-			} else {
-				gval = append(gval, bits)
-			}
-		} else {
-			gval = append(gval, a)
-		}
-	}
-	return gval
-}
-
-func getMysqlGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
-	gval := goqu.Vals{}
-	for idx, a := range row {
-		var colDataType string
-		if idx < len(columnDataTypes) {
-			colDataType = columnDataTypes[idx]
-		}
-		var colDefaults *neosync_benthos.ColumnDefaultProperties
-		if idx < len(columnDefaultProperties) {
-			colDefaults = columnDefaultProperties[idx]
-		}
-		if colDefaults != nil && colDefaults.HasDefaultTransformer {
-			gval = append(gval, goqu.Literal(defaultStr))
-		} else if mysqlutil.IsJsonDataType(colDataType) {
-			bits, err := json.Marshal(a)
-			if err != nil {
-				logger.Error("unable to marshal JSON", "error", err.Error())
-				gval = append(gval, a)
-				continue
-			}
-			gval = append(gval, bits)
-		} else {
-			gval = append(gval, a)
-		}
-	}
-	return gval
-}
-
-func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
-	gval := goqu.Vals{}
-	for i, a := range row {
-		var colDataType string
-		if i < len(columnDataTypes) {
-			colDataType = columnDataTypes[i]
-		}
-		var colDefaults *neosync_benthos.ColumnDefaultProperties
-		if i < len(columnDefaultProperties) {
-			colDefaults = columnDefaultProperties[i]
-		}
-		if pgutil.IsJsonPgDataType(colDataType) {
-			bits, err := json.Marshal(a)
-			if err != nil {
-				logger.Error("unable to marshal JSON", "error", err.Error())
-				gval = append(gval, a)
-				continue
-			}
-			gval = append(gval, bits)
-		} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
-			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
-		} else if gotypeutil.IsSlice(a) {
-			s, err := gotypeutil.ParseSlice(a)
-			if err != nil {
-				logger.Error("unable to parse slice", "error", err.Error())
-				gval = append(gval, a)
-				continue
-			}
-			gval = append(gval, pq.Array(s))
-		} else if colDefaults != nil && colDefaults.HasDefaultTransformer {
-			gval = append(gval, goqu.Literal(defaultStr))
-		} else {
-			gval = append(gval, a)
-		}
-	}
-	return gval
-}
-
 func BuildInsertQuery(
-	logger *slog.Logger,
 	driver, schema, table string,
 	columns []string,
-	columnDataTypes []string,
-	values [][]any,
+	values []goqu.Vals,
 	onConflictDoNothing *bool,
-	columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
 ) (sql string, args []any, err error) {
 	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
@@ -195,8 +89,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
-		insert = insert.Vals(gval)
+		insert = insert.Vals(row)
 	}
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {
@@ -208,6 +101,50 @@ func BuildInsertQuery(
 		return "", nil, err
 	}
 	return query, args, nil
+}
+
+// BuildPreparedQuery creates a prepared statement query template
+func BuildPreparedInsertQuery(
+	driver, schema, table string,
+	columns []string,
+	rowCount int,
+	onConflictDoNothing bool,
+) (string, error) {
+	if rowCount < 1 {
+		rowCount = 1
+	}
+
+	builder := getGoquDialect(driver)
+	sqltable := goqu.S(schema).Table(table)
+
+	insertCols := make([]any, len(columns))
+	for i, col := range columns {
+		insertCols[i] = col
+	}
+
+	insert := builder.Insert(sqltable).
+		Prepared(true).
+		Cols(insertCols...)
+
+	// Add placeholder rows based on rowCount
+	for i := 0; i < rowCount; i++ {
+		placeholderRow := make(goqu.Vals, len(columns))
+		for j := range columns {
+			placeholderRow[j] = nil
+		}
+		insert = insert.Vals(placeholderRow)
+	}
+
+	if onConflictDoNothing {
+		insert = insert.OnConflict(goqu.DoNothing())
+	}
+
+	query, _, err := insert.ToSQL()
+	if err != nil {
+		return "", err
+	}
+
+	return query, nil
 }
 
 func BuildUpdateQuery(

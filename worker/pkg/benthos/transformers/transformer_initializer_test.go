@@ -445,6 +445,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFirstNameConfig_Nil", func(t *testing.T) {
@@ -458,6 +459,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFloat64Config", func(t *testing.T) {
@@ -554,6 +556,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateFullNameConfig_Nil", func(t *testing.T) {
@@ -567,6 +570,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateGenderConfig", func(t *testing.T) {
@@ -710,7 +714,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateLastNameConfig_Nil", func(t *testing.T) {
@@ -724,7 +728,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
 	})
 
 	t.Run("GenerateSha256HashConfig_Empty", func(t *testing.T) {
@@ -1561,9 +1565,10 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Return(&presidioapi.PostAnonymizeResponse{
 				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
 			}, nil)
+		defaultLan := "en"
 
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)
@@ -1597,9 +1602,9 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Return(&presidioapi.PostAnonymizeResponse{
 				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
 			}, nil)
-
+		defaultLan := "en"
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)
@@ -1631,6 +1636,38 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	t.Run("GenerateBusinessNameConfig_Nil", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateIpAddressConfig_Empty", func(t *testing.T) {
+
+		ipType := mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
+					IpType: &ipType,
+				},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateIpAddressConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)

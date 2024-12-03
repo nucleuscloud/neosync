@@ -2,11 +2,8 @@ package integrationtests_test
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -20,12 +17,12 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
@@ -36,11 +33,13 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 )
 
 var (
@@ -91,7 +90,7 @@ type NeosyncApiTestClient struct {
 // Option is a functional option for configuring Neosync Api Test Client
 type Option func(*NeosyncApiTestClient)
 
-func NewNeosyncApiTestClient(ctx context.Context, t *testing.T, opts ...Option) (*NeosyncApiTestClient, error) {
+func NewNeosyncApiTestClient(ctx context.Context, t testing.TB, opts ...Option) (*NeosyncApiTestClient, error) {
 	neoApi := &NeosyncApiTestClient{
 		migrationsDir: "../../../../sql/postgresql/schema",
 	}
@@ -129,6 +128,10 @@ func (s *NeosyncCloudClients) GetAnonymizeClient(authUserId string) mgmtv1alpha1
 	return mgmtv1alpha1connect.NewAnonymizationServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
+func (s *NeosyncCloudClients) GetJobClient(authUserId string) mgmtv1alpha1connect.JobServiceClient {
+	return mgmtv1alpha1connect.NewJobServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+}
+
 type AuthdClients struct {
 	httpsrv *httptest.Server
 }
@@ -141,7 +144,7 @@ func (s *AuthdClients) GetConnectionClient(authUserId string) mgmtv1alpha1connec
 	return mgmtv1alpha1connect.NewConnectionServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
-func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
+func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	pgcontainer, err := tcpostgres.NewPostgresTestContainer(ctx)
 	if err != nil {
 		return err
@@ -183,16 +186,16 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		nil,
 	)
 
+	sqlmanagerclient := NewTestSqlManagerClient()
+
 	authdConnectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		authdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
@@ -216,12 +219,24 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		neoCloudAuthdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
+	)
+	neoCloudJobHookService := jobhooks.New(
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		neoCloudAuthdUserService,
+		jobhooks.WithEnabled(),
+	)
+	neoCloudJobService := v1alpha1_jobservice.New(
+		&v1alpha1_jobservice.Config{IsNeosyncCloud: true, IsAuthEnabled: true},
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		s.Mocks.TemporalClientManager,
+		neoCloudConnectionService,
+		neoCloudAuthdUserService,
+		sqlmanagerclient,
+		neoCloudJobHookService,
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
@@ -238,12 +253,15 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mssql_queries.New(),
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
+		sqlmanagerclient,
+		&sqlconnect.SqlOpenConnector{},
+	)
+
+	jobhookService := jobhooks.New(
+		neosyncdb.New(pgcontainer.DB, db_queries.New()),
+		unauthdUserService,
 	)
 
 	unauthdJobsService := v1alpha1_jobservice.New(
@@ -252,12 +270,8 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		s.Mocks.TemporalClientManager,
 		unauthdConnectionsService,
 		unauthdUserService,
-		sqlmanager.NewSqlManager(
-			&sync.Map{}, pg_queries.New(),
-			&sync.Map{}, mysql_queries.New(),
-			&sync.Map{}, mssql_queries.New(),
-			&sqlconnect.SqlOpenConnector{},
-		),
+		sqlmanagerclient,
+		jobhookService,
 	)
 
 	unauthdConnectionDataService := v1alpha1_connectiondataservice.New(
@@ -270,12 +284,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		pg_queries.New(),
 		mysql_queries.New(),
 		mongoconnect.NewConnector(),
-		sqlmanager.NewSqlManager(
-			&sync.Map{}, pg_queries.New(),
-			&sync.Map{}, mysql_queries.New(),
-			&sync.Map{}, mssql_queries.New(),
-			&sqlconnect.SqlOpenConnector{},
-		),
+		sqlmanagerclient,
 		neosync_gcp.NewManager(),
 	)
 
@@ -358,6 +367,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		neoCloudConnectionService,
 		authinterceptors,
 	))
+	ncauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(
+		neoCloudJobService,
+		authinterceptors,
+	))
 	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
 
 	s.httpsrv = startHTTPServer(t, rootmux)
@@ -379,16 +392,15 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		basepath: "/ncauth",
 	}
 
-	err = s.InitializeTest(ctx)
+	err = s.InitializeTest(ctx, t)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context) error {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, discardLogger)
+func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
+	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(t))
 	if err != nil {
 		return err
 	}
@@ -444,9 +456,6 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 
 func NewTestSqlManagerClient() *sqlmanager.SqlManager {
 	return sqlmanager.NewSqlManager(
-		&sync.Map{}, pg_queries.New(),
-		&sync.Map{}, mysql_queries.New(),
-		&sync.Map{}, mssql_queries.New(),
-		&sqlconnect.SqlOpenConnector{},
+		sqlmanager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 }

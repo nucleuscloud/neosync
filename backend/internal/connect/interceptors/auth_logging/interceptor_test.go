@@ -3,10 +3,8 @@ package authlogging_interceptor
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -19,12 +17,13 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Interceptor_WrapUnary_JwtContextData_ValidUser(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
@@ -53,7 +52,7 @@ func Test_Interceptor_WrapUnary_JwtContextData_ValidUser(t *testing.T) {
 }
 
 func Test_Interceptor_WrapUnary_JwtContextData_NoUser_NoFail(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)

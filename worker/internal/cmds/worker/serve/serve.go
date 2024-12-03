@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -17,16 +16,19 @@ import (
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
 	"github.com/go-logr/logr"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -67,6 +69,18 @@ func NewCmd() *cobra.Command {
 func serve(ctx context.Context) error {
 	logger, loglogger := neosynclogger.NewLoggers()
 	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
+
+	eelicense, err := license.NewFromEnv()
+	if err != nil {
+		return fmt.Errorf("unable to initialize ee license from env: %w", err)
+	}
+	logger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
+
+	ncloudlicense, err := cloudlicense.NewFromEnv()
+	if err != nil {
+		return err
+	}
+	logger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
 	var syncActivityMeter metric.Meter
 	temporalClientInterceptors := []interceptor.ClientInterceptor{}
@@ -247,12 +261,10 @@ func serve(ctx context.Context) error {
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-	mssqlpoolmap := &sync.Map{}
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
-	mssqlquerier := mssql_queries.New()
+	cascadelicense := license.NewCascadeLicense(
+		ncloudlicense,
+		eelicense,
+	)
 
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
@@ -261,8 +273,17 @@ func serve(ctx context.Context) error {
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-	sqlconnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
+
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+	go sqlconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
+
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(logger)
+	defer sqlconnmanager.Shutdown(logger)
+
+	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
+
 	redisconfig := shared.GetRedisConfig()
 
 	genbenthosActivity := genbenthosconfigs_activity.New(
@@ -273,12 +294,20 @@ func serve(ctx context.Context) error {
 		redisconfig,
 		otelconfig.IsEnabled,
 	)
-	disableReaper := false
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+
+	syncActivity := sync_activity.New(
+		connclient,
+		jobclient,
+		sqlconnmanager,
+		mongoconnmanager,
+		syncActivityMeter,
+		sync_activity.NewBenthosStreamManager(),
+	)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
+	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
@@ -288,6 +317,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
+	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal worker: %w", err)

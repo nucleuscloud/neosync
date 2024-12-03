@@ -69,7 +69,7 @@ func mongoConfigSpec() *service.ConfigSpec {
 }
 
 type MongoPoolProvider interface {
-	GetClient(url string) (MongoClient, error)
+	GetClient(ctx context.Context, connectionId string) (MongoClient, error)
 }
 
 type MongoClient interface {
@@ -93,7 +93,7 @@ func newMongoInput(conf *service.ParsedConfig, clientProvider MongoPoolProvider,
 		sort             map[string]int
 	)
 
-	mongoUrl, err := conf.FieldString(commonFieldClientURL)
+	neosyncConnectionId, err := conf.FieldString(commonFieldClientConnectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func newMongoInput(conf *service.ParsedConfig, clientProvider MongoPoolProvider,
 		}
 	}
 
-	mClient, err := clientProvider.GetClient(mongoUrl)
+	mClient, err := clientProvider.GetClient(context.Background(), neosyncConnectionId)
 	if err != nil {
 		return nil, err
 	}

@@ -370,6 +370,10 @@ const transformPiiTextConfig = Yup.object({
   // todo: add in default anonymizer fields
 });
 
+const generateIpAddressConfig = Yup.object({
+  ipType: Yup.string().default('GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC'),
+});
+
 type ConfigType = TransformerConfig['config'];
 
 // Helper function to extract the 'case' property from a config type
@@ -433,6 +437,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateStateConfig: generateStateConfig,
   generateCountryConfig: generateCountryConfig,
   generateBusinessNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateIpAddressConfig: generateIpAddressConfig,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;

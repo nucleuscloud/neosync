@@ -132,7 +132,9 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 			DataType:    "character varying",
 		}}
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
@@ -189,7 +191,9 @@ func Test_GetConnectionSchema_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return(mockColumns, nil)
@@ -217,7 +221,9 @@ func Test_GetConnectionSchema_NoRows(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{}, nil)
 
@@ -242,7 +248,9 @@ func Test_GetConnectionSchema_Error(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{}, errors.New("oh no"))
 
@@ -266,7 +274,9 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -306,7 +316,9 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -358,7 +370,9 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -400,7 +414,9 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 		Connection: connection,
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -441,7 +457,9 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.MysqlDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -492,7 +510,9 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.MysqlDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -528,7 +548,9 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	m := createServiceMock(t)
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -580,7 +602,9 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -659,7 +683,19 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector, mockSqlManager, mockGcpManager)
+	service := New(
+		&Config{},
+		mockUserAccountService,
+		mockConnectionService,
+		mockJobService,
+		mockAwsManager,
+		mockSqlConnector,
+		mockPgquerier,
+		mockMysqlquerier,
+		mockMongoConnector,
+		mockSqlManager,
+		mockGcpManager,
+	)
 
 	return &serviceMocks{
 		Service:                service,
@@ -877,7 +913,9 @@ func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.MysqlDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewMysqlSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{
@@ -921,7 +959,9 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 		Connection: connection,
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: m.DbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Twice().Return(
+		sqlmanager.NewPostgresSqlConnection(m.DbMock), nil,
+	)
 	m.DbMock.On("Close").Return(nil)
 
 	m.DbMock.On("GetDatabaseSchema", mock.Anything).Return([]*sqlmanager_shared.DatabaseSchemaRow{

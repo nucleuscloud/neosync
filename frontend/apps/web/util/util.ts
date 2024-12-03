@@ -4,6 +4,7 @@ import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   AwsS3DestinationConnectionOptions_StorageClass,
   GenerateEmailType,
+  GenerateIpAddressType,
   InvalidEmailAction,
   SupportedJobType,
   SystemTransformer,
@@ -12,6 +13,7 @@ import {
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
 
 export function formatDateTime(
   dateStr?: string | Date | number,
@@ -167,9 +169,19 @@ export function isInvalidTransformer(transformer: Transformer): boolean {
   return transformer.config == null;
 }
 
-export function getTransformerSelectButtonText(
+export function useTransformerSelectButtonText(
   transformer: Transformer,
   defaultText: string = 'Select Transformer'
+): string {
+  return useMemo(
+    () => getTransformerSelectButtonText(transformer, defaultText),
+    [transformer.name, defaultText, transformer.config]
+  );
+}
+
+export function getTransformerSelectButtonText(
+  transformer: Transformer,
+  defaultText: string = 'Transformer'
 ): string {
   return isInvalidTransformer(transformer) ? defaultText : transformer.name;
 }
@@ -190,4 +202,11 @@ export function getFilterdTransformersByType(
     dataType: datatype,
     jobType: SupportedJobType.SYNC,
   });
+}
+
+export function getGenerateIpAddressVersionString(
+  type: GenerateIpAddressType
+): string {
+  const value = GenerateIpAddressType[type];
+  return value ? value.toLowerCase() : 'unknown';
 }

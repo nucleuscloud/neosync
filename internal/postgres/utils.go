@@ -3,12 +3,14 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 type PgxArray[T any] struct {
@@ -20,7 +22,71 @@ type PgxArray[T any] struct {
 // properly handles scanning postgres arrays
 func (a *PgxArray[T]) Scan(src any) error {
 	m := pgtype.NewMap()
-	pgt, ok := m.TypeForName(strings.ToLower(a.colDataType))
+	// Register money types
+	m.RegisterType(&pgtype.Type{
+		Name:  "money",
+		OID:   790,
+		Codec: pgtype.TextCodec{},
+	})
+	m.RegisterType(&pgtype.Type{
+		Name: "_money",
+		OID:  791,
+		Codec: &pgtype.ArrayCodec{
+			ElementType: &pgtype.Type{
+				Name:  "money",
+				OID:   790,
+				Codec: pgtype.TextCodec{},
+			},
+		},
+	})
+
+	// Register UUID types
+	m.RegisterType(&pgtype.Type{
+		Name:  "uuid",
+		OID:   2950, // UUID type OID
+		Codec: pgtype.TextCodec{},
+	})
+
+	m.RegisterType(&pgtype.Type{
+		Name: "_uuid",
+		OID:  2951,
+		Codec: &pgtype.ArrayCodec{
+			ElementType: &pgtype.Type{
+				Name:  "uuid",
+				OID:   2950,
+				Codec: pgtype.TextCodec{},
+			},
+		},
+	})
+
+	// Register XML type
+	m.RegisterType(&pgtype.Type{
+		Name:  "xml",
+		OID:   142,
+		Codec: pgtype.TextCodec{},
+	})
+
+	m.RegisterType(&pgtype.Type{
+		Name: "_xml",
+		OID:  143,
+		Codec: &pgtype.ArrayCodec{
+			ElementType: &pgtype.Type{
+				Name:  "xml",
+				OID:   142,
+				Codec: pgtype.TextCodec{},
+			},
+		},
+	})
+
+	// Try to get the type by OID first if colDataType is numeric
+	var pgt *pgtype.Type
+	var ok bool
+
+	if oid, err := strconv.Atoi(a.colDataType); err == nil {
+		pgt, ok = m.TypeForOID(uint32(oid)) //nolint:gosec
+	} else {
+		pgt, ok = m.TypeForName(strings.ToLower(a.colDataType))
+	}
 	if !ok {
 		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.colDataType)
 	}
@@ -34,11 +100,47 @@ func (a *PgxArray[T]) Scan(src any) error {
 		case []byte:
 			bufSrc = src
 		default:
-			bufSrc = []byte(fmt.Sprint(bufSrc))
+			bufSrc = []byte(fmt.Sprint(src))
 		}
 	}
 
 	return m.Scan(pgt.OID, pgtype.TextFormatCode, bufSrc, v)
+}
+
+type NullableJSON struct {
+	json.RawMessage
+	Valid bool
+}
+
+// Nullable JSON scanner
+func (n *NullableJSON) Scan(value any) error {
+	if value == nil {
+		n.RawMessage, n.Valid = nil, false
+		return nil
+	}
+
+	n.Valid = true
+	switch v := value.(type) {
+	case []byte:
+		n.RawMessage = json.RawMessage(v)
+		return nil
+	case string:
+		n.RawMessage = json.RawMessage(v)
+		return nil
+	default:
+		return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type %T", value, n.RawMessage)
+	}
+}
+
+func (n *NullableJSON) Unmarshal() (any, error) {
+	if !n.Valid {
+		return nil, nil
+	}
+	var js any
+	if err := json.Unmarshal(n.RawMessage, &js); err != nil {
+		return nil, err
+	}
+	return js, nil
 }
 
 func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
@@ -52,53 +154,77 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
-	columnDbTypes := []string{}
-	for _, c := range cTypes {
-		columnDbTypes = append(columnDbTypes, c.DatabaseTypeName())
-	}
-
 	values := make([]any, len(columnNames))
-	valuesWrapped := make([]any, 0, len(columnNames))
+	scanTargets := make([]any, 0, len(columnNames))
 	for i := range values {
-		ctype := cTypes[i]
-		if IsPgArrayType(ctype.DatabaseTypeName()) {
-			// use custom array type scanner
-			values[i] = &PgxArray[any]{
-				colDataType: ctype.DatabaseTypeName(),
-			}
-			valuesWrapped = append(valuesWrapped, values[i])
-		} else {
-			valuesWrapped = append(valuesWrapped, &values[i])
+		dbTypeName := cTypes[i].DatabaseTypeName()
+		switch {
+		case isXmlDataType(dbTypeName):
+			values[i] = &sql.NullString{}
+			scanTargets = append(scanTargets, values[i])
+		case IsJsonPgDataType(dbTypeName):
+			values[i] = &NullableJSON{}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_interval"):
+			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "interval"):
+			values[i] = &pgtype.Interval{}
+			scanTargets = append(scanTargets, values[i])
+		case isPgxPgArrayType(dbTypeName):
+			values[i] = &PgxArray[any]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		default:
+			scanTargets = append(scanTargets, &values[i])
 		}
 	}
-	if err := rows.Scan(valuesWrapped...); err != nil {
+	if err := rows.Scan(scanTargets...); err != nil {
 		return nil, err
 	}
 
-	jObj := parsePgRowValues(values, columnNames, columnDbTypes)
+	jObj := parsePgRowValues(values, columnNames)
 	return jObj, nil
 }
 
-func parsePgRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
+func parsePgRowValues(values []any, columnNames []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		ctype := columnDbTypes[i]
 		switch t := v.(type) {
-		case []byte:
-			if IsJsonPgDataType(ctype) {
-				var js any
-				if err := json.Unmarshal(t, &js); err == nil {
-					jObj[col] = js
-					continue
-				}
-			} else if isBinaryDataType(ctype) {
+		case nil:
+			jObj[col] = t
+		case *sql.NullString:
+			var val any = nil
+			if t.Valid {
+				val = t.String
+			}
+			jObj[col] = val
+		case *NullableJSON:
+			js, err := t.Unmarshal()
+			if err != nil {
+				js = t
+			}
+			jObj[col] = js
+		case *PgxArray[*pgtype.Interval]:
+			ia, err := toIntervalArray(t)
+			if err != nil {
 				jObj[col] = t
 				continue
 			}
-			jObj[col] = string(t)
+			jObj[col] = ia
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
+		case *pgtype.Interval:
+			if !t.Valid {
+				jObj[col] = nil
+				continue
+			}
+			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = neoInterval
 		default:
 			jObj[col] = t
 		}
@@ -106,36 +232,42 @@ func parsePgRowValues(values []any, columnNames, columnDbTypes []string) map[str
 	return jObj
 }
 
-func isBinaryDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "bytea")
+func isXmlDataType(colDataType string) bool {
+	return strings.EqualFold(colDataType, "xml")
 }
 
 func IsJsonPgDataType(dataType string) bool {
 	return strings.EqualFold(dataType, "json") || strings.EqualFold(dataType, "jsonb")
 }
-
-func isJsonArrayPgDataType(dataType string) bool {
-	return strings.EqualFold(dataType, "_json") || strings.EqualFold(dataType, "_jsonb")
-}
-
-func isPgUuidArray(colDataType string) bool {
-	return strings.EqualFold(colDataType, "_uuid")
-}
-
-func isPgXmlArray(colDataType string) bool {
-	return strings.EqualFold(colDataType, "_xml")
-}
-
-func IsPgArrayType(dbTypeName string) bool {
-	return strings.HasPrefix(dbTypeName, "_")
+func isPgxPgArrayType(dbTypeName string) bool {
+	return strings.HasPrefix(dbTypeName, "_") || dbTypeName == "791"
 }
 
 func IsPgArrayColumnDataType(colDataType string) bool {
-	return strings.Contains(colDataType, "[]")
+	return strings.HasSuffix(colDataType, "[]")
+}
+
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return neoIntervalArray, nil
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {
-	goSlice := convertArrayToGoType(array)
+	if array.Elements == nil {
+		return nil
+	}
 
 	dim := array.Dimensions()
 	if len(dim) > 1 {
@@ -143,60 +275,10 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		for _, d := range dim {
 			dims = append(dims, int(d.Length))
 		}
-		return CreateMultiDimSlice(dims, goSlice)
-	}
-	return goSlice
-}
-
-func convertArrayToGoType(array *PgxArray[any]) []any {
-	if !isJsonArrayPgDataType(array.colDataType) {
-		if isPgUuidArray(array.colDataType) {
-			return convertBytesToUuidSlice(array.Elements)
-		}
-		if isPgXmlArray(array.colDataType) {
-			return convertBytesToStringSlice(array.Elements)
-		}
-		return array.Elements
+		return CreateMultiDimSlice(dims, array.Elements)
 	}
 
-	var newArray []any
-	for _, e := range array.Elements {
-		jsonBits, ok := e.([]byte)
-		if !ok {
-			newArray = append(newArray, e)
-			continue
-		}
-
-		var js any
-		err := json.Unmarshal(jsonBits, &js)
-		if err != nil {
-			newArray = append(newArray, e)
-		} else {
-			newArray = append(newArray, js)
-		}
-	}
-
-	return newArray
-}
-
-func convertBytesToStringSlice(bytes []any) []any {
-	stringSlice := []any{}
-	for _, el := range bytes {
-		if bits, ok := el.([]byte); ok {
-			stringSlice = append(stringSlice, string(bits))
-		}
-	}
-	return stringSlice
-}
-
-func convertBytesToUuidSlice(uuids []any) []any {
-	uuidSlice := []any{}
-	for _, el := range uuids {
-		if id, ok := el.([16]uint8); ok {
-			uuidSlice = append(uuidSlice, uuid.UUID(id).String())
-		}
-	}
-	return uuidSlice
+	return array.Elements
 }
 
 // converts flat slice to multi-dimensional slice

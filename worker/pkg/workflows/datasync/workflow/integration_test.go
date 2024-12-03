@@ -134,7 +134,7 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	connstr, err := mssqlcontainer.ConnectionString(s.ctx)
+	connstr, err := mssqlcontainer.ConnectionString(s.ctx, "encrypt=disable")
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func createMssqlTest(ctx context.Context, mssqlcontainer *testmssql.MSSQLServerC
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx, fmt.Sprintf("database=%s", database))
+	connStr, err := mssqlcontainer.ConnectionString(ctx, fmt.Sprintf("database=%s", database), "encrypt=disable")
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +204,10 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 		"docker.io/redis:7",
 		redis.WithSnapshotting(10, 1),
 		redis.WithLogLevel(redis.LogLevelVerbose),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("* Ready to accept connections"),
+			wait.ForExposedPort(),
+		),
 	)
 	if err != nil {
 		return nil, err

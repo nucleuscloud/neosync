@@ -3,11 +3,10 @@ package syncrediscleanup_activity
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"time"
 
 	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	redis "github.com/redis/go-redis/v9"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -32,7 +31,6 @@ func DeleteRedisHash(
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
 		"RunID", activityInfo.WorkflowExecution.RunID,
 	)
-	_ = logger
 	go func() {
 		for {
 			select {
@@ -44,7 +42,7 @@ func DeleteRedisHash(
 		}
 	}()
 
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger := temporallogger.NewSlogger(logger)
 	slogger = slogger.With(
 		"jobId", req.JobId,
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
@@ -57,8 +55,9 @@ func DeleteRedisHash(
 	if err != nil {
 		return nil, err
 	}
+	slogger.Debug("redis client created")
 
-	err = deleteRedisHashByKey(slogger, ctx, redisClient, req.HashKey)
+	err = deleteRedisHashByKey(ctx, redisClient, req.HashKey)
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +65,10 @@ func DeleteRedisHash(
 	return &DeleteRedisHashResponse{}, nil
 }
 
-func deleteRedisHashByKey(logger *slog.Logger, ctx context.Context, client redis.UniversalClient, key string) error {
+func deleteRedisHashByKey(ctx context.Context, client redis.UniversalClient, key string) error {
 	err := client.Del(ctx, key).Err()
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to delete redis hash: %v", err))
-		return err
+		return fmt.Errorf("failed to delete redis hash: %w", err)
 	}
 	return nil
 }

@@ -46,6 +46,8 @@ func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.Search
 	var scheduledByID string
 	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
 	if err != nil {
+		// not returning an error here so that the runs don't break on the frontend due to temporal archiving old workflows
+		// should probably revisit this at some point or if we get bit by trying to do something with an empty job id
 		logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
 	}
 	return scheduledByID

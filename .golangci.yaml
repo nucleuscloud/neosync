@@ -98,14 +98,14 @@ issues:
     - keycloak
   #   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-        - lll
-        - goconst
-        - gosec
     - path: ^mock_.*\.go$
-      text: "exclude mock files"
+      linters:
+        - gocritic
+        - gofmt
+        - goimports
+        - gosimple
+        - stylecheck
+        - whitespace
 
 run:
   timeout: 10m
