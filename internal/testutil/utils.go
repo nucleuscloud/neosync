@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/neilotoole/slogt"
+	"github.com/nucleuscloud/neosync/internal/slogt"
 )
 
 func ShouldRunIntegrationTest() bool {
