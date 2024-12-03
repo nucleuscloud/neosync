@@ -30,6 +30,9 @@ services:
 
       - AUTH_ENABLED=false
 
+    env_file:
+      - ./.env.app.local
+
     networks:
       - neosync-network
     volumes:
@@ -85,6 +88,9 @@ services:
       - DB_LOG_LEVEL=ERROR
 
       - AUTH_ENABLED=false
+
+    env_file:
+      - ./.env.api.local
 
     networks:
       - neosync-network
