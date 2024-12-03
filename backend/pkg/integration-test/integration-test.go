@@ -40,6 +40,7 @@ import (
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -397,6 +398,24 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		return err
 	}
 	return nil
+}
+
+func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
+	s.Mocks.TemporalClientManager.
+		On(
+			"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return(true, nil)
+	s.Mocks.TemporalClientManager.
+		On(
+			"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return("sync-job", nil)
+	s.Mocks.TemporalClientManager.
+		On(
+			"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		).
+		Return(returnId, nil)
 }
 
 func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {

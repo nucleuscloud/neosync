@@ -3,7 +3,7 @@ package datasync_workflow_tests
 import (
 	"context"
 	"fmt"
-	"sync"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -12,6 +12,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -20,27 +22,31 @@ import (
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 
-	// testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
+	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 
 	testdata_pgtypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/all-types"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 
-	// testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
+	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 
-	// testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
-	// testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
+	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
+	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
+
 	// testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
-	// testdata_skipfkviolations "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/skip-fk-violations"
+	testdata_skipfkviolations "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/skip-fk-violations"
 
 	"connectrpc.com/connect"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
-	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
-	temporalmocks "go.temporal.io/sdk/mocks"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -54,22 +60,22 @@ const neosyncDbMigrationsPath = "../../../backend/sql/postgresql/schema"
 func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 	drTests := testdata_doublereference.GetSyncTests()
-	// vfkTests := testdata_virtualforeignkeys.GetSyncTests()
-	// cdTests := testdata_circulardependencies.GetSyncTests()
-	// javascriptTests := testdata_javascripttransformers.GetSyncTests()
+	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
+	cdTests := testdata_circulardependencies.GetSyncTests()
+	javascriptTests := testdata_javascripttransformers.GetSyncTests()
 	// pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
-	// subsettingTests := testdata_subsetting.GetSyncTests()
+	subsettingTests := testdata_subsetting.GetSyncTests()
 	pgTypesTests := testdata_pgtypes.GetSyncTests()
-	// skipFkViolationTests := testdata_skipfkviolations.GetSyncTests()
+	skipFkViolationTests := testdata_skipfkviolations.GetSyncTests()
 
 	allTests["Double_References"] = drTests
-	// allTests["Virtual_Foreign_Keys"] = vfkTests
-	// allTests["Circular_Dependencies"] = cdTests
-	// allTests["Javascript_Transformers"] = javascriptTests
+	allTests["Virtual_Foreign_Keys"] = vfkTests
+	allTests["Circular_Dependencies"] = cdTests
+	allTests["Javascript_Transformers"] = javascriptTests
 	// allTests["Primary_Key_Transformers"] = pkTransformationTests
-	// allTests["Subsetting"] = subsettingTests
+	allTests["Subsetting"] = subsettingTests
 	allTests["PG_Types"] = pgTypesTests
-	// allTests["Skip_ForeignKey_Violations"] = skipFkViolationTests
+	allTests["Skip_ForeignKey_Violations"] = skipFkViolationTests
 	return allTests
 }
 
@@ -86,10 +92,10 @@ func Test_Workflow(t *testing.T) {
 		panic(err)
 	}
 
-	redis, err := tcredis.NewRedisTestContainer(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// redis, err := tcredis.NewRedisTestContainer(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
@@ -105,22 +111,6 @@ func Test_Workflow(t *testing.T) {
 		destConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-dest", postgres.Target.URL)
 		tests := getAllPostgresSyncTests()
 
-		neosyncApi.Mocks.TemporalClientManager.
-			On(
-				"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
-			).
-			Return(true, nil)
-		neosyncApi.Mocks.TemporalClientManager.
-			On(
-				"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
-			).
-			Return("sync-job", nil)
-		neosyncApi.Mocks.TemporalClientManager.
-			On(
-				"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-			).
-			Return("test-id", nil)
-
 		for groupName, group := range tests {
 			group := group
 			t.Run(groupName, func(t *testing.T) {
@@ -133,6 +123,8 @@ func Test_Workflow(t *testing.T) {
 						require.NoError(t, err)
 						err = postgres.Target.RunSqlFiles(ctx, &tt.Folder, tt.TargetFilePaths)
 						require.NoError(t, err)
+						neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+						testlogger := testutil.GetTestLogger(t)
 
 						schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
 						subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
@@ -156,7 +148,11 @@ func Test_Workflow(t *testing.T) {
 						}
 
 						var subsetByForeignKeyConstraints bool
-						var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+						destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+							},
+						}
 						if tt.JobOptions != nil {
 							if tt.JobOptions.SubsetByForeignKeyConstraints {
 								subsetByForeignKeyConstraints = true
@@ -199,7 +195,7 @@ func Test_Workflow(t *testing.T) {
 						}))
 						require.NoError(t, err)
 
-						env := executeWorkflow(t, neosyncApi, redis.URL, job.Msg.GetJob().GetId())
+						env := executeTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), testlogger)
 						require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 						err = env.GetWorkflowError()
 						if tt.ExpectError {
@@ -269,36 +265,54 @@ func Test_Workflow(t *testing.T) {
 	})
 }
 
-func executeWorkflow(
-	t *testing.T,
+type fakeEELicense struct{}
+
+func (f *fakeEELicense) IsValid() bool {
+	return false
+}
+
+func executeTestDataSyncWorkflow(
+	t testing.TB,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	redisUrl string,
+	redisUrl *string,
 	jobId string,
+	testlogger *slog.Logger,
 ) *testsuite.TestWorkflowEnvironment {
+	t.Helper()
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
 	transformerclient := neosyncApi.UnauthdClients.Transformers
 	userclient := neosyncApi.UnauthdClients.Users
-	// sqlconnector := &sqlconnect.SqlOpenConnector{}
-	redisconfig := &shared.RedisConfig{
-		Url:  redisUrl,
-		Kind: "simple",
-		Tls: &shared.RedisTlsConfig{
-			Enabled: false,
-		},
+
+	var redisconfig *shared.RedisConfig
+	if redisUrl != nil && *redisUrl != "" {
+		redisconfig = &shared.RedisConfig{
+			Url:  *redisUrl,
+			Kind: "simple",
+			Tls: &shared.RedisTlsConfig{
+				Enabled: false,
+			},
+		}
 	}
-	temporalClientMock := temporalmocks.NewClient(t)
-	// pgpoolmap := &sync.Map{}
-	// mysqlpoolmap := &sync.Map{}
-	// mssqlpoolmap := &sync.Map{}
-	// pgquerier := pg_queries.New()
-	// mysqlquerier := mysql_queries.New()
-	// mssqlquerier := mssql_queries.New()
-	// sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
-	sqlmanager := tcneosyncapi.NewTestSqlManagerClient()
+
+	// testlogger := testutil.GetTestLogger(t)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
+	go sqlconnmanager.Reaper(testlogger)
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
+	go mongoconnmanager.Reaper(testlogger)
+
+	t.Cleanup(func() {
+		sqlconnmanager.Shutdown(testlogger)
+		mongoconnmanager.Shutdown(testlogger)
+	})
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithConnectionManager(sqlconnmanager),
+	)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testlogger))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
@@ -310,12 +324,15 @@ func executeWorkflow(
 		redisconfig,
 		false,
 	)
+
 	var activityMeter metric.Meter
-	disableReaper := true
-	syncActivity := sync_activity.New(connclient, jobclient, &sqlconnect.SqlOpenConnector{}, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	accountStatusActivity := accountstatus_activity.New(userclient)
+	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
+
 	env.RegisterWorkflow(datasync_workflow.Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
@@ -323,8 +340,11 @@ func executeWorkflow(
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
+	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
+	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
+	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
 	env.ExecuteWorkflow(datasync_workflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
 	return env
 }
