@@ -36,6 +36,7 @@ import (
 	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 	mssql_datatypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/data-types"
 	mssql_simple "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/simple"
+	"go.temporal.io/sdk/client"
 
 	mysql_alltypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/all-types"
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
@@ -1653,6 +1654,7 @@ func executeWorkflow(
 	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
+	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	return env
 }
