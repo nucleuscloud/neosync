@@ -19,17 +19,20 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
 func Test_Sync_RunContext_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
@@ -83,6 +86,7 @@ output:
 
 func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
@@ -98,6 +102,7 @@ func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
 
 func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
@@ -130,6 +135,7 @@ output:
 
 func Test_Sync_Run_Metrics_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	meterProvider := metricsdk.NewMeterProvider()
@@ -164,6 +170,7 @@ metrics:
 
 func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
@@ -199,6 +206,7 @@ output:
 
 func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
@@ -260,6 +268,7 @@ output:
 
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
@@ -321,6 +330,7 @@ output:
 
 func Test_Sync_Run_Processor_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
@@ -354,6 +364,7 @@ output:
 
 func Test_Sync_Run_Output_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
@@ -393,6 +404,7 @@ output:
 
 func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
@@ -438,6 +450,7 @@ output:
 
 func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
@@ -473,6 +486,7 @@ output:
 
 func Test_Sync_Run_BenthosError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)

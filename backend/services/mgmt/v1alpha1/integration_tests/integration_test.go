@@ -27,7 +27,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	err := s.InitializeTest(s.ctx)
+	err := s.InitializeTest(s.ctx, s.T())
 	if err != nil {
 		panic(err)
 	}

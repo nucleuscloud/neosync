@@ -2,10 +2,12 @@ package testutil
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
-	"strings"
 	"testing"
+
+	"github.com/neilotoole/slogt"
 )
 
 func ShouldRunIntegrationTest() bool {
@@ -19,19 +21,11 @@ func ShouldRunIntegrationTest() bool {
 }
 
 func GetTestLogger(t testing.TB) *slog.Logger {
-	testHandler := slog.NewTextHandler(testWriter{t}, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+	f := slogt.Factory(func(w io.Writer) slog.Handler {
+		return slog.NewTextHandler(w, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
 	})
-	return slog.New(testHandler)
-}
 
-type testWriter struct {
-	t testing.TB
-}
-
-func (tw testWriter) Write(p []byte) (n int, err error) {
-	// removes extra line between log statements
-	msg := strings.TrimSuffix(string(p), "\n")
-	tw.t.Log(msg)
-	return len(p), nil
+	return slogt.New(t, f)
 }

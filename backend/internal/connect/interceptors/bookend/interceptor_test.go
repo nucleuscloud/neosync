@@ -3,21 +3,20 @@ package bookend_logging_interceptor
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Interceptor_WrapUnary_Without_Error(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()
@@ -36,7 +35,7 @@ func Test_Interceptor_WrapUnary_Without_Error(t *testing.T) {
 }
 
 func Test_Interceptor_WrapUnary_With_Generic_Error(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()
@@ -55,7 +54,7 @@ func Test_Interceptor_WrapUnary_With_Generic_Error(t *testing.T) {
 }
 
 func Test_Interceptor_WrapUnary_With_Connect_Error(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()

@@ -2,10 +2,9 @@ package logger_interceptor
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func Test_GetLoggerFromContextOrDefault(t *testing.T) {
 }
 
 func Test_GetLoggerFromContextOrDefault_NonDefault(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	ctx := SetLoggerContext(context.Background(), logger)
 	ctxlogger := GetLoggerFromContextOrDefault(ctx)
 	assert.Equal(t, logger, ctxlogger)

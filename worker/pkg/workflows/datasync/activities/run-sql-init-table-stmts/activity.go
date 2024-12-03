@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
@@ -54,8 +54,6 @@ func (a *Activity) RunSqlInitTableStatements(
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 	)
-	_ = logger
-
 	go func() {
 		for {
 			select {
@@ -74,11 +72,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.eelicense,
 		info.WorkflowExecution.ID,
 	)
-	slogger := neosynclogger.NewJsonSLogger().With(
-		"jobId", req.JobId,
-		"WorkflowID", info.WorkflowExecution.ID,
-		"RunID", info.WorkflowExecution.RunID,
-	)
+	slogger := temporallogger.NewSlogger(logger)
 	return builder.RunSqlInitTableStatements(
 		ctx,
 		req,
