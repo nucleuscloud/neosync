@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -284,7 +286,7 @@ func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
 	host := tunnel.GetHost()
 	port := tunnel.GetPort()
 	if port > 0 {
-		return fmt.Sprintf("%s:%d", host, port)
+		return net.JoinHostPort(host, strconv.FormatInt(int64(port), 10))
 	}
 	return host
 }
