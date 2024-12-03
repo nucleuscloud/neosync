@@ -34,6 +34,7 @@ export function getSystemAppConfig(): SystemAppConfig {
     neosyncApiBaseUrl:
       process.env.NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
     publicNeosyncApiBaseUrl: PUBLIC_PATHNAME, // ensures that this always poitns to the same domain
+    isJobHooksEnabled: process.env.JOBHOOKS_ENABLED === 'true',
   };
 }
 

@@ -8,6 +8,7 @@ export interface SystemAppConfig {
   enableRunLogs: boolean;
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;
+  isJobHooksEnabled: boolean;
 
   calendlyUpgradeLink: string;
   isGcpCloudStorageConnectionsEnabled: boolean;
