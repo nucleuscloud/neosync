@@ -218,7 +218,7 @@ INSERT INTO all_data_types (
 -- );
 
 
-CREATE TABLE IF NOT EXISTS alltypes.array_types (
+CREATE TABLE IF NOT EXISTS array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,
     -- "int_array" _int4,
     -- "smallint_array" _int2,
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS alltypes.array_types (
 );
 
 
-INSERT INTO alltypes.array_types (
+INSERT INTO array_types (
     id, 
     -- int_array, smallint_array, bigint_array,
     -- real_array,

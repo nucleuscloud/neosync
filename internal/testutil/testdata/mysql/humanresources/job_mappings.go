@@ -12,6 +12,110 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
+			Table:  "departments",
+			Column: "department_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "departments",
+			Column: "department_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "departments",
+			Column: "location_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "employee_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "first_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "last_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "email",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "phone_number",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "hire_date",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "job_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "salary",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "manager_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employees",
+			Column: "department_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "dependents",
 			Column: "dependent_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -46,14 +150,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Schema: schema,
 			Table:  "dependents",
 			Column: "employee_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "dependents",
-			Column: "FOREIGN",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},
@@ -148,14 +244,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "countries",
-			Column: "FOREIGN",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
 			Table:  "locations",
 			Column: "location_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -204,14 +292,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "locations",
-			Column: "FOREIGN",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
 			Table:  "jobs",
 			Column: "job_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -238,142 +318,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Schema: schema,
 			Table:  "jobs",
 			Column: "max_salary",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "departments",
-			Column: "department_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "departments",
-			Column: "department_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "departments",
-			Column: "location_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "departments",
-			Column: "FOREIGN",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "employee_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "first_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "last_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "email",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "phone_number",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "hire_date",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "job_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "salary",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "manager_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "department_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "FOREIGN",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "FOREIGN",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employees",
-			Column: "FOREIGN",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},
