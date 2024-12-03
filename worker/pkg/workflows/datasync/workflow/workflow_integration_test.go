@@ -1600,7 +1600,7 @@ func executeWorkflow(
 	srv *httptest.Server,
 	redisUrl string,
 	jobId string,
-	logger *slog.Logger,
+	testlogger *slog.Logger,
 ) *testsuite.TestWorkflowEnvironment {
 	t.Helper()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
@@ -1616,9 +1616,14 @@ func executeWorkflow(
 	}
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
-	go sqlconnmanager.Reaper(logger)
+	go sqlconnmanager.Reaper(testlogger)
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
-	go mongoconnmanager.Reaper(logger)
+	go mongoconnmanager.Reaper(testlogger)
+
+	t.Cleanup(func() {
+		sqlconnmanager.Shutdown(testlogger)
+		mongoconnmanager.Shutdown(testlogger)
+	})
 
 	sqlmanager := sql_manager.NewSqlManager(
 		sql_manager.WithConnectionManager(sqlconnmanager),
@@ -1626,7 +1631,7 @@ func executeWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(logger))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
