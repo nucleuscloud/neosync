@@ -142,7 +142,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						}
 					}
 
-					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					jobId := uuid.New().String()
 					srcConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
 					destConnId := "226add85-5751-4232-b085-a0ae93afc7ce"
 

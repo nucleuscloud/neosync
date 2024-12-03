@@ -263,7 +263,6 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	jobhookService := jobhooks.New(
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		unauthdUserService,
-		jobhooks.WithEnabled(),
 	)
 
 	unauthdJobsService := v1alpha1_jobservice.New(
