@@ -12,8 +12,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -37,6 +39,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_EELicense_Skip(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	activity := New(
@@ -60,6 +63,7 @@ func Test_Activity_EELicense_Skip(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	jobId := uuid.NewString()

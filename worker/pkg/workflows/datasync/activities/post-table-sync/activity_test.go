@@ -16,8 +16,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -29,6 +31,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
@@ -92,6 +95,8 @@ func Test_Activity_Success(t *testing.T) {
 
 func Test_Activity_RunContextNotFound(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
@@ -144,6 +149,7 @@ func Test_Activity_RunContextNotFound(t *testing.T) {
 
 func Test_Activity_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()

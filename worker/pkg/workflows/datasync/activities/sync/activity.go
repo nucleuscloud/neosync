@@ -10,6 +10,7 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/gcp"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
@@ -19,7 +20,6 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
 	_ "github.com/warpstreamlabs/bento/public/components/redis"
 
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
@@ -107,7 +107,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		loggerKeyVals = append(loggerKeyVals, "accountId", req.AccountId)
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
-	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := temporallogger.NewSlogger(logger)
+
 	stopActivityChan := make(chan error, 3)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}
@@ -229,7 +230,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	streamBuilderMu.Lock()
 	streambldr := benenv.NewStreamBuilder()
-	// would ideally use the activity logger here but can't convert it into a slog.
 	streambldr.SetLogger(slogger.With(
 		"benthos", "true",
 	))

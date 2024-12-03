@@ -1,11 +1,10 @@
 package dbconnectconfig
 
 import (
-	"io"
-	"log/slog"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +17,6 @@ var (
 		Pass:     "test-pass",
 		Protocol: "tcp",
 	}
-	discardLogger         = slog.New(slog.NewTextHandler(io.Discard, nil))
 	testConnectionTimeout = uint32(5)
 )
 
@@ -34,7 +32,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				&testConnectionTimeout,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -57,7 +55,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				&testConnectionTimeout,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				true,
 			)
 			assert.NoError(t, err)
@@ -79,7 +77,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				nil,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -104,7 +102,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				&testConnectionTimeout,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -126,7 +124,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				nil,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -148,7 +146,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				nil,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -173,7 +171,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				&testConnectionTimeout,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)
@@ -195,7 +193,7 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 					},
 				},
 				nil,
-				discardLogger,
+				testutil.GetTestLogger(t),
 				false,
 			)
 			assert.NoError(t, err)

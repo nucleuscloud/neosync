@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -65,7 +65,6 @@ func (a *Activity) GenerateBenthosConfigs(
 		activity.GetLogger(ctx),
 		loggerKeyVals...,
 	)
-	_ = logger
 	go func() {
 		for {
 			select {
@@ -90,6 +89,6 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.redisConfig,
 		a.metricsEnabled,
 	)
-	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := temporallogger.NewSlogger(logger)
 	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID, RunId: info.WorkflowExecution.RunID}, slogger)
 }

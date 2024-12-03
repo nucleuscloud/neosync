@@ -2,8 +2,6 @@ package neosyncdb
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"testing"
 	"time"
 
@@ -18,10 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/sync/errgroup"
-)
-
-var (
-	discardLogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 )
 
 type IntegrationTestSuite struct {
@@ -51,8 +45,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(s.ctx, s.pgcontainer.URL, s.migrationsDir, discardLogger)
+	err := neomigrate.Up(s.ctx, s.pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(s.T()))
 	if err != nil {
 		panic(err)
 	}
@@ -176,17 +169,17 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccount() {
 	t.Run("new account", func(t *testing.T) {
 		user := s.setUser(t, s.ctx, "foo")
 
-		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 	})
 
 	t.Run("already exists", func(t *testing.T) {
 		user := s.setUser(t, s.ctx, "foo1")
 
-		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 
-		account1, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		account1, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", testutil.GetTestLogger(t))
 		requireErrResp(t, account1, err)
 		alreadyExists := nucleuserrors.NewAlreadyExists("")
 		require.ErrorAs(t, err, &alreadyExists)
@@ -207,7 +200,7 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 			UserId:            user.ID,
 			PersonalAccountId: account.ID,
 			TeamName:          newTeamName,
-		}, discardLogger)
+		}, testutil.GetTestLogger(t))
 		requireNoErrResp(t, resp, err)
 
 		require.Equal(t, UUIDString(account.ID), UUIDString(resp.TeamAccount.ID), "the new team account must be the same id as the old account")
@@ -220,10 +213,10 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 
 	t.Run("invalid account type", func(t *testing.T) {
 		user := s.setUser(t, s.ctx, "convertPtoT2")
-		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 
-		resp, err := s.db.ConvertPersonalToTeamAccount(s.ctx, &ConvertPersonalToTeamAccountRequest{UserId: user.ID, PersonalAccountId: account.ID, TeamName: "myteam2"}, discardLogger)
+		resp, err := s.db.ConvertPersonalToTeamAccount(s.ctx, &ConvertPersonalToTeamAccountRequest{UserId: user.ID, PersonalAccountId: account.ID, TeamName: "myteam2"}, testutil.GetTestLogger(t))
 		requireErrResp(t, resp, err)
 		badreqerror := nucleuserrors.NewBadRequest("")
 		require.ErrorAs(t, err, &badreqerror)
@@ -236,34 +229,34 @@ func (s *IntegrationTestSuite) Test_UpsertStripeCustomerId() {
 	user := s.setUser(t, s.ctx, "foo")
 
 	t.Run("new customer id", func(t *testing.T) {
-		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 		require.False(t, account.StripeCustomerID.Valid)
 
 		account, err = s.db.UpsertStripeCustomerId(s.ctx, account.ID, func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 			return "testid", nil
-		}, discardLogger)
+		}, testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 		require.True(t, account.StripeCustomerID.Valid)
 		require.Equal(t, "testid", account.StripeCustomerID.String)
 	})
 
 	t.Run("only first one", func(t *testing.T) {
-		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 		require.False(t, account.StripeCustomerID.Valid)
 
 		firstid := "testid"
 		account, err = s.db.UpsertStripeCustomerId(s.ctx, account.ID, func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 			return firstid, nil
-		}, discardLogger)
+		}, testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 		require.True(t, account.StripeCustomerID.Valid)
 		require.Equal(t, firstid, account.StripeCustomerID.String)
 
 		account, err = s.db.UpsertStripeCustomerId(s.ctx, account.ID, func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 			return "secondid", nil
-		}, discardLogger)
+		}, testutil.GetTestLogger(t))
 		requireNoErrResp(t, account, err)
 		require.True(t, account.StripeCustomerID.Valid)
 		require.Equal(t, firstid, account.StripeCustomerID.String)
@@ -276,7 +269,7 @@ func (s *IntegrationTestSuite) Test_UpsertStripeCustomerId() {
 
 		account, err = s.db.UpsertStripeCustomerId(s.ctx, account.ID, func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 			return "testid", nil
-		}, discardLogger)
+		}, testutil.GetTestLogger(t))
 		requireErrResp(t, account, err)
 	})
 }
@@ -285,7 +278,7 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 	t := s.T()
 
 	user := s.setUser(t, s.ctx, "foo")
-	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 	requireNoErrResp(t, account, err)
 
 	t.Run("new invite", func(t *testing.T) {
@@ -322,7 +315,7 @@ func (s *IntegrationTestSuite) Test_ValidateInviteAddUserToAccount() {
 	t := s.T()
 
 	user := s.setUser(t, s.ctx, "foo")
-	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 	requireNoErrResp(t, account, err)
 
 	t.Run("accept invite", func(t *testing.T) {
@@ -367,7 +360,7 @@ func (s *IntegrationTestSuite) Test_CreateAccountApiKey() {
 	t := s.T()
 
 	user := s.setUser(t, s.ctx, "foo")
-	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 	requireNoErrResp(t, account, err)
 
 	key, err := s.db.CreateAccountApikey(s.ctx, &CreateAccountApiKeyRequest{
@@ -384,7 +377,7 @@ func (s *IntegrationTestSuite) Test_CreateJob() {
 	t := s.T()
 
 	user := s.setUser(t, s.ctx, "foo")
-	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 	requireNoErrResp(t, account, err)
 
 	connection, err := s.db.Q.CreateConnection(s.ctx, s.db.Db, db_queries.CreateConnectionParams{
@@ -421,7 +414,7 @@ func (s *IntegrationTestSuite) Test_SetSourceSubsets() {
 	t := s.T()
 
 	user := s.setUser(t, s.ctx, "foo")
-	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", testutil.GetTestLogger(t))
 	requireNoErrResp(t, account, err)
 
 	job, err := s.db.CreateJob(s.ctx, &db_queries.CreateJobParams{

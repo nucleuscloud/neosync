@@ -10,7 +10,9 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -21,6 +23,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
@@ -53,6 +56,7 @@ func Test_Activity_Success(t *testing.T) {
 
 func Test_Activity_Success_With_RequestedRecordCount(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()

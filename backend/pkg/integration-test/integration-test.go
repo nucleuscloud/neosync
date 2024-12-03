@@ -2,8 +2,6 @@ package integrationtests_test
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,6 +38,7 @@ import (
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/mock"
 )
@@ -92,7 +91,7 @@ type NeosyncApiTestClient struct {
 // Option is a functional option for configuring Neosync Api Test Client
 type Option func(*NeosyncApiTestClient)
 
-func NewNeosyncApiTestClient(ctx context.Context, t *testing.T, opts ...Option) (*NeosyncApiTestClient, error) {
+func NewNeosyncApiTestClient(ctx context.Context, t testing.TB, opts ...Option) (*NeosyncApiTestClient, error) {
 	neoApi := &NeosyncApiTestClient{
 		migrationsDir: "../../../../sql/postgresql/schema",
 	}
@@ -146,7 +145,7 @@ func (s *AuthdClients) GetConnectionClient(authUserId string) mgmtv1alpha1connec
 	return mgmtv1alpha1connect.NewConnectionServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
-func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
+func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	pgcontainer, err := tcpostgres.NewPostgresTestContainer(ctx)
 	if err != nil {
 		return err
@@ -395,7 +394,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t *testing.T) error {
 		basepath: "/ncauth",
 	}
 
-	err = s.InitializeTest(ctx)
+	err = s.InitializeTest(ctx, t)
 	if err != nil {
 		return err
 	}
@@ -423,9 +422,8 @@ func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
 		Once()
 }
 
-func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context) error {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, discardLogger)
+func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
+	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(t))
 	if err != nil {
 		return err
 	}

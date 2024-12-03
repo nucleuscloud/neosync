@@ -5,17 +5,17 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Interceptor_WrapUnary_InjectLogger(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := testutil.GetTestLogger(t)
 	interceptor := NewInterceptor(logger)
 
 	var ctxlogger *slog.Logger
