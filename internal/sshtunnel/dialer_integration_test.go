@@ -49,7 +49,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	}
 	dialerConfig := sshtunnel.DefaultSSHDialerConfig()
 	dialerConfig.KeepAliveInterval = 1 * time.Second
-	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetTestLogger(t))
+	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
 	defer dialer.Close()
 
 	t.Run("postgres", func(t *testing.T) {
@@ -148,7 +148,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 			InitialBackoff:    50 * time.Millisecond,
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
-		}, testutil.GetTestLogger(t))
+		}, testutil.GetConcurrentTestLogger(t))
 		defer dialer.Close()
 
 		// Test initial connection
@@ -213,7 +213,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 			InitialBackoff:    50 * time.Millisecond,
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
-		}, testutil.GetTestLogger(t))
+		}, testutil.GetConcurrentTestLogger(t))
 		defer dialer.Close()
 
 		// Establish initial connection
@@ -244,7 +244,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 			InitialBackoff:    50 * time.Millisecond,
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
-		}, testutil.GetTestLogger(t))
+		}, testutil.GetConcurrentTestLogger(t))
 		defer dialer.Close()
 
 		// Attempt connection - should fail after retries
@@ -267,7 +267,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 			InitialBackoff:    1 * time.Second, // Longer backoff to ensure we can cancel
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
-		}, testutil.GetTestLogger(t))
+		}, testutil.GetConcurrentTestLogger(t))
 		defer dialer.Close()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
@@ -306,7 +306,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 			InitialBackoff:    50 * time.Millisecond,
 			KeepAliveInterval: 30 * time.Second,
 			KeepAliveTimeout:  50 * time.Millisecond,
-		}, testutil.GetTestLogger(t))
+		}, testutil.GetConcurrentTestLogger(t))
 		defer dialer.Close()
 
 		// Establish initial connection
