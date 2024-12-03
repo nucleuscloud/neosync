@@ -207,7 +207,7 @@ type WorkerBenthosConfig struct {
 	Job                    *mgmtv1alpha1.Job
 	SourceConnection       *mgmtv1alpha1.Connection
 	DestinationConnections []*mgmtv1alpha1.Connection
-	RunId                  string
+	WorkflowId             string
 	MetricLabelKeyVals     map[string]string
 	Logger                 *slog.Logger
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
@@ -249,7 +249,7 @@ func NewWorkerBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: config.DestinationConnections,
-		runId:                  config.RunId,
+		runId:                  config.WorkflowId,
 	}, nil
 }
 
@@ -262,7 +262,7 @@ type CliBenthosConfig struct {
 	SourceJobRunId         *string // for use when AWS S3 is the source
 	PostgresDriverOverride *string // optional driver override. used for postgres
 	SyncConfigs            []*tabledependency.RunConfig
-	RunId                  string
+	WorkflowId             string
 	MetricLabelKeyVals     map[string]string
 	Logger                 *slog.Logger
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
@@ -305,7 +305,7 @@ func NewCliBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: []*mgmtv1alpha1.Connection{config.DestinationConnection},
-		runId:                  config.RunId,
+		runId:                  config.WorkflowId,
 	}, nil
 }
 

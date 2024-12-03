@@ -24,7 +24,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 
 	sourceParams := &bb_internal.SourceParams{
 		Job:              b.job,
-		RunId:            b.runId,
+		WorkflowId:       b.runId,
 		SourceConnection: b.sourceConnection,
 		Logger:           b.logger,
 	}
@@ -55,7 +55,7 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			destParams := &bb_internal.DestinationParams{
 				SourceConfig:    sourceConfig,
 				Job:             b.job,
-				RunId:           b.runId,
+				WorkflowId:      b.runId,
 				DestinationOpts: destOpts,
 				DestConnection:  destConnection,
 				Logger:          b.logger,

@@ -49,7 +49,7 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}

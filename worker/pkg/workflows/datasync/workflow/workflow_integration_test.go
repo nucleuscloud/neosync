@@ -56,6 +56,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -1653,6 +1654,7 @@ func executeWorkflow(
 	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
+	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	return env
 }
