@@ -99,7 +99,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ vars.INTEGRATION_TEST_ROLE_ARN }}
+          role-to-assume: ${{ vars.INTEGRATION_TEST_AWS_ROLE_ARN }}
           role-session-name: NeosyncCiIntegrationTests
 
       - name: Run Integration Tests
