@@ -1631,7 +1631,7 @@ func executeWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testlogger))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
