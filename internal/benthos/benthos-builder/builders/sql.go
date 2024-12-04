@@ -397,11 +397,20 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		}
 
 		batchProcessors := []*neosync_benthos.BatchProcessor{}
-		if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
-		}
-		if b.driver == sqlmanager_shared.PostgresDriver || strings.EqualFold(b.driver, "postgres") {
+		// TODO remove this
+		// if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
+		// 	batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
+		// }
+		// if b.driver == sqlmanager_shared.PostgresDriver {
+		// 	batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
+		// }
+		switch b.driver {
+		case sqlmanager_shared.PostgresDriver:
 			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
+		case sqlmanager_shared.MysqlDriver:
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{}})
+		case sqlmanager_shared.MssqlDriver:
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{}})
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
