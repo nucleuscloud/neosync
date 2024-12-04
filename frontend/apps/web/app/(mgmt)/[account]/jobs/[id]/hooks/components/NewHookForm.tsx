@@ -45,7 +45,7 @@ export default function NewHookForm(props: Props): ReactElement {
       const validatedData = await NewJobHookFormValues.validate(formData, {
         abortEarly: false,
       });
-      await onSubmit(newFormDataToNewJobHook(formData));
+      await onSubmit(newFormDataToNewJobHook(validatedData));
     } catch (err) {
       if (err instanceof ValidationError) {
         const validationErrors: Record<string, string> = {};
