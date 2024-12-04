@@ -29,6 +29,11 @@ export default function HooksCard(props: Props): ReactElement {
   }
 
   const jobHooks = getJobHooksResp?.hooks ?? [];
+  const sortedJobHooks = [...jobHooks].sort((a, b) => {
+    const timeA = a.createdAt ? a.createdAt.toDate().getTime() : 0;
+    const timeB = b.createdAt ? b.createdAt.toDate().getTime() : 0;
+    return timeA - timeB;
+  });
 
   return (
     <div className="job-hooks-card-container flex flex-col gap-3">
@@ -46,7 +51,7 @@ export default function HooksCard(props: Props): ReactElement {
       />
 
       <div className="flex flex-col gap-5">
-        {jobHooks.map((hook) => {
+        {sortedJobHooks.map((hook) => {
           return (
             <HookCard
               key={hook.id}

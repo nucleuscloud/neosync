@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { JobHook } from '@neosync/sdk';
+import { JobHook, JobHookConfig } from '@neosync/sdk';
 import { deleteJobHook, updateJobHook } from '@neosync/sdk/connectquery';
 import { ClockIcon, Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
@@ -26,11 +26,10 @@ interface Props {
 
 export default function HookCard(props: Props): ReactElement {
   const { hook, onDeleted, onEdited } = props;
+  const hookTiming = getHookTiming(hook.config ?? new JobHookConfig());
   return (
     <div id={`jobhook-${hook.id}`}>
-      <Card
-      // className={`${hook.enabled ? 'bg-white' : 'bg-gray-50'} transition-colors`}
-      >
+      <Card>
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="space-y-2 flex-grow">
@@ -55,28 +54,27 @@ export default function HookCard(props: Props): ReactElement {
                 </p>
               )}
 
-              {/* URL */}
-              {/* <div className="text-sm text-gray-500 font-mono break-all">
-                {hook.url}
-              </div> */}
-
               {/* Metadata Row */}
               <div className="flex items-center gap-4 pt-2">
                 {/* Timing */}
-                <div className="flex items-center gap-1 text-sm text-gray-600">
+                <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                   <ClockIcon className="flex-shrink-0" />
+                  {/* {hook.config?.config.} */}
+                  <p>{hookTiming}</p>
                   {/* <code className="px-1 bg-gray-100 rounded">
                     {hook.timing}
                   </code> */}
                 </div>
 
                 {/* Priority Badge */}
-                <Badge
-                  variant="secondary"
-                  // className={getPriorityStyles(hook.priority)}
-                >
-                  P{hook.priority}
+                <Badge variant="secondary">P{hook.priority}</Badge>
+
+                <Badge variant={hook.enabled ? 'success' : 'outline'}>
+                  {hook.enabled ? 'Enabled' : 'Disabled'}
                 </Badge>
+                {hook.config?.config.case && (
+                  <Badge variant="secondary">{hook.config?.config.case}</Badge>
+                )}
               </div>
             </div>
 
@@ -90,6 +88,15 @@ export default function HookCard(props: Props): ReactElement {
       </Card>
     </div>
   );
+}
+
+function getHookTiming(config: JobHookConfig): string | undefined {
+  switch (config.config.case) {
+    case 'sql': {
+      return config.config.value.timing?.timing.case;
+    }
+  }
+  return undefined;
 }
 
 interface EditHookButtonProps {

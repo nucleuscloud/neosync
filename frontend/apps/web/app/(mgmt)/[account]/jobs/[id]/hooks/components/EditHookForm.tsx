@@ -1,4 +1,4 @@
-import { FormEvent, useEffect } from 'react';
+import { FormEvent, ReactElement, useEffect } from 'react';
 import * as yup from 'yup';
 import { create } from 'zustand';
 
@@ -29,6 +29,42 @@ export const useEditHookStore = create<EditHookStore>((set) => ({
   setSubmitting: (isSubmitting) => set({ isSubmitting }),
   resetForm: () => set({ formData: {}, errors: {}, isSubmitting: false }),
 }));
+
+const jobHookSqlSchema = yup.object().shape({
+  query: yup.string().required('SQL query is required'),
+  connectionId: yup.string().required('Connection ID is required'),
+  timing: yup
+    .object()
+    .shape({
+      timing: yup.object().shape({
+        case: yup
+          .string()
+          .oneOf(['preSync', 'postSync'], 'Must select pre-sync or post-sync')
+          .required('Timing is required'),
+        value: yup.object(),
+      }),
+    })
+    .required('Timing configuration is required'),
+});
+
+const jobHookConfigSchema = yup.object().shape({
+  config: yup
+    .object()
+    .shape({
+      case: yup
+        .string()
+        .oneOf(['sql'], 'Only SQL hooks are supported currently')
+        .required('Hook type is required'),
+      value: yup.lazy((value) => {
+        if (value && value.case === 'sql') {
+          return jobHookSqlSchema;
+        }
+        return yup.object();
+      }),
+    })
+    .required('Configuration is required'),
+});
+
 export const jobHookSchema = yup.object().shape({
   name: yup
     .string()
@@ -41,6 +77,7 @@ export const jobHookSchema = yup.object().shape({
     .min(0, 'Priority must be between 0 and 100')
     .max(100, 'Priority must be between 0 and 100'),
   enabled: yup.boolean(),
+  config: jobHookConfigSchema,
 });
 
 interface EditHookFormProps {
@@ -137,7 +174,7 @@ export function EditHookForm({ hook, onSubmit }: EditHookFormProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
         <Label htmlFor="enabled">Enabled</Label>
         <Switch
           id="enabled"
@@ -157,4 +194,9 @@ export function EditHookForm({ hook, onSubmit }: EditHookFormProps) {
       </div>
     </form>
   );
+}
+
+interface JobConfigFormProps {}
+function JobConfigForm(props: JobConfigFormProps): ReactElement {
+  const {} = props;
 }
