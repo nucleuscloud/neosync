@@ -28,10 +28,15 @@ const HookTypeFormValue = yup
   .required('Hook type is required');
 export type HookTypeFormValue = yup.InferType<typeof HookTypeFormValue>;
 
+const EnabledFormValue = yup
+  .boolean()
+  .required('Must provide an enabled value');
+
 const JobHookNameFormValue = yup
   .string()
   .required('Name is required')
-  .min(3, 'Name must be at least 3 characters');
+  .min(3, 'Name must be at least 3 characters')
+  .max(100, 'The Hook name must be at most 100 characters');
 
 const JobHookDescriptionFormValue = yup
   .string()
@@ -59,7 +64,7 @@ export const EditJobHookFormValues = yup.object({
   name: JobHookNameFormValue,
   description: JobHookDescriptionFormValue,
   priority: JobHookPriorityFormValue,
-  enabled: yup.boolean().required('Must provide a required value'),
+  enabled: EnabledFormValue,
   hookType: HookTypeFormValue,
   config: JobHookConfigFormValues,
 });
@@ -82,7 +87,7 @@ export const NewJobHookFormValues = yup.object({
   name: JobHookNameFormValue,
   description: JobHookDescriptionFormValue,
   priority: JobHookPriorityFormValue,
-  enabled: yup.boolean().required('Must provide a required value'),
+  enabled: EnabledFormValue,
   hookType: HookTypeFormValue,
   config: JobHookConfigFormValues,
 });

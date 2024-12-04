@@ -37,26 +37,26 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
         setSelectedConnectionId={(updatedId) => {
           setValues({ ...values, connectionId: updatedId });
         }}
-        error={errors.connectionId}
+        error={errors['config.sql.connectionId']}
       />
       <div className="flex flex-col gap-3">
         <FormHeader
           title="Query"
           description="The SQL query that will be invoked"
-          isErrored={!!errors.query}
+          isErrored={!!errors['config.sql.query']}
         />
         <EditSqlQuery
           query={values.query}
           setQuery={(query) => setValues({ ...values, query })}
         />
-        <FormErrorMessage message={errors.query} />
+        <FormErrorMessage message={errors['config.sql.query']} />
       </div>
       <div className="flex flex-col gap-3">
         <FormHeader
           title="Timing"
           description="The lifecycle of when the hook will run"
           htmlFor="timing"
-          isErrored={!!errors.timing}
+          isErrored={!!errors['config.sql.timing']}
         />
         <Select
           name="timing"
@@ -75,7 +75,7 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
             <SelectItem value="postSync">Post Sync</SelectItem>
           </SelectContent>
         </Select>
-        <FormErrorMessage message={errors.timing} />
+        <FormErrorMessage message={errors['config.sql.timing']} />
       </div>
     </>
   );
