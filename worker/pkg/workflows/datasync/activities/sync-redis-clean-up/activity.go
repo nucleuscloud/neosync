@@ -61,12 +61,6 @@ func (a *Activity) DeleteRedisHash(
 		"RedisHashKey", req.HashKey,
 	)
 
-	// todo: this should be factored out of here and live on the activity itself
-	// redisClient, err := neosync_redis.GetRedisClient(a.redisConfig)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// slogger.Debug("redis client created")
 	if a.redisclient == nil {
 		return nil, fmt.Errorf("missing redis client. this operation requires redis.")
 	}
