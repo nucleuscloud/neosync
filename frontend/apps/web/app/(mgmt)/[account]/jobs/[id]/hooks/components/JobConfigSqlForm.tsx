@@ -96,7 +96,7 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
       id="description"
       value={query || ''}
       onChange={(e) => setQuery(e.target.value)}
-      placeholder=""
+      placeholder="Your SQL query here..."
       rows={3}
     />
   );
