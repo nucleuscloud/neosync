@@ -11,12 +11,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
-import { Editor } from '@monaco-editor/react';
 import { getConnections } from '@neosync/sdk/connectquery';
-import { editor } from 'monaco-editor';
-import { useTheme } from 'next-themes';
 import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
@@ -86,29 +84,17 @@ interface EditSqlQueryProps {
   setQuery(query: string): void;
 }
 
-const sqlEditorOptions: editor.IStandaloneEditorConstructionOptions = {
-  minimap: { enabled: false },
-  wordWrap: 'on',
-  lineNumbers: 'off',
-};
-
 function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
   const { query, setQuery } = props;
 
-  const { resolvedTheme } = useTheme();
-
   return (
-    <div>
-      <Editor
-        height="5vh"
-        width="100%"
-        language="sql"
-        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
-        options={sqlEditorOptions}
-        value={query}
-        onChange={(updatedValue) => setQuery(updatedValue ?? '')}
-      />
-    </div>
+    <Textarea
+      id="description"
+      value={query || ''}
+      onChange={(e) => setQuery(e.target.value)}
+      placeholder=""
+      rows={3}
+    />
   );
 }
 

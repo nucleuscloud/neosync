@@ -53,7 +53,7 @@ export default function EditHookButton(props: Props): ReactElement {
       </DialogTrigger>
       <DialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="lg:max-w-4xl"
+        className="lg:max-w-4xl max-h-[85vh] overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle>Edit Job Hook: {hook.name}</DialogTitle>
