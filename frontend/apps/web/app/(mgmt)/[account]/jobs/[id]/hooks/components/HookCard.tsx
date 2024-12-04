@@ -2,21 +2,30 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobHook } from '@neosync/sdk';
-import { deleteJobHook } from '@neosync/sdk/connectquery';
+import { deleteJobHook, updateJobHook } from '@neosync/sdk/connectquery';
 import { ClockIcon, Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
+import { EditHookForm } from './EditHookForm';
 
 interface Props {
   hook: JobHook;
   onDeleted(): void;
+  onEdited(): void;
 }
 
 export default function HookCard(props: Props): ReactElement {
-  const { hook, onDeleted } = props;
+  const { hook, onDeleted, onEdited } = props;
   return (
     <div id={`jobhook-${hook.id}`}>
       <Card
@@ -73,21 +82,54 @@ export default function HookCard(props: Props): ReactElement {
 
             {/* Actions */}
             <div className="flex items-start gap-1 ml-4">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="text-gray-500 hover:text-gray-700"
-                // onClick={() => onEditClicked()}
-              >
-                <Pencil1Icon />
-              </Button>
+              <EditHookButton hook={hook} onEdited={onEdited} />
               <RemoveHookButton hook={hook} onDeleted={onDeleted} />
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+interface EditHookButtonProps {
+  onEdited(): void;
+  hook: JobHook;
+}
+
+function EditHookButton(props: EditHookButtonProps): ReactElement {
+  const { hook, onEdited } = props;
+  const { mutateAsync: updateHook } = useMutation(updateJobHook);
+  const [open, setOpen] = useState(false);
+
+  async function onUpdate(values: Partial<JobHook>): Promise<void> {
+    try {
+      await updateHook({ id: hook.id, ...values });
+      toast.success('Successfully updated job hook!');
+      onEdited();
+      setOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to update job hook', {
+        description: getErrorMessage(err),
+      });
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" type="button">
+          <Pencil1Icon />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Job Hook: {hook.name}</DialogTitle>
+        </DialogHeader>
+        <EditHookForm hook={hook} onSubmit={onUpdate} />
+      </DialogContent>
+    </Dialog>
   );
 }
 

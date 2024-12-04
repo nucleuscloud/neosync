@@ -68,7 +68,8 @@
     "tailwindcss-animate": "^1.0.7",
     "usehooks-ts": "^3.1.0",
     "yaml": "^2.5.1",
-    "yup": "^1.4.0"
+    "yup": "^1.4.0",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
