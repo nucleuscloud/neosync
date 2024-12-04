@@ -8,8 +8,9 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
+
+const PostgresDriver = "postgres"
 
 type pgConnectConfig struct {
 	url  string
@@ -38,7 +39,7 @@ func NewFromPostgresConnection(
 		}
 
 		pgurl := url.URL{
-			Scheme: sqlmanager_shared.DefaultPostgresDriver,
+			Scheme: PostgresDriver,
 			Host:   host,
 		}
 		if cc.Connection.GetUser() != "" && cc.Connection.GetPass() != "" {

@@ -41,7 +41,6 @@ type SqlConnectorOption func(*sqlConnectorOptions)
 
 type sqlConnectorOptions struct {
 	mysqlDisableParseTime bool
-	postgresDriver        string
 
 	connectionTimeoutSeconds *uint32
 }
@@ -50,13 +49,6 @@ type sqlConnectorOptions struct {
 func WithMysqlParseTimeDisabled() SqlConnectorOption {
 	return func(opts *sqlConnectorOptions) {
 		opts.mysqlDisableParseTime = true
-	}
-}
-
-// WithPostgresDriver overrides default postgres driver
-func WithDefaultPostgresDriver() SqlConnectorOption {
-	return func(opts *sqlConnectorOptions) {
-		opts.postgresDriver = sqlmanager_shared.DefaultPostgresDriver
 	}
 }
 
@@ -79,9 +71,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	options := sqlConnectorOptions{
-		postgresDriver: sqlmanager_shared.PostgresDriver,
-	}
+	options := sqlConnectorOptions{}
 	for _, opt := range opts {
 		if opt != nil {
 			opt(&options)
@@ -119,7 +109,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		} else {
-			return newStdlibContainer(options.postgresDriver, dsn, dbconnopts), nil
+			return newStdlibContainer(sqlmanager_shared.PostgresDriver, dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, options.connectionTimeoutSeconds, logger, options.mysqlDisableParseTime)
@@ -140,7 +130,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		}
-		return newStdlibContainer("mysql", dsn, dbconnopts), nil
+		return newStdlibContainer(sqlmanager_shared.MysqlDriver, dsn, dbconnopts), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, options.connectionTimeoutSeconds)
 		if err != nil {
@@ -160,7 +150,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				dbconnopts,
 			), nil
 		}
-		return newStdlibContainer("sqlserver", dsn, dbconnopts), nil
+		return newStdlibContainer(sqlmanager_shared.MssqlDriver, dsn, dbconnopts), nil
 	default:
 		return nil, fmt.Errorf("unsupported connection: %T", config)
 	}

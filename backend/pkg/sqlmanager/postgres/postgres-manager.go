@@ -15,6 +15,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const PostgresDriver = "postgres"
+
 type PostgresManager struct {
 	querier pg_queries.Querier
 	db      pg_queries.DBTX
@@ -873,7 +875,7 @@ func (p *PostgresManager) GetTableRowCount(
 }
 
 func getGoquDialect() goqu.DialectWrapper {
-	return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
+	return goqu.Dialect(PostgresDriver)
 }
 
 func BuildPgTruncateStatement(
