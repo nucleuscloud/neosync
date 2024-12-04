@@ -69,8 +69,12 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
             <SelectValue placeholder="Select a timing value" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="preSync">Pre Sync</SelectItem>
-            <SelectItem value="postSync">Post Sync</SelectItem>
+            <SelectItem value="preSync">
+              Pre Sync - Before first table sync, truncation, schema init
+            </SelectItem>
+            <SelectItem value="postSync">
+              Post Sync - After last table sync
+            </SelectItem>
           </SelectContent>
         </Select>
         <FormErrorMessage message={errors['config.sql.timing']} />

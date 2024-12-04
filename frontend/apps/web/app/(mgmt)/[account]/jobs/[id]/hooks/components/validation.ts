@@ -1,3 +1,4 @@
+import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
   JobHook,
   JobHookConfig,
@@ -36,7 +37,14 @@ const JobHookNameFormValue = yup
   .string()
   .required('Name is required')
   .min(3, 'Name must be at least 3 characters')
-  .max(100, 'The Hook name must be at most 100 characters');
+  .max(100, 'The Hook name must be at most 100 characters')
+  .test(
+    'resourceName',
+    'Name must be between 3-100 characters and may only include lowercase letters, numbers, and hyphens',
+    (value) => {
+      return RESOURCE_NAME_REGEX.test(value);
+    }
+  );
 
 const JobHookDescriptionFormValue = yup
   .string()

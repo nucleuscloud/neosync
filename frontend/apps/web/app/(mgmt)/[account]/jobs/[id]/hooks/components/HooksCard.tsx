@@ -53,13 +53,13 @@ export default function HooksCard(props: Props): ReactElement {
       <SubPageHeader
         header="Job Hooks"
         rightHeaderIcon={
-          isGetJobHooksFetching ? (
+          isGetJobHooksFetching || isGetJobFetching ? (
             <div>
               <Spinner className="h-4 w-4" />
             </div>
           ) : null
         }
-        description="Manage a job's hooks"
+        description="Manage hooks that execute at specific points in a job run's lifecycle"
         extraHeading={
           <NewHookButton
             jobId={jobId}

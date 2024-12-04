@@ -142,14 +142,14 @@ export function HookType(props: HookTypeProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex items-center gap-4">
       <FormHeader
         title="Hook Type"
         description="The type of hook. Currently only SQL hooks are supported"
         isErrored={!!error}
       />
       <ToggleGroup
-        className="flex justify-start"
+        className="flex"
         type="single"
         onValueChange={(value) => {
           if (value) {
