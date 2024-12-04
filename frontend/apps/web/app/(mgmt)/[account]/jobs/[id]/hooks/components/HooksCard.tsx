@@ -3,8 +3,10 @@ import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
-import { getJobHooks } from '@neosync/sdk/connectquery';
-import { ReactElement } from 'react';
+import { Job } from '@neosync/sdk';
+import { getJob, getJobHooks } from '@neosync/sdk/connectquery';
+import { ReactElement, useMemo } from 'react';
+import { getConnectionIdFromSource } from '../../source/components/util';
 import HookCard from './HookCard';
 
 interface Props {
@@ -20,20 +22,31 @@ export default function HooksCard(props: Props): ReactElement {
     refetch,
   } = useQuery(getJobHooks, { jobId: jobId }, { enabled: !!jobId });
 
-  if (isGetJobHooksLoading) {
+  const {
+    data: getJobResp,
+    isLoading: isGetJobLoading,
+    isFetching: isGetJobFetching,
+  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
+
+  const jobHooks = useMemo(() => {
+    return [...(getJobHooksResp?.hooks ?? [])].sort((a, b) => {
+      const timeA = a.createdAt ? a.createdAt.toDate().getTime() : 0;
+      const timeB = b.createdAt ? b.createdAt.toDate().getTime() : 0;
+      return timeA - timeB;
+    });
+  }, [getJobHooksResp?.hooks, isGetJobHooksFetching]);
+
+  const jobConnectionIds = useMemo(() => {
+    return getJobConnectionIds(getJobResp?.job ?? new Job());
+  }, [getJobResp?.job, isGetJobFetching]);
+
+  if (isGetJobHooksLoading || isGetJobLoading) {
     return (
       <div>
         <Skeleton />
       </div>
     );
   }
-
-  const jobHooks = getJobHooksResp?.hooks ?? [];
-  const sortedJobHooks = [...jobHooks].sort((a, b) => {
-    const timeA = a.createdAt ? a.createdAt.toDate().getTime() : 0;
-    const timeB = b.createdAt ? b.createdAt.toDate().getTime() : 0;
-    return timeA - timeB;
-  });
 
   return (
     <div className="job-hooks-card-container flex flex-col gap-3">
@@ -51,17 +64,28 @@ export default function HooksCard(props: Props): ReactElement {
       />
 
       <div className="flex flex-col gap-5">
-        {sortedJobHooks.map((hook) => {
+        {jobHooks.map((hook) => {
           return (
             <HookCard
               key={hook.id}
               hook={hook}
               onDeleted={refetch}
               onEdited={refetch}
+              jobConnectionIds={jobConnectionIds}
             />
           );
         })}
       </div>
     </div>
   );
+}
+
+function getJobConnectionIds(job: Job): string[] {
+  const output: string[] = [];
+
+  const sourceId = getConnectionIdFromSource(job.source);
+  if (sourceId) {
+    output.push(sourceId);
+  }
+  return output.concat(job.destinations.map((dest) => dest.connectionId));
 }

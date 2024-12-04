@@ -5,11 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { getErrorMessage } from '@/util/util';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobHook, JobHookConfig } from '@neosync/sdk';
 import { deleteJobHook, updateJobHook } from '@neosync/sdk/connectquery';
@@ -20,12 +22,13 @@ import { EditHookForm } from './EditHookForm';
 
 interface Props {
   hook: JobHook;
+  jobConnectionIds: string[];
   onDeleted(): void;
   onEdited(): void;
 }
 
 export default function HookCard(props: Props): ReactElement {
-  const { hook, onDeleted, onEdited } = props;
+  const { hook, onDeleted, onEdited, jobConnectionIds } = props;
   const hookTiming = getHookTiming(hook.config ?? new JobHookConfig());
   return (
     <div id={`jobhook-${hook.id}`}>
@@ -80,7 +83,11 @@ export default function HookCard(props: Props): ReactElement {
 
             {/* Actions */}
             <div className="flex items-start gap-1 ml-4">
-              <EditHookButton hook={hook} onEdited={onEdited} />
+              <EditHookButton
+                hook={hook}
+                onEdited={onEdited}
+                jobConnectionIds={jobConnectionIds}
+              />
               <RemoveHookButton hook={hook} onDeleted={onDeleted} />
             </div>
           </div>
@@ -102,14 +109,17 @@ function getHookTiming(config: JobHookConfig): string | undefined {
 interface EditHookButtonProps {
   onEdited(): void;
   hook: JobHook;
+  jobConnectionIds: string[];
 }
 
 function EditHookButton(props: EditHookButtonProps): ReactElement {
-  const { hook, onEdited } = props;
+  const { hook, onEdited, jobConnectionIds } = props;
   const { mutateAsync: updateHook } = useMutation(updateJobHook);
   const [open, setOpen] = useState(false);
 
-  async function onUpdate(values: Partial<JobHook>): Promise<void> {
+  async function onUpdate(
+    values: Partial<PlainMessage<JobHook>>
+  ): Promise<void> {
     try {
       await updateHook({ id: hook.id, ...values });
       toast.success('Successfully updated job hook!');
@@ -130,11 +140,22 @@ function EditHookButton(props: EditHookButtonProps): ReactElement {
           <Pencil1Icon />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent
+        onPointerDownOutside={(e) => e.preventDefault()}
+        className="lg:max-w-4xl"
+      >
         <DialogHeader>
           <DialogTitle>Edit Job Hook: {hook.name}</DialogTitle>
+          <DialogDescription>
+            Change any of the available job hook settings.
+          </DialogDescription>
         </DialogHeader>
-        <EditHookForm hook={hook} onSubmit={onUpdate} />
+        <EditHookForm
+          key={hook.id}
+          hook={hook}
+          onSubmit={onUpdate}
+          jobConnectionIds={jobConnectionIds}
+        />
       </DialogContent>
     </Dialog>
   );
