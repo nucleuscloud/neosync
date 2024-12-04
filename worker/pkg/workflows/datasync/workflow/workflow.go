@@ -412,6 +412,7 @@ func runRedisCleanUpActivity(
 			}
 			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
+			var redisCleanUpActivity *syncrediscleanup_activity.Activity
 			err := workflow.ExecuteActivity(
 				workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 					StartToCloseTimeout: 2 * time.Minute,
@@ -420,7 +421,7 @@ func runRedisCleanUpActivity(
 					},
 					HeartbeatTimeout: 1 * time.Minute,
 				}),
-				syncrediscleanup_activity.DeleteRedisHash,
+				redisCleanUpActivity,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,
 					HashKey: cfg.Key,

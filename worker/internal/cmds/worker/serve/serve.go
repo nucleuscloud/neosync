@@ -26,6 +26,7 @@ import (
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
+	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
@@ -285,6 +286,10 @@ func serve(ctx context.Context) error {
 	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
 
 	redisconfig := shared.GetRedisConfig()
+	redisclient, err := neosync_redis.GetRedisClient(redisconfig)
+	if err != nil {
+		return err
+	}
 
 	genbenthosActivity := genbenthosconfigs_activity.New(
 		jobclient,
@@ -308,12 +313,13 @@ func serve(ctx context.Context) error {
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
+	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
 	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	w.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
+	w.RegisterActivity(redisCleanUpActivity)
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)

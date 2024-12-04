@@ -23,6 +23,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
@@ -266,7 +267,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 
 					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, jobId)
+					env := executeWorkflow(t, srv, &s.redis.url, jobId, tt.ExpectError)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -444,7 +445,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+					env := executeWorkflow(t, srv, nil, "115aaf2c-776e-4847-8268-d914e3c15968", tt.ExpectError)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err := env.GetWorkflowError()
 					if tt.ExpectError {
@@ -638,7 +639,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	testName := "Virtual Foreign Key primary key transform"
-	env := executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
+	env := executeWorkflow(s.T(), srv, &s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f", false)
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
@@ -840,7 +841,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+					env := executeWorkflow(t, srv, &s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.ExpectError)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -1039,7 +1040,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, jobId)
+					env := executeWorkflow(t, srv, &s.redis.url, jobId, tt.ExpectError)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -1324,7 +1325,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					addRunContextProcedureMux(mux)
 					addEmptyJobHooksProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
-					env := executeWorkflow(t, srv, s.redis.url, jobId)
+					env := executeWorkflow(t, srv, &s.redis.url, jobId, tt.ExpectError)
 					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
 					err = env.GetWorkflowError()
 					if tt.ExpectError {
@@ -1571,7 +1572,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	addRunContextProcedureMux(mux)
 	addEmptyJobHooksProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
-	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+	env := executeWorkflow(s.T(), srv, &s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", false)
 	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 	err = env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
@@ -1598,20 +1599,28 @@ func (f *fakeEELicense) IsValid() bool {
 func executeWorkflow(
 	t testing.TB,
 	srv *httptest.Server,
-	redisUrl string,
+	redisUrl *string,
 	jobId string,
+	expectActivityErr bool,
 ) *testsuite.TestWorkflowEnvironment {
 	t.Helper()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(srv.Client(), srv.URL)
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
-	redisconfig := &shared.RedisConfig{
-		Url:  redisUrl,
-		Kind: "simple",
-		Tls: &shared.RedisTlsConfig{
-			Enabled: false,
-		},
+	var redisconfig *shared.RedisConfig
+	if redisUrl != nil && *redisUrl != "" {
+		redisconfig = &shared.RedisConfig{
+			Url:  *redisUrl,
+			Kind: "simple",
+			Tls: &shared.RedisTlsConfig{
+				Enabled: false,
+			},
+		}
+	}
+	redisclient, err := neosync_redis.GetRedisClient(redisconfig)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
@@ -1650,12 +1659,13 @@ func executeWorkflow(
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
 	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
+	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
+	env.RegisterActivity(redisCleanUpActivity)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
@@ -1663,7 +1673,9 @@ func executeWorkflow(
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.SetOnActivityCompletedListener(func(activityInfo *activity.Info, result converter.EncodedValue, err error) {
-		require.NoError(t, err, "Activity %s failed", activityInfo.ActivityType.Name)
+		if !expectActivityErr {
+			require.NoError(t, err, "Activity %s failed", activityInfo.ActivityType.Name)
+		}
 		if activityInfo.ActivityType.Name == "RunPostTableSync" && result.HasValue() {
 			var postTableSyncResp posttablesync_activity.RunPostTableSyncResponse
 			decodeErr := result.Get(&postTableSyncResp)
