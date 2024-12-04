@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nucleuscloud/neosync,6496,5674
+/nucleuscloud/neosync/issues,83,45
+/nucleuscloud/neosync/pulls,71,11
+/nucleuscloud/neosync/tree/main/backend,37,30
+/nucleuscloud/neosync/blob/main/compose.yml,25,19
+/nucleuscloud/neosync/commits/main,25,7
+/nucleuscloud/neosync/pull/2982,24,2
+/nucleuscloud/neosync/tree/main,21,14
+/nucleuscloud/neosync/tree/main/charts/neosync,17,10
+/nucleuscloud/neosync/blob/main/LICENSE.md,16,14
