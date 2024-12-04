@@ -10,7 +10,7 @@ import {
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { NewJobHook } from '@neosync/sdk';
+import { Connection, NewJobHook } from '@neosync/sdk';
 import { createJobHook } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,12 +18,12 @@ import NewHookForm from './NewHookForm';
 
 interface Props {
   jobId: string;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
   onCreated(): void;
 }
 
 export default function NewHookButton(props: Props): ReactElement {
-  const { jobId, jobConnectionIds, onCreated } = props;
+  const { jobId, jobConnections, onCreated } = props;
   const { mutateAsync: createHook } = useMutation(createJobHook);
   const [open, setOpen] = useState(false);
 
@@ -62,7 +62,7 @@ export default function NewHookButton(props: Props): ReactElement {
             job run
           </DialogDescription>
         </DialogHeader>
-        <NewHookForm jobConnectionIds={jobConnectionIds} onSubmit={onCreate} />
+        <NewHookForm jobConnections={jobConnections} onSubmit={onCreate} />
       </DialogContent>
     </Dialog>
   );

@@ -10,7 +10,7 @@ import {
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { JobHook } from '@neosync/sdk';
+import { Connection, JobHook } from '@neosync/sdk';
 import { updateJobHook } from '@neosync/sdk/connectquery';
 import { Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
@@ -20,11 +20,11 @@ import { EditHookForm } from './EditHookForm';
 interface Props {
   onEdited(): void;
   hook: JobHook;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
 }
 
 export default function EditHookButton(props: Props): ReactElement {
-  const { hook, onEdited, jobConnectionIds } = props;
+  const { hook, onEdited, jobConnections } = props;
   const { mutateAsync: updateHook } = useMutation(updateJobHook);
   const [open, setOpen] = useState(false);
 
@@ -65,7 +65,7 @@ export default function EditHookButton(props: Props): ReactElement {
           key={hook.id}
           hook={hook}
           onSubmit={onUpdate}
-          jobConnectionIds={jobConnectionIds}
+          jobConnections={jobConnections}
         />
       </DialogContent>
     </Dialog>

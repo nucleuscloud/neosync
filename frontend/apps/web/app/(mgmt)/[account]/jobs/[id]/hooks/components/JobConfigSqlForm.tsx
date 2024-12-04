@@ -1,8 +1,7 @@
-import { ReactElement, useMemo } from 'react';
+import { ReactElement } from 'react';
 
 import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { useAccount } from '@/components/providers/account-provider';
 import {
   Select,
   SelectContent,
@@ -10,27 +9,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { splitConnections } from '@/libs/utils';
-import { useQuery } from '@connectrpc/connect-query';
-import { getConnections } from '@neosync/sdk/connectquery';
+import { Connection } from '@neosync/sdk';
 import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
 interface Props {
   values: JobHookSqlFormValues;
   setValues(values: JobHookSqlFormValues): void;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
   errors: Record<string, string>;
 }
 
 export default function JobConfigSqlForm(props: Props): ReactElement {
-  const { values, setValues, jobConnectionIds, errors } = props;
+  const { values, setValues, jobConnections, errors } = props;
   return (
     <>
       <SelectConnections
-        connectionIds={jobConnectionIds}
+        jobConnections={jobConnections}
         selectedConnectionId={values.connectionId}
         setSelectedConnectionId={(updatedId) => {
           setValues({ ...values, connectionId: updatedId });
@@ -103,7 +100,7 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
 }
 
 interface SelectConnectionsProps {
-  connectionIds: string[];
+  jobConnections: Connection[];
 
   selectedConnectionId: string;
   setSelectedConnectionId(id: string): void;
@@ -111,29 +108,12 @@ interface SelectConnectionsProps {
 }
 function SelectConnections(props: SelectConnectionsProps): ReactElement {
   const {
-    connectionIds,
+    jobConnections,
     selectedConnectionId,
     setSelectedConnectionId,
     error,
   } = props;
-  const { account } = useAccount();
-
-  const { data: connectionsResp, isLoading } = useQuery(
-    getConnections,
-    { accountId: account?.id },
-    { enabled: !!account?.id }
-  );
-  const { postgres, mysql, mssql } = useMemo(() => {
-    const connections = connectionsResp?.connections ?? [];
-    const uniqueConnectionIds = new Set(connectionIds);
-    const filtered = connections.filter((c) => uniqueConnectionIds.has(c.id));
-    return splitConnections(filtered);
-  }, [connectionsResp?.connections, isLoading, connectionIds]);
-
-  if (isLoading) {
-    return <Skeleton />;
-  }
-
+  const { postgres, mysql, mssql } = splitConnections(jobConnections);
   return (
     <div className="flex flex-col gap-3">
       <FormHeader

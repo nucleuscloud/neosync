@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
-import { JobHook } from '@neosync/sdk';
+import { Connection, JobHook } from '@neosync/sdk';
 import {
   Description,
   Enabled,
@@ -24,13 +24,13 @@ interface EditHookFormProps {
   hook: JobHook;
   onSubmit: (values: JobHook) => Promise<void>;
 
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
 }
 
 export function EditHookForm({
   hook,
   onSubmit,
-  jobConnectionIds,
+  jobConnections,
 }: EditHookFormProps) {
   const {
     formData,
@@ -108,7 +108,7 @@ export function EditHookForm({
         errors={errors}
         value={formData.config}
         hookType={formData.hookType}
-        jobConnectionIds={jobConnectionIds}
+        jobConnections={jobConnections}
         onChange={(value) => setFormData({ config: value })}
       />
 

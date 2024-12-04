@@ -1,9 +1,10 @@
 import SubPageHeader from '@/components/headers/SubPageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
 import { Job } from '@neosync/sdk';
-import { getJob, getJobHooks } from '@neosync/sdk/connectquery';
+import { getConnections, getJob, getJobHooks } from '@neosync/sdk/connectquery';
 import { ReactElement, useMemo } from 'react';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import HookCard from './HookCard';
@@ -28,6 +29,17 @@ export default function HooksCard(props: Props): ReactElement {
     isFetching: isGetJobFetching,
   } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
 
+  const { account } = useAccount();
+  const {
+    data: getConnectionsResp,
+    isLoading: isConnectionsLoading,
+    isFetching: isConnectionsFetching,
+  } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+
   const jobHooks = useMemo(() => {
     return [...(getJobHooksResp?.hooks ?? [])].sort((a, b) => {
       const timeA = a.createdAt ? a.createdAt.toDate().getTime() : 0;
@@ -37,8 +49,16 @@ export default function HooksCard(props: Props): ReactElement {
   }, [getJobHooksResp?.hooks, isGetJobHooksFetching]);
 
   const jobConnectionIds = useMemo(() => {
-    return getJobConnectionIds(getJobResp?.job ?? new Job());
+    return new Set(getJobConnectionIds(getJobResp?.job ?? new Job()));
   }, [getJobResp?.job, isGetJobFetching]);
+
+  const jobConnections = useMemo(() => {
+    return (
+      getConnectionsResp?.connections.filter((conn) =>
+        jobConnectionIds.has(conn.id)
+      ) ?? []
+    );
+  }, [isConnectionsFetching, jobConnectionIds]);
 
   if (isGetJobHooksLoading || isGetJobLoading) {
     return (
@@ -63,7 +83,7 @@ export default function HooksCard(props: Props): ReactElement {
         extraHeading={
           <NewHookButton
             jobId={jobId}
-            jobConnectionIds={jobConnectionIds}
+            jobConnections={jobConnections}
             onCreated={refetch}
           />
         }
@@ -77,7 +97,7 @@ export default function HooksCard(props: Props): ReactElement {
               hook={hook}
               onDeleted={refetch}
               onEdited={refetch}
-              jobConnectionIds={jobConnectionIds}
+              jobConnections={jobConnections}
             />
           );
         })}

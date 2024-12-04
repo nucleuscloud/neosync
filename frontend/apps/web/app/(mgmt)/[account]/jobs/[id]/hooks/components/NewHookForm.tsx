@@ -1,7 +1,7 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
-import { NewJobHook } from '@neosync/sdk';
+import { Connection, NewJobHook } from '@neosync/sdk';
 import { FormEvent, ReactElement } from 'react';
 import { ValidationError } from 'yup';
 import {
@@ -17,11 +17,11 @@ import { newFormDataToNewJobHook, NewJobHookFormValues } from './validation';
 
 interface Props {
   onSubmit(values: NewJobHook): Promise<void>;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
 }
 
 export default function NewHookForm(props: Props): ReactElement {
-  const { onSubmit, jobConnectionIds } = props;
+  const { onSubmit, jobConnections } = props;
   const {
     formData,
     errors,
@@ -91,7 +91,7 @@ export default function NewHookForm(props: Props): ReactElement {
         errors={errors}
         value={formData.config}
         hookType={formData.hookType}
-        jobConnectionIds={jobConnectionIds}
+        jobConnections={jobConnections}
         onChange={(value) => setFormData({ config: value })}
       />
 

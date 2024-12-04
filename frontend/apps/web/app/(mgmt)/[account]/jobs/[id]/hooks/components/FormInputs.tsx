@@ -2,6 +2,7 @@ import FormErrorMessage from '@/components/FormErrorMessage';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import FormHeader from './FormHeader';
 import JobConfigSqlForm from './JobConfigSqlForm';
@@ -170,11 +171,11 @@ interface JobConfigProps {
   hookType: HookTypeFormValue;
   value: JobHookConfigFormValues;
   onChange(value: JobHookConfigFormValues): void;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
 }
 
 export function JobConfig(props: JobConfigProps): ReactElement {
-  const { errors, hookType, value, onChange, jobConnectionIds } = props;
+  const { errors, hookType, value, onChange, jobConnections } = props;
 
   return (
     <div className="flex flex-col gap-4">
@@ -184,7 +185,7 @@ export function JobConfig(props: JobConfigProps): ReactElement {
           setValues={(newSqlData) => {
             onChange({ sql: newSqlData });
           }}
-          jobConnectionIds={jobConnectionIds}
+          jobConnections={jobConnections}
           errors={errors}
         />
       )}

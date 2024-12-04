@@ -1,24 +1,31 @@
-import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { useQuery } from '@connectrpc/connect-query';
-import { JobHook, JobHookConfig, JobHookConfig_JobSqlHook } from '@neosync/sdk';
-import { getConnections } from '@neosync/sdk/connectquery';
+import {
+  Connection,
+  JobHook,
+  JobHookConfig,
+  JobHookConfig_JobSqlHook,
+} from '@neosync/sdk';
 import { ClockIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import EditHookButton from './EditHookButton';
 import RemoveHookButton from './RemoveHookButton';
 
 interface Props {
   hook: JobHook;
-  jobConnectionIds: string[];
+  jobConnections: Connection[];
   onDeleted(): void;
   onEdited(): void;
 }
 
 export default function HookCard(props: Props): ReactElement {
-  const { hook, onDeleted, onEdited, jobConnectionIds } = props;
+  const { hook, onDeleted, onEdited, jobConnections } = props;
   const hookTiming = getHookTiming(hook.config ?? new JobHookConfig());
+
+  const connectionMap = useMemo(
+    () => new Map(jobConnections.map((conn) => [conn.id, conn])),
+    [jobConnections]
+  );
 
   return (
     <div id={`jobhook-${hook.id}`}>
@@ -52,7 +59,10 @@ export default function HookCard(props: Props): ReactElement {
                   <Badge variant="secondary">{hook.config?.config.case}</Badge>
                 )}
                 {hook.config?.config.case && (
-                  <HookConnectionBadge config={hook.config} />
+                  <HookConnectionBadge
+                    config={hook.config}
+                    connMap={connectionMap}
+                  />
                 )}
               </div>
             </div>
@@ -61,7 +71,7 @@ export default function HookCard(props: Props): ReactElement {
               <EditHookButton
                 hook={hook}
                 onEdited={onEdited}
-                jobConnectionIds={jobConnectionIds}
+                jobConnections={jobConnections}
               />
               <RemoveHookButton hook={hook} onDeleted={onDeleted} />
             </div>
@@ -93,15 +103,21 @@ function getHookTiming(config: JobHookConfig): string | undefined {
 
 interface HookConnectionBadgeProps {
   config: JobHookConfig;
+  connMap: Map<string, Connection>;
 }
 function HookConnectionBadge(
   props: HookConnectionBadgeProps
 ): ReactElement | null {
-  const { config } = props;
+  const { config, connMap } = props;
 
   switch (config.config.case) {
     case 'sql': {
-      return <SqlHookConnectionBadge config={config.config.value} />;
+      return (
+        <SqlHookConnectionBadge
+          config={config.config.value}
+          connMap={connMap}
+        />
+      );
     }
     default: {
       return null;
@@ -111,38 +127,16 @@ function HookConnectionBadge(
 
 interface SqlHookConnectionBadgeProps {
   config: Pick<JobHookConfig_JobSqlHook, 'connectionId'>;
+  connMap: Map<string, Connection>;
 }
 function SqlHookConnectionBadge(
   props: SqlHookConnectionBadgeProps
 ): ReactElement {
-  const { config } = props;
-
-  const { account } = useAccount();
-  const { data: getConnectionsResp } = useQuery(
-    getConnections, // Using getConnections here so that way all of the badges can share the same request
-    { accountId: account?.id },
-    { enabled: !!account?.id }
-  );
-
-  const connection = getConnectionsResp?.connections.find(
-    (c) => c.id === config.connectionId
-  );
-
+  const { config, connMap } = props;
+  const connection = connMap.get(config.connectionId);
   return (
     <Badge variant="secondary">
       {connection?.name ?? 'Unknown Connection'}
     </Badge>
   );
-}
-
-function getHookConnectionName(
-  config: JobHookConfig,
-  getConnectionName: (id: string) => string
-): string | undefined {
-  switch (config.config.case) {
-    case 'sql': {
-      return getConnectionName(config.config.value.connectionId);
-    }
-  }
-  return '';
 }
