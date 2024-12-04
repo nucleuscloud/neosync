@@ -8,17 +8,14 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	mysqlalltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
 	pgalltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
-	workertest "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
+	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,9 +37,10 @@ func Test_Sync(t *testing.T) {
 	connclient := neosyncApi.UnauthdClients.Connections
 	conndataclient := neosyncApi.UnauthdClients.ConnectionData
 	jobclient := neosyncApi.UnauthdClients.Jobs
-	connmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
-	sqlmanagerclient := sqlmanager.NewSqlManager(sqlmanager.WithConnectionManager(connmanager))
 
+	dbManagers := tcworkflow.NewTestDatabaseManagers(t)
+	connmanager := dbManagers.SqlConnManager
+	sqlmanagerclient := dbManagers.SqlManager
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
 	awsS3Config := testutil.GetTestAwsS3Config()
 	s3Conn := tcneosyncapi.CreateS3Connection(
@@ -55,7 +53,6 @@ func Test_Sync(t *testing.T) {
 		&awsS3Config.Region,
 	)
 	outputType := output.PlainOutput
-	validEELicense := false
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
@@ -178,10 +175,12 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Run("Postgres_to_S3", func(t *testing.T) {
-				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), validEELicense)
-				require.Truef(t, env.IsWorkflowCompleted(), "Workflow did not complete. Test: pg_s3")
-				err = env.GetWorkflowError()
-				require.NoError(t, err, "Received Temporal Workflow Error", "testName", "pg_s3")
+				testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+				testworkflow.RequireActivitiesCompletedSuccessfully(t)
+				testworkflow.ExecuteTestDataSyncWorkflow(job.Msg.GetJob().GetId())
+				require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: pg_to_s3")
+				err = testworkflow.TestEnv.GetWorkflowError()
+				require.NoError(t, err, "Received Temporal Workflow Error", "testName", "pg_to_s3")
 			})
 
 			t.Run("S3_to_Postgres", func(t *testing.T) {
@@ -356,9 +355,11 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Run("Mysql_to_S3", func(t *testing.T) {
-				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), validEELicense)
-				require.Truef(t, env.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_to_s3")
-				err = env.GetWorkflowError()
+				testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+				testworkflow.RequireActivitiesCompletedSuccessfully(t)
+				testworkflow.ExecuteTestDataSyncWorkflow(job.Msg.GetJob().GetId())
+				require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_to_s3")
+				err = testworkflow.TestEnv.GetWorkflowError()
 				require.NoError(t, err, "Received Temporal Workflow Error", "testName", "mysql_to_s3")
 			})
 
@@ -409,7 +410,7 @@ func Test_Sync(t *testing.T) {
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
 			if err != nil {
-				panic(err)
+				t.Fatal(err)
 			}
 		})
 	})
@@ -417,7 +418,7 @@ func Test_Sync(t *testing.T) {
 	t.Cleanup(func() {
 		err = neosyncApi.TearDown(ctx)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 	})
 }

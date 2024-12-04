@@ -1666,7 +1666,7 @@ func executeWorkflow(
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	env.RegisterActivity(redisCleanUpActivity)
+	env.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
