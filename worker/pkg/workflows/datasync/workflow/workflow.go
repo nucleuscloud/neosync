@@ -421,7 +421,7 @@ func runRedisCleanUpActivity(
 					},
 					HeartbeatTimeout: 1 * time.Minute,
 				}),
-				redisCleanUpActivity,
+				redisCleanUpActivity.DeleteRedisHash,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,
 					HashKey: cfg.Key,

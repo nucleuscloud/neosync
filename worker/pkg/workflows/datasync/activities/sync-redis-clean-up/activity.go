@@ -70,6 +70,7 @@ func (a *Activity) DeleteRedisHash(
 	if err != nil {
 		return nil, err
 	}
+	slogger.Debug("deleted redis key")
 
 	return &DeleteRedisHashResponse{}, nil
 }

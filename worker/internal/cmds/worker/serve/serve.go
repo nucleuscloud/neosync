@@ -319,7 +319,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(syncActivity.Sync)
 	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	w.RegisterActivity(redisCleanUpActivity)
+	w.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
