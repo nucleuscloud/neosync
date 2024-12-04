@@ -567,12 +567,12 @@ BEGIN
 		SELECT 1
 		FROM pg_constraint
 		WHERE conname = '%s'
-		AND connamespace = '%s'::regnamespace
+		AND connamespace = (SELECT oid FROM pg_namespace WHERE nspname = '%s')
 		AND conrelid = (
 			SELECT oid
 			FROM pg_class
 			WHERE relname = '%s'
-			AND relnamespace = '%s'::regnamespace
+			AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '%s')
 		)
 	) THEN
 		%s
@@ -691,7 +691,7 @@ func buildAlterStatementByConstraint(
 		return "", errors.New("unable to build alter statement as constraint is nil")
 	}
 	return fmt.Sprintf(
-		"ALTER TABLE %q.%q ADD CONSTRAINT %s %s;",
+		"ALTER TABLE %q.%q ADD CONSTRAINT %q %s;",
 		constraint.SchemaName, constraint.TableName, constraint.ConstraintName, constraint.ConstraintDefinition,
 	), nil
 }
@@ -919,7 +919,7 @@ func EscapePgColumn(col string) string {
 func BuildPgIdentityColumnResetCurrentSql(
 	schema, table, column string,
 ) string {
-	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
+	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%q.%q', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
 }
 
 func BuildPgInsertIdentityAlwaysSql(
@@ -930,7 +930,7 @@ func BuildPgInsertIdentityAlwaysSql(
 }
 
 func BuildPgResetSequenceSql(sequenceName string) string {
-	return fmt.Sprintf("ALTER SEQUENCE %s RESTART;", sequenceName)
+	return fmt.Sprintf("ALTER SEQUENCE %q RESTART;", sequenceName)
 }
 
 func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {

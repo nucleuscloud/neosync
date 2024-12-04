@@ -5,12 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	redis "github.com/redis/go-redis/v9"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
+
+type Activity struct {
+	redisclient redis.UniversalClient
+}
+
+func New(
+	redisclient redis.UniversalClient,
+) *Activity {
+	return &Activity{
+		redisclient: redisclient,
+	}
+}
 
 type DeleteRedisHashRequest struct {
 	JobId   string
@@ -20,7 +31,7 @@ type DeleteRedisHashRequest struct {
 type DeleteRedisHashResponse struct {
 }
 
-func DeleteRedisHash(
+func (a *Activity) DeleteRedisHash(
 	ctx context.Context,
 	req *DeleteRedisHashRequest,
 ) (*DeleteRedisHashResponse, error) {
@@ -50,17 +61,16 @@ func DeleteRedisHash(
 		"RedisHashKey", req.HashKey,
 	)
 
-	// todo: this should be factored out of here and live on the activity itself
-	redisClient, err := neosync_redis.GetRedisClient()
-	if err != nil {
-		return nil, err
+	if a.redisclient == nil {
+		return nil, fmt.Errorf("missing redis client. this operation requires redis.")
 	}
-	slogger.Debug("redis client created")
+	slogger.Debug("redis client provided")
 
-	err = deleteRedisHashByKey(ctx, redisClient, req.HashKey)
+	err := deleteRedisHashByKey(ctx, a.redisclient, req.HashKey)
 	if err != nil {
 		return nil, err
 	}
+	slogger.Debug("deleted redis key")
 
 	return &DeleteRedisHashResponse{}, nil
 }
