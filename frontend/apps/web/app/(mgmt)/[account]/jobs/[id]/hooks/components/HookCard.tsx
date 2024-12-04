@@ -39,15 +39,6 @@ export default function HookCard(props: Props): ReactElement {
               {/* Header Section */}
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-lg">{hook.name}</h3>
-                {/* <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant={hook.active ? 'default' : 'outline'}
-                    onClick={() => onToggleActive(hook.id)}
-                  >
-                    {hook.active ? 'Active' : 'Inactive'}
-                  </Button>
-                </div> */}
               </div>
 
               {/* Description */}
@@ -62,11 +53,7 @@ export default function HookCard(props: Props): ReactElement {
                 {/* Timing */}
                 <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                   <ClockIcon className="flex-shrink-0" />
-                  {/* {hook.config?.config.} */}
                   <p>{hookTiming}</p>
-                  {/* <code className="px-1 bg-gray-100 rounded">
-                    {hook.timing}
-                  </code> */}
                 </div>
 
                 {/* Priority Badge */}
