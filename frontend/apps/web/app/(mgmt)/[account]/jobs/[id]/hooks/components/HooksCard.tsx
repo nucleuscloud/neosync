@@ -49,7 +49,7 @@ export default function HooksCard(props: Props): ReactElement {
   }
 
   return (
-    <div className="job-hooks-card-container flex flex-col gap-3">
+    <div className="job-hooks-card-container flex flex-col gap-5">
       <SubPageHeader
         header="Job Hooks"
         rightHeaderIcon={
