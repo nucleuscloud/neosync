@@ -59,10 +59,9 @@ func (h *temporalLogHandler) Handle(ctx context.Context, r slog.Record) error { 
 }
 
 func (h *temporalLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	newAttrs := make([]slog.Attr, len(h.attrs)+len(attrs))
-	copy(newAttrs, h.attrs)
-	copy(newAttrs[len(h.attrs):], attrs)
-
+	newAttrs := []slog.Attr{}
+	newAttrs = append(newAttrs, h.attrs...)
+	newAttrs = append(newAttrs, attrs...)
 	return &temporalLogHandler{
 		logger: h.logger,
 		attrs:  newAttrs,
@@ -74,11 +73,9 @@ func (h *temporalLogHandler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return h
 	}
-
-	newGroups := make([]string, len(h.groups)+1)
-	copy(newGroups, h.groups)
-	newGroups[len(h.groups)] = name
-
+	newGroups := []string{}
+	newGroups = append(newGroups, h.groups...)
+	newGroups = append(newGroups, name)
 	return &temporalLogHandler{
 		logger: h.logger,
 		attrs:  h.attrs,

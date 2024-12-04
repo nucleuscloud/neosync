@@ -44,6 +44,7 @@ func GetTestAwsS3Config() *AwsS3Config {
 	}
 }
 
+// not safe for concurrent use
 func GetTestLogger(t testing.TB) *slog.Logger {
 	f := slogt.Factory(func(w io.Writer) slog.Handler {
 		return slog.NewTextHandler(w, &slog.HandlerOptions{
@@ -58,4 +59,11 @@ type FakeEELicense struct{}
 
 func (f *FakeEELicense) IsValid() bool {
 	return true
+}
+
+func GetConcurrentTestLogger(t testing.TB) *slog.Logger {
+	if testing.Verbose() {
+		return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	}
+	return slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 }

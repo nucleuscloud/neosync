@@ -31,7 +31,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
@@ -95,7 +95,7 @@ func Test_Activity_Success(t *testing.T) {
 
 func Test_Activity_RunContextNotFound(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 
 	env := testSuite.NewTestActivityEnvironment()
 
@@ -107,7 +107,7 @@ func Test_Activity_RunContextNotFound(t *testing.T) {
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			return nil, errors.New("no run context exists")
+			return nil, errors.New("unable to find key")
 		},
 	))
 	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
@@ -149,7 +149,7 @@ func Test_Activity_RunContextNotFound(t *testing.T) {
 
 func Test_Activity_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()

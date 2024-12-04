@@ -57,6 +57,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -90,6 +91,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 		s.T().Run(groupName, func(t *testing.T) {
 			t.Parallel()
 			for _, tt := range group {
+
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
@@ -1612,9 +1614,14 @@ func executeWorkflow(
 	}
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
-	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
+	go sqlconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
-	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
+	go mongoconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))
+
+	t.Cleanup(func() {
+		sqlconnmanager.Shutdown(testutil.GetConcurrentTestLogger(t))
+		mongoconnmanager.Shutdown(testutil.GetConcurrentTestLogger(t))
+	})
 
 	sqlmanager := sql_manager.NewSqlManager(
 		sql_manager.WithConnectionManager(sqlconnmanager),
@@ -1622,7 +1629,7 @@ func executeWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
