@@ -52,9 +52,14 @@ func ExecuteTestDataSyncWorkflow(
 	}
 
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
-	go sqlconnmanager.Reaper(testutil.GetTestLogger(t))
+	go sqlconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
-	go mongoconnmanager.Reaper(testutil.GetTestLogger(t))
+	go mongoconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))
+
+	t.Cleanup(func() {
+		sqlconnmanager.Shutdown(testutil.GetConcurrentTestLogger(t))
+		mongoconnmanager.Shutdown(testutil.GetConcurrentTestLogger(t))
+	})
 
 	sqlmanager := sql_manager.NewSqlManager(
 		sql_manager.WithConnectionManager(sqlconnmanager),
@@ -62,7 +67,7 @@ func ExecuteTestDataSyncWorkflow(
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	// register activities
@@ -75,11 +80,16 @@ func ExecuteTestDataSyncWorkflow(
 		false,
 	)
 
+	fakeEELicense := testutil.NewFakeEELicense()
+	if validEELicense {
+		fakeEELicense = testutil.NewFakeEELicense(testutil.WithIsValid())
+	}
+
 	var activityMeter metric.Meter
 	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{IsValid: validEELicense})
-	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{IsValid: validEELicense})
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, fakeEELicense)
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, fakeEELicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 

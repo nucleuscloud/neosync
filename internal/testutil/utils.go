@@ -56,11 +56,27 @@ func GetTestLogger(t testing.TB) *slog.Logger {
 }
 
 type FakeEELicense struct {
-	IsValid bool
+	isValid bool
+}
+
+type Option func(*FakeEELicense)
+
+func WithIsValid() Option {
+	return func(f *FakeEELicense) {
+		f.isValid = true
+	}
+}
+
+func NewFakeEELicense(opts ...Option) *FakeEELicense {
+	f := &FakeEELicense{}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 func (f *FakeEELicense) IsValid() bool {
-	return f.IsValid
+	return f.isValid
 }
 
 func GetConcurrentTestLogger(t testing.TB) *slog.Logger {
