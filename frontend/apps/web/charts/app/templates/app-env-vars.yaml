@@ -104,3 +104,5 @@ stringData:
     {{- end }}
 
     GCP_CS_CONNECTIONS_DISABLED: {{ .Values.disableGcpCloudStorageConnections | default "false" | quote }}
+
+    JOBHOOKS_ENABLED: {{ .Values.jobHooks.enabled | default "false" | quote }}
