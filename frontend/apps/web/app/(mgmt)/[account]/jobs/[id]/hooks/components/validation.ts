@@ -43,18 +43,25 @@ const JobHookPriorityFormValue = yup
   .min(0, 'Priority must be between 0 and 100')
   .max(100, 'Priority must be between 0 and 100');
 
-export const EditJobHookFormValues = yup.object({
-  name: JobHookNameFormValue,
-  description: JobHookDescriptionFormValue,
-  priority: JobHookPriorityFormValue,
-  enabled: yup.boolean(),
-  hookType: HookTypeFormValue,
+const JobHookConfigFormValues = yup.object({
   sql: JobHookSqlFormValues.when('hookType', (values, schema) => {
     const [hooktype] = values;
     return hooktype === 'sql'
       ? schema.required('SQL config is required when hook type is sql')
       : schema;
   }),
+});
+export type JobHookConfigFormValues = yup.InferType<
+  typeof JobHookConfigFormValues
+>;
+
+export const EditJobHookFormValues = yup.object({
+  name: JobHookNameFormValue,
+  description: JobHookDescriptionFormValue,
+  priority: JobHookPriorityFormValue,
+  enabled: yup.boolean().required('Must provide a required value'),
+  hookType: HookTypeFormValue,
+  config: JobHookConfigFormValues,
 });
 export type EditJobHookFormValues = yup.InferType<typeof EditJobHookFormValues>;
 
@@ -65,7 +72,9 @@ export function toEditFormData(input: JobHook): EditJobHookFormValues {
     hookType: toHookType(input.config ?? new JobHookConfig()),
     priority: input.priority,
     enabled: input.enabled,
-    sql: toSqlConfig(input.config ?? new JobHookConfig()),
+    config: {
+      sql: toSqlConfig(input.config ?? new JobHookConfig()),
+    },
   };
 }
 
@@ -73,14 +82,9 @@ export const NewJobHookFormValues = yup.object({
   name: JobHookNameFormValue,
   description: JobHookDescriptionFormValue,
   priority: JobHookPriorityFormValue,
-  enabled: yup.boolean(),
+  enabled: yup.boolean().required('Must provide a required value'),
   hookType: HookTypeFormValue,
-  sql: JobHookSqlFormValues.when('hookType', (values, schema) => {
-    const [hooktype] = values;
-    return hooktype === 'sql'
-      ? schema.required('SQL config is required when hook type is sql')
-      : schema;
-  }),
+  config: JobHookConfigFormValues,
 });
 export type NewJobHookFormValues = yup.InferType<typeof NewJobHookFormValues>;
 
@@ -162,9 +166,9 @@ function toJobHookConfig(
         config: {
           case: 'sql',
           value: new JobHookConfig_JobSqlHook({
-            connectionId: values.sql.connectionId,
-            query: values.sql.query,
-            timing: toJobHookSqlTimingConfig(values.sql.timing),
+            connectionId: values.config.sql.connectionId,
+            query: values.config.sql.query,
+            timing: toJobHookSqlTimingConfig(values.config.sql.timing),
           }),
         },
       });

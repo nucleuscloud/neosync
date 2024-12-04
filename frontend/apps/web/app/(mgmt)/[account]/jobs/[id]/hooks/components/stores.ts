@@ -18,7 +18,9 @@ export const useEditHookStore = create<EditHookStore>((set) => ({
     hookType: 'sql',
     name: 'my-initial-job-hook',
     priority: 0,
-    sql: { query: 'INITIAL FORM VALUE', timing: 'preSync', connectionId: '' },
+    config: {
+      sql: { query: 'RESET FORM VALUE', timing: 'preSync', connectionId: '' },
+    },
     description: '',
     enabled: true,
   },
@@ -34,7 +36,13 @@ export const useEditHookStore = create<EditHookStore>((set) => ({
         hookType: 'sql',
         name: 'my-initial-job-hook',
         priority: 0,
-        sql: { query: 'RESET FORM VALUE', timing: 'preSync', connectionId: '' },
+        config: {
+          sql: {
+            query: 'RESET FORM VALUE',
+            timing: 'preSync',
+            connectionId: '',
+          },
+        },
         description: '',
         enabled: true,
       },
@@ -50,7 +58,9 @@ export const useNewHookStore = create<NewHookStore>((set) => ({
     hookType: 'sql',
     name: 'my-initial-job-hook',
     priority: 0,
-    sql: { query: 'INITIAL FORM VALUE', timing: 'preSync', connectionId: '' },
+    config: {
+      sql: { query: 'RESET FORM VALUE', timing: 'preSync', connectionId: '' },
+    },
     description: '',
     enabled: true,
   },
@@ -66,7 +76,13 @@ export const useNewHookStore = create<NewHookStore>((set) => ({
         hookType: 'sql',
         name: 'my-initial-job-hook',
         priority: 0,
-        sql: { query: 'RESET FORM VALUE', timing: 'preSync', connectionId: '' },
+        config: {
+          sql: {
+            query: 'RESET FORM VALUE',
+            timing: 'preSync',
+            connectionId: '',
+          },
+        },
         description: '',
         enabled: true,
       },
