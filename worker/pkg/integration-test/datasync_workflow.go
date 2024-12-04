@@ -32,6 +32,7 @@ func ExecuteTestDataSyncWorkflow(
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
 	redisUrl *string,
 	jobId string,
+	validEELicense bool,
 ) *testsuite.TestWorkflowEnvironment {
 	t.Helper()
 	connclient := neosyncApi.UnauthdClients.Connections
@@ -77,8 +78,8 @@ func ExecuteTestDataSyncWorkflow(
 	var activityMeter metric.Meter
 	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
-	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{})
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{IsValid: validEELicense})
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &testutil.FakeEELicense{IsValid: validEELicense})
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 

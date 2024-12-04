@@ -55,6 +55,7 @@ func Test_Sync(t *testing.T) {
 		&awsS3Config.Region,
 	)
 	outputType := output.PlainOutput
+	validEELicense := false
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
@@ -177,7 +178,7 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Run("Postgres_to_S3", func(t *testing.T) {
-				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId())
+				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), validEELicense)
 				require.Truef(t, env.IsWorkflowCompleted(), "Workflow did not complete. Test: pg_s3")
 				err = env.GetWorkflowError()
 				require.NoError(t, err, "Received Temporal Workflow Error", "testName", "pg_s3")
@@ -355,7 +356,7 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Run("Mysql_to_S3", func(t *testing.T) {
-				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId())
+				env := workertest.ExecuteTestDataSyncWorkflow(t, neosyncApi, nil, job.Msg.GetJob().GetId(), validEELicense)
 				require.Truef(t, env.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_to_s3")
 				err = env.GetWorkflowError()
 				require.NoError(t, err, "Received Temporal Workflow Error", "testName", "mysql_to_s3")

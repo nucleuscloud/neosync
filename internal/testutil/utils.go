@@ -55,10 +55,12 @@ func GetTestLogger(t testing.TB) *slog.Logger {
 	return slogt.New(t, f)
 }
 
-type FakeEELicense struct{}
+type FakeEELicense struct {
+	IsValid bool
+}
 
 func (f *FakeEELicense) IsValid() bool {
-	return true
+	return f.IsValid
 }
 
 func GetConcurrentTestLogger(t testing.TB) *slog.Logger {
