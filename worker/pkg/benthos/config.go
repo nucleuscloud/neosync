@@ -465,11 +465,17 @@ type BatchProcessor struct {
 	NeosyncToMssql *NeosyncToMssqlConfig `json:"neosync_to_mssql,omitempty" yaml:"neosync_to_mssql,omitempty"`
 }
 
-type NeosyncToPgxConfig struct{}
+type NeosyncToPgxConfig struct {
+	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
+}
 
-type NeosyncToMysqlConfig struct{}
+type NeosyncToMysqlConfig struct {
+	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
+}
 
-type NeosyncToMssqlConfig struct{}
+type NeosyncToMssqlConfig struct {
+	ColumnDataTypes map[string]string `json:"column_data_types yaml:"column_data_types"`
+}
 
 // type JsonToSqlConfig struct {
 // 	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`

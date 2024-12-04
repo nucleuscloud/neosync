@@ -19,19 +19,28 @@ func RegisterNeosyncToPgxProcessor(env *service.Environment) error {
 		"neosync_to_pgx",
 		neosyncToPgxProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			proc := newNeosyncToPgxProcessor(conf, mgr)
+			proc, err := newNeosyncToPgxProcessor(conf, mgr)
+			if err != nil {
+				return nil, err
+			}
 			return proc, nil
 		})
 }
 
 type neosyncToPgxProcessor struct {
-	logger *service.Logger
+	logger          *service.Logger
+	columnDataTypes map[string]string
 }
 
-func newNeosyncToPgxProcessor(_ *service.ParsedConfig, mgr *service.Resources) *neosyncToPgxProcessor {
-	return &neosyncToPgxProcessor{
-		logger: mgr.Logger(),
+func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToPgxProcessor, error) {
+	columnDataTypes, err := conf.FieldStringMap("column_data_types")
+	if err != nil {
+		return nil, err
 	}
+	return &neosyncToPgxProcessor{
+		logger:          mgr.Logger(),
+		columnDataTypes: columnDataTypes,
+	}, nil
 }
 
 func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
@@ -58,6 +67,14 @@ func (m *neosyncToPgxProcessor) Close(context.Context) error {
 }
 
 func (p *neosyncToPgxProcessor) transform(root any) any {
+	value, isNeosyncValue, err := getNeosyncValue(root)
+	if err != nil {
+		p.logger.Warn(err.Error())
+	}
+	if isNeosyncValue {
+		return value
+	}
+
 	switch v := root.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
@@ -69,19 +86,20 @@ func (p *neosyncToPgxProcessor) transform(root any) any {
 	case nil:
 		return v
 	default:
-		// Check if the type implements Value() method
-		if valuer, ok := v.(neosynctypes.NeosyncPgxValuer); ok {
-			value, err := valuer.ValuePgx()
-			if err != nil {
-				p.logger.Warn(fmt.Sprintf("unable to get PGX value: %v", err))
-				return v
-			}
-			if gotypeutil.IsSlice(value) {
-				return pq.Array(value)
-			}
-			return value
-		}
-
 		return v
 	}
+}
+
+func getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+	if valuer, ok := root.(neosynctypes.NeosyncPgxValuer); ok {
+		value, err := valuer.ValuePgx()
+		if err != nil {
+			return nil, false, fmt.Errorf("unable to get PGX value from NeosyncPgxValuer: %w", err)
+		}
+		if gotypeutil.IsSlice(value) {
+			return pq.Array(value), true, nil
+		}
+		return value, true, nil
+	}
+	return root, false, nil
 }

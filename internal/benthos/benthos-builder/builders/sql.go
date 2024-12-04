@@ -406,7 +406,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		// }
 		switch b.driver {
 		case sqlmanager_shared.PostgresDriver:
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{ColumnDataTypes: columnDataTypes}})
 		case sqlmanager_shared.MysqlDriver:
 			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{}})
 		case sqlmanager_shared.MssqlDriver:

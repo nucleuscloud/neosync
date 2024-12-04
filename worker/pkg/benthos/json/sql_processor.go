@@ -8,6 +8,8 @@ import (
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
+// TODO this becomes the neosync_to_json processor
+
 func sqlToJsonProcessorConfig() *service.ConfigSpec {
 	return service.NewConfigSpec()
 }
