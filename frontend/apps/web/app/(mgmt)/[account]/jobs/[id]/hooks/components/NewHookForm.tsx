@@ -1,3 +1,5 @@
+import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { NewJobHook } from '@neosync/sdk';
 import { FormEvent, ReactElement } from 'react';
@@ -99,7 +101,10 @@ export default function NewHookForm(props: Props): ReactElement {
           disabled={isSubmitting}
           className="w-full sm:w-auto"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit'}
+          <ButtonText
+            leftIcon={isSubmitting ? <Spinner /> : undefined}
+            text="Create"
+          />
         </Button>
       </div>
     </form>

@@ -1,6 +1,8 @@
 import { FormEvent, useEffect } from 'react';
 import * as yup from 'yup';
 
+import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { JobHook } from '@neosync/sdk';
 import {
@@ -116,7 +118,10 @@ export function EditHookForm({
           disabled={isSubmitting}
           className="w-full sm:w-auto"
         >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          <ButtonText
+            leftIcon={isSubmitting ? <Spinner /> : undefined}
+            text="Update"
+          />
         </Button>
       </div>
     </form>

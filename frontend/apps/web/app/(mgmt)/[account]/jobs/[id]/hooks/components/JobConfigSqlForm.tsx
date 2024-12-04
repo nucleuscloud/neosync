@@ -73,7 +73,7 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
               Pre Sync - Before first table sync, truncation, schema init
             </SelectItem>
             <SelectItem value="postSync">
-              Post Sync - After last table sync
+              Post Sync - After the last table sync
             </SelectItem>
           </SelectContent>
         </Select>
