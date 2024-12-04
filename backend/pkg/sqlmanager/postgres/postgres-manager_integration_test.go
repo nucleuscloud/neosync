@@ -20,6 +20,7 @@ import (
 )
 
 const schema = "sqlmanagerpostgres@special"
+const capitalSchema = "CaPiTaL"
 
 func Test_PostgresManager(t *testing.T) {
 	ok := testutil.ShouldRunIntegrationTest()
@@ -386,6 +387,16 @@ func Test_PostgresManager(t *testing.T) {
 				require.NoError(t, err, "failed to execute %s statement %q", block.Label, stmt)
 			}
 		}
+	})
+
+	t.Run("BuildPgIdentityColumnResetCurrentSql", func(t *testing.T) {
+		t.Parallel()
+		table := "BadName"
+
+		sql := BuildPgIdentityColumnResetCurrentSql(capitalSchema, table, "ID")
+		require.NoError(t, err)
+		_, err = source.DB.Exec(ctx, sql)
+		require.NoError(t, err, "failed to execute statement %q", sql)
 	})
 
 	t.Log("Finished running postgres manager integration tests")
