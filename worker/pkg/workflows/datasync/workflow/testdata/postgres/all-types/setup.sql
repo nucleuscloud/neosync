@@ -346,3 +346,31 @@ INSERT INTO alltypes.json_data (data) VALUES (
         }
     }'
 );
+
+CREATE SCHEMA IF NOT EXISTS "CaPiTaL";
+CREATE TABLE IF NOT EXISTS "CaPiTaL"."BadName" (
+    "ID" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "NAME" text UNIQUE
+);
+
+INSERT INTO "CaPiTaL"."BadName" ("NAME")
+VALUES 
+    ('Xk7pQ9nM3v'),
+    ('Rt5wLjH2yB'),
+    ('Zc8fAe4dN6'),
+    ('Ym9gKu3sW5'),
+    ('Vb4nPx7tJ2');
+
+CREATE TABLE "CaPiTaL"."Bad Name 123!@#" (
+    "ID" SERIAL PRIMARY KEY,
+    "NAME" text REFERENCES "CaPiTaL"."BadName" ("NAME")
+);
+
+
+INSERT INTO "CaPiTaL"."Bad Name 123!@#" ("NAME")
+VALUES 
+    ('Xk7pQ9nM3v'),
+    ('Rt5wLjH2yB'),
+    ('Zc8fAe4dN6'),
+    ('Ym9gKu3sW5'),
+    ('Vb4nPx7tJ2');
