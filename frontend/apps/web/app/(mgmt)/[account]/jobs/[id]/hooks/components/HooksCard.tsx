@@ -1,6 +1,5 @@
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import Spinner from '@/components/Spinner';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
 import { Job } from '@neosync/sdk';
@@ -8,6 +7,7 @@ import { getJob, getJobHooks } from '@neosync/sdk/connectquery';
 import { ReactElement, useMemo } from 'react';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import HookCard from './HookCard';
+import NewHookButton from './NewHookButton';
 
 interface Props {
   jobId: string;
@@ -60,7 +60,13 @@ export default function HooksCard(props: Props): ReactElement {
           ) : null
         }
         description="Manage a job's hooks"
-        extraHeading={<Button type="button">New Hook</Button>}
+        extraHeading={
+          <NewHookButton
+            jobId={jobId}
+            jobConnectionIds={jobConnectionIds}
+            onCreated={refetch}
+          />
+        }
       />
 
       <div className="flex flex-col gap-5">

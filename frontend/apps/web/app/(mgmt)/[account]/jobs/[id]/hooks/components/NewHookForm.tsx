@@ -1,34 +1,27 @@
-import { FormEvent, useEffect } from 'react';
-import * as yup from 'yup';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { JobHook } from '@neosync/sdk';
+import { NewJobHook } from '@neosync/sdk';
+import { FormEvent, ReactElement } from 'react';
+import { ValidationError } from 'yup';
 import JobConfigSqlForm from './JobConfigSqlForm';
-import { useEditHookStore } from './stores';
+import { useNewHookStore } from './stores';
 import {
-  editFormDataToJobHook,
-  EditJobHookFormValues,
   HookTypeFormValue,
-  toEditFormData,
+  newFormDataToNewJobHook,
+  NewJobHookFormValues,
 } from './validation';
 
-interface EditHookFormProps {
-  hook: JobHook;
-  onSubmit: (values: JobHook) => Promise<void>;
-
+interface Props {
+  onSubmit(values: NewJobHook): Promise<void>;
   jobConnectionIds: string[];
 }
 
-export function EditHookForm({
-  hook,
-  onSubmit,
-  jobConnectionIds,
-}: EditHookFormProps) {
+export default function NewHookForm(props: Props): ReactElement {
+  const { onSubmit, jobConnectionIds } = props;
   const {
     formData,
     errors,
@@ -36,13 +29,7 @@ export function EditHookForm({
     setErrors,
     setSubmitting,
     isSubmitting,
-  } = useEditHookStore();
-
-  useEffect(() => {
-    // Initialize form with hook data
-    const formData = toEditFormData(hook);
-    setFormData(formData);
-  }, [hook, setFormData]);
+  } = useNewHookStore();
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -54,13 +41,12 @@ export function EditHookForm({
       setSubmitting(true);
       setErrors({});
 
-      const validatedData = await EditJobHookFormValues.validate(formData, {
+      const validatedData = await NewJobHookFormValues.validate(formData, {
         abortEarly: false,
       });
-
-      await onSubmit(editFormDataToJobHook(hook, validatedData));
+      await onSubmit(newFormDataToNewJobHook(formData));
     } catch (err) {
-      if (err instanceof yup.ValidationError) {
+      if (err instanceof ValidationError) {
         const validationErrors: Record<string, string> = {};
         err.inner.forEach((error) => {
           if (error.path) {
@@ -161,7 +147,7 @@ export function EditHookForm({
           disabled={isSubmitting}
           className="w-full sm:w-auto"
         >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>
       </div>
     </form>
