@@ -456,9 +456,9 @@ type Batching struct {
 }
 
 type BatchProcessor struct {
-	Archive   *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
-	Compress  *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
-	SqlToJson *SqlToJsonConfig   `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
+	Archive       *ArchiveProcessor    `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress      *CompressProcessor   `json:"compress,omitempty" yaml:"compress,omitempty"`
+	NeosyncToJson *NeosyncToJsonConfig `json:"neosync_to_json,omitempty" yaml:"neosync_to_json,omitempty"`
 	// JsonToSql      *JsonToSqlConfig      `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
 	NeosyncToPgx   *NeosyncToPgxConfig   `json:"neosync_to_pgx,omitempty" yaml:"neosync_to_pgx,omitempty"`
 	NeosyncToMysql *NeosyncToMysqlConfig `json:"neosync_to_mysql,omitempty" yaml:"neosync_to_mysql,omitempty"`
@@ -474,14 +474,14 @@ type NeosyncToMysqlConfig struct {
 }
 
 type NeosyncToMssqlConfig struct {
-	ColumnDataTypes map[string]string `json:"column_data_types yaml:"column_data_types"`
+	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
 }
 
 // type JsonToSqlConfig struct {
 // 	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
 // }
 
-type SqlToJsonConfig struct{}
+type NeosyncToJsonConfig struct{}
 
 type ArchiveProcessor struct {
 	Format string  `json:"format" yaml:"format"`

@@ -2,11 +2,7 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"encoding/binary"
-	"encoding/json"
-	"strconv"
 
-	"github.com/lib/pq"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -115,63 +111,4 @@ func (p *jsonToSqlProcessor) transform(path string, root any) any {
 	default:
 		return v
 	}
-}
-
-func processPgArray(bits []byte, datatype string) (any, error) {
-	var pgarray []any
-	err := json.Unmarshal(bits, &pgarray)
-	if err != nil {
-		return nil, err
-	}
-	switch datatype {
-	case "json[]", "jsonb[]":
-		jsonArray, err := stringifyJsonArray(pgarray)
-		if err != nil {
-			return nil, err
-		}
-		return pq.Array(jsonArray), nil
-	default:
-		return pq.Array(pgarray), nil
-	}
-}
-
-// handles case where json strings are not quoted
-func getValidJson(jsonData []byte) ([]byte, error) {
-	isValidJson := json.Valid(jsonData)
-	if isValidJson {
-		return jsonData, nil
-	}
-
-	quotedData, err := json.Marshal(string(jsonData))
-	if err != nil {
-		return nil, err
-	}
-	return quotedData, nil
-}
-
-func stringifyJsonArray(pgarray []any) ([]string, error) {
-	jsonArray := make([]string, len(pgarray))
-	for i, item := range pgarray {
-		bytes, err := json.Marshal(item)
-		if err != nil {
-			return nil, err
-		}
-		jsonArray[i] = string(bytes)
-	}
-	return jsonArray, nil
-}
-
-func convertStringToBit(bitString string) ([]byte, error) {
-	val, err := strconv.ParseUint(bitString, 2, len(bitString))
-	if err != nil {
-		return nil, err
-	}
-
-	// Always allocate 8 bytes for PutUint64
-	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, val)
-
-	// Calculate actual needed bytes and return only those
-	neededBytes := (len(bitString) + 7) / 8
-	return bytes[len(bytes)-neededBytes:], nil
 }

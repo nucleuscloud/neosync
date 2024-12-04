@@ -2,11 +2,15 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -50,7 +54,7 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 		if err != nil {
 			return nil, err
 		}
-		newRoot := p.transform(root)
+		newRoot := p.transform("", root)
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -66,7 +70,7 @@ func (m *neosyncToPgxProcessor) Close(context.Context) error {
 	return nil
 }
 
-func (p *neosyncToPgxProcessor) transform(root any) any {
+func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 	value, isNeosyncValue, err := getNeosyncValue(root)
 	if err != nil {
 		p.logger.Warn(err.Error())
@@ -79,12 +83,23 @@ func (p *neosyncToPgxProcessor) transform(root any) any {
 	case map[string]any:
 		newMap := make(map[string]any)
 		for k, v2 := range v {
-			newValue := p.transform(v2)
+			newValue := p.transform(k, v2)
 			newMap[k] = newValue
 		}
 		return newMap
 	case nil:
 		return v
+	case []byte:
+		datatype, ok := p.columnDataTypes[path]
+		if !ok {
+			return v
+		}
+		value, err := handleByteSlice(v, datatype)
+		if err != nil {
+			p.logger.Errorf("unable to handle byte slice: %w", err)
+			return v
+		}
+		return value
 	default:
 		return v
 	}
@@ -102,4 +117,92 @@ func getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 		return value, true, nil
 	}
 	return root, false, nil
+}
+
+func handleByteSlice(v []byte, datatype string) (any, error) {
+	// TODO move to pgx processor
+	if pgutil.IsPgArrayColumnDataType(datatype) {
+		pgarray, err := processPgArray(v, datatype)
+		if err != nil {
+			return nil, fmt.Errorf("unable to process PG Array: %w", err)
+		}
+		return pgarray, nil
+	}
+	switch datatype {
+	case "bit":
+		bit, err := convertStringToBit(string(v))
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
+		}
+		return bit, nil
+	case "json", "jsonb":
+		validJson, err := getValidJson(v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get valid json: %w", err)
+		}
+		return validJson, nil
+	case "money", "uuid", "time with time zone", "timestamp with time zone":
+		// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
+		return string(v), nil
+	}
+	return v, nil
+}
+
+func processPgArray(bits []byte, datatype string) (any, error) {
+	var pgarray []any
+	err := json.Unmarshal(bits, &pgarray)
+	if err != nil {
+		return nil, err
+	}
+	switch datatype {
+	case "json[]", "jsonb[]":
+		jsonArray, err := stringifyJsonArray(pgarray)
+		if err != nil {
+			return nil, err
+		}
+		return pq.Array(jsonArray), nil
+	default:
+		return pq.Array(pgarray), nil
+	}
+}
+
+// handles case where json strings are not quoted
+func getValidJson(jsonData []byte) ([]byte, error) {
+	isValidJson := json.Valid(jsonData)
+	if isValidJson {
+		return jsonData, nil
+	}
+
+	quotedData, err := json.Marshal(string(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	return quotedData, nil
+}
+
+func stringifyJsonArray(pgarray []any) ([]string, error) {
+	jsonArray := make([]string, len(pgarray))
+	for i, item := range pgarray {
+		bytes, err := json.Marshal(item)
+		if err != nil {
+			return nil, err
+		}
+		jsonArray[i] = string(bytes)
+	}
+	return jsonArray, nil
+}
+
+func convertStringToBit(bitString string) ([]byte, error) {
+	val, err := strconv.ParseUint(bitString, 2, len(bitString))
+	if err != nil {
+		return nil, err
+	}
+
+	// Always allocate 8 bytes for PutUint64
+	bytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(bytes, val)
+
+	// Calculate actual needed bytes and return only those
+	neededBytes := (len(bitString) + 7) / 8
+	return bytes[len(bytes)-neededBytes:], nil
 }
