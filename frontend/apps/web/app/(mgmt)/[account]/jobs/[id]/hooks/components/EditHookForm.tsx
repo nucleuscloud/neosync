@@ -1,13 +1,14 @@
 import { FormEvent, useEffect } from 'react';
 import * as yup from 'yup';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { JobHook } from '@neosync/sdk';
+import FormHeader from './FormHeader';
 import JobConfigSqlForm from './JobConfigSqlForm';
 import { useEditHookStore } from './stores';
 import {
@@ -77,7 +78,12 @@ export function EditHookForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+        <FormHeader
+          htmlFor="name"
+          title="Name"
+          description="Name of the hook for display and reference, must be unique"
+          isErrored={!!errors.name}
+        />
         <Input
           id="name"
           autoCapitalize="off" // we don't allow capitals in team names
@@ -86,11 +92,16 @@ export function EditHookForm({
           onChange={(e) => setFormData({ name: e.target.value })}
           placeholder="Hook name"
         />
-        {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+        <FormErrorMessage message={errors.name} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <FormHeader
+          htmlFor="description"
+          title="Description"
+          description="What this hook does"
+          isErrored={!!errors.description}
+        />
         <Textarea
           id="description"
           value={formData.description || ''}
@@ -98,37 +109,48 @@ export function EditHookForm({
           placeholder="Hook description"
           rows={3}
         />
-        {errors.description && (
-          <p className="text-sm text-red-500">{errors.description}</p>
-        )}
+        <FormErrorMessage message={errors.description} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="priority">Priority (0-100)</Label>
+          <FormHeader
+            htmlFor="priority"
+            title="Priority (0-100)"
+            description="Determines execution order. Lower values are higher priority"
+            isErrored={!!errors.priority}
+          />
           <Input
             id="priority"
             type="number"
             value={formData.priority}
             onChange={(e) => setFormData({ priority: e.target.valueAsNumber })}
           />
-          {errors.priority && (
-            <p className="text-sm text-red-500">{errors.priority}</p>
-          )}
+          <FormErrorMessage message={errors.priority} />
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <Label htmlFor="enabled">Enabled</Label>
+        <FormHeader
+          htmlFor="enabled"
+          title="Enabled"
+          description="Whether or not this hook will be invoked during a job run"
+          isErrored={!!errors.enabled}
+        />
         <Switch
           id="enabled"
           checked={formData.enabled || false}
           onCheckedChange={(checked) => setFormData({ enabled: checked })}
         />
+        <FormErrorMessage message={errors.enabled} />
       </div>
 
       <div className="flex flex-col gap-4">
-        <Label htmlFor="hookType">Hook Type</Label>
+        <FormHeader
+          title="Hook Type"
+          description="The type of hook. Currently only SQL hooks are supported"
+          isErrored={!!errors.hookType}
+        />
         <ToggleGroup
           className="flex justify-start"
           type="single"
@@ -141,6 +163,7 @@ export function EditHookForm({
         >
           <ToggleGroupItem value="sql">SQL</ToggleGroupItem>
         </ToggleGroup>
+        <FormErrorMessage message={errors.hookType} />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -151,6 +174,7 @@ export function EditHookForm({
               setFormData({ sql: newSqlData });
             }}
             jobConnectionIds={jobConnectionIds}
+            errors={errors}
           />
         )}
       </div>

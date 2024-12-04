@@ -1,8 +1,8 @@
 import { ReactElement, useMemo } from 'react';
 
 import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { useAccount } from '@/components/providers/account-provider';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -17,16 +17,18 @@ import { Editor } from '@monaco-editor/react';
 import { getConnections } from '@neosync/sdk/connectquery';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
+import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
 interface Props {
   values: JobHookSqlFormValues;
   setValues(values: JobHookSqlFormValues): void;
   jobConnectionIds: string[];
+  errors: Record<string, string>;
 }
 
 export default function JobConfigSqlForm(props: Props): ReactElement {
-  const { values, setValues, jobConnectionIds } = props;
+  const { values, setValues, jobConnectionIds, errors } = props;
   return (
     <>
       <SelectConnections
@@ -35,16 +37,27 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
         setSelectedConnectionId={(updatedId) => {
           setValues({ ...values, connectionId: updatedId });
         }}
+        error={errors.connectionId}
       />
       <div className="flex flex-col gap-3">
-        <Label htmlFor="query">Query</Label>
+        <FormHeader
+          title="Query"
+          description="The SQL query that will be invoked"
+          isErrored={!!errors.query}
+        />
         <EditSqlQuery
           query={values.query}
           setQuery={(query) => setValues({ ...values, query })}
         />
+        <FormErrorMessage message={errors.query} />
       </div>
       <div className="flex flex-col gap-3">
-        <Label htmlFor="timing">Timing</Label>
+        <FormHeader
+          title="Timing"
+          description="The lifecycle of when the hook will run"
+          htmlFor="timing"
+          isErrored={!!errors.timing}
+        />
         <Select
           name="timing"
           value={values.timing}
@@ -62,6 +75,7 @@ export default function JobConfigSqlForm(props: Props): ReactElement {
             <SelectItem value="postSync">Post Sync</SelectItem>
           </SelectContent>
         </Select>
+        <FormErrorMessage message={errors.timing} />
       </div>
     </>
   );
@@ -103,10 +117,15 @@ interface SelectConnectionsProps {
 
   selectedConnectionId: string;
   setSelectedConnectionId(id: string): void;
+  error?: string;
 }
 function SelectConnections(props: SelectConnectionsProps): ReactElement {
-  const { connectionIds, selectedConnectionId, setSelectedConnectionId } =
-    props;
+  const {
+    connectionIds,
+    selectedConnectionId,
+    setSelectedConnectionId,
+    error,
+  } = props;
   const { account } = useAccount();
 
   const { data: connectionsResp, isLoading } = useQuery(
@@ -127,7 +146,12 @@ function SelectConnections(props: SelectConnectionsProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <Label htmlFor="connectionId">Connection</Label>
+      <FormHeader
+        htmlFor="connectionId"
+        title="Connection"
+        description="The connection that this hook will be invoked against"
+        isErrored={!!error}
+      />
       <Select
         name="connectionId"
         value={selectedConnectionId}
@@ -148,6 +172,7 @@ function SelectConnections(props: SelectConnectionsProps): ReactElement {
           />
         </SelectContent>
       </Select>
+      <FormErrorMessage message={error} />
     </div>
   );
 }
