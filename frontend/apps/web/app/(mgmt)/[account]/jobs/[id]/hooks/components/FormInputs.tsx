@@ -1,6 +1,5 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ReactElement } from 'react';
@@ -114,11 +113,20 @@ export function Enabled(props: EnabledProps): ReactElement {
         description="Whether or not this hook will be invoked during a job run"
         isErrored={!!error}
       />
-      <Switch
-        id="enabled"
-        checked={value}
-        onCheckedChange={(checked) => onChange(checked)}
-      />
+      <ToggleGroup
+        className="flex"
+        type="single"
+        onValueChange={(value) => {
+          if (!value) {
+            return;
+          }
+          onChange(value === 'yes');
+        }}
+        value={value ? 'yes' : 'no'}
+      >
+        <ToggleGroupItem value="yes">Yes</ToggleGroupItem>
+        <ToggleGroupItem value="no">No</ToggleGroupItem>
+      </ToggleGroup>
       <FormErrorMessage message={error} />
     </div>
   );
