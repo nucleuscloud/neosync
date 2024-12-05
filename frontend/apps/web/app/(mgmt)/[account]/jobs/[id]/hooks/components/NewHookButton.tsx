@@ -1,3 +1,4 @@
+import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +13,7 @@ import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { Connection, NewJobHook } from '@neosync/sdk';
 import { createJobHook } from '@neosync/sdk/connectquery';
+import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
 import NewHookForm from './NewHookForm';
@@ -49,7 +51,9 @@ export default function NewHookButton(props: Props): ReactElement {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button">New Hook</Button>
+        <Button type="button">
+          <ButtonText leftIcon={<PlusIcon />} text="New Hook" />
+        </Button>
       </DialogTrigger>
       <DialogContent
         onPointerDownOutside={(e) => e.preventDefault()}

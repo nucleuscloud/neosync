@@ -1,3 +1,4 @@
+import EmptyState from '@/components/EmptyState';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
@@ -5,7 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
 import { Job } from '@neosync/sdk';
 import { getConnections, getJob, getJobHooks } from '@neosync/sdk/connectquery';
-import { ReactElement, useMemo } from 'react';
+import { ReactElement, ReactNode, useMemo } from 'react';
+import { MdWebhook } from 'react-icons/md';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import HookCard from './HookCard';
 import NewHookButton from './NewHookButton';
@@ -92,6 +94,17 @@ export default function HooksCard(props: Props): ReactElement {
       />
 
       <div className="flex flex-col gap-5">
+        {jobHooks.length === 0 && (
+          <NoJobHooks
+            button={
+              <NewHookButton
+                jobId={jobId}
+                jobConnections={jobConnections}
+                onCreated={refetch}
+              />
+            }
+          />
+        )}
         {jobHooks.map((hook) => {
           return (
             <HookCard
@@ -106,6 +119,22 @@ export default function HooksCard(props: Props): ReactElement {
         })}
       </div>
     </div>
+  );
+}
+
+interface NoJobHooksProps {
+  button: ReactNode;
+}
+
+function NoJobHooks(props: NoJobHooksProps): ReactElement {
+  const { button } = props;
+  return (
+    <EmptyState
+      title="No Hooks yet"
+      description="Hooks are events that are invoked during a job run to allow for further customization of a sync"
+      icon={<MdWebhook className="w-8 h-8 text-primary" />}
+      extra={button}
+    />
   );
 }
 
