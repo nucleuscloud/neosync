@@ -15,19 +15,28 @@ func RegisterNeosyncToMssqlProcessor(env *service.Environment) error {
 		"neosync_to_mssql",
 		neosyncToMssqlProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			proc := newNeosyncToMssqlProcessor(conf, mgr)
+			proc, err := newNeosyncToMssqlProcessor(conf, mgr)
+			if err != nil {
+				return nil, err
+			}
 			return proc, nil
 		})
 }
 
 type neosyncToMssqlProcessor struct {
-	logger *service.Logger
+	logger          *service.Logger
+	columnDataTypes map[string]string
 }
 
-func newNeosyncToMssqlProcessor(_ *service.ParsedConfig, mgr *service.Resources) *neosyncToMssqlProcessor {
-	return &neosyncToMssqlProcessor{
-		logger: mgr.Logger(),
+func newNeosyncToMssqlProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToMssqlProcessor, error) {
+	columnDataTypes, err := conf.FieldStringMap("column_data_types")
+	if err != nil {
+		return nil, err
 	}
+	return &neosyncToMssqlProcessor{
+		logger:          mgr.Logger(),
+		columnDataTypes: columnDataTypes,
+	}, nil
 }
 
 func (p *neosyncToMssqlProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
@@ -65,19 +74,6 @@ func (p *neosyncToMssqlProcessor) transform(root any) any {
 	case nil:
 		return v
 	default:
-		// Check if the type implements Value() method
-		// if valuer, ok := v.(neosynctypes.NeosyncPgxValuer); ok {
-		// 	value, err := valuer.ValuePgx()
-		// 	if err != nil {
-		// 		p.logger.Warn(fmt.Sprintf("unable to get PGX value: %v", err))
-		// 		return v
-		// 	}
-		// 	if gotypeutil.IsSlice(value) {
-		// 		return pq.Array(value)
-		// 	}
-		// 	return value
-		// }
-
 		return v
 	}
 }

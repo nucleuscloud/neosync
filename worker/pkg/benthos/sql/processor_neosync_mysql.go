@@ -15,19 +15,28 @@ func RegisterNeosyncToMysqlProcessor(env *service.Environment) error {
 		"neosync_to_mysql",
 		neosyncToMysqlProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			proc := newNeosyncToMysqlProcessor(conf, mgr)
+			proc, err := newNeosyncToMysqlProcessor(conf, mgr)
+			if err != nil {
+				return nil, err
+			}
 			return proc, nil
 		})
 }
 
 type neosyncToMysqlProcessor struct {
-	logger *service.Logger
+	logger          *service.Logger
+	columnDataTypes map[string]string
 }
 
-func newNeosyncToMysqlProcessor(_ *service.ParsedConfig, mgr *service.Resources) *neosyncToMysqlProcessor {
-	return &neosyncToMysqlProcessor{
-		logger: mgr.Logger(),
+func newNeosyncToMysqlProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToMysqlProcessor, error) {
+	columnDataTypes, err := conf.FieldStringMap("column_data_types")
+	if err != nil {
+		return nil, err
 	}
+	return &neosyncToMysqlProcessor{
+		logger:          mgr.Logger(),
+		columnDataTypes: columnDataTypes,
+	}, nil
 }
 
 func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
@@ -65,19 +74,6 @@ func (p *neosyncToMysqlProcessor) transform(root any) any {
 	case nil:
 		return v
 	default:
-		// Check if the type implements Value() method
-		// if valuer, ok := v.(neosynctypes.NeosyncMysqlValuer); ok {
-		// 	value, err := valuer.ValueMysql()
-		// 	if err != nil {
-		// 		p.logger.Warn(fmt.Sprintf("unable to get MYSQL value: %v", err))
-		// 		return v
-		// 	}
-		// 	if gotypeutil.IsSlice(value) {
-		// 		return pq.Array(value)
-		// 	}
-		// 	return value
-		// }
-
 		return v
 	}
 }

@@ -405,12 +405,12 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		// 	batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
 		// }
 		switch b.driver {
-		case sqlmanager_shared.PostgresDriver:
+		case sqlmanager_shared.PostgresDriver, "postgres":
 			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{ColumnDataTypes: columnDataTypes}})
 		case sqlmanager_shared.MysqlDriver:
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{}})
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{ColumnDataTypes: columnDataTypes}})
 		case sqlmanager_shared.MssqlDriver:
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{}})
+			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{ColumnDataTypes: columnDataTypes}})
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
