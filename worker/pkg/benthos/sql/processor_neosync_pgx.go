@@ -7,15 +7,21 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
+const defaultStr = "DEFAULT"
+
 func neosyncToPgxProcessorConfig() *service.ConfigSpec {
-	return service.NewConfigSpec().Field(service.NewStringMapField("column_data_types"))
+	return service.NewConfigSpec().
+		Field(service.NewStringMapField("column_data_types")).
+		Field(service.NewAnyMapField("column_default_properties"))
 }
 
 func RegisterNeosyncToPgxProcessor(env *service.Environment) error {
@@ -32,8 +38,9 @@ func RegisterNeosyncToPgxProcessor(env *service.Environment) error {
 }
 
 type neosyncToPgxProcessor struct {
-	logger          *service.Logger
-	columnDataTypes map[string]string
+	logger                  *service.Logger
+	columnDataTypes         map[string]string
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
 
 func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToPgxProcessor, error) {
@@ -41,9 +48,35 @@ func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources
 	if err != nil {
 		return nil, err
 	}
+
+	columnDefaultPropertiesConfig, err := conf.FieldAnyMap("column_default_properties")
+	if err != nil {
+		return nil, err
+	}
+
+	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
+	for key, properties := range columnDefaultPropertiesConfig {
+		props, err := properties.FieldAny()
+		if err != nil {
+			return nil, err
+		}
+		jsonData, err := json.Marshal(props)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal properties for key %s: %w", key, err)
+		}
+
+		var colDefaults neosync_benthos.ColumnDefaultProperties
+		if err := json.Unmarshal(jsonData, &colDefaults); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal properties for key %s: %w", key, err)
+		}
+
+		columnDefaultProperties[key] = &colDefaults
+	}
+
 	return &neosyncToPgxProcessor{
-		logger:          mgr.Logger(),
-		columnDataTypes: columnDataTypes,
+		logger:                  mgr.Logger(),
+		columnDataTypes:         columnDataTypes,
+		columnDefaultProperties: columnDefaultProperties,
 	}, nil
 }
 
@@ -79,6 +112,21 @@ func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 		return value
 	}
 
+	colDefaults := p.columnDefaultProperties[path]
+	if colDefaults != nil && colDefaults.HasDefaultTransformer {
+		return goqu.Literal(defaultStr)
+	}
+
+	datatype := p.columnDataTypes[path]
+	if pgutil.IsJsonPgDataType(datatype) {
+		bits, err := json.Marshal(root)
+		if err != nil {
+			p.logger.Errorf("unable to marshal JSON", "error", err.Error())
+			return root
+		}
+		return bits
+	}
+
 	switch v := root.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
@@ -90,10 +138,6 @@ func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 	case nil:
 		return v
 	case []byte:
-		datatype, ok := p.columnDataTypes[path]
-		if !ok {
-			return v
-		}
 		value, err := p.handleByteSlice(v, datatype)
 		if err != nil {
 			p.logger.Errorf("unable to handle byte slice: %w", err)
@@ -101,6 +145,11 @@ func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 		}
 		return value
 	default:
+		if gotypeutil.IsMultiDimensionalSlice(v) || gotypeutil.IsSliceOfMaps(v) {
+			return goqu.Literal(pgutil.FormatPgArrayLiteral(v, datatype))
+		} else if gotypeutil.IsSlice(v) {
+			return pq.Array(v)
+		}
 		return v
 	}
 }

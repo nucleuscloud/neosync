@@ -137,11 +137,12 @@ type PostgresDriver struct {
 
 func (d *PostgresDriver) BuildInsertQuery(rows [][]any) (query string, queryargs []any, err error) {
 	var goquRows []exp.Vals
-	if d.options.rawInsertMode {
-		goquRows = toGoquVals(updateDefaultVals(rows, d.options.columnDefaults))
-	} else {
-		goquRows = toGoquVals(getPostgresVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults))
-	}
+	// if d.options.rawInsertMode {
+	// 	goquRows = toGoquVals(updateDefaultVals(rows, d.options.columnDefaults))
+	// } else {
+	// 	goquRows = toGoquVals(getPostgresVals(d.logger, rows, d.options.columnDataTypes, d.options.columnDefaults))
+	// }
+	goquRows = toGoquVals(rows)
 
 	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, d.columns, goquRows, &d.options.onConflictDoNothing)
 	if err != nil {
