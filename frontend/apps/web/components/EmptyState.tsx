@@ -35,14 +35,13 @@ interface EmptyStateLinkButtonProps {
 export function EmptyStateLinkButton(
   props: EmptyStateLinkButtonProps
 ): ReactElement {
-  const { buttonIconSide, href, buttonIcon, buttonText } = props;
-  const icon = buttonIcon ?? <PlusIcon />;
+  const { buttonIconSide, href, buttonIcon = <PlusIcon />, buttonText } = props;
   return (
     <NextLink href={href}>
       <Button>
         <ButtonText
-          rightIcon={buttonIconSide === 'right' ? icon : undefined}
-          leftIcon={buttonIconSide === 'left' ? icon : undefined}
+          rightIcon={buttonIconSide === 'right' ? buttonIcon : undefined}
+          leftIcon={buttonIconSide === 'left' ? buttonIcon : undefined}
           text={buttonText}
         />
       </Button>
