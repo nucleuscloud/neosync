@@ -68,6 +68,32 @@ jobs:
         env:
           NODE_ENV: production
 
+  storybook:
+    name: Storybook Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json
+      - run: npm install
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      - name: Build Storybook
+        run: npm run build-storybook --quiet
+      - name: Serve Storybook and run tests
+        run: |
+          npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+            "npx http-server storybook-static --port 6006 --silent" \
+            "npx wait-on tcp:127.0.0.1:6006 && npm run test-storybook"
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -84,7 +110,6 @@ jobs:
           node-version: lts/*
           cache: npm
           cache-dependency-path: ./frontend/package-lock.json
-
       - run: npm ci
       - name: Test
         run: npm run test

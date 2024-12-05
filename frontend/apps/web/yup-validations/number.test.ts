@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { getNumberValidateMaxFn, getNumberValidateMinFn } from './number';
 
 describe('getNumberValidateMaxFn', () => {

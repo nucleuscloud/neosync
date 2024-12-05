@@ -28,9 +28,9 @@
       "@/*": [
         "./*"
       ],
-      "@neosync/sdk": [
-        "../sdk/ts-client/*"
-      ]
+      // "@neosync/sdk": [
+      //   "../../packages/sdk/*"
+      // ]
     }
   },
   "include": [

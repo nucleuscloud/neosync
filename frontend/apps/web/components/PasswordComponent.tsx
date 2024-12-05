@@ -9,13 +9,12 @@ import { Input, InputProps } from './ui/input';
 export const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(false);
-    const disabled =
-      props.value === '' || props.value === undefined || props.disabled;
-
     return (
       <div className="relative">
         <Input
           type={showPassword ? 'text' : 'password'}
+          aria-label="password"
+          aria-labelledby="password"
           className={cn('hide-password-toggle pr-10', className)}
           ref={ref}
           {...props}
@@ -26,9 +25,9 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
           size="sm"
           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
           onClick={() => setShowPassword((prev) => !prev)}
-          disabled={disabled}
+          disabled={props.disabled}
         >
-          {showPassword && !disabled ? (
+          {showPassword && !props.disabled ? (
             <EyeOpenIcon className="h-4 w-4" aria-hidden="true" />
           ) : (
             <EyeNoneIcon className="h-4 w-4" aria-hidden="true" />

@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { JobMappingTransformerForm } from './jobs';
 
 // if we wanted to be very thorough then we would test every transformerconfig ...
