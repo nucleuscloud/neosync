@@ -47,7 +47,7 @@ func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context,
 	pathpieces = append(
 		pathpieces,
 		"workflows",
-		params.RunId,
+		params.WorkflowId,
 		"activities",
 		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
 		"data",

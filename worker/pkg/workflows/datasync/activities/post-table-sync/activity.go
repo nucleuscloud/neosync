@@ -10,7 +10,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -42,6 +41,17 @@ type RunPostTableSyncRequest struct {
 	AccountId string
 }
 type RunPostTableSyncResponse struct {
+	Errors []*PostTableSyncError
+}
+
+type PostTableSyncError struct {
+	ConnectionId string
+	Errors       []*StatementError
+}
+
+type StatementError struct {
+	Statement string
+	Error     string
 }
 
 func (a *Activity) RunPostTableSync(
@@ -49,7 +59,7 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.RunID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
@@ -102,6 +112,7 @@ func (a *Activity) RunPostTableSync(
 		}
 	}()
 
+	errors := []*PostTableSyncError{}
 	for destConnectionId, destCfg := range config.DestinationConfigs {
 		slogger.Debug(fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)), "destinationConnectionId", destConnectionId)
 		if len(destCfg.Statements) == 0 {
@@ -111,6 +122,9 @@ func (a *Activity) RunPostTableSync(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destConnectionId, err)
 		}
+		execErrors := &PostTableSyncError{
+			ConnectionId: destConnectionId,
+		}
 		switch destinationConnection.GetConnectionConfig().GetConfig().(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 			destDb, err := a.sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
@@ -119,19 +133,33 @@ func (a *Activity) RunPostTableSync(
 				continue
 			}
 			destconns = append(destconns, destDb)
-			err = destDb.Db().BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
-			if err != nil {
-				slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
-				continue
+			for _, stmt := range destCfg.Statements {
+				err = destDb.Db().Exec(ctx, stmt)
+				if err != nil {
+					slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
+					execErrors.Errors = append(execErrors.Errors, &StatementError{
+						Statement: stmt,
+						Error:     err.Error(),
+					})
+				}
 			}
 		default:
 			slogger.Warn("unsupported destination type", "connectionId", destConnectionId)
 		}
+		if len(execErrors.Errors) > 0 {
+			errors = append(errors, execErrors)
+		}
 	}
 
-	return &RunPostTableSyncResponse{}, nil
+	return &RunPostTableSyncResponse{
+		Errors: errors,
+	}, nil
 }
 
 func runContextNotFound(err error) bool {
-	return strings.Contains(err.Error(), "no run context exists")
+	connectErr, ok := err.(*connect.Error)
+	if ok && connectErr.Code() == connect.CodeNotFound {
+		return true
+	}
+	return strings.Contains(err.Error(), "unable to find key") || strings.Contains(err.Error(), "no run context exists with the provided key")
 }

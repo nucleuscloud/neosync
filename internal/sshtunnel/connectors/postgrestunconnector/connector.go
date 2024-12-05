@@ -29,6 +29,8 @@ func New(
 		return dialer.DialContext(ctx, network, addr)
 	}
 
+	// RegisterConnConfig returns unique connection strings, so even if the dsn is used for multiple calls to New()
+	// The unregister will not interfere with any other instances of Connector that are using the same input dsn
 	connStr := stdlib.RegisterConnConfig(cfg)
 	cleanup := func() {
 		stdlib.UnregisterConnConfig(connStr)

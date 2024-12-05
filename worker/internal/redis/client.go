@@ -13,10 +13,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func GetRedisClient() (redis.UniversalClient, error) {
-	redisConfig := shared.GetRedisConfig()
+func GetRedisClient(redisConfig *shared.RedisConfig) (redis.UniversalClient, error) {
 	if redisConfig == nil {
-		return nil, fmt.Errorf("missing redis config. this operation requires redis.")
+		return nil, nil
 	}
 
 	var tlsConf *tls.Config

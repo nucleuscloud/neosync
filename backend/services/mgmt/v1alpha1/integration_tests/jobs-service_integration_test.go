@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +28,7 @@ func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
 	srcconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "source", "test")
 	destconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "dest", "test2")
 
-	s.mockTemporalForCreateJob("test-id")
+	s.MockTemporalForCreateJob("test-id")
 
 	resp, err := s.UnauthdClients.Jobs.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: accountId,
@@ -57,27 +56,6 @@ func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
 	}))
 	requireNoErrResp(s.T(), resp, err)
 	require.NotNil(s.T(), resp.Msg.GetJob())
-}
-
-func (s *IntegrationTestSuite) mockTemporalForCreateJob(returnId string) {
-	s.Mocks.TemporalClientManager.
-		On(
-			"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
-		).
-		Return(true, nil).
-		Once()
-	s.Mocks.TemporalClientManager.
-		On(
-			"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
-		).
-		Return("sync-job", nil).
-		Once()
-	s.Mocks.TemporalClientManager.
-		On(
-			"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		).
-		Return(returnId, nil).
-		Once()
 }
 
 func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
@@ -131,7 +109,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 		srcconn := s.createPostgresConnection(s.NeosyncCloudClients.GetConnectionClient(testAuthUserId), accountId, "source", "test")
 		destconn := s.createPostgresConnection(s.NeosyncCloudClients.GetConnectionClient(testAuthUserId), accountId, "dest", "test2")
 
-		s.mockTemporalForCreateJob("test-id")
+		s.MockTemporalForCreateJob("test-id")
 		jobResp, err := client.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 			JobName:   "cloud-testjob-1",
 			AccountId: accountId,

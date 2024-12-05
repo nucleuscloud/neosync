@@ -86,7 +86,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -147,7 +147,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.RunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.WorkflowId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -277,7 +277,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	// lazy load
 	if len(b.mergedSchemaColumnMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.RunId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.mergedSchemaColumnMap = sqlSchemaColMap
 	}
 	if len(b.mergedSchemaColumnMap) == 0 {
@@ -363,7 +363,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				if b.redisConfig == nil {
 					return nil, fmt.Errorf("missing redis config. this operation requires redis")
 				}
-				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.RunId, tableKey, col)
+				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.WorkflowId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 						Url:            b.redisConfig.Url,

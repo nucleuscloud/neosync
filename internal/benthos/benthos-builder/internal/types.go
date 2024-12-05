@@ -111,7 +111,7 @@ type BenthosBuilder interface {
 // SourceParams contains all parameters needed to build a source benthos configuration
 type SourceParams struct {
 	Job              *mgmtv1alpha1.Job
-	RunId            string
+	WorkflowId       string
 	SourceConnection *mgmtv1alpha1.Connection
 	Logger           *slog.Logger
 }
@@ -125,7 +125,7 @@ type ReferenceKey struct {
 type DestinationParams struct {
 	SourceConfig    *BenthosSourceConfig
 	Job             *mgmtv1alpha1.Job
-	RunId           string
+	WorkflowId      string
 	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
 	DestConnection  *mgmtv1alpha1.Connection
 	Logger          *slog.Logger

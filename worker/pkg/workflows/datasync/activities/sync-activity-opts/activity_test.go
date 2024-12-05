@@ -29,7 +29,7 @@ func Test_New(t *testing.T) {
 
 func Test_Activity(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetTestLogger(t)))
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
 
 	accountId := uuid.NewString()
