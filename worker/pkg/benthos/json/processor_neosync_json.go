@@ -12,7 +12,7 @@ func neosyncToJsonProcessorConfig() *service.ConfigSpec {
 	return service.NewConfigSpec()
 }
 
-func RegisterSqlToJsonProcessor(env *service.Environment) error {
+func RegisterNeosyncToJsonProcessor(env *service.Environment) error {
 	return env.RegisterBatchProcessor(
 		"neosync_to_json",
 		neosyncToJsonProcessorConfig(),
