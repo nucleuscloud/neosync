@@ -30,15 +30,12 @@ export default function HooksCard(props: Props): ReactElement {
   } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
 
   const { account } = useAccount();
-  const {
-    data: getConnectionsResp,
-    isLoading: isConnectionsLoading,
-    isFetching: isConnectionsFetching,
-  } = useQuery(
-    getConnections,
-    { accountId: account?.id },
-    { enabled: !!account?.id }
-  );
+  const { data: getConnectionsResp, isFetching: isConnectionsFetching } =
+    useQuery(
+      getConnections,
+      { accountId: account?.id },
+      { enabled: !!account?.id }
+    );
 
   const jobHooks = useMemo(() => {
     return [...(getJobHooksResp?.hooks ?? [])].sort((a, b) => {
