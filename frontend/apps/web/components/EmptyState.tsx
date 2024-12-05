@@ -36,7 +36,7 @@ export function EmptyStateLinkButton(
   props: EmptyStateLinkButtonProps
 ): ReactElement {
   const { buttonIconSide, href, buttonIcon, buttonText } = props;
-  const icon = buttonIcon ? buttonIcon : <PlusIcon />;
+  const icon = buttonIcon ?? <PlusIcon />;
   return (
     <NextLink href={href}>
       <Button>
