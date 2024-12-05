@@ -36,6 +36,7 @@ A Helm chart for the Neosync App
 | imagePullSecrets | list | `[]` | Define a list of image pull secrets that will be used by the deployment |
 | ingress.enabled | bool | `false` | Enable this if using K8s ingress to expose the backend to the internet |
 | istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
+| jobHooks.enabled | bool | `false` | Enables Job Hooks on the frontend. Note: This will only work if it has also been enabled via the backend with a valid license |
 | koala.key | string | `nil` | Koala Key |
 | nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |

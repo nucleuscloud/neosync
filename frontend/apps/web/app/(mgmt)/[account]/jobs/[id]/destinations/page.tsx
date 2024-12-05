@@ -56,7 +56,7 @@ export default function Page({ params }: PageProps): ReactElement {
     connectionsRecord[destinationJobSourceId] ?? new Connection();
 
   return (
-    <div className="job-details-container">
+    <div className="job-details-container flex flex-col gap-5">
       <SubPageHeader
         header="Destination Connections"
         description={`Manage a job's destination connections`}

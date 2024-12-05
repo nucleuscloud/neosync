@@ -38,7 +38,7 @@ export default function UsagePage(): ReactElement {
   }
   const [start, end] = periodToDateRange(period);
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <SubPageHeader
         header="Usage"
         description="See periodic usage for this account"
