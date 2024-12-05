@@ -179,3 +179,34 @@ func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, fi
 	}
 	return nil
 }
+
+// Creates schema and sets USE to schema before running SQL files
+func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folder *string, files []string, database string) error {
+	for _, file := range files {
+		filePath := file
+		if folder != nil && *folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", *folder, file)
+		}
+		sqlStr, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+
+		setSchemaSql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s; \n USE %s; \n", database, database)
+		_, err = m.DB.ExecContext(ctx, setSchemaSql+string(sqlStr))
+		if err != nil {
+			return fmt.Errorf("unable to exec sql when running postgres sql files: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *MysqlTestContainer) CreateDatabases(ctx context.Context, schemas []string) error {
+	for _, schema := range schemas {
+		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s;", schema))
+		if err != nil {
+			return fmt.Errorf("unable to create schema %s: %w", schema, err)
+		}
+	}
+	return nil
+}
