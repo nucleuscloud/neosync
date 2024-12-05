@@ -107,7 +107,7 @@ export function Enabled(props: EnabledProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-4">
       <FormHeader
         htmlFor="enabled"
         title="Enabled"
@@ -115,7 +115,7 @@ export function Enabled(props: EnabledProps): ReactElement {
         isErrored={!!error}
       />
       <ToggleGroup
-        className="flex"
+        className="flex justify-start"
         type="single"
         onValueChange={(value) => {
           if (!value) {
@@ -143,14 +143,14 @@ export function HookType(props: HookTypeProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-4">
       <FormHeader
         title="Hook Type"
         description="The type of hook. Currently only SQL hooks are supported"
         isErrored={!!error}
       />
       <ToggleGroup
-        className="flex"
+        className="flex justify-start"
         type="single"
         onValueChange={(value) => {
           if (value) {
