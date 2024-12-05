@@ -1,7 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import EmptyState from '@/components/EmptyState';
+import EmptyState, { EmptyStateLinkButton } from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -66,9 +66,13 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement {
           title="No Connections yet"
           description="Get started by adding your first connection. Connections help you
           integrate and sync data across your databases."
-          buttonText="Create Your First Connection"
           icon={<GoWorkflow className="w-8 h-8 text-primary" />}
-          href={`/${account?.name}/new/connection`}
+          extra={
+            <EmptyStateLinkButton
+              buttonText="Create your first Connection"
+              href={`/${account?.name}/new/connection`}
+            />
+          }
         />
       ) : (
         <DataTable columns={columns} data={connections} />
