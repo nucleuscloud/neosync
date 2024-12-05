@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 
 import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import FormErrorMessage from '@/components/FormErrorMessage';
@@ -9,9 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { splitConnections } from '@/libs/utils';
+import { Editor } from '@monaco-editor/react';
 import { Connection } from '@neosync/sdk';
+import { editor } from 'monaco-editor';
+import { useTheme } from 'next-themes';
+import { useResizeDetector } from 'react-resize-detector';
+import { OnRefChangeType } from 'react-resize-detector/build/types/types';
 import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
@@ -85,18 +89,66 @@ interface EditSqlQueryProps {
   setQuery(query: string): void;
 }
 
+const editorOptions: editor.IStandaloneEditorConstructionOptions = {
+  minimap: { enabled: false },
+  lineNumbers: 'off',
+};
+
 function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
   const { query, setQuery } = props;
 
-  return (
-    <Textarea
-      id="description"
-      value={query || ''}
-      onChange={(e) => setQuery(e.target.value)}
-      placeholder="Your SQL query here..."
-      rows={3}
-    />
+  const { resolvedTheme } = useTheme();
+  const theme = useMemo(
+    () => (resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'),
+    [resolvedTheme]
   );
+  const { ref, width: editorWidth } = useMonacoResizer();
+
+  return (
+    <div className="monaco-editor-container" ref={ref}>
+      <Editor
+        height="10vh"
+        width={editorWidth}
+        language="sql"
+        theme={theme}
+        options={editorOptions}
+        value={query}
+        onChange={(value) => {
+          if (value) {
+            setQuery(value);
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+const WIDTH_OFFSET = 16;
+
+function useMonacoResizer(): {
+  ref: OnRefChangeType<HTMLDivElement>;
+  width: string;
+} {
+  const { ref, width } = useResizeDetector<HTMLDivElement>({
+    handleHeight: false,
+    handleWidth: true,
+    refreshMode: 'debounce',
+    refreshRate: 10,
+    skipOnMount: false,
+  });
+
+  const editorWidth = useMemo(
+    () =>
+      width != null && width > WIDTH_OFFSET
+        ? `${width - WIDTH_OFFSET}px`
+        : '100%',
+    [width]
+  );
+
+  return {
+    ref,
+    width: editorWidth,
+  };
 }
 
 interface SelectConnectionsProps {
