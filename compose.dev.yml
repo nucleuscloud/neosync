@@ -31,8 +31,8 @@ services:
       - AUTH_ENABLED=false
 
     env_file:
-      - ./.env.app.local
-
+      - path: ./.env.app.local
+        required: false
     networks:
       - neosync-network
     volumes:
@@ -90,8 +90,8 @@ services:
       - AUTH_ENABLED=false
 
     env_file:
-      - ./.env.api.local
-
+      - path: ./.env.api.local
+        required: false
     networks:
       - neosync-network
       - temporal-network
