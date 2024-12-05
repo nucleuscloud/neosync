@@ -7,26 +7,22 @@ import {
   JobHookConfig_JobSqlHook,
 } from '@neosync/sdk';
 import { ClockIcon } from '@radix-ui/react-icons';
-import { ReactElement, useMemo } from 'react';
+import { ReactElement } from 'react';
 import EditHookButton from './EditHookButton';
 import RemoveHookButton from './RemoveHookButton';
 
 interface Props {
   hook: JobHook;
   jobConnections: Connection[];
+  jobConnectionsMap: Map<string, Connection>;
   onDeleted(): void;
   onEdited(): void;
 }
 
 export default function HookCard(props: Props): ReactElement {
-  const { hook, onDeleted, onEdited, jobConnections } = props;
+  const { hook, onDeleted, onEdited, jobConnections, jobConnectionsMap } =
+    props;
   const hookTiming = getHookTiming(hook.config ?? new JobHookConfig());
-
-  const connectionMap = useMemo(
-    () => new Map(jobConnections.map((conn) => [conn.id, conn])),
-    [jobConnections]
-  );
-
   return (
     <div id={`jobhook-${hook.id}`}>
       <Card>
@@ -61,7 +57,7 @@ export default function HookCard(props: Props): ReactElement {
                 {hook.config?.config.case && (
                   <HookConnectionBadge
                     config={hook.config}
-                    connMap={connectionMap}
+                    connMap={jobConnectionsMap}
                   />
                 )}
               </div>

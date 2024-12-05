@@ -57,6 +57,11 @@ export default function HooksCard(props: Props): ReactElement {
     );
   }, [isConnectionsFetching, jobConnectionIds]);
 
+  const connectionMap = useMemo(
+    () => new Map(jobConnections.map((conn) => [conn.id, conn])),
+    [jobConnections]
+  );
+
   if (isGetJobHooksLoading || isGetJobLoading) {
     return (
       <div>
@@ -95,6 +100,7 @@ export default function HooksCard(props: Props): ReactElement {
               onDeleted={refetch}
               onEdited={refetch}
               jobConnections={jobConnections}
+              jobConnectionsMap={connectionMap}
             />
           );
         })}
