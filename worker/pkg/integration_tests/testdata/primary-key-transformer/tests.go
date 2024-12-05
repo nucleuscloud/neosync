@@ -6,23 +6,21 @@ import (
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 )
 
-func GetSyncTests() []*workflow_testdata.IntegrationTest {
-	return []*workflow_testdata.IntegrationTest{
-		{
-			Name:            "Circular Dependency primary key transformation",
-			Folder:          "testdata/primary-key-transformer",
-			SourceFilePaths: []string{"create.sql", "insert.sql"},
-			TargetFilePaths: []string{"create.sql"},
-			JobMappings:     getPkTransformerJobmappings(),
-			JobOptions: &workflow_testdata.TestJobOptions{
-				InitSchema: false,
-			},
-			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"primary_$key.store_notifications": &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_$key.stores":              &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_$key.store_customers":     &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_$key.referral_codes":      &workflow_testdata.ExpectedOutput{RowCount: 20},
-			},
+func GetSyncTest() *workflow_testdata.IntegrationTest {
+	return &workflow_testdata.IntegrationTest{
+		Name:            "Circular Dependency primary key transformation",
+		Folder:          "testdata/primary-key-transformer",
+		SourceFilePaths: []string{"create.sql", "insert.sql"},
+		TargetFilePaths: []string{"create.sql"},
+		JobMappings:     getPkTransformerJobmappings(),
+		JobOptions: &workflow_testdata.TestJobOptions{
+			InitSchema: false,
+		},
+		Expected: map[string]*workflow_testdata.ExpectedOutput{
+			"primary_$key.store_notifications": &workflow_testdata.ExpectedOutput{RowCount: 20},
+			"primary_$key.stores":              &workflow_testdata.ExpectedOutput{RowCount: 20},
+			"primary_$key.store_customers":     &workflow_testdata.ExpectedOutput{RowCount: 20},
+			"primary_$key.referral_codes":      &workflow_testdata.ExpectedOutput{RowCount: 20},
 		},
 	}
 }

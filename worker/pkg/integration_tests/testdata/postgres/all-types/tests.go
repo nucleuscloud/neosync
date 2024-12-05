@@ -19,6 +19,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				"alltypes.array_types":        &workflow_testdata.ExpectedOutput{RowCount: 1},
 				"alltypes.time_time":          &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"alltypes.json_data":          &workflow_testdata.ExpectedOutput{RowCount: 12},
+				"capital.badname":             &workflow_testdata.ExpectedOutput{RowCount: 5},
+				"capital.bad_name_123!@#":     &workflow_testdata.ExpectedOutput{RowCount: 5},
 			},
 		},
 		{
@@ -35,6 +37,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				"alltypes.array_types":        &workflow_testdata.ExpectedOutput{RowCount: 1},
 				"alltypes.time_time":          &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"alltypes.json_data":          &workflow_testdata.ExpectedOutput{RowCount: 12},
+				"capital.badname":             &workflow_testdata.ExpectedOutput{RowCount: 5},
+				"capital.bad_name_123!@#":     &workflow_testdata.ExpectedOutput{RowCount: 5},
 			},
 		},
 	}

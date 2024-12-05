@@ -40,9 +40,10 @@ type Option func(*TestWorkflowEnv)
 type TestWorkflowEnv struct {
 	neosyncApi    *tcneosyncapi.NeosyncApiTestClient
 	redisconfig   *shared.RedisConfig
-	redisclient   redis.UniversalClient
 	fakeEELicense *testutil.FakeEELicense
-	TestEnv       *testsuite.TestWorkflowEnvironment
+
+	TestEnv     *testsuite.TestWorkflowEnvironment
+	Redisclient redis.UniversalClient
 }
 
 // WithRedis creates redis client with provided URL
@@ -87,7 +88,7 @@ func NewTestDataSyncWorkflowEnv(
 	if err != nil {
 		t.Fatal(err)
 	}
-	workflowEnv.redisclient = redisclient
+	workflowEnv.Redisclient = redisclient
 
 	connclient := neosyncApi.UnauthdClients.Connections
 	jobclient := neosyncApi.UnauthdClients.Jobs
@@ -114,7 +115,7 @@ func NewTestDataSyncWorkflowEnv(
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, dbManagers.SqlManager, workflowEnv.fakeEELicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	posttableSyncActivity := posttablesync_activity.New(jobclient, dbManagers.SqlManager, connclient)
-	redisCleanUpActivity := syncrediscleanup_activity.New(workflowEnv.redisclient)
+	redisCleanUpActivity := syncrediscleanup_activity.New(workflowEnv.Redisclient)
 
 	env.RegisterWorkflow(datasync_workflow.Workflow)
 	env.RegisterActivity(syncActivity.Sync)
