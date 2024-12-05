@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS alltypes;
-
-USE alltypes; 
 CREATE TABLE IF NOT EXISTS  all_data_types (
     -- Auto-incrementing primary key
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,7 +73,7 @@ INSERT INTO all_data_types (
     json_col,
     set_as_array
 ) VALUES (
-    127, 32767, 8388607, 2147483647, 9223372036854775807,
+    127, 32767, 8388607, 2147483647, 922337203685477580,
     1234.56, 3.1415, 3.14159265359, 
     b'10101010',
     '2023-09-12', '14:30:00', '2023-09-12 14:30:00', 2023,
