@@ -71,7 +71,7 @@ func (m *neosyncToPgxProcessor) Close(context.Context) error {
 }
 
 func (p *neosyncToPgxProcessor) transform(path string, root any) any {
-	value, isNeosyncValue, err := getNeosyncValue(root)
+	value, isNeosyncValue, err := p.getNeosyncValue(root)
 	if err != nil {
 		p.logger.Warn(err.Error())
 	}
@@ -94,7 +94,7 @@ func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 		if !ok {
 			return v
 		}
-		value, err := handleByteSlice(v, datatype)
+		value, err := p.handleByteSlice(v, datatype)
 		if err != nil {
 			p.logger.Errorf("unable to handle byte slice: %w", err)
 			return v
@@ -105,7 +105,7 @@ func (p *neosyncToPgxProcessor) transform(path string, root any) any {
 	}
 }
 
-func getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+func (p *neosyncToPgxProcessor) getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 	if valuer, ok := root.(neosynctypes.NeosyncPgxValuer); ok {
 		value, err := valuer.ValuePgx()
 		if err != nil {
@@ -119,8 +119,7 @@ func getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 	return root, false, nil
 }
 
-func handleByteSlice(v []byte, datatype string) (any, error) {
-	// TODO move to pgx processor
+func (p *neosyncToPgxProcessor) handleByteSlice(v []byte, datatype string) (any, error) {
 	if pgutil.IsPgArrayColumnDataType(datatype) {
 		pgarray, err := processPgArray(v, datatype)
 		if err != nil {
