@@ -105,7 +105,10 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
   const { ref, width: editorWidth } = useMonacoResizer();
 
   return (
-    <div className="monaco-editor-container" ref={ref}>
+    <div
+      className="monaco-editor-container border border-gray-700 p-2 rounded-lg"
+      ref={ref}
+    >
       <Editor
         height="10vh"
         width={editorWidth}
@@ -123,7 +126,9 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
   );
 }
 
-const WIDTH_OFFSET = 16;
+// Offset is important here as without it, things get pretty strange I believe due to the container
+// Lower offsets cause the resize to happen at a glacial pace, and without one, not at all.
+const WIDTH_OFFSET = 10;
 
 function useMonacoResizer(): {
   ref: OnRefChangeType<HTMLDivElement>;
