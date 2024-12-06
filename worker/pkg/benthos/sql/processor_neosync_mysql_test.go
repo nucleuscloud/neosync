@@ -1,6 +1,8 @@
 package neosync_benthos_sql
 
 import (
+	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/doug-martin/goqu/v9"
@@ -119,4 +121,143 @@ func Test_handleMysqlByteSlice(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, input, result)
 	})
+}
+
+func Test_NeosyncToMysqlProcessor(t *testing.T) {
+	conf := `
+columns:
+  - id
+  - name
+  - age
+  - balance
+  - is_active
+  - created_at
+  - metadata
+  - default_value
+column_data_types:
+  id: integer
+  name: text
+  age: integer
+  balance: double
+  is_active: boolean
+  created_at: timestamp
+  metadata: json
+  default_value: text
+column_default_properties:
+  id:
+    has_default_transformer: false
+  name:
+    has_default_transformer: false
+  default_value:
+    has_default_transformer: true
+`
+	spec := neosyncToMysqlProcessorConfig()
+	env := service.NewEnvironment()
+
+	procConfig, err := spec.ParseYAML(conf, env)
+	require.NoError(t, err)
+
+	proc, err := newNeosyncToMysqlProcessor(procConfig, service.MockResources())
+	require.NoError(t, err)
+
+	msgMap := map[string]any{
+		"id":            1,
+		"name":          "test",
+		"age":           30,
+		"balance":       1000.50,
+		"is_active":     true,
+		"created_at":    "2023-01-01T00:00:00Z",
+		"metadata":      map[string]string{"key": "value"},
+		"default_value": "some default",
+	}
+	msg := service.NewMessage(nil)
+	msg.SetStructured(msgMap)
+	batch := service.MessageBatch{
+		msg,
+	}
+
+	results, err := proc.ProcessBatch(context.Background(), batch)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Len(t, results[0], 1)
+
+	val, err := results[0][0].AsStructured()
+	require.NoError(t, err)
+
+	jsonBytes, err := json.Marshal(msgMap["metadata"])
+	require.NoError(t, err)
+
+	expected := map[string]any{
+		"id":            msgMap["id"],
+		"name":          msgMap["name"],
+		"age":           msgMap["age"],
+		"balance":       msgMap["balance"],
+		"is_active":     msgMap["is_active"],
+		"created_at":    msgMap["created_at"],
+		"metadata":      jsonBytes,
+		"default_value": goqu.Default(),
+	}
+	require.Equal(t, expected, val)
+
+	require.NoError(t, proc.Close(context.Background()))
+}
+
+func Test_NeosyncToMysqlProcessor_SubsetColumns(t *testing.T) {
+	conf := `
+columns:
+  - id
+  - name
+column_data_types:
+  id: integer
+  name: text
+  age: integer
+  balance: double
+  is_active: boolean
+  created_at: timestamp
+  metadata: json
+column_default_properties:
+  id:
+    has_default_transformer: false
+  name:
+    has_default_transformer: false
+`
+	spec := neosyncToMysqlProcessorConfig()
+	env := service.NewEnvironment()
+
+	procConfig, err := spec.ParseYAML(conf, env)
+	require.NoError(t, err)
+
+	proc, err := newNeosyncToMysqlProcessor(procConfig, service.MockResources())
+	require.NoError(t, err)
+
+	msgMap := map[string]any{
+		"id":         1,
+		"name":       "test",
+		"age":        30,
+		"balance":    1000.50,
+		"is_active":  true,
+		"created_at": "2023-01-01T00:00:00Z",
+		"metadata":   map[string]string{"key": "value"},
+	}
+	msg := service.NewMessage(nil)
+	msg.SetStructured(msgMap)
+	batch := service.MessageBatch{
+		msg,
+	}
+
+	results, err := proc.ProcessBatch(context.Background(), batch)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Len(t, results[0], 1)
+
+	val, err := results[0][0].AsStructured()
+	require.NoError(t, err)
+
+	expected := map[string]any{
+		"id":   msgMap["id"],
+		"name": msgMap["name"],
+	}
+	require.Equal(t, expected, val)
+
+	require.NoError(t, proc.Close(context.Background()))
 }

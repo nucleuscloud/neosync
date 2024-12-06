@@ -1,6 +1,7 @@
 package neosync_benthos_sql
 
 import (
+	"context"
 	"testing"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -89,4 +90,133 @@ func Test_getMssqlValue(t *testing.T) {
 		require.NoError(t, err)
 		require.Nil(t, result)
 	})
+}
+
+func Test_NeosyncToMssqlProcessor(t *testing.T) {
+	conf := `
+columns:
+  - id
+  - name
+  - age
+  - balance
+  - is_active
+  - created_at
+  - default_value
+column_data_types:
+  id: integer
+  name: text
+  age: integer
+  balance: double
+  is_active: boolean
+  created_at: timestamp
+  default_value: text
+column_default_properties:
+  id:
+    has_default_transformer: false
+  name:
+    has_default_transformer: false
+  default_value:
+    has_default_transformer: true
+`
+	spec := neosyncToMssqlProcessorConfig()
+	env := service.NewEnvironment()
+
+	procConfig, err := spec.ParseYAML(conf, env)
+	require.NoError(t, err)
+
+	proc, err := newNeosyncToMssqlProcessor(procConfig, service.MockResources())
+	require.NoError(t, err)
+
+	msgMap := map[string]any{
+		"id":            1,
+		"name":          "test",
+		"age":           30,
+		"balance":       1000.50,
+		"is_active":     true,
+		"created_at":    "2023-01-01T00:00:00Z",
+		"default_value": "some default",
+	}
+	msg := service.NewMessage(nil)
+	msg.SetStructured(msgMap)
+	batch := service.MessageBatch{
+		msg,
+	}
+
+	results, err := proc.ProcessBatch(context.Background(), batch)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Len(t, results[0], 1)
+
+	val, err := results[0][0].AsStructured()
+	require.NoError(t, err)
+
+	expected := map[string]any{
+		"id":         msgMap["id"],
+		"name":       msgMap["name"],
+		"age":        msgMap["age"],
+		"balance":    msgMap["balance"],
+		"is_active":  msgMap["is_active"],
+		"created_at": msgMap["created_at"],
+	}
+	require.Equal(t, expected, val)
+
+	require.NoError(t, proc.Close(context.Background()))
+}
+
+func Test_NeosyncToMssqlProcessor_SubsetColumns(t *testing.T) {
+	conf := `
+columns:
+  - id
+  - name
+column_data_types:
+  id: integer
+  name: text
+  age: integer
+  balance: double
+  is_active: boolean
+  created_at: timestamp
+column_default_properties:
+  id:
+    has_default_transformer: false
+  name:
+    has_default_transformer: false
+`
+	spec := neosyncToMssqlProcessorConfig()
+	env := service.NewEnvironment()
+
+	procConfig, err := spec.ParseYAML(conf, env)
+	require.NoError(t, err)
+
+	proc, err := newNeosyncToMssqlProcessor(procConfig, service.MockResources())
+	require.NoError(t, err)
+
+	msgMap := map[string]any{
+		"id":         1,
+		"name":       "test",
+		"age":        30,
+		"balance":    1000.50,
+		"is_active":  true,
+		"created_at": "2023-01-01T00:00:00Z",
+	}
+	msg := service.NewMessage(nil)
+	msg.SetStructured(msgMap)
+	batch := service.MessageBatch{
+		msg,
+	}
+
+	results, err := proc.ProcessBatch(context.Background(), batch)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Len(t, results[0], 1)
+
+	val, err := results[0][0].AsStructured()
+	require.NoError(t, err)
+
+	expected := map[string]any{
+		"id":   msgMap["id"],
+		"name": msgMap["name"],
+	}
+	require.Equal(t, expected, val)
+
+	require.NoError(t, proc.Close(context.Background()))
 }
