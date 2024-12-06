@@ -14,7 +14,6 @@ import (
 )
 
 const defaultStr = "DEFAULT"
-const GoquPostgresDriver = "postgres"
 
 type SubsetReferenceKey struct {
 	Table         string
@@ -29,7 +28,7 @@ type SubsetColumnConstraint struct {
 
 func getGoquDialect(driver string) goqu.DialectWrapper {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return goqu.Dialect(GoquPostgresDriver)
+		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	}
 	return goqu.Dialect(driver)
 }

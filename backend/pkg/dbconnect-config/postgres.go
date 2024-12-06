@@ -10,7 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 )
 
-const PostgresDriver = "postgres"
+const postgresScheme = "postgres"
 
 type pgConnectConfig struct {
 	url  string
@@ -38,8 +38,9 @@ func NewFromPostgresConnection(
 			host += fmt.Sprintf(":%d", cc.Connection.GetPort())
 		}
 
+		// For both postgres and pgx drivers, the URL scheme (protocol) should always be "postgres"
 		pgurl := url.URL{
-			Scheme: PostgresDriver,
+			Scheme: postgresScheme,
 			Host:   host,
 		}
 		if cc.Connection.GetUser() != "" && cc.Connection.GetPass() != "" {

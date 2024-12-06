@@ -99,9 +99,10 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 }
 
 const (
-	PostgresDriver = "pgx"
-	MysqlDriver    = "mysql"
-	MssqlDriver    = "sqlserver"
+	PostgresDriver     = "pgx"
+	GoquPostgresDriver = "postgres"
+	MysqlDriver        = "mysql"
+	MssqlDriver        = "sqlserver"
 )
 
 type BatchExecOpts struct {
