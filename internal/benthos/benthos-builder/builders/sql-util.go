@@ -908,7 +908,7 @@ func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.Colu
 
 func getSqlBatchProcessors(driver string, columns []string, columnDataTypes map[string]string, columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) (*neosync_benthos.BatchProcessor, error) {
 	switch driver {
-	case sqlmanager_shared.PostgresDriver, "postgres":
+	case sqlmanager_shared.PostgresDriver, sqlmanager_shared.DefaultPostgresDriver:
 		return &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
 	case sqlmanager_shared.MysqlDriver:
 		return &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil

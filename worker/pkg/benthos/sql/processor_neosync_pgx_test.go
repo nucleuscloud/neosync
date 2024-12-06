@@ -1,6 +1,7 @@
 package neosync_benthos_sql
 
 import (
+	"context"
 	"database/sql/driver"
 	"testing"
 
@@ -387,4 +388,50 @@ func Test_getPgxValue(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, goqu.Literal(pgutil.FormatPgArrayLiteral(input, "jsonb[]")), got)
 	})
+}
+
+func Test_NeosyncToPgxProcessor(t *testing.T) {
+	conf := `
+columns:
+  - id
+  - name
+column_data_types:
+  id: integer
+  name: text
+column_default_properties:
+  id:
+    has_default_transformer: false
+  name:
+    has_default_transformer: false
+`
+	spec := neosyncToPgxProcessorConfig()
+	env := service.NewEnvironment()
+
+	procConfig, err := spec.ParseYAML(conf, env)
+	require.NoError(t, err)
+
+	proc, err := newNeosyncToPgxProcessor(procConfig, service.MockResources())
+	require.NoError(t, err)
+
+	msg := service.NewMessage(nil)
+	msg.SetStructured(map[string]any{"id": 1, "name": "test"})
+	batch := service.MessageBatch{
+		msg,
+	}
+
+	results, err := proc.ProcessBatch(context.Background(), batch)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.Len(t, results[0], 1)
+
+	val, err := results[0][0].AsStructured()
+	require.NoError(t, err)
+
+	expected := map[string]any{
+		"id":   1,
+		"name": "test",
+	}
+	require.Equal(t, expected, val)
+
+	require.NoError(t, proc.Close(context.Background()))
 }

@@ -286,7 +286,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if err != nil {
 			return err
 		}
-		return err
 	}
 	return nil
 }
