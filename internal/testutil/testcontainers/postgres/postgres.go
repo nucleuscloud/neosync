@@ -3,7 +3,12 @@ package testcontainers_postgres
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -90,6 +95,18 @@ func NewPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTes
 	return p.Setup(ctx)
 }
 
+func NewSslPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTestContainer, error) {
+	p := &PostgresTestContainer{
+		database: "testdb",
+		username: "postgres",
+		password: "pass",
+	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p.SetupSsl(ctx)
+}
+
 // Sets test container database
 func WithDatabase(database string) Option {
 	return func(a *PostgresTestContainer) {
@@ -125,6 +142,11 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 		),
 	)
 	if err != nil {
+		logs, err2 := pgContainer.Logs(ctx)
+		if err2 == nil {
+			bits, _ := io.ReadAll(logs)
+			log.Println("container logs:", string(bits))
+		}
 		return nil, err
 	}
 
@@ -143,6 +165,122 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 		URL:           connStr,
 		TestContainer: pgContainer,
 	}, nil
+}
+
+const (
+	sslRelativePath = "../../../../compose/pgssl/certs"
+)
+
+func resolveTestCertPath() string {
+	// Get current file path
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current file path")
+	}
+
+	// Get absolute path to the certs directory
+	certsPath := filepath.Join(filepath.Dir(filename), sslRelativePath)
+	absPath, err := filepath.Abs(certsPath)
+	if err != nil {
+		panic("Failed to get absolute path: " + err.Error())
+	}
+	return absPath
+}
+
+var (
+	sslBasePath      = resolveTestCertPath()
+	sslServerCrtPath = path.Join(sslBasePath, "server.crt")
+	sslServerKeyPath = path.Join(sslBasePath, "server.key")
+	sslRootCrtPath   = path.Join(sslBasePath, "root.crt")
+)
+
+func (p *PostgresTestContainer) SetupSsl(ctx context.Context) (*PostgresTestContainer, error) {
+	pgContainer, err := postgres.Run(
+		ctx,
+		"postgres:15",
+		postgres.WithDatabase(p.database),
+		postgres.WithUsername(p.username),
+		postgres.WithPassword(p.password),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).WithStartupTimeout(20*time.Second),
+		),
+		WithCmd([]string{
+			"postgres",
+			"-c", "fsync=off",
+			"-c", "ssl=on",
+			"-c", "ssl_cert_file=/var/lib/postgresql/ssl/server.crt",
+			"-c", "ssl_key_file=/var/lib/postgresql/ssl/server.key",
+			"-c", "ssl_ca_file=/var/lib/postgresql/ssl/root.crt",
+		}),
+		WithFiles([]testcontainers.ContainerFile{
+			{
+				HostFilePath:      sslServerCrtPath,
+				ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
+				FileMode:          0644,
+			},
+			{
+				HostFilePath:      sslServerKeyPath,
+				ContainerFilePath: "/var/lib/postgresql/ssl/server.key",
+				FileMode:          0600,
+			},
+			{
+				HostFilePath:      sslRootCrtPath,
+				ContainerFilePath: "/var/lib/postgresql/ssl/root.crt",
+				FileMode:          0644,
+			},
+		}),
+		testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
+			"chown", "postgres:postgres", "/var/lib/postgresql/ssl/server.key",
+		})),
+	)
+	if err != nil {
+		if pgContainer != nil {
+			logs, err2 := pgContainer.Logs(ctx)
+			if err2 == nil {
+				bits, _ := io.ReadAll(logs)
+				log.Println("container logs:", string(bits))
+			}
+		}
+		return nil, err
+	}
+
+	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=verify-full")
+	if err != nil {
+		return nil, err
+	}
+
+	pool, err := pgxpool.New(ctx, connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostgresTestContainer{
+		DB:            pool,
+		URL:           connStr,
+		TestContainer: pgContainer,
+	}, nil
+}
+
+func WithMounts(mounts testcontainers.ContainerMounts) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.Mounts = mounts
+		return nil
+	}
+}
+
+func WithFiles(files []testcontainers.ContainerFile) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.Files = files
+		return nil
+	}
+}
+
+func WithCmd(cmd []string) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.Cmd = cmd
+		return nil
+	}
 }
 
 // Closes the connection pool and terminates the container.

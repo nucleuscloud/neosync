@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgresssl:
     image: postgres:15
     container_name: postgres
     environment:
@@ -11,8 +11,6 @@ services:
     ports:
       - "5555:5432"
     user: postgres
-    networks:
-      - neosync-network
     command:
       [
         "postgres",
@@ -25,7 +23,7 @@ services:
         "-c",
         "ssl_ca_file=/certs/root.crt",
       ]
-networks:
-  neosync-network:
-    name: neosync-network
-    external: true
+# networks:
+#   neosync-network:
+#     name: neosync-network
+#     external: true

@@ -2,9 +2,13 @@ package sshtunnel_test
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"database/sql/driver"
 	"net"
+	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -55,13 +59,34 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcpostgres.NewPostgresTestContainer(ctx)
+		container, err := tcpostgres.NewSslPostgresTestContainer(ctx)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 		require.NoError(t, err)
 
-		connector, cleanup, err := postgrestunconnector.New(container.URL, postgrestunconnector.WithDialer(dialer))
+		cert, err := tls.LoadX509KeyPair("../../compose/pgssl/certs/client.crt", "../../compose/pgssl/certs/client.key")
+		require.NoError(t, err)
+
+		rootCas := x509.NewCertPool()
+		bits, err := os.ReadFile("../../compose/pgssl/certs/root.crt")
+		require.NoError(t, err)
+		ok := rootCas.AppendCertsFromPEM(bits)
+		require.True(t, ok)
+
+		connUrl, err := url.Parse(container.URL)
+		require.NoError(t, err)
+
+		connector, cleanup, err := postgrestunconnector.New(
+			container.URL,
+			postgrestunconnector.WithDialer(dialer),
+			postgrestunconnector.WithTLSConfig(&tls.Config{
+				Certificates: []tls.Certificate{cert},
+				RootCAs:      rootCas,
+				MinVersion:   tls.VersionTLS12,
+				ServerName:   connUrl.Hostname(),
+			}),
+		)
 		require.NoError(t, err)
 		defer cleanup()
 
