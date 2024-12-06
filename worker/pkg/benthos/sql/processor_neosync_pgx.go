@@ -80,14 +80,10 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ := json.MarshalIndent(root, "", " ")
-		fmt.Printf("%s \n", string(jsonF))
 		newRoot, err := transformNeosyncToPgx(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ = json.MarshalIndent(newRoot, "", " ")
-		fmt.Printf("%s \n", string(jsonF))
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -116,7 +112,6 @@ func transformNeosyncToPgx(
 
 	newMap := make(map[string]any)
 	for col, val := range rootMap {
-		// fmt.Printf("col: %s, val: %v \n", col, val)
 		// Skip values that aren't in the column list to handle circular references
 		if !isColumnInList(col, columns) {
 			continue
@@ -127,7 +122,6 @@ func transformNeosyncToPgx(
 		if err != nil {
 			logger.Warn(err.Error())
 		}
-		// fmt.Printf("newVal: %v \n", newVal)
 		newMap[col] = newVal
 	}
 
@@ -176,7 +170,6 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 
 func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 	if valuer, ok := root.(neosynctypes.NeosyncPgxValuer); ok {
-		fmt.Println("HERE")
 		value, err := valuer.ValuePgx()
 		if err != nil {
 			return nil, false, fmt.Errorf("unable to get PGX value from NeosyncPgxValuer: %w", err)
