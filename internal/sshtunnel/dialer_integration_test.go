@@ -76,7 +76,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 			panic(err)
 		}
 
-		connector, cleanup, err := mysqltunconnector.New(dialer, container.URL)
+		connector, cleanup, err := mysqltunconnector.New(container.URL, mysqltunconnector.WithDialer(dialer))
 		require.NoError(t, err)
 		defer cleanup()
 
@@ -94,7 +94,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 		connstr, err := container.ConnectionString(ctx, "encrypt=disable")
 		require.NoError(t, err)
 
-		connector, cleanup, err := mssqltunconnector.New(dialer, connstr)
+		connector, cleanup, err := mssqltunconnector.New(connstr, mssqltunconnector.WithDialer(dialer))
 		require.NoError(t, err)
 		defer cleanup()
 

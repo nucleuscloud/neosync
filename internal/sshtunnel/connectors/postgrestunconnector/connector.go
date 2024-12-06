@@ -46,8 +46,6 @@ func New(
 	opts ...Option,
 ) (*Connector, func(), error) {
 	cfg := &connectorConfig{}
-
-	// Apply all options
 	for _, opt := range opts {
 		if err := opt(cfg); err != nil {
 			return nil, nil, err

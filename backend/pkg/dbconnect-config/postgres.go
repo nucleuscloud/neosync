@@ -53,9 +53,9 @@ func NewFromPostgresConnection(
 		if cc.Connection.GetSslMode() != "" {
 			query.Set("sslmode", cc.Connection.GetSslMode())
 		}
-		if config.PgConfig.GetClientTls() != nil {
-			query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
-		}
+		// if config.PgConfig.GetClientTls() != nil {
+		// 	query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
+		// }
 		if connectionTimeout != nil {
 			query.Set("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
@@ -78,9 +78,9 @@ func NewFromPostgresConnection(
 			query.Set("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
 		// todo: move this out of here into the driver
-		if config.PgConfig.GetClientTls() != nil {
-			query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
-		}
+		// if config.PgConfig.GetClientTls() != nil {
+		// 	query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
+		// }
 		uriconfig.RawQuery = query.Encode()
 		return &pgConnectConfig{url: uriconfig.String(), user: getUserFromInfo(uriconfig.User)}, nil
 	default:

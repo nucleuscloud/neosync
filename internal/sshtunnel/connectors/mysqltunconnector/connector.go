@@ -2,6 +2,7 @@ package mysqltunconnector
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql/driver"
 	"fmt"
 	"net"
@@ -18,21 +19,60 @@ type Connector struct {
 
 var _ driver.Connector = (*Connector)(nil)
 
-func New(dialer sshtunnel.Dialer, dsn string) (*Connector, func(), error) {
-	cfg, err := mysql.ParseDSN(dsn)
+type Option func(*connectorConfig) error
+
+type connectorConfig struct {
+	dialer    sshtunnel.ContextDialer
+	tlsConfig *tls.Config
+}
+
+// WithDialer sets a custom dialer for the connector
+func WithDialer(dialer sshtunnel.ContextDialer) Option {
+	return func(cfg *connectorConfig) error {
+		cfg.dialer = dialer
+		return nil
+	}
+}
+
+// WithTLSConfig sets TLS configuration for the connector
+func WithTLSConfig(tlsConfig *tls.Config) Option {
+	return func(cfg *connectorConfig) error {
+		cfg.tlsConfig = tlsConfig
+		return nil
+	}
+}
+
+func New(
+	dsn string,
+	opts ...Option,
+) (*Connector, func(), error) {
+	cfg := &connectorConfig{}
+	for _, opt := range opts {
+		if err := opt(cfg); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	mysqlCfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to parse mysql dsn: %w", err)
 	}
 
-	ogNetwork := cfg.Net
+	ogNetwork := mysqlCfg.Net
 	newNetwork := buildUniqueNetwork(ogNetwork)
 
-	cfg.Net = newNetwork
-	mysql.RegisterDialContext(cfg.Net, func(ctx context.Context, addr string) (net.Conn, error) {
-		return dialer.DialContext(ctx, ogNetwork, addr)
-	})
+	mysqlCfg.Net = newNetwork
 
-	conn, err := mysql.NewConnector(cfg)
+	if cfg.dialer != nil {
+		mysql.RegisterDialContext(mysqlCfg.Net, func(ctx context.Context, addr string) (net.Conn, error) {
+			return cfg.dialer.DialContext(ctx, ogNetwork, addr)
+		})
+	}
+	if cfg.tlsConfig != nil {
+		mysqlCfg.TLS = cfg.tlsConfig
+	}
+
+	conn, err := mysql.NewConnector(mysqlCfg)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -5874,6 +5874,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "client_tls",
+              "description": "Provide client-side TLS Certificates",
+              "label": "",
+              "type": "ClientTlsConfig",
+              "longType": "ClientTlsConfig",
+              "fullType": "mgmt.v1alpha1.ClientTlsConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -6014,6 +6026,18 @@
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
               "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_tls",
+              "description": "Provide client-side TLS Certificates",
+              "label": "",
+              "type": "ClientTlsConfig",
+              "longType": "ClientTlsConfig",
+              "fullType": "mgmt.v1alpha1.ClientTlsConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

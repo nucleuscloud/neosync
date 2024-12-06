@@ -7101,6 +7101,11 @@ components:
                 postgres connection that is not publicly accessible to the
                 internet
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+        clientTls:
+          allOf:
+            - title: client_tls
+              description: Provide client-side TLS Certificates
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
       title: MssqlConnectionConfig
       additionalProperties: false
       description: Configuration for a Mssql Connection
@@ -7172,6 +7177,11 @@ components:
           allOf:
             - title: connection_options
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+        clientTls:
+          allOf:
+            - title: client_tls
+              description: Provide client-side TLS Certificates
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
       title: MysqlConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.OpenAiConnectionConfig:
