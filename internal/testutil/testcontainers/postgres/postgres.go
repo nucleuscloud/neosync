@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -205,7 +206,7 @@ func (p *PostgresTestContainer) SetupSsl(ctx context.Context) (*PostgresTestCont
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(20*time.Second),
 		),
-		WithCmd([]string{
+		testutil.WithCmd([]string{
 			"postgres",
 			"-c", "fsync=off",
 			"-c", "ssl=on",
@@ -213,7 +214,7 @@ func (p *PostgresTestContainer) SetupSsl(ctx context.Context) (*PostgresTestCont
 			"-c", "ssl_key_file=/var/lib/postgresql/ssl/server.key",
 			"-c", "ssl_ca_file=/var/lib/postgresql/ssl/root.crt",
 		}),
-		WithFiles([]testcontainers.ContainerFile{
+		testutil.WithFiles([]testcontainers.ContainerFile{
 			{
 				HostFilePath:      sslServerCrtPath,
 				ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
@@ -260,27 +261,6 @@ func (p *PostgresTestContainer) SetupSsl(ctx context.Context) (*PostgresTestCont
 		URL:           connStr,
 		TestContainer: pgContainer,
 	}, nil
-}
-
-func WithMounts(mounts testcontainers.ContainerMounts) testcontainers.CustomizeRequestOption {
-	return func(req *testcontainers.GenericContainerRequest) error {
-		req.Mounts = mounts
-		return nil
-	}
-}
-
-func WithFiles(files []testcontainers.ContainerFile) testcontainers.CustomizeRequestOption {
-	return func(req *testcontainers.GenericContainerRequest) error {
-		req.Files = files
-		return nil
-	}
-}
-
-func WithCmd(cmd []string) testcontainers.CustomizeRequestOption {
-	return func(req *testcontainers.GenericContainerRequest) error {
-		req.Cmd = cmd
-		return nil
-	}
 }
 
 // Closes the connection pool and terminates the container.

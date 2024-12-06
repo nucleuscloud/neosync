@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"net"
-	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -59,22 +58,108 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
+		container, err := tcpostgres.NewPostgresTestContainer(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		require.NoError(t, err)
+
+		connector, cleanup, err := postgrestunconnector.New(
+			container.URL,
+			postgrestunconnector.WithDialer(dialer),
+		)
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+
+	t.Run("mysql", func(t *testing.T) {
+		t.Parallel()
+
+		container, err := tcmysql.NewTlsMysqlTestContainer(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		connector, cleanup, err := mysqltunconnector.New(
+			container.URL,
+			mysqltunconnector.WithDialer(dialer),
+		)
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		t.Parallel()
+		container, err := testmssql.Run(ctx,
+			"mcr.microsoft.com/mssql/server:2022-latest",
+			testmssql.WithAcceptEULA(),
+			testmssql.WithPassword("mssqlPASSword1"),
+		)
+		require.NoError(t, err)
+		connstr, err := container.ConnectionString(ctx, "encrypt=disable")
+		require.NoError(t, err)
+
+		connector, cleanup, err := mssqltunconnector.New(connstr, mssqltunconnector.WithDialer(dialer))
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+}
+
+func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
+	t.Parallel()
+	ok := testutil.ShouldRunIntegrationTest()
+	if !ok {
+		return
+	}
+
+	ctx := context.Background()
+
+	addr := ":2225"
+	server := newSshForwardServer(t, addr)
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != gssh.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+
+	cconfig := &ssh.ClientConfig{
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         5 * time.Second,
+	}
+	dialerConfig := sshtunnel.DefaultSSHDialerConfig()
+	dialerConfig.KeepAliveInterval = 1 * time.Second
+	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+	defer dialer.Close()
+
+	cert, err := tls.LoadX509KeyPair("../../compose/pgssl/certs/client.crt", "../../compose/pgssl/certs/client.key")
+	require.NoError(t, err)
+
+	rootCas := x509.NewCertPool()
+	bits, err := os.ReadFile("../../compose/pgssl/certs/root.crt")
+	require.NoError(t, err)
+	ok = rootCas.AppendCertsFromPEM(bits)
+	require.True(t, ok)
+
+	t.Run("postgres", func(t *testing.T) {
+		t.Parallel()
+
 		container, err := tcpostgres.NewSslPostgresTestContainer(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
 		require.NoError(t, err)
 
-		cert, err := tls.LoadX509KeyPair("../../compose/pgssl/certs/client.crt", "../../compose/pgssl/certs/client.key")
-		require.NoError(t, err)
-
-		rootCas := x509.NewCertPool()
-		bits, err := os.ReadFile("../../compose/pgssl/certs/root.crt")
-		require.NoError(t, err)
-		ok := rootCas.AppendCertsFromPEM(bits)
-		require.True(t, ok)
-
-		connUrl, err := url.Parse(container.URL)
+		serverHost, err := container.TestContainer.Host(ctx)
 		require.NoError(t, err)
 
 		connector, cleanup, err := postgrestunconnector.New(
@@ -84,7 +169,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 				Certificates: []tls.Certificate{cert},
 				RootCAs:      rootCas,
 				MinVersion:   tls.VersionTLS12,
-				ServerName:   connUrl.Hostname(),
+				ServerName:   serverHost,
 			}),
 		)
 		require.NoError(t, err)
@@ -96,12 +181,23 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcmysql.NewMysqlTestContainer(ctx)
+		container, err := tcmysql.NewTlsMysqlTestContainer(ctx)
 		if err != nil {
 			panic(err)
 		}
+		serverHost, err := container.TestContainer.Host(ctx)
+		require.NoError(t, err)
 
-		connector, cleanup, err := mysqltunconnector.New(container.URL, mysqltunconnector.WithDialer(dialer))
+		connector, cleanup, err := mysqltunconnector.New(
+			container.URL,
+			mysqltunconnector.WithDialer(dialer),
+			mysqltunconnector.WithTLSConfig(&tls.Config{
+				Certificates: []tls.Certificate{cert},
+				RootCAs:      rootCas,
+				MinVersion:   tls.VersionTLS12,
+				ServerName:   serverHost,
+			}),
+		)
 		require.NoError(t, err)
 		defer cleanup()
 

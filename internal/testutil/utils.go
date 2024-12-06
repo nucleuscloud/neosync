@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/neilotoole/slogt"
+	"github.com/testcontainers/testcontainers-go"
 )
 
 func ShouldRunIntegrationTest() bool {
@@ -84,4 +85,18 @@ func GetConcurrentTestLogger(t testing.TB) *slog.Logger {
 		return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 	}
 	return slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
+}
+
+func WithFiles(files []testcontainers.ContainerFile) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.Files = files
+		return nil
+	}
+}
+
+func WithCmd(cmd []string) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.Cmd = cmd
+		return nil
+	}
 }
