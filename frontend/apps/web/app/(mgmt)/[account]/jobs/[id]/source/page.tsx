@@ -7,7 +7,7 @@ import SourceConnectionCard from './components/SourceConnectionCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   return (
-    <div className="job-details-container">
+    <div className="job-details-container flex flex-col gap-5">
       <SubPageHeader
         header="Source Connection"
         description="Manage a job's source connection. Click update at the bottom to persist any changes."

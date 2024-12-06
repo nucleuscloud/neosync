@@ -1,7 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import EmptyState from '@/components/EmptyState';
+import EmptyState, { EmptyStateLinkButton } from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -89,9 +89,13 @@ function JobTable(props: JobTableProps): ReactElement {
         <EmptyState
           title="No Jobs yet"
           description="Jobs are async workflows that transform data and sync it between source and destination systems."
-          buttonText="Create your first Job"
           icon={<GrPowerCycle className="w-8 h-8 text-primary" />}
-          href={`/${account?.name}/new/job`}
+          extra={
+            <EmptyStateLinkButton
+              buttonText="Create your first job"
+              href={`/${account?.name}/new/job`}
+            />
+          }
         />
       ) : (
         <DataTable columns={columns} data={jobData} />

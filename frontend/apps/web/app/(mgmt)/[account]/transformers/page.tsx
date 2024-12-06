@@ -1,7 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import EmptyState from '@/components/EmptyState';
+import EmptyState, { EmptyStateLinkButton } from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -112,9 +112,13 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
             <EmptyState
               title="No User Defined Transformers yet"
               description="Create a User Defined Transformer to implement data transformation logic. "
-              buttonText="Create your first Transformer"
               icon={<IoMdCode className="w-8 h-8 text-primary" />}
-              href={`/${account?.name}/new/transformer`}
+              extra={
+                <EmptyStateLinkButton
+                  buttonText="Create your first Transformer"
+                  href={`/${account?.name}/new/transformer`}
+                />
+              }
             />
           ) : (
             <UserDefinedTransformersDataTable

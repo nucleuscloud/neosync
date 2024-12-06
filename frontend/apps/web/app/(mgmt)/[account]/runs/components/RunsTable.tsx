@@ -1,4 +1,4 @@
-import EmptyState from '@/components/EmptyState';
+import EmptyState, { EmptyStateLinkButton } from '@/components/EmptyState';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
@@ -95,11 +95,15 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
         <EmptyState
           title="No Job Runs yet"
           description="Runs are instances of a job that have been executed."
-          buttonText="Trigger a Job to see a Run"
-          buttonIcon={<ArrowTopRightIcon />}
-          buttonIconSide="right"
           icon={<GoStack className="w-8 h-8 text-primary" />}
-          href={`/${account?.name}/jobs`}
+          extra={
+            <EmptyStateLinkButton
+              buttonText="Trigger a Job to see a Run"
+              buttonIcon={<ArrowTopRightIcon />}
+              buttonIconSide="right"
+              href={`/${account?.name}/jobs`}
+            />
+          }
         />
       ) : (
         <DataTable

@@ -151,6 +151,10 @@ disableGcpCloudStorageConnections: false
 protometrics:
   enabled: false
 
+jobHooks:
+  # -- Enables Job Hooks on the frontend. Note: This will only work if it has also been enabled via the backend with a valid license
+  enabled: false
+
 # -- The strategy to use when rolling out new replicas
 updateStrategy:
 
