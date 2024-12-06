@@ -873,7 +873,7 @@ func (p *PostgresManager) GetTableRowCount(
 }
 
 func getGoquDialect() goqu.DialectWrapper {
-	return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
+	return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 }
 
 func BuildPgTruncateStatement(

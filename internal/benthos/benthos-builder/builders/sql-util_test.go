@@ -145,7 +145,7 @@ func Test_getAdditionalMappings(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Run("none", func(t *testing.T) {
 			actual, err := getAdditionalJobMappings(
-				"postgres",
+				sqlmanager_shared.PostgresDriver,
 				map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 					"public.users": {
 						"id": {},
@@ -167,7 +167,7 @@ func Test_getAdditionalMappings(t *testing.T) {
 		})
 		t.Run("fallbacks", func(t *testing.T) {
 			actual, err := getAdditionalJobMappings(
-				"postgres",
+				sqlmanager_shared.PostgresDriver,
 				map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 					"public.users": {
 						"id": {},

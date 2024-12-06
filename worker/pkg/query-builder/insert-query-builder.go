@@ -33,7 +33,7 @@ func GetInsertBuilder(
 	}
 
 	switch driver {
-	case sqlmanager_shared.PostgresDriver, sqlmanager_shared.DefaultPostgresDriver:
+	case sqlmanager_shared.PostgresDriver:
 		return &PostgresDriver{
 			driver:  driver,
 			logger:  logger,
