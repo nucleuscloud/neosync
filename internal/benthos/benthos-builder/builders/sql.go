@@ -27,7 +27,6 @@ type sqlSyncBuilder struct {
 	redisConfig        *shared.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
-	options            *SqlSyncOptions
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
@@ -38,37 +37,19 @@ type sqlSyncBuilder struct {
 	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 }
 
-type SqlSyncOption func(*SqlSyncOptions)
-type SqlSyncOptions struct {
-	rawInsertMode bool
-}
-
-// WithRawInsertMode inserts data as is
-func WithRawInsertMode() SqlSyncOption {
-	return func(opts *SqlSyncOptions) {
-		opts.rawInsertMode = true
-	}
-}
-
 func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	redisConfig *shared.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
-	opts ...SqlSyncOption,
 ) bb_internal.BenthosBuilder {
-	options := &SqlSyncOptions{}
-	for _, opt := range opts {
-		opt(options)
-	}
 	return &sqlSyncBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,
 		redisConfig:        redisConfig,
 		driver:             databaseDriver,
 		selectQueryBuilder: selectQueryBuilder,
-		options:            options,
 	}
 }
 
@@ -322,8 +303,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
-		args := benthosConfig.Columns
-		args = append(args, benthosConfig.PrimaryKeys...)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -336,7 +315,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
 						MaxInFlight:              int(destOpts.MaxInFlight),
 						WhereColumns:             benthosConfig.PrimaryKeys,
-						ArgsMapping:              buildPlainInsertArgs(args),
 
 						Batching: &neosync_benthos.Batching{
 							Period: destOpts.BatchPeriod,
@@ -384,33 +362,17 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			}
 		}
 
-		columnTypes := []string{} // use map going forward
 		columnDataTypes := map[string]string{}
 		for _, c := range benthosConfig.Columns {
 			colType, ok := colInfoMap[c]
 			if ok {
 				columnDataTypes[c] = colType.DataType
-				columnTypes = append(columnTypes, colType.DataType)
-			} else {
-				columnTypes = append(columnTypes, "")
 			}
 		}
 
-		batchProcessors := []*neosync_benthos.BatchProcessor{}
-		// TODO remove this
-		// if benthosConfig.Config.Input.Inputs.NeosyncConnectionData != nil {
-		// 	batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{JsonToSql: &neosync_benthos.JsonToSqlConfig{ColumnDataTypes: columnDataTypes}})
-		// }
-		// if b.driver == sqlmanager_shared.PostgresDriver {
-		// 	batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{}})
-		// }
-		switch b.driver {
-		case sqlmanager_shared.PostgresDriver, "postgres":
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{ColumnDataTypes: columnDataTypes}})
-		case sqlmanager_shared.MysqlDriver:
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{ColumnDataTypes: columnDataTypes}})
-		case sqlmanager_shared.MssqlDriver:
-			batchProcessors = append(batchProcessors, &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{ColumnDataTypes: columnDataTypes}})
+		sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, columnDataTypes, columnDefaultProperties)
+		if err != nil {
+			return nil, err
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
@@ -420,23 +382,19 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 					PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 						ConnectionId: params.DestConnection.GetId(),
 
-						Schema:                   benthosConfig.TableSchema,
-						Table:                    benthosConfig.TableName,
-						Columns:                  benthosConfig.Columns,
-						ColumnsDataTypes:         columnTypes,
-						ColumnDefaultProperties:  columnDefaultProperties,
-						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
-						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
-						RawInsertMode:            b.options.rawInsertMode,
-						TruncateOnRetry:          destOpts.Truncate,
-						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
-						Prefix:                   prefix,
-						Suffix:                   suffix,
+						Schema:                      benthosConfig.TableSchema,
+						Table:                       benthosConfig.TableName,
+						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
+						SkipForeignKeyViolations:    destOpts.SkipForeignKeyViolations,
+						ShouldOverrideColumnDefault: shouldOverrideColumnDefault(columnDefaultProperties),
+						TruncateOnRetry:             destOpts.Truncate,
+						Prefix:                      prefix,
+						Suffix:                      suffix,
 
 						Batching: &neosync_benthos.Batching{
 							Period:     destOpts.BatchPeriod,
 							Count:      destOpts.BatchCount,
-							Processors: batchProcessors,
+							Processors: []*neosync_benthos.BatchProcessor{sqlProcessor},
 						},
 						MaxInFlight: int(destOpts.MaxInFlight),
 					},

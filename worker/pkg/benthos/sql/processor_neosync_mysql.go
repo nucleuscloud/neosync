@@ -2,13 +2,20 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
+	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func neosyncToMysqlProcessorConfig() *service.ConfigSpec {
-	return service.NewConfigSpec().Field(service.NewStringMapField("column_data_types"))
+	return service.NewConfigSpec().
+		Field(service.NewStringListField("columns")).
+		Field(service.NewStringMapField("column_data_types")).
+		Field(service.NewAnyMapField("column_default_properties"))
 }
 
 func RegisterNeosyncToMysqlProcessor(env *service.Environment) error {
@@ -25,18 +32,38 @@ func RegisterNeosyncToMysqlProcessor(env *service.Environment) error {
 }
 
 type neosyncToMysqlProcessor struct {
-	logger          *service.Logger
-	columnDataTypes map[string]string
+	logger                  *service.Logger
+	columns                 []string
+	columnDataTypes         map[string]string
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
 
 func newNeosyncToMysqlProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToMysqlProcessor, error) {
+	columns, err := conf.FieldStringList("columns")
+	if err != nil {
+		return nil, err
+	}
+
 	columnDataTypes, err := conf.FieldStringMap("column_data_types")
 	if err != nil {
 		return nil, err
 	}
+
+	columnDefaultPropertiesConfig, err := conf.FieldAnyMap("column_default_properties")
+	if err != nil {
+		return nil, err
+	}
+
+	columnDefaultProperties, err := getColumnDefaultProperties(columnDefaultPropertiesConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	return &neosyncToMysqlProcessor{
-		logger:          mgr.Logger(),
-		columnDataTypes: columnDataTypes,
+		logger:                  mgr.Logger(),
+		columns:                 columns,
+		columnDataTypes:         columnDataTypes,
+		columnDefaultProperties: columnDefaultProperties,
 	}, nil
 }
 
@@ -47,7 +74,10 @@ func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch servic
 		if err != nil {
 			return nil, err
 		}
-		newRoot := p.transform("", root)
+		newRoot, err := transformNeosyncToMysql(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		if err != nil {
+			return nil, err
+		}
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -63,36 +93,65 @@ func (m *neosyncToMysqlProcessor) Close(context.Context) error {
 	return nil
 }
 
-func (p *neosyncToMysqlProcessor) transform(path string, root any) any {
-	switch v := root.(type) {
-	case map[string]any:
-		newMap := make(map[string]any)
-		for k, v2 := range v {
-			newValue := p.transform(k, v2)
-			newMap[k] = newValue
+func transformNeosyncToMysql(
+	logger *service.Logger,
+	root any,
+	columns []string,
+	columnDataTypes map[string]string,
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
+) (map[string]any, error) {
+	rootMap, ok := root.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("root value must be a map[string]any")
+	}
+
+	newMap := make(map[string]any)
+	for col, val := range rootMap {
+		// Skip values that aren't in the column list to handle circular references
+		if !isColumnInList(col, columns) {
+			continue
 		}
-		return newMap
-	case nil:
-		return v
-	case []byte:
-		datatype, ok := p.columnDataTypes[path]
-		if !ok {
-			return v
-		}
-		value, err := p.handleByteSlice(v, datatype)
+		colDefaults := columnDefaultProperties[col]
+		datatype := columnDataTypes[col]
+		newVal, err := getMysqlValue(val, colDefaults, datatype)
 		if err != nil {
-			p.logger.Errorf("unable to handle byte slice: %w", err)
-			return v
+			logger.Warn(err.Error())
 		}
-		return value
+		newMap[col] = newVal
+	}
+
+	return newMap, nil
+}
+
+func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties, datatype string) (any, error) {
+	if colDefaults != nil && colDefaults.HasDefaultTransformer {
+		return goqu.Default(), nil
+	}
+
+	if mysqlutil.IsJsonDataType(datatype) {
+		bits, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+		}
+		return bits, nil
+	}
+
+	switch v := value.(type) {
+	case nil:
+		return v, nil
+	case []byte:
+		value, err := handleMysqlByteSlice(v, datatype)
+		if err != nil {
+			return nil, fmt.Errorf("unable to handle byte slice: %w", err)
+		}
+		return value, nil
 	default:
-		return v
+		return v, nil
 	}
 }
 
-func (p *neosyncToMysqlProcessor) handleByteSlice(v []byte, datatype string) (any, error) {
-	switch datatype {
-	case "bit":
+func handleMysqlByteSlice(v []byte, datatype string) (any, error) {
+	if datatype == "bit" {
 		bit, err := convertStringToBit(string(v))
 		if err != nil {
 			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)

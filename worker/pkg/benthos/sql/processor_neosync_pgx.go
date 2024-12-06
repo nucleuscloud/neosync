@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/doug-martin/goqu/v9"
@@ -16,10 +17,9 @@ import (
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
-const defaultStr = "DEFAULT"
-
 func neosyncToPgxProcessorConfig() *service.ConfigSpec {
 	return service.NewConfigSpec().
+		Field(service.NewStringListField("columns")).
 		Field(service.NewStringMapField("column_data_types")).
 		Field(service.NewAnyMapField("column_default_properties"))
 }
@@ -39,6 +39,7 @@ func RegisterNeosyncToPgxProcessor(env *service.Environment) error {
 
 type neosyncToPgxProcessor struct {
 	logger                  *service.Logger
+	columns                 []string
 	columnDataTypes         map[string]string
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
@@ -49,32 +50,24 @@ func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources
 		return nil, err
 	}
 
+	columns, err := conf.FieldStringList("columns")
+	if err != nil {
+		return nil, err
+	}
+
 	columnDefaultPropertiesConfig, err := conf.FieldAnyMap("column_default_properties")
 	if err != nil {
 		return nil, err
 	}
 
-	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
-	for key, properties := range columnDefaultPropertiesConfig {
-		props, err := properties.FieldAny()
-		if err != nil {
-			return nil, err
-		}
-		jsonData, err := json.Marshal(props)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal properties for key %s: %w", key, err)
-		}
-
-		var colDefaults neosync_benthos.ColumnDefaultProperties
-		if err := json.Unmarshal(jsonData, &colDefaults); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal properties for key %s: %w", key, err)
-		}
-
-		columnDefaultProperties[key] = &colDefaults
+	columnDefaultProperties, err := getColumnDefaultProperties(columnDefaultPropertiesConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	return &neosyncToPgxProcessor{
 		logger:                  mgr.Logger(),
+		columns:                 columns,
 		columnDataTypes:         columnDataTypes,
 		columnDefaultProperties: columnDefaultProperties,
 	}, nil
@@ -87,7 +80,10 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 		if err != nil {
 			return nil, err
 		}
-		newRoot := p.transform("", root)
+		newRoot, err := transformNeosyncToPgx(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		if err != nil {
+			return nil, err
+		}
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -102,59 +98,77 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 func (m *neosyncToPgxProcessor) Close(context.Context) error {
 	return nil
 }
+func transformNeosyncToPgx(
+	logger *service.Logger,
+	root any,
+	columns []string,
+	columnDataTypes map[string]string,
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
+) (map[string]any, error) {
+	rootMap, ok := root.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("root value must be a map[string]any")
+	}
 
-func (p *neosyncToPgxProcessor) transform(path string, root any) any {
-	value, isNeosyncValue, err := p.getNeosyncValue(root)
+	newMap := make(map[string]any)
+	for col, val := range rootMap {
+		// Skip values that aren't in the column list to handle circular references
+		if !isColumnInList(col, columns) {
+			continue
+		}
+		colDefaults := columnDefaultProperties[col]
+		datatype := columnDataTypes[col]
+		newVal, err := getPgxValue(val, colDefaults, datatype)
+		if err != nil {
+			logger.Warn(err.Error())
+		}
+		newMap[col] = newVal
+	}
+
+	return newMap, nil
+}
+
+func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties, datatype string) (any, error) {
+	value, isNeosyncValue, err := getPgxNeosyncValue(value)
 	if err != nil {
-		p.logger.Warn(err.Error())
+		return nil, err
 	}
 	if isNeosyncValue {
-		return value
+		return value, nil
 	}
 
-	colDefaults := p.columnDefaultProperties[path]
 	if colDefaults != nil && colDefaults.HasDefaultTransformer {
-		return goqu.Literal(defaultStr)
+		return goqu.Default(), nil
 	}
 
-	datatype := p.columnDataTypes[path]
 	if pgutil.IsJsonPgDataType(datatype) {
-		bits, err := json.Marshal(root)
+		bits, err := json.Marshal(value)
 		if err != nil {
-			p.logger.Errorf("unable to marshal JSON", "error", err.Error())
-			return root
+			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
 		}
-		return bits
+		return bits, nil
 	}
 
-	switch v := root.(type) {
-	case map[string]any:
-		newMap := make(map[string]any)
-		for k, v2 := range v {
-			newValue := p.transform(k, v2)
-			newMap[k] = newValue
-		}
-		return newMap
+	switch v := value.(type) {
 	case nil:
-		return v
+		return v, nil
 	case []byte:
-		value, err := p.handleByteSlice(v, datatype)
+		value, err := handlePgxByteSlice(v, datatype)
 		if err != nil {
-			p.logger.Errorf("unable to handle byte slice: %w", err)
-			return v
+			return nil, fmt.Errorf("unable to handle byte slice: %w", err)
 		}
-		return value
+		return value, nil
 	default:
 		if gotypeutil.IsMultiDimensionalSlice(v) || gotypeutil.IsSliceOfMaps(v) {
-			return goqu.Literal(pgutil.FormatPgArrayLiteral(v, datatype))
+			return goqu.Literal(pgutil.FormatPgArrayLiteral(v, datatype)), nil
 		} else if gotypeutil.IsSlice(v) {
-			return pq.Array(v)
+			return pq.Array(v), nil
 		}
-		return v
+		return v, nil
 	}
 }
 
-func (p *neosyncToPgxProcessor) getNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 	if valuer, ok := root.(neosynctypes.NeosyncPgxValuer); ok {
 		value, err := valuer.ValuePgx()
 		if err != nil {
@@ -168,7 +182,7 @@ func (p *neosyncToPgxProcessor) getNeosyncValue(root any) (value any, isNeosyncV
 	return root, false, nil
 }
 
-func (p *neosyncToPgxProcessor) handleByteSlice(v []byte, datatype string) (any, error) {
+func handlePgxByteSlice(v []byte, datatype string) (any, error) {
 	if pgutil.IsPgArrayColumnDataType(datatype) {
 		pgarray, err := processPgArray(v, datatype)
 		if err != nil {
@@ -253,4 +267,30 @@ func convertStringToBit(bitString string) ([]byte, error) {
 	// Calculate actual needed bytes and return only those
 	neededBytes := (len(bitString) + 7) / 8
 	return bytes[len(bytes)-neededBytes:], nil
+}
+
+func isColumnInList(column string, columns []string) bool {
+	return slices.Contains(columns, column)
+}
+
+func getColumnDefaultProperties(columnDefaultPropertiesConfig map[string]*service.ParsedConfig) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
+	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
+	for key, properties := range columnDefaultPropertiesConfig {
+		props, err := properties.FieldAny()
+		if err != nil {
+			return nil, err
+		}
+		jsonData, err := json.Marshal(props)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal properties for key %s: %w", key, err)
+		}
+
+		var colDefaults neosync_benthos.ColumnDefaultProperties
+		if err := json.Unmarshal(jsonData, &colDefaults); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal properties for key %s: %w", key, err)
+		}
+
+		columnDefaultProperties[key] = &colDefaults
+	}
+	return columnDefaultProperties, nil
 }
