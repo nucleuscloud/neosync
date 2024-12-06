@@ -77,6 +77,10 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		if c.MysqlConfig.ConnectionOptions != nil {
 			connectionOptions = c.MysqlConfig.ConnectionOptions.ToDto()
 		}
+		var clientTls *mgmtv1alpha1.ClientTlsConfig
+		if c.MysqlConfig.ClientTls != nil {
+			clientTls = c.MysqlConfig.ClientTls.ToDto()
+		}
 		if c.MysqlConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
@@ -93,6 +97,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}, nil
@@ -105,6 +110,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}, nil
@@ -184,11 +190,8 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			c.PgConfig.ConnectionOptions.FromDto(config.PgConfig.ConnectionOptions)
 		}
 		if config.PgConfig.GetClientTls() != nil {
-			c.PgConfig.ClientTls = &ClientTls{
-				RootCert:   config.PgConfig.GetClientTls().RootCert,
-				ClientCert: config.PgConfig.GetClientTls().ClientCert,
-				ClientKey:  config.PgConfig.GetClientTls().ClientKey,
-			}
+			c.PgConfig.ClientTls = &ClientTls{}
+			c.PgConfig.ClientTls.FromDto(config.PgConfig.GetClientTls())
 		}
 		switch pgcfg := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
@@ -214,6 +217,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if config.MysqlConfig.ConnectionOptions != nil {
 			c.MysqlConfig.ConnectionOptions = &ConnectionOptions{}
 			c.MysqlConfig.ConnectionOptions.FromDto(config.MysqlConfig.ConnectionOptions)
+		}
+		if config.MysqlConfig.GetClientTls() != nil {
+			c.MysqlConfig.ClientTls = &ClientTls{}
+			c.MysqlConfig.ClientTls.FromDto(config.MysqlConfig.GetClientTls())
 		}
 		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
@@ -346,6 +353,7 @@ type MssqlConfig struct {
 	Url               *string            `json:"url,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
 	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
+	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
 func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
@@ -360,12 +368,17 @@ func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	if d.SSHTunnel != nil {
 		tunnel = d.SSHTunnel.ToDto()
 	}
+	var clientTls *mgmtv1alpha1.ClientTlsConfig
+	if d.ClientTls != nil {
+		clientTls = d.ClientTls.ToDto()
+	}
 	return &mgmtv1alpha1.MssqlConnectionConfig{
 		ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 			Url: *d.Url,
 		},
 		ConnectionOptions: connectionOptions,
 		Tunnel:            tunnel,
+		ClientTls:         clientTls,
 	}, nil
 }
 
@@ -389,6 +402,10 @@ func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
 	if dto.GetTunnel() != nil {
 		d.SSHTunnel = &SSHTunnel{}
 		d.SSHTunnel.FromDto(dto.GetTunnel())
+	}
+	if dto.GetClientTls() != nil {
+		d.ClientTls = &ClientTls{}
+		d.ClientTls.FromDto(dto.GetClientTls())
 	}
 
 	return nil
@@ -577,6 +594,7 @@ type MysqlConnectionConfig struct {
 	Url               *string            `json:"url,omitempty"`
 	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
+	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
 type MysqlConnection struct {
