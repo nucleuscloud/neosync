@@ -6,8 +6,13 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
+	"github.com/testcontainers/testcontainers-go"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 	"golang.org/x/sync/errgroup"
 )
@@ -86,6 +91,17 @@ func NewMssqlTestContainer(ctx context.Context, opts ...Option) (*MssqlTestConta
 	return m.setup(ctx)
 }
 
+func NewTlsMssqlTestContainer(ctx context.Context, opts ...Option) (*MssqlTestContainer, error) {
+	m := &MssqlTestContainer{
+		database: "testdb",
+		password: "mssqlPASSword1",
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m.setupWithTls(ctx)
+}
+
 // Sets test container database
 func WithDatabase(database string) Option {
 	return func(a *MssqlTestContainer) {
@@ -112,6 +128,102 @@ func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, er
 	}
 
 	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=disable")
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open(sqlmanager_shared.MssqlDriver, connStr)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE [%s];", m.database))
+	if err != nil {
+		return nil, err
+	}
+
+	queryvals := url.Values{}
+	queryvals.Add("database", m.database)
+	dbConnStr := connStr + "&" + queryvals.Encode() // adding & due to existing query param above
+
+	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, dbConnStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MssqlTestContainer{
+		DB:            dbConn,
+		URL:           dbConnStr,
+		TestContainer: mssqlcontainer,
+	}, nil
+}
+
+const (
+	sslRelativePath = "../../../../compose/pgssl/certs"
+)
+
+func resolveTestCertPath() string {
+	// Get current file path
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current file path")
+	}
+
+	// Get absolute path to the certs directory
+	certsPath := filepath.Join(filepath.Dir(filename), sslRelativePath)
+	absPath, err := filepath.Abs(certsPath)
+	if err != nil {
+		panic("Failed to get absolute path: " + err.Error())
+	}
+	return absPath
+}
+
+var (
+	sslBasePath      = resolveTestCertPath()
+	sslServerCrtPath = path.Join(sslBasePath, "server.crt")
+	sslServerKeyPath = path.Join(sslBasePath, "server.key")
+	sslRootCrtPath   = path.Join(sslBasePath, "root.crt")
+)
+
+func (m *MssqlTestContainer) setupWithTls(ctx context.Context) (*MssqlTestContainer, error) {
+	mssqlcontainer, err := testmssql.Run(ctx,
+		"mcr.microsoft.com/mssql/server:2022-latest",
+		testmssql.WithAcceptEULA(),
+		testmssql.WithPassword(m.password),
+		testutil.WithCmd([]string{
+			"/opt/mssql/bin/sqlservr",
+			"--encrypt",
+			"--tlscert", "/etc/ssl/certs/server.crt",
+			"--tlskey", "/etc/ssl/certs/server.key",
+			"--tlscacert", "/etc/ssl/certs/root.crt",
+		}),
+		testutil.WithFiles([]testcontainers.ContainerFile{
+			{
+				HostFilePath:      sslServerCrtPath,
+				ContainerFilePath: "/etc/ssl/certs/server.crt",
+				FileMode:          0644,
+			},
+			{
+				HostFilePath:      sslServerKeyPath,
+				ContainerFilePath: "/etc/ssl/certs/server.key",
+				FileMode:          0600,
+			},
+			{
+				HostFilePath:      sslRootCrtPath,
+				ContainerFilePath: "/etc/ssl/certs/root.crt",
+				FileMode:          0644,
+			},
+		}),
+		testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
+			"chown", "mssql:mssql", "/etc/ssl/certs/mssql.key",
+		})),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=true", "trustServerCertificate=false")
 	if err != nil {
 		return nil, err
 	}

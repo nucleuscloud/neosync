@@ -19,10 +19,9 @@ import (
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
+	testcontainers_sqlserver "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
-
-	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 )
 
 func Test_NewLazySSHDialer(t *testing.T) {
@@ -94,16 +93,12 @@ func Test_NewLazySSHDialer(t *testing.T) {
 
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
-		container, err := testmssql.Run(ctx,
-			"mcr.microsoft.com/mssql/server:2022-latest",
-			testmssql.WithAcceptEULA(),
-			testmssql.WithPassword("mssqlPASSword1"),
-		)
-		require.NoError(t, err)
-		connstr, err := container.ConnectionString(ctx, "encrypt=disable")
-		require.NoError(t, err)
+		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		connector, cleanup, err := mssqltunconnector.New(connstr, mssqltunconnector.WithDialer(dialer))
+		connector, cleanup, err := mssqltunconnector.New(container.URL, mssqltunconnector.WithDialer(dialer))
 		require.NoError(t, err)
 		defer cleanup()
 
@@ -183,7 +178,7 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 
 		container, err := tcmysql.NewTlsMysqlTestContainer(ctx)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 		serverHost, err := container.TestContainer.Host(ctx)
 		require.NoError(t, err)
@@ -206,16 +201,24 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
-		container, err := testmssql.Run(ctx,
-			"mcr.microsoft.com/mssql/server:2022-latest",
-			testmssql.WithAcceptEULA(),
-			testmssql.WithPassword("mssqlPASSword1"),
-		)
-		require.NoError(t, err)
-		connstr, err := container.ConnectionString(ctx, "encrypt=disable")
+
+		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		serverHost, err := container.TestContainer.Host(ctx)
 		require.NoError(t, err)
 
-		connector, cleanup, err := mssqltunconnector.New(connstr, mssqltunconnector.WithDialer(dialer))
+		connector, cleanup, err := mssqltunconnector.New(
+			container.URL,
+			mssqltunconnector.WithDialer(dialer),
+			mssqltunconnector.WithTLSConfig(&tls.Config{
+				Certificates: []tls.Certificate{cert},
+				RootCAs:      rootCas,
+				MinVersion:   tls.VersionTLS12,
+				ServerName:   serverHost,
+			}),
+		)
 		require.NoError(t, err)
 		defer cleanup()
 
