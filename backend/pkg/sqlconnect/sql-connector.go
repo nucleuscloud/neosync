@@ -112,7 +112,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				getTunnelConnectorFn(
 					config.PgConfig.GetTunnel(),
 					func(dialer tun.Dialer) (driver.Connector, func(), error) {
-						return postgrestunconnector.New(dialer, dsn)
+						return postgrestunconnector.New(dsn, postgrestunconnector.WithDialer(dialer))
 					},
 					logger,
 				),

@@ -12,8 +12,12 @@ import (
 )
 
 type Dialer interface {
-	DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+	ContextDialer
 	Dial(network, addr string) (net.Conn, error)
+}
+
+type ContextDialer interface {
+	DialContext(ctx context.Context, network, addr string) (net.Conn, error)
 }
 
 var _ Dialer = (*SSHDialer)(nil)

@@ -61,7 +61,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 		}
 		require.NoError(t, err)
 
-		connector, cleanup, err := postgrestunconnector.New(dialer, container.URL)
+		connector, cleanup, err := postgrestunconnector.New(container.URL, postgrestunconnector.WithDialer(dialer))
 		require.NoError(t, err)
 		defer cleanup()
 
@@ -330,7 +330,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		// Next connection attempt should detect dead client and establish new one
-		conn, err = dialer.DialContext(ctx, "tcp", "localhost:5432")
+		conn, err = dialer.DialContext(ctx, "tcp", pgAddr)
 		require.NoError(t, err)
 		require.NotNil(t, conn)
 		conn.Close()
