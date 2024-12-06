@@ -13,7 +13,6 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -41,7 +40,6 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringListField("columns")).
 		Field(service.NewStringListField("where_columns")).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
-		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("max_retry_attempts").Default(3)).
@@ -87,8 +85,7 @@ type pooledUpdateOutput struct {
 	whereCols                []string
 	skipForeignKeyViolations bool
 
-	argsMapping *bloblang.Executor
-	shutSig     *shutdown.Signaller
+	shutSig *shutdown.Signaller
 
 	maxRetryAttempts uint
 	retryDelay       time.Duration
@@ -125,13 +122,6 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
-	var argsMapping *bloblang.Executor
-	if conf.Contains("args_mapping") {
-		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
-			return nil, err
-		}
-	}
-
 	retryAttemptsConf, err := conf.FieldInt("max_retry_attempts")
 	if err != nil {
 		return nil, err
@@ -159,7 +149,6 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		connectionId:             connectionId,
 		logger:                   mgr.Logger(),
 		shutSig:                  shutdown.NewSignaller(),
-		argsMapping:              argsMapping,
 		provider:                 provider,
 		schema:                   schema,
 		table:                    table,
@@ -208,40 +197,16 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
-	var executor *service.MessageBatchBloblangExecutor
-	if s.argsMapping != nil {
-		executor = batch.BloblangExecutor(s.argsMapping)
-	}
+	for _, msg := range batch {
+		m, _ := msg.AsStructured()
 
-	for i := range batch {
-		if s.argsMapping == nil {
-			continue
-		}
-		resMsg, err := executor.Query(i)
-		if err != nil {
-			return err
-		}
-
-		iargs, err := resMsg.AsStructured()
-		if err != nil {
-			return err
-		}
-
-		args, ok := iargs.([]any)
+		// msgMap has all the table columns and values not just the columns we are updating
+		msgMap, ok := m.(map[string]any)
 		if !ok {
-			return fmt.Errorf("mapping returned non-array result: %T", iargs)
+			return fmt.Errorf("message returned non-map result: %T", msgMap)
 		}
 
-		allCols := []string{}
-		allCols = append(allCols, s.columns...)
-		allCols = append(allCols, s.whereCols...)
-
-		colValMap := map[string]any{}
-		for idx, col := range allCols {
-			colValMap[col] = args[idx]
-		}
-
-		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, colValMap)
+		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, msgMap)
 		if err != nil {
 			return err
 		}
@@ -251,6 +216,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			}
 		}
 	}
+
 	return nil
 }
 

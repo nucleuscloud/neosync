@@ -510,12 +510,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	require.Equal(t, resp, expected)
 }
 
-func Test_buildPlainInsertArgs(t *testing.T) {
-	require.Empty(t, buildPlainInsertArgs(nil))
-	require.Empty(t, buildPlainInsertArgs([]string{}))
-	require.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
-}
-
 func Test_buildPlainColumns(t *testing.T) {
 	require.Empty(t, buildPlainColumns(nil))
 	require.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))

@@ -30,6 +30,7 @@ CREATE TABLE alltypes.alldatatypes (
     -- Unicode character strings
     col_nchar NCHAR(10),
     col_nvarchar NVARCHAR(50),
+    col_json NVARCHAR(MAX),
     col_ntext NTEXT,
 
     -- Binary strings BROKEN
