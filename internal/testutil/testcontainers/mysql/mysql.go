@@ -5,9 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"path"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -53,35 +50,6 @@ func NewMysqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Optio
 	return tc, nil
 }
 
-func NewTlsMysqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*MysqlTestSyncContainer, error) {
-	tc := &MysqlTestSyncContainer{}
-	errgrp := errgroup.Group{}
-	errgrp.Go(func() error {
-		m, err := NewTlsMysqlTestContainer(ctx, sourceOpts...)
-		if err != nil {
-			return err
-		}
-		tc.Source = m
-		return nil
-	})
-
-	errgrp.Go(func() error {
-		m, err := NewTlsMysqlTestContainer(ctx, destOpts...)
-		if err != nil {
-			return err
-		}
-		tc.Target = m
-		return nil
-	})
-
-	err := errgrp.Wait()
-	if err != nil {
-		return nil, err
-	}
-
-	return tc, nil
-}
-
 func (m *MysqlTestSyncContainer) TearDown(ctx context.Context) error {
 	if m.Source != nil {
 		err := m.Source.TearDown(ctx)
@@ -106,6 +74,8 @@ type MysqlTestContainer struct {
 	database      string
 	password      string
 	username      string
+
+	useTls bool
 }
 
 // Option is a functional option for configuring the Mysql Test Container
@@ -122,19 +92,6 @@ func NewMysqlTestContainer(ctx context.Context, opts ...Option) (*MysqlTestConta
 		opt(m)
 	}
 	return m.setup(ctx)
-}
-
-// NewMysqlTestContainer initializes a new MySQL Test Container with functional options
-func NewTlsMysqlTestContainer(ctx context.Context, opts ...Option) (*MysqlTestContainer, error) {
-	m := &MysqlTestContainer{
-		database: "testdb",
-		username: "root",
-		password: "pass",
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m.setupSsl(ctx)
 }
 
 // Sets test container database
@@ -158,111 +115,74 @@ func WithPassword(password string) Option {
 	}
 }
 
+func WithTls() Option {
+	return func(mtc *MysqlTestContainer) {
+		mtc.useTls = true
+	}
+}
+
 // Creates and starts a MySQL test container and sets up the connection.
 func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, error) {
-	mysqlContainer, err := mysql.Run(
-		ctx,
-		"mysql:8.0.36",
+	tcopts := []testcontainers.ContainerCustomizer{
 		mysql.WithDatabase(m.database),
 		mysql.WithUsername(m.username),
 		mysql.WithPassword(m.password),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20*time.Second),
+			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20 * time.Second),
 		),
+	}
+	if m.useTls {
+		clientCertPaths, err := testutil.GetClientCertificatePaths()
+		if err != nil {
+			return nil, err
+		}
+		tcopts = append(
+			tcopts,
+			testutil.WithCmd([]string{
+				"mysqld",
+				"--ssl-ca=/etc/mysql/certs/root.crt",
+				"--ssl-cert=/etc/mysql/certs/server.crt",
+				"--ssl-key=/etc/mysql/certs/server.key",
+				"--require-secure-transport=ON",
+				"--tls-version=TLSv1.2,TLSv1.3",
+			}),
+			testutil.WithFiles([]testcontainers.ContainerFile{
+				{
+					HostFilePath:      clientCertPaths.ServerCrtPath,
+					ContainerFilePath: "/etc/mysql/certs/server.crt",
+					FileMode:          0644,
+				},
+				{
+					HostFilePath:      clientCertPaths.ServerKeyPath,
+					ContainerFilePath: "/etc/mysql/certs/server.key",
+					FileMode:          0600,
+				},
+				{
+					HostFilePath:      clientCertPaths.RootCrtPath,
+					ContainerFilePath: "/etc/mysql/certs/root.crt",
+					FileMode:          0644,
+				},
+			}),
+			testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
+				"chown", "mysql:mysql", "/etc/mysql/certs/server.key",
+			})),
+		)
+	}
+	mysqlContainer, err := mysql.Run(
+		ctx,
+		"mysql:8.0.36",
+		tcopts...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	connStr, err := mysqlContainer.ConnectionString(ctx, "multiStatements=true&parseTime=true")
-	if err != nil {
-		return nil, err
+	connstrArgs := []string{"multiStatements=true", "parseTime=true"}
+	if m.useTls {
+		connstrArgs = append(connstrArgs, "tls=true")
 	}
 
-	db, err := sql.Open(sqlmanager_shared.MysqlDriver, connStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &MysqlTestContainer{
-		DB:            db,
-		URL:           connStr,
-		TestContainer: mysqlContainer,
-	}, nil
-}
-
-const (
-	sslRelativePath = "../../../../compose/pgssl/certs"
-)
-
-func resolveTestCertPath() string {
-	// Get current file path
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current file path")
-	}
-
-	// Get absolute path to the certs directory
-	certsPath := filepath.Join(filepath.Dir(filename), sslRelativePath)
-	absPath, err := filepath.Abs(certsPath)
-	if err != nil {
-		panic("Failed to get absolute path: " + err.Error())
-	}
-	return absPath
-}
-
-var (
-	sslBasePath      = resolveTestCertPath()
-	sslServerCrtPath = path.Join(sslBasePath, "server.crt")
-	sslServerKeyPath = path.Join(sslBasePath, "server.key")
-	sslRootCrtPath   = path.Join(sslBasePath, "root.crt")
-)
-
-// Creates and starts a MySQL test container and sets up the connection.
-func (m *MysqlTestContainer) setupSsl(ctx context.Context) (*MysqlTestContainer, error) {
-	mysqlContainer, err := mysql.Run(
-		ctx,
-		"mysql:8.0.36",
-		mysql.WithDatabase(m.database),
-		mysql.WithUsername(m.username),
-		mysql.WithPassword(m.password),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20*time.Second),
-		),
-		testutil.WithCmd([]string{
-			"mysqld",
-			"--ssl-ca=/etc/mysql/certs/root.crt",
-			"--ssl-cert=/etc/mysql/certs/server.crt",
-			"--ssl-key=/etc/mysql/certs/server.key",
-			"--require-secure-transport=ON",
-			"--tls-version=TLSv1.2,TLSv1.3",
-		}),
-		testutil.WithFiles([]testcontainers.ContainerFile{
-			{
-				HostFilePath:      sslServerCrtPath,
-				ContainerFilePath: "/etc/mysql/certs/server.crt",
-				FileMode:          0644,
-			},
-			{
-				HostFilePath:      sslServerKeyPath,
-				ContainerFilePath: "/etc/mysql/certs/server.key",
-				FileMode:          0600,
-			},
-			{
-				HostFilePath:      sslRootCrtPath,
-				ContainerFilePath: "/etc/mysql/certs/root.crt",
-				FileMode:          0644,
-			},
-		}),
-		testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
-			"chown", "mysql:mysql", "/etc/mysql/certs/server.key",
-		})),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	connStr, err := mysqlContainer.ConnectionString(ctx, "multiStatements=true", "parseTime=true", "tls=true")
+	connStr, err := mysqlContainer.ConnectionString(ctx, connstrArgs...)
 	if err != nil {
 		return nil, err
 	}

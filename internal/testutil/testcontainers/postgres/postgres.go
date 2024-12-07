@@ -3,12 +3,7 @@ package testcontainers_postgres
 import (
 	"context"
 	"fmt"
-	"io"
-	"log"
 	"os"
-	"path"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -78,6 +73,8 @@ type PostgresTestContainer struct {
 	database      string
 	username      string
 	password      string
+
+	useTls bool
 }
 
 // Option is a functional option for configuring the Postgres Test Container
@@ -94,18 +91,6 @@ func NewPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTes
 		opt(p)
 	}
 	return p.Setup(ctx)
-}
-
-func NewSslPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTestContainer, error) {
-	p := &PostgresTestContainer{
-		database: "testdb",
-		username: "postgres",
-		password: "pass",
-	}
-	for _, opt := range opts {
-		opt(p)
-	}
-	return p.SetupSsl(ctx)
 }
 
 // Sets test container database
@@ -129,124 +114,78 @@ func WithPassword(password string) Option {
 	}
 }
 
+func WithTls() Option {
+	return func(mtc *PostgresTestContainer) {
+		mtc.useTls = true
+	}
+}
+
 // Creates and starts a PostgreSQL test container and sets up the connection.
 func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContainer, error) {
-	pgContainer, err := postgres.Run(
-		ctx,
-		"postgres:15",
+	tcopts := []testcontainers.ContainerCustomizer{
 		postgres.WithDatabase(p.database),
 		postgres.WithUsername(p.username),
 		postgres.WithPassword(p.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(20*time.Second),
+				WithOccurrence(2).WithStartupTimeout(20 * time.Second),
 		),
-	)
-	if err != nil {
-		logs, err2 := pgContainer.Logs(ctx)
-		if err2 == nil {
-			bits, _ := io.ReadAll(logs)
-			log.Println("container logs:", string(bits))
+	}
+	if p.useTls {
+		clientCertPaths, err := testutil.GetClientCertificatePaths()
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+		tcopts = append(
+			tcopts,
+			testutil.WithCmd([]string{
+				"postgres",
+				"-c", "fsync=off",
+				"-c", "ssl=on",
+				"-c", "ssl_cert_file=/var/lib/postgresql/ssl/server.crt",
+				"-c", "ssl_key_file=/var/lib/postgresql/ssl/server.key",
+				"-c", "ssl_ca_file=/var/lib/postgresql/ssl/root.crt",
+			}),
+			testutil.WithFiles([]testcontainers.ContainerFile{
+				{
+					HostFilePath:      clientCertPaths.ServerCrtPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
+					FileMode:          0644,
+				},
+				{
+					HostFilePath:      clientCertPaths.ServerKeyPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/server.key",
+					FileMode:          0600,
+				},
+				{
+					HostFilePath:      clientCertPaths.RootCrtPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/root.crt",
+					FileMode:          0644,
+				},
+			}),
+			testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
+				"chown", "postgres:postgres", "/var/lib/postgresql/ssl/server.key",
+			})),
+		)
 	}
-
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
-	if err != nil {
-		return nil, err
-	}
-
-	pool, err := pgxpool.New(ctx, connStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &PostgresTestContainer{
-		DB:            pool,
-		URL:           connStr,
-		TestContainer: pgContainer,
-	}, nil
-}
-
-const (
-	sslRelativePath = "../../../../compose/pgssl/certs"
-)
-
-func resolveTestCertPath() string {
-	// Get current file path
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current file path")
-	}
-
-	// Get absolute path to the certs directory
-	certsPath := filepath.Join(filepath.Dir(filename), sslRelativePath)
-	absPath, err := filepath.Abs(certsPath)
-	if err != nil {
-		panic("Failed to get absolute path: " + err.Error())
-	}
-	return absPath
-}
-
-var (
-	sslBasePath      = resolveTestCertPath()
-	sslServerCrtPath = path.Join(sslBasePath, "server.crt")
-	sslServerKeyPath = path.Join(sslBasePath, "server.key")
-	sslRootCrtPath   = path.Join(sslBasePath, "root.crt")
-)
-
-func (p *PostgresTestContainer) SetupSsl(ctx context.Context) (*PostgresTestContainer, error) {
 	pgContainer, err := postgres.Run(
 		ctx,
 		"postgres:15",
-		postgres.WithDatabase(p.database),
-		postgres.WithUsername(p.username),
-		postgres.WithPassword(p.password),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(20*time.Second),
-		),
-		testutil.WithCmd([]string{
-			"postgres",
-			"-c", "fsync=off",
-			"-c", "ssl=on",
-			"-c", "ssl_cert_file=/var/lib/postgresql/ssl/server.crt",
-			"-c", "ssl_key_file=/var/lib/postgresql/ssl/server.key",
-			"-c", "ssl_ca_file=/var/lib/postgresql/ssl/root.crt",
-		}),
-		testutil.WithFiles([]testcontainers.ContainerFile{
-			{
-				HostFilePath:      sslServerCrtPath,
-				ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
-				FileMode:          0644,
-			},
-			{
-				HostFilePath:      sslServerKeyPath,
-				ContainerFilePath: "/var/lib/postgresql/ssl/server.key",
-				FileMode:          0600,
-			},
-			{
-				HostFilePath:      sslRootCrtPath,
-				ContainerFilePath: "/var/lib/postgresql/ssl/root.crt",
-				FileMode:          0644,
-			},
-		}),
-		testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
-			"chown", "postgres:postgres", "/var/lib/postgresql/ssl/server.key",
-		})),
+		tcopts...,
 	)
 	if err != nil {
-		if pgContainer != nil {
-			logs, err2 := pgContainer.Logs(ctx)
-			if err2 == nil {
-				bits, _ := io.ReadAll(logs)
-				log.Println("container logs:", string(bits))
-			}
-		}
 		return nil, err
 	}
 
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=verify-full")
+	connstrArgs := []string{}
+
+	if p.useTls {
+		connstrArgs = append(connstrArgs, "sslmode=verify-full")
+	} else {
+		connstrArgs = append(connstrArgs, "sslmode=disable")
+	}
+
+	connStr, err := pgContainer.ConnectionString(ctx, connstrArgs...)
 	if err != nil {
 		return nil, err
 	}

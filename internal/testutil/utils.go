@@ -1,10 +1,14 @@
 package testutil
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/neilotoole/slogt"
@@ -99,4 +103,49 @@ func WithCmd(cmd []string) testcontainers.CustomizeRequestOption {
 		req.Cmd = cmd
 		return nil
 	}
+}
+
+func WithDockerFile(df testcontainers.FromDockerfile) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		req.FromDockerfile = df
+		return nil
+	}
+}
+
+type TestClientCertificateResponse struct {
+	ServerCrtPath string
+	ServerKeyPath string
+	RootCrtPath   string
+}
+
+const (
+	tlsCertsRelativePath = "../../compose/pgssl/certs"
+)
+
+func GetClientCertificatePaths() (*TestClientCertificateResponse, error) {
+	// when mounting files in testcontainers, they must be an absolute path
+	basePath, err := resolveAbsolutePath(tlsCertsRelativePath)
+	if err != nil {
+		return nil, err
+	}
+	return &TestClientCertificateResponse{
+		ServerCrtPath: path.Join(basePath, "server.crt"),
+		ServerKeyPath: path.Join(basePath, "server.key"),
+		RootCrtPath:   path.Join(basePath, "root.crt"),
+	}, nil
+}
+
+func resolveAbsolutePath(relpath string) (string, error) {
+	// Get current file path
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", errors.New("failed to get current file path")
+	}
+
+	certsPath := filepath.Join(filepath.Dir(filename), relpath)
+	absPath, err := filepath.Abs(certsPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
+	}
+	return absPath, nil
 }
