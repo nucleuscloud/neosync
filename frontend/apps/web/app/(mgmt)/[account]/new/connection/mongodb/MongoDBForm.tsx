@@ -314,7 +314,7 @@ export default function MongoDBForm(): ReactElement {
                       Server Name is used to verify the hostname on the returned
                       certificates. It is also included in the client's
                       handshake to support virtual hosting unless it is an IP
-                      address. This is only required is performing full tls
+                      address. This is only required if performing full tls
                       verification.
                     </FormDescription>
                     <FormControl>
