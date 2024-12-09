@@ -268,36 +268,6 @@ func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig,
 	}
 }
 
-// func getTunnelConnectorFn(
-// 	tunnel *mgmtv1alpha1.SSHTunnel,
-// 	getConnector func(dialer tun.Dialer) (driver.Connector, func(), error),
-// 	logger *slog.Logger,
-// ) func() (driver.Connector, func(), error) {
-// 	return func() (driver.Connector, func(), error) {
-// 		cfg, err := getTunnelConfig(tunnel)
-// 		if err != nil {
-// 			return nil, nil, fmt.Errorf("unable to construct ssh tunnel config: %w", err)
-// 		}
-// 		logger.Debug("constructed tunnel config")
-// 		dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig, tun.DefaultSSHDialerConfig(), logger)
-// 		conn, cleanup, err := getConnector(dialer)
-// 		if err != nil {
-// 			return nil, nil, fmt.Errorf("unable to build db connector: %w", err)
-// 		}
-// 		logger.Debug("built database connector with ssh dialer")
-// 		wrappedCleanup := func() {
-// 			logger.Debug("cleaning up tunnel connector")
-// 			cleanup()
-// 			logger.Debug("connector cleanup completed")
-// 			if err := dialer.Close(); err != nil {
-// 				logger.Error(fmt.Errorf("encountered error when closing ssh dialer: %w", err).Error())
-// 			}
-// 			logger.Debug("tunnel connector cleanup completed")
-// 		}
-// 		return conn, wrappedCleanup, nil
-// 	}
-// }
-
 func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) (*DbConnectionOptions, error) {
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
