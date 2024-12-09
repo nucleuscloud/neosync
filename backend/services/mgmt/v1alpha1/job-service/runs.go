@@ -131,7 +131,6 @@ func (s *Service) GetJobRunEvents(
 		if err != nil {
 			return nil, err
 		}
-		println("event", event)
 
 		switch event.EventType {
 		case enums.EVENT_TYPE_ACTIVITY_TASK_SCHEDULED:
