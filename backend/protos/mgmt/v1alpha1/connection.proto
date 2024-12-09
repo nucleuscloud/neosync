@@ -207,6 +207,10 @@ message ClientTlsConfig {
   optional string client_cert = 2;
   // Client Key in PEM format. Must also provide cert.
   optional string client_key = 3;
+
+  // Provide the expected server name. Depending on the driver or encryption mode, this may be required
+  // In order to fully validate the server certificate.
+  optional string server_name = 4;
 }
 
 message SqlConnectionOptions {

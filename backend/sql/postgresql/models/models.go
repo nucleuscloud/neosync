@@ -570,6 +570,7 @@ type ClientTls struct {
 	RootCert   *string `json:"rootCert,omitempty"`
 	ClientCert *string `json:"clientCert,omitempty"`
 	ClientKey  *string `json:"clientKey,omitempty"`
+	ServerName *string `json:"serverName,omitempty"`
 }
 
 func (c *ClientTls) ToDto() *mgmtv1alpha1.ClientTlsConfig {
@@ -577,6 +578,7 @@ func (c *ClientTls) ToDto() *mgmtv1alpha1.ClientTlsConfig {
 		RootCert:   c.RootCert,
 		ClientCert: c.ClientCert,
 		ClientKey:  c.ClientKey,
+		ServerName: c.ServerName,
 	}
 }
 
@@ -587,6 +589,7 @@ func (c *ClientTls) FromDto(dto *mgmtv1alpha1.ClientTlsConfig) {
 	c.RootCert = dto.RootCert
 	c.ClientCert = dto.ClientCert
 	c.ClientKey = dto.ClientKey
+	c.ServerName = dto.ServerName
 }
 
 type MysqlConnectionConfig struct {

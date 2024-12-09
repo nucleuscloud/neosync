@@ -1240,6 +1240,14 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
    */
   clientKey?: string;
 
+  /**
+   * Provide the expected server name. Depending on the driver or encryption mode, this may be required
+   * In order to fully validate the server certificate.
+   *
+   * @generated from field: optional string server_name = 4;
+   */
+  serverName?: string;
+
   constructor(data?: PartialMessage<ClientTlsConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1251,6 +1259,7 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
     { no: 1, name: "root_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 2, name: "client_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "client_key", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "server_name", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClientTlsConfig {

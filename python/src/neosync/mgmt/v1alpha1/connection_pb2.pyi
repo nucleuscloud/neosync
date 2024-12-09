@@ -220,14 +220,16 @@ class PostgresConnectionConfig(_message.Message):
     def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[PostgresConnection, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
 
 class ClientTlsConfig(_message.Message):
-    __slots__ = ("root_cert", "client_cert", "client_key")
+    __slots__ = ("root_cert", "client_cert", "client_key", "server_name")
     ROOT_CERT_FIELD_NUMBER: _ClassVar[int]
     CLIENT_CERT_FIELD_NUMBER: _ClassVar[int]
     CLIENT_KEY_FIELD_NUMBER: _ClassVar[int]
+    SERVER_NAME_FIELD_NUMBER: _ClassVar[int]
     root_cert: str
     client_cert: str
     client_key: str
-    def __init__(self, root_cert: _Optional[str] = ..., client_cert: _Optional[str] = ..., client_key: _Optional[str] = ...) -> None: ...
+    server_name: str
+    def __init__(self, root_cert: _Optional[str] = ..., client_cert: _Optional[str] = ..., client_key: _Optional[str] = ..., server_name: _Optional[str] = ...) -> None: ...
 
 class SqlConnectionOptions(_message.Message):
     __slots__ = ("max_connection_limit", "max_idle_connections", "max_idle_duration", "max_open_duration")
