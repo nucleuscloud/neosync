@@ -139,7 +139,7 @@ func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig,
 		closers := []func(){}
 
 		if config.GetClientTls() != nil {
-			tlsConfig, err := getTLSConfig(config.GetClientTls())
+			tlsConfig, err := getTLSConfig(config.GetClientTls(), logger)
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct postgres client tls config: %w", err)
 			}
@@ -184,7 +184,7 @@ func getMysqlConnectorFn(dsn string, config *mgmtv1alpha1.MysqlConnectionConfig,
 		closers := []func(){}
 
 		if config.GetClientTls() != nil {
-			tlsConfig, err := getTLSConfig(config.GetClientTls())
+			tlsConfig, err := getTLSConfig(config.GetClientTls(), logger)
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct mysql client tls config: %w", err)
 			}
@@ -229,7 +229,7 @@ func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig,
 		closers := []func(){}
 
 		if config.GetClientTls() != nil {
-			tlsConfig, err := getTLSConfig(config.GetClientTls())
+			tlsConfig, err := getTLSConfig(config.GetClientTls(), logger)
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct mssql client tls config: %w", err)
 			}
@@ -472,7 +472,7 @@ func (c *ConnectionDetails) String() string {
 }
 
 // getTLSConfig converts a ClientTlsConfig proto message to a *tls.Config
-func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
+func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig, logger *slog.Logger) (*tls.Config, error) {
 	if cfg == nil {
 		return nil, nil
 	}
@@ -484,6 +484,7 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
 	// Configure root CA cert if provided
 	rootCert := cfg.GetRootCert()
 	if rootCert != "" {
+		logger.Debug("root cert provided, adding to rootcas for client tls connection")
 		rootCertPool := x509.NewCertPool()
 		if !rootCertPool.AppendCertsFromPEM([]byte(rootCert)) {
 			return nil, fmt.Errorf("failed to append root certificate")
@@ -495,6 +496,7 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
 	clientCert := cfg.GetClientCert()
 	clientKey := cfg.GetClientKey()
 	if clientCert != "" && clientKey != "" {
+		logger.Debug("client cert and key provided, adding to certificates for client tls connection")
 		cert, err := tls.X509KeyPair([]byte(cfg.GetClientCert()), []byte(cfg.GetClientKey()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load client certificate and key: %w", err)
@@ -507,6 +509,7 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
 
 	serverName := cfg.GetServerName()
 	if serverName != "" {
+		logger.Debug("server name provided, added to certificates for client tls connection")
 		tlsConfig.ServerName = serverName
 	}
 
