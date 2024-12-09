@@ -347,6 +347,18 @@ INSERT INTO alltypes.json_data (data) VALUES (
     }'
 );
 
+CREATE TABLE alltypes.products (
+    id SERIAL PRIMARY KEY,
+    price DECIMAL(10,2),
+    tax_rate DECIMAL(4,2),
+    tax_amount DECIMAL(10,2) GENERATED ALWAYS AS (price * tax_rate / 100) STORED,
+    total_price DECIMAL(10,2) GENERATED ALWAYS AS (price + (price * tax_rate / 100)) STORED
+);
+
+INSERT INTO alltypes.products (price, tax_rate) VALUES 
+    (100.00, 10.00),
+    (50.00, 8.50);
+
 CREATE SCHEMA IF NOT EXISTS "CaPiTaL";
 CREATE TABLE IF NOT EXISTS "CaPiTaL"."BadName" (
     "ID" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

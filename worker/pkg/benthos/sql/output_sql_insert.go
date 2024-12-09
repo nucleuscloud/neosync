@@ -2,7 +2,6 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -14,7 +13,6 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -23,14 +21,10 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
-		Field(service.NewStringListField("columns")).
-		Field(service.NewStringListField("column_data_types")).
-		Field(service.NewAnyMapField("column_default_properties")).
-		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
-		Field(service.NewBoolField("raw_insert_mode").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
+		Field(service.NewBoolField("should_override_column_default").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
@@ -73,21 +67,18 @@ type pooledInsertOutput struct {
 	logger       *service.Logger
 	slogger      *slog.Logger
 
-	schema                   string
-	table                    string
-	columns                  []string
-	columnDataTypes          []string
-	columnDefaultProperties  map[string]*neosync_benthos.ColumnDefaultProperties
-	onConflictDoNothing      bool
-	skipForeignKeyViolations bool
-	rawInsertMode            bool
-	truncateOnRetry          bool
-	prefix                   *string
-	suffix                   *string
+	schema                      string
+	table                       string
+	columns                     []string
+	onConflictDoNothing         bool
+	skipForeignKeyViolations    bool
+	truncateOnRetry             bool
+	shouldOverrideColumnDefault bool
+	prefix                      *string
+	suffix                      *string
 
-	argsMapping *bloblang.Executor
-	shutSig     *shutdown.Signaller
-	isRetry     bool
+	shutSig *shutdown.Signaller
+	isRetry bool
 
 	maxRetryAttempts uint
 	retryDelay       time.Duration
@@ -109,40 +100,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
-	columns, err := conf.FieldStringList("columns")
-	if err != nil {
-		return nil, err
-	}
-
-	columnDataTypes, err := conf.FieldStringList("column_data_types")
-	if err != nil {
-		return nil, err
-	}
-
-	columnDefaultPropertiesConfig, err := conf.FieldAnyMap("column_default_properties")
-	if err != nil {
-		return nil, err
-	}
-
-	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
-	for key, properties := range columnDefaultPropertiesConfig {
-		props, err := properties.FieldAny()
-		if err != nil {
-			return nil, err
-		}
-		jsonData, err := json.Marshal(props)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal properties for key %s: %w", key, err)
-		}
-
-		var colDefaults neosync_benthos.ColumnDefaultProperties
-		if err := json.Unmarshal(jsonData, &colDefaults); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal properties for key %s: %w", key, err)
-		}
-
-		columnDefaultProperties[key] = &colDefaults
-	}
-
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -153,12 +110,12 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
-	rawInsertMode, err := conf.FieldBool("raw_insert_mode")
+	truncateOnRetry, err := conf.FieldBool("truncate_on_retry")
 	if err != nil {
 		return nil, err
 	}
 
-	truncateOnRetry, err := conf.FieldBool("truncate_on_retry")
+	shouldOverrideColumnDefault, err := conf.FieldBool("should_override_column_default")
 	if err != nil {
 		return nil, err
 	}
@@ -179,13 +136,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 			return nil, err
 		}
 		suffix = &suffixStr
-	}
-
-	var argsMapping *bloblang.Executor
-	if conf.Contains("args_mapping") {
-		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
-			return nil, err
-		}
 	}
 
 	retryAttemptsConf, err := conf.FieldInt("max_retry_attempts")
@@ -210,27 +160,23 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	output := &pooledInsertOutput{
-		connectionId:             connectionId,
-		driver:                   driver,
-		logger:                   mgr.Logger(),
-		slogger:                  logger,
-		shutSig:                  shutdown.NewSignaller(),
-		argsMapping:              argsMapping,
-		provider:                 provider,
-		schema:                   schema,
-		table:                    table,
-		columns:                  columns,
-		columnDataTypes:          columnDataTypes,
-		columnDefaultProperties:  columnDefaultProperties,
-		onConflictDoNothing:      onConflictDoNothing,
-		skipForeignKeyViolations: skipForeignKeyViolations,
-		rawInsertMode:            rawInsertMode,
-		truncateOnRetry:          truncateOnRetry,
-		prefix:                   prefix,
-		suffix:                   suffix,
-		isRetry:                  isRetry,
-		maxRetryAttempts:         retryAttempts,
-		retryDelay:               retryDelay,
+		connectionId:                connectionId,
+		driver:                      driver,
+		logger:                      mgr.Logger(),
+		slogger:                     logger,
+		shutSig:                     shutdown.NewSignaller(),
+		provider:                    provider,
+		schema:                      schema,
+		table:                       table,
+		onConflictDoNothing:         onConflictDoNothing,
+		skipForeignKeyViolations:    skipForeignKeyViolations,
+		truncateOnRetry:             truncateOnRetry,
+		shouldOverrideColumnDefault: shouldOverrideColumnDefault,
+		prefix:                      prefix,
+		suffix:                      suffix,
+		isRetry:                     isRetry,
+		maxRetryAttempts:            retryAttempts,
+		retryDelay:                  retryDelay,
 	}
 	return output, nil
 }
@@ -283,47 +229,27 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
-	var executor *service.MessageBatchBloblangExecutor
-	if s.argsMapping != nil {
-		executor = batch.BloblangExecutor(s.argsMapping)
+	columnMap := map[string]struct{}{}
+	for _, col := range s.columns {
+		columnMap[col] = struct{}{}
 	}
 
-	rows := [][]any{}
-	for i := range batch {
-		if s.argsMapping == nil {
-			continue
-		}
-		resMsg, err := executor.Query(i)
-		if err != nil {
-			return err
-		}
-
-		iargs, err := resMsg.AsStructured()
-		if err != nil {
-			return err
-		}
-
-		args, ok := iargs.([]any)
+	rows := []map[string]any{}
+	for _, msg := range batch {
+		m, _ := msg.AsStructured()
+		msgMap, ok := m.(map[string]any)
 		if !ok {
-			return fmt.Errorf("mapping returned non-array result: %T", iargs)
+			return fmt.Errorf("message returned non-map result: %T", msgMap)
 		}
 
-		rows = append(rows, args)
+		rows = append(rows, msgMap)
 	}
-
-	// keep same index and order of columns slice
-	columnDefaults := make([]*neosync_benthos.ColumnDefaultProperties, len(s.columns))
-	for idx, cName := range s.columns {
-		defaults, ok := s.columnDefaultProperties[cName]
-		if !ok {
-			defaults = &neosync_benthos.ColumnDefaultProperties{}
-		}
-		columnDefaults[idx] = defaults
+	if len(rows) == 0 {
+		s.logger.Debug("no rows to insert")
+		return nil
 	}
 
 	options := []querybuilder.InsertOption{
-		querybuilder.WithColumnDataTypes(s.columnDataTypes),
-		querybuilder.WithColumnDefaults(columnDefaults),
 		querybuilder.WithPrefix(s.prefix),
 		querybuilder.WithSuffix(s.suffix),
 	}
@@ -331,15 +257,14 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if s.onConflictDoNothing {
 		options = append(options, querybuilder.WithOnConflictDoNothing())
 	}
-	if s.rawInsertMode {
-		options = append(options, querybuilder.WithRawInsertMode())
+	if s.shouldOverrideColumnDefault {
+		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
 	}
 	builder, err := querybuilder.GetInsertBuilder(
 		s.slogger,
 		s.driver,
 		s.schema,
 		s.table,
-		s.columns,
 		options...,
 	)
 	if err != nil {
@@ -357,7 +282,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return err
 		}
 
-		err = s.RetryInsertRowByRow(ctx, builder, insertQuery, s.columns, rows, columnDefaults)
+		err = s.RetryInsertRowByRow(ctx, builder, rows)
 		if err != nil {
 			return err
 		}
@@ -368,20 +293,16 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 func (s *pooledInsertOutput) RetryInsertRowByRow(
 	ctx context.Context,
 	builder querybuilder.InsertQueryBuilder,
-	insertQuery string,
-	columns []string,
-	rows [][]any,
-	columnDefaults []*neosync_benthos.ColumnDefaultProperties,
+	rows []map[string]any,
 ) error {
 	fkErrorCount := 0
 	insertCount := 0
-	preparedInsert, err := builder.BuildPreparedInsertQuerySingleRow()
-	if err != nil {
-		return err
-	}
-	args := builder.BuildPreparedInsertArgs(rows)
-	for _, row := range args {
-		err = s.execWithRetry(ctx, preparedInsert, row)
+	for _, row := range rows {
+		insertQuery, args, err := builder.BuildInsertQuery([]map[string]any{row})
+		if err != nil {
+			return err
+		}
+		err = s.execWithRetry(ctx, insertQuery, args)
 		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			fkErrorCount++
 		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
