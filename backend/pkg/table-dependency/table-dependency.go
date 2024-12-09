@@ -73,6 +73,7 @@ func NewRunConfig(
 	whereClause *string,
 	selectCols, insertCols []string,
 	dependsOn []*DependsOn,
+	foreignKeys []*ForeignKey,
 	splitColumnPaths bool,
 ) *RunConfig {
 	return &RunConfig{
@@ -84,6 +85,7 @@ func NewRunConfig(
 		selectColumns:    selectCols,
 		dependsOn:        dependsOn,
 		splitColumnPaths: splitColumnPaths,
+		foreignKeys:      foreignKeys,
 	}
 }
 
