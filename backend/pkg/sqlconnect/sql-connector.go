@@ -482,28 +482,32 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
 	}
 
 	// Configure root CA cert if provided
-	if cfg.RootCert != nil && *cfg.RootCert != "" {
+	rootCert := cfg.GetRootCert()
+	if rootCert != "" {
 		rootCertPool := x509.NewCertPool()
-		if !rootCertPool.AppendCertsFromPEM([]byte(*cfg.RootCert)) {
+		if !rootCertPool.AppendCertsFromPEM([]byte(rootCert)) {
 			return nil, fmt.Errorf("failed to append root certificate")
 		}
 		tlsConfig.RootCAs = rootCertPool
 	}
 
 	// Configure client certificate if both cert and key are provided
-	if (cfg.ClientCert != nil && *cfg.ClientCert != "") && (cfg.ClientKey != nil && *cfg.ClientKey != "") {
-		cert, err := tls.X509KeyPair([]byte(*cfg.ClientCert), []byte(*cfg.ClientKey))
+	clientCert := cfg.GetClientCert()
+	clientKey := cfg.GetClientKey()
+	if clientCert != "" && clientKey != "" {
+		cert, err := tls.X509KeyPair([]byte(cfg.GetClientCert()), []byte(cfg.GetClientKey()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load client certificate and key: %w", err)
 		}
 		tlsConfig.Certificates = []tls.Certificate{cert}
-	} else if (cfg.ClientCert != nil && *cfg.ClientCert != "") || (cfg.ClientKey != nil && *cfg.ClientKey != "") {
+	} else if clientCert != "" || clientKey != "" {
 		// If only one of cert or key is provided, return an error
 		return nil, fmt.Errorf("both client certificate and key must be provided")
 	}
 
-	if cfg.GetServerName() != "" {
-		tlsConfig.ServerName = cfg.GetServerName()
+	serverName := cfg.GetServerName()
+	if serverName != "" {
+		tlsConfig.ServerName = serverName
 	}
 
 	return tlsConfig, nil
