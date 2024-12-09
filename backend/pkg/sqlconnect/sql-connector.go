@@ -502,5 +502,9 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig) (*tls.Config, error) {
 		return nil, fmt.Errorf("both client certificate and key must be provided")
 	}
 
+	if cfg.GetServerName() != "" {
+		tlsConfig.ServerName = cfg.GetServerName()
+	}
+
 	return tlsConfig, nil
 }
