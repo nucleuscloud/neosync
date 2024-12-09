@@ -132,7 +132,7 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 		),
 	}
 	if p.useTls {
-		clientCertPaths, err := testutil.GetClientCertificatePaths()
+		clientCertPaths, err := testutil.GetTlsServerCertificatePaths()
 		if err != nil {
 			return nil, err
 		}

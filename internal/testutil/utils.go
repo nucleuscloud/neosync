@@ -112,26 +112,26 @@ func WithDockerFile(df testcontainers.FromDockerfile) testcontainers.CustomizeRe
 	}
 }
 
-type TestClientCertificateResponse struct {
+type TlsServerCertificateResponse struct {
 	ServerCrtPath string
 	ServerKeyPath string
 	RootCrtPath   string
 }
 
 const (
-	tlsCertsRelativePath = "../../compose/pgssl/certs"
+	tlsCertsRelativePath = "../../compose/mtls"
 )
 
-func GetClientCertificatePaths() (*TestClientCertificateResponse, error) {
+func GetTlsServerCertificatePaths() (*TlsServerCertificateResponse, error) {
 	// when mounting files in testcontainers, they must be an absolute path
 	basePath, err := resolveAbsolutePath(tlsCertsRelativePath)
 	if err != nil {
 		return nil, err
 	}
-	return &TestClientCertificateResponse{
-		ServerCrtPath: path.Join(basePath, "server.crt"),
-		ServerKeyPath: path.Join(basePath, "server.key"),
-		RootCrtPath:   path.Join(basePath, "root.crt"),
+	return &TlsServerCertificateResponse{
+		ServerCrtPath: path.Join(basePath, "server/server.crt"),
+		ServerKeyPath: path.Join(basePath, "server/server.key"),
+		RootCrtPath:   path.Join(basePath, "ca/ca.crt"),
 	}, nil
 }
 

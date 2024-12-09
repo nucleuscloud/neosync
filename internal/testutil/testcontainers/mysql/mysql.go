@@ -132,7 +132,7 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 		),
 	}
 	if m.useTls {
-		clientCertPaths, err := testutil.GetClientCertificatePaths()
+		clientCertPaths, err := testutil.GetTlsServerCertificatePaths()
 		if err != nil {
 			return nil, err
 		}
