@@ -130,12 +130,13 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 		),
 	}
 	if cfg.useTls {
+		mssqlDf, err := testutil.GetMssqlTlsDockerfile()
+		if err != nil {
+			return nil, err
+		}
 		tcOpts = append(
 			tcOpts,
-			testutil.WithDockerFile(testcontainers.FromDockerfile{
-				Dockerfile: "Dockerfile.mssqlssl",
-				Context:    "/Users/nick/code/nucleus/neosync/compose",
-			}),
+			testutil.WithDockerFile(*mssqlDf),
 		)
 	}
 	mssqlcontainer, err := testmssql.Run(ctx,

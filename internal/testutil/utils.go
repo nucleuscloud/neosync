@@ -122,7 +122,7 @@ type TlsCertificatePathResponse struct {
 }
 
 const (
-	tlsCertsRelativePath = "../../compose/mtls"
+	tlsCertsRelativePath = "../../compose"
 )
 
 func GetTlsCertificatePaths() (*TlsCertificatePathResponse, error) {
@@ -132,11 +132,11 @@ func GetTlsCertificatePaths() (*TlsCertificatePathResponse, error) {
 		return nil, err
 	}
 	return &TlsCertificatePathResponse{
-		ServerCertPath: path.Join(basePath, "server/server.crt"),
-		ServerKeyPath:  path.Join(basePath, "server/server.key"),
-		RootCertPath:   path.Join(basePath, "ca/ca.crt"),
-		ClientCertPath: path.Join(basePath, "client/client.crt"),
-		ClientKeyPath:  path.Join(basePath, "client/client.key"),
+		ServerCertPath: path.Join(basePath, "mtls/server/server.crt"),
+		ServerKeyPath:  path.Join(basePath, "mtls/server/server.key"),
+		RootCertPath:   path.Join(basePath, "mtls/ca/ca.crt"),
+		ClientCertPath: path.Join(basePath, "mtls/client/client.crt"),
+		ClientKeyPath:  path.Join(basePath, "mtls/client/client.key"),
 	}, nil
 }
 
@@ -153,4 +153,15 @@ func resolveAbsolutePath(relpath string) (string, error) {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
 	return absPath, nil
+}
+
+func GetMssqlTlsDockerfile() (*testcontainers.FromDockerfile, error) {
+	basePath, err := resolveAbsolutePath(tlsCertsRelativePath)
+	if err != nil {
+		return nil, err
+	}
+	return &testcontainers.FromDockerfile{
+		Dockerfile: "Dockerfile.mssqlssl",
+		Context:    basePath,
+	}, nil
 }
