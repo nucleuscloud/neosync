@@ -523,7 +523,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    blueprint_id INTEGER,
+    blueprint_id INTEGER NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -531,7 +531,7 @@ CREATE TABLE IF NOT EXISTS blueprints (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    account_id INTEGER,
+    account_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -567,7 +567,6 @@ VALUES
 RETURNING id;
 
 -- Update accounts with blueprint references
-UPDATE accounts SET blueprint_id = 1 WHERE id = 2;
 UPDATE accounts SET blueprint_id = 2 WHERE id = 3;
 UPDATE accounts SET blueprint_id = 3 WHERE id = 4;
 UPDATE accounts SET blueprint_id = 4 WHERE id = 5;
