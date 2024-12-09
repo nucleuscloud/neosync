@@ -10,26 +10,32 @@ import (
 // returns map of schema.table -> select query
 func BuildSelectQueryMap(
 	driver string,
-	tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) (map[string]map[tabledependency.RunType]string, error) {
 	tableDependencies := map[string]*TableConstraints{}
-	for tableName, fkConstraints := range tableFkConstraints {
-		tableDependencies[tableName] = &TableConstraints{
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-			ForeignKeys: fkConstraints,
-		}
-	}
 	for _, rc := range runConfigs {
+		if rc.RunType() != tabledependency.RunTypeInsert {
+			continue
+		}
 		td, ok := tableDependencies[rc.Table()]
 		if !ok {
 			td = &TableConstraints{
 				PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-				ForeignKeys: tableFkConstraints[rc.Table()],
+				ForeignKeys: []*sqlmanager_shared.ForeignConstraint{},
 			}
 			tableDependencies[rc.Table()] = td
+		}
+
+		for _, fk := range rc.ForeignKeys() {
+			td.ForeignKeys = append(td.ForeignKeys, &sqlmanager_shared.ForeignConstraint{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   fk.ReferenceTable,
+					Columns: fk.ReferenceColumns,
+				},
+				Columns: fk.Columns,
+			})
 		}
 		td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
 			Columns: rc.PrimaryKeys(),

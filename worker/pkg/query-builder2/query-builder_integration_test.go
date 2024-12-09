@@ -12,32 +12,32 @@ import (
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}},
+			{Columns: []string{"company_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.company", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.transaction": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
-			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}},
+			{Columns: []string{"department_source_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
+			{Columns: []string{"department_destination_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
+			{Columns: []string{"transaction_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.transaction", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.expense": {
-			{Columns: []string{"report_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}},
+			{Columns: []string{"report_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.expense_report", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.item": {
-			{Columns: []string{"expense_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}},
+			{Columns: []string{"expense_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.expense", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		buildRunConfig("genbenthosconfigs_querybuilder.company", tabledependency.RunTypeInsert, []string{"id"}, &whereId, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
-		buildRunConfig("genbenthosconfigs_querybuilder.department", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "company_id"}, []string{"id", "company_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.transaction", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_id"}, []string{"id", "department_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.expense_report", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.expense", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "report_id"}, []string{"id", "report_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.item", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "expense_id"}, []string{"id", "expense_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.company", tabledependency.RunTypeInsert, []string{"id"}, &whereId, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, nil),
+		buildRunConfig("genbenthosconfigs_querybuilder.department", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "company_id"}, []string{"id", "company_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.department"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.transaction", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_id"}, []string{"id", "department_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.transaction"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.expense_report", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.expense_report"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.expense", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "report_id"}, []string{"id", "report_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.expense"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.item", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "expense_id"}, []string{"id", "expense_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.item"]),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
@@ -75,7 +75,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 		"genbenthosconfigs_querybuilder.item":           2,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -111,28 +111,28 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 	whereCreated := "created > '2023-06-03'"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.test_2_c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_a", ReferenceColumns: []string{"id"}},
+			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_b", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_2_d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_c", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_2_e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_c", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_2_a": {
-			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}},
+			{Columns: []string{"x_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_x", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_x", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_b", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_a", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "x_id"}, []string{"id", "x_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_c", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "a_id", "b_id"}, []string{"id", "a_id", "b_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_d", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}),
-		buildRunConfig("genbenthosconfigs_querybuilder.test_2_e", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_x", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, nil),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_b", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, nil),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_a", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "x_id"}, []string{"id", "x_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_a"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_c", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "a_id", "b_id"}, []string{"id", "a_id", "b_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_c"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_d", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_d"]),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_e", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_e"]),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
@@ -171,7 +171,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		"genbenthosconfigs_querybuilder.test_2_e": 2,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -209,27 +209,27 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 	whereId := "id = 1"
 	whereId4 := "id in (4,5)"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.test_3_b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_g": {
-			{Columns: []string{"f_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_f", Columns: []string{"id"}}},
+			{Columns: []string{"f_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_f", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_h": {
-			{Columns: []string{"g_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_g", Columns: []string{"id"}}},
+			{Columns: []string{"g_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_g", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_i": {
-			{Columns: []string{"h_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_h", Columns: []string{"id"}}},
+			{Columns: []string{"h_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_h", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -241,6 +241,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_b",
@@ -250,6 +251,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "a_id"},
 			[]string{"id", "a_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_c",
@@ -259,6 +261,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "b_id"},
 			[]string{"id", "b_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_d",
@@ -268,6 +271,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "c_id"},
 			[]string{"id", "c_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_e",
@@ -277,6 +281,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "d_id"},
 			[]string{"id", "d_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_f",
@@ -286,6 +291,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_g",
@@ -295,6 +301,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "f_id"},
 			[]string{"id", "f_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_f", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_g"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_h",
@@ -304,6 +311,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "g_id"},
 			[]string{"id", "g_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_g", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_h"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_i",
@@ -313,6 +321,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 			[]string{"id", "h_id"},
 			[]string{"id", "h_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_h", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_i"],
 		),
 	}
 
@@ -362,7 +371,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		"genbenthosconfigs_querybuilder.test_3_i": 1,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -400,18 +409,18 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 	whereId := "id in (3,4,5)"
 	whereId4 := "id = 4"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.test_3_b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -423,6 +432,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_b",
@@ -432,6 +442,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 			[]string{"id", "a_id"},
 			[]string{"id", "a_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_c",
@@ -441,6 +452,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 			[]string{"id", "b_id"},
 			[]string{"id", "b_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_d",
@@ -450,6 +462,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 			[]string{"id", "c_id"},
 			[]string{"id", "c_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_e",
@@ -459,6 +472,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 			[]string{"id", "d_id"},
 			[]string{"id", "d_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
 		),
 	}
 
@@ -492,7 +506,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		"genbenthosconfigs_querybuilder.test_3_e": 1,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -529,18 +543,18 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForeignKeysOff() {
 	whereId := "id in (4,5)"
 	whereId4 := "id = 4"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.test_3_b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.test_3_e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -552,6 +566,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_b",
@@ -561,6 +576,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 			[]string{"id", "a_id"},
 			[]string{"id", "a_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_c",
@@ -570,6 +586,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 			[]string{"id", "b_id"},
 			[]string{"id", "b_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_d",
@@ -579,6 +596,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 			[]string{"id", "c_id"},
 			[]string{"id", "c_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_e",
@@ -588,6 +606,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 			[]string{"id", "d_id"},
 			[]string{"id", "d_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
 		),
 	}
 
@@ -621,7 +640,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		"genbenthosconfigs_querybuilder.test_3_e": 5,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, false, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, false, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -657,18 +676,18 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 	whereId := "id in (1,5)"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.addresses": {
-			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}},
+			{Columns: []string{"order_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.orders", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.customers": {
-			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.addresses", Columns: []string{"id"}}},
+			{Columns: []string{"address_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.addresses", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.orders": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.customers", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.payments": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.customers", ReferenceColumns: []string{"id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -680,6 +699,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			[]string{"id", "customer_id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			tableDependencies["genbenthosconfigs_querybuilder.orders"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.addresses",
@@ -689,6 +709,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			[]string{"id", "order_id"},
 			[]string{"id", "order_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.addresses"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.customers",
@@ -698,6 +719,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			[]string{"id", "address_id"},
 			[]string{"id", "address_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.addresses", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.customers"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.payments",
@@ -707,6 +729,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			[]string{"id", "customer_id"},
 			[]string{"id", "customer_id"},
 			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}},
+			tableDependencies["genbenthosconfigs_querybuilder.payments"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.orders",
@@ -719,6 +742,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 				{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}},
 				{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.orders"],
 		),
 	}
 
@@ -746,7 +770,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		"genbenthosconfigs_querybuilder.payments":  1,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -782,7 +806,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 	whereId := "id in (1,5)"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	dependencyConfigs := []*tabledependency.RunConfig{
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.company",
@@ -792,6 +815,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_2_x",
@@ -801,6 +825,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_2_b",
@@ -810,6 +835,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_a",
@@ -819,6 +845,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 	}
 
@@ -851,7 +878,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 		"genbenthosconfigs_querybuilder.test_3_a": 5,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 
@@ -887,7 +914,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 }
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	dependencyConfigs := []*tabledependency.RunConfig{
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.company",
@@ -897,6 +923,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_2_x",
@@ -906,6 +933,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_2_b",
@@ -915,6 +943,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.test_3_a",
@@ -924,6 +953,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 	}
 
@@ -941,7 +971,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		"genbenthosconfigs_querybuilder.test_3_a": 5,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedCount), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -965,12 +995,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 	whereId := "id in (3,5)"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.employees": {
-			{Columns: []string{"division_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}}},
+			{Columns: []string{"division_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.division", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.projects": {
-			{Columns: []string{"responsible_employee_id", "responsible_division_id"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}}},
+			{Columns: []string{"responsible_employee_id", "responsible_division_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.employees", ReferenceColumns: []string{"id", "division_id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -982,6 +1012,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 			[]string{"id"},
 			[]string{"id"},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.employees",
@@ -993,6 +1024,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.employees"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.projects",
@@ -1004,6 +1036,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.projects"],
 		),
 	}
 
@@ -1031,7 +1064,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		"genbenthosconfigs_querybuilder.projects":  2,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -1066,35 +1099,35 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 }
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.attachments": {
-			{Columns: []string{"uploaded_by"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}},
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
+			{Columns: []string{"uploaded_by"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"task_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.tasks", ReferenceColumns: []string{"task_id"}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"comment_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.comments", ReferenceColumns: []string{"comment_id"}},
 		},
 		"genbenthosconfigs_querybuilder.comments": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}},
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"parent_comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
+			{Columns: []string{"user_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"task_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.tasks", ReferenceColumns: []string{"task_id"}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"parent_comment_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.comments", ReferenceColumns: []string{"comment_id"}},
 		},
 		"genbenthosconfigs_querybuilder.initiatives": {
-			{Columns: []string{"lead_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"client_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"lead_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"client_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
 		},
 		"genbenthosconfigs_querybuilder.tasks": {
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"assignee_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"reviewer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"assignee_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"reviewer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
 		},
 		"genbenthosconfigs_querybuilder.user_skills": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"skill_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}}},
+			{Columns: []string{"user_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"skill_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.skills", ReferenceColumns: []string{"skill_id"}},
 		},
 		"genbenthosconfigs_querybuilder.users": {
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"mentor_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"manager_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"mentor_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}},
 		},
 	}
 
@@ -1111,6 +1144,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 				{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}},
 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.comments"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.comments",
@@ -1122,6 +1156,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.comments"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.users",
@@ -1131,6 +1166,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 			[]string{"user_id", "name", "email", "manager_id", "mentor_id"},
 			[]string{"user_id", "name", "email"},
 			[]*tabledependency.DependsOn{},
+			tableDependencies["genbenthosconfigs_querybuilder.users"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.users",
@@ -1142,6 +1178,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.users"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.initiatives",
@@ -1153,6 +1190,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.initiatives"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.skills",
@@ -1162,6 +1200,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 			[]string{"skill_id", "name", "category"},
 			[]string{"skill_id", "name", "category"},
 			[]*tabledependency.DependsOn{},
+			tableDependencies["genbenthosconfigs_querybuilder.skills"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.tasks",
@@ -1174,6 +1213,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.tasks"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.user_skills",
@@ -1186,6 +1226,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
 				{Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.user_skills"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.attachments",
@@ -1200,6 +1241,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
 				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.attachments"],
 		),
 	}
 
@@ -1294,7 +1336,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 		"genbenthosconfigs_querybuilder.attachments": 2,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 
@@ -1340,12 +1382,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 }
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"genbenthosconfigs_querybuilder.network_users": {
-			{Columns: []string{"network_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"id"}}},
+			{Columns: []string{"network_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.networks", ReferenceColumns: []string{"id"}},
 		},
 		"genbenthosconfigs_querybuilder.networks": {
-			{Columns: []string{"network_type_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}}},
+			{Columns: []string{"network_type_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.network_types", ReferenceColumns: []string{"id"}},
 		},
 	}
 
@@ -1358,6 +1400,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 			[]string{"id", "name"},
 			[]string{},
 			[]*tabledependency.DependsOn{},
+			nil,
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.networks",
@@ -1369,6 +1412,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.networks"],
 		),
 		buildRunConfig(
 			"genbenthosconfigs_querybuilder.network_users",
@@ -1380,6 +1424,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 			[]*tabledependency.DependsOn{
 				{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"network_id"}},
 			},
+			tableDependencies["genbenthosconfigs_querybuilder.network_users"],
 		),
 	}
 
@@ -1424,7 +1469,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		"genbenthosconfigs_querybuilder.network_users": 1,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	allrows := []pgx.Rows{}
@@ -1470,35 +1515,35 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 }
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+	tableDependencies := map[string][]*tabledependency.ForeignKey{
 		"mssqltest.attachments": {
-			{Columns: []string{"uploaded_by"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.tasks", Columns: []string{"task_id"}}},
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.comments", Columns: []string{"comment_id"}}},
+			{Columns: []string{"uploaded_by"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"task_id"}, ReferenceTable: "mssqltest.tasks", ReferenceColumns: []string{"task_id"}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"comment_id"}, ReferenceTable: "mssqltest.comments", ReferenceColumns: []string{"comment_id"}},
 		},
 		"mssqltest.comments": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.tasks", Columns: []string{"task_id"}}},
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"parent_comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.comments", Columns: []string{"comment_id"}}},
+			{Columns: []string{"user_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"task_id"}, ReferenceTable: "mssqltest.tasks", ReferenceColumns: []string{"task_id"}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"parent_comment_id"}, ReferenceTable: "mssqltest.comments", ReferenceColumns: []string{"comment_id"}},
 		},
 		"mssqltest.initiatives": {
-			{Columns: []string{"lead_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"client_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"lead_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"client_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
 		},
 		"mssqltest.tasks": {
-			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
-			{Columns: []string{"assignee_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"reviewer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}},
+			{Columns: []string{"assignee_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"reviewer_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
 		},
 		"mssqltest.user_skills": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"skill_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.skills", Columns: []string{"skill_id"}}},
+			{Columns: []string{"user_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"skill_id"}, ReferenceTable: "mssqltest.skills", ReferenceColumns: []string{"skill_id"}},
 		},
 		"mssqltest.users": {
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
-			{Columns: []string{"mentor_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"manager_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
+			{Columns: []string{"mentor_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}},
 		},
 	}
 
@@ -1515,6 +1560,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 				{Table: "mssqltest.tasks", Columns: []string{"task_id"}},
 				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
 			},
+			tableDependencies["mssqltest.comments"],
 		),
 		buildRunConfig(
 			"mssqltest.comments",
@@ -1526,6 +1572,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 			[]*tabledependency.DependsOn{
 				{Table: "mssqltest.comments", Columns: []string{"comment_id"}},
 			},
+			tableDependencies["mssqltest.comments"],
 		),
 		buildRunConfig(
 			"mssqltest.users",
@@ -1535,6 +1582,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 			[]string{"user_id", "name", "email", "manager_id", "mentor_id"},
 			[]string{"user_id", "name", "email"},
 			[]*tabledependency.DependsOn{},
+			tableDependencies["mssqltest.users"],
 		),
 		buildRunConfig(
 			"mssqltest.users",
@@ -1546,6 +1594,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 			[]*tabledependency.DependsOn{
 				{Table: "mssqltest.users", Columns: []string{"user_id"}},
 			},
+			tableDependencies["mssqltest.users"],
 		),
 		buildRunConfig(
 			"mssqltest.initiatives",
@@ -1557,6 +1606,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 			[]*tabledependency.DependsOn{
 				{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}},
 			},
+			tableDependencies["mssqltest.initiatives"],
 		),
 		buildRunConfig(
 			"mssqltest.skills",
@@ -1566,6 +1616,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 			[]string{"skill_id", "name", "category"},
 			[]string{"skill_id", "name", "category"},
 			[]*tabledependency.DependsOn{},
+			tableDependencies["mssqltest.skills"],
 		),
 		buildRunConfig(
 			"mssqltest.tasks",
@@ -1578,6 +1629,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
 				{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}},
 			},
+			tableDependencies["mssqltest.tasks"],
 		),
 		buildRunConfig(
 			"mssqltest.user_skills",
@@ -1590,6 +1642,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 				{Table: "mssqltest.users", Columns: []string{"user_id"}},
 				{Table: "mssqltest.skills", Columns: []string{"skill_id"}},
 			},
+			tableDependencies["mssqltest.user_skills"],
 		),
 		buildRunConfig(
 			"mssqltest.attachments",
@@ -1604,6 +1657,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
 				{Table: "mssqltest.comments", Columns: []string{"comment_id"}},
 			},
+			tableDependencies["mssqltest.attachments"],
 		),
 	}
 
@@ -1698,7 +1752,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 		"mssqltest.attachments": 2,
 	}
 
-	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, dependencyConfigs, true, columnInfoMap)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -1752,6 +1806,7 @@ func buildRunConfig(
 	where *string,
 	selectCols, insertCols []string,
 	dependsOn []*tabledependency.DependsOn,
+	foreignKeys []*tabledependency.ForeignKey,
 ) *tabledependency.RunConfig {
-	return tabledependency.NewRunConfig(table, runtype, pks, where, selectCols, insertCols, dependsOn, false)
+	return tabledependency.NewRunConfig(table, runtype, pks, where, selectCols, insertCols, dependsOn, foreignKeys, false)
 }

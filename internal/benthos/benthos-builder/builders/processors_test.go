@@ -67,7 +67,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, false),
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, nil, false),
 		nil,
 		[]string{},
 	)
@@ -126,7 +126,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, false),
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, nil, false),
 		nil,
 		[]string{},
 	)
@@ -194,7 +194,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, nil, false),
 		nil,
 		[]string{},
 	)
@@ -263,7 +263,7 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, false),
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, nil, false),
 		nil,
 		[]string{},
 	)
@@ -323,7 +323,7 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, false),
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, nil, false),
 		nil,
 		[]string{},
 	)
