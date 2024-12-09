@@ -48,6 +48,38 @@ Complete the fields in order to connect to your Postgres Database.
 
 ![Configure Postgres Connection By Host](/img/pghost.png)
 
+## TLS
+
+Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+
+This is configured via the `Client TLS Certificates` section on the database configuration page.
+
+If you simply wish to verify the server certificate, only the `Root certificate` is required.
+
+If wishing to have the client present a certificate, you must specify both the `Client key` as well as the `Client certificate`.
+If only one of these is provided, the Neosync will reject the configuration.
+
+The following TLS/SSL modes are available for Postgres via the `sslMode` query parameter.
+
+> **NB:** if using the `URL` configuration, you will need to specify this directly in the query parameters. If using the host configuration, be sure to select the correct option in the dropdown that you intend to use.
+
+```
+disable    - No SSL at all, plain TCP
+allow      - First try non-SSL, if that fails, try SSL
+prefer     - First try SSL, if that fails, try non-SSL (default)
+require    - Always use SSL, but don't verify certificates
+verify-ca  - Always use SSL and verify server has valid certificate
+verify-full- Always use SSL, verify certificate and check server hostname
+```
+
+The `server name` _must_ be provided if using `verify-full` otherwise the client will not have enough information to fully verify the host and will fail connection.
+
+## Postgres Driver
+
+Neosync uses the `jackc/pgx` driver for Postgres support. You can find information about this by visiting their [Readme](https://github.com/jackc/pgx).
+
+Neosync expects Postgres urls to be in the standard URI format. If using the Host view, this is converted to a URI when use at runtime.
+
 ## Permissions
 
 This section details the Postgres role permissions necessary for Neosync to function properly.
@@ -83,6 +115,8 @@ This requires slightly more permissions, but you can get away with more or less 
 
 At a bare minimum, this connection requires `CREATE, UPDATE` on all tables that will be written to.
 You will also need to grant permissions to any `sequences`, `triggers`, or `functions` that may be invoked during the insertion or update process.
+
+> **NB:** If any sequences exist in your database, Neosync will need to be invoked as the owner of those Sequences. Neosync resets sequences after truncation and during the post-table sync in order for them to be in a good state for future insertions. Postgres has a limitation that only the Sequence owner may do this. This is not an issue if using Neosync to create your schemas, but will arise if those sequences were created via a role other than the one being used by Neosync.
 
 Example:
 

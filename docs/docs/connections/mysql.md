@@ -31,3 +31,46 @@ This guide will help you to configure your MySQL database connection properly.
 **Connection Protocol**: Select the protocol you wish to use to connect to your database. 'tcp' is commonly used for network connections.
 
 Test the connection before saving to ensure all details are correct and the system can connect to the database.
+
+You may also specify a direct DSN via the `URL` tab instead of the split out `Host` view.
+
+## TLS
+
+Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+
+This is configured via the `Client TLS Certificates` section on the database configuration page.
+
+If you simply wish to verify the server certificate, only the `Root certificate` is required.
+
+If wishing to have the client present a certificate, you must specify both the `Client key` as well as the `Client certificate`.
+If only one of these is provided, the Neosync will reject the configuration.
+
+The following TLS/SSL modes are available for Mysql via the `tls` query parameter.
+
+> **NB:** if using the `URL` configuration, you will need to specify this directly in the query parameters. If using the host configuration, be sure to select the correct option in the dropdown that you intend to use.
+
+```
+true - Enabled TLS/SSL encryption to the server
+false - Disables TLS
+skip-verify - If you want to use a self-signed or invalid certificate on the server-side. Self-signed may be use if using mTLS.
+preferred - Use TLS only when advertised by the server
+```
+
+The `server name` _must_ be provided if using `tls=true` otherwise the client will not have enough information to fully verify the host and will fail connection. If this isn't desired, use `tls=skip-verify`.
+
+## Go Mysql Driver
+
+Neosync uses the `go-sql-driver/mysql` for Mysql support.
+
+HTTP urls are not very well supported and you will find much better luck, using the older `DSN` format.
+
+For a full look at query parameters available to you, check the [driver readme](https://github.com/go-sql-driver/mysql?tab=readme-ov-file#parameters)
+
+By default, Neosync will add the following query parameters automatically to your user-provided DSN at runtime:
+
+- `multiStatements=true`
+
+  - This is used to enable sending batched SQL statements to the server at once. If this is turned off, Neosync has to send single statements at a time, which really hurts performance.
+
+- `parseTime=true`
+  - This configures the driver to automatically convert date and time values to go's `time.Time` object for better data handling through the system.

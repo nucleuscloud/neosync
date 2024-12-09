@@ -101,6 +101,36 @@ Notice how the username has `@<hostname>` appended to it. Once successfully conn
 
 ![Connecting](/img/sqlconn.png)
 
+### TLS
+
+Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+
+This is configured via the `Client TLS Certificates` section on the database configuration page.
+
+If you simply wish to verify the server certificate, only the `Root certificate` is required.
+
+If wishing to have the client present a certificate, you must specify both the `Client key` as well as the `Client certificate`.
+If only one of these is provided, the Neosync will reject the configuration.
+
+The following TLS/SSL modes are available for MSSQL via the `encrypt` query parameter.
+
+> **NB:** Neosync does not automatically add the `encrypt` query parameter if client certificates have been detected. Regardless of this configuration, the `encrypt` parameter is up to the user based on their bespoke configuration and setup.
+
+```
+strict - Data sent between the client and server is encrypted E2E using `TDS8`.
+disable - Data sent between client and server is not encrypted
+false / optional / no / 0 / f - Data sent between client and server si not encrypted beyond the login packet (Default)
+true / mandatory / yes / 1/ t - Data sent betwen client and server is encrypted
+```
+
+The `server name` _must_ be provided if using `encrypt=true` otherwise the client will not have enough information to fully verify the host and will fail connection. If this isn't desired, set `trustServerCertificate=true` in your query parameters to allow the client to automatically trust the certificate presented by the server.
+
+### Go Mssql Driver
+
+Neosync uses the official `go-mssqldb` driver provided by Microsoft.
+
+You can find DSN format as well as a full list of supported query parameters by visiting their [Readme](https://github.com/microsoft/go-mssqldb/?tab=readme-ov-file#connection-parameters-and-dsn).
+
 ## Permissions
 
 When creating a new connection or checking an existing one, you can click `Test Connection` on the form to check to see if Neosync can connect.
