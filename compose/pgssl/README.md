@@ -2,7 +2,7 @@
 
 This folder is for testing out Postgres Client Certificates.
 
-Root, Server, and Client certificates have been generated and are located in the [./certs](./certs/) folder.
+Root, Server, and Client certificates have been generated and are located in the [../mtls](../mtls/) folder.
 
 The certificates in this folder are meant for localhost and development use only! They were generated specifically for testing out this feature.
 

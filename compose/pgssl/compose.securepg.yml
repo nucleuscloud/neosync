@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
     volumes:
-      - ./certs:/certs
+      - ../mtls:/certs
     ports:
       - "5555:5432"
     user: postgres
@@ -17,13 +17,9 @@ services:
         "-c",
         "ssl=on",
         "-c",
-        "ssl_cert_file=/certs/server.crt",
+        "ssl_cert_file=/certs/server/server.crt",
         "-c",
-        "ssl_key_file=/certs/server.key",
+        "ssl_key_file=/certs/server/server.key",
         "-c",
-        "ssl_ca_file=/certs/root.crt",
+        "ssl_ca_file=/certs/server/root.crt",
       ]
-# networks:
-#   neosync-network:
-#     name: neosync-network
-#     external: true
