@@ -1,3 +1,8 @@
+# Note for testcontainers:
+# Using a custom image here for mTLS tests because the container uses a readonly file system
+# so files cannot be copied in permissions updated after the fact
+# Postgres and Mysql don't have this issue so we are able to chown without problem
+
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
 USER root
@@ -5,14 +10,19 @@ RUN mkdir -p /etc/ssl/private && \
     chown mssql:mssql /etc/ssl/private && \
     chmod 700 /etc/ssl/private
 
-# COPY --chown=mssql --chmod=440 pgssl/certs/server.crt /etc/ssl/certs/mssql.pem
-# COPY --chown=mssql --chmod=440 pgssl/certs/server.key /etc/ssl/private/mssql.key
-# COPY --chown=mssql --chmod=440 pgssl/certs/root.crt /etc/ssl/certs/root.crt
-# COPY --chown=mssql mssql2.conf /var/opt/mssql/mssql.conf
+COPY mtls/server/server.crt /etc/ssl/certs/mssql.pem
+COPY mtls/server/server.key /etc/ssl/private/mssql.key
+COPY mtls/ca/ca.crt /etc/ssl/private/root.pem
+COPY mssql.conf /var/opt/mssql/mssql.conf
 
-COPY --chown=mssql --chmod=440 mtls/server/server.crt /etc/ssl/certs/mssql.pem
-COPY --chown=mssql --chmod=440 mtls/server/server.key /etc/ssl/private/mssql.key
-COPY --chown=mssql --chmod=440 mtls/ca/ca.crt /etc/ssl/private/root.pem
-COPY --chown=mssql mssql.conf /var/opt/mssql/mssql.conf
+# Set ownership and permissions after copying
+# Testcontainers doesn't support Buildkit so we can't call chown on copy, so it must be run as a separate command
+RUN chown mssql:mssql /etc/ssl/certs/mssql.pem && \
+    chown mssql:mssql /etc/ssl/private/mssql.key && \
+    chown mssql:mssql /etc/ssl/private/root.pem && \
+    chown mssql:mssql /var/opt/mssql/mssql.conf && \
+    chmod 440 /etc/ssl/certs/mssql.pem && \
+    chmod 440 /etc/ssl/private/mssql.key && \
+    chmod 440 /etc/ssl/private/root.pem
 
 USER mssql

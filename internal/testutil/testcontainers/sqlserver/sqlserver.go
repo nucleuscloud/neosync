@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"time"
@@ -131,73 +130,19 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 		),
 	}
 	if cfg.useTls {
-		clientCertPaths, err := testutil.GetTlsCertificatePaths()
-		if err != nil {
-			return nil, err
-		}
-		_ = clientCertPaths
-		file, err := os.CreateTemp(os.TempDir(), "test-mssql")
-		if err != nil {
-			return nil, fmt.Errorf("unable to create test-mssql.conf in tmp dir: %w", err)
-		}
-		_, err = file.WriteString(`
-[network]
-tlscert = /etc/ssl/certs/mssql.pem
-tlskey = /etc/ssl/private/mssql.key
-tlsprotocols = 1.2
-forceencryption = 1
-`)
-		if err != nil {
-			return nil, fmt.Errorf("was unable to write mssql.conf to tmp: %w", err)
-		}
-
 		tcOpts = append(
 			tcOpts,
-			// testutil.WithFiles([]testcontainers.ContainerFile{
-			// 	{
-			// 		HostFilePath:      file.Name(),
-			// 		ContainerFilePath: "/var/opt/mssql/mssql.conf",
-			// 		FileMode:          0644,
-			// 	},
-			// 	{
-			// 		// HostFilePath:      clientCertPaths.ServerCrtPath,
-			// 		HostFilePath:      "/Users/nick/code/nucleus/neosync/mssql.pem",
-			// 		ContainerFilePath: "/etc/ssl/certs/mssql.pem",
-			// 		FileMode:          0440,
-			// 	},
-			// 	{
-			// 		// HostFilePath:      clientCertPaths.ServerKeyPath,
-			// 		HostFilePath:      "/Users/nick/code/nucleus/neosync/mssql.key",
-			// 		ContainerFilePath: "/etc/ssl/private/mssql.key",
-			// 		FileMode:          0440,
-			// 	},
-			// }),
-			// testcontainers.WithStartupCommand(
-			// 	testcontainers.NewRawCommand([]string{
-			// 		"chown", "-R", "mssql:mssql", "/etc/ssl/certs", "/etc/ssl/private",
-			// 	}),
-			// 	testcontainers.NewRawCommand([]string{
-			// 		"chown", "mssql:mssql", "/var/opt/mssql/mssql.conf",
-			// 	}),
-			// ),
 			testutil.WithDockerFile(testcontainers.FromDockerfile{
-				Dockerfile: "/Users/nick/code/nucleus/neosync/compose/Dockerfile.mssqlssl",
+				Dockerfile: "Dockerfile.mssqlssl",
+				Context:    "/Users/nick/code/nucleus/neosync/compose",
 			}),
 		)
 	}
 	mssqlcontainer, err := testmssql.Run(ctx,
-		"mssql-tls",
+		"mcr.microsoft.com/mssql/server:2022-latest", // WithDockerFile overrides the image and updates it to be empty
 		tcOpts...,
 	)
 	if err != nil {
-		if mssqlcontainer != nil {
-			logs, err2 := mssqlcontainer.Logs(ctx)
-			if err2 != nil {
-				return nil, err2
-			}
-			bits, _ := io.ReadAll(logs)
-			fmt.Println(string(bits))
-		}
 		return nil, err
 	}
 
