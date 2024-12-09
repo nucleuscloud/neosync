@@ -4,7 +4,7 @@ description: Microsoft SQL Server is a proprietary relational database managemen
 id: sqlserver
 hide_title: false
 slug: /connections/sqlserver
-# cSpell:words MSSQL,myuser,mypass,mydbhost,mydatabase,Passw
+# cSpell:words MSSQL,myuser,mypass,mydbhost,mydatabase,Passw,mssqldb
 ---
 
 ## Introduction
@@ -103,7 +103,7 @@ Notice how the username has `@<hostname>` appended to it. Once successfully conn
 
 ### TLS
 
-Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+Neosync has support for Regular TLS (one-way) as well as mTLS (two-way).
 
 This is configured via the `Client TLS Certificates` section on the database configuration page.
 
@@ -122,7 +122,7 @@ The following TLS/SSL modes are available for MSSQL via the `encrypt` query para
 strict - Data sent between the client and server is encrypted E2E using `TDS8`
 disable - Data sent between client and server is not encrypted
 false / optional / no / 0 / f - Data sent between client and server si not encrypted beyond the login packet (Default)
-true / mandatory / yes / 1/ t - Data sent betwen client and server is encrypted
+true / mandatory / yes / 1/ t - Data sent between client and server is encrypted
 ```
 
 The `server name` _must_ be provided if using `encrypt=true` otherwise the client will not have enough information to fully verify the host and will fail connection. If this isn't desired, set `trustServerCertificate=true` in your query parameters to allow the client to automatically trust the certificate presented by the server.

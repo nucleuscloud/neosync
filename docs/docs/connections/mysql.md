@@ -36,7 +36,7 @@ You may also specify a direct DSN via the `URL` tab instead of the split out `Ho
 
 ## TLS
 
-Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+Neosync has support for Regular TLS (one-way) as well as mTLS (two-way).
 
 This is configured via the `Client TLS Certificates` section on the database configuration page.
 

@@ -50,7 +50,7 @@ Complete the fields in order to connect to your Postgres Database.
 
 ## TLS
 
-Neoysnc has support for Regular TLS (one-way) as well as mTLS (two-way).
+Neosync has support for Regular TLS (one-way) as well as mTLS (two-way).
 
 This is configured via the `Client TLS Certificates` section on the database configuration page.
 
