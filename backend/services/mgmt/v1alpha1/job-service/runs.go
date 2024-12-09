@@ -166,7 +166,6 @@ func (s *Service) GetJobRunEvents(
 				}
 
 				jobRunEvent.Metadata = metadata
-
 			}
 			activityMap[event.EventId] = jobRunEvent
 		case enums.EVENT_TYPE_ACTIVITY_TASK_STARTED:
