@@ -116,6 +116,12 @@ export default function MongoDBForm(): ReactElement {
           ...form.getValues(),
           connectionName: connData.connection?.name + '-copy',
           url: mongoConnConfigValue ?? '',
+          clientTls: {
+            clientCert: config.clientTls?.clientCert ?? '',
+            clientKey: config.clientTls?.clientKey ?? '',
+            rootCert: config.clientTls?.rootCert ?? '',
+            serverName: config.clientTls?.serverName ?? '',
+          },
         });
       } catch (error) {
         console.error('Failed to fetch connection data:', error);

@@ -183,6 +183,7 @@ export const MysqlFormValues = Yup.object({
   }),
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
+  clientTls: ClientTlsFormValues,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
@@ -275,6 +276,7 @@ export const MssqlFormValues = Yup.object({
   }).required('The SQL Server form fields are required.'),
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
+  clientTls: ClientTlsFormValues,
 });
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;

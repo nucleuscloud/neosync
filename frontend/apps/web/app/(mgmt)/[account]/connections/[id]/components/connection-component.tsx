@@ -133,10 +133,8 @@ export function getConnectionComponentDetails(
                 clientKey: value.clientTls?.clientKey
                   ? value.clientTls.clientKey
                   : '',
-                serverName: connection.connectionConfig.config.value.clientTls
-                  ?.serverName
-                  ? connection.connectionConfig.config.value.clientTls
-                      .serverName
+                serverName: value.clientTls?.serverName
+                  ? value.clientTls.serverName
                   : '',
               },
               tunnel: {
@@ -244,6 +242,20 @@ export function getConnectionComponentDetails(
                         mysqlValue.tunnel.authentication
                       ) ?? '')
                     : '',
+              },
+              clientTls: {
+                rootCert: mysqlValue.clientTls?.rootCert
+                  ? mysqlValue.clientTls.rootCert
+                  : '',
+                clientCert: mysqlValue.clientTls?.clientCert
+                  ? mysqlValue.clientTls.clientCert
+                  : '',
+                clientKey: mysqlValue.clientTls?.clientKey
+                  ? mysqlValue.clientTls.clientKey
+                  : '',
+                serverName: mysqlValue.clientTls?.serverName
+                  ? mysqlValue.clientTls.serverName
+                  : '',
               },
             }}
             onSaved={(resp) => onSaved(resp)}
@@ -555,6 +567,20 @@ export function getConnectionComponentDetails(
                         mssqlValue.tunnel.authentication
                       ) ?? '')
                     : '',
+              },
+              clientTls: {
+                rootCert: mssqlValue.clientTls?.rootCert
+                  ? mssqlValue.clientTls.rootCert
+                  : '',
+                clientCert: mssqlValue.clientTls?.clientCert
+                  ? mssqlValue.clientTls.clientCert
+                  : '',
+                clientKey: mssqlValue.clientTls?.clientKey
+                  ? mssqlValue.clientTls.clientKey
+                  : '',
+                serverName: mssqlValue.clientTls?.serverName
+                  ? mssqlValue.clientTls.serverName
+                  : '',
               },
             }}
             onSaved={(resp) => onSaved(resp)}

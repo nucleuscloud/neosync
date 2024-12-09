@@ -101,6 +101,12 @@ export default function MysqlForm() {
         passphrase: '',
         privateKey: '',
       },
+      clientTls: {
+        clientCert: '',
+        clientKey: '',
+        rootCert: '',
+        serverName: '',
+      },
     },
     context: {
       accountId: account?.id ?? '',
@@ -238,6 +244,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             user: config.tunnel?.user ?? '',
             passphrase: passPhrase,
             privateKey: privateKey,
+          },
+          clientTls: {
+            clientCert: config.clientTls?.clientCert ?? '',
+            clientKey: config.clientTls?.clientKey ?? '',
+            rootCert: config.clientTls?.rootCert ?? '',
+            serverName: config.clientTls?.serverName ?? '',
           },
         });
         if (config.connectionConfig.case === 'url') {
@@ -593,6 +605,93 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             )}
           />
         </div>
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="bastion">
+            <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 p-2">
+              <div className="text-sm">
+                Configuring this section allows Neosync to connect to the
+                database using SSL/TLS. The verification mode may be configured
+                using the SSL Field, or by specifying the option in the
+                postgresql url.
+              </div>
+              <FormField
+                control={form.control}
+                name="clientTls.rootCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Root Certificate</FormLabel>
+                    <FormDescription>
+                      {`The public key certificate of the CA that issued the
+                      server's certificate. Root certificates are used to
+                      authenticate the server to the client. They ensure that
+                      the server the client is connecting to is trusted.`}
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Certificate</FormLabel>
+                    <FormDescription>
+                      A public key certificate issued to the client by a trusted
+                      Certificate Authority (CA).
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Key</FormLabel>
+                    <FormDescription>
+                      A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.serverName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Server Name</FormLabel>
+                    <FormDescription>
+                      ServerName is used to verify the hostname on the returned
+                      certificates. It is also included in the client's
+                      handshake to support virtual hosting unless it is an IP
+                      address. This is only required is performing full tls
+                      verification.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>

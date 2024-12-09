@@ -237,6 +237,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             passphrase: passPhrase,
             privateKey: privateKey,
           },
+          clientTls: {
+            clientCert: config.clientTls?.clientCert ?? '',
+            clientKey: config.clientTls?.clientKey ?? '',
+            rootCert: config.clientTls?.rootCert ?? '',
+            serverName: config.clientTls?.serverName ?? '',
+          },
         });
         if (config.connectionConfig.case === 'url') {
           setActiveTab('url');
