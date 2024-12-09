@@ -116,8 +116,10 @@ The following TLS/SSL modes are available for MSSQL via the `encrypt` query para
 
 > **NB:** Neosync does not automatically add the `encrypt` query parameter if client certificates have been detected. Regardless of this configuration, the `encrypt` parameter is up to the user based on their bespoke configuration and setup.
 
+> **NB:** The current version of the Go driver does _not_ support `encrypt=strict` mode as it has not yet implemented TDS8 yet. [go-mssqldb#87](https://github.com/microsoft/go-mssqldb/issues/87).
+
 ```
-strict - Data sent between the client and server is encrypted E2E using `TDS8`.
+strict - Data sent between the client and server is encrypted E2E using `TDS8`
 disable - Data sent between client and server is not encrypted
 false / optional / no / 0 / f - Data sent between client and server si not encrypted beyond the login packet (Default)
 true / mandatory / yes / 1/ t - Data sent betwen client and server is encrypted
