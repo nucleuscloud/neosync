@@ -665,7 +665,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                   <FormItem>
                     <FormLabel>Server Name</FormLabel>
                     <FormDescription>
-                      ServerName is used to verify the hostname on the returned
+                      Server Name is used to verify the hostname on the returned
                       certificates. It is also included in the client's
                       handshake to support virtual hosting unless it is an IP
                       address. This is only required is performing full tls
