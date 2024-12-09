@@ -516,3 +516,59 @@ INSERT INTO attachments (file_name, file_path, uploaded_by, task_id, initiative_
 ('ui_designs.sketch', '/files/designs/ui_designs.sketch', 10, 8, 8, 15),
 ('smart_contracts.sol', '/files/blockchain/smart_contracts.sol', 1, 9, 9, 17),
 ('sensor_specs.pdf', '/files/iot/sensor_specs.pdf', 2, 10, 10, 19);
+
+
+
+CREATE TABLE IF NOT EXISTS accounts (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    blueprint_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS blueprints (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    account_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE accounts 
+ADD CONSTRAINT fk_accounts_blueprints 
+FOREIGN KEY (blueprint_id) 
+REFERENCES blueprints(id);
+
+ALTER TABLE blueprints 
+ADD CONSTRAINT fk_blueprints_accounts 
+FOREIGN KEY (account_id) 
+REFERENCES accounts(id);
+
+-- Insert sample records
+-- First, insert accounts without blueprint_id
+INSERT INTO accounts (name, email, blueprint_id)
+VALUES 
+    ('John Doe', 'john@example.com', NULL),
+    ('Jane Smith', 'jane@example.com', NULL),
+    ('Bob Wilson', 'bob@example.com', NULL),
+    ('Alice Brown', 'alice@example.com', NULL),
+    ('Charlie Davis', 'charlie@example.com', NULL)
+RETURNING id;
+
+-- Then insert blueprints with account_id references
+INSERT INTO blueprints (name, description, account_id)
+VALUES 
+    ('Basic blueprint', 'A simple starter blueprint', 1),
+    ('Pro blueprint', 'Advanced features blueprint', 2),
+    ('Team blueprint', 'Collaborative workspace blueprint', 3),
+    ('Enterprise blueprint', 'Full-featured business blueprint', 4),
+    ('Custom blueprint', 'Customizable blueprint', 5)
+RETURNING id;
+
+-- Update accounts with blueprint references
+UPDATE accounts SET blueprint_id = 1 WHERE id = 2;
+UPDATE accounts SET blueprint_id = 2 WHERE id = 3;
+UPDATE accounts SET blueprint_id = 3 WHERE id = 4;
+UPDATE accounts SET blueprint_id = 4 WHERE id = 5;
+UPDATE accounts SET blueprint_id = 5 WHERE id = 1;
