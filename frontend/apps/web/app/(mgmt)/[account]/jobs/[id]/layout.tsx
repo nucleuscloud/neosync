@@ -28,7 +28,6 @@ import { toast } from 'sonner';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobCloneButton from './components/JobCloneButton';
 import JobPauseButton from './components/JobPauseButton';
-import { isAiDataGenJob, isDataGenJob } from './util';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
@@ -112,7 +111,8 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const sidebarNavItems = getSidebarNavItems(
     account?.name ?? '',
     data?.job,
-    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled
+    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled,
+    !isSystemConfigLoading && systemAppConfigData?.isJobHooksEnabled
   );
 
   const badgeValue = getBadgeText(data.job.source?.options);
@@ -195,39 +195,13 @@ interface SidebarNav {
 function getSidebarNavItems(
   accountName: string,
   job?: Job,
-  isMetricsServiceEnabled?: boolean
+  isMetricsServiceEnabled?: boolean,
+  isJobHooksEnabled?: boolean
 ): SidebarNav[] {
   if (!job) {
     return [{ title: 'Overview', href: `` }];
   }
   const basePath = `/${accountName}/jobs/${job.id}`;
-
-  if (isDataGenJob(job) || isAiDataGenJob(job)) {
-    const nav = [
-      {
-        title: 'Overview',
-        href: `${basePath}`,
-      },
-      {
-        title: 'Source',
-        href: `${basePath}/source`,
-      },
-      {
-        title: 'Destination',
-        href: `${basePath}/destinations`,
-      },
-      {
-        title: 'Usage',
-        href: `${basePath}/usage`,
-      },
-    ];
-    if (isMetricsServiceEnabled) {
-      nav.push({
-        title: 'Usage',
-        href: `${basePath}/usage`,
-      });
-    }
-  }
 
   const nav = [
     {
@@ -257,5 +231,10 @@ function getSidebarNavItems(
       href: `${basePath}/usage`,
     });
   }
+
+  if (isJobHooksEnabled) {
+    nav.push({ title: 'Hooks', href: `${basePath}/hooks` });
+  }
+
   return nav;
 }
