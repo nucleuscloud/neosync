@@ -24,7 +24,6 @@ type BenthosRedisConfig struct {
 type SelectQueryMapBuilder interface {
 	BuildSelectQueryMap(
 		driver string,
-		tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,

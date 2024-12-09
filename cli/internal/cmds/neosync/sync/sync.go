@@ -380,27 +380,21 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	if c.cmd.Source.ConnectionOpts != nil {
 		jobRunId = c.cmd.Source.ConnectionOpts.JobRunId
 	}
-	var databaseDriver *string
-	if c.cmd.Destination.Driver == postgresDriver {
-		d := string(c.cmd.Destination.Driver)
-		databaseDriver = &d
-	}
 
 	// TODO move more logic to builders
 	benthosManagerConfig := &benthosbuilder.CliBenthosConfig{
-		Job:                    job,
-		SourceConnection:       c.sourceConnection,
-		SourceJobRunId:         jobRunId,
-		DestinationConnection:  c.destinationConnection,
-		SyncConfigs:            syncConfigs,
-		WorkflowId:             job.Id,
-		Logger:                 c.logger,
-		Sqlmanagerclient:       c.sqlmanagerclient,
-		Transformerclient:      c.transformerclient,
-		Connectiondataclient:   c.connectiondataclient,
-		RedisConfig:            nil,
-		MetricsEnabled:         false,
-		PostgresDriverOverride: databaseDriver,
+		Job:                   job,
+		SourceConnection:      c.sourceConnection,
+		SourceJobRunId:        jobRunId,
+		DestinationConnection: c.destinationConnection,
+		SyncConfigs:           syncConfigs,
+		WorkflowId:            job.Id,
+		Logger:                c.logger,
+		Sqlmanagerclient:      c.sqlmanagerclient,
+		Transformerclient:     c.transformerclient,
+		Connectiondataclient:  c.connectiondataclient,
+		RedisConfig:           nil,
+		MetricsEnabled:        false,
 	}
 	bm, err := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)
 	if err != nil {
