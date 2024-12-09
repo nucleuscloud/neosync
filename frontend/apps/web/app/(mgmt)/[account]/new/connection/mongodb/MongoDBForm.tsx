@@ -70,6 +70,7 @@ export default function MongoDBForm(): ReactElement {
         rootCert: '',
         clientCert: '',
         clientKey: '',
+        serverName: '',
       },
     },
     context: {
@@ -289,6 +290,26 @@ export default function MongoDBForm(): ReactElement {
                     <FormLabel>Client Key</FormLabel>
                     <FormDescription>
                       A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.serverName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Server Name</FormLabel>
+                    <FormDescription>
+                      ServerName is used to verify the hostname on the returned
+                      certificates. It is also included in the client's
+                      handshake to support virtual hosting unless it is an IP
+                      address. This is only required is performing full tls
+                      verification.
                     </FormDescription>
                     <FormControl>
                       <Textarea {...field} />

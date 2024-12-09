@@ -133,6 +133,11 @@ export function getConnectionComponentDetails(
                 clientKey: value.clientTls?.clientKey
                   ? value.clientTls.clientKey
                   : '',
+                serverName: connection.connectionConfig.config.value.clientTls
+                  ?.serverName
+                  ? connection.connectionConfig.config.value.clientTls
+                      .serverName
+                  : '',
               },
               tunnel: {
                 host: value.tunnel?.host ?? '',
@@ -390,6 +395,11 @@ export function getConnectionComponentDetails(
                 clientKey: connection.connectionConfig.config.value.clientTls
                   ?.clientKey
                   ? connection.connectionConfig.config.value.clientTls.clientKey
+                  : '',
+                serverName: connection.connectionConfig.config.value.clientTls
+                  ?.serverName
+                  ? connection.connectionConfig.config.value.clientTls
+                      .serverName
                   : '',
               },
             }}
