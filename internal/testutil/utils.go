@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -122,12 +124,13 @@ type TlsCertificatePathResponse struct {
 }
 
 const (
-	tlsCertsRelativePath = "../../compose"
+	// This is the relative path to where this mtls cert and Docker files live
+	composeMtlsCertsRelativePath = "../../compose"
 )
 
 func GetTlsCertificatePaths() (*TlsCertificatePathResponse, error) {
 	// when mounting files in testcontainers, they must be an absolute path
-	basePath, err := resolveAbsolutePath(tlsCertsRelativePath)
+	basePath, err := resolveAbsolutePath(composeMtlsCertsRelativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -155,13 +158,44 @@ func resolveAbsolutePath(relpath string) (string, error) {
 	return absPath, nil
 }
 
+// Mssql mtls must use a custom dockerfile as it's not possible to layer in certs into the running container
+// due to sqlserver using a readonly filesystem
 func GetMssqlTlsDockerfile() (*testcontainers.FromDockerfile, error) {
-	basePath, err := resolveAbsolutePath(tlsCertsRelativePath)
+	basePath, err := resolveAbsolutePath(composeMtlsCertsRelativePath)
 	if err != nil {
 		return nil, err
 	}
 	return &testcontainers.FromDockerfile{
 		Dockerfile: "Dockerfile.mssqlssl",
 		Context:    basePath,
+	}, nil
+}
+
+func GetClientTlsConfig(
+	serverHost string,
+) (*tls.Config, error) {
+	certPaths, err := GetTlsCertificatePaths()
+	if err != nil {
+		return nil, err
+	}
+	cert, err := tls.LoadX509KeyPair(certPaths.ClientCertPath, certPaths.ClientKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	rootCas := x509.NewCertPool()
+	rootbits, err := os.ReadFile(certPaths.RootCertPath)
+	if err != nil {
+		return nil, err
+	}
+	ok := rootCas.AppendCertsFromPEM(rootbits)
+	if !ok {
+		return nil, errors.New("was unable to add test root cert to root ca pool")
+	}
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      rootCas,
+		MinVersion:   tls.VersionTLS12,
+		ServerName:   serverHost,
 	}, nil
 }

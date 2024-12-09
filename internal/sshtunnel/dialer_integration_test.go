@@ -2,12 +2,9 @@ package sshtunnel_test
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"database/sql"
 	"database/sql/driver"
 	"net"
-	"os"
 	"testing"
 	"time"
 
@@ -136,18 +133,6 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
 	defer dialer.Close()
 
-	certPaths, err := testutil.GetTlsCertificatePaths()
-	require.NoError(t, err)
-
-	cert, err := tls.LoadX509KeyPair(certPaths.ClientCertPath, certPaths.ClientKeyPath)
-	require.NoError(t, err)
-
-	rootCas := x509.NewCertPool()
-	bits, err := os.ReadFile(certPaths.RootCertPath)
-	require.NoError(t, err)
-	ok = rootCas.AppendCertsFromPEM(bits)
-	require.True(t, ok)
-
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
@@ -157,18 +142,13 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 		}
 		require.NoError(t, err)
 
-		serverHost, err := container.TestContainer.Host(ctx)
+		tlsConfig, err := container.GetClientTlsConfig(ctx)
 		require.NoError(t, err)
 
 		connector, cleanup, err := postgrestunconnector.New(
 			container.URL,
 			postgrestunconnector.WithDialer(dialer),
-			postgrestunconnector.WithTLSConfig(&tls.Config{
-				Certificates: []tls.Certificate{cert},
-				RootCAs:      rootCas,
-				MinVersion:   tls.VersionTLS12,
-				ServerName:   serverHost,
-			}),
+			postgrestunconnector.WithTLSConfig(tlsConfig),
 		)
 		require.NoError(t, err)
 		defer cleanup()
@@ -180,21 +160,15 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 		t.Parallel()
 
 		container, err := tcmysql.NewMysqlTestContainer(ctx, tcmysql.WithTls())
-		if err != nil {
-			t.Fatal(err)
-		}
-		serverHost, err := container.TestContainer.Host(ctx)
+		require.NoError(t, err)
+
+		tlsConfig, err := container.GetClientTlsConfig(ctx)
 		require.NoError(t, err)
 
 		connector, cleanup, err := mysqltunconnector.New(
 			container.URL,
 			mysqltunconnector.WithDialer(dialer),
-			mysqltunconnector.WithTLSConfig(&tls.Config{
-				Certificates: []tls.Certificate{cert},
-				RootCAs:      rootCas,
-				MinVersion:   tls.VersionTLS12,
-				ServerName:   serverHost,
-			}),
+			mysqltunconnector.WithTLSConfig(tlsConfig),
 		)
 		require.NoError(t, err)
 		defer cleanup()

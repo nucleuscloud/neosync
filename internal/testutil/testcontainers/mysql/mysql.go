@@ -2,12 +2,14 @@ package testcontainers_mysql
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
@@ -66,72 +68,77 @@ func (m *MysqlTestSyncContainer) TearDown(ctx context.Context) error {
 	return nil
 }
 
+type mysqlTestContainerConfig struct {
+	database string
+	password string
+	username string
+	useTls   bool
+}
+
 // Holds the MySQL test container and connection pool.
 type MysqlTestContainer struct {
 	DB            *sql.DB
 	URL           string
 	TestContainer *testmysql.MySQLContainer
-	database      string
-	password      string
-	username      string
 
-	useTls bool
+	cfg *mysqlTestContainerConfig
 }
 
 // Option is a functional option for configuring the Mysql Test Container
-type Option func(*MysqlTestContainer)
+type Option func(*mysqlTestContainerConfig)
 
 // NewMysqlTestContainer initializes a new MySQL Test Container with functional options
 func NewMysqlTestContainer(ctx context.Context, opts ...Option) (*MysqlTestContainer, error) {
-	m := &MysqlTestContainer{
+	m := &mysqlTestContainerConfig{
 		database: "testdb",
 		username: "root",
 		password: "pass",
+		useTls:   false,
 	}
 	for _, opt := range opts {
 		opt(m)
 	}
-	return m.setup(ctx)
+	return setup(ctx, m)
 }
 
 // Sets test container database
 func WithDatabase(database string) Option {
-	return func(a *MysqlTestContainer) {
+	return func(a *mysqlTestContainerConfig) {
 		a.database = database
 	}
 }
 
 // Sets test container database
 func WithUsername(username string) Option {
-	return func(a *MysqlTestContainer) {
+	return func(a *mysqlTestContainerConfig) {
 		a.username = username
 	}
 }
 
 // Sets test container database
 func WithPassword(password string) Option {
-	return func(a *MysqlTestContainer) {
+	return func(a *mysqlTestContainerConfig) {
 		a.password = password
 	}
 }
 
 func WithTls() Option {
-	return func(mtc *MysqlTestContainer) {
+	return func(mtc *mysqlTestContainerConfig) {
 		mtc.useTls = true
 	}
 }
 
 // Creates and starts a MySQL test container and sets up the connection.
-func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, error) {
+func setup(ctx context.Context, cfg *mysqlTestContainerConfig) (*MysqlTestContainer, error) {
 	tcopts := []testcontainers.ContainerCustomizer{
-		mysql.WithDatabase(m.database),
-		mysql.WithUsername(m.username),
-		mysql.WithPassword(m.password),
+		mysql.WithDatabase(cfg.database),
+		mysql.WithUsername(cfg.username),
+		mysql.WithPassword(cfg.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20 * time.Second),
 		),
 	}
-	if m.useTls {
+	if cfg.useTls {
 		clientCertPaths, err := testutil.GetTlsCertificatePaths()
 		if err != nil {
 			return nil, err
@@ -178,7 +185,7 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 	}
 
 	connstrArgs := []string{"multiStatements=true", "parseTime=true"}
-	if m.useTls {
+	if cfg.useTls {
 		connstrArgs = append(connstrArgs, "tls=true")
 	}
 
@@ -187,16 +194,46 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 		return nil, err
 	}
 
-	db, err := sql.Open(sqlmanager_shared.MysqlDriver, connStr)
+	connectorOpts := []mysqltunconnector.Option{}
+	if cfg.useTls {
+		serverHost, err := mysqlContainer.Host(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig, err := testutil.GetClientTlsConfig(serverHost)
+		if err != nil {
+			return nil, err
+		}
+		connectorOpts = append(connectorOpts, mysqltunconnector.WithTLSConfig(tlsConfig))
+	}
+
+	connector, _, err := mysqltunconnector.New(connStr, connectorOpts...)
 	if err != nil {
 		return nil, err
 	}
+
+	db := sql.OpenDB(connector)
 
 	return &MysqlTestContainer{
 		DB:            db,
 		URL:           connStr,
 		TestContainer: mysqlContainer,
+
+		cfg: cfg,
 	}, nil
+}
+
+func (m *MysqlTestContainer) GetClientTlsConfig(ctx context.Context) (*tls.Config, error) {
+	if !m.cfg.useTls {
+		return nil, errors.New("tls is not enabled on this test container")
+	}
+
+	serverHost, err := m.TestContainer.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return testutil.GetClientTlsConfig(serverHost)
 }
 
 // Closes the connection pool and terminates the container.

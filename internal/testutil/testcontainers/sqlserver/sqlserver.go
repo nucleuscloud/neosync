@@ -3,7 +3,6 @@ package testcontainers_sqlserver
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -165,7 +164,7 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 		if err != nil {
 			return nil, err
 		}
-		tlsConfig, err := getTlsConfig(serverHost)
+		tlsConfig, err := testutil.GetClientTlsConfig(serverHost)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +194,7 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 		return nil, err
 	}
 
-	dbConn := sql.OpenDB(dbconnector.Connector)
+	dbConn := sql.OpenDB(dbconnector)
 	return &MssqlTestContainer{
 		DB:            dbConn,
 		URL:           dbConnStr,
@@ -214,36 +213,7 @@ func (m *MssqlTestContainer) GetClientTlsConfig(ctx context.Context) (*tls.Confi
 		return nil, err
 	}
 
-	return getTlsConfig(serverHost)
-}
-
-func getTlsConfig(
-	serverHost string,
-) (*tls.Config, error) {
-	certPaths, err := testutil.GetTlsCertificatePaths()
-	if err != nil {
-		return nil, err
-	}
-	cert, err := tls.LoadX509KeyPair(certPaths.ClientCertPath, certPaths.ClientKeyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	rootCas := x509.NewCertPool()
-	rootbits, err := os.ReadFile(certPaths.RootCertPath)
-	if err != nil {
-		return nil, err
-	}
-	ok := rootCas.AppendCertsFromPEM(rootbits)
-	if !ok {
-		return nil, errors.New("was unable to add test root cert to root ca pool")
-	}
-	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		RootCAs:      rootCas,
-		MinVersion:   tls.VersionTLS12,
-		ServerName:   serverHost,
-	}, nil
+	return testutil.GetClientTlsConfig(serverHost)
 }
 
 // Closes the connection pool and terminates the container.
