@@ -76,7 +76,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcmysql.NewTlsMysqlTestContainer(ctx)
+		container, err := tcmysql.NewMysqlTestContainer(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -136,11 +136,14 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
 	defer dialer.Close()
 
-	cert, err := tls.LoadX509KeyPair("../../compose/pgssl/certs/client.crt", "../../compose/pgssl/certs/client.key")
+	certPaths, err := testutil.GetTlsCertificatePaths()
+	require.NoError(t, err)
+
+	cert, err := tls.LoadX509KeyPair(certPaths.ClientCertPath, certPaths.ClientKeyPath)
 	require.NoError(t, err)
 
 	rootCas := x509.NewCertPool()
-	bits, err := os.ReadFile("../../compose/pgssl/certs/root.crt")
+	bits, err := os.ReadFile(certPaths.RootCertPath)
 	require.NoError(t, err)
 	ok = rootCas.AppendCertsFromPEM(bits)
 	require.True(t, ok)
@@ -148,7 +151,7 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcpostgres.NewSslPostgresTestContainer(ctx)
+		container, err := tcpostgres.NewPostgresTestContainer(ctx, tcpostgres.WithTls())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -176,7 +179,7 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcmysql.NewTlsMysqlTestContainer(ctx)
+		container, err := tcmysql.NewMysqlTestContainer(ctx, tcmysql.WithTls())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -202,22 +205,16 @@ func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-		serverHost, err := container.TestContainer.Host(ctx)
+		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx, testcontainers_sqlserver.WithTls())
+		require.NoError(t, err)
+
+		tlsConfig, err := container.GetClientTlsConfig(ctx)
 		require.NoError(t, err)
 
 		connector, cleanup, err := mssqltunconnector.New(
 			container.URL,
 			mssqltunconnector.WithDialer(dialer),
-			mssqltunconnector.WithTLSConfig(&tls.Config{
-				Certificates: []tls.Certificate{cert},
-				RootCAs:      rootCas,
-				MinVersion:   tls.VersionTLS12,
-				ServerName:   serverHost,
-			}),
+			mssqltunconnector.WithTLSConfig(tlsConfig),
 		)
 		require.NoError(t, err)
 		defer cleanup()

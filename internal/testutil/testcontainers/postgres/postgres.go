@@ -132,7 +132,7 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 		),
 	}
 	if p.useTls {
-		clientCertPaths, err := testutil.GetTlsServerCertificatePaths()
+		clientCertPaths, err := testutil.GetTlsCertificatePaths()
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 			}),
 			testutil.WithFiles([]testcontainers.ContainerFile{
 				{
-					HostFilePath:      clientCertPaths.ServerCrtPath,
+					HostFilePath:      clientCertPaths.ServerCertPath,
 					ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
 					FileMode:          0644,
 				},
@@ -158,7 +158,7 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 					FileMode:          0600,
 				},
 				{
-					HostFilePath:      clientCertPaths.RootCrtPath,
+					HostFilePath:      clientCertPaths.RootCertPath,
 					ContainerFilePath: "/var/lib/postgresql/ssl/root.crt",
 					FileMode:          0644,
 				},

@@ -2,18 +2,21 @@ package testcontainers_sqlserver
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
-	"path"
-	"path/filepath"
-	"runtime"
+	"time"
 
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -67,191 +70,233 @@ func (m *MssqlTestSyncContainer) TearDown(ctx context.Context) error {
 	return nil
 }
 
+type mssqlTestContainerConfig struct {
+	database string
+	password string
+	useTls   bool
+}
+
 // Holds the MsSQL test container and connection pool.
 type MssqlTestContainer struct {
 	DB            *sql.DB
 	URL           string
 	TestContainer *testmssql.MSSQLServerContainer
-	database      string
-	password      string
+
+	cfg *mssqlTestContainerConfig
 }
 
 // Option is a functional option for configuring the MsSQL Test Container
-type Option func(*MssqlTestContainer)
+type Option func(*mssqlTestContainerConfig)
 
 // NewMssqlTestContainer initializes a new MsSQL Test Container with functional options
 func NewMssqlTestContainer(ctx context.Context, opts ...Option) (*MssqlTestContainer, error) {
-	m := &MssqlTestContainer{
+	m := &mssqlTestContainerConfig{
 		database: "testdb",
 		password: "mssqlPASSword1",
+		useTls:   false,
 	}
 	for _, opt := range opts {
 		opt(m)
 	}
-	return m.setup(ctx)
-}
-
-func NewTlsMssqlTestContainer(ctx context.Context, opts ...Option) (*MssqlTestContainer, error) {
-	m := &MssqlTestContainer{
-		database: "testdb",
-		password: "mssqlPASSword1",
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m.setupWithTls(ctx)
+	return setup(ctx, m)
 }
 
 // Sets test container database
 func WithDatabase(database string) Option {
-	return func(a *MssqlTestContainer) {
+	return func(a *mssqlTestContainerConfig) {
 		a.database = database
 	}
 }
 
 // Sets test container database
 func WithPassword(password string) Option {
-	return func(a *MssqlTestContainer) {
+	return func(a *mssqlTestContainerConfig) {
 		a.password = password
 	}
 }
 
+func WithTls() Option {
+	return func(mtc *mssqlTestContainerConfig) {
+		mtc.useTls = true
+	}
+}
+
 // Creates and starts a MsSQL test container and sets up the connection.
-func (m *MssqlTestContainer) setup(ctx context.Context) (*MssqlTestContainer, error) {
-	mssqlcontainer, err := testmssql.Run(ctx,
-		"mcr.microsoft.com/mssql/server:2022-latest",
+func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContainer, error) {
+	tcOpts := []testcontainers.ContainerCustomizer{
 		testmssql.WithAcceptEULA(),
-		testmssql.WithPassword(m.password),
+		testmssql.WithPassword(cfg.password),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("Recovery is complete.").WithStartupTimeout(20 * time.Second),
+		),
+	}
+	if cfg.useTls {
+		clientCertPaths, err := testutil.GetTlsCertificatePaths()
+		if err != nil {
+			return nil, err
+		}
+		_ = clientCertPaths
+		file, err := os.CreateTemp(os.TempDir(), "test-mssql")
+		if err != nil {
+			return nil, fmt.Errorf("unable to create test-mssql.conf in tmp dir: %w", err)
+		}
+		_, err = file.WriteString(`
+[network]
+tlscert = /etc/ssl/certs/mssql.pem
+tlskey = /etc/ssl/private/mssql.key
+tlsprotocols = 1.2
+forceencryption = 1
+`)
+		if err != nil {
+			return nil, fmt.Errorf("was unable to write mssql.conf to tmp: %w", err)
+		}
+
+		tcOpts = append(
+			tcOpts,
+			// testutil.WithFiles([]testcontainers.ContainerFile{
+			// 	{
+			// 		HostFilePath:      file.Name(),
+			// 		ContainerFilePath: "/var/opt/mssql/mssql.conf",
+			// 		FileMode:          0644,
+			// 	},
+			// 	{
+			// 		// HostFilePath:      clientCertPaths.ServerCrtPath,
+			// 		HostFilePath:      "/Users/nick/code/nucleus/neosync/mssql.pem",
+			// 		ContainerFilePath: "/etc/ssl/certs/mssql.pem",
+			// 		FileMode:          0440,
+			// 	},
+			// 	{
+			// 		// HostFilePath:      clientCertPaths.ServerKeyPath,
+			// 		HostFilePath:      "/Users/nick/code/nucleus/neosync/mssql.key",
+			// 		ContainerFilePath: "/etc/ssl/private/mssql.key",
+			// 		FileMode:          0440,
+			// 	},
+			// }),
+			// testcontainers.WithStartupCommand(
+			// 	testcontainers.NewRawCommand([]string{
+			// 		"chown", "-R", "mssql:mssql", "/etc/ssl/certs", "/etc/ssl/private",
+			// 	}),
+			// 	testcontainers.NewRawCommand([]string{
+			// 		"chown", "mssql:mssql", "/var/opt/mssql/mssql.conf",
+			// 	}),
+			// ),
+			testutil.WithDockerFile(testcontainers.FromDockerfile{
+				Dockerfile: "/Users/nick/code/nucleus/neosync/compose/Dockerfile.mssqlssl",
+			}),
+		)
+	}
+	mssqlcontainer, err := testmssql.Run(ctx,
+		"mssql-tls",
+		tcOpts...,
 	)
 	if err != nil {
+		if mssqlcontainer != nil {
+			logs, err2 := mssqlcontainer.Logs(ctx)
+			if err2 != nil {
+				return nil, err2
+			}
+			bits, _ := io.ReadAll(logs)
+			fmt.Println(string(bits))
+		}
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=disable")
-	if err != nil {
-		return nil, err
+	connStrArgs := []string{}
+	if cfg.useTls {
+		connStrArgs = append(connStrArgs, "encrypt=true")
+	} else {
+		connStrArgs = append(connStrArgs, "encrypt=disable")
 	}
 
-	db, err := sql.Open(sqlmanager_shared.MssqlDriver, connStr)
+	connStr, err := mssqlcontainer.ConnectionString(ctx, connStrArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("uanble to build mssql conn str: %w", err)
+	}
+
+	connectorOpts := []mssqltunconnector.Option{}
+	if cfg.useTls {
+		serverHost, err := mssqlcontainer.Host(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig, err := getTlsConfig(serverHost)
+		if err != nil {
+			return nil, err
+		}
+
+		connectorOpts = append(connectorOpts, mssqltunconnector.WithTLSConfig(tlsConfig))
+	}
+
+	connector, cleanup, err := mssqltunconnector.New(connStr, connectorOpts...)
 	if err != nil {
 		return nil, err
 	}
+	defer cleanup()
+	db := sql.OpenDB(connector)
 	defer db.Close()
 
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE [%s];", m.database))
+	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE [%s];", cfg.database))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to create mssql database: %w", err)
 	}
 
 	queryvals := url.Values{}
-	queryvals.Add("database", m.database)
+	queryvals.Add("database", cfg.database)
 	dbConnStr := connStr + "&" + queryvals.Encode() // adding & due to existing query param above
 
-	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, dbConnStr)
+	dbconnector, _, err := mssqltunconnector.New(dbConnStr, connectorOpts...)
 	if err != nil {
 		return nil, err
 	}
 
+	dbConn := sql.OpenDB(dbconnector.Connector)
 	return &MssqlTestContainer{
 		DB:            dbConn,
 		URL:           dbConnStr,
 		TestContainer: mssqlcontainer,
+		cfg:           cfg,
 	}, nil
 }
 
-const (
-	sslRelativePath = "../../../../compose/pgssl/certs"
-)
-
-func resolveTestCertPath() string {
-	// Get current file path
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current file path")
+func (m *MssqlTestContainer) GetClientTlsConfig(ctx context.Context) (*tls.Config, error) {
+	if !m.cfg.useTls {
+		return nil, errors.New("tls is not enabled on this test container")
 	}
 
-	// Get absolute path to the certs directory
-	certsPath := filepath.Join(filepath.Dir(filename), sslRelativePath)
-	absPath, err := filepath.Abs(certsPath)
+	serverHost, err := m.TestContainer.Host(ctx)
 	if err != nil {
-		panic("Failed to get absolute path: " + err.Error())
+		return nil, err
 	}
-	return absPath
+
+	return getTlsConfig(serverHost)
 }
 
-var (
-	sslBasePath      = resolveTestCertPath()
-	sslServerCrtPath = path.Join(sslBasePath, "server.crt")
-	sslServerKeyPath = path.Join(sslBasePath, "server.key")
-	sslRootCrtPath   = path.Join(sslBasePath, "root.crt")
-)
-
-func (m *MssqlTestContainer) setupWithTls(ctx context.Context) (*MssqlTestContainer, error) {
-	mssqlcontainer, err := testmssql.Run(ctx,
-		"mcr.microsoft.com/mssql/server:2022-latest",
-		testmssql.WithAcceptEULA(),
-		testmssql.WithPassword(m.password),
-		testutil.WithCmd([]string{
-			"/opt/mssql/bin/sqlservr",
-			"--encrypt",
-			"--tlscert", "/etc/ssl/certs/server.crt",
-			"--tlskey", "/etc/ssl/certs/server.key",
-			"--tlscacert", "/etc/ssl/certs/root.crt",
-		}),
-		testutil.WithFiles([]testcontainers.ContainerFile{
-			{
-				HostFilePath:      sslServerCrtPath,
-				ContainerFilePath: "/etc/ssl/certs/server.crt",
-				FileMode:          0644,
-			},
-			{
-				HostFilePath:      sslServerKeyPath,
-				ContainerFilePath: "/etc/ssl/certs/server.key",
-				FileMode:          0600,
-			},
-			{
-				HostFilePath:      sslRootCrtPath,
-				ContainerFilePath: "/etc/ssl/certs/root.crt",
-				FileMode:          0644,
-			},
-		}),
-		testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
-			"chown", "mssql:mssql", "/etc/ssl/certs/mssql.key",
-		})),
-	)
+func getTlsConfig(
+	serverHost string,
+) (*tls.Config, error) {
+	certPaths, err := testutil.GetTlsCertificatePaths()
+	if err != nil {
+		return nil, err
+	}
+	cert, err := tls.LoadX509KeyPair(certPaths.ClientCertPath, certPaths.ClientKeyPath)
 	if err != nil {
 		return nil, err
 	}
 
-	connStr, err := mssqlcontainer.ConnectionString(ctx, "encrypt=true", "trustServerCertificate=false")
+	rootCas := x509.NewCertPool()
+	rootbits, err := os.ReadFile(certPaths.RootCertPath)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := sql.Open(sqlmanager_shared.MssqlDriver, connStr)
-	if err != nil {
-		return nil, err
+	ok := rootCas.AppendCertsFromPEM(rootbits)
+	if !ok {
+		return nil, errors.New("was unable to add test root cert to root ca pool")
 	}
-	defer db.Close()
-
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE [%s];", m.database))
-	if err != nil {
-		return nil, err
-	}
-
-	queryvals := url.Values{}
-	queryvals.Add("database", m.database)
-	dbConnStr := connStr + "&" + queryvals.Encode() // adding & due to existing query param above
-
-	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, dbConnStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &MssqlTestContainer{
-		DB:            dbConn,
-		URL:           dbConnStr,
-		TestContainer: mssqlcontainer,
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      rootCas,
+		MinVersion:   tls.VersionTLS12,
+		ServerName:   serverHost,
 	}, nil
 }
 

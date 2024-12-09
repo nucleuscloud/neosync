@@ -8,15 +8,33 @@ openssl genrsa -out ca/ca.key 4096
 openssl req -x509 -new -nodes -key ca/ca.key -sha256 -days 3650 -out ca/ca.crt \
   -subj "/CN=MyTestCA"
 
+# Create extensions file for server cert
+cat > server/server.ext << EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+DNS.2 = postgres
+DNS.3 = mysql
+DNS.4 = sqlserver
+DNS.5 = 127.0.0.1
+DNS.6 = ::1
+IP.1 = 127.0.0.1
+IP.2 = ::1
+EOF
+
 # Generate server key and CSR
 openssl genrsa -out server/server.key 2048
 openssl req -new -key server/server.key -out server/server.csr \
-  -subj "/CN=localhost"
+  -subj "/CN=sqlserver"
 
-# Sign server certificate with CA
+# Sign server certificate with CA using extensions
 openssl x509 -req -in server/server.csr -CA ca/ca.crt -CAkey ca/ca.key \
   -CAcreateserial -out server/server.crt -days 365 -sha256 \
-  -extfile <(printf "subjectAltName=DNS:localhost,DNS:postgres,DNS:mysql,DNS:sqlserver")
+  -extfile server/server.ext
 
 # Generate client key and CSR
 openssl genrsa -out client/client.key 2048
@@ -30,5 +48,5 @@ openssl x509 -req -in client/client.csr -CA ca/ca.crt -CAkey ca/ca.key \
 # Set permissions
 chmod 600 {ca,server,client}/*.key
 
-# Clean up CSR files
-rm server/server.csr client/client.csr
+# Clean up files
+rm server/server.csr server/server.ext client/client.csr

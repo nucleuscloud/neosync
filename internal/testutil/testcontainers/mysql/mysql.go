@@ -132,7 +132,7 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 		),
 	}
 	if m.useTls {
-		clientCertPaths, err := testutil.GetTlsServerCertificatePaths()
+		clientCertPaths, err := testutil.GetTlsCertificatePaths()
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 			}),
 			testutil.WithFiles([]testcontainers.ContainerFile{
 				{
-					HostFilePath:      clientCertPaths.ServerCrtPath,
+					HostFilePath:      clientCertPaths.ServerCertPath,
 					ContainerFilePath: "/etc/mysql/certs/server.crt",
 					FileMode:          0644,
 				},
@@ -158,7 +158,7 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 					FileMode:          0600,
 				},
 				{
-					HostFilePath:      clientCertPaths.RootCrtPath,
+					HostFilePath:      clientCertPaths.RootCertPath,
 					ContainerFilePath: "/etc/mysql/certs/root.crt",
 					FileMode:          0644,
 				},
