@@ -75,7 +75,7 @@ func Test_NewLazySSHDialer(t *testing.T) {
 
 		container, err := tcmysql.NewMysqlTestContainer(ctx)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 
 		connector, cleanup, err := mysqltunconnector.New(
@@ -208,7 +208,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 
 	container, err := tcpostgres.NewPostgresTestContainer(ctx)
 	if err != nil {
-		panic(err)
+		t.Fatal((err))
 	}
 
 	pgHost, err := container.TestContainer.Host(ctx)
