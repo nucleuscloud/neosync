@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
@@ -53,9 +52,6 @@ func NewFromPostgresConnection(
 		if cc.Connection.GetSslMode() != "" {
 			query.Set("sslmode", cc.Connection.GetSslMode())
 		}
-		// if config.PgConfig.GetClientTls() != nil {
-		// 	query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
-		// }
 		if connectionTimeout != nil {
 			query.Set("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
@@ -77,30 +73,11 @@ func NewFromPostgresConnection(
 		if !query.Has("connect_timeout") && connectionTimeout != nil {
 			query.Set("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
-		// todo: move this out of here into the driver
-		// if config.PgConfig.GetClientTls() != nil {
-		// 	query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
-		// }
 		uriconfig.RawQuery = query.Encode()
 		return &pgConnectConfig{url: uriconfig.String(), user: getUserFromInfo(uriconfig.User)}, nil
 	default:
 		return nil, fmt.Errorf("unsupported pg connection config: %T", cc)
 	}
-}
-
-func setPgClientTlsQueryParams(
-	query url.Values,
-	cfg *mgmtv1alpha1.ClientTlsConfig,
-) url.Values {
-	filenames := clienttls.GetClientTlsFileNames(cfg)
-	if filenames.RootCert != nil {
-		query.Set("sslrootcert", *filenames.RootCert)
-	}
-	if filenames.ClientCert != nil && filenames.ClientKey != nil {
-		query.Set("sslcert", *filenames.ClientCert)
-		query.Set("sslkey", *filenames.ClientKey)
-	}
-	return query
 }
 
 func getUserFromInfo(u *url.Userinfo) string {

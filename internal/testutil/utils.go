@@ -105,9 +105,9 @@ func WithCmd(cmd []string) testcontainers.CustomizeRequestOption {
 	}
 }
 
-func WithDockerFile(df testcontainers.FromDockerfile) testcontainers.CustomizeRequestOption {
+func WithDockerFile(df *testcontainers.FromDockerfile) testcontainers.CustomizeRequestOption {
 	return func(req *testcontainers.GenericContainerRequest) error {
-		req.FromDockerfile = df
+		req.FromDockerfile = *df
 		req.Image = ""
 		return nil
 	}

@@ -136,7 +136,7 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 		}
 		tcOpts = append(
 			tcOpts,
-			testutil.WithDockerFile(*mssqlDf),
+			testutil.WithDockerFile(mssqlDf),
 		)
 	}
 	mssqlcontainer, err := testmssql.Run(ctx,
