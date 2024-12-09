@@ -74,7 +74,7 @@ verify-full- Always use SSL, verify certificate and check server hostname
 
 The `server name` _must_ be provided if using `verify-full` otherwise the client will not have enough information to fully verify the host and will fail connection.
 
-## Postgres Driver
+## Go Postgres Driver
 
 Neosync uses the `jackc/pgx` driver for Postgres support. You can find information about this by visiting their [Readme](https://github.com/jackc/pgx).
 
