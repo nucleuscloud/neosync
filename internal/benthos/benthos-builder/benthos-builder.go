@@ -101,7 +101,6 @@ func (b *BuilderProvider) registerStandardBuilders(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	redisConfig *shared.RedisConfig,
-	postgresDriverOverride *string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) error {
 	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
@@ -115,11 +114,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
 			case bb_internal.ConnectionTypePostgres:
-				driver := sqlmanager_shared.PostgresDriver
-				if postgresDriverOverride != nil && *postgresDriverOverride != "" {
-					driver = *postgresDriverOverride
-				}
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, driver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_internal.ConnectionTypeMysql:
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
@@ -225,7 +220,6 @@ func NewWorkerBenthosConfigManager(
 		config.Transformerclient,
 		config.Connectionclient,
 		config.RedisConfig,
-		nil,
 		config.SelectQueryBuilder,
 	)
 	if err != nil {
@@ -248,20 +242,19 @@ func NewWorkerBenthosConfigManager(
 // Manages all necessary configuration parameters for creating
 // a CLI-based Benthos configuration manager
 type CliBenthosConfig struct {
-	Job                    *mgmtv1alpha1.Job
-	SourceConnection       *mgmtv1alpha1.Connection
-	DestinationConnection  *mgmtv1alpha1.Connection
-	SourceJobRunId         *string // for use when AWS S3 is the source
-	PostgresDriverOverride *string // optional driver override. used for postgres
-	SyncConfigs            []*tabledependency.RunConfig
-	WorkflowId             string
-	MetricLabelKeyVals     map[string]string
-	Logger                 *slog.Logger
-	Sqlmanagerclient       sqlmanager.SqlManagerClient
-	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
-	Connectiondataclient   mgmtv1alpha1connect.ConnectionDataServiceClient
-	RedisConfig            *shared.RedisConfig
-	MetricsEnabled         bool
+	Job                   *mgmtv1alpha1.Job
+	SourceConnection      *mgmtv1alpha1.Connection
+	DestinationConnection *mgmtv1alpha1.Connection
+	SourceJobRunId        *string // for use when AWS S3 is the source
+	SyncConfigs           []*tabledependency.RunConfig
+	WorkflowId            string
+	MetricLabelKeyVals    map[string]string
+	Logger                *slog.Logger
+	Sqlmanagerclient      sqlmanager.SqlManagerClient
+	Transformerclient     mgmtv1alpha1connect.TransformersServiceClient
+	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
+	RedisConfig           *shared.RedisConfig
+	MetricsEnabled        bool
 }
 
 // Creates a new BenthosConfigManager configured for CLI
@@ -277,7 +270,6 @@ func NewCliBenthosConfigManager(
 		config.Transformerclient,
 		nil,
 		config.RedisConfig,
-		config.PostgresDriverOverride,
 		nil,
 	)
 	if err != nil {

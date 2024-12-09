@@ -21,6 +21,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				"subsetting.addresses": "id in (1,5)",
 				"subsetting.division":  "id in (3,5)",
 				"subsetting.bosses":    "id in (3,5)",
+				"subsetting.accounts":  "id = 1",
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"subsetting.attachments": &workflow_testdata.ExpectedOutput{RowCount: 2},
@@ -45,6 +46,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				"subsetting.projects":    &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"subsetting.bosses":      &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"subsetting.minions":     &workflow_testdata.ExpectedOutput{RowCount: 2},
+				"subsetting.accounts":    &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"subsetting.blueprints":  &workflow_testdata.ExpectedOutput{RowCount: 1},
 			},
 		},
 	}

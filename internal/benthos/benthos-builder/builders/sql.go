@@ -112,6 +112,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
 	b.colTransformerMap = colTransformerMap
+	// include virtual foreign keys and removes fks that have null transformers
 	filteredForeignKeysMap := filterForeignKeysMap(colTransformerMap, foreignKeysMap)
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
@@ -123,7 +124,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
@@ -144,6 +145,7 @@ func splitKeyToTablePieces(key string) (schema, table string, err error) {
 	return pieces[0], pieces[1], nil
 }
 
+// TODO: remove tableDependencies and use runconfig's foreign keys
 func buildBenthosSqlSourceConfigResponses(
 	slogger *slog.Logger,
 	ctx context.Context,
