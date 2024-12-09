@@ -131,6 +131,7 @@ func (s *Service) GetJobRunEvents(
 		if err != nil {
 			return nil, err
 		}
+		println("event", event)
 
 		switch event.EventType {
 		case enums.EVENT_TYPE_ACTIVITY_TASK_SCHEDULED:
@@ -145,19 +146,28 @@ func (s *Service) GetJobRunEvents(
 				},
 			}
 			if len(attributes.Input.Payloads) > 1 {
-				var input mgmtv1alpha1.JobRunSyncMetadata
-				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &input)
+				var rawMap map[string]string
+				err = converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &rawMap)
 				if err != nil {
-					logger.Error(fmt.Errorf("unable to convert event input payload: %w", err).Error())
+					logger.Error(fmt.Errorf("unable to convert to map: %w", err).Error())
 				}
-				jobRunEvent.Metadata = &mgmtv1alpha1.JobRunEventMetadata{
-					Metadata: &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
+
+				schema, schemaExists := rawMap["Schema"]
+				table, tableExists := rawMap["Table"]
+
+				metadata := &mgmtv1alpha1.JobRunEventMetadata{}
+
+				if schemaExists && tableExists {
+					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
 						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
-							Schema: input.Schema,
-							Table:  input.Table,
+							Schema: schema,
+							Table:  table,
 						},
-					},
+					}
 				}
+
+				jobRunEvent.Metadata = metadata
+
 			}
 			activityMap[event.EventId] = jobRunEvent
 		case enums.EVENT_TYPE_ACTIVITY_TASK_STARTED:
@@ -171,7 +181,6 @@ func (s *Service) GetJobRunEvents(
 			activity := activityMap[attributes.ScheduledEventId]
 			activity.CloseTime = event.EventTime
 			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
-
 		case enums.EVENT_TYPE_ACTIVITY_TASK_CANCEL_REQUESTED:
 			attributes := event.GetActivityTaskCancelRequestedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
