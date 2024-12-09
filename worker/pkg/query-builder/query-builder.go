@@ -28,7 +28,7 @@ type SubsetColumnConstraint struct {
 
 func getGoquDialect(driver string) goqu.DialectWrapper {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
+		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	}
 	return goqu.Dialect(driver)
 }

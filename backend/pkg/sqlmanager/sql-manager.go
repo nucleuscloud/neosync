@@ -138,7 +138,7 @@ func (s *SqlManager) NewSqlConnection(
 
 func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {
 	switch driver {
-	case sqlmanager_shared.PostgresDriver, sqlmanager_shared.DefaultPostgresDriver:
+	case sqlmanager_shared.PostgresDriver:
 		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MysqlDriver:
