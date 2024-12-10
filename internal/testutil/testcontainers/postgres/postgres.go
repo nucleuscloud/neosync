@@ -2,11 +2,14 @@ package testcontainers_postgres
 
 import (
 	"context"
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -64,76 +67,154 @@ func (p *PostgresTestSyncContainer) TearDown(ctx context.Context) error {
 	return nil
 }
 
+type pgTestContainerConfig struct {
+	database string
+	username string
+	password string
+	useTls   bool
+}
+
 // Holds the PostgreSQL test container and connection pool.
 type PostgresTestContainer struct {
 	DB            *pgxpool.Pool
 	URL           string
 	TestContainer *testpg.PostgresContainer
-	database      string
-	username      string
-	password      string
+
+	cfg *pgTestContainerConfig
 }
 
 // Option is a functional option for configuring the Postgres Test Container
-type Option func(*PostgresTestContainer)
+type Option func(*pgTestContainerConfig)
 
 // NewPostgresTestContainer initializes a new Postgres Test Container with functional options
 func NewPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTestContainer, error) {
-	p := &PostgresTestContainer{
+	p := &pgTestContainerConfig{
 		database: "testdb",
 		username: "postgres",
 		password: "pass",
+		useTls:   false,
 	}
 	for _, opt := range opts {
 		opt(p)
 	}
-	return p.Setup(ctx)
+	return setup(ctx, p)
 }
 
 // Sets test container database
 func WithDatabase(database string) Option {
-	return func(a *PostgresTestContainer) {
+	return func(a *pgTestContainerConfig) {
 		a.database = database
 	}
 }
 
 // Sets test container database
 func WithUsername(username string) Option {
-	return func(a *PostgresTestContainer) {
+	return func(a *pgTestContainerConfig) {
 		a.username = username
 	}
 }
 
 // Sets test container database
 func WithPassword(password string) Option {
-	return func(a *PostgresTestContainer) {
+	return func(a *pgTestContainerConfig) {
 		a.password = password
 	}
 }
 
+func WithTls() Option {
+	return func(mtc *pgTestContainerConfig) {
+		mtc.useTls = true
+	}
+}
+
 // Creates and starts a PostgreSQL test container and sets up the connection.
-func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContainer, error) {
+func setup(ctx context.Context, cfg *pgTestContainerConfig) (*PostgresTestContainer, error) {
+	tcopts := []testcontainers.ContainerCustomizer{
+		postgres.WithDatabase(cfg.database),
+		postgres.WithUsername(cfg.username),
+		postgres.WithPassword(cfg.password),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).WithStartupTimeout(20 * time.Second),
+		),
+	}
+	if cfg.useTls {
+		clientCertPaths, err := testutil.GetTlsCertificatePaths()
+		if err != nil {
+			return nil, err
+		}
+		tcopts = append(
+			tcopts,
+			testutil.WithCmd([]string{
+				"postgres",
+				"-c", "fsync=off",
+				"-c", "ssl=on",
+				"-c", "ssl_cert_file=/var/lib/postgresql/ssl/server.crt",
+				"-c", "ssl_key_file=/var/lib/postgresql/ssl/server.key",
+				"-c", "ssl_ca_file=/var/lib/postgresql/ssl/root.crt",
+			}),
+			testutil.WithFiles([]testcontainers.ContainerFile{
+				{
+					HostFilePath:      clientCertPaths.ServerCertPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/server.crt",
+					FileMode:          0644,
+				},
+				{
+					HostFilePath:      clientCertPaths.ServerKeyPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/server.key",
+					FileMode:          0600,
+				},
+				{
+					HostFilePath:      clientCertPaths.RootCertPath,
+					ContainerFilePath: "/var/lib/postgresql/ssl/root.crt",
+					FileMode:          0644,
+				},
+			}),
+			testcontainers.WithStartupCommand(testcontainers.NewRawCommand([]string{
+				"chown", "postgres:postgres", "/var/lib/postgresql/ssl/server.key",
+			})),
+		)
+	}
 	pgContainer, err := postgres.Run(
 		ctx,
 		"postgres:15",
-		postgres.WithDatabase(p.database),
-		postgres.WithUsername(p.username),
-		postgres.WithPassword(p.password),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(20*time.Second),
-		),
+		tcopts...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+	connstrArgs := []string{}
+
+	if cfg.useTls {
+		connstrArgs = append(connstrArgs, "sslmode=verify-full")
+	} else {
+		connstrArgs = append(connstrArgs, "sslmode=disable")
+	}
+
+	connStr, err := pgContainer.ConnectionString(ctx, connstrArgs...)
 	if err != nil {
 		return nil, err
 	}
 
-	pool, err := pgxpool.New(ctx, connStr)
+	pgxCfg, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.useTls {
+		serverHost, err := pgContainer.Host(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig, err := testutil.GetClientTlsConfig(serverHost)
+		if err != nil {
+			return nil, err
+		}
+		pgxCfg.ConnConfig.TLSConfig = tlsConfig
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, pgxCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +223,22 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 		DB:            pool,
 		URL:           connStr,
 		TestContainer: pgContainer,
+
+		cfg: cfg,
 	}, nil
+}
+
+func (m *PostgresTestContainer) GetClientTlsConfig(ctx context.Context) (*tls.Config, error) {
+	if !m.cfg.useTls {
+		return nil, errors.New("tls is not enabled on this test container")
+	}
+
+	serverHost, err := m.TestContainer.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return testutil.GetClientTlsConfig(serverHost)
 }
 
 // Closes the connection pool and terminates the container.

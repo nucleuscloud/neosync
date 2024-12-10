@@ -123,6 +123,8 @@ export const ClientTlsFormValues = Yup.object({
 
   clientCert: Yup.string(),
   clientKey: Yup.string(),
+
+  serverName: Yup.string(),
 });
 export type ClientTlsFormValues = Yup.InferType<typeof ClientTlsFormValues>;
 
@@ -181,11 +183,12 @@ export const MysqlFormValues = Yup.object({
   }),
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
+  clientTls: ClientTlsFormValues,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
 
-export const POSTGRES_FORM_SCHEMA = Yup.object({
+export const PostgresFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().when('$activeTab', {
@@ -227,7 +230,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
   clientTls: ClientTlsFormValues,
 });
 
-export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
+export type PostgresFormValues = Yup.InferType<typeof PostgresFormValues>;
 
 const AwsCredentialsFormValues = Yup.object({
   profile: Yup.string().optional(),
@@ -273,6 +276,7 @@ export const MssqlFormValues = Yup.object({
   }).required('The SQL Server form fields are required.'),
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
+  clientTls: ClientTlsFormValues,
 });
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
