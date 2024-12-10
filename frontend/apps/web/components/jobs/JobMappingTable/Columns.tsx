@@ -257,7 +257,7 @@ function transformerFilterFn(
   if (typeof value === 'string') {
     return value.includes(loweredFilterValue);
   }
-  const searchableFields = [value.config.case].filter(Boolean);
+  const searchableFields = [value?.config.case].filter(Boolean);
   return searchableFields.some((field) =>
     field.toLowerCase().includes(loweredFilterValue)
   );
