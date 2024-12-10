@@ -49,6 +49,7 @@ export interface NosqlJobMappingRow {
   transformer: JobMappingTransformerForm;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   const columnHelper = createColumnHelper<JobMappingRow>();
 
@@ -262,6 +263,7 @@ function transformerFilterFn(
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
   const columnHelper = createColumnHelper<NosqlJobMappingRow>();
 
