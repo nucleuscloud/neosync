@@ -10,6 +10,11 @@
 		"driver": "postgres"
 	},
 	{
+		"folder": "postgres/edgecases",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
 		"folder": "mysql/alltypes",
 		"sql_file": "create-tables.sql",
 		"driver": "mysql"
