@@ -63,11 +63,17 @@ func New(
 
 	mysqlCfg.Net = newNetwork
 
+	var dialer sshtunnel.ContextDialer
 	if cfg.dialer != nil {
-		mysql.RegisterDialContext(mysqlCfg.Net, func(ctx context.Context, addr string) (net.Conn, error) {
-			return cfg.dialer.DialContext(ctx, ogNetwork, addr)
-		})
+		dialer = cfg.dialer
+	} else {
+		dialer = &net.Dialer{}
 	}
+
+	mysql.RegisterDialContext(newNetwork, func(ctx context.Context, addr string) (net.Conn, error) {
+		return dialer.DialContext(ctx, ogNetwork, addr)
+	})
+
 	if cfg.tlsConfig != nil {
 		mysqlCfg.TLS = cfg.tlsConfig
 	}
