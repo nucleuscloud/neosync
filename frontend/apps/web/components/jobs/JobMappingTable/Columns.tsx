@@ -250,7 +250,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
 function transformerFilterFn(
   row: Row<JobMappingRow | NosqlJobMappingRow>,
   columnId: string,
-  filterValue: any
+  filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): boolean {
   const value = row.getValue<JobMappingTransformerForm | string>(columnId);
   const loweredFilterValue = filterValue.toLowerCase();
