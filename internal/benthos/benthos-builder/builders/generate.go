@@ -20,6 +20,7 @@ type generateBuilder struct {
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient  sqlmanager.SqlManagerClient
 	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
+	driver            string
 }
 
 func NewGenerateBuilder(
@@ -54,6 +55,7 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
 	defer db.Db().Close()
+	b.driver = db.Driver()
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
@@ -179,6 +181,11 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
+	sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, map[string]string{}, benthosConfig.ColumnDefaultProperties)
+	if err != nil {
+		return nil, err
+	}
+
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
@@ -193,18 +200,15 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 								ConnectionId: params.DestConnection.GetId(),
 
-								Schema:                  benthosConfig.TableSchema,
-								Table:                   benthosConfig.TableName,
-								Columns:                 benthosConfig.Columns,
-								ColumnDefaultProperties: benthosConfig.ColumnDefaultProperties,
-								OnConflictDoNothing:     destOpts.OnConflictDoNothing,
-								TruncateOnRetry:         destOpts.Truncate,
-
-								ArgsMapping: buildPlainInsertArgs(benthosConfig.Columns),
+								Schema:              benthosConfig.TableSchema,
+								Table:               benthosConfig.TableName,
+								OnConflictDoNothing: destOpts.OnConflictDoNothing,
+								TruncateOnRetry:     destOpts.Truncate,
 
 								Batching: &neosync_benthos.Batching{
-									Period: destOpts.BatchPeriod,
-									Count:  destOpts.BatchCount,
+									Period:     destOpts.BatchPeriod,
+									Count:      destOpts.BatchCount,
+									Processors: []*neosync_benthos.BatchProcessor{sqlProcessor},
 								},
 								MaxInFlight: int(destOpts.MaxInFlight),
 							},

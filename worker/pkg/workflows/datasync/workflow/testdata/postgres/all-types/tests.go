@@ -1,6 +1,9 @@
 package postgres_alltypes
 
-import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
+import (
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
+)
 
 func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
@@ -9,7 +12,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "testdata/postgres/all-types",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql", "setup.sql"},
-			JobMappings:     GetDefaultSyncJobMappings(),
+			JobMappings:     getJobmappings(),
 			JobOptions: &workflow_testdata.TestJobOptions{
 				Truncate:        true,
 				TruncateCascade: true,
@@ -26,7 +29,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "testdata/postgres/all-types",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql"},
-			JobMappings:     GetDefaultSyncJobMappings(),
+			JobMappings:     getJobmappings(),
 			JobOptions: &workflow_testdata.TestJobOptions{
 				InitSchema: true,
 			},
@@ -38,4 +41,26 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			},
 		},
 	}
+}
+
+func getJobmappings() []*mgmtv1alpha1.JobMapping {
+	jobmappings := GetDefaultSyncJobMappings()
+	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
+	for _, jm := range jobmappings {
+		if jm.Column == "tax_amount" || jm.Column == "total_price" {
+			updatedJobmappings = append(updatedJobmappings, &mgmtv1alpha1.JobMapping{
+				Schema: jm.Schema,
+				Table:  jm.Table,
+				Column: jm.Column,
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Config: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
+					},
+				},
+			})
+		} else {
+			updatedJobmappings = append(updatedJobmappings, jm)
+		}
+	}
+	return updatedJobmappings
 }

@@ -683,6 +683,46 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
+			Schema: "alltypes",
+			Table:  "products",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "products",
+			Column: "price",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "products",
+			Column: "tax_rate",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "products",
+			Column: "tax_amount",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "products",
+			Column: "total_price",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
 			Schema: "CaPiTaL",
 			Table:  "BadName",
 			Column: "ID",

@@ -19,10 +19,9 @@ import (
 )
 
 type generateAIBuilder struct {
-	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
-	sqlmanagerclient   sqlmanager.SqlManagerClient
-	connectionclient   mgmtv1alpha1connect.ConnectionServiceClient
-	aiGroupedTableCols map[string][]string
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+	sqlmanagerclient  sqlmanager.SqlManagerClient
+	connectionclient  mgmtv1alpha1connect.ConnectionServiceClient
 }
 
 func NewGenerateAIBuilder(
@@ -32,10 +31,9 @@ func NewGenerateAIBuilder(
 	driver string,
 ) bb_internal.BenthosBuilder {
 	return &generateAIBuilder{
-		transformerclient:  transformerclient,
-		sqlmanagerclient:   sqlmanagerclient,
-		connectionclient:   connectionclient,
-		aiGroupedTableCols: map[string][]string{},
+		transformerclient: transformerclient,
+		sqlmanagerclient:  sqlmanagerclient,
+		connectionclient:  connectionclient,
 	}
 }
 
@@ -123,16 +121,6 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 		userBatchSize,
 	)
 
-	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
-	aiGroupedTableCols := map[string][]string{}
-	for _, agm := range mappings {
-		key := neosync_benthos.BuildBenthosTable(agm.Schema, agm.Table)
-		for _, col := range agm.Columns {
-			aiGroupedTableCols[key] = append(aiGroupedTableCols[key], col.Column)
-		}
-	}
-	b.aiGroupedTableCols = aiGroupedTableCols
-
 	return sourceResponses, nil
 }
 
@@ -217,12 +205,6 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
-	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
-
-	cols, ok := b.aiGroupedTableCols[tableKey]
-	if !ok {
-		return nil, fmt.Errorf("unable to find table columns for key (%s) when building destination connection", tableKey)
-	}
 
 	processorConfigs := []neosync_benthos.ProcessorConfig{}
 	for _, pc := range benthosConfig.Processors {
@@ -244,11 +226,8 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 								ConnectionId:        params.DestConnection.GetId(),
 								Schema:              benthosConfig.TableSchema,
 								Table:               benthosConfig.TableName,
-								Columns:             cols,
 								OnConflictDoNothing: destOpts.OnConflictDoNothing,
 								TruncateOnRetry:     destOpts.Truncate,
-
-								ArgsMapping: buildPlainInsertArgs(cols),
 
 								Batching: &neosync_benthos.Batching{
 									Period: destOpts.BatchPeriod,

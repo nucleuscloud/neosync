@@ -169,19 +169,24 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 		return nil, fmt.Errorf("unable to register default mapping processor to benthos instance: %w", err)
 	}
 
-	err = neosync_benthos_json.RegisterSqlToJsonProcessor(env)
+	err = neosync_benthos_json.RegisterNeosyncToJsonProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register SQL to JSON processor to benthos instance: %w", err)
-	}
-
-	err = neosync_benthos_sql.RegisterJsonToSqlProcessor(env)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register JSON to SQL processor to benthos instance: %w", err)
+		return nil, fmt.Errorf("unable to register Neosync to JSON processor to benthos instance: %w", err)
 	}
 
 	err = neosync_benthos_sql.RegisterNeosyncToPgxProcessor(env)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register Neosync to PGX processor to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_sql.RegisterNeosyncToMysqlProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register Neosync to MYSQL processor to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_sql.RegisterNeosyncToMssqlProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register Neosync to MSSQL processor to benthos instance: %w", err)
 	}
 
 	if config.blobEnv != nil {
