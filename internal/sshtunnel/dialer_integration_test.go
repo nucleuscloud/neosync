@@ -369,7 +369,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 		defer cancel()
 
 		startTime := time.Now()
-		conn, err := dialer.DialContext(ctx, "tcp", pgAddr)
+		conn, err := dialer.DialContext(ctx, "tcp", "localhost:5555")
 		elapsed := time.Since(startTime)
 
 		require.Error(t, err)
