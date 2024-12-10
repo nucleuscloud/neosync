@@ -311,11 +311,11 @@ export default function MongoDBForm(): ReactElement {
                   <FormItem>
                     <FormLabel>Server Name</FormLabel>
                     <FormDescription>
-                      Server Name is used to verify the hostname on the returned
+                      {`Server Name is used to verify the hostname on the returned
                       certificates. It is also included in the client's
                       handshake to support virtual hosting unless it is an IP
                       address. This is only required if performing full tls
-                      verification.
+                      verification.`}
                     </FormDescription>
                     <FormControl>
                       <Textarea {...field} />
