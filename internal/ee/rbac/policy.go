@@ -18,10 +18,12 @@ func New(
 	return &Rbac{e: e}
 }
 
+// Interface used by rbac engine to make necessary calls to the database
 type Db interface {
 	GetAccountIds(ctx context.Context) ([]string, error)
 }
 
+// Initialize default policies for existing accounts at startup
 func (r *Rbac) InitPolicies(
 	ctx context.Context,
 	db Db,

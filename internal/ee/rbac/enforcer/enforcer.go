@@ -12,6 +12,7 @@ import (
 	"github.com/casbin/casbin/v2/persist"
 )
 
+// The default casbin enforcer with a SQL-enabled backend
 func NewDefaultEnforcer(
 	ctx context.Context,
 	db *sql.DB,
