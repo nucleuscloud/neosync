@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -141,14 +142,6 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 		return goqu.Default(), nil
 	}
 
-	if pgutil.IsJsonPgDataType(datatype) {
-		bits, err := json.Marshal(value)
-		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
-		}
-		return bits, nil
-	}
-
 	switch v := value.(type) {
 	case nil:
 		return v, nil
@@ -159,7 +152,13 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 		}
 		return value, nil
 	default:
-		if gotypeutil.IsMultiDimensionalSlice(v) || gotypeutil.IsSliceOfMaps(v) {
+		if pgutil.IsJsonPgDataType(datatype) {
+			bits, err := json.Marshal(value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			}
+			return bits, nil
+		} else if gotypeutil.IsMultiDimensionalSlice(v) || gotypeutil.IsSliceOfMaps(v) {
 			return goqu.Literal(pgutil.FormatPgArrayLiteral(v, datatype)), nil
 		} else if gotypeutil.IsSlice(v) {
 			return pq.Array(v), nil
@@ -184,7 +183,11 @@ func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 
 func handlePgxByteSlice(v []byte, datatype string) (any, error) {
 	if pgutil.IsPgArrayColumnDataType(datatype) {
-		pgarray, err := processPgArray(v, datatype)
+		// this handles the case where the array is in the form {1,2,3}
+		if strings.HasPrefix(string(v), "{") {
+			return string(v), nil
+		}
+		pgarray, err := processPgArrayFromJson(v, datatype)
 		if err != nil {
 			return nil, fmt.Errorf("unable to process PG Array: %w", err)
 		}
@@ -210,7 +213,8 @@ func handlePgxByteSlice(v []byte, datatype string) (any, error) {
 	return v, nil
 }
 
-func processPgArray(bits []byte, datatype string) (any, error) {
+// this expects the bits to be in the form [1,2,3]
+func processPgArrayFromJson(bits []byte, datatype string) (any, error) {
 	var pgarray []any
 	err := json.Unmarshal(bits, &pgarray)
 	if err != nil {

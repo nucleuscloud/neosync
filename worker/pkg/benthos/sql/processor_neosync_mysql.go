@@ -74,10 +74,14 @@ func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch servic
 		if err != nil {
 			return nil, err
 		}
+		jsonF, _ := json.MarshalIndent(root, "", " ")
+		fmt.Printf("\n\n root: %s \n\n", string(jsonF))
 		newRoot, err := transformNeosyncToMysql(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
+		jsonF, _ = json.MarshalIndent(newRoot, "", " ")
+		fmt.Printf("\n\n newRoot: %s \n\n", string(jsonF))
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -128,14 +132,6 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 		return goqu.Default(), nil
 	}
 
-	if mysqlutil.IsJsonDataType(datatype) {
-		bits, err := json.Marshal(value)
-		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
-		}
-		return bits, nil
-	}
-
 	switch v := value.(type) {
 	case nil:
 		return v, nil
@@ -146,6 +142,13 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 		}
 		return value, nil
 	default:
+		if mysqlutil.IsJsonDataType(datatype) {
+			bits, err := json.Marshal(value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			}
+			return bits, nil
+		}
 		return v, nil
 	}
 }
