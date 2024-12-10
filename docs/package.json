@@ -42,13 +42,13 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.6.3",
     "@docusaurus/types": "^3.6.3",
-    "@redocly/cli": "^1.25.15",
+    "@redocly/cli": "^1.26.0",
     "@tsconfig/docusaurus": "^2.0.3",
     "cspell": "^8.16.1",
-    "knip": "^5.39.0",
+    "knip": "^5.39.2",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.1",
-    "prettier": "^3.4.1",
+    "prettier": "^3.4.2",
     "typescript": "^5.7.2"
   },
   "browserslist": {
