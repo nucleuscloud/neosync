@@ -21,7 +21,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Test_NewLazySSHDialer(t *testing.T) {
+func TestDatabaseConnections(t *testing.T) {
 	t.Parallel()
 	ok := testutil.ShouldRunIntegrationTest()
 	if !ok {
@@ -30,16 +30,15 @@ func Test_NewLazySSHDialer(t *testing.T) {
 
 	ctx := context.Background()
 
+	// Setup single SSH server for all dialer tests
 	addr := ":2222"
 	server := newSshForwardServer(t, addr)
-
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil && err != gssh.ErrServerClosed {
 			panic(err)
 		}
 	}()
-
 	time.Sleep(100 * time.Millisecond)
 
 	cconfig := &ssh.ClientConfig{
@@ -49,151 +48,201 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	dialerConfig := sshtunnel.DefaultSSHDialerConfig()
 	dialerConfig.KeepAliveInterval = 1 * time.Second
 	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
-	defer dialer.Close()
+	t.Cleanup(func() { dialer.Close() })
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcpostgres.NewPostgresTestContainer(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-		require.NoError(t, err)
+		t.Run("without_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := tcpostgres.NewPostgresTestContainer(ctx)
+			require.NoError(t, err)
 
-		connector, cleanup, err := postgrestunconnector.New(
-			container.URL,
-			postgrestunconnector.WithDialer(dialer),
-		)
-		require.NoError(t, err)
-		defer cleanup()
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := postgrestunconnector.New(container.URL)
+				require.NoError(t, err)
+				defer cleanup()
 
-		requireDbConnects(t, connector)
+				requireDbConnects(t, connector)
+			})
+
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := postgrestunconnector.New(
+					container.URL,
+					postgrestunconnector.WithDialer(dialer),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+		})
+
+		t.Run("with_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := tcpostgres.NewPostgresTestContainer(ctx, tcpostgres.WithTls())
+			require.NoError(t, err)
+
+			tlsConfig, err := container.GetClientTlsConfig(ctx)
+			require.NoError(t, err)
+
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := postgrestunconnector.New(
+					container.URL,
+					postgrestunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := postgrestunconnector.New(
+					container.URL,
+					postgrestunconnector.WithDialer(dialer),
+					postgrestunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+		})
 	})
 
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := tcmysql.NewMysqlTestContainer(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
+		t.Run("without_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := tcmysql.NewMysqlTestContainer(ctx)
+			require.NoError(t, err)
 
-		connector, cleanup, err := mysqltunconnector.New(
-			container.URL,
-			mysqltunconnector.WithDialer(dialer),
-		)
-		require.NoError(t, err)
-		defer cleanup()
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mysqltunconnector.New(container.URL)
+				require.NoError(t, err)
+				defer cleanup()
 
-		requireDbConnects(t, connector)
-	})
+				requireDbConnects(t, connector)
+			})
 
-	t.Run("mssql", func(t *testing.T) {
-		t.Parallel()
-		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mysqltunconnector.New(
+					container.URL,
+					mysqltunconnector.WithDialer(dialer),
+				)
+				require.NoError(t, err)
+				defer cleanup()
 
-		connector, cleanup, err := mssqltunconnector.New(container.URL, mssqltunconnector.WithDialer(dialer))
-		require.NoError(t, err)
-		defer cleanup()
+				requireDbConnects(t, connector)
+			})
+		})
 
-		requireDbConnects(t, connector)
-	})
-}
+		t.Run("with_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := tcmysql.NewMysqlTestContainer(ctx, tcmysql.WithTls())
+			require.NoError(t, err)
 
-func Test_NewLazySSHDialer_With_Tls(t *testing.T) {
-	t.Parallel()
-	ok := testutil.ShouldRunIntegrationTest()
-	if !ok {
-		return
-	}
+			tlsConfig, err := container.GetClientTlsConfig(ctx)
+			require.NoError(t, err)
 
-	ctx := context.Background()
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mysqltunconnector.New(
+					container.URL,
+					mysqltunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
 
-	addr := ":2225"
-	server := newSshForwardServer(t, addr)
+				requireDbConnects(t, connector)
+			})
 
-	go func() {
-		err := server.ListenAndServe()
-		if err != nil && err != gssh.ErrServerClosed {
-			panic(err)
-		}
-	}()
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mysqltunconnector.New(
+					container.URL,
+					mysqltunconnector.WithDialer(dialer),
+					mysqltunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
 
-	time.Sleep(100 * time.Millisecond)
-
-	cconfig := &ssh.ClientConfig{
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         5 * time.Second,
-	}
-	dialerConfig := sshtunnel.DefaultSSHDialerConfig()
-	dialerConfig.KeepAliveInterval = 1 * time.Second
-	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
-	defer dialer.Close()
-
-	t.Run("postgres", func(t *testing.T) {
-		t.Parallel()
-
-		container, err := tcpostgres.NewPostgresTestContainer(ctx, tcpostgres.WithTls())
-		if err != nil {
-			t.Fatal(err)
-		}
-		require.NoError(t, err)
-
-		tlsConfig, err := container.GetClientTlsConfig(ctx)
-		require.NoError(t, err)
-
-		connector, cleanup, err := postgrestunconnector.New(
-			container.URL,
-			postgrestunconnector.WithDialer(dialer),
-			postgrestunconnector.WithTLSConfig(tlsConfig),
-		)
-		require.NoError(t, err)
-		defer cleanup()
-
-		requireDbConnects(t, connector)
-	})
-
-	t.Run("mysql", func(t *testing.T) {
-		t.Parallel()
-
-		container, err := tcmysql.NewMysqlTestContainer(ctx, tcmysql.WithTls())
-		require.NoError(t, err)
-
-		tlsConfig, err := container.GetClientTlsConfig(ctx)
-		require.NoError(t, err)
-
-		connector, cleanup, err := mysqltunconnector.New(
-			container.URL,
-			mysqltunconnector.WithDialer(dialer),
-			mysqltunconnector.WithTLSConfig(tlsConfig),
-		)
-		require.NoError(t, err)
-		defer cleanup()
-
-		requireDbConnects(t, connector)
+				requireDbConnects(t, connector)
+			})
+		})
 	})
 
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
 
-		container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx, testcontainers_sqlserver.WithTls())
-		require.NoError(t, err)
+		t.Run("without_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx)
+			require.NoError(t, err)
 
-		tlsConfig, err := container.GetClientTlsConfig(ctx)
-		require.NoError(t, err)
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mssqltunconnector.New(container.URL)
+				require.NoError(t, err)
+				defer cleanup()
 
-		connector, cleanup, err := mssqltunconnector.New(
-			container.URL,
-			mssqltunconnector.WithDialer(dialer),
-			mssqltunconnector.WithTLSConfig(tlsConfig),
-		)
-		require.NoError(t, err)
-		defer cleanup()
+				requireDbConnects(t, connector)
+			})
 
-		requireDbConnects(t, connector)
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mssqltunconnector.New(
+					container.URL,
+					mssqltunconnector.WithDialer(dialer),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+		})
+
+		t.Run("with_tls", func(t *testing.T) {
+			t.Parallel()
+			container, err := testcontainers_sqlserver.NewMssqlTestContainer(ctx, testcontainers_sqlserver.WithTls())
+			require.NoError(t, err)
+
+			tlsConfig, err := container.GetClientTlsConfig(ctx)
+			require.NoError(t, err)
+
+			t.Run("no_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mssqltunconnector.New(
+					container.URL,
+					mssqltunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+
+			t.Run("with_dialer", func(t *testing.T) {
+				t.Parallel()
+				connector, cleanup, err := mssqltunconnector.New(
+					container.URL,
+					mssqltunconnector.WithDialer(dialer),
+					mssqltunconnector.WithTLSConfig(tlsConfig),
+				)
+				require.NoError(t, err)
+				defer cleanup()
+
+				requireDbConnects(t, connector)
+			})
+		})
 	})
 }
 
