@@ -11,6 +11,7 @@ require (
 	connectrpc.com/otelconnect v0.7.1
 	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.7.1
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0
+	github.com/Blank-Xu/sql-adapter v1.1.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Jeffail/gabs/v2 v2.7.0
 	github.com/Jeffail/shutdown v1.0.0
@@ -25,6 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.2
 	github.com/aws/smithy-go v1.22.1
 	github.com/bufbuild/protovalidate-go v0.7.3
+	github.com/casbin/casbin/v2 v2.102.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
@@ -176,8 +178,10 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/benhoyt/goawk v1.25.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
 	github.com/bufbuild/protocompile v0.8.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
+	github.com/casbin/govaluate v1.2.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
@@ -208,7 +212,7 @@ require (
 	github.com/eapache/go-resiliency v1.5.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712 // indirect
+	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.13.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
