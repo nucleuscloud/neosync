@@ -327,7 +327,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 	})
 
 	t.Run("handles max retries exhaustion", func(t *testing.T) {
-		addr := ":2225" // Using a port where no server is listening
+		addr := ":2325"
 
 		cconfig := &ssh.ClientConfig{
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -343,14 +343,14 @@ func Test_SSHDialerResilience(t *testing.T) {
 		defer dialer.Close()
 
 		// Attempt connection - should fail after retries
-		conn, err := dialer.DialContext(ctx, "tcp", pgAddr)
+		conn, err := dialer.DialContext(ctx, "tcp", "localhost:5555") // port that is not being used
 		require.Error(t, err)
 		require.Nil(t, conn)
 		require.Contains(t, err.Error(), "unable to dial ssh server after 2 attempts")
 	})
 
 	t.Run("cancels retry attempts on context cancellation", func(t *testing.T) {
-		addr := ":2226" // Using a port where no server is listening
+		addr := ":2226"
 
 		cconfig := &ssh.ClientConfig{
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -437,6 +437,8 @@ func requireDbConnects(t testing.TB, connector driver.Connector) {
 	defer db.Close()
 
 	err := db.Ping()
+	require.NoError(t, err)
+	_, err = db.Exec("SELECT 1")
 	require.NoError(t, err)
 }
 
