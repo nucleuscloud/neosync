@@ -148,7 +148,7 @@ func (s *Service) GetJobRunEvents(
 				var rawMap map[string]string
 				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &rawMap)
 				if err != nil {
-					logger.Error(fmt.Errorf("unable to convert to map: %w", err).Error())
+					logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
 				}
 
 				schema, schemaExists := rawMap["Schema"]
