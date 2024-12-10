@@ -74,14 +74,10 @@ func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch servic
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ := json.MarshalIndent(root, "", " ")
-		fmt.Printf("\n\n root: %s \n\n", string(jsonF))
 		newRoot, err := transformNeosyncToMysql(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ = json.MarshalIndent(newRoot, "", " ")
-		fmt.Printf("\n\n newRoot: %s \n\n", string(jsonF))
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -160,6 +156,12 @@ func handleMysqlByteSlice(v []byte, datatype string) (any, error) {
 			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
 		}
 		return bit, nil
+	} else if mysqlutil.IsJsonDataType(datatype) {
+		validJson, err := getValidJson(v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get valid json: %w", err)
+		}
+		return validJson, nil
 	}
 	return v, nil
 }
