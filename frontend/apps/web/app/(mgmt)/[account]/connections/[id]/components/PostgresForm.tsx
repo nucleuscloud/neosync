@@ -34,7 +34,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  POSTGRES_FORM_SCHEMA,
   PostgresEditConnectionFormContext,
   PostgresFormValues,
   SSL_MODES,
@@ -75,7 +74,7 @@ export default function PostgresForm(props: Props): ReactElement {
 
   const form = useForm<PostgresFormValues, PostgresEditConnectionFormContext>({
     mode: 'onChange',
-    resolver: yupResolver(POSTGRES_FORM_SCHEMA),
+    resolver: yupResolver(PostgresFormValues),
     defaultValues: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
@@ -501,6 +500,26 @@ export default function PostgresForm(props: Props): ReactElement {
                     <FormLabel>Client Key</FormLabel>
                     <FormDescription>
                       A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.serverName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Server Name</FormLabel>
+                    <FormDescription>
+                      {`Server Name is used to verify the hostname on the returned
+                      certificates. It is also included in the client's
+                      handshake to support virtual hosting unless it is an IP
+                      address. This is only required if performing full tls
+                      verification.`}
                     </FormDescription>
                     <FormControl>
                       <Textarea {...field} />

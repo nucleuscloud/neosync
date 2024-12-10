@@ -429,6 +429,7 @@ function buildMssqlConnectionConfig(
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
+    clientTls: getClientTlsConfig(values.clientTls),
   });
 }
 
@@ -449,6 +450,7 @@ function buildMysqlConnectionConfig(
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
+    clientTls: getClientTlsConfig(values.clientTls),
   });
 
   if (values.url) {
@@ -528,7 +530,10 @@ function getClientTlsConfig(
 ): ClientTlsConfig | undefined {
   if (
     !values ||
-    (!values.rootCert && !values.clientKey && !values.clientCert)
+    (!values.rootCert &&
+      !values.clientKey &&
+      !values.clientCert &&
+      !values.serverName)
   ) {
     return undefined;
   }
@@ -536,6 +541,7 @@ function getClientTlsConfig(
     rootCert: values.rootCert ? values.rootCert : undefined,
     clientKey: values.clientKey ? values.clientKey : undefined,
     clientCert: values.clientCert ? values.clientCert : undefined,
+    serverName: values.serverName ? values.serverName : undefined,
   });
 }
 

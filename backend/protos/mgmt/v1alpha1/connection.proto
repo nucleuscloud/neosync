@@ -139,6 +139,8 @@ message MssqlConnectionConfig {
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
   SSHTunnel tunnel = 3;
+  // Provide client-side TLS Certificates
+  ClientTlsConfig client_tls = 4;
 }
 
 // Configuration for a DynaomDB Connection
@@ -205,6 +207,10 @@ message ClientTlsConfig {
   optional string client_cert = 2;
   // Client Key in PEM format. Must also provide cert.
   optional string client_key = 3;
+
+  // Provide the expected server name. Depending on the driver or encryption mode, this may be required
+  // In order to fully validate the server certificate.
+  optional string server_name = 4;
 }
 
 message SqlConnectionOptions {
@@ -299,6 +305,8 @@ message MysqlConnectionConfig {
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
   SSHTunnel tunnel = 3;
   SqlConnectionOptions connection_options = 4;
+  // Provide client-side TLS Certificates
+  ClientTlsConfig client_tls = 5;
 }
 
 message AwsS3ConnectionConfig {

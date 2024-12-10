@@ -2,6 +2,7 @@ package postgrestunconnector
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql/driver"
 	"net"
 
@@ -17,21 +18,57 @@ type Connector struct {
 
 var _ driver.Connector = (*Connector)(nil)
 
+type Option func(*connectorConfig) error
+
+type connectorConfig struct {
+	dialer    sshtunnel.ContextDialer
+	tlsConfig *tls.Config
+}
+
+// WithDialer sets a custom dialer for the connector
+func WithDialer(dialer sshtunnel.ContextDialer) Option {
+	return func(cfg *connectorConfig) error {
+		cfg.dialer = dialer
+		return nil
+	}
+}
+
+// WithTLSConfig sets TLS configuration for the connector
+func WithTLSConfig(tlsConfig *tls.Config) Option {
+	return func(cfg *connectorConfig) error {
+		cfg.tlsConfig = tlsConfig
+		return nil
+	}
+}
+
 func New(
-	dialer sshtunnel.Dialer,
 	dsn string,
+	opts ...Option,
 ) (*Connector, func(), error) {
-	cfg, err := pgx.ParseConfig(dsn)
+	cfg := &connectorConfig{}
+	for _, opt := range opts {
+		if err := opt(cfg); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	pgxConfig, err := pgx.ParseConfig(dsn)
 	if err != nil {
 		return nil, nil, err
 	}
-	cfg.DialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		return dialer.DialContext(ctx, network, addr)
+
+	if cfg.dialer != nil {
+		pgxConfig.DialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return cfg.dialer.DialContext(ctx, network, addr)
+		}
+	}
+	if cfg.tlsConfig != nil {
+		pgxConfig.TLSConfig = cfg.tlsConfig
 	}
 
 	// RegisterConnConfig returns unique connection strings, so even if the dsn is used for multiple calls to New()
 	// The unregister will not interfere with any other instances of Connector that are using the same input dsn
-	connStr := stdlib.RegisterConnConfig(cfg)
+	connStr := stdlib.RegisterConnConfig(pgxConfig)
 	cleanup := func() {
 		stdlib.UnregisterConnConfig(connStr)
 	}

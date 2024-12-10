@@ -95,7 +95,8 @@
     "ferpa",
     "uuidv",
     "Luhn",
-    "lastname"
+    "lastname",
+    "jackc"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],

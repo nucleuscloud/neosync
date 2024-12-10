@@ -890,6 +890,13 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
    */
   tunnel?: SSHTunnel;
 
+  /**
+   * Provide client-side TLS Certificates
+   *
+   * @generated from field: mgmt.v1alpha1.ClientTlsConfig client_tls = 4;
+   */
+  clientTls?: ClientTlsConfig;
+
   constructor(data?: PartialMessage<MssqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -901,6 +908,7 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection_options", kind: "message", T: SqlConnectionOptions },
     { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
+    { no: 4, name: "client_tls", kind: "message", T: ClientTlsConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlConnectionConfig {
@@ -1232,6 +1240,14 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
    */
   clientKey?: string;
 
+  /**
+   * Provide the expected server name. Depending on the driver or encryption mode, this may be required
+   * In order to fully validate the server certificate.
+   *
+   * @generated from field: optional string server_name = 4;
+   */
+  serverName?: string;
+
   constructor(data?: PartialMessage<ClientTlsConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1243,6 +1259,7 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
     { no: 1, name: "root_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 2, name: "client_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "client_key", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "server_name", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClientTlsConfig {
@@ -1721,6 +1738,13 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
    */
   connectionOptions?: SqlConnectionOptions;
 
+  /**
+   * Provide client-side TLS Certificates
+   *
+   * @generated from field: mgmt.v1alpha1.ClientTlsConfig client_tls = 5;
+   */
+  clientTls?: ClientTlsConfig;
+
   constructor(data?: PartialMessage<MysqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1733,6 +1757,7 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
     { no: 2, name: "connection", kind: "message", T: MysqlConnection, oneof: "connection_config" },
     { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
     { no: 4, name: "connection_options", kind: "message", T: SqlConnectionOptions },
+    { no: 5, name: "client_tls", kind: "message", T: ClientTlsConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnectionConfig {
