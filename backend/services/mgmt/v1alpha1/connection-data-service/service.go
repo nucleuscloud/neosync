@@ -12,10 +12,9 @@ import (
 )
 
 type Service struct {
-	cfg                *Config
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
-	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
-	jobService         mgmtv1alpha1connect.JobServiceHandler
+	cfg               *Config
+	connectionService mgmtv1alpha1connect.ConnectionServiceClient
+	jobService        mgmtv1alpha1connect.JobServiceHandler
 
 	awsManager awsmanager.NeosyncAwsManagerClient
 
@@ -33,7 +32,6 @@ type Config struct {
 
 func New(
 	cfg *Config,
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	jobService mgmtv1alpha1connect.JobServiceHandler,
 
@@ -47,16 +45,15 @@ func New(
 	gcpmanager neosync_gcp.ManagerInterface,
 ) *Service {
 	return &Service{
-		cfg:                cfg,
-		useraccountService: useraccountService,
-		connectionService:  connectionService,
-		jobService:         jobService,
-		awsManager:         awsManager,
-		sqlConnector:       sqlConnector,
-		pgquerier:          pgquerier,
-		mysqlquerier:       mysqlquerier,
-		sqlmanager:         sqlmanager,
-		mongoconnector:     mongoconnector,
-		gcpmanager:         gcpmanager,
+		cfg:               cfg,
+		connectionService: connectionService,
+		jobService:        jobService,
+		awsManager:        awsManager,
+		sqlConnector:      sqlConnector,
+		pgquerier:         pgquerier,
+		mysqlquerier:      mysqlquerier,
+		sqlmanager:        sqlmanager,
+		mongoconnector:    mongoconnector,
+		gcpmanager:        gcpmanager,
 	}
 }

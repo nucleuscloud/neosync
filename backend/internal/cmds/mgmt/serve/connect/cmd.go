@@ -45,6 +45,8 @@ import (
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac/enforcer"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
@@ -68,8 +70,6 @@ import (
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
-	"github.com/nucleuscloud/neosync/internal/ee/rbac"
-	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
@@ -619,7 +619,6 @@ func serve(ctx context.Context) error {
 	gcpmanager := neosync_gcp.NewManager()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
-		useraccountService,
 		connectionService,
 		jobService,
 		awsManager,
