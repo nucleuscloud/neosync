@@ -335,10 +335,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
-	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations
-	if skip := b.isNotForeignKeySafeSubsetMap[tableKey]; skip {
-		skipForeignKeyViolations = true
-	}
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || b.isNotForeignKeySafeSubsetMap[tableKey]
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
