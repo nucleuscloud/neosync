@@ -37,7 +37,7 @@ type sqlSyncBuilder struct {
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	// merged source and destination schema. with preference given to destination schema
 	mergedSchemaColumnMap        map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
-	isNotForeignKeySafeSubsetMap map[string]bool                                            // schema.table -> true if the query could return rows that violate foreign key constraints
+	isNotForeignKeySafeSubsetMap map[string]map[tabledependency.RunType]bool                // schema.table -> true if the query could return rows that violate foreign key constraints
 }
 
 type SqlSyncOption func(*SqlSyncOptions)
@@ -71,7 +71,7 @@ func NewSqlSyncBuilder(
 		driver:                       databaseDriver,
 		selectQueryBuilder:           selectQueryBuilder,
 		options:                      options,
-		isNotForeignKeySafeSubsetMap: map[string]bool{},
+		isNotForeignKeySafeSubsetMap: map[string]map[tabledependency.RunType]bool{},
 	}
 }
 
@@ -152,11 +152,12 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
+	// build map of table to runType to isNotForeignKeySafeSubset
+	// used in destination config to determine if foreign key violations should be skipped
 	for table, querymap := range tableRunTypeQueryMap {
+		b.isNotForeignKeySafeSubsetMap[table] = make(map[tabledependency.RunType]bool)
 		for runtype, q := range querymap {
-			if runtype == tabledependency.RunTypeInsert {
-				b.isNotForeignKeySafeSubsetMap[table] = q.IsNotForeignKeySafeSubset
-			}
+			b.isNotForeignKeySafeSubsetMap[table][runtype] = q.IsNotForeignKeySafeSubset
 		}
 	}
 
@@ -335,7 +336,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
-	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || b.isNotForeignKeySafeSubsetMap[tableKey]
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || b.isNotForeignKeySafeSubsetMap[tableKey][benthosConfig.RunType]
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
