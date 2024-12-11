@@ -3,7 +3,6 @@ package v1alpha1_jobservice
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
-	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
@@ -20,8 +19,6 @@ type Service struct {
 	temporalmgr clientmanager.Interface
 
 	hookService jobhooks.Interface
-
-	rbacClient *rbac.Rbac
 }
 
 type RunLogType string
