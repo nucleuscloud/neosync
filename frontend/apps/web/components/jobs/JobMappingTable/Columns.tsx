@@ -7,7 +7,7 @@ import {
 } from '@/util/util';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import { SystemTransformer } from '@neosync/sdk';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
 import { DataTableRowActions } from '../NosqlTable/data-table-row-actions';
 import EditCollection from '../NosqlTable/EditCollection';
 import EditDocumentKey from '../NosqlTable/EditDocumentKey';
@@ -49,7 +49,8 @@ export interface NosqlJobMappingRow {
   transformer: JobMappingTransformerForm;
 }
 
-function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   const columnHelper = createColumnHelper<JobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
@@ -176,7 +177,8 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
   const transformerColumn = columnHelper.accessor(
     (row) => {
       if (row.transformer.config.case) {
-        return row.transformer.config.case.toLowerCase();
+        // this needs to be the full transformer object so that memoization works correctly
+        return row.transformer;
       }
       return 'transformer';
     },
@@ -228,6 +230,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
           </div>
         );
       },
+      filterFn: transformerFilterFn,
     }
   );
 
@@ -244,7 +247,24 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, string>[] {
   ];
 }
 
-function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, string>[] {
+function transformerFilterFn(
+  row: Row<JobMappingRow | NosqlJobMappingRow>,
+  columnId: string,
+  filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean {
+  const value = row.getValue<JobMappingTransformerForm | string>(columnId);
+  const loweredFilterValue = filterValue.toLowerCase();
+  if (typeof value === 'string') {
+    return value.includes(loweredFilterValue);
+  }
+  const searchableFields = [value?.config.case].filter(Boolean);
+  return searchableFields.some((field) =>
+    field.toLowerCase().includes(loweredFilterValue)
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
   const columnHelper = createColumnHelper<NosqlJobMappingRow>();
 
   const checkboxColumn = columnHelper.display({
@@ -330,9 +350,10 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, string>[] {
   const transformerColumn = columnHelper.accessor(
     (row) => {
       if (row.transformer.config.case) {
-        return row.transformer.config.case.toLowerCase();
+        // this needs to be the full transformer object so that memoization works correctly
+        return row.transformer;
       }
-      return 'select transformer';
+      return 'transformer';
     },
     {
       id: 'transformer',
@@ -382,6 +403,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, string>[] {
           </div>
         );
       },
+      filterFn: transformerFilterFn,
     }
   );
 

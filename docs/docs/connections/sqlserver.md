@@ -4,7 +4,7 @@ description: Microsoft SQL Server is a proprietary relational database managemen
 id: sqlserver
 hide_title: false
 slug: /connections/sqlserver
-# cSpell:words MSSQL,myuser,mypass,mydbhost,mydatabase,Passw
+# cSpell:words MSSQL,myuser,mypass,mydbhost,mydatabase,Passw,mssqldb
 ---
 
 ## Introduction
@@ -100,6 +100,38 @@ For example, if your database user is `johndoe` and your database host is `test-
 Notice how the username has `@<hostname>` appended to it. Once successfully connected, you should see a window like this:
 
 ![Connecting](/img/sqlconn.png)
+
+### TLS
+
+Neosync has support for Regular TLS (one-way) as well as mTLS (two-way).
+
+This is configured via the `Client TLS Certificates` section on the database configuration page.
+
+If you simply wish to verify the server certificate, only the `Root certificate` is required.
+
+If wishing to have the client present a certificate, you must specify both the `Client key` as well as the `Client certificate`.
+If only one of these is provided, the Neosync will reject the configuration.
+
+The following TLS/SSL modes are available for MSSQL via the `encrypt` query parameter.
+
+> **NB:** Neosync does not automatically add the `encrypt` query parameter if client certificates have been detected. Regardless of this configuration, the `encrypt` parameter is up to the user based on their bespoke configuration and setup.
+
+> **NB:** The current version of the Go driver does _not_ support `encrypt=strict` mode as it has not yet implemented TDS8 yet. [go-mssqldb#87](https://github.com/microsoft/go-mssqldb/issues/87).
+
+```
+strict - Data sent between the client and server is encrypted E2E using `TDS8`
+disable - Data sent between client and server is not encrypted
+false / optional / no / 0 / f - Data sent between client and server si not encrypted beyond the login packet (Default)
+true / mandatory / yes / 1/ t - Data sent between client and server is encrypted
+```
+
+The `server name` _must_ be provided if using `encrypt=true` otherwise the client will not have enough information to fully verify the host and will fail connection. If this isn't desired, set `trustServerCertificate=true` in your query parameters to allow the client to automatically trust the certificate presented by the server.
+
+### Go Mssql Driver
+
+Neosync uses the official `go-mssqldb` driver provided by Microsoft.
+
+You can find DSN format as well as a full list of supported query parameters by visiting their [Readme](https://github.com/microsoft/go-mssqldb/?tab=readme-ov-file#connection-parameters-and-dsn).
 
 ## Permissions
 
