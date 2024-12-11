@@ -5,6 +5,7 @@ import (
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 )
 
 // Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
@@ -20,13 +21,6 @@ type BenthosRedisConfig struct {
 	Column string
 }
 
-type SelectQuery struct {
-	Query string
-
-	// If true, this query could return rows that violate foreign key constraints
-	IsNotForeignKeySafeSubset bool
-}
-
 // querybuilder wrapper to avoid cgo in the cli
 type SelectQueryMapBuilder interface {
 	BuildSelectQueryMap(
@@ -34,7 +28,7 @@ type SelectQueryMapBuilder interface {
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[tabledependency.RunType]*SelectQuery, error)
+	) (map[string]map[tabledependency.RunType]*querybuilder.SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {

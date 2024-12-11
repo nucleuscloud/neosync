@@ -16,9 +16,9 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -184,7 +184,7 @@ func buildBenthosSqlSourceConfigResponses(
 	groupedTableMapping map[string]*tableMapping,
 	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
-	tableRunTypeQueryMap map[string]map[tabledependency.RunType]*benthosbuilder_shared.SelectQuery,
+	tableRunTypeQueryMap map[string]map[tabledependency.RunType]*querybuilder.SelectQuery,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,

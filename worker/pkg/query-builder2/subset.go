@@ -5,7 +5,6 @@ import (
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 )
 
 // returns map of schema.table -> select query
@@ -14,7 +13,7 @@ func BuildSelectQueryMap(
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]map[tabledependency.RunType]*benthosbuilder_shared.SelectQuery, error) {
+) (map[string]map[tabledependency.RunType]*SelectQuery, error) {
 	tableDependencies := map[string]*TableConstraints{}
 	for _, rc := range runConfigs {
 		if rc.RunType() != tabledependency.RunTypeInsert {
@@ -57,17 +56,17 @@ func BuildSelectQueryMap(
 		qb.AddWhereCondition(schema, table, qualifiedWhereCaluse)
 	}
 
-	querymap := map[string]map[tabledependency.RunType]*benthosbuilder_shared.SelectQuery{}
+	querymap := map[string]map[tabledependency.RunType]*SelectQuery{}
 	for _, cfg := range runConfigs {
 		if _, ok := querymap[cfg.Table()]; !ok {
-			querymap[cfg.Table()] = map[tabledependency.RunType]*benthosbuilder_shared.SelectQuery{}
+			querymap[cfg.Table()] = map[tabledependency.RunType]*SelectQuery{}
 		}
 		schema, table := splitTable(cfg.Table())
 		query, _, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
-		querymap[cfg.Table()][cfg.RunType()] = &benthosbuilder_shared.SelectQuery{
+		querymap[cfg.Table()][cfg.RunType()] = &SelectQuery{
 			Query:                     query,
 			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
 		}
