@@ -36,7 +36,7 @@ CREATE TABLE mssqltest.skills (
 
 CREATE TABLE mssqltest.user_skills (
     user_skill_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT,
+    user_id INT NOT NULL,
     skill_id INT,
     proficiency_level INT CHECK (proficiency_level BETWEEN 1 AND 5)
 );
@@ -45,7 +45,7 @@ CREATE TABLE mssqltest.comments (
     comment_id INT IDENTITY(1,1) PRIMARY KEY,
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
-    user_id INT,
+    user_id INT NOT NULL,
     task_id INT,
     initiative_id INT,
     parent_comment_id INT
@@ -55,8 +55,8 @@ CREATE TABLE mssqltest.attachments (
     attachment_id INT IDENTITY(1,1) PRIMARY KEY,
     file_name VARCHAR(255) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
-    uploaded_by INT,
-    task_id INT,
+    uploaded_by INT NOT NULL,
+    task_id INT NOT NULL,
     initiative_id INT,
     comment_id INT
 );
@@ -175,7 +175,8 @@ INSERT INTO mssqltest.comments (comment_id, content, user_id, task_id, initiativ
 (17, 'Smart contracts pass initial tests', 9, 9, 9, NULL),
 (18, 'Fantastic! We should schedule a security audit next.', 1, 9, 9, 17),
 (19, 'Having issues with sensor compatibility', 10, 10, 10, NULL),
-(20, 'I can help troubleshoot. Let''s set up a call.', 2, 10, 10, 19);
+(20, 'I can help troubleshoot. Let''s set up a call.', 2, 10, 10, 19),
+(21, 'Found bots!', 5, NULL, NULL, NULL);
 SET IDENTITY_INSERT mssqltest.comments OFF;
 
 

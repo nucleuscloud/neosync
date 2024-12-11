@@ -16,6 +16,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -35,7 +36,8 @@ type sqlSyncBuilder struct {
 	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	// merged source and destination schema. with preference given to destination schema
-	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	mergedSchemaColumnMap        map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	isNotForeignKeySafeSubsetMap map[string]bool                                            // schema.table -> true if the query could return rows that violate foreign key constraints
 }
 
 type SqlSyncOption func(*SqlSyncOptions)
@@ -63,12 +65,13 @@ func NewSqlSyncBuilder(
 		opt(options)
 	}
 	return &sqlSyncBuilder{
-		transformerclient:  transformerclient,
-		sqlmanagerclient:   sqlmanagerclient,
-		redisConfig:        redisConfig,
-		driver:             databaseDriver,
-		selectQueryBuilder: selectQueryBuilder,
-		options:            options,
+		transformerclient:            transformerclient,
+		sqlmanagerclient:             sqlmanagerclient,
+		redisConfig:                  redisConfig,
+		driver:                       databaseDriver,
+		selectQueryBuilder:           selectQueryBuilder,
+		options:                      options,
+		isNotForeignKeySafeSubsetMap: map[string]bool{},
 	}
 }
 
@@ -140,12 +143,21 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, err
 	}
+
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
 	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
+	}
+
+	for table, querymap := range tableRunTypeQueryMap {
+		for runtype, q := range querymap {
+			if runtype == tabledependency.RunTypeInsert {
+				b.isNotForeignKeySafeSubsetMap[table] = q.IsNotForeignKeySafeSubset
+			}
+		}
 	}
 
 	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.WorkflowId, b.redisConfig, primaryKeyToForeignKeysMap)
@@ -172,7 +184,7 @@ func buildBenthosSqlSourceConfigResponses(
 	groupedTableMapping map[string]*tableMapping,
 	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
-	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
+	tableRunTypeQueryMap map[string]map[tabledependency.RunType]*benthosbuilder_shared.SelectQuery,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
@@ -201,7 +213,7 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							ConnectionId: dsnConnectionId,
 
-							Query: query,
+							Query: query.Query,
 						},
 					},
 				},
@@ -322,6 +334,12 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
+	// skip foreign key violations if the query could return rows that violate foreign key constraints
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations
+	if skip := b.isNotForeignKeySafeSubsetMap[tableKey]; skip {
+		skipForeignKeyViolations = true
+	}
+
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		args := benthosConfig.Columns
@@ -335,7 +353,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
-						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						SkipForeignKeyViolations: skipForeignKeyViolations,
 						MaxInFlight:              int(destOpts.MaxInFlight),
 						WhereColumns:             benthosConfig.PrimaryKeys,
 						ArgsMapping:              buildPlainInsertArgs(args),
@@ -419,7 +437,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						ColumnsDataTypes:         columnTypes,
 						ColumnDefaultProperties:  columnDefaultProperties,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
-						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						SkipForeignKeyViolations: skipForeignKeyViolations,
 						RawInsertMode:            b.options.rawInsertMode,
 						TruncateOnRetry:          destOpts.Truncate,
 						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),

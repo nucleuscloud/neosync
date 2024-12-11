@@ -20,6 +20,13 @@ type BenthosRedisConfig struct {
 	Column string
 }
 
+type SelectQuery struct {
+	Query string
+
+	// If true, this query could return rows that violate foreign key constraints
+	IsNotForeignKeySafeSubset bool
+}
+
 // querybuilder wrapper to avoid cgo in the cli
 type SelectQueryMapBuilder interface {
 	BuildSelectQueryMap(
@@ -27,7 +34,7 @@ type SelectQueryMapBuilder interface {
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[tabledependency.RunType]string, error)
+	) (map[string]map[tabledependency.RunType]*SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {
