@@ -14,6 +14,7 @@ import (
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -88,8 +89,8 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			"name": &mgmtv1alpha1.JobMappingTransformer{},
 		},
 	}
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
+	queryMap := map[string]map[tabledependency.RunType]*querybuilder.SelectQuery{
+		"public.users": {tabledependency.RunTypeInsert: &querybuilder.SelectQuery{Query: ""}},
 	}
 	runconfigs := []*tabledependency.RunConfig{
 		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
@@ -185,8 +186,8 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
 	}
 
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
+	queryMap := map[string]map[tabledependency.RunType]*querybuilder.SelectQuery{
+		"public.users": {tabledependency.RunTypeInsert: &querybuilder.SelectQuery{Query: ""}},
 	}
 	logger := testutil.GetTestLogger(t)
 	connectionId := uuid.NewString()

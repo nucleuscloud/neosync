@@ -486,7 +486,7 @@ CREATE TABLE skills (
 
 CREATE TABLE user_skills (
     user_skill_id SERIAL PRIMARY KEY,
-    user_id INTEGER,
+    user_id INTEGER NOT NULL,
     skill_id INTEGER,
     proficiency_level INTEGER CHECK (proficiency_level BETWEEN 1 AND 5)
 );
@@ -495,7 +495,7 @@ CREATE TABLE comments (
     comment_id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id INTEGER,
+    user_id INTEGER NOT NULL,
     task_id INTEGER,
     initiative_id INTEGER,
     parent_comment_id INTEGER
@@ -505,8 +505,8 @@ CREATE TABLE attachments (
     attachment_id SERIAL PRIMARY KEY,
     file_name VARCHAR(255) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
-    uploaded_by INTEGER,
-    task_id INTEGER,
+    uploaded_by INTEGER NOT NULL,
+    task_id INTEGER NOT NULL,
     initiative_id INTEGER,
     comment_id INTEGER
 );
@@ -621,7 +621,8 @@ INSERT INTO comments (comment_id, content, user_id, task_id, initiative_id, pare
 (17, 'Smart contracts pass initial tests', 9, 9, 9, NULL),
 (18, 'Fantastic! We should schedule a security audit next.', 1, 9, 9, 17),
 (19, 'Having issues with sensor compatibility', 10, 10, 10, NULL),
-(20, 'I can help troubleshoot. Lets set up a call.', 2, 10, 10, 19);
+(20, 'I can help troubleshoot. Lets set up a call.', 2, 10, 10, 19),
+(21, 'Found bots!', 5, NULL, NULL, NULL);
 
 INSERT INTO attachments (file_name, file_path, uploaded_by, task_id, initiative_id, comment_id) VALUES
 ('mockup_v1.png', '/files/mockups/mockup_v1.png', 3, 1, 1, 2),

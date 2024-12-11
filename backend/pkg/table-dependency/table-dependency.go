@@ -33,14 +33,15 @@ type DependsOn struct {
 }
 
 type ForeignKey struct {
-	Columns []string
-	// ReferenceSchema  string need to split out schema and table
+	Columns     []string
+	NotNullable []bool
+	// ReferenceSchema  string  TODO: need to split out schema and table
 	ReferenceTable   string
 	ReferenceColumns []string
 }
 
 type RunConfig struct {
-	table            string // schema.table
+	table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
 	selectColumns    []string
 	insertColumns    []string
 	dependsOn        []*DependsOn // this should be a list of config names like "table.insert", rename to dependsOnConfigs
@@ -210,6 +211,7 @@ func GetRunConfigs(
 				// by checking insert columns, we can skip foreign keys that are not needed for the insert
 				if slices.Contains(config.insertColumns, col) {
 					foreignKey.Columns = append(foreignKey.Columns, col)
+					foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
 					foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
 				}
 			}

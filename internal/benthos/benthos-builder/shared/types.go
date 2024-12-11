@@ -5,6 +5,7 @@ import (
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 )
 
 // Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
@@ -27,7 +28,7 @@ type SelectQueryMapBuilder interface {
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[tabledependency.RunType]string, error)
+	) (map[string]map[tabledependency.RunType]*querybuilder.SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {
