@@ -6,6 +6,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 )
 
 type Service struct {
@@ -18,6 +19,8 @@ type Service struct {
 	temporalmgr clientmanager.Interface
 
 	hookService jobhooks.Interface
+
+	rbacClient *rbac.Rbac
 }
 
 type RunLogType string
@@ -62,6 +65,7 @@ func New(
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
 	jobhookService jobhooks.Interface,
+	rbacClient *rbac.Rbac,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
@@ -71,5 +75,6 @@ func New(
 		useraccountService: useraccountService,
 		sqlmanager:         sqlmanager,
 		hookService:        jobhookService,
+		rbacClient:         rbacClient,
 	}
 }

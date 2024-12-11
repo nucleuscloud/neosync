@@ -20,6 +20,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/loki"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"go.temporal.io/api/enums/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
@@ -38,6 +39,10 @@ func (s *Service) GetJobRuns(
 	req *connect.Request[mgmtv1alpha1.GetJobRunsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobRunsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	var accountId string
 	jobIds := []string{}
@@ -51,6 +56,20 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
+
+		hasPerm, err := s.rbacClient.CanEditJob(
+			ctx,
+			rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+			rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+			rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+		)
+		if err != nil {
+			return nil, err
+		}
+		if !hasPerm {
+			return nil, nucleuserrors.NewForbidden("user does not have permission to view job runs")
+		}
+
 		accountId = neosyncdb.UUIDString(job.AccountID)
 		jobIds = append(jobIds, id.JobId)
 	case *mgmtv1alpha1.GetJobRunsRequest_AccountId:
@@ -58,6 +77,17 @@ func (s *Service) GetJobRuns(
 		accountPgUuid, err := neosyncdb.ToUuid(accountId)
 		if err != nil {
 			return nil, err
+		}
+		hasPerm, err := s.rbacClient.CanViewJobs(
+			ctx,
+			rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+			rbac.NewAccountIdEntity(accountId),
+		)
+		if err != nil {
+			return nil, err
+		}
+		if !hasPerm {
+			return nil, nucleuserrors.NewForbidden("user does not have permission to view job runs")
 		}
 		jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, accountPgUuid)
 		if err != nil {
@@ -71,7 +101,7 @@ func (s *Service) GetJobRuns(
 		return nil, fmt.Errorf("must provide jobId or accountId")
 	}
 
-	_, err := s.verifyUserInAccount(ctx, accountId)
+	_, err = s.verifyUserInAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +127,36 @@ func (s *Service) GetJobRun(
 ) (*connect.Response[mgmtv1alpha1.GetJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := s.temporalmgr.DescribeWorklowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
 	if err != nil {
 		return nil, err
 	}
 
 	dto := dtomaps.ToJobRunDto(logger, res)
+
+	hasPerm, err := s.rbacClient.CanViewJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+		rbac.NewJobEntity(dto.GetJobId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job run")
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunResponse{
 		JobRun: dto,
 	}), nil
@@ -114,6 +168,18 @@ func (s *Service) GetJobRunEvents(
 ) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.GetAccountId(), "jobRunId", req.Msg.GetJobRunId())
+
+	_, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	// todo: need a way to properly validate that the user has permission to view the job run
+
 	isRunComplete := false
 	activityOrder := []int64{}
 	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
@@ -228,8 +294,8 @@ func (s *Service) CreateJobRun(
 	req *connect.Request[mgmtv1alpha1.CreateJobRunRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.JobId)
-	jobUuid, err := neosyncdb.ToUuid(req.Msg.JobId)
+	logger = logger.With("jobId", req.Msg.GetJobId())
+	jobUuid, err := neosyncdb.ToUuid(req.Msg.GetJobId())
 	if err != nil {
 		return nil, err
 	}
@@ -238,6 +304,23 @@ func (s *Service) CreateJobRun(
 		return nil, err
 	}
 	accountId := neosyncdb.UUIDString(job.AccountID)
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	hasPerm, err := s.rbacClient.CanExecuteJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(accountId),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to execute job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
@@ -267,7 +350,15 @@ func (s *Service) CancelJobRun(
 		"accountId", req.Msg.GetAccountId(),
 		"jobRunId", req.Msg.GetJobRunId(),
 	)
-	err := s.temporalmgr.CancelWorkflow(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+
+	// todo: come up with way to properly validate that the user has permission to cancel the job run
+
+	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.temporalmgr.CancelWorkflow(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to cancel job run: %w", err)
 	}
@@ -283,7 +374,12 @@ func (s *Service) TerminateJobRun(
 		"accountId", req.Msg.GetAccountId(),
 		"jobRunId", req.Msg.GetJobRunId(),
 	)
-	err := s.temporalmgr.TerminateWorkflow(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	// todo: come up with way to properly validate that the user has permission to terminate the job run
+	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	err = s.temporalmgr.TerminateWorkflow(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to terminate job run: %w", err)
 	}
@@ -299,7 +395,12 @@ func (s *Service) DeleteJobRun(
 		"accountId", req.Msg.GetAccountId(),
 		"jobRunId", req.Msg.GetJobRunId(),
 	)
-	err := s.temporalmgr.DeleteWorkflowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	// todo: come up with way to properly validate that the user has permission to delete the job run
+	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	err = s.temporalmgr.DeleteWorkflowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to delete job run: %w", err)
 	}
@@ -318,10 +419,16 @@ func (s *Service) GetJobRunLogsStream(
 	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobRunId", req.Msg.JobRunId)
+	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
 
 	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
 		return nucleuserrors.NewNotImplemented("job run logs streaming is not enabled. please configure or contact system administrator to enable logs.")
+	}
+
+	// todo: come up with way to properly validate that the user has permission
+	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return err
 	}
 
 	switch *s.cfg.RunLogConfig.RunLogType {

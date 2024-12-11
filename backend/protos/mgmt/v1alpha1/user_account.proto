@@ -308,6 +308,30 @@ message SetBillingMeterEventRequest {
 
 message SetBillingMeterEventResponse {}
 
+message SetUserRoleRequest {
+  // The account id to apply this role to
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The user that this will be applied to
+  string user_id = 2 [(buf.validate.field).string.uuid = true];
+  // The role that this user will obtain
+  AccountRole role = 3;
+}
+
+enum AccountRole {
+  // Default value, this should not be used, but will default to ACCOUNT_ROLE_JOB_VIEWER
+  ACCOUNT_ROLE_UNSPECIFIED = 0;
+  // Admin, can do anything in the account.
+  ACCOUNT_ROLE_ADMIN = 1;
+  // Can view, edit jobs and connections
+  ACCOUNT_ROLE_JOB_DEVELOPER = 2;
+  // Can view
+  ACCOUNT_ROLE_JOB_VIEWER = 3;
+  // Can view and execute
+  ACCOUNT_ROLE_JOB_EXECUTOR = 4;
+}
+
+message SetUserRoleResponse {}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -363,4 +387,7 @@ service UserAccountService {
 
   // Sends a new metered event to the billing system
   rpc SetBillingMeterEvent(SetBillingMeterEventRequest) returns (SetBillingMeterEventResponse) {}
+
+  // Sets the users role
+  rpc SetUserRole(SetUserRoleRequest) returns (SetUserRoleResponse) {}
 }

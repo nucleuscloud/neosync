@@ -15691,6 +15691,39 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "AccountRole",
+          "longName": "AccountRole",
+          "fullName": "mgmt.v1alpha1.AccountRole",
+          "description": "",
+          "values": [
+            {
+              "name": "ACCOUNT_ROLE_UNSPECIFIED",
+              "number": "0",
+              "description": "Default value, this should not be used, but will default to ACCOUNT_ROLE_JOB_VIEWER"
+            },
+            {
+              "name": "ACCOUNT_ROLE_ADMIN",
+              "number": "1",
+              "description": "Admin, can do anything in the account."
+            },
+            {
+              "name": "ACCOUNT_ROLE_JOB_DEVELOPER",
+              "number": "2",
+              "description": "Can view, edit jobs and connections"
+            },
+            {
+              "name": "ACCOUNT_ROLE_JOB_VIEWER",
+              "number": "3",
+              "description": "Can view"
+            },
+            {
+              "name": "ACCOUNT_ROLE_JOB_EXECUTOR",
+              "number": "4",
+              "description": "Can view and execute"
+            }
+          ]
+        },
+        {
           "name": "AccountStatus",
           "longName": "AccountStatus",
           "fullName": "mgmt.v1alpha1.AccountStatus",
@@ -17441,6 +17474,65 @@
           ]
         },
         {
+          "name": "SetUserRoleRequest",
+          "longName": "SetUserRoleRequest",
+          "fullName": "mgmt.v1alpha1.SetUserRoleRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account id to apply this role to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_id",
+              "description": "The user that this will be applied to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "role",
+              "description": "The role that this user will obtain",
+              "label": "",
+              "type": "AccountRole",
+              "longType": "AccountRole",
+              "fullType": "mgmt.v1alpha1.AccountRole",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetUserRoleResponse",
+          "longName": "SetUserRoleResponse",
+          "fullName": "mgmt.v1alpha1.SetUserRoleResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "UserAccount",
           "longName": "UserAccount",
           "fullName": "mgmt.v1alpha1.UserAccount",
@@ -17806,6 +17898,18 @@
               "responseType": "SetBillingMeterEventResponse",
               "responseLongType": "SetBillingMeterEventResponse",
               "responseFullType": "mgmt.v1alpha1.SetBillingMeterEventResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetUserRole",
+              "description": "Sets the users role",
+              "requestType": "SetUserRoleRequest",
+              "requestLongType": "SetUserRoleRequest",
+              "requestFullType": "mgmt.v1alpha1.SetUserRoleRequest",
+              "requestStreaming": false,
+              "responseType": "SetUserRoleResponse",
+              "responseLongType": "SetUserRoleResponse",
+              "responseFullType": "mgmt.v1alpha1.SetUserRoleResponse",
               "responseStreaming": false
             }
           ]

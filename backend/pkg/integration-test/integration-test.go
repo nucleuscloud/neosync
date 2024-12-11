@@ -21,6 +21,7 @@ import (
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -175,8 +176,10 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		nil,
+		nil, // billing client
+		nil, // rbac client
 	)
+	unauthdUserClient := userdata.NewClient(unauthdUserService)
 
 	authdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
@@ -184,15 +187,18 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		nil,
+		nil, // billing client
+		nil, // rbac client
 	)
 
 	sqlmanagerclient := NewTestSqlManagerClient()
 
+	authdUserDataClient := userdata.NewClient(authdUserService)
+
 	authdConnectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		authdUserService,
+		authdUserDataClient,
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
@@ -206,7 +212,9 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
 		s.Mocks.Billingclient,
+		nil, // todo: rbac client
 	)
+	neoCloudUserDataClient := userdata.NewClient(neoCloudAuthdUserService)
 	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(
 		&v1alpha_anonymizationservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true, IsPresidioEnabled: false},
 		nil,
@@ -219,7 +227,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	neoCloudConnectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		neoCloudAuthdUserService,
+		neoCloudUserDataClient,
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
@@ -238,6 +246,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		neoCloudAuthdUserService,
 		sqlmanagerclient,
 		neoCloudJobHookService,
+		nil, // todo: rbac client
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
@@ -253,7 +262,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	unauthdConnectionsService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
-		unauthdUserService,
+		unauthdUserClient,
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 		sqlmanagerclient,
@@ -273,6 +282,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		unauthdUserService,
 		sqlmanagerclient,
 		jobhookService,
+		nil, // todo: rbac client
 	)
 
 	unauthdConnectionDataService := v1alpha1_connectiondataservice.New(

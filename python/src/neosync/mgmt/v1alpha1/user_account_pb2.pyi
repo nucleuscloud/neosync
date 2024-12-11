@@ -31,6 +31,14 @@ class AccountStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: _ClassVar[AccountStatus]
+
+class AccountRole(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACCOUNT_ROLE_UNSPECIFIED: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_ADMIN: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_DEVELOPER: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_VIEWER: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_EXECUTOR: _ClassVar[AccountRole]
 USER_ACCOUNT_TYPE_UNSPECIFIED: UserAccountType
 USER_ACCOUNT_TYPE_PERSONAL: UserAccountType
 USER_ACCOUNT_TYPE_TEAM: UserAccountType
@@ -46,6 +54,11 @@ ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: AccountStatus
+ACCOUNT_ROLE_UNSPECIFIED: AccountRole
+ACCOUNT_ROLE_ADMIN: AccountRole
+ACCOUNT_ROLE_JOB_DEVELOPER: AccountRole
+ACCOUNT_ROLE_JOB_VIEWER: AccountRole
+ACCOUNT_ROLE_JOB_EXECUTOR: AccountRole
 
 class GetUserRequest(_message.Message):
     __slots__ = ()
@@ -436,5 +449,19 @@ class SetBillingMeterEventRequest(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., event_name: _Optional[str] = ..., value: _Optional[str] = ..., event_id: _Optional[str] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class SetBillingMeterEventResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class SetUserRoleRequest(_message.Message):
+    __slots__ = ("account_id", "user_id", "role")
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    user_id: str
+    role: AccountRole
+    def __init__(self, account_id: _Optional[str] = ..., user_id: _Optional[str] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
+
+class SetUserRoleResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

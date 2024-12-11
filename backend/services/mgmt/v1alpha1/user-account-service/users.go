@@ -21,6 +21,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/stripe/stripe-go/v79"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -636,6 +637,56 @@ func (s *Service) AcceptTeamAccountInvite(
 	return connect.NewResponse(&mgmtv1alpha1.AcceptTeamAccountInviteResponse{
 		Account: dtomaps.ToUserAccount(&account),
 	}), nil
+}
+
+func (s *Service) SetUserRole(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetUserRoleRequest],
+) (*connect.Response[mgmtv1alpha1.SetUserRoleResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	requestingUserUuid, err := neosyncdb.ToUuid(req.Msg.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+		AccountId: *accountUuid,
+		UserId:    requestingUserUuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		return nil, nucleuserrors.NewBadRequest("provided user id is not in account")
+	}
+
+	hasPerm, err := s.rbacClient.CanSetAccountRole(
+		ctx,
+		rbac.NewUserEntity(user.Msg.GetUserId()),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to set account roles")
+	}
+
+	err = s.rbacClient.SetAccountRole(ctx, rbac.NewUserEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(req.Msg.GetAccountId()), req.Msg.GetRole())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.SetUserRoleResponse{}), nil
 }
 
 func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) error {

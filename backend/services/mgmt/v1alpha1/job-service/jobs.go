@@ -21,6 +21,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -36,6 +37,19 @@ func (s *Service) GetJobs(
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJobs(ctx, rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)), rbac.NewAccountIdEntity(req.Msg.GetAccountId()))
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permissions to view jobs for the provided account")
+	}
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
 	if err != nil {
@@ -99,7 +113,12 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-	jobUuid, err := neosyncdb.ToUuid(req.Msg.Id)
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	jobUuid, err := neosyncdb.ToUuid(req.Msg.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +151,19 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	hasPerm, err := s.rbacClient.CanViewJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
@@ -159,6 +191,24 @@ func (s *Service) GetJobStatus(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
@@ -179,6 +229,23 @@ func (s *Service) GetJobStatuses(
 	req *connect.Request[mgmtv1alpha1.GetJobStatusesRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobStatusesResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJobs(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job")
+	}
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
 	if err != nil {
@@ -229,6 +296,7 @@ func (s *Service) GetJobRecentRuns(
 ) (*connect.Response[mgmtv1alpha1.GetJobRecentRunsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.JobId)
+
 	jobUuid, err := neosyncdb.ToUuid(req.Msg.JobId)
 	if err != nil {
 		return nil, err
@@ -238,6 +306,24 @@ func (s *Service) GetJobRecentRuns(
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -270,6 +356,24 @@ func (s *Service) GetJobNextRuns(
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to view job")
 	}
 
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
@@ -306,6 +410,18 @@ func (s *Service) CreateJob(
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanCreateJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to create job")
 	}
 
 	connectionUuids := []pgtype.UUID{}
@@ -552,6 +668,24 @@ func (s *Service) DeleteJob(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanDeleteJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to delete job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
@@ -593,15 +727,28 @@ func (s *Service) CreateJobDestinationConnections(
 	if err != nil {
 		return nil, err
 	}
-	accountUuid, err := s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
-	if err != nil {
-		return nil, err
-	}
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
 	logger = logger.With("userId", userUuid)
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(job.Msg.GetJob().GetAccountId()),
+		rbac.NewJobEntity(job.Msg.GetJob().GetId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+	accountUuid, err := s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
 
 	connectionIds := []string{}
 	connectionUuids := []pgtype.UUID{}
@@ -679,12 +826,26 @@ func (s *Service) UpdateJobSchedule(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
+	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
+	logger = logger.With("userId", userUuid)
 
-	userUuid, err := s.getUserUuid(ctx)
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -764,6 +925,25 @@ func (s *Service) PauseJob(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid)
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
@@ -826,11 +1006,25 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
+	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := s.getUserUuid(ctx)
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -1017,11 +1211,25 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
+	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := s.getUserUuid(ctx)
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -1100,11 +1308,25 @@ func (s *Service) UpdateJobDestinationConnection(
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := s.getUserUuid(ctx)
+	logger = logger.With("userId", userUuid)
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(job.Msg.GetJob().GetAccountId()),
+		rbac.NewJobEntity(job.Msg.GetJob().GetId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -1183,15 +1405,30 @@ func (s *Service) DeleteJobDestinationConnection(
 		return nil, nucleuserrors.NewNotFound("job with that id does not exist")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
-	logger = logger.With("userId", userUuid, "jobId", job.ID)
+	logger = logger.With("userId", neosyncdb.UUIDString(*userUuid))
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(job.AccountID)),
+		rbac.NewJobEntity(neosyncdb.UUIDString(job.ID)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("jobId", neosyncdb.UUIDString(job.ID))
 
 	if err := s.verifyConnectionInAccount(
 		ctx,
@@ -1211,6 +1448,7 @@ func (s *Service) DeleteJobDestinationConnection(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
 }
 
+// todo start here
 func (s *Service) IsJobNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
@@ -1360,6 +1598,25 @@ func (s *Service) SetJobWorkflowOptions(
 	if err != nil {
 		return nil, err
 	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", neosyncdb.UUIDString(*userUuid))
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(job.Msg.GetJob().GetAccountId()),
+		rbac.NewJobEntity(job.Msg.GetJob().GetId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
 	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
@@ -1374,10 +1631,7 @@ func (s *Service) SetJobWorkflowOptions(
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
+
 	// update temporal scheduled job
 	if err := s.db.WithTx(ctx, nil, func(dbtx neosyncdb.BaseDBTX) error {
 		_, err = s.db.Q.SetJobWorkflowOptions(ctx, dbtx, db_queries.SetJobWorkflowOptionsParams{
@@ -1443,6 +1697,23 @@ func (s *Service) SetJobSyncOptions(
 	if err != nil {
 		return nil, err
 	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanEditJob(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(job.Msg.GetJob().GetAccountId()),
+		rbac.NewJobEntity(job.Msg.GetJob().GetId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
 	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
@@ -1454,10 +1725,6 @@ func (s *Service) SetJobSyncOptions(
 	}
 
 	jobUuid, err := neosyncdb.ToUuid(req.Msg.Id)
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1487,7 +1754,24 @@ func (s *Service) ValidateJobMappings(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.AccountId)
 
-	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPerm, err := s.rbacClient.CanViewJobs(
+		ctx,
+		rbac.NewUserEntity(neosyncdb.UUIDString(*userUuid)),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPerm {
+		return nil, nucleuserrors.NewForbidden("user does not have permission to edit job")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}

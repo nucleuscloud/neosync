@@ -48,6 +48,7 @@ import (
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -462,7 +463,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -499,10 +500,13 @@ func serve(ctx context.Context) error {
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 	mongoconnector := mongoconnect.NewConnector()
+
+	userdataclient := userdata.NewClient(useraccountService, rbacclient)
+
 	connectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		db,
-		useraccountService,
+		userdataclient,
 		mongoconnector,
 		awsManager,
 		sqlmanager,
@@ -547,6 +551,7 @@ func serve(ctx context.Context) error {
 		useraccountService,
 		sqlmanager,
 		jobhookService,
+		rbacclient,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
