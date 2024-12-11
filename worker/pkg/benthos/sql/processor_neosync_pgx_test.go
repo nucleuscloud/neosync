@@ -107,10 +107,10 @@ func Test_isColumnInList(t *testing.T) {
 	})
 }
 
-func Test_processPgArray(t *testing.T) {
+func Test_processPgArrayFromJson(t *testing.T) {
 	t.Run("json array", func(t *testing.T) {
 		input := []byte(`[{"tag":"cool"},{"tag":"awesome"}]`)
-		got, err := processPgArray(input, "json[]")
+		got, err := processPgArrayFromJson(input, "json[]")
 		require.NoError(t, err)
 
 		// Convert back to string for comparison since pq.Array isn't easily comparable
@@ -125,7 +125,7 @@ func Test_processPgArray(t *testing.T) {
 
 	t.Run("invalid json", func(t *testing.T) {
 		input := []byte(`[invalid json]`)
-		_, err := processPgArray(input, "json[]")
+		_, err := processPgArrayFromJson(input, "json[]")
 		require.Error(t, err)
 	})
 }
