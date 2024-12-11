@@ -49,6 +49,7 @@ func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
 
 type ForeignKey struct {
 	Columns          []string
+	NotNullable      []bool
 	ReferenceSchema  string
 	ReferenceTable   string
 	ReferenceColumns []string
@@ -121,27 +122,27 @@ func (qb *QueryBuilder) clearPathCache() {
 	qb.pathCache = make(set)
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, err error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, isNotForeignKeySafeSubset bool, err error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, fmt.Errorf("table not found: %s", key)
+		return "", nil, false, fmt.Errorf("table not found: %s", key)
 	}
-	query, err := qb.buildFlattenedQuery(table)
+	query, notFkSafe, err := qb.buildFlattenedQuery(table)
 	if query == nil {
-		return "", nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+		return "", nil, false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	sql, args, err := query.ToSQL()
 	if err != nil {
-		return "", nil, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+		return "", nil, false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
-	return sql, args, nil
+	return sql, args, notFkSafe, nil
 }
 
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectDataset, error) {
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.Name
 	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)
@@ -162,16 +163,17 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectD
 	}
 
 	// Flatten and add necessary joins
+	var notFkSafe bool
 	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
 		joinedTables := make(map[string]bool)
 		var err error
-		query, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "")
+		query, notFkSafe, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", false)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	}
 
-	return query, nil
+	return query, notFkSafe, nil
 }
 
 func (qb *QueryBuilder) addFlattenedJoins(
@@ -181,15 +183,17 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	tableAlias string,
 	joinedTables map[string]bool,
 	prefix string,
-) (*goqu.SelectDataset, error) {
+	shouldLeftJoin bool,
+) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	tableKey := qb.getTableKey(table.Schema, table.Name)
 	rootTableKey := qb.getTableKey(rootTable.Schema, rootTable.Name)
 
 	if joinedTables[tableKey] {
-		return query, nil // Avoid circular dependencies
+		return query, false, nil // Avoid circular dependencies
 	}
 	joinedTables[tableKey] = true
 
+	var notFkSafe bool
 	for _, fk := range table.ForeignKeys {
 		// Skip self-referencing foreign keys
 		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
@@ -211,36 +215,67 @@ func (qb *QueryBuilder) addFlattenedJoins(
 		}
 
 		aliasName := qb.generateUniqueAlias(prefix, refTable.Name, joinedTables)
-		joinConditions := make([]exp.Expression, len(fk.Columns))
+		joinConditions := []exp.Expression{}
+		hasNullableFk := shouldLeftJoin
 		for i, col := range fk.Columns {
-			joinConditions[i] = goqu.T(aliasName).Col(fk.ReferenceColumns[i]).Eq(goqu.T(tableAlias).Col(col))
+			notNullable := fk.NotNullable[i]
+			if !notNullable {
+				hasNullableFk = true
+			}
+			joinConditions = append(joinConditions, goqu.T(aliasName).Col(fk.ReferenceColumns[i]).Eq(goqu.T(tableAlias).Col(col)))
+			// when left joining need to have the condition on the join in order to include rows will null foreign keys
+			if shouldLeftJoin {
+				if conditions, ok := qb.whereConditions[refKey]; ok {
+					for _, cond := range conditions {
+						qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
+						if err != nil {
+							return nil, false, err
+						}
+						joinConditions = append(joinConditions, goqu.Literal(qualifiedCondition))
+					}
+				}
+			}
 		}
 
-		query = query.InnerJoin(
-			refTable.GetIdentifierExpression().As(aliasName),
-			goqu.On(joinConditions...),
-		)
+		if hasNullableFk {
+			// use left join when foreign key is nullable
+			query = query.LeftJoin(
+				refTable.GetIdentifierExpression().As(aliasName),
+				goqu.On(joinConditions...),
+			)
+			notFkSafe = true
+		} else {
+			query = query.InnerJoin(
+				refTable.GetIdentifierExpression().As(aliasName),
+				goqu.On(joinConditions...),
+			)
+		}
 
 		// Add WHERE conditions for the joined table
-		if conditions, ok := qb.whereConditions[refKey]; ok {
-			for _, cond := range conditions {
-				qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
-				if err != nil {
-					return nil, err
+		// only add condition to where if not doing a left join
+		if !shouldLeftJoin {
+			if conditions, ok := qb.whereConditions[refKey]; ok {
+				for _, cond := range conditions {
+					qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
+					if err != nil {
+						return nil, false, err
+					}
+					query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 				}
-				query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 			}
 		}
 
 		// Recursively add joins for the referenced table
 		var err error
-		query, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_")
+		var childnotFkSafe bool
+		query, childnotFkSafe, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", hasNullableFk)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
+		notFkSafe = notFkSafe || childnotFkSafe
 	}
 
-	return query, nil
+	return query, notFkSafe, nil
 }
 
 func (qb *QueryBuilder) generateUniqueAlias(prefix, tableName string, joinedTables map[string]bool) string {
