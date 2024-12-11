@@ -3,18 +3,19 @@ package v1alpha1_jobservice
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 )
 
 type Service struct {
-	cfg                *Config
-	db                 *neosyncdb.NeosyncDb
-	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
-	sqlmanager         sql_manager.SqlManagerClient
+	cfg               *Config
+	db                *neosyncdb.NeosyncDb
+	connectionService mgmtv1alpha1connect.ConnectionServiceClient
+	userdataclient    userdata.Interface
+	sqlmanager        sql_manager.SqlManagerClient
 
 	temporalmgr clientmanager.Interface
 
@@ -62,19 +63,17 @@ func New(
 	db *neosyncdb.NeosyncDb,
 	temporalWfManager clientmanager.Interface,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
 	jobhookService jobhooks.Interface,
-	rbacClient *rbac.Rbac,
+	userdataclient userdata.Interface,
 ) *Service {
 	return &Service{
-		cfg:                cfg,
-		db:                 db,
-		temporalmgr:        temporalWfManager,
-		connectionService:  connectionService,
-		useraccountService: useraccountService,
-		sqlmanager:         sqlmanager,
-		hookService:        jobhookService,
-		rbacClient:         rbacClient,
+		cfg:               cfg,
+		db:                db,
+		temporalmgr:       temporalWfManager,
+		connectionService: connectionService,
+		sqlmanager:        sqlmanager,
+		hookService:       jobhookService,
+		userdataclient:    userdataclient,
 	}
 }
