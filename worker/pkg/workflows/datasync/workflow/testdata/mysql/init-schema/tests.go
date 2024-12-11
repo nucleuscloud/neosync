@@ -52,7 +52,6 @@ func getJobmappings() []*mgmtv1alpha1.JobMapping {
 				Table:  jm.Table,
 				Column: jm.Column,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					Config: &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
 					},

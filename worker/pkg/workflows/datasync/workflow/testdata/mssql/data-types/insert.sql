@@ -10,7 +10,7 @@ INSERT INTO alltypes.alldatatypes (
     -- Character strings
     col_char, col_varchar, col_text,
     -- Unicode character strings
-    col_nchar, col_nvarchar, col_ntext,
+    col_nchar, col_nvarchar, col_json, col_ntext,
     -- -- Binary strings
     -- col_binary, col_varbinary, col_image,
     -- Other data types
@@ -52,6 +52,7 @@ VALUES (
     -- Unicode character strings
     N'NCHAR     ', -- NCHAR(10)
     N'NVARCHAR', -- NVARCHAR(50)
+    N'{"key": "value"}', -- JSON
     N'This is an NTEXT column', -- NTEXT
     
     -- -- Binary strings

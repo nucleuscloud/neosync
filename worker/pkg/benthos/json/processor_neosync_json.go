@@ -8,31 +8,31 @@ import (
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
-func sqlToJsonProcessorConfig() *service.ConfigSpec {
+func neosyncToJsonProcessorConfig() *service.ConfigSpec {
 	return service.NewConfigSpec()
 }
 
-func RegisterSqlToJsonProcessor(env *service.Environment) error {
+func RegisterNeosyncToJsonProcessor(env *service.Environment) error {
 	return env.RegisterBatchProcessor(
-		"sql_to_json",
-		sqlToJsonProcessorConfig(),
+		"neosync_to_json",
+		neosyncToJsonProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			proc := newMysqlToJsonProcessor(conf, mgr)
+			proc := newNeosyncToJsonProcessor(conf, mgr)
 			return proc, nil
 		})
 }
 
-type sqlToJsonProcessor struct {
+type neosyncToJsonProcessor struct {
 	logger *service.Logger
 }
 
-func newMysqlToJsonProcessor(_ *service.ParsedConfig, mgr *service.Resources) *sqlToJsonProcessor {
-	return &sqlToJsonProcessor{
+func newNeosyncToJsonProcessor(_ *service.ParsedConfig, mgr *service.Resources) *neosyncToJsonProcessor {
+	return &neosyncToJsonProcessor{
 		logger: mgr.Logger(),
 	}
 }
 
-func (m *sqlToJsonProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (m *neosyncToJsonProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
@@ -51,7 +51,7 @@ func (m *sqlToJsonProcessor) ProcessBatch(ctx context.Context, batch service.Mes
 	return []service.MessageBatch{newBatch}, nil
 }
 
-func (m *sqlToJsonProcessor) Close(context.Context) error {
+func (m *neosyncToJsonProcessor) Close(context.Context) error {
 	return nil
 }
 
@@ -74,6 +74,7 @@ func transform(root any) any {
 		return v.Format(time.DateTime)
 	case []uint8:
 		return string(v)
+	// TODO this should be neosync bit type
 	case *sqlscanners.BitString:
 		return v.String()
 	default:
