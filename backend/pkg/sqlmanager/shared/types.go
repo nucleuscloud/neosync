@@ -174,3 +174,10 @@ type InitSchemaStatements struct {
 	Label      string
 	Statements []string
 }
+
+type SelectQuery struct {
+	Query string
+
+	// If true, this query could return rows that violate foreign key constraints
+	IsNotForeignKeySafeSubset bool
+}
