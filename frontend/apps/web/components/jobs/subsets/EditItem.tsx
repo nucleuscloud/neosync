@@ -273,7 +273,7 @@ export default function EditItem(props: Props): ReactElement {
           )}
           {showValidateButton && (
             <TooltipProvider>
-              <Tooltip>
+              <Tooltip delayDuration={200}>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
@@ -326,25 +326,16 @@ export default function EditItem(props: Props): ReactElement {
           </TooltipProvider>
         </div>
       </div>
-      <div>
-        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-          {!item ? (
-            <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
-              Click the edit button on the table that you want to subset and add
-              a table filter here. For example, country = &apos;US&apos;
-            </div>
-          ) : (
-            <Editor
-              height="60px"
-              width="100%"
-              language="sql"
-              value={constructWhere(item?.where ?? '')}
-              theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
-              onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
-              options={editorOptions}
-            />
-          )}
-        </div>
+      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+        <Editor
+          height="60px"
+          width="100%"
+          language="sql"
+          value={constructWhere(item?.where ?? '')}
+          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+          onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
+          options={editorOptions}
+        />
       </div>
       <ValidateQueryErrorAlert
         validateResp={validateResp}
