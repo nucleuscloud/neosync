@@ -189,10 +189,7 @@ export default function SubsetCard(props: Props): ReactElement {
   return (
     <div>
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-8"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
           {showSubsetOptions(connectionType) && (
             <SubsetOptionsForm maxColNum={2} />
           )}

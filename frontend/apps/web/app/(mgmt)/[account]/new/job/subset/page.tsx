@@ -256,14 +256,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-col gap-8"
+              className="flex flex-col gap-2"
             >
               <div>
                 {showSubsetOptions(connectionType) && (
                   <SubsetOptionsForm maxColNum={2} />
                 )}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col">
                 <div>
                   <SubsetTable
                     data={Object.values(tableRowData)}

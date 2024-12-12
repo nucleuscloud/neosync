@@ -202,29 +202,33 @@ export default function EditItem(props: Props): ReactElement {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col md:flex-row justify-between gap-2 md:gap-0">
         <div className="flex flex-row gap-4">
-          <div
-            className={cn(
-              'flex flex-row gap-2 items-center',
-              showSchema(connectionType) ? undefined : 'hidden'
-            )}
-          >
-            <span className="font-semibold tracking-tight">Schema</span>
-            <Badge
-              className="px-4 py-2 dark:border-gray-700"
-              variant={item?.schema ? 'outline' : 'secondary'}
+          {item?.schema && (
+            <div
+              className={cn(
+                'flex flex-row gap-2 items-center',
+                showSchema(connectionType) ? undefined : 'hidden'
+              )}
             >
-              {item?.schema ?? ''}
-            </Badge>
-          </div>
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Table</span>
-            <Badge
-              className="px-4 py-2 dark:border-gray-700"
-              variant={item?.table ? 'outline' : 'secondary'}
-            >
-              {item?.table ?? ''}
-            </Badge>
-          </div>
+              <span className="font-semibold tracking-tight">Schema</span>
+              <Badge
+                className="px-4 py-2 dark:border-gray-700"
+                variant={item?.schema ? 'outline' : 'secondary'}
+              >
+                {item?.schema ?? ''}
+              </Badge>
+            </div>
+          )}
+          {item?.table && (
+            <div className="flex flex-row gap-2 items-center">
+              <span className="font-semibold tracking-tight">Table</span>
+              <Badge
+                className="px-4 py-2 dark:border-gray-700"
+                variant={item?.table ? 'outline' : 'secondary'}
+              >
+                {item?.table ?? ''}
+              </Badge>
+            </div>
+          )}
           <div className="flex flex-row items-center">
             <ValidateQueryBadge resp={validateResp} />
           </div>
