@@ -1,21 +1,10 @@
 apiVersion: v1
 kind: Secret
 metadata:
-    name: {{ template "neosync-api.fullname" . }}-migration-evs
+    name: {{ template "neosync-api.fullname" . }}-migration-evs-{{ include "neosync-api.migration-env-vars" . | sha256sum | trunc 8 }}
     namespace: {{ .Release.Namespace }}
+    annotations:
+        checksum/stringdata: {{ include "neosync-api.migration-env-vars" . | sha256sum }}
 type: Opaque
 stringData:
-    DB_HOST: {{ .Values.migrations.db.host }}
-    DB_PORT: {{ .Values.migrations.db.port | quote }}
-    DB_NAME: {{ .Values.migrations.db.name }}
-    DB_USER: {{ .Values.migrations.db.username }}
-    DB_PASS: {{ .Values.migrations.db.password }}
-    DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
-    {{- if .Values.migrations.db.options }}
-    DB_MIGRATIONS_OPTIONS: {{ .Values.migrations.db.options | quote}}
-    {{- end }}
-
-    DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}
-    DB_MIGRATIONS_TABLE: {{ .Values.migrations.db.migrationsTableName }}
-    DB_MIGRATIONS_TABLE_QUOTED: {{ .Values.migrations.db.migrationsTableQuoted | quote }}
-
+{{ include "neosync-api.migration-env-vars" . | indent 4 }}
