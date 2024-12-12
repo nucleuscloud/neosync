@@ -208,12 +208,12 @@ VALUES (
 
 INSERT INTO time_time (
     timestamp_col,
-    -- timestamptz_col,
+    timestamptz_col,
     date_col
 ) 
 VALUES (
     '0001-01-01 00:00:00 BC',
-    -- '0001-01-01 00:00:00+00 BC',
+    '0001-01-01 00:00:00+00 BC',
     '0001-01-01 BC'
 );
 
