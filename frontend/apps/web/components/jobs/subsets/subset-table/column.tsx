@@ -1,5 +1,6 @@
 'use client';
 
+import TruncatedText from '@/components/TruncatedText';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,6 +58,15 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title={'Table'} />
       ),
+      cell: ({ row }) => {
+        return (
+          <TruncatedText
+            text={`${row.original.schema}.${row.original.table}`}
+            maxWidth={250}
+          />
+        );
+      },
+      size: 250,
     },
     {
       accessorKey: 'isRootTable',
@@ -95,9 +105,11 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
         return (
           <div className="flex justify-center">
             <span className="truncate font-medium max-w-[200px] inline-block">
-              <pre className="bg-gray-100 rounded border border-gray-300 text-xs px-2 dark:bg-transparent dark:border dark:border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100%]">
-                {getValue<boolean>()}
-              </pre>
+              {getValue<boolean>() && (
+                <pre className="bg-gray-100 rounded border border-gray-300 text-xs px-2 dark:bg-transparent dark:border dark:border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100%]">
+                  {getValue<boolean>()}
+                </pre>
+              )}
             </span>
           </div>
         );
