@@ -7,6 +7,7 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
 type Rbac struct {
@@ -26,8 +27,11 @@ type Db interface {
 
 type EntityEnforcer interface {
 	Job(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) (bool, error)
+	EnforceJob(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) error
 	Connection(ctx context.Context, user EntityString, account EntityString, connection EntityString, action ConnectionAction) (bool, error)
+	EnforceConnection(ctx context.Context, user EntityString, account EntityString, connection EntityString, action ConnectionAction) error
 	Account(ctx context.Context, user EntityString, account EntityString, action AccountAction) (bool, error)
+	EnforceAccount(ctx context.Context, user EntityString, account EntityString, action AccountAction) error
 }
 
 // Initialize default policies for existing accounts at startup
@@ -145,6 +149,23 @@ func (r *Rbac) Job(
 	return r.e.Enforce(user.String(), account.String(), job.String(), action.String())
 }
 
+func (r *Rbac) EnforceJob(
+	ctx context.Context,
+	user EntityString,
+	account EntityString,
+	job EntityString,
+	action JobAction,
+) error {
+	ok, err := r.Job(ctx, user, account, job, action)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s job", action))
+	}
+	return nil
+}
+
 func (r *Rbac) Connection(
 	ctx context.Context,
 	user EntityString,
@@ -155,6 +176,23 @@ func (r *Rbac) Connection(
 	return r.e.Enforce(user.String(), account.String(), connection.String(), action.String())
 }
 
+func (r *Rbac) EnforceConnection(
+	ctx context.Context,
+	user EntityString,
+	account EntityString,
+	connection EntityString,
+	action ConnectionAction,
+) error {
+	ok, err := r.Connection(ctx, user, account, connection, action)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s connection", action))
+	}
+	return nil
+}
+
 func (r *Rbac) Account(
 	ctx context.Context,
 	user EntityString,
@@ -162,6 +200,22 @@ func (r *Rbac) Account(
 	action AccountAction,
 ) (bool, error) {
 	return r.e.Enforce(user.String(), account.String(), account.String(), action.String())
+}
+
+func (r *Rbac) EnforceAccount(
+	ctx context.Context,
+	user EntityString,
+	account EntityString,
+	action AccountAction,
+) error {
+	ok, err := r.Account(ctx, user, account, action)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s account", action))
+	}
+	return nil
 }
 
 func toRoleName(role mgmtv1alpha1.AccountRole) (string, error) {

@@ -1,16 +1,16 @@
 package v1alpha1_transformersservice
 
 import (
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 )
 
 type Service struct {
-	cfg                *Config
-	db                 *neosyncdb.NeosyncDb
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
-	entityclient       presidioapi.EntityInterface
+	cfg            *Config
+	db             *neosyncdb.NeosyncDb
+	entityclient   presidioapi.EntityInterface
+	userdataclient userdata.Client
 }
 
 type Config struct {
@@ -21,13 +21,13 @@ type Config struct {
 func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	recognizerclient presidioapi.EntityInterface,
+	userdataclient userdata.Client,
 ) *Service {
 	return &Service{
-		cfg:                cfg,
-		db:                 db,
-		useraccountService: useraccountService,
-		entityclient:       recognizerclient,
+		cfg:            cfg,
+		db:             db,
+		entityclient:   recognizerclient,
+		userdataclient: userdataclient,
 	}
 }

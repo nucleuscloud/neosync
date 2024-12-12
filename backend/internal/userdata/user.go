@@ -89,13 +89,17 @@ type UserEntityEnforcer struct {
 }
 
 type DomainEntity interface {
-	GetId() string
+	Identifier
 	GetAccountId() string
 }
 type DomainEntityImpl struct {
 	id        string
 	accountId string
 	isWild    bool
+}
+
+type Identifier interface {
+	GetId() string
 }
 
 func (j *DomainEntityImpl) GetId() string {
@@ -127,51 +131,37 @@ func NewDbDomainEntity(accountId, id pgtype.UUID) DomainEntity {
 	}
 }
 
-func (u *UserEntityEnforcer) Job(ctx context.Context, job DomainEntity, action rbac.JobAction) (bool, error) {
-	if err := u.enforceAccountAccess(ctx, job.GetAccountId()); err != nil {
-		return false, err
-	}
-	return u.enforcer.Job(ctx, u.user, rbac.NewAccountIdEntity(job.GetAccountId()), rbac.NewJobIdEntity(job.GetId()), action)
+type IdentifierImpl struct {
+	id string
 }
+
+func NewIdentifier(id string) Identifier {
+	return &IdentifierImpl{
+		id: id,
+	}
+}
+
+func (i *IdentifierImpl) GetId() string {
+	return i.id
+}
+
 func (u *UserEntityEnforcer) EnforceJob(ctx context.Context, job DomainEntity, action rbac.JobAction) error {
-	ok, err := u.Job(ctx, job, action)
-	if err != nil {
+	if err := u.enforceAccountAccess(ctx, job.GetAccountId()); err != nil {
 		return err
 	}
-	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s job", action))
-	}
-	return nil
+	return u.enforcer.EnforceJob(ctx, u.user, rbac.NewAccountIdEntity(job.GetAccountId()), rbac.NewJobIdEntity(job.GetId()), action)
 }
-func (u *UserEntityEnforcer) Connection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) (bool, error) {
-	if err := u.enforceAccountAccess(ctx, connection.GetAccountId()); err != nil {
-		return false, err
-	}
-	return u.enforcer.Connection(ctx, u.user, rbac.NewAccountIdEntity(connection.GetAccountId()), rbac.NewConnectionIdEntity(connection.GetId()), action)
-}
+
 func (u *UserEntityEnforcer) EnforceConnection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) error {
-	ok, err := u.Connection(ctx, connection, action)
-	if err != nil {
+	if err := u.enforceAccountAccess(ctx, connection.GetAccountId()); err != nil {
 		return err
 	}
-	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s connection", action))
-	}
-	return nil
+	return u.enforcer.EnforceConnection(ctx, u.user, rbac.NewAccountIdEntity(connection.GetAccountId()), rbac.NewConnectionIdEntity(connection.GetId()), action)
 }
-func (u *UserEntityEnforcer) Account(ctx context.Context, account *mgmtv1alpha1.UserAccount, action rbac.AccountAction) (bool, error) {
+
+func (u *UserEntityEnforcer) EnforceAccount(ctx context.Context, account Identifier, action rbac.AccountAction) error {
 	if err := u.enforceAccountAccess(ctx, account.GetId()); err != nil {
-		return false, err
-	}
-	return u.enforcer.Account(ctx, u.user, rbac.NewAccountIdEntity(account.GetId()), action)
-}
-func (u *UserEntityEnforcer) EnforceAccount(ctx context.Context, account *mgmtv1alpha1.UserAccount, action rbac.AccountAction) error {
-	ok, err := u.Account(ctx, account, action)
-	if err != nil {
 		return err
 	}
-	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s account", action))
-	}
-	return nil
+	return u.enforcer.EnforceAccount(ctx, u.user, rbac.NewAccountIdEntity(account.GetId()), action)
 }

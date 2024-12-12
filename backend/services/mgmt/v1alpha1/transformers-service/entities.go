@@ -8,7 +8,9 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 )
 
@@ -26,7 +28,11 @@ func (s *Service) GetTransformPiiEntities(
 	if s.entityclient == nil {
 		return nil, nucleuserrors.NewInternalError("entity service is enabled but client was nil.")
 	}
-	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_View)
 	if err != nil {
 		return nil, err
 	}

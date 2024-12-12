@@ -13,6 +13,18 @@ func (a AccountAction) String() string {
 	return string(a)
 }
 
+type AccountMemberAction string
+
+const (
+	AccountMemberAction_Invite AccountMemberAction = "invite"
+	AccountMemberAction_Delete AccountMemberAction = "delete"
+	AccountMemberAction_View   AccountMemberAction = "view"
+)
+
+func (a AccountMemberAction) String() string {
+	return string(a)
+}
+
 type ConnectionAction string
 
 const (
