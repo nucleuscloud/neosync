@@ -137,11 +137,11 @@ func Test_Sync(t *testing.T) {
 
 			expectedTimestamps := [][]byte{
 				[]byte("2024-03-18 10:30:00"),
-				// []byte("0001-01-01 00:00:00 BC"),
+				[]byte("0001-01-01 00:00:00 BC"),
 			}
 			expectedDates := [][]byte{
 				[]byte("2024-03-18"),
-				// []byte("0001-01-01 BC"),
+				[]byte("0001-01-01 BC"),
 			}
 			var actualTimestamps [][]byte
 			var actualDates [][]byte
@@ -270,11 +270,11 @@ func Test_Sync(t *testing.T) {
 
 			expectedTimestamps := [][]byte{
 				[]byte("2024-03-18 10:30:00"),
-				// []byte("0001-01-01 00:00:00 BC"),
+				[]byte("0001-01-01 00:00:00 BC"),
 			}
 			expectedDates := [][]byte{
 				[]byte("2024-03-18"),
-				// []byte("0001-01-01 BC"),
+				[]byte("0001-01-01 BC"),
 			}
 			var actualTimestamps [][]byte
 			var actualDates [][]byte

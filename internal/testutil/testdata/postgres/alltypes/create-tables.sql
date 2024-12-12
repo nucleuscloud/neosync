@@ -206,16 +206,16 @@ VALUES (
     '2024-03-18'
 );
 
--- INSERT INTO time_time (
---     timestamp_col,
---     -- timestamptz_col,
---     date_col
--- ) 
--- VALUES (
---     '0001-01-01 00:00:00 BC',
---     -- '0001-01-01 00:00:00+00 BC',
---     '0001-01-01 BC'
--- );
+INSERT INTO time_time (
+    timestamp_col,
+    -- timestamptz_col,
+    date_col
+) 
+VALUES (
+    '0001-01-01 00:00:00 BC',
+    -- '0001-01-01 00:00:00+00 BC',
+    '0001-01-01 BC'
+);
 
 
 CREATE TABLE IF NOT EXISTS array_types (
