@@ -110,21 +110,53 @@ func Test_Sync(t *testing.T) {
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
 
-			rows := postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.employees;")
+			row := postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.employees;")
 			var rowCount int
-			err = rows.Scan(&rowCount)
+			err = row.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.generated_table;")
-			err = rows.Scan(&rowCount)
+			row = postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.generated_table;")
+			err = row.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from alltypes.all_data_types;")
-			err = rows.Scan(&rowCount)
+			row = postgres.Target.DB.QueryRow(ctx, "select count(*) from alltypes.all_data_types;")
+			err = row.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			row = postgres.Target.DB.QueryRow(ctx, "select count(*) from alltypes.time_time;")
+			err = row.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 0)
+
+			rows, err := postgres.Target.DB.Query(ctx, "select timestamp_col::text, date_col::text from alltypes.time_time;")
+			require.NoError(t, err)
+			defer rows.Close()
+
+			expectedTimestamps := [][]byte{
+				[]byte("2024-03-18 10:30:00"),
+				// []byte("0001-01-01 00:00:00 BC"),
+			}
+			expectedDates := [][]byte{
+				[]byte("2024-03-18"),
+				// []byte("0001-01-01 BC"),
+			}
+			var actualTimestamps [][]byte
+			var actualDates [][]byte
+
+			for rows.Next() {
+				var timestampCol, dateCol []byte
+				err = rows.Scan(&timestampCol, &dateCol)
+				require.NoError(t, err)
+				actualTimestamps = append(actualTimestamps, timestampCol)
+				actualDates = append(actualDates, dateCol)
+			}
+
+			require.NoError(t, rows.Err())
+			require.ElementsMatch(t, expectedTimestamps, actualTimestamps, "Expected timestamp_col values to match")
+			require.ElementsMatch(t, expectedDates, actualDates, "Expected date_col values to match")
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {
@@ -217,15 +249,47 @@ func Test_Sync(t *testing.T) {
 			})
 
 			var rowCount int
-			rows := postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.all_data_types;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			row := postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.all_data_types;", alltypesSchema))
+			err = row.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.json_data;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			row = postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.json_data;", alltypesSchema))
+			err = row.Scan(&rowCount)
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			row = postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.time_time;", alltypesSchema))
+			err = row.Scan(&rowCount)
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 0)
+
+			rows, err := postgres.Target.DB.Query(ctx, fmt.Sprintf("select timestamp_col::text, date_col::text from %s.time_time;", alltypesSchema))
+			require.NoError(t, err)
+			defer rows.Close()
+
+			expectedTimestamps := [][]byte{
+				[]byte("2024-03-18 10:30:00"),
+				// []byte("0001-01-01 00:00:00 BC"),
+			}
+			expectedDates := [][]byte{
+				[]byte("2024-03-18"),
+				// []byte("0001-01-01 BC"),
+			}
+			var actualTimestamps [][]byte
+			var actualDates [][]byte
+
+			for rows.Next() {
+				var timestampCol, dateCol []byte
+				err = rows.Scan(&timestampCol, &dateCol)
+				require.NoError(t, err)
+				actualTimestamps = append(actualTimestamps, timestampCol)
+				actualDates = append(actualDates, dateCol)
+			}
+
+			require.NoError(t, rows.Err())
+			require.ElementsMatch(t, expectedTimestamps, actualTimestamps, "Expected timestamp_col values to match")
+			require.ElementsMatch(t, expectedDates, actualDates, "Expected date_col values to match")
 		})
 
 		t.Cleanup(func() {
