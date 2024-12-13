@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
@@ -150,18 +151,31 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 }
 
 func handleMysqlByteSlice(v []byte, datatype string) (any, error) {
-	if datatype == "bit" {
+	switch datatype {
+	case "bit":
 		bit, err := convertStringToBit(string(v))
 		if err != nil {
 			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
 		}
 		return bit, nil
-	} else if mysqlutil.IsJsonDataType(datatype) {
+	case "json":
 		validJson, err := getValidJson(v)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get valid json: %w", err)
 		}
 		return validJson, nil
+	case "date":
+		t, err := convertBitsToTime(v)
+		if err != nil {
+			return string(v), nil
+		}
+		return t.Format(time.DateOnly), nil
+	case "timestamp", "datetime":
+		t, err := convertBitsToTime(v)
+		if err != nil {
+			return string(v), nil
+		}
+		return t.Format(time.DateTime), nil
 	}
 	return v, nil
 }

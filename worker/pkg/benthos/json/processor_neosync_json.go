@@ -71,7 +71,7 @@ func transform(root any) any {
 		}
 		return newSlice
 	case time.Time:
-		return v.Format(time.DateTime)
+		return v.Format(time.RFC3339)
 	case []uint8:
 		return string(v)
 	// TODO this should be neosync bit type

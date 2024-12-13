@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
@@ -110,21 +111,32 @@ func Test_Sync(t *testing.T) {
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
 
-			rows := postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.employees;")
-			var rowCount int
-			err = rows.Scan(&rowCount)
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, "humanresources", "employees")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from humanresources.generated_table;")
-			err = rows.Scan(&rowCount)
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, "humanresources", "generated_table")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, "select count(*) from alltypes.all_data_types;")
-			err = rows.Scan(&rowCount)
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, "alltypes", "all_data_types")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, "alltypes", "time_time")
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 0)
+
+			var tsvectorVal, jsonVal, jsonbVal string
+			row := postgres.Target.DB.QueryRow(ctx, "select tsvector_col::text, json_col::text, jsonb_col::text from alltypes.all_data_types where tsvector_col is not null and json_col is not null;")
+			err = row.Scan(&tsvectorVal, &jsonVal, &jsonbVal)
+			require.NoError(t, err)
+			require.Equal(t, "'example' 'tsvector'", tsvectorVal)
+			require.Equal(t, `{"name": "John", "age": 30}`, jsonVal)
+			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
+
+			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB)
+			require.NoError(t, err)
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {
@@ -216,16 +228,28 @@ func Test_Sync(t *testing.T) {
 				require.NoError(t, err)
 			})
 
-			var rowCount int
-			rows := postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.all_data_types;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, alltypesSchema, "all_data_types")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select count(*) from %s.json_data;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "json_data")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "time_time")
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 0)
+
+			var tsvectorVal, jsonVal, jsonbVal string
+			row := postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select tsvector_col::text, json_col::text, jsonb_col::text from %s.all_data_types where tsvector_col is not null and json_col is not null;", alltypesSchema))
+			err = row.Scan(&tsvectorVal, &jsonVal, &jsonbVal)
+			require.NoError(t, err)
+			require.Equal(t, "'example' 'tsvector'", tsvectorVal)
+			require.Equal(t, `{"age":30,"name":"John"}`, jsonVal)
+			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
+
+			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB)
+			require.NoError(t, err)
 		})
 
 		t.Cleanup(func() {
@@ -290,19 +314,15 @@ func Test_Sync(t *testing.T) {
 			err := sync.configureAndRunSync()
 			require.NoError(t, err)
 
-			rows := mysql.Target.DB.QueryRowContext(ctx, "select count(*) from humanresources.locations;")
-			var rowCount int
-			err = rows.Scan(&rowCount)
+			rowCount, err := mysql.Target.GetTableRowCount(ctx, "humanresources", "locations")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = mysql.Target.DB.QueryRowContext(ctx, "select count(*) from humanresources.generated_table;")
-			err = rows.Scan(&rowCount)
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, "humanresources", "generated_table")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = mysql.Target.DB.QueryRowContext(ctx, "select count(*) from alltypes.all_data_types;")
-			err = rows.Scan(&rowCount)
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, "alltypes", "all_data_types")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 		})
@@ -395,14 +415,11 @@ func Test_Sync(t *testing.T) {
 				require.NoError(t, err)
 			})
 
-			var rowCount int
-			rows := mysql.Target.DB.QueryRowContext(ctx, fmt.Sprintf("select count(*) from %s.all_data_types;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			rowCount, err := mysql.Target.GetTableRowCount(ctx, alltypesSchema, "all_data_types")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rows = mysql.Target.DB.QueryRowContext(ctx, fmt.Sprintf("select count(*) from %s.json_data;", alltypesSchema))
-			err = rows.Scan(&rowCount)
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, alltypesSchema, "json_data")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 		})
@@ -421,4 +438,43 @@ func Test_Sync(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+func verifyPostgresTimeTimeTableValues(t *testing.T, ctx context.Context, db *pgxpool.Pool) error {
+	rows, err := db.Query(ctx, "select timestamp_col::text, date_col::text from alltypes.time_time;")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	expectedTimestamps := [][]byte{
+		[]byte("2024-03-18 10:30:00"),
+		[]byte("0001-01-01 00:00:00 BC"),
+		[]byte("0002-01-01 00:00:00 BC"),
+	}
+	expectedDates := [][]byte{
+		[]byte("2024-03-18"),
+		[]byte("0001-01-01 BC"),
+		[]byte("0002-01-01 BC"),
+	}
+	var actualTimestamps [][]byte
+	var actualDates [][]byte
+
+	for rows.Next() {
+		var timestampCol, dateCol []byte
+		err = rows.Scan(&timestampCol, &dateCol)
+		if err != nil {
+			return err
+		}
+		actualTimestamps = append(actualTimestamps, timestampCol)
+		actualDates = append(actualDates, dateCol)
+	}
+
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
+	require.ElementsMatch(t, expectedTimestamps, actualTimestamps, "Expected timestamp_col values to match")
+	require.ElementsMatch(t, expectedDates, actualDates, "Expected date_col values to match")
+	return nil
 }

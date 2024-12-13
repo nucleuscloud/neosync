@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -119,10 +120,12 @@ func transformNeosyncToPgx(
 		}
 		colDefaults := columnDefaultProperties[col]
 		datatype := columnDataTypes[col]
+
 		newVal, err := getPgxValue(val, colDefaults, datatype)
 		if err != nil {
 			logger.Warn(err.Error())
 		}
+
 		newMap[col] = newVal
 	}
 
@@ -206,11 +209,91 @@ func handlePgxByteSlice(v []byte, datatype string) (any, error) {
 			return nil, fmt.Errorf("unable to get valid json: %w", err)
 		}
 		return validJson, nil
-	case "money", "uuid", "time with time zone", "timestamp with time zone":
+	case "date":
+		return convertDateForPostgres(v)
+	case "timestamp with time zone":
+		return convertTimestampWithTimezoneForPostgres(v), nil
+	case "timestamp", "timestamp without time zone":
+		return convertTimestampForPostgres(v)
+	case "money", "uuid", "tsvector", "time with time zone":
 		// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
 		return string(v), nil
 	}
 	return v, nil
+}
+
+func convertBitsToTime(bits []byte) (time.Time, error) {
+	timeStr := string(bits)
+	t, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		// Try parsing as DateTime format if not RFC3339 format
+		t, err = time.Parse(time.DateTime, timeStr)
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+
+	return t, nil
+}
+
+func convertDateForPostgres(input []byte) (string, error) {
+	return convertTimeForPostgres(input, time.DateOnly)
+}
+
+func convertTimestampForPostgres(input []byte) (string, error) {
+	return convertTimeForPostgres(input, time.DateTime)
+}
+
+// pgtypes does not handle BC dates correctly
+// convertTimeForPostgres handles BC dates properly
+func convertTimeForPostgres(timebits []byte, layout string) (string, error) {
+	if strings.HasPrefix(string(timebits), "-") {
+		t, err := time.Parse("-2006-01-02T15:04:05Z", string(timebits))
+		if err != nil {
+			return "", err
+		}
+		// For negative years, add 1 to get correct BC year
+		// year -1 is 2 BC, year -2 is 3 BC, etc.
+		yearsToAdd := t.Year() + 1
+
+		newT := time.Date(yearsToAdd, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+		return fmt.Sprintf("%s BC", newT.Format(layout)), nil
+	}
+
+	t, err := convertBitsToTime(timebits)
+	if err != nil {
+		return "", err
+	}
+	// Handle BC dates year 0
+	// year 0 is 1 BC,
+	if t.Year() == 0 {
+		newT := time.Date(1, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+		return fmt.Sprintf("%s BC", newT.Format(layout)), nil
+	}
+	return t.Format(layout), nil
+}
+
+// pgtype.Timestamptz does not support BC dates, so we need to reformat them
+func convertTimestampWithTimezoneForPostgres(input []byte) string {
+	// Remove the 'T'
+	withoutT := strings.Replace(string(input), "T", " ", 1)
+
+	// Handle year 0000 case (should become 0001 BC)
+	if strings.HasPrefix(withoutT, "0000") {
+		rest := withoutT[4:]
+		return "0001" + rest[:len(rest)-6] + rest[len(rest)-6:] + " BC"
+	}
+
+	// If starts with '-', remove it and add BC before timezone
+	if strings.HasPrefix(withoutT, "-") {
+		yearNum, _ := strconv.Atoi(withoutT[1:5])
+		yearNum++ // Add 1 to convert from Go BC year to Postgres BC year
+		year := fmt.Sprintf("%04d", yearNum)
+		rest := withoutT[5:]
+		return year + rest[:len(rest)-6] + rest[len(rest)-6:] + " BC"
+	}
+
+	return string(input)
 }
 
 // this expects the bits to be in the form [1,2,3]
