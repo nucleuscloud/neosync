@@ -82,10 +82,18 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 		if err != nil {
 			return nil, err
 		}
+
+		jsonF, _ := json.MarshalIndent(root, "", " ")
+		fmt.Printf("\n\n root: %s \n\n", string(jsonF))
+
 		newRoot, err := transformNeosyncToPgx(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
+
+		jsonF, _ = json.MarshalIndent(newRoot, "", " ")
+		fmt.Printf("\n\n newRoot: %s \n\n", string(jsonF))
+
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
