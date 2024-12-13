@@ -16,7 +16,7 @@ type Service struct {
 	authclient             auth_client.Interface
 	authadminclient        authmgmt.Interface
 	billingclient          billing.Interface
-	rbacClient             *rbac.Rbac
+	rbacClient             rbac.Interface
 }
 
 type Config struct {
@@ -32,7 +32,7 @@ func New(
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
 	billingclient billing.Interface,
-	rbacClient *rbac.Rbac,
+	rbacClient rbac.Interface,
 ) *Service {
 	return &Service{
 		cfg:                    cfg,

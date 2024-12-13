@@ -116,3 +116,6 @@ packages:
       AnalyzeInterface:
       AnonymizeInterface:
       EntityInterface:
+  github.com/nucleuscloud/neosync/backend/internal/userdata:
+    interfaces:
+      Interface:

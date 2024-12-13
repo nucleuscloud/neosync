@@ -9,7 +9,9 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 )
 
@@ -47,11 +49,17 @@ func (s *Service) GetDailyMetricCount(
 		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStart(), req.Msg.GetEnd()), metricDateSeparator)),
 	}
 
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetDailyMetricCountRequest_AccountId:
-		if _, err := s.verifyUserInAccount(ctx, identifier.AccountId); err != nil {
+		if err := user.EnforceAccount(ctx, userdata.NewIdentifier(identifier.AccountId), rbac.AccountAction_View); err != nil {
 			return nil, err
 		}
+		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
 		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
 	case *mgmtv1alpha1.GetDailyMetricCountRequest_JobId:
 		jobResp, err := s.jobservice.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: identifier.JobId}))
@@ -128,9 +136,14 @@ func (s *Service) GetMetricCount(
 		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStartDay(), req.Msg.GetEndDay()), metricDateSeparator)),
 	}
 
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetMetricCountRequest_AccountId:
-		if _, err := s.verifyUserInAccount(ctx, identifier.AccountId); err != nil {
+		if err := user.EnforceAccount(ctx, userdata.NewIdentifier(identifier.AccountId), rbac.AccountAction_View); err != nil {
 			return nil, err
 		}
 		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))

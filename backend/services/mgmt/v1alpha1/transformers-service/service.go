@@ -10,7 +10,7 @@ type Service struct {
 	cfg            *Config
 	db             *neosyncdb.NeosyncDb
 	entityclient   presidioapi.EntityInterface
-	userdataclient userdata.Client
+	userdataclient userdata.Interface
 }
 
 type Config struct {
@@ -22,7 +22,7 @@ func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
 	recognizerclient presidioapi.EntityInterface,
-	userdataclient userdata.Client,
+	userdataclient userdata.Interface,
 ) *Service {
 	return &Service{
 		cfg:            cfg,

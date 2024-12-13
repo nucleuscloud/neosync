@@ -56,7 +56,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 		apiKeyData:               apiKeyData,
 		userAccountServiceClient: c.userServiceClient,
 	}
-	user.UserEntityEnforcer = UserEntityEnforcer{
+	user.EntityEnforcer = &UserEntityEnforcer{
 		enforcer: c.enforcer,
 		user:     rbac.NewUserIdEntity(resp.Msg.GetUserId()),
 		enforceAccountAccess: func(ctx context.Context, accountId string) error {

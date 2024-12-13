@@ -13,12 +13,12 @@ import (
 )
 
 // The default casbin enforcer with a SQL-enabled backend
-func NewDefaultEnforcer(
+func NewActiveEnforcer(
 	ctx context.Context,
 	db *sql.DB,
 	casbinTableName string,
 ) (casbin.IEnforcer, error) {
-	adapter, err := newDefaultAdapter(ctx, db, casbinTableName)
+	adapter, err := newSqlAdapter(ctx, db, casbinTableName)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func newEnforcer(
 	return enforcer, nil
 }
 
-func newDefaultAdapter(
+func newSqlAdapter(
 	ctx context.Context,
 	db *sql.DB,
 	tableName string,

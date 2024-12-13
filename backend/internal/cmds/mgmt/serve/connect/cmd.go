@@ -127,6 +127,11 @@ func serve(ctx context.Context) error {
 	}
 	slogger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
+	cascadelicense := license.NewCascadeLicense(
+		ncloudlicense,
+		eelicense,
+	)
+
 	mux := http.NewServeMux()
 
 	services := []string{
@@ -192,23 +197,30 @@ func serve(ctx context.Context) error {
 		}
 	}
 
-	stddb := stdlib.OpenDBFromPool(pool)
-	_ = stddb
+	var rbacclient rbac.Interface
+	if cascadelicense.IsValid() {
+		slogger.Debug("rbac is enabled")
+		stddb := stdlib.OpenDBFromPool(pool)
 
-	rbacenforcer, err := enforcer.NewDefaultEnforcer(ctx, stddb, "neosync_api.casbin_rule")
-	if err != nil {
-		return err
-	}
-	rbacenforcer.EnableAutoSave(true)
-	err = rbacenforcer.LoadPolicy()
-	if err != nil {
-		return err
-	}
-	rbacdb := rbac.NewRbacDb(querier, db.Db)
-	rbacclient := rbac.New(rbacenforcer)
-	err = rbacclient.InitPolicies(ctx, rbacdb, slogger)
-	if err != nil {
-		return err
+		rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stddb, "neosync_api.casbin_rule")
+		if err != nil {
+			return err
+		}
+		rbacenforcer.EnableAutoSave(true)
+		err = rbacenforcer.LoadPolicy()
+		if err != nil {
+			return fmt.Errorf("unable to load rbac policies: %w", err)
+		}
+		rbacdb := rbac.NewRbacDb(querier, db.Db)
+		enforcedClient := rbac.New(rbacenforcer)
+		err = enforcedClient.InitPolicies(ctx, rbacdb, slogger)
+		if err != nil {
+			return fmt.Errorf("unable to initialize rbac policies: %w", err)
+		}
+		rbacclient = enforcedClient
+	} else {
+		slogger.Debug("rbac is disabled")
+		rbacclient = rbac.NewAllowAllClient()
 	}
 
 	stdInterceptors := []connect.Interceptor{}
@@ -473,10 +485,11 @@ func serve(ctx context.Context) error {
 			connect.WithRecover(recoverHandler),
 		),
 	)
+	userdataclient := userdata.NewClient(useraccountService, rbacclient)
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-	}, db, useraccountService)
+	}, db, userdataclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewApiKeyServiceHandler(
 			apiKeyService,
@@ -500,8 +513,6 @@ func serve(ctx context.Context) error {
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 	mongoconnector := mongoconnect.NewConnector()
-
-	userdataclient := userdata.NewClient(useraccountService, rbacclient)
 
 	connectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
@@ -588,7 +599,7 @@ func serve(ctx context.Context) error {
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
 		IsPresidioEnabled: ncloudlicense.IsValid(),
 		IsNeosyncCloud:    ncloudlicense.IsValid(),
-	}, db, useraccountService, presEntityClient)
+	}, db, presEntityClient, userdataclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
@@ -641,7 +652,7 @@ func serve(ctx context.Context) error {
 	if shouldEnableMetricsService() {
 		metricsService := v1alpha1_metricsservice.New(
 			&v1alpha1_metricsservice.Config{},
-			useraccountService,
+			userdataclient,
 			jobService,
 			promv1.NewAPI(promclient),
 		)

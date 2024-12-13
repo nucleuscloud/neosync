@@ -10,21 +10,12 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
-type Rbac struct {
-	e casbin.IEnforcer
-}
-
-func New(
-	e casbin.IEnforcer,
-) *Rbac {
-	return &Rbac{e: e}
-}
-
 // Interface used by rbac engine to make necessary calls to the database
 type Db interface {
 	GetAccountIds(ctx context.Context) ([]string, error)
 }
 
+// Interface that handles enforcing entity level policies
 type EntityEnforcer interface {
 	Job(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) (bool, error)
 	EnforceJob(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) error
@@ -32,6 +23,13 @@ type EntityEnforcer interface {
 	EnforceConnection(ctx context.Context, user EntityString, account EntityString, connection EntityString, action ConnectionAction) error
 	Account(ctx context.Context, user EntityString, account EntityString, action AccountAction) (bool, error)
 	EnforceAccount(ctx context.Context, user EntityString, account EntityString, action AccountAction) error
+}
+
+// Interface that handles setting and removing roles for users
+type RoleAdmin interface {
+	SetAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
+	RemoveAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
+	RemoveAccountUser(ctx context.Context, user EntityString, account EntityString) error
 }
 
 // Initialize default policies for existing accounts at startup
@@ -53,34 +51,52 @@ func (r *Rbac) InitPolicies(
 		policyRules = append(
 			policyRules,
 			[]string{
-				"account_admin",
+				Role_AccountAdmin.String(),
 				accountKey,
 				Wildcard, // any resource in the account
 				Wildcard, // all actions in the account
 			},
 			[]string{
-				"job_developer",
+				Role_JobDeveloper.String(),
 				accountKey,
 				JobWildcard.String(), // all jobs in the account
 				Wildcard,             // all job actions
 			},
 			[]string{
-				"job_developer",
+				Role_JobDeveloper.String(),
 				accountKey,
 				ConnectionWildcard.String(), // all connections in the account
 				Wildcard,                    // all connection actions
 			},
 			[]string{
-				"job_viewer",
+				Role_JobDeveloper.String(),
 				accountKey,
-				JobWildcard.String(),
-				"view",
+				accountKey,
+				AccountAction_View.String(),
 			},
 			[]string{
-				"job_viewer",
+				Role_JobViewer.String(),
 				accountKey,
 				JobWildcard.String(),
-				"execute",
+				JobAction_View.String(),
+			},
+			[]string{
+				Role_JobViewer.String(),
+				accountKey,
+				JobWildcard.String(),
+				JobAction_Execute.String(),
+			},
+			[]string{
+				Role_JobViewer.String(),
+				accountKey,
+				ConnectionWildcard.String(),
+				ConnectionAction_View.String(),
+			},
+			[]string{
+				Role_JobViewer.String(),
+				accountKey,
+				accountKey,
+				AccountAction_View.String(),
 			},
 		)
 	}

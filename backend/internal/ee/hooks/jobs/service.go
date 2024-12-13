@@ -12,14 +12,16 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 )
 
 type Service struct {
-	cfg                *config
-	db                 *neosyncdb.NeosyncDb
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
+	cfg            *config
+	db             *neosyncdb.NeosyncDb
+	userdataclient userdata.Interface
 }
 
 var _ Interface = (*Service)(nil)
@@ -49,7 +51,7 @@ type Option func(*config)
 
 func New(
 	db *neosyncdb.NeosyncDb,
-	useraccountservice mgmtv1alpha1connect.UserAccountServiceClient,
+	userdataclient userdata.Interface,
 	opts ...Option,
 ) *Service {
 	cfg := &config{}
@@ -57,7 +59,7 @@ func New(
 		opt(cfg)
 	}
 
-	return &Service{cfg: cfg, db: db, useraccountService: useraccountservice}
+	return &Service{cfg: cfg, db: db, userdataclient: userdataclient}
 }
 
 func (s *Service) GetJobHooks(
@@ -71,7 +73,7 @@ func (s *Service) GetJobHooks(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.GetJobId())
 
-	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId())
+	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId(), rbac.JobAction_View)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +116,7 @@ func (s *Service) GetJobHook(
 		return nil, nucleuserrors.NewNotFound("unable to find job hook by id")
 	}
 
-	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID))
+	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID), rbac.JobAction_View)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +158,7 @@ func (s *Service) DeleteJobHook(
 		return &mgmtv1alpha1.DeleteJobHookResponse{}, nil
 	}
 
-	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID))
+	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID), rbac.JobAction_Delete)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +189,7 @@ func (s *Service) IsJobHookNameAvailable(
 	if err != nil {
 		return nil, err
 	}
-	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId())
+	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId(), rbac.JobAction_View)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +223,7 @@ func (s *Service) CreateJobHook(
 	if err != nil {
 		return nil, err
 	}
-	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId())
+	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId(), rbac.JobAction_Create)
 	if err != nil {
 		return nil, err
 	}
@@ -229,11 +231,6 @@ func (s *Service) CreateJobHook(
 		"accountId", neosyncdb.UUIDString(verifyResp.AccountUuid),
 		"jobId", neosyncdb.UUIDString(verifyResp.JobUuid),
 	)
-
-	useruuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	hookReq := req.GetHook()
 	logger.Debug(fmt.Sprintf("attempting to create new job hook %q", hookReq.GetName()))
@@ -267,8 +264,8 @@ func (s *Service) CreateJobHook(
 		JobID:           jobuuid,
 		Enabled:         hookReq.GetEnabled(),
 		Priority:        priority,
-		CreatedByUserID: *useruuid,
-		UpdatedByUserID: *useruuid,
+		CreatedByUserID: verifyResp.UserUuid,
+		UpdatedByUserID: verifyResp.UserUuid,
 		Config:          config,
 	})
 	if err != nil {
@@ -295,10 +292,6 @@ func (s *Service) UpdateJobHook(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookId", req.GetId())
 
-	useruuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
 	jobuuid, err := neosyncdb.ToUuid(getResp.GetHook().GetJobId())
 	if err != nil {
 		return nil, err
@@ -332,13 +325,22 @@ func (s *Service) UpdateJobHook(
 		return nil, err
 	}
 
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.verifyUserHasJob(ctx, neosyncdb.UUIDString(jobuuid), rbac.JobAction_Edit)
+	if err != nil {
+		return nil, err
+	}
+
 	updatedhook, err := s.db.Q.UpdateJobHook(ctx, s.db.Db, db_queries.UpdateJobHookParams{
 		Name:            req.GetName(),
 		Description:     req.GetDescription(),
 		Config:          config,
 		Enabled:         req.GetEnabled(),
 		Priority:        priority,
-		UpdatedByUserID: *useruuid,
+		UpdatedByUserID: user.PgId(),
 		ID:              hookuuid,
 	})
 	if err != nil {
@@ -370,10 +372,11 @@ func (s *Service) SetJobHookEnabled(
 		return &mgmtv1alpha1.SetJobHookEnabledResponse{Hook: getResp.GetHook()}, nil
 	}
 
-	useruuid, err := s.getUserUuid(ctx)
+	verifyResp, err := s.verifyUserHasJob(ctx, getResp.GetHook().GetJobId(), rbac.JobAction_Edit)
 	if err != nil {
 		return nil, err
 	}
+
 	hookuuid, err := neosyncdb.ToUuid(getResp.GetHook().GetId())
 	if err != nil {
 		return nil, err
@@ -382,7 +385,7 @@ func (s *Service) SetJobHookEnabled(
 	logger.Debug(fmt.Sprintf("attempting to update job hook enabled status from %v to %v", getResp.GetHook().GetEnabled(), req.GetEnabled()))
 	updatedHook, err := s.db.Q.SetJobHookEnabled(ctx, s.db.Db, db_queries.SetJobHookEnabledParams{
 		Enabled:         req.GetEnabled(),
-		UpdatedByUserID: *useruuid,
+		UpdatedByUserID: verifyResp.UserUuid,
 		ID:              hookuuid,
 	})
 	if err != nil {
@@ -408,7 +411,7 @@ func (s *Service) GetActiveJobHooksByTiming(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.GetJobId())
 
-	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId())
+	verifyResp, err := s.verifyUserHasJob(ctx, req.GetJobId(), rbac.JobAction_View)
 	if err != nil {
 		return nil, err
 	}
@@ -456,9 +459,10 @@ func (s *Service) GetActiveJobHooksByTiming(
 type verifyUserJobResponse struct {
 	JobUuid     pgtype.UUID
 	AccountUuid pgtype.UUID
+	UserUuid    pgtype.UUID
 }
 
-func (s *Service) verifyUserHasJob(ctx context.Context, jobId string) (*verifyUserJobResponse, error) {
+func (s *Service) verifyUserHasJob(ctx context.Context, jobId string, permission rbac.JobAction) (*verifyUserJobResponse, error) {
 	jobuuid, err := neosyncdb.ToUuid(jobId)
 	if err != nil {
 		return nil, err
@@ -470,13 +474,20 @@ func (s *Service) verifyUserHasJob(ctx context.Context, jobId string) (*verifyUs
 	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find job id")
 	}
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(accountUuid))
+
+	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	if err := user.EnforceJob(ctx, userdata.NewDbDomainEntity(accountUuid, jobuuid), permission); err != nil {
+		return nil, err
+	}
+
 	return &verifyUserJobResponse{
 		JobUuid:     jobuuid,
 		AccountUuid: accountUuid,
+		UserUuid:    user.PgId(),
 	}, nil
 }
 
