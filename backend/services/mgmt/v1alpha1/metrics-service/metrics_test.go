@@ -2,6 +2,7 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -51,7 +52,7 @@ var (
 func Test_GetMetricCount_Empty_Matrix(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -90,7 +91,7 @@ func Test_GetMetricCount_InvalidIdentifier(t *testing.T) {
 func Test_GetMetricCount_AccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -307,18 +308,22 @@ func createServiceMock(t testing.TB, config *Config) *serviceMocks {
 }
 
 //nolint:unparam
-func mockIsUserInAccount(userServiceMock *userdata.MockInterface, isInAccount bool) {
-
-	// todo: fix this mock
-	// userServiceMock.On("GetUser", mock.Anything).Return(userdata.User{
-	// 	UserEntityEnforcer: ,
-	// }, nil)
+func mockIsUserInAccount(t testing.TB, userServiceMock *userdata.MockInterface, isInAccount bool) {
+	mockEntityEnforcer := userdata.NewMockEntityEnforcer(t)
+	if isInAccount {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(nil)
+	} else {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(errors.New("test: not in account"))
+	}
+	userServiceMock.On("GetUser", mock.Anything).Once().Return(&userdata.User{
+		EntityEnforcer: mockEntityEnforcer,
+	}, nil)
 }
 
 func Test_GetDailyMetricCount_Empty_Matrix(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -359,7 +364,7 @@ func Test_GetDailyMetricCount_InvalidIdentifier(t *testing.T) {
 func Test_GetDailyMetricCount_AccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -451,7 +456,7 @@ func Test_GetDailyMetricCount_RunId(t *testing.T) {
 func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -489,7 +494,7 @@ func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 

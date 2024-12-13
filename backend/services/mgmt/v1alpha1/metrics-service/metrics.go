@@ -49,17 +49,15 @@ func (s *Service) GetDailyMetricCount(
 		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStart(), req.Msg.GetEnd()), metricDateSeparator)),
 	}
 
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetDailyMetricCountRequest_AccountId:
+		user, err := s.userdataclient.GetUser(ctx)
+		if err != nil {
+			return nil, err
+		}
 		if err := user.EnforceAccount(ctx, userdata.NewIdentifier(identifier.AccountId), rbac.AccountAction_View); err != nil {
 			return nil, err
 		}
-		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
 		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
 	case *mgmtv1alpha1.GetDailyMetricCountRequest_JobId:
 		jobResp, err := s.jobservice.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: identifier.JobId}))
@@ -136,13 +134,12 @@ func (s *Service) GetMetricCount(
 		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStartDay(), req.Msg.GetEndDay()), metricDateSeparator)),
 	}
 
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetMetricCountRequest_AccountId:
+		user, err := s.userdataclient.GetUser(ctx)
+		if err != nil {
+			return nil, err
+		}
 		if err := user.EnforceAccount(ctx, userdata.NewIdentifier(identifier.AccountId), rbac.AccountAction_View); err != nil {
 			return nil, err
 		}

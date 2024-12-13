@@ -119,3 +119,4 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/userdata:
     interfaces:
       Interface:
+      EntityEnforcer:
