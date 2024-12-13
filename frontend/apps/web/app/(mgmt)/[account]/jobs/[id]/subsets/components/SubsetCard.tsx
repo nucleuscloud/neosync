@@ -13,8 +13,16 @@ import {
   buildTableRowData,
   isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { getErrorMessage } from '@/util/util';
@@ -50,6 +58,8 @@ interface Props {
 
 export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const { data, isLoading: isJobLoading } = useQuery(
     getJob,
     { id: jobId },
@@ -189,10 +199,7 @@ export default function SubsetCard(props: Props): ReactElement {
   return (
     <div>
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-8"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
           {showSubsetOptions(connectionType) && (
             <SubsetOptionsForm maxColNum={2} />
           )}
@@ -201,6 +208,7 @@ export default function SubsetCard(props: Props): ReactElement {
               <SubsetTable
                 data={Object.values(tableRowData)}
                 onEdit={(schema, table) => {
+                  setIsDialogOpen(true);
                   const key = buildRowKey(schema, table);
                   if (tableRowData[key]) {
                     setItemToEdit({
@@ -212,64 +220,94 @@ export default function SubsetCard(props: Props): ReactElement {
                 onReset={onLocalRowReset}
               />
             </div>
-            <div className="my-4">
-              <Separator />
+            <div
+              // this prevents the tooltips inside of the dialog from automatically opening when the dialog opens since it stops the focus from being set in the dialog component
+              onFocusCapture={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent
+                  className="max-w-5xl"
+                  onPointerDownOutside={(e) => e.preventDefault()}
+                  onEscapeKeyDown={(e) => e.preventDefault()}
+                >
+                  <DialogHeader>
+                    <div className="flex flex-row w-full">
+                      <div className="flex flex-col space-y-2 w-full">
+                        <div className="flex flex-row justify-between items-center">
+                          <div className="flex flex-row gap-4">
+                            <DialogTitle className="text-xl">
+                              Subset Query
+                            </DialogTitle>
+                          </div>
+                        </div>
+                        <div className="flex flex-row items-center gap-2">
+                          <DialogDescription>
+                            Subset your data using SQL expressions.{' '}
+                            <LearnMoreLink href="https://docs.neosync.dev/table-constraints/subsetting" />
+                          </DialogDescription>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                  </DialogHeader>
+                  <div className="pt-4">
+                    <EditItem
+                      connectionId={sourceConnectionId ?? ''}
+                      item={itemToEdit}
+                      onItem={setItemToEdit}
+                      onCancel={() => {
+                        setItemToEdit(undefined);
+                        setIsDialogOpen(false);
+                      }}
+                      columns={GetColumnsForSqlAutocomplete(
+                        data?.job?.mappings ?? [],
+                        itemToEdit
+                      )}
+                      onSave={() => {
+                        if (!itemToEdit) {
+                          return;
+                        }
+                        const key = buildRowKey(
+                          itemToEdit.schema,
+                          itemToEdit.table
+                        );
+                        const idx = form
+                          .getValues()
+                          .subsets.findIndex(
+                            (item) =>
+                              buildRowKey(item.schema, item.table) === key
+                          );
+                        if (idx >= 0) {
+                          form.setValue(`subsets.${idx}`, {
+                            schema: itemToEdit.schema,
+                            table: itemToEdit.table,
+                            whereClause: itemToEdit.where,
+                          });
+                        } else {
+                          form.setValue(
+                            `subsets`,
+                            form.getValues().subsets.concat({
+                              schema: itemToEdit.schema,
+                              table: itemToEdit.table,
+                              whereClause: itemToEdit.where,
+                            })
+                          );
+                        }
+                        setItemToEdit(undefined);
+                        setIsDialogOpen(false);
+                      }}
+                      connectionType={connectionType}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div>
-              <EditItem
-                connectionId={sourceConnectionId ?? ''}
-                item={itemToEdit}
-                onItem={setItemToEdit}
-                onCancel={() => setItemToEdit(undefined)}
-                columns={GetColumnsForSqlAutocomplete(
-                  data?.job?.mappings ?? [],
-                  itemToEdit
-                )}
-                onSave={() => {
-                  if (!itemToEdit) {
-                    return;
-                  }
-                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
-                  const idx = form
-                    .getValues()
-                    .subsets.findIndex(
-                      (item) => buildRowKey(item.schema, item.table) === key
-                    );
-                  if (idx >= 0) {
-                    form.setValue(`subsets.${idx}`, {
-                      schema: itemToEdit.schema,
-                      table: itemToEdit.table,
-                      whereClause: itemToEdit.where,
-                    });
-                  } else {
-                    form.setValue(
-                      `subsets`,
-                      form.getValues().subsets.concat({
-                        schema: itemToEdit.schema,
-                        table: itemToEdit.table,
-                        whereClause: itemToEdit.where,
-                      })
-                    );
-                  }
-                  setItemToEdit(undefined);
-                }}
-                connectionType={connectionType}
-              />
-            </div>
-            <div className="my-6">
-              <Separator />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-row justify-end">
-                <p className="text-sm tracking-tight">
-                  Save changes to apply any updates made to the table above
-                </p>
-              </div>
-              <div className="flex flex-row gap-1 justify-end">
-                <Button key="submit" type="submit">
-                  Save
-                </Button>
-              </div>
+            <div className="flex flex-row pt-10 justify-end">
+              <Button key="submit" type="submit">
+                Save
+              </Button>
             </div>
           </div>
         </form>
