@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	sqladapter "github.com/Blank-Xu/sql-adapter"
 	"github.com/casbin/casbin/v2"
@@ -33,12 +32,11 @@ func newEnforcer(
 		return nil, fmt.Errorf("unable to initialize casbin model from string: %w", err)
 	}
 
-	enforcer, err := casbin.NewSyncedCachedEnforcer(m, adapter)
+	enforcer, err := casbin.NewSyncedEnforcer(m, adapter)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize casbin synced cached enforcer: %w", err)
 	}
 	enforcer.EnableAutoSave(true) // seems to do this automatically but it doesn't hurt
-	enforcer.SetExpireTime(30 * time.Second)
 	return enforcer, nil
 }
 
