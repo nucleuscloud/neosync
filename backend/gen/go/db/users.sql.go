@@ -354,6 +354,34 @@ func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg Ge
 	return i, err
 }
 
+const getAccountUsers = `-- name: GetAccountUsers :many
+SELECT u.id
+FROM neosync_api.users u
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
+WHERE a.id = $1 AND u.user_type = 0
+`
+
+func (q *Queries) GetAccountUsers(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]pgtype.UUID, error) {
+	rows, err := db.Query(ctx, getAccountUsers, accountid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAccountsByUser = `-- name: GetAccountsByUser :many
 SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id
 FROM neosync_api.accounts a
@@ -636,9 +664,10 @@ func (q *Queries) GetUserByProviderSub(ctx context.Context, db DBTX, providerSub
 }
 
 const getUserIdentitiesByTeamAccount = `-- name: GetUserIdentitiesByTeamAccount :many
-SELECT aipa.id, aipa.user_id, aipa.provider_sub, aipa.created_at, aipa.updated_at FROM neosync_api.user_identity_provider_associations aipa
-JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
-JOIN neosync_api.accounts a ON a.id = aua.account_id
+SELECT aipa.id, aipa.user_id, aipa.provider_sub, aipa.created_at, aipa.updated_at
+FROM neosync_api.user_identity_provider_associations aipa
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
 WHERE aua.account_id = $1 AND a.account_type = 1
 `
 

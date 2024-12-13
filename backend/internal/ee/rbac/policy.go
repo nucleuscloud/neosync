@@ -13,6 +13,7 @@ import (
 // Interface used by rbac engine to make necessary calls to the database
 type Db interface {
 	GetAccountIds(ctx context.Context) ([]string, error)
+	GetAccountUsers(ctx context.Context, accountId string) ([]string, error)
 }
 
 // Interface that handles enforcing entity level policies
@@ -53,6 +54,7 @@ func (r *Rbac) InitPolicies(
 			accountRules...,
 		)
 	}
+
 	if len(policyRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
 		for _, policy := range policyRules {
@@ -62,7 +64,62 @@ func (r *Rbac) InitPolicies(
 			}
 		}
 	}
+
+	policiesByDomain, err := getGroupingPoliciesByDomain(r.e)
+	if err != nil {
+		return err
+	}
+
+	groupedRules := [][]string{}
+	for _, accountId := range accountIds {
+		_, ok := policiesByDomain[NewAccountIdEntity(accountId).String()]
+		if ok {
+			continue
+		}
+
+		// get users in account
+		// assign them all account admin role for the account
+		users, err := db.GetAccountUsers(ctx, accountId)
+		if err != nil {
+			return err
+		}
+		logger.Debug(fmt.Sprintf("found %d users for account %s, assigning all account admin role", len(users), accountId))
+		for _, user := range users {
+			groupedRules = append(groupedRules, []string{
+				NewUserIdEntity(user).String(),
+				Role_AccountAdmin.String(),
+				NewAccountIdEntity(accountId).String(),
+			})
+		}
+	}
+	if len(groupedRules) > 0 {
+		logger.Debug(fmt.Sprintf("adding %d grouping policies to rbac engine", len(groupedRules)))
+		_, err := r.e.AddNamedGroupingPolicies("g", groupedRules)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func getGroupingPoliciesByDomain(enforcer casbin.IEnforcer) (map[string][][]string, error) {
+	// Get all grouping policies
+	allPolicies, err := enforcer.GetNamedGroupingPolicy("g")
+	if err != nil {
+		return nil, fmt.Errorf("unable to get grouping policies: %w", err)
+	}
+
+	// Create a map to store policies by domain
+	policiesByDomain := make(map[string][][]string)
+
+	// Group policies by domain (domain is the third element, index 2)
+	for _, policy := range allPolicies {
+		domain := policy[2]
+		policiesByDomain[domain] = append(policiesByDomain[domain], policy)
+	}
+
+	return policiesByDomain, nil
 }
 
 func (r *Rbac) SetupNewAccount(

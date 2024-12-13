@@ -25,3 +25,15 @@ func (r *RbacDb) GetAccountIds(ctx context.Context) ([]string, error) {
 	}
 	return neosyncdb.UUIDStrings(resp), nil
 }
+
+func (r *RbacDb) GetAccountUsers(ctx context.Context, accountId string) ([]string, error) {
+	accountUuid, err := neosyncdb.ToUuid(accountId)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.q.GetAccountUsers(ctx, r.dbtx, accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	return neosyncdb.UUIDStrings(resp), nil
+}
