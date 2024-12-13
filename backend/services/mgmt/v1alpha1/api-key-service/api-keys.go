@@ -58,11 +58,6 @@ func (s *Service) GetAccountApiKey(
 		return nil, err
 	}
 
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	apiKey, err := s.db.Q.GetAccountApiKeyById(ctx, s.db.Db, apiKeyUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -70,6 +65,10 @@ func (s *Service) GetAccountApiKey(
 		return nil, nucleuserrors.NewNotFound("unable to find api key")
 	}
 
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(neosyncdb.UUIDString(apiKey.AccountID)), rbac.AccountAction_View); err != nil {
 		return nil, err
 	}
@@ -186,14 +185,6 @@ func (s *Service) DeleteAccountApiKey(
 		return nil, err
 	}
 
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if user.IsApiKey() {
-		return nil, nucleuserrors.NewUnauthorized("api key user cannot delete api keys")
-	}
-
 	apiKey, err := s.db.Q.GetAccountApiKeyById(ctx, s.db.Db, apiKeyUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -201,6 +192,13 @@ func (s *Service) DeleteAccountApiKey(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteAccountApiKeyResponse{}), nil
 	}
 
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user.IsApiKey() {
+		return nil, nucleuserrors.NewUnauthorized("api key user cannot delete api keys")
+	}
 	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(neosyncdb.UUIDString(apiKey.AccountID)), rbac.AccountAction_Edit); err != nil {
 		return nil, err
 	}
