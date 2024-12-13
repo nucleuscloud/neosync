@@ -540,7 +540,7 @@ func serve(ctx context.Context) error {
 
 	jobhookService := jobhooks.New(
 		db,
-		useraccountService,
+		userdataclient,
 		jobhookOpts...,
 	)
 

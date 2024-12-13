@@ -283,7 +283,10 @@ func (s *Service) SetPersonalAccount(
 		return nil, err
 	}
 
-	// todo: update rbac
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetPersonalAccountResponse{
 		AccountId: neosyncdb.UUIDString(account.ID),
@@ -376,7 +379,10 @@ func (s *Service) CreateTeamAccount(
 		checkoutSessionUrl = &session.URL
 	}
 
-	// todo: set rbac role for user
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
 		AccountId:          neosyncdb.UUIDString(account.ID),
@@ -557,6 +563,8 @@ func (s *Service) InviteUserToTeamAccount(
 		return nil, err
 	}
 
+	// todo: this method will need the intended role for the user
+
 	invite, err := s.db.CreateTeamAccountInvite(ctx, accountUuid, user.PgId(), req.Msg.GetEmail(), expiresAt)
 	if err != nil {
 		return nil, err
@@ -686,6 +694,11 @@ func (s *Service) AcceptTeamAccountInvite(
 	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
 	if err != nil {
 		return nil, err
+	}
+
+	// todo: this should be updated to set the intended role based on what was configured in the invite
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountId)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
 	}
 
 	if err := s.verifyTeamAccount(ctx, accountId); err != nil {
