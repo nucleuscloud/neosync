@@ -155,6 +155,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	if err != nil {
 		return err
 	}
+
 	s.Pgcontainer = pgcontainer
 	s.NeosyncQuerier = db_queries.New()
 	s.systemQuerier = pg_queries.New()
@@ -173,11 +174,16 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		},
 	}
 
+	err = s.InitializeTest(ctx, t)
+	if err != nil {
+		return err
+	}
+
 	permissiveRbacClient := rbac.NewAllowAllClient()
 
 	rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stdlib.OpenDBFromPool(pgcontainer.DB), "neosync_api.casbin_rule")
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to create rbac enforcer: %w", err)
 	}
 	rbacenforcer.EnableAutoSave(true)
 	err = rbacenforcer.LoadPolicy()
@@ -417,11 +423,6 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	s.NeosyncCloudClients = &NeosyncCloudClients{
 		httpsrv:  s.httpsrv,
 		basepath: "/ncauth",
-	}
-
-	err = s.InitializeTest(ctx, t)
-	if err != nil {
-		return err
 	}
 	return nil
 }
