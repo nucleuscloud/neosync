@@ -79,7 +79,7 @@ func serve(ctx context.Context) error {
 
 	ncloudlicense, err := cloudlicense.NewFromEnv()
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to initialize neosync cloud license from env: %w", err)
 	}
 	logger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
@@ -232,7 +232,7 @@ func serve(ctx context.Context) error {
 
 	certificates, err := getTemporalAuthCertificate()
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to get temporal auth certificate: %w", err)
 	}
 
 	var tlsConfig *tls.Config
@@ -257,6 +257,7 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("unable to dial temporal client: %w", err)
 	}
+	logger.Debug("temporal client dialed successfully")
 	defer temporalClient.Close()
 
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
@@ -281,14 +282,14 @@ func serve(ctx context.Context) error {
 
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
 	go mongoconnmanager.Reaper(logger)
-	defer sqlconnmanager.Shutdown(logger)
+	defer mongoconnmanager.Shutdown(logger)
 
 	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
 
 	redisconfig := shared.GetRedisConfig()
 	redisclient, err := neosync_redis.GetRedisClient(redisconfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to get redis client: %w", err)
 	}
 
 	genbenthosActivity := genbenthosconfigs_activity.New(
@@ -328,6 +329,7 @@ func serve(ctx context.Context) error {
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal worker: %w", err)
 	}
+	logger.Debug("temporal worker started successfully")
 
 	httpServer := getHttpServer(loglogger)
 

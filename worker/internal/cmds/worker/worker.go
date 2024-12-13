@@ -2,7 +2,9 @@ package worker_cmd
 
 import (
 	"fmt"
+	"os"
 
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	serve_connect "github.com/nucleuscloud/neosync/worker/internal/cmds/worker/serve"
 
 	"github.com/spf13/cobra"
@@ -14,7 +16,7 @@ func Execute() {
 
 	rootCmd := &cobra.Command{
 		Use:   "worker",
-		Short: "Terminal UI that interfaces with the Nucleus system.",
+		Short: "Terminal app that is used to boot up the Neosync worker.",
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
@@ -26,7 +28,13 @@ func Execute() {
 	// Wire up subcommands here
 	rootCmd.AddCommand(serve_connect.NewCmd())
 
-	cobra.CheckErr(rootCmd.Execute())
+	logger, _ := neosynclogger.NewLoggers()
+
+	err := rootCmd.Execute()
+	if err != nil {
+		logger.Error(fmt.Sprintf("error executing root command: %v", err))
+		os.Exit(1)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

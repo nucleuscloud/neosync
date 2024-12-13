@@ -203,16 +203,23 @@ func (c *ConnectionManager[T]) closeSpecificGroupConnections(groupId string, can
 }
 
 func (c *ConnectionManager[T]) Shutdown(logger *slog.Logger) {
-	c.shutdown <- struct{}{}
-	if !c.isReaping.Load() {
+	if c.isReaping.Load() {
+		logger.Debug("sending shutdown signal to reaper")
+		select {
+		case c.shutdown <- struct{}{}:
+			logger.Debug("shutdown signal sent to reaper")
+		case <-time.After(5 * time.Second):
+			logger.Warn("timed out sending shutdown signal to reaper, forcing hard close")
+			c.hardClose(logger)
+		}
+	} else {
 		logger.Debug("reaper is not turned on, hard closing")
 		c.hardClose(logger)
-	} else {
-		logger.Debug("sent shutdown signal to reaper")
 	}
 }
 
 func (c *ConnectionManager[T]) Reaper(logger *slog.Logger) {
+	logger.Debug("reaper is starting")
 	c.isReaping.Store(true)
 	for {
 		select {

@@ -1,92 +1,10 @@
 apiVersion: v1
 kind: Secret
 metadata:
-    name: {{ template "neosync-worker.fullname" . }}-service-evs
+    name: {{ template "neosync-worker.fullname" . }}-service-evs-{{ include "neosync-worker.env-vars" . | sha256sum | trunc 8 }}
     namespace: {{ .Release.Namespace }}
+    annotations:
+        checksum/stringdata: {{ include "neosync-worker.env-vars" . | sha256sum }}
 type: Opaque
 stringData:
-    {{- if .Values.host }}
-    HOST: {{ .Values.host | quote}}
-    {{- end }}
-
-    {{- if .Values.containerPort }}
-    PORT: {{ .Values.containerPort | quote }}
-    {{- end }}
-
-    {{- if .Values.otel.enabled }}
-    OTEL_EXPORTER_OTLP_PORT: {{ .Values.otel.otlpPort | quote }} # sends to gRPC receiver
-    {{- end }}
-
-    {{- if .Values.nucleusEnv }}
-    NUCLEUS_ENV: {{ .Values.nucleusEnv }}
-    {{- end }}
-
-    {{- if .Values.shutdownTimeoutSeconds }}
-    SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
-    {{- end }}
-
-    {{- if .Values.temporal.url }}
-    TEMPORAL_URL: {{ .Values.temporal.url }}
-    {{- end }}
-
-    {{- if .Values.temporal.namespace }}
-    TEMPORAL_NAMESPACE: {{ .Values.temporal.namespace }}
-    {{- end }}
-
-    {{- if .Values.temporal.taskQueue }}
-    TEMPORAL_TASK_QUEUE: {{ .Values.temporal.taskQueue }}
-    {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.keyFilePath }}
-    TEMPORAL_CERT_KEY_PATH: {{ .Values.temporal.certificate.keyFilePath }}
-    {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.certFilePath }}
-    TEMPORAL_CERT_PATH: {{ .Values.temporal.certificate.certFilePath }}
-    {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.keyContents }}
-    TEMPORAL_CERT_KEY: {{ .Values.temporal.certificate.keyContents }}
-    {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.certContents }}
-    TEMPORAL_CERT: {{ .Values.temporal.certificate.certContents }}
-    {{- end }}
-
-    {{- if and .Values.neosync .Values.neosync.url }}
-    NEOSYNC_URL: {{ .Values.neosync.url }}
-    {{- end }}
-
-    {{- if and .Values.neosync .Values.neosync.apiKey }}
-    NEOSYNC_API_KEY: {{ .Values.neosync.apiKey }}
-    {{- end }}
-
-    {{- if .Values.redis.url }}
-    REDIS_URL: {{ .Values.redis.url }}
-    {{- end }}
-
-    {{- if .Values.redis.kind }}
-    REDIS_KIND: {{ .Values.redis.kind }}
-    {{- end }}
-
-    {{- if .Values.redis.master }}
-    REDIS_MASTER: {{ .Values.redis.master }}
-    {{- end }}
-
-    REDIS_TLS_ENABLED: {{ .Values.redis.tls.enabled | default "false" | quote }}
-    REDIS_TLS_SKIP_CERT_VERIFY: {{ .Values.redis.tls.skipCertVerify | default "false" | quote }}
-    REDIS_TLS_ENABLE_RENEGOTIATION: {{ .Values.redis.tls.enableRenegotiation | default "false" | quote }}
-
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthority }}
-    REDIS_TLS_ROOT_CERT_AUTHORITY: {{ .Values.redis.tls.rootCertAuthority }}
-    {{- end }}
-
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthorityFile }}
-    REDIS_TLS_ROOT_CERT_AUTHORITY_FILE: {{ .Values.redis.tls.rootCertAuthorityFile }}
-    {{- end }}
-
-    NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
-
-    {{- if and .Values.ee .Values.ee.license }}
-    EE_LICENSE: {{ .Values.ee.license | quote }}
-    {{- end }}
+{{ include "neosync-worker.env-vars" . | indent 4 }}

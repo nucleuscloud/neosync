@@ -43,7 +43,6 @@ spec:
         {{- if eq .Values.istio.enabled true }}
         proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
         {{- end }}
-        rollme: {{ randAlphaNum 5 | quote }} # causes deployment to always roll on helm upgrade
       labels:
         {{- include "neosync-worker.labels" . | nindent 8 }}
         app: {{ template "neosync-worker.fullname" . }}
@@ -184,11 +183,7 @@ spec:
 
           envFrom:
             - secretRef:
-                name: {{ template "neosync-worker.fullname" . }}-service-evs
-          # {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
-          #   - configMapRef:
-          #       name: dev-config
-          # {{- end }}
+                name: {{ template "neosync-worker.fullname" . }}-service-evs-{{ include "neosync-worker.env-vars" . | sha256sum | trunc 8 }}
 
       {{- if .Values.sidecarContainers }}
       {{- toYaml .Values.sidecarContainers | nindent 8 }}
