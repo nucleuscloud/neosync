@@ -305,3 +305,13 @@ func (p *PostgresTestContainer) CreateSchemas(ctx context.Context, schemas []str
 	}
 	return nil
 }
+
+func (p *PostgresTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
+	rows := p.DB.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %q.%q;", schema, table))
+	var count int
+	err := rows.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

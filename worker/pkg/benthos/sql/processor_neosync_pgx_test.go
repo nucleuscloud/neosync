@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -555,4 +556,145 @@ column_default_properties:
 	require.Equal(t, expected, val)
 
 	require.NoError(t, proc.Close(context.Background()))
+}
+
+func TestConvertBitsToTime(t *testing.T) {
+	// Test RFC3339 format
+	input := []byte("2023-01-01T00:00:00Z")
+	want := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	got, err := convertBitsToTime(input)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+
+	// Test DateTime format
+	input = []byte("2023-01-01 00:00:00")
+	want = time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	got, err = convertBitsToTime(input)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+
+	// Test Invalid format
+	input = []byte("invalid-date")
+	got, err = convertBitsToTime(input)
+	require.Error(t, err)
+	require.Equal(t, time.Time{}, got)
+
+	// Test BC date
+	input = []byte("0000-01-01 00:00:00")
+	want = time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
+	got, err = convertBitsToTime(input)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+
+	input = []byte("0000-01-01T00:00:00Z")
+	want = time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
+	got, err = convertBitsToTime(input)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+}
+func TestConvertTimeForPostgres(t *testing.T) {
+	// Test normal date
+	input := []byte("2023-01-01T00:00:00Z")
+	got, err := convertTimeForPostgres(input, time.DateTime)
+	require.NoError(t, err)
+	require.Equal(t, "2023-01-01 00:00:00", got)
+
+	// Test BC date (year 0)
+	input = []byte("0000-01-01T00:00:00Z")
+	got, err = convertTimeForPostgres(input, time.DateTime)
+	require.NoError(t, err)
+	require.Equal(t, "0001-01-01 00:00:00 BC", got)
+
+	// Test BC date (negative year)
+	input = []byte("-0001-01-01T00:00:00Z")
+	got, err = convertTimeForPostgres(input, time.DateTime)
+	require.NoError(t, err)
+	require.Equal(t, "0002-01-01 00:00:00 BC", got)
+
+	// Test BC date (negative year)
+	input = []byte("-0002-01-01T00:00:00Z")
+	got, err = convertTimeForPostgres(input, time.DateTime)
+	require.NoError(t, err)
+	require.Equal(t, "0003-01-01 00:00:00 BC", got)
+
+	// Test with DateOnly layout
+	input = []byte("2023-01-01T00:00:00Z")
+	got, err = convertTimeForPostgres(input, time.DateOnly)
+	require.NoError(t, err)
+	require.Equal(t, "2023-01-01", got)
+
+	// Test BC date with DateOnly layout
+	input = []byte("-0001-01-01T00:00:00Z")
+	got, err = convertTimeForPostgres(input, time.DateOnly)
+	require.NoError(t, err)
+	require.Equal(t, "0002-01-01 BC", got)
+}
+
+func Test_convertTimestampWithTimezoneForPostgres(t *testing.T) {
+	t.Run("normal timestamp", func(t *testing.T) {
+		input := []byte("2023-01-01T00:00:00Z")
+		got := convertTimestampWithTimezoneForPostgres(input)
+		require.Equal(t, "2023-01-01T00:00:00Z", got)
+	})
+
+	t.Run("year 0000 becomes 0001 BC", func(t *testing.T) {
+		input := []byte("0000-01-01T00:00:00+00")
+		got := convertTimestampWithTimezoneForPostgres(input)
+		require.Equal(t, "0001-01-01 00:00:00+00 BC", got)
+	})
+
+	t.Run("negative year removes minus and adds BC", func(t *testing.T) {
+		input := []byte("-0001-01-01T00:00:00+00")
+		got := convertTimestampWithTimezoneForPostgres(input)
+		require.Equal(t, "0002-01-01 00:00:00+00 BC", got)
+	})
+
+	t.Run("handles timezone offset", func(t *testing.T) {
+		input := []byte("-0002-01-01T00:00:00+07:00")
+		got := convertTimestampWithTimezoneForPostgres(input)
+		require.Equal(t, "0003-01-01 00:00:00+07:00 BC", got)
+	})
+
+	t.Run("handles negative timezone offset", func(t *testing.T) {
+		input := []byte("-0003-01-01T00:00:00-08:00")
+		got := convertTimestampWithTimezoneForPostgres(input)
+		require.Equal(t, "0004-01-01 00:00:00-08:00 BC", got)
+	})
+}
+
+func Test_convertDateForPostgres(t *testing.T) {
+	t.Run("normal date", func(t *testing.T) {
+		input := []byte("2023-01-01T00:00:00Z")
+		got, err := convertDateForPostgres(input)
+		require.NoError(t, err)
+		require.Equal(t, "2023-01-01", got)
+	})
+
+	t.Run("handles BC date", func(t *testing.T) {
+		input := []byte("-0001-01-01T00:00:00Z")
+		got, err := convertDateForPostgres(input)
+		require.NoError(t, err)
+		require.Equal(t, "0002-01-01 BC", got)
+	})
+
+	t.Run("handles year 0", func(t *testing.T) {
+		input := []byte("0000-01-01T00:00:00Z")
+		got, err := convertDateForPostgres(input)
+		require.NoError(t, err)
+		require.Equal(t, "0001-01-01 BC", got)
+	})
+
+	t.Run("handles negative years", func(t *testing.T) {
+		input := []byte("-0002-01-01T00:00:00Z")
+		got, err := convertDateForPostgres(input)
+		require.NoError(t, err)
+		require.Equal(t, "0003-01-01 BC", got)
+	})
+
+	t.Run("handles DateTime format", func(t *testing.T) {
+		input := []byte("2023-01-01 00:00:00")
+		got, err := convertDateForPostgres(input)
+		require.NoError(t, err)
+		require.Equal(t, "2023-01-01", got)
+	})
 }

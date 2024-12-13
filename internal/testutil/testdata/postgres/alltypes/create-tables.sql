@@ -217,6 +217,18 @@ VALUES (
     '0001-01-01 BC'
 );
 
+INSERT INTO time_time (
+    timestamp_col,
+    timestamptz_col,
+    date_col
+) 
+VALUES (
+    '0002-01-01 00:00:00 BC',
+    '0002-01-01 00:00:00+00 BC',
+    '0002-01-01 BC'
+);
+
+
 
 CREATE TABLE IF NOT EXISTS array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,

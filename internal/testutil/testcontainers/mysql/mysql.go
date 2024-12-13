@@ -301,3 +301,13 @@ func (m *MysqlTestContainer) CreateDatabases(ctx context.Context, schemas []stri
 	}
 	return nil
 }
+
+func (m *MysqlTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
+	rows := m.DB.QueryRowContext(ctx, fmt.Sprintf("SELECT COUNT(*) FROM  `%s`.`%s`;", schema, table))
+	var count int
+	err := rows.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
