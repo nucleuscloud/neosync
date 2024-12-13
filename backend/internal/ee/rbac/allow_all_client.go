@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"context"
+	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
@@ -44,6 +45,10 @@ func (a *AllowAllClient) RemoveAccountRole(ctx context.Context, user, account En
 }
 
 func (a *AllowAllClient) RemoveAccountUser(ctx context.Context, user, account EntityString) error {
+	return nil
+}
+
+func (a *AllowAllClient) SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error {
 	return nil
 }
 

@@ -273,7 +273,7 @@ func (s *Service) SetPersonalAccount(
 		return nil, err
 	}
 
-	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -281,6 +281,14 @@ func (s *Service) SetPersonalAccount(
 	account, err := s.db.SetPersonalAccount(ctx, userId, s.cfg.DefaultMaxAllowedRecords)
 	if err != nil {
 		return nil, err
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", neosyncdb.UUIDString(account.ID), "userId", user.Msg.GetUserId())
+
+	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
@@ -360,6 +368,8 @@ func (s *Service) CreateTeamAccount(
 		return nil, err
 	}
 
+	logger = logger.With("accountId", neosyncdb.UUIDString(account.ID))
+
 	var checkoutSessionUrl *string
 	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.billingclient != nil {
 		account, err = s.db.UpsertStripeCustomerId(
@@ -377,6 +387,11 @@ func (s *Service) CreateTeamAccount(
 		}
 		logger.Debug("stripe checkout session created", "id", session.ID)
 		checkoutSessionUrl = &session.URL
+	}
+
+	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {

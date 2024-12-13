@@ -30,6 +30,7 @@ type RoleAdmin interface {
 	SetAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
 	RemoveAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
 	RemoveAccountUser(ctx context.Context, user EntityString, account EntityString) error
+	SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error
 }
 
 // Initialize default policies for existing accounts at startup
@@ -46,58 +47,10 @@ func (r *Rbac) InitPolicies(
 
 	policyRules := [][]string{}
 	for _, accountId := range accountIds {
-		accountKey := NewAccountIdEntity(accountId).String()
-
+		accountRules := getAccountPolicyRules(accountId)
 		policyRules = append(
 			policyRules,
-			[]string{
-				Role_AccountAdmin.String(),
-				accountKey,
-				Wildcard, // any resource in the account
-				Wildcard, // all actions in the account
-			},
-			[]string{
-				Role_JobDeveloper.String(),
-				accountKey,
-				JobWildcard.String(), // all jobs in the account
-				Wildcard,             // all job actions
-			},
-			[]string{
-				Role_JobDeveloper.String(),
-				accountKey,
-				ConnectionWildcard.String(), // all connections in the account
-				Wildcard,                    // all connection actions
-			},
-			[]string{
-				Role_JobDeveloper.String(),
-				accountKey,
-				accountKey,
-				AccountAction_View.String(),
-			},
-			[]string{
-				Role_JobViewer.String(),
-				accountKey,
-				JobWildcard.String(),
-				JobAction_View.String(),
-			},
-			[]string{
-				Role_JobViewer.String(),
-				accountKey,
-				JobWildcard.String(),
-				JobAction_Execute.String(),
-			},
-			[]string{
-				Role_JobViewer.String(),
-				accountKey,
-				ConnectionWildcard.String(),
-				ConnectionAction_View.String(),
-			},
-			[]string{
-				Role_JobViewer.String(),
-				accountKey,
-				accountKey,
-				AccountAction_View.String(),
-			},
+			accountRules...,
 		)
 	}
 	if len(policyRules) > 0 {
@@ -110,6 +63,78 @@ func (r *Rbac) InitPolicies(
 		}
 	}
 	return nil
+}
+
+func (r *Rbac) SetupNewAccount(
+	ctx context.Context,
+	accountId string,
+	logger *slog.Logger,
+) error {
+	accountRules := getAccountPolicyRules(accountId)
+	if len(accountRules) > 0 {
+		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine for account %s", len(accountRules), accountId))
+		for _, policy := range accountRules {
+			err := setPolicy(r.e, policy)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getAccountPolicyRules(accountId string) [][]string {
+	accountKey := NewAccountIdEntity(accountId).String()
+	return [][]string{
+		{
+			Role_AccountAdmin.String(),
+			accountKey,
+			Wildcard, // any resource in the account
+			Wildcard, // all actions in the account
+		},
+		{
+			Role_JobDeveloper.String(),
+			accountKey,
+			JobWildcard.String(), // all jobs in the account
+			Wildcard,             // all job actions
+		},
+		{
+			Role_JobDeveloper.String(),
+			accountKey,
+			ConnectionWildcard.String(), // all connections in the account
+			Wildcard,                    // all connection actions
+		},
+		{
+			Role_JobDeveloper.String(),
+			accountKey,
+			accountKey,
+			AccountAction_View.String(),
+		},
+		{
+			Role_JobViewer.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_View.String(),
+		},
+		{
+			Role_JobViewer.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_Execute.String(),
+		},
+		{
+			Role_JobViewer.String(),
+			accountKey,
+			ConnectionWildcard.String(),
+			ConnectionAction_View.String(),
+		},
+		{
+			Role_JobViewer.String(),
+			accountKey,
+			accountKey,
+			AccountAction_View.String(),
+		},
+	}
 }
 
 func (r *Rbac) SetAccountRole(
@@ -237,11 +262,11 @@ func (r *Rbac) EnforceAccount(
 func toRoleName(role mgmtv1alpha1.AccountRole) (string, error) {
 	switch role {
 	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN:
-		return "account_admin", nil
+		return Role_AccountAdmin.String(), nil
 	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_DEVELOPER:
-		return "job_developer", nil
+		return Role_JobDeveloper.String(), nil
 	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER:
-		return "job_viewer", nil
+		return Role_JobViewer.String(), nil
 	default:
 		return "", fmt.Errorf("account role provided has not be mapped to a casbin role name: %d", role)
 	}
