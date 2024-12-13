@@ -143,4 +143,41 @@ func TestRbac(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "user does not have permission to view account")
 	})
+
+	t.Run("cross_account_access", func(t *testing.T) {
+		t.Parallel()
+
+		// Setup first account and user
+		account1Id := uuid.NewString()
+		user1Id := uuid.NewString()
+		err := rbacclient.SetupNewAccount(ctx, account1Id, testutil.GetTestLogger(t))
+		require.NoError(t, err)
+		err = rbacclient.SetAccountRole(ctx, NewUserIdEntity(user1Id), NewAccountIdEntity(account1Id), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN)
+		require.NoError(t, err)
+
+		// Setup second account and user
+		account2Id := uuid.NewString()
+		user2Id := uuid.NewString()
+		err = rbacclient.SetupNewAccount(ctx, account2Id, testutil.GetTestLogger(t))
+		require.NoError(t, err)
+		err = rbacclient.SetAccountRole(ctx, NewUserIdEntity(user2Id), NewAccountIdEntity(account2Id), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN)
+		require.NoError(t, err)
+
+		// Verify user1 cannot access account2's resources
+		err = rbacclient.EnforceAccount(ctx, NewUserIdEntity(user1Id), NewAccountIdEntity(account2Id), AccountAction_View)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to view account")
+
+		// Verify user1 cannot access jobs in account2
+		jobId := uuid.NewString()
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(user1Id), NewAccountIdEntity(account2Id), NewJobIdEntity(jobId), JobAction_View)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to view job")
+
+		// Verify user1 cannot access connections in account2
+		connectionId := uuid.NewString()
+		err = rbacclient.EnforceConnection(ctx, NewUserIdEntity(user1Id), NewAccountIdEntity(account2Id), NewConnectionIdEntity(connectionId), ConnectionAction_View)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to view connection")
+	})
 }
