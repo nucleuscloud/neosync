@@ -135,7 +135,7 @@ func Test_Sync(t *testing.T) {
 			require.Equal(t, `{"name": "John", "age": 30}`, jsonVal)
 			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
 
-			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB)
+			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB, "alltypes")
 			require.NoError(t, err)
 		})
 
@@ -248,7 +248,7 @@ func Test_Sync(t *testing.T) {
 			require.Equal(t, `{"age":30,"name":"John"}`, jsonVal)
 			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
 
-			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB)
+			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB, alltypesSchema)
 			require.NoError(t, err)
 		})
 
@@ -440,8 +440,8 @@ func Test_Sync(t *testing.T) {
 	})
 }
 
-func verifyPostgresTimeTimeTableValues(t *testing.T, ctx context.Context, db *pgxpool.Pool) error {
-	rows, err := db.Query(ctx, "select timestamp_col::text, date_col::text from alltypes.time_time;")
+func verifyPostgresTimeTimeTableValues(t *testing.T, ctx context.Context, db *pgxpool.Pool, schema string) error {
+	rows, err := db.Query(ctx, fmt.Sprintf("select timestamp_col::text, date_col::text from %q.time_time;", schema))
 	if err != nil {
 		return err
 	}
