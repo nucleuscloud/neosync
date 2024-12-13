@@ -8,6 +8,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
 // Interface used by rbac engine to make necessary calls to the database
@@ -44,6 +45,20 @@ func (r *Rbac) InitPolicies(
 	if err != nil {
 		return fmt.Errorf("unable to retrieve account ids during casbin policy init: %w", err)
 	}
+	err = setupAccountPolicies(r.e, accountIds, logger)
+	if err != nil {
+		return err
+	}
+
+	err = setupUserAssignments(ctx, db, r.e, accountIds, logger)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setupAccountPolicies(enforcer casbin.IEnforcer, accountIds []string, logger *slog.Logger) error {
 	logger.Debug(fmt.Sprintf("found %d account ids to associate with rbac policies", len(accountIds)))
 
 	policyRules := [][]string{}
@@ -58,14 +73,18 @@ func (r *Rbac) InitPolicies(
 	if len(policyRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
 		for _, policy := range policyRules {
-			err := setPolicy(r.e, policy)
+			err := setPolicy(enforcer, policy)
 			if err != nil {
 				return err
 			}
 		}
 	}
+	return nil
+}
 
-	policiesByDomain, err := getGroupingPoliciesByDomain(r.e)
+// For the given accounts, assign users to the account admin role if the account does not currently have any role assignments
+func setupUserAssignments(ctx context.Context, db Db, enforcer casbin.IEnforcer, accountIds []string, logger *slog.Logger) error {
+	policiesByDomain, err := getGroupingPoliciesByDomain(enforcer)
 	if err != nil {
 		return err
 	}
@@ -80,8 +99,11 @@ func (r *Rbac) InitPolicies(
 		// get users in account
 		// assign them all account admin role for the account
 		users, err := db.GetAccountUsers(ctx, accountId)
-		if err != nil {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			logger.Debug(fmt.Sprintf("no users found for account %s, skipping", accountId))
+			continue
 		}
 		logger.Debug(fmt.Sprintf("found %d users for account %s, assigning all account admin role", len(users), accountId))
 		for _, user := range users {
@@ -94,12 +116,11 @@ func (r *Rbac) InitPolicies(
 	}
 	if len(groupedRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d grouping policies to rbac engine", len(groupedRules)))
-		_, err := r.e.AddNamedGroupingPolicies("g", groupedRules)
+		_, err := enforcer.AddNamedGroupingPolicies("g", groupedRules)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -165,35 +186,36 @@ func getAccountPolicyRules(accountId string) [][]string {
 			Role_JobDeveloper.String(),
 			accountKey,
 			accountKey,
-			AccountAction_View.String(),
+			AccountAction_View.String(), // job developer can view the account
 		},
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			JobWildcard.String(),
-			JobAction_View.String(),
+			JobAction_View.String(), // job viewer can view all jobs in the account
 		},
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			JobWildcard.String(),
-			JobAction_Execute.String(),
+			JobAction_Execute.String(), // job viewer can execute all jobs in the account
 		},
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			ConnectionWildcard.String(),
-			ConnectionAction_View.String(),
+			ConnectionAction_View.String(), // job viewer can view all connections in the account
 		},
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			accountKey,
-			AccountAction_View.String(),
+			AccountAction_View.String(), // job viewer can view the account
 		},
 	}
 }
 
+// For the given user and account, removes all existing roles and replaces them with the new role
 func (r *Rbac) SetAccountRole(
 	ctx context.Context,
 	user EntityString,
@@ -214,6 +236,7 @@ func (r *Rbac) SetAccountRole(
 	return err
 }
 
+// For the given user and account, removes the given role
 func (r *Rbac) RemoveAccountRole(
 	ctx context.Context,
 	user EntityString,
@@ -228,6 +251,7 @@ func (r *Rbac) RemoveAccountRole(
 	return err
 }
 
+// For the given user and account, removes all roles for the user
 func (r *Rbac) RemoveAccountUser(
 	ctx context.Context,
 	user EntityString,

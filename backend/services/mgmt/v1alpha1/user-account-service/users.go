@@ -544,7 +544,11 @@ func (s *Service) RemoveTeamAccountMember(
 		UserId:    memberUserId,
 	})
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to remove account user from db: %w", err)
+	}
+
+	if err := s.rbacClient.RemoveAccountUser(ctx, rbac.NewPgUserIdEntity(memberUserId), rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid))); err != nil {
+		return nil, fmt.Errorf("unable to remove account user from rbac engine: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountMemberResponse{}), nil
