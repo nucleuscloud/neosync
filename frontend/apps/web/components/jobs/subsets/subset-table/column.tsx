@@ -85,9 +85,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs px-2 text-center mx-auto">
-                    This is a Root table that only has has foreign key
-                    references to children tables. Subsetting this table will
-                    subset all of it&apos;s children tables.
+                    This is a Root table that only has foreign key references to
+                    children tables. Subsetting this table will subset all of
+                    it&apos;s children tables.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -114,8 +114,8 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
           </div>
         );
       },
+      size: 250,
     },
-
     {
       accessorKey: 'edit',
       header: ({ column }) => (
