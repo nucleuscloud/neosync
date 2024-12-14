@@ -180,4 +180,53 @@ func TestRbac(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "user does not have permission to view connection")
 	})
+
+	t.Run("mixed_roles_same_account", func(t *testing.T) {
+		t.Parallel()
+
+		accountId := uuid.NewString()
+		adminUserId := uuid.NewString()
+		viewerUserId := uuid.NewString()
+		err := rbacclient.SetupNewAccount(ctx, accountId, testutil.GetTestLogger(t))
+		require.NoError(t, err)
+
+		// Set up admin user
+		err = rbacclient.SetAccountRole(ctx, NewUserIdEntity(adminUserId), NewAccountIdEntity(accountId), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN)
+		require.NoError(t, err)
+
+		// Set up job viewer user
+		err = rbacclient.SetAccountRole(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER)
+		require.NoError(t, err)
+
+		jobId := uuid.NewString()
+		connectionId := uuid.NewString()
+
+		// Verify admin has full permissions
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(adminUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Create)
+		require.NoError(t, err)
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(adminUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Delete)
+		require.NoError(t, err)
+		err = rbacclient.EnforceConnection(ctx, NewUserIdEntity(adminUserId), NewAccountIdEntity(accountId), NewConnectionIdEntity(connectionId), ConnectionAction_Create)
+		require.NoError(t, err)
+
+		// Verify job viewer can only view and execute jobs
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_View)
+		require.NoError(t, err)
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Execute)
+		require.NoError(t, err)
+
+		// Verify job viewer cannot perform other actions
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Create)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to create job")
+
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Delete)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to delete job")
+
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Edit)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to edit job")
+	})
+
 }
