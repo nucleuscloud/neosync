@@ -99,10 +99,10 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 }
 
 const (
-	PostgresDriver        = "pgx"
-	DefaultPostgresDriver = "postgres"
-	MysqlDriver           = "mysql"
-	MssqlDriver           = "sqlserver"
+	PostgresDriver     = "pgx"
+	GoquPostgresDriver = "postgres"
+	MysqlDriver        = "mysql"
+	MssqlDriver        = "sqlserver"
 )
 
 type BatchExecOpts struct {
@@ -173,4 +173,11 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 type InitSchemaStatements struct {
 	Label      string
 	Statements []string
+}
+
+type SelectQuery struct {
+	Query string
+
+	// If true, this query could return rows that violate foreign key constraints
+	IsNotForeignKeySafeSubset bool
 }

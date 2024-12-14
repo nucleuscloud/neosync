@@ -2,6 +2,7 @@ package mgmt_cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -9,6 +10,7 @@ import (
 	migrate_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate"
 	run_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/run"
 	serve "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/serve"
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 )
 
 func Execute() {
@@ -16,7 +18,7 @@ func Execute() {
 
 	rootCmd := &cobra.Command{
 		Use:   "mgmt",
-		Short: "Terminal UI that interfaces with the Nucleus system.",
+		Short: "Terminal app that is used to manage the Neosync API system.",
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
@@ -30,7 +32,13 @@ func Execute() {
 	rootCmd.AddCommand(migrate_cmd.NewCmd())
 	rootCmd.AddCommand(run_cmd.NewCmd())
 
-	cobra.CheckErr(rootCmd.Execute())
+	logger, _ := neosynclogger.NewLoggers()
+
+	err := rootCmd.Execute()
+	if err != nil {
+		logger.Error(fmt.Sprintf("error executing root command: %v", err))
+		os.Exit(1)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

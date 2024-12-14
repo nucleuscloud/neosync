@@ -142,17 +142,6 @@ func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	return count
 }
 
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
-
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	columns := make([]string, len(mappings))
 	for idx := range mappings {
@@ -439,6 +428,7 @@ func getColumnDefaultProperties(
 		if !ok {
 			return nil, fmt.Errorf("transformer missing for column: %s", cName)
 		}
+
 		var hasDefaultTransformer bool
 		if jmTransformer != nil && isDefaultJobMappingTransformer(jmTransformer) {
 			hasDefaultTransformer = true
@@ -732,7 +722,7 @@ func getAdditionalJobMappings(
 					})
 				} else {
 					switch driver {
-					case sqlmanager_shared.DefaultPostgresDriver, sqlmanager_shared.PostgresDriver:
+					case sqlmanager_shared.PostgresDriver:
 						transformer, err := getJmTransformerByPostgresDataType(info)
 						if err != nil {
 							return nil, err
@@ -905,4 +895,26 @@ func cleanPostgresType(dataType string) string {
 		return dataType
 	}
 	return strings.TrimSpace(dataType[:parenIndex])
+}
+
+func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+	for _, cd := range columnDefaults {
+		if cd != nil && !cd.HasDefaultTransformer && cd.NeedsOverride {
+			return true
+		}
+	}
+	return false
+}
+
+func getSqlBatchProcessors(driver string, columns []string, columnDataTypes map[string]string, columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) (*neosync_benthos.BatchProcessor, error) {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver:
+		return &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+	case sqlmanager_shared.MysqlDriver:
+		return &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+	case sqlmanager_shared.MssqlDriver:
+		return &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+	default:
+		return nil, fmt.Errorf("unsupported driver %q when attempting to get sql batch processors", driver)
+	}
 }

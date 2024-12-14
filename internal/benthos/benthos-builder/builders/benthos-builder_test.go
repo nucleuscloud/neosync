@@ -88,11 +88,11 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			"name": &mgmtv1alpha1.JobMappingTransformer{},
 		},
 	}
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
+	queryMap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{
+		"public.users": {tabledependency.RunTypeInsert: &sqlmanager_shared.SelectQuery{Query: ""}},
 	}
 	runconfigs := []*tabledependency.RunConfig{
-		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
+		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
 	}
 	logger := testutil.GetTestLogger(t)
 	connectionId := uuid.NewString()
@@ -182,11 +182,11 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	}
 
 	runconfigs := []*tabledependency.RunConfig{
-		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
+		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
 	}
 
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
+	queryMap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{
+		"public.users": {tabledependency.RunTypeInsert: &sqlmanager_shared.SelectQuery{Query: ""}},
 	}
 	logger := testutil.GetTestLogger(t)
 	connectionId := uuid.NewString()
@@ -320,7 +320,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*tabledependency.DependsOn{}, false)
+	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*tabledependency.DependsOn{}, nil, false)
 	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
@@ -329,7 +329,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*tabledependency.DependsOn{}, false)
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*tabledependency.DependsOn{}, nil, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
@@ -350,7 +350,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false)
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
@@ -395,7 +395,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		},
 	}
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, false)
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, nil, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
@@ -443,7 +443,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 		},
 	}
 
-	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, false)
+	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, nil, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})
@@ -508,12 +508,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	resp, err := convertUserDefinedFunctionConfig(ctx, mockTransformerClient, jmt)
 	require.NoError(t, err)
 	require.Equal(t, resp, expected)
-}
-
-func Test_buildPlainInsertArgs(t *testing.T) {
-	require.Empty(t, buildPlainInsertArgs(nil))
-	require.Empty(t, buildPlainInsertArgs([]string{}))
-	require.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
 func Test_buildPlainColumns(t *testing.T) {

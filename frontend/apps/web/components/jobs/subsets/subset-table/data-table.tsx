@@ -140,7 +140,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <td
                         key={cell.id}
-                        className="py-2"
+                        className="py-2 items-center flex"
                         style={{
                           minWidth: cell.column.getSize(),
                         }}

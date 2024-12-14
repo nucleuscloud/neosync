@@ -362,7 +362,6 @@ type PooledSqlUpdate struct {
 	Columns                  []string  `json:"columns" yaml:"columns"`
 	WhereColumns             []string  `json:"where_columns" yaml:"where_columns"`
 	SkipForeignKeyViolations bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
-	ArgsMapping              string    `json:"args_mapping" yaml:"args_mapping"`
 	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 	MaxRetryAttempts         *uint     `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
 	RetryAttemptDelay        *string   `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
@@ -376,23 +375,19 @@ type ColumnDefaultProperties struct {
 }
 
 type PooledSqlInsert struct {
-	ConnectionId             string                              `json:"connection_id" yaml:"connection_id"`
-	Schema                   string                              `json:"schema" yaml:"schema"`
-	Table                    string                              `json:"table" yaml:"table"`
-	Columns                  []string                            `json:"columns" yaml:"columns"`
-	ColumnsDataTypes         []string                            `json:"column_data_types" yaml:"column_data_types"`
-	ColumnDefaultProperties  map[string]*ColumnDefaultProperties `json:"column_default_properties" yaml:"column_default_properties"`
-	OnConflictDoNothing      bool                                `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
-	TruncateOnRetry          bool                                `json:"truncate_on_retry" yaml:"truncate_on_retry"`
-	SkipForeignKeyViolations bool                                `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
-	RawInsertMode            bool                                `json:"raw_insert_mode" yaml:"raw_insert_mode"`
-	ArgsMapping              string                              `json:"args_mapping" yaml:"args_mapping"`
-	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
-	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
-	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
-	MaxRetryAttempts         *uint                               `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
-	RetryAttemptDelay        *string                             `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
-	MaxInFlight              int                                 `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	ConnectionId                string    `json:"connection_id" yaml:"connection_id"`
+	Schema                      string    `json:"schema" yaml:"schema"`
+	Table                       string    `json:"table" yaml:"table"`
+	OnConflictDoNothing         bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
+	TruncateOnRetry             bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
+	SkipForeignKeyViolations    bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
+	ShouldOverrideColumnDefault bool      `json:"should_override_column_default" yaml:"should_override_column_default"`
+	Batching                    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	Prefix                      *string   `json:"prefix,omitempty" yaml:"prefix,omitempty"`
+	Suffix                      *string   `json:"suffix,omitempty" yaml:"suffix,omitempty"`
+	MaxRetryAttempts            *uint     `json:"max_retry_attempts,omitempty" yaml:"max_retry_attempts,omitempty"`
+	RetryAttemptDelay           *string   `json:"retry_attempt_delay,omitempty" yaml:"retry_attempt_delay,omitempty"`
+	MaxInFlight                 int       `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type SqlInsert struct {
@@ -456,21 +451,33 @@ type Batching struct {
 }
 
 type BatchProcessor struct {
-	Archive      *ArchiveProcessor   `json:"archive,omitempty" yaml:"archive,omitempty"`
-	Compress     *CompressProcessor  `json:"compress,omitempty" yaml:"compress,omitempty"`
-	SqlToJson    *SqlToJsonConfig    `json:"sql_to_json,omitempty" yaml:"sql_to_json,omitempty"`
-	JsonToSql    *JsonToSqlConfig    `json:"json_to_sql,omitempty" yaml:"json_to_sql,omitempty"`
-	NeosyncToPgx *NeosyncToPgxConfig `json:"neosync_to_pgx,omitempty" yaml:"neosync_to_pgx,omitempty"`
+	Archive        *ArchiveProcessor     `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress       *CompressProcessor    `json:"compress,omitempty" yaml:"compress,omitempty"`
+	NeosyncToJson  *NeosyncToJsonConfig  `json:"neosync_to_json,omitempty" yaml:"neosync_to_json,omitempty"`
+	NeosyncToPgx   *NeosyncToPgxConfig   `json:"neosync_to_pgx,omitempty" yaml:"neosync_to_pgx,omitempty"`
+	NeosyncToMysql *NeosyncToMysqlConfig `json:"neosync_to_mysql,omitempty" yaml:"neosync_to_mysql,omitempty"`
+	NeosyncToMssql *NeosyncToMssqlConfig `json:"neosync_to_mssql,omitempty" yaml:"neosync_to_mssql,omitempty"`
 }
 
 type NeosyncToPgxConfig struct {
+	Columns                 []string                            `json:"columns" yaml:"columns"`
+	ColumnDataTypes         map[string]string                   `json:"column_data_types" yaml:"column_data_types"`
+	ColumnDefaultProperties map[string]*ColumnDefaultProperties `json:"column_default_properties" yaml:"column_default_properties"`
 }
 
-type JsonToSqlConfig struct {
-	ColumnDataTypes map[string]string `json:"column_data_types" yaml:"column_data_types"`
+type NeosyncToMysqlConfig struct {
+	Columns                 []string                            `json:"columns" yaml:"columns"`
+	ColumnDataTypes         map[string]string                   `json:"column_data_types" yaml:"column_data_types"`
+	ColumnDefaultProperties map[string]*ColumnDefaultProperties `json:"column_default_properties" yaml:"column_default_properties"`
 }
 
-type SqlToJsonConfig struct{}
+type NeosyncToMssqlConfig struct {
+	Columns                 []string                            `json:"columns" yaml:"columns"`
+	ColumnDataTypes         map[string]string                   `json:"column_data_types" yaml:"column_data_types"`
+	ColumnDefaultProperties map[string]*ColumnDefaultProperties `json:"column_default_properties" yaml:"column_default_properties"`
+}
+
+type NeosyncToJsonConfig struct{}
 
 type ArchiveProcessor struct {
 	Format string  `json:"format" yaml:"format"`

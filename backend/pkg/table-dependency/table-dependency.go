@@ -32,11 +32,20 @@ type DependsOn struct {
 	Columns []string
 }
 
+type ForeignKey struct {
+	Columns     []string
+	NotNullable []bool
+	// ReferenceSchema  string  TODO: need to split out schema and table
+	ReferenceTable   string
+	ReferenceColumns []string
+}
+
 type RunConfig struct {
-	table            string // schema.table
+	table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
 	selectColumns    []string
 	insertColumns    []string
-	dependsOn        []*DependsOn
+	dependsOn        []*DependsOn // this should be a list of config names like "table.insert", rename to dependsOnConfigs
+	foreignKeys      []*ForeignKey
 	runType          RunType
 	primaryKeys      []string
 	whereClause      *string
@@ -65,6 +74,7 @@ func NewRunConfig(
 	whereClause *string,
 	selectCols, insertCols []string,
 	dependsOn []*DependsOn,
+	foreignKeys []*ForeignKey,
 	splitColumnPaths bool,
 ) *RunConfig {
 	return &RunConfig{
@@ -76,6 +86,7 @@ func NewRunConfig(
 		selectColumns:    selectCols,
 		dependsOn:        dependsOn,
 		splitColumnPaths: splitColumnPaths,
+		foreignKeys:      foreignKeys,
 	}
 }
 
@@ -115,6 +126,10 @@ func (rc *RunConfig) SplitColumnPaths() bool {
 	return rc.splitColumnPaths
 }
 
+func (rc *RunConfig) ForeignKeys() []*ForeignKey {
+	return rc.foreignKeys
+}
+
 func (rc *RunConfig) appendSelectColumns(columns ...string) {
 	rc.selectColumns = append(rc.selectColumns, columns...)
 }
@@ -128,6 +143,10 @@ func (rc *RunConfig) appendDependsOn(table string, columns []string) {
 		Table:   table,
 		Columns: columns,
 	})
+}
+
+func (rc *RunConfig) appendForeignKey(fk *ForeignKey) {
+	rc.foreignKeys = append(rc.foreignKeys, fk)
 }
 
 func (rc *RunConfig) SetSelectQuery(query *string) {
@@ -179,6 +198,28 @@ func GetRunConfigs(
 	// filter configs by subset
 	if len(subsets) > 0 {
 		configs = filterConfigsWithWhereClause(configs)
+	}
+
+	// Add foreign keys to configs
+	for _, config := range configs {
+		fks := dependencyMap[config.Table()]
+		for _, fk := range fks {
+			foreignKey := &ForeignKey{
+				ReferenceTable: fk.ForeignKey.Table,
+			}
+			for idx, col := range fk.Columns {
+				// by checking insert columns, we can skip foreign keys that are not needed for the insert
+				if slices.Contains(config.insertColumns, col) {
+					foreignKey.Columns = append(foreignKey.Columns, col)
+					foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
+					foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
+				}
+			}
+
+			if len(foreignKey.Columns) > 0 {
+				config.appendForeignKey(foreignKey)
+			}
+		}
 	}
 
 	// check run path
@@ -321,6 +362,7 @@ func processCycles(
 			// select cols in insert config must be all columns due to S3 as possible output
 			insertConfig.appendSelectColumns(col)
 		}
+
 		processed[startTable] = true
 		configs = append(configs, insertConfig, updateConfig)
 	}
@@ -341,6 +383,7 @@ func processCycles(
 		for fkTable, fkCols := range deps {
 			config.appendDependsOn(fkTable, slices.Concat(fkCols.NullableColumns, fkCols.NonNullableColumns))
 		}
+
 		configs = append(configs, config)
 	}
 	return configs, err

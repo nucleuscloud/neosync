@@ -13,8 +13,6 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
-const defaultStr = "DEFAULT"
-
 type SubsetReferenceKey struct {
 	Table         string
 	Columns       []string
@@ -28,7 +26,7 @@ type SubsetColumnConstraint struct {
 
 func getGoquDialect(driver string) goqu.DialectWrapper {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return goqu.Dialect(sqlmanager_shared.DefaultPostgresDriver)
+		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	}
 	return goqu.Dialect(driver)
 }
@@ -77,20 +75,12 @@ func BuildSelectLimitQuery(
 
 func BuildInsertQuery(
 	driver, schema, table string,
-	columns []string,
-	values []goqu.Vals,
+	records []goqu.Record,
 	onConflictDoNothing *bool,
 ) (sql string, args []any, err error) {
 	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
-	insertCols := make([]any, len(columns))
-	for i, col := range columns {
-		insertCols[i] = col
-	}
-	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
-	for _, row := range values {
-		insert = insert.Vals(row)
-	}
+	insert := builder.Insert(sqltable).Prepared(true).Rows(records)
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {
 		insert = insert.OnConflict(goqu.DoNothing())
@@ -101,50 +91,6 @@ func BuildInsertQuery(
 		return "", nil, err
 	}
 	return query, args, nil
-}
-
-// BuildPreparedQuery creates a prepared statement query template
-func BuildPreparedInsertQuery(
-	driver, schema, table string,
-	columns []string,
-	rowCount int,
-	onConflictDoNothing bool,
-) (string, error) {
-	if rowCount < 1 {
-		rowCount = 1
-	}
-
-	builder := getGoquDialect(driver)
-	sqltable := goqu.S(schema).Table(table)
-
-	insertCols := make([]any, len(columns))
-	for i, col := range columns {
-		insertCols[i] = col
-	}
-
-	insert := builder.Insert(sqltable).
-		Prepared(true).
-		Cols(insertCols...)
-
-	// Add placeholder rows based on rowCount
-	for i := 0; i < rowCount; i++ {
-		placeholderRow := make(goqu.Vals, len(columns))
-		for j := range columns {
-			placeholderRow[j] = nil
-		}
-		insert = insert.Vals(placeholderRow)
-	}
-
-	if onConflictDoNothing {
-		insert = insert.OnConflict(goqu.DoNothing())
-	}
-
-	query, _, err := insert.ToSQL()
-	if err != nil {
-		return "", err
-	}
-
-	return query, nil
 }
 
 func BuildUpdateQuery(

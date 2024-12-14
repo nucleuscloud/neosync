@@ -11,14 +11,12 @@ type QueryMapBuilderWrapper struct{}
 // BuildSelectQueryMap wraps the original BuildSelectQueryMap function
 func (w *QueryMapBuilderWrapper) BuildSelectQueryMap(
 	driver string,
-	tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]map[tabledependency.RunType]string, error) {
+) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error) {
 	return BuildSelectQueryMap(
 		driver,
-		tableFkConstraints,
 		runConfigs,
 		subsetByForeignKeyConstraints,
 		groupedColumnInfo,

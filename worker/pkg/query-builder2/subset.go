@@ -10,26 +10,33 @@ import (
 // returns map of schema.table -> select query
 func BuildSelectQueryMap(
 	driver string,
-	tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]map[tabledependency.RunType]string, error) {
+) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error) {
 	tableDependencies := map[string]*TableConstraints{}
-	for tableName, fkConstraints := range tableFkConstraints {
-		tableDependencies[tableName] = &TableConstraints{
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-			ForeignKeys: fkConstraints,
-		}
-	}
 	for _, rc := range runConfigs {
+		if rc.RunType() != tabledependency.RunTypeInsert {
+			continue
+		}
 		td, ok := tableDependencies[rc.Table()]
 		if !ok {
 			td = &TableConstraints{
 				PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-				ForeignKeys: tableFkConstraints[rc.Table()],
+				ForeignKeys: []*sqlmanager_shared.ForeignConstraint{},
 			}
 			tableDependencies[rc.Table()] = td
+		}
+
+		for _, fk := range rc.ForeignKeys() {
+			td.ForeignKeys = append(td.ForeignKeys, &sqlmanager_shared.ForeignConstraint{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   fk.ReferenceTable,
+					Columns: fk.ReferenceColumns,
+				},
+				NotNullable: fk.NotNullable,
+				Columns:     fk.Columns,
+			})
 		}
 		td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
 			Columns: rc.PrimaryKeys(),
@@ -49,17 +56,20 @@ func BuildSelectQueryMap(
 		qb.AddWhereCondition(schema, table, qualifiedWhereCaluse)
 	}
 
-	querymap := map[string]map[tabledependency.RunType]string{}
+	querymap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
 	for _, cfg := range runConfigs {
 		if _, ok := querymap[cfg.Table()]; !ok {
-			querymap[cfg.Table()] = map[tabledependency.RunType]string{}
+			querymap[cfg.Table()] = map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
 		}
 		schema, table := splitTable(cfg.Table())
-		query, _, err := qb.BuildQuery(schema, table)
+		query, _, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
-		querymap[cfg.Table()][cfg.RunType()] = query
+		querymap[cfg.Table()][cfg.RunType()] = &sqlmanager_shared.SelectQuery{
+			Query:                     query,
+			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
+		}
 	}
 
 	return querymap, nil
@@ -113,6 +123,7 @@ func NewQueryBuilderFromSchemaDefinition(
 			refSchema, refTable := splitTable(fk.ForeignKey.Table)
 			tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, &ForeignKey{
 				Columns:          fk.Columns,
+				NotNullable:      fk.NotNullable,
 				ReferenceSchema:  refSchema,
 				ReferenceTable:   refTable,
 				ReferenceColumns: fk.ForeignKey.Columns,

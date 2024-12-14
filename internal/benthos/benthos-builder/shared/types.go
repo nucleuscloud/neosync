@@ -24,11 +24,10 @@ type BenthosRedisConfig struct {
 type SelectQueryMapBuilder interface {
 	BuildSelectQueryMap(
 		driver string,
-		tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[tabledependency.RunType]string, error)
+	) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {

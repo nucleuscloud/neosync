@@ -516,3 +516,115 @@ INSERT INTO attachments (file_name, file_path, uploaded_by, task_id, initiative_
 ('ui_designs.sketch', '/files/designs/ui_designs.sketch', 10, 8, 8, 15),
 ('smart_contracts.sol', '/files/blockchain/smart_contracts.sol', 1, 9, 9, 17),
 ('sensor_specs.pdf', '/files/iot/sensor_specs.pdf', 2, 10, 10, 19);
+
+
+
+CREATE TABLE IF NOT EXISTS accounts (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    blueprint_id INTEGER NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS blueprints (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    account_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO accounts (name, email, blueprint_id)
+VALUES 
+    ('John Doe', 'john@example.com', 5),
+    ('Jane Smith', 'jane@example.com', NULL),
+    ('Bob Wilson', 'bob@example.com', 2),
+    ('Alice Brown', 'alice@example.com', 3),
+    ('Charlie Davis', 'charlie@example.com', 4)
+RETURNING id;
+
+-- Then insert blueprints with account_id references
+INSERT INTO blueprints (name, description, account_id)
+VALUES 
+    ('Basic blueprint', 'A simple starter blueprint', 1),
+    ('Pro blueprint', 'Advanced features blueprint', 2),
+    ('Team blueprint', 'Collaborative workspace blueprint', 3),
+    ('Enterprise blueprint', 'Full-featured business blueprint', 4),
+    ('Custom blueprint', 'Customizable blueprint', 5)
+RETURNING id;
+
+ALTER TABLE accounts 
+ADD CONSTRAINT fk_accounts_blueprints 
+FOREIGN KEY (blueprint_id) 
+REFERENCES blueprints(id);
+
+ALTER TABLE blueprints 
+ADD CONSTRAINT fk_blueprints_accounts 
+FOREIGN KEY (account_id) 
+REFERENCES accounts(id);
+
+
+CREATE TABLE IF NOT EXISTS clients (
+  id SERIAL PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS titles (
+  id SERIAL PRIMARY KEY,
+  account_id INTEGER NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES accounts (id)
+);
+
+CREATE TABLE IF NOT EXISTS client_account_titles (
+  id SERIAL PRIMARY KEY,
+  account_id INTEGER NOT NULL,
+  title_id INTEGER NULL,
+  client_id INTEGER NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES accounts(id),
+  FOREIGN KEY (title_id) REFERENCES titles(id),
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+);
+
+INSERT INTO clients (id)
+VALUES 
+    (1),
+    (2),
+    (3),
+    (4),
+    (5),
+    (6),
+    (7),
+    (8),
+    (9);
+
+-- Insert titles with references to existing accounts
+INSERT INTO titles (id, account_id)
+VALUES 
+    (1, 1),  -- Title for John Doe's account
+    (2, 1),  -- Another title for John Doe's account
+    (3, 2),  -- Title for Jane Smith's account
+    (4, 3),  -- Title for Bob Wilson's account
+    (5, 4),  -- Title for Alice Brown's account
+    (6, 5);  -- Title for Charlie Davis's account
+
+-- Insert client_account_titles relationships
+INSERT INTO client_account_titles (account_id, title_id, client_id)
+VALUES
+    -- John Doe's account relationships
+    (1, 1, 1),  -- First client with first title
+    (1, 2, 2),  -- Second client with second title
+    (1, null, 9),  -- Third client with null title
+    
+    -- Jane Smith's account relationships
+    (2, 3, 3),  -- Third client
+    
+    -- Bob Wilson's account relationships
+    (3, 4, 4),  -- Fourth client
+    
+    -- Alice Brown's account relationships
+    (4, 5, 5),  -- Fifth client
+    
+    -- Charlie Davis's account relationships
+    (5, 6, 6),  -- Sixth client
+    (5, 6, 7),  -- Seventh client sharing same title as sixth client
+    (5, null, 8);
