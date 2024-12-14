@@ -1,6 +1,7 @@
 package neosynctypes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -46,6 +47,14 @@ func (i *Interval) ScanJson(value any) error {
 
 func (i *Interval) ValueJson() (any, error) {
 	return i.JsonScanner.ValueJson(i)
+}
+
+func (i *Interval) ScanMysql(value any) error {
+	return errors.ErrUnsupported
+}
+
+func (i *Interval) ValueMysql() (any, error) {
+	return nil, errors.ErrUnsupported
 }
 
 func (i *Interval) setVersion(v Version) {

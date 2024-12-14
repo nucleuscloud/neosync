@@ -15,6 +15,7 @@ const (
 const (
 	NeosyncIntervalId = "NEOSYNC_INTERVAL"
 	NeosyncArrayId    = "NEOSYNC_ARRAY"
+	NeosyncBitId      = "NEOSYNC_BIT"
 )
 
 type NeosyncAdapter interface {
@@ -23,10 +24,16 @@ type NeosyncAdapter interface {
 	ValuePgx() (any, error)
 	ScanJson(value any) error
 	ValueJson() (any, error)
+	ScanMysql(value any) error
+	ValueMysql() (any, error)
 }
 
 type NeosyncPgxValuer interface {
 	ValuePgx() (any, error)
+}
+
+type NeosyncMysqlValuer interface {
+	ValueMysql() (any, error)
 }
 
 type NeosyncJsonValuer interface {
