@@ -1,17 +1,17 @@
-//go:build ignore
-
 package main
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
+
+	// "html/template"
 	"io"
 	"os"
 	"regexp"
 	"slices"
 	"strings"
+	"text/template"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/nucleuscloud/go-antlrv4-parser/tsql"
@@ -31,13 +31,11 @@ type Column struct {
 }
 
 type Table struct {
-	Schema  string
 	Name    string
 	Columns []*Column
 }
 
 type JobMapping struct {
-	Schema      string
 	Table       string
 	Column      string
 	Transformer string
@@ -51,12 +49,9 @@ func parsePostegresStatements(sql string) ([]*Table, error) {
 	}
 
 	tables := []*Table{}
-	var schema string
 	for _, stmt := range tree.GetStmts() {
 		s := stmt.GetStmt()
 		switch s.Node.(type) {
-		case *pg_query.Node_CreateSchemaStmt:
-			schema = s.GetCreateSchemaStmt().GetSchemaname()
 		case *pg_query.Node_CreateStmt:
 			table := s.GetCreateStmt().GetRelation().GetRelname()
 			columns := []*Column{}
@@ -68,14 +63,10 @@ func parsePostegresStatements(sql string) ([]*Table, error) {
 				}
 			}
 			tables = append(tables, &Table{
-				Schema:  schema,
 				Name:    table,
 				Columns: columns,
 			})
 		}
-	}
-	if schema == "" {
-		return nil, fmt.Errorf("unable to determine schema")
 	}
 	return tables, nil
 }
@@ -84,19 +75,15 @@ func parsePostegresStatements(sql string) ([]*Table, error) {
 func parseSQLStatements(sql string) []*Table {
 	lines := strings.Split(sql, "\n")
 	tableColumnsMap := make(map[string][]string)
-	var currentSchema, currentTable string
+	var currentTable string
 
-	reUSE := regexp.MustCompile(`USE\s+(\w+);`)
 	reCreateTable := regexp.MustCompile(`CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)\s*\.\s*(\w+)\s*\(`)
 	reCreateTableNoSchema := regexp.MustCompile(`CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)\s*\(`)
 	reColumn := regexp.MustCompile(`^\s*([\w]+)\s+[\w\(\)]+.*`)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if matches := reUSE.FindStringSubmatch(line); len(matches) > 1 {
-			currentSchema = matches[1]
-		} else if matches := reCreateTable.FindStringSubmatch(line); len(matches) > 2 {
-			currentSchema = matches[1]
+		if matches := reCreateTable.FindStringSubmatch(line); len(matches) > 2 {
 			currentTable = matches[2]
 		} else if matches := reCreateTableNoSchema.FindStringSubmatch(line); len(matches) > 1 {
 			currentTable = matches[1]
@@ -106,8 +93,7 @@ func parseSQLStatements(sql string) []*Table {
 				if slices.Contains([]string{"primary key", "constraint", "key", "unique", "primary", "alter"}, strings.ToLower(matches[1])) {
 					continue
 				}
-				key := currentSchema + "." + currentTable
-				tableColumnsMap[key] = append(tableColumnsMap[key], columnName)
+				tableColumnsMap[currentTable] = append(tableColumnsMap[currentTable], columnName)
 			} else if strings.HasPrefix(line, "PRIMARY KEY") || strings.HasPrefix(line, "CONSTRAINT") || strings.HasPrefix(line, "UNIQUE") || strings.HasPrefix(line, "KEY") || strings.HasPrefix(line, "ENGINE") || strings.HasPrefix(line, ")") {
 				// Ignore key constraints and end of table definition
 				if strings.HasPrefix(line, ")") {
@@ -124,10 +110,8 @@ func parseSQLStatements(sql string) []*Table {
 				Name: c,
 			})
 		}
-		split := strings.Split(table, ".")
 		res = append(res, &Table{
-			Schema:  split[0],
-			Name:    split[1],
+			Name:    table,
 			Columns: tableCols,
 		})
 	}
@@ -140,7 +124,6 @@ func generateJobMapping(tables []*Table) []*mgmtv1alpha1.JobMapping {
 	for _, t := range tables {
 		for _, c := range t.Columns {
 			mappings = append(mappings, &mgmtv1alpha1.JobMapping{
-				Schema: t.Schema,
 				Table:  t.Name,
 				Column: c.Name,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -172,15 +155,17 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{{- range .Mappings }}
 		{
-			Schema: "{{ .Schema }}",
+			Schema: schema,
 			Table:  "{{ .Table }}",
 			Column: "{{ .Column }}",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{{- end }}
@@ -192,7 +177,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 func GetTableColumnTypeMap() map[string]map[string]string {
 	return map[string]map[string]string{
 		{{- range .Tables }}
-		"{{ .Schema }}.{{ .Name }}": {
+		"{{ .Name }}": {
 		{{- range .Columns }}
 			"{{ .Name }}": "{{ .TypeStr }}",
 		{{- end }}
@@ -314,20 +299,17 @@ func main() {
 
 type tsqlListener struct {
 	*parser.BaseTSqlParserListener
-	inCreate      bool
-	currentSchema string
-	currentTable  string
-	currentCols   []*Column
-	mappings      []*Table
+	inCreate     bool
+	currentTable string
+	currentCols  []*Column
+	mappings     []*Table
 }
 
 func (l *tsqlListener) PushTable() {
 	l.mappings = append(l.mappings, &Table{
-		Schema:  l.currentSchema,
 		Name:    l.currentTable,
 		Columns: l.currentCols,
 	})
-	l.currentSchema = ""
 	l.currentTable = ""
 	l.currentCols = []*Column{}
 	l.inCreate = false
@@ -343,10 +325,8 @@ func (l *tsqlListener) PushColumn(name, typeStr string) {
 func (l *tsqlListener) SetTable(schemaTable string) {
 	split := strings.Split(schemaTable, ".")
 	if len(split) == 1 {
-		l.currentSchema = "dbo"
 		l.currentTable = split[0]
 	} else if len(split) > 1 {
-		l.currentSchema = split[0]
 		l.currentTable = split[1]
 	}
 }

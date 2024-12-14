@@ -57,7 +57,7 @@
 	},
 	{
 		"folder":"postgres/all-types",
-		"sql_file": "setup.sql", 
+		"sql_file": "create-tables.sql", 
 		"driver": "postgres"
 	},
 	{

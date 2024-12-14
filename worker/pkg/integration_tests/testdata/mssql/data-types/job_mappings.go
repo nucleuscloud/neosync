@@ -8,206 +8,256 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_bigint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_numeric",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_bit",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_smallint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_decimal",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_smallmoney",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_int",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_tinyint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_money",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_float",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_real",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_datetimeoffset",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_datetime2",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_smalldatetime",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_datetime",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_time",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_char",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_varchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_text",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_nchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_nvarchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_ntext",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_uniqueidentifier",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "alltypes",
+			Schema: schema,
 			Table:  "alldatatypes",
 			Column: "col_xml",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 	} 
@@ -217,7 +267,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 
 func GetTableColumnTypeMap() map[string]map[string]string {
 	return map[string]map[string]string{
-		"alltypes.alldatatypes": {
+		"alldatatypes": {
 			"col_bigint": "BIGINT",
 			"col_numeric": "NUMERIC(18,0)",
 			"col_bit": "BIT",

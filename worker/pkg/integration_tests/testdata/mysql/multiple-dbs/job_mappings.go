@@ -8,70 +8,96 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "m_db_1",
-			Table:  "container",
-			Column: "id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_1",
-			Table:  "container",
-			Column: "code",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_1",
-			Table:  "container",
-			Column: "container_status_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_2",
+			Schema: schema,
 			Table:  "container_status",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "m_db_2",
-			Table:  "container",
-			Column: "id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_2",
-			Table:  "container",
-			Column: "code",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_2",
-			Table:  "container",
-			Column: "container_status_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "m_db_1",
+			Schema: schema,
 			Table:  "container_status",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "code",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "container_status_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "USE",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "code",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "container",
+			Column: "container_status_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 	} 

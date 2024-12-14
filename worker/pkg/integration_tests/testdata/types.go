@@ -1,4 +1,4 @@
-package workflow_testdata
+package integration_tests
 
 import mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 

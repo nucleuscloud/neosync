@@ -306,6 +306,16 @@ func (p *PostgresTestContainer) CreateSchemas(ctx context.Context, schemas []str
 	return nil
 }
 
+func (p *PostgresTestContainer) DropSchemas(ctx context.Context, schemas []string) error {
+	for _, schema := range schemas {
+		_, err := p.DB.Exec(ctx, fmt.Sprintf("DROP SCHEMA IF EXISTS %q CASCADE;", schema))
+		if err != nil {
+			return fmt.Errorf("unable to drop schema %s: %w", schema, err)
+		}
+	}
+	return nil
+}
+
 func (p *PostgresTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
 	rows := p.DB.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %q.%q;", schema, table))
 	var count int

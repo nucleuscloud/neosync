@@ -8,430 +8,536 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "categories",
 			Column: "category_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "categories",
 			Column: "category_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "brands",
 			Column: "brand_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "brands",
 			Column: "brand_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "product_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "product_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "brand_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "category_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "model_year",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "products",
 			Column: "list_price",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "identities",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "customer_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "first_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "last_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "phone",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "email",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "street",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "city",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "state",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "customers",
 			Column: "zip_code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "store_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "store_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "phone",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "email",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "street",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "city",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "state",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "stores",
 			Column: "zip_code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "staff_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "first_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "last_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "email",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "phone",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "active",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "store_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "staffs",
 			Column: "manager_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "order_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "customer_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "order_status",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "order_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "required_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "shipped_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "store_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "orders",
 			Column: "staff_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "order_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "item_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "product_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "quantity",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "list_price",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "sales",
+			Schema: schema,
 			Table:  "order_items",
 			Column: "discount",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "stocks",
 			Column: "store_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "stocks",
 			Column: "product_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "production",
+			Schema: schema,
 			Table:  "stocks",
 			Column: "quantity",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 	} 
@@ -441,15 +547,15 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 
 func GetTableColumnTypeMap() map[string]map[string]string {
 	return map[string]map[string]string{
-		"production.categories": {
+		"categories": {
 			"category_id": "INTIDENTITY(1,1)",
 			"category_name": "VARCHAR(255)",
 		},
-		"production.brands": {
+		"brands": {
 			"brand_id": "INTIDENTITY(1,1)",
 			"brand_name": "VARCHAR(255)",
 		},
-		"production.products": {
+		"products": {
 			"product_id": "INTIDENTITY(1,1)",
 			"product_name": "VARCHAR(255)",
 			"brand_id": "INT",
@@ -457,10 +563,10 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"model_year": "SMALLINT",
 			"list_price": "DECIMAL(10,2)",
 		},
-		"production.identities": {
+		"identities": {
 			"id": "INTIDENTITY(1,1)",
 		},
-		"sales.customers": {
+		"customers": {
 			"customer_id": "INTIDENTITY(1,1)",
 			"first_name": "VARCHAR(255)",
 			"last_name": "VARCHAR(255)",
@@ -471,7 +577,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"state": "VARCHAR(25)",
 			"zip_code": "VARCHAR(5)",
 		},
-		"sales.stores": {
+		"stores": {
 			"store_id": "INTIDENTITY(1,1)",
 			"store_name": "VARCHAR(255)",
 			"phone": "VARCHAR(25)",
@@ -481,7 +587,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"state": "VARCHAR(10)",
 			"zip_code": "VARCHAR(5)",
 		},
-		"sales.staffs": {
+		"staffs": {
 			"staff_id": "INTIDENTITY(1,1)",
 			"first_name": "VARCHAR(50)",
 			"last_name": "VARCHAR(50)",
@@ -491,7 +597,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"store_id": "INT",
 			"manager_id": "INT",
 		},
-		"sales.orders": {
+		"orders": {
 			"order_id": "INTIDENTITY(1,1)",
 			"customer_id": "INT",
 			"order_status": "tinyint",
@@ -501,7 +607,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"store_id": "INT",
 			"staff_id": "INT",
 		},
-		"sales.order_items": {
+		"order_items": {
 			"order_id": "INT",
 			"item_id": "INT",
 			"product_id": "INT",
@@ -509,7 +615,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"list_price": "DECIMAL(10,2)",
 			"discount": "DECIMAL(4,2)",
 		},
-		"production.stocks": {
+		"stocks": {
 			"store_id": "INT",
 			"product_id": "INT",
 			"quantity": "INT",

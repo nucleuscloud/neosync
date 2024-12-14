@@ -1,5 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS alltypes;
-CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
+CREATE TABLE IF NOT EXISTS all_data_types (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- Numeric Types
     smallint_col SMALLINT,
@@ -82,7 +81,7 @@ CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
 );
 
 
-INSERT INTO alltypes.all_postgres_types (
+INSERT INTO all_data_types (
     Id,
     smallint_col, 
     integer_col, 
@@ -182,21 +181,21 @@ INSERT INTO alltypes.all_postgres_types (
     123456  -- oid_col
 );
 
-INSERT INTO alltypes.all_postgres_types (
+INSERT INTO all_data_types (
     Id
 ) VALUES (
     DEFAULT
 );
 
 
-CREATE TABLE IF NOT EXISTS alltypes.time_time (
+CREATE TABLE IF NOT EXISTS time_time (
     id SERIAL PRIMARY KEY,
     timestamp_col TIMESTAMP,
     timestamptz_col TIMESTAMPTZ,
     date_col DATE
 );
 
-INSERT INTO alltypes.time_time (
+INSERT INTO time_time (
     timestamp_col,
     timestamptz_col,
     date_col
@@ -207,7 +206,7 @@ VALUES (
     '2024-03-18'
 );
 
-INSERT INTO alltypes.time_time (
+INSERT INTO time_time (
     timestamp_col,
     timestamptz_col,
     date_col
@@ -219,7 +218,7 @@ VALUES (
 );
 
 
-CREATE TABLE IF NOT EXISTS alltypes.array_types (
+CREATE TABLE IF NOT EXISTS array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,
     "int_array" _int4,
     "smallint_array" _int2,
@@ -256,7 +255,7 @@ CREATE TABLE IF NOT EXISTS alltypes.array_types (
 );
 
 
-INSERT INTO alltypes.array_types (
+INSERT INTO array_types (
     id, int_array, smallint_array, bigint_array, real_array, double_array,
     text_array, varchar_array, char_array, boolean_array, date_array,
     time_array, timestamp_array, timestamptz_array, interval_array,
@@ -305,28 +304,28 @@ INSERT INTO alltypes.array_types (
 );
 
 
-CREATE TABLE alltypes.json_data (
+CREATE TABLE json_data (
     id SERIAL PRIMARY KEY,
     data JSONB
 );
 
 
-INSERT INTO alltypes.json_data (data) VALUES ('"Hello, world!"');
-INSERT INTO alltypes.json_data (data) VALUES ('42');
-INSERT INTO alltypes.json_data (data) VALUES ('3.14');
-INSERT INTO alltypes.json_data (data) VALUES ('true');
-INSERT INTO alltypes.json_data (data) VALUES ('false');
-INSERT INTO alltypes.json_data (data) VALUES ('null');
+INSERT INTO json_data (data) VALUES ('"Hello, world!"');
+INSERT INTO json_data (data) VALUES ('42');
+INSERT INTO json_data (data) VALUES ('3.14');
+INSERT INTO json_data (data) VALUES ('true');
+INSERT INTO json_data (data) VALUES ('false');
+INSERT INTO json_data (data) VALUES ('null');
 
-INSERT INTO alltypes.json_data (data) VALUES ('{"name": "John", "age": 30}');
-INSERT INTO alltypes.json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');
+INSERT INTO json_data (data) VALUES ('{"name": "John", "age": 30}');
+INSERT INTO json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');
 
-INSERT INTO alltypes.json_data (data) VALUES ('[1, 2, 3, 4]');
-INSERT INTO alltypes.json_data (data) VALUES ('["apple", "banana", "cherry"]');
+INSERT INTO json_data (data) VALUES ('[1, 2, 3, 4]');
+INSERT INTO json_data (data) VALUES ('["apple", "banana", "cherry"]');
 
-INSERT INTO alltypes.json_data (data) VALUES ('{"items": ["book", "pen"], "count": 2, "in_stock": true}');
+INSERT INTO json_data (data) VALUES ('{"items": ["book", "pen"], "count": 2, "in_stock": true}');
 
-INSERT INTO alltypes.json_data (data) VALUES (
+INSERT INTO json_data (data) VALUES (
     '{
         "user": {
             "name": "Alice",
@@ -346,31 +345,3 @@ INSERT INTO alltypes.json_data (data) VALUES (
         }
     }'
 );
-
-CREATE SCHEMA IF NOT EXISTS "CaPiTaL";
-CREATE TABLE IF NOT EXISTS "CaPiTaL"."BadName" (
-    "ID" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "NAME" text UNIQUE
-);
-
-INSERT INTO "CaPiTaL"."BadName" ("NAME")
-VALUES 
-    ('Xk7pQ9nM3v'),
-    ('Rt5wLjH2yB'),
-    ('Zc8fAe4dN6'),
-    ('Ym9gKu3sW5'),
-    ('Vb4nPx7tJ2');
-
-CREATE TABLE "CaPiTaL"."Bad Name 123!@#" (
-    "ID" SERIAL PRIMARY KEY,
-    "NAME" text REFERENCES "CaPiTaL"."BadName" ("NAME")
-);
-
-
-INSERT INTO "CaPiTaL"."Bad Name 123!@#" ("NAME")
-VALUES 
-    ('Xk7pQ9nM3v'),
-    ('Rt5wLjH2yB'),
-    ('Zc8fAe4dN6'),
-    ('Ym9gKu3sW5'),
-    ('Vb4nPx7tJ2');
