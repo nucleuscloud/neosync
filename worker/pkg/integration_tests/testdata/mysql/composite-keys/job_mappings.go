@@ -12,6 +12,36 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
+			Table:  "orders",
+			Column: "order_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "orders",
+			Column: "product_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "orders",
+			Column: "order_date",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "order_details",
 			Column: "detail_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -134,36 +164,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Schema: schema,
 			Table:  "shipping_status",
 			Column: "status_date",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-				},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "orders",
-			Column: "order_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-				},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "orders",
-			Column: "product_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-				},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "orders",
-			Column: "order_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},

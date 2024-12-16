@@ -26,7 +26,7 @@
 		"driver": "mysql"
 	},
 	{
-		"folder": "primary-key-transformer",
+		"folder": "postgres/primary-key-transformer",
 		"sql_file": "create.sql",
 		"driver": "postgres"
 	},

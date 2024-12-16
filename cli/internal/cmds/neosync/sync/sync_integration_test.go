@@ -70,11 +70,11 @@ func Test_Sync(t *testing.T) {
 			// right now CLI sync and init schema takes everything in source and copies it to target since there are no job mappings defined by the user
 			// so it can't be scoped to specific schema
 			// t.Parallel()
-			err = postgres.Source.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"humanresources/create-tables.sql"}, "humanresources")
+			err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, "humanresources")
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = postgres.Source.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, "alltypes")
+			err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, "alltypes")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -147,12 +147,12 @@ func Test_Sync(t *testing.T) {
 			}
 
 			alltypesSchema := "alltypes_s3_pg"
-			err := postgres.Source.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+			err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = postgres.Target.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+			err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 			if err != nil {
 				t.Fatal(err)
 			}

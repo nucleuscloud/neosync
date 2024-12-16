@@ -1,4 +1,43 @@
-INSERT INTO "primary_$key".store_notifications (id) VALUES
+CREATE TABLE IF NOT EXISTS store_notifications (
+
+	id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid()
+);
+
+CREATE TABLE IF NOT EXISTS stores (
+
+	id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
+notifications_id uuid UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS store_customers (
+
+	id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
+store_id uuid NOT NULL,
+referred_by_code uuid NULL
+);
+
+CREATE TABLE IF NOT EXISTS referral_codes (
+
+	id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
+customer_id uuid NOT NULL
+);
+
+ALTER TABLE store_customers ADD FOREIGN KEY (store_id) REFERENCES stores (id);
+
+
+ALTER TABLE store_customers ADD FOREIGN KEY (referred_by_code) REFERENCES referral_codes (id);
+
+
+ALTER TABLE stores ADD FOREIGN KEY (notifications_id) REFERENCES store_notifications (id);
+
+
+ALTER TABLE referral_codes ADD FOREIGN KEY (customer_id) REFERENCES store_customers (id);
+
+
+
+
+INSERT INTO store_notifications (id) VALUES
+
 ('c0e8db5a-1b71-4e5b-8d7b-6f5a1a4d0736'), ('d37fa1b8-4a36-42a6-8786-3a5f5641c302'), ('f8d7a2b0-9d73-47b2-91f8-8e10c37c2e74'),
 ('a7e4b9f9-9c6c-4b48-9f98-3e1a4b7d2c1f'), ('b6c3d7a4-5e6a-4a0d-8f72-9e3b1a7c9d4f'), ('e4d7a6b8-7e5c-4a3b-9f6d-5e2a1c3b7a4d'),
 ('f3a7d9b2-8d6b-4a1d-9e5b-6a3f1d7c2e0a'), ('d4b8c3e1-6e7a-4b9f-8a7c-5e3d2c1b9a0f'), ('e7c3a4d5-1f8b-4a2d-9e3f-7b6a4d2c9e1f'),
@@ -8,7 +47,8 @@ INSERT INTO "primary_$key".store_notifications (id) VALUES
 ('d6b7e4a9-7f5d-4a2b-9c6e-3f2a1e8d5b9c'), ('e1a8c3d4-2f6b-4a5e-9d8c-7b3d1f2a6e5d');
 
 
-INSERT INTO "primary_$key".stores (id, notifications_id) VALUES
+INSERT INTO stores (id, notifications_id) VALUES
+
 ('a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6', 'c0e8db5a-1b71-4e5b-8d7b-6f5a1a4d0736'),
 ('b2c3d4e5-f6a7-48b9-0c1d-e2f3a4b5c6d7', 'd37fa1b8-4a36-42a6-8786-3a5f5641c302'),
 ('c3d4e5f6-a7b8-49c0-1d2e-f3a4b5c6d7e8', 'f8d7a2b0-9d73-47b2-91f8-8e10c37c2e74'),
@@ -31,7 +71,8 @@ INSERT INTO "primary_$key".stores (id, notifications_id) VALUES
 ('b0c1d2e3-f4a5-46b7-8c9d-e1f2a3b4c5d6', 'e1a8c3d4-2f6b-4a5e-9d8c-7b3d1f2a6e5d');
 
 
-INSERT INTO "primary_$key".store_customers (id, store_id, referred_by_code) VALUES
+INSERT INTO store_customers (id, store_id, referred_by_code) VALUES
+
 ('c1d2e3f4-a5b6-47c8-9d0e-f1a2b3c4d5e6', 'a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6', NULL),
 ('d2e3f4a5-b6c7-48d9-0e1f-a2b3c4d5e6f7', 'b2c3d4e5-f6a7-48b9-0c1d-e2f3a4b5c6d7', NULL),
 ('e3f4a5b6-c7d8-49e0-1f2a-b3c4d5e6f7a8', 'c3d4e5f6-a7b8-49c0-1d2e-f3a4b5c6d7e8', NULL),
@@ -54,7 +95,8 @@ INSERT INTO "primary_$key".store_customers (id, store_id, referred_by_code) VALU
 ('d0e1f2a3-b4c5-46d7-8e9f-a1b2c3d4e5f6', 'b0c1d2e3-f4a5-46b7-8c9d-e1f2a3b4c5d6', NULL);
 
 
-INSERT INTO "primary_$key".referral_codes (id, customer_id) VALUES
+INSERT INTO referral_codes (id, customer_id) VALUES
+
 ('e2f3a4b5-c6d7-48e9-0a1b-f1a2b3c4d5e6', 'c1d2e3f4-a5b6-47c8-9d0e-f1a2b3c4d5e6'),
 ('f3a4b5c6-d7e8-49f0-1b2c-a2b3c4d5e6f7', 'd2e3f4a5-b6c7-48d9-0e1f-a2b3c4d5e6f7'),
 ('a4b5c6d7-e8f9-40a1-2b3c-b3c4d5e6f7a8', 'e3f4a5b6-c7d8-49e0-1f2a-b3c4d5e6f7a8'),
@@ -77,23 +119,43 @@ INSERT INTO "primary_$key".referral_codes (id, customer_id) VALUES
 ('f1a2b3c4-d5e6-47f8-9a0b-a1b2c3d4e5f6', 'd0e1f2a3-b4c5-46d7-8e9f-a1b2c3d4e5f6');
 
 
-UPDATE "primary_$key".store_customers SET referred_by_code = 'e2f3a4b5-c6d7-48e9-0a1b-f1a2b3c4d5e6' WHERE id = 'c1d2e3f4-a5b6-47c8-9d0e-f1a2b3c4d5e6';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'f3a4b5c6-d7e8-49f0-1b2c-a2b3c4d5e6f7' WHERE id = 'd2e3f4a5-b6c7-48d9-0e1f-a2b3c4d5e6f7';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'a4b5c6d7-e8f9-40a1-2b3c-b3c4d5e6f7a8' WHERE id = 'e3f4a5b6-c7d8-49e0-1f2a-b3c4d5e6f7a8';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'b5c6d7e8-f9a0-41b2-3c4d-c4d5e6f7a8b9' WHERE id = 'f4a5b6c7-d8e9-40f1-2a3b-c4d5e6f7a8b9';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'c6d7e8f9-a0b1-42c3-4d5e-d5e6f7a8b9c0' WHERE id = 'a5b6c7d8-e9f0-41a2-3b4c-d5e6f7a8b9c0';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'd7e8f9a0-b1c2-43d4-5e6f-e6f7a8b9c0d1' WHERE id = 'b6c7d8e9-f0a1-42b3-4c5d-e6f7a8b9c0d1';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'e8f9a0b1-c2d3-44e5-6f7a-f7a8b9c0d1e2' WHERE id = 'c7d8e9f0-a1b2-43c4-5d6e-f7a8b9c0d1e2';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'f9a0b1c2-d3e4-45f6-7a8b-a8b9c0d1e2f3' WHERE id = 'd8e9f0a1-b2c3-44d5-6e7f-a8b9c0d1e2f3';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'a0b1c2d3-e4f5-46a7-8b9c-b9c0d1e2f3a4' WHERE id = 'e9f0a1b2-c3d4-45e6-7f8a-b9c0d1e2f3a4';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'b1c2d3e4-f5a6-47b8-9c0d-c0d1e2f3a4b5' WHERE id = 'f0a1b2c3-d4e5-46f7-8a9b-c0d1e2f3a4b5';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'c2d3e4f5-a6b7-48c9-0d1e-d1e2f3a4b5c6' WHERE id = 'a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'd3e4f5a6-b7c8-49d0-1e2f-e2f3a4b5c6d7' WHERE id = 'b2c3d4e5-f6a7-48b9-0c1d-e2f3a4b5c6d7';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'e4f5a6b7-c8d9-40e1-2f3a-f3a4b5c6d7e8' WHERE id = 'c3d4e5f6-a7b8-49c0-1d2e-f3a4b5c6d7e8';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'f5a6b7c8-d9e0-41f2-3a4b-a4b5c6d7e8f9' WHERE id = 'd4e5f6a7-b8c9-40d1-2e3f-a4b5c6d7e8f9';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'a6b7c8d9-e0f1-42a3-4b5c-b5c6d7e8f9a0' WHERE id = 'e5f6a7b8-c9d0-41e2-3f4a-b5c6d7e8f9a1';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'b7c8d9e0-f1a2-43b4-5c6d-c6d7e8f9a1b2' WHERE id = 'f6a7b8c9-d0e1-42f3-4a5b-c6d7e8f9a1b2';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'c8d9e0f1-a2b3-44c5-6d7e-d7e8f9a1b2c3' WHERE id = 'a7b8c9d0-e1f2-43a4-5b6c-d7e8f9a1b2c3';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'd9e0f1a2-b3c4-45d6-7e8f-e8f9a1b2c3d4' WHERE id = 'b8c9d0e1-f2a3-44b5-6c7d-e8f9a1b2c3d4';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'e0f1a2b3-c4d5-46e7-8f9a-f9a1b2c3d4e5' WHERE id = 'c9d0e1f2-a3b4-45c6-7d8e-f9a1b2c3d4e5';
-UPDATE "primary_$key".store_customers SET referred_by_code = 'f1a2b3c4-d5e6-47f8-9a0b-a1b2c3d4e5f6' WHERE id = 'd0e1f2a3-b4c5-46d7-8e9f-a1b2c3d4e5f6';
+UPDATE store_customers SET referred_by_code = 'e2f3a4b5-c6d7-48e9-0a1b-f1a2b3c4d5e6' WHERE id = 'c1d2e3f4-a5b6-47c8-9d0e-f1a2b3c4d5e6';
+
+UPDATE store_customers SET referred_by_code = 'f3a4b5c6-d7e8-49f0-1b2c-a2b3c4d5e6f7' WHERE id = 'd2e3f4a5-b6c7-48d9-0e1f-a2b3c4d5e6f7';
+
+UPDATE store_customers SET referred_by_code = 'a4b5c6d7-e8f9-40a1-2b3c-b3c4d5e6f7a8' WHERE id = 'e3f4a5b6-c7d8-49e0-1f2a-b3c4d5e6f7a8';
+
+UPDATE store_customers SET referred_by_code = 'b5c6d7e8-f9a0-41b2-3c4d-c4d5e6f7a8b9' WHERE id = 'f4a5b6c7-d8e9-40f1-2a3b-c4d5e6f7a8b9';
+
+UPDATE store_customers SET referred_by_code = 'c6d7e8f9-a0b1-42c3-4d5e-d5e6f7a8b9c0' WHERE id = 'a5b6c7d8-e9f0-41a2-3b4c-d5e6f7a8b9c0';
+
+UPDATE store_customers SET referred_by_code = 'd7e8f9a0-b1c2-43d4-5e6f-e6f7a8b9c0d1' WHERE id = 'b6c7d8e9-f0a1-42b3-4c5d-e6f7a8b9c0d1';
+
+UPDATE store_customers SET referred_by_code = 'e8f9a0b1-c2d3-44e5-6f7a-f7a8b9c0d1e2' WHERE id = 'c7d8e9f0-a1b2-43c4-5d6e-f7a8b9c0d1e2';
+
+UPDATE store_customers SET referred_by_code = 'f9a0b1c2-d3e4-45f6-7a8b-a8b9c0d1e2f3' WHERE id = 'd8e9f0a1-b2c3-44d5-6e7f-a8b9c0d1e2f3';
+
+UPDATE store_customers SET referred_by_code = 'a0b1c2d3-e4f5-46a7-8b9c-b9c0d1e2f3a4' WHERE id = 'e9f0a1b2-c3d4-45e6-7f8a-b9c0d1e2f3a4';
+
+UPDATE store_customers SET referred_by_code = 'b1c2d3e4-f5a6-47b8-9c0d-c0d1e2f3a4b5' WHERE id = 'f0a1b2c3-d4e5-46f7-8a9b-c0d1e2f3a4b5';
+
+UPDATE store_customers SET referred_by_code = 'c2d3e4f5-a6b7-48c9-0d1e-d1e2f3a4b5c6' WHERE id = 'a1b2c3d4-e5f6-47a8-9b0c-d1e2f3a4b5c6';
+
+UPDATE store_customers SET referred_by_code = 'd3e4f5a6-b7c8-49d0-1e2f-e2f3a4b5c6d7' WHERE id = 'b2c3d4e5-f6a7-48b9-0c1d-e2f3a4b5c6d7';
+
+UPDATE store_customers SET referred_by_code = 'e4f5a6b7-c8d9-40e1-2f3a-f3a4b5c6d7e8' WHERE id = 'c3d4e5f6-a7b8-49c0-1d2e-f3a4b5c6d7e8';
+
+UPDATE store_customers SET referred_by_code = 'f5a6b7c8-d9e0-41f2-3a4b-a4b5c6d7e8f9' WHERE id = 'd4e5f6a7-b8c9-40d1-2e3f-a4b5c6d7e8f9';
+
+UPDATE store_customers SET referred_by_code = 'a6b7c8d9-e0f1-42a3-4b5c-b5c6d7e8f9a0' WHERE id = 'e5f6a7b8-c9d0-41e2-3f4a-b5c6d7e8f9a1';
+
+UPDATE store_customers SET referred_by_code = 'b7c8d9e0-f1a2-43b4-5c6d-c6d7e8f9a1b2' WHERE id = 'f6a7b8c9-d0e1-42f3-4a5b-c6d7e8f9a1b2';
+
+UPDATE store_customers SET referred_by_code = 'c8d9e0f1-a2b3-44c5-6d7e-d7e8f9a1b2c3' WHERE id = 'a7b8c9d0-e1f2-43a4-5b6c-d7e8f9a1b2c3';
+
+UPDATE store_customers SET referred_by_code = 'd9e0f1a2-b3c4-45d6-7e8f-e8f9a1b2c3d4' WHERE id = 'b8c9d0e1-f2a3-44b5-6c7d-e8f9a1b2c3d4';
+
+UPDATE store_customers SET referred_by_code = 'e0f1a2b3-c4d5-46e7-8f9a-f9a1b2c3d4e5' WHERE id = 'c9d0e1f2-a3b4-45c6-7d8e-f9a1b2c3d4e5';
+
+UPDATE store_customers SET referred_by_code = 'f1a2b3c4-d5e6-47f8-9a0b-a1b2c3d4e5f6' WHERE id = 'd0e1f2a3-b4c5-46d7-8e9f-a1b2c3d4e5f6';
+

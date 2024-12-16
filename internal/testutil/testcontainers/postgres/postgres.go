@@ -277,17 +277,17 @@ func (p *PostgresTestContainer) RunSqlFiles(ctx context.Context, folder *string,
 }
 
 // Creates schema and sets search_path to schema before running SQL files
-func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder *string, files []string, schema string) error {
+func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder string, files []string, schema string) error {
 	for _, file := range files {
 		filePath := file
-		if folder != nil && *folder != "" {
-			filePath = fmt.Sprintf("./%s/%s", *folder, file)
+		if folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", folder, file)
 		}
 		sqlStr, err := os.ReadFile(filePath)
 		if err != nil {
 			return err
 		}
-		setSchemaSql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s; \n SET search_path TO %s; \n", schema, schema)
+		setSchemaSql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q; \n SET search_path TO %q; \n", schema, schema)
 		_, err = p.DB.Exec(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
 			return fmt.Errorf("unable to exec sql when running postgres sql files: %w", err)
@@ -298,7 +298,7 @@ func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, fold
 
 func (p *PostgresTestContainer) CreateSchemas(ctx context.Context, schemas []string) error {
 	for _, schema := range schemas {
-		_, err := p.DB.Exec(ctx, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", schema))
+		_, err := p.DB.Exec(ctx, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", schema))
 		if err != nil {
 			return fmt.Errorf("unable to create schema %s: %w", schema, err)
 		}
