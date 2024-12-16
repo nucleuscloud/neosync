@@ -142,6 +142,54 @@ proto3.util.setEnumType(AccountStatus, "mgmt.v1alpha1.AccountStatus", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.AccountRole
+ */
+export enum AccountRole {
+  /**
+   * Default value, this should not be used, but will default to ACCOUNT_ROLE_JOB_VIEWER
+   *
+   * @generated from enum value: ACCOUNT_ROLE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Admin, can do anything in the account.
+   *
+   * @generated from enum value: ACCOUNT_ROLE_ADMIN = 1;
+   */
+  ADMIN = 1,
+
+  /**
+   * Can view, edit jobs and connections
+   *
+   * @generated from enum value: ACCOUNT_ROLE_JOB_DEVELOPER = 2;
+   */
+  JOB_DEVELOPER = 2,
+
+  /**
+   * Can view
+   *
+   * @generated from enum value: ACCOUNT_ROLE_JOB_VIEWER = 3;
+   */
+  JOB_VIEWER = 3,
+
+  /**
+   * Can view and execute
+   *
+   * @generated from enum value: ACCOUNT_ROLE_JOB_EXECUTOR = 4;
+   */
+  JOB_EXECUTOR = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(AccountRole)
+proto3.util.setEnumType(AccountRole, "mgmt.v1alpha1.AccountRole", [
+  { no: 0, name: "ACCOUNT_ROLE_UNSPECIFIED" },
+  { no: 1, name: "ACCOUNT_ROLE_ADMIN" },
+  { no: 2, name: "ACCOUNT_ROLE_JOB_DEVELOPER" },
+  { no: 3, name: "ACCOUNT_ROLE_JOB_VIEWER" },
+  { no: 4, name: "ACCOUNT_ROLE_JOB_EXECUTOR" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetUserRequest
  */
 export class GetUserRequest extends Message<GetUserRequest> {
@@ -2400,6 +2448,92 @@ export class SetBillingMeterEventResponse extends Message<SetBillingMeterEventRe
 
   static equals(a: SetBillingMeterEventResponse | PlainMessage<SetBillingMeterEventResponse> | undefined, b: SetBillingMeterEventResponse | PlainMessage<SetBillingMeterEventResponse> | undefined): boolean {
     return proto3.util.equals(SetBillingMeterEventResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetUserRoleRequest
+ */
+export class SetUserRoleRequest extends Message<SetUserRoleRequest> {
+  /**
+   * The account id to apply this role to
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * The user that this will be applied to
+   *
+   * @generated from field: string user_id = 2;
+   */
+  userId = "";
+
+  /**
+   * The role that this user will obtain
+   *
+   * @generated from field: mgmt.v1alpha1.AccountRole role = 3;
+   */
+  role = AccountRole.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<SetUserRoleRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetUserRoleRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "role", kind: "enum", T: proto3.getEnumType(AccountRole) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetUserRoleRequest {
+    return new SetUserRoleRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetUserRoleRequest {
+    return new SetUserRoleRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetUserRoleRequest {
+    return new SetUserRoleRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetUserRoleRequest | PlainMessage<SetUserRoleRequest> | undefined, b: SetUserRoleRequest | PlainMessage<SetUserRoleRequest> | undefined): boolean {
+    return proto3.util.equals(SetUserRoleRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetUserRoleResponse
+ */
+export class SetUserRoleResponse extends Message<SetUserRoleResponse> {
+  constructor(data?: PartialMessage<SetUserRoleResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetUserRoleResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetUserRoleResponse {
+    return new SetUserRoleResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetUserRoleResponse {
+    return new SetUserRoleResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetUserRoleResponse {
+    return new SetUserRoleResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetUserRoleResponse | PlainMessage<SetUserRoleResponse> | undefined, b: SetUserRoleResponse | PlainMessage<SetUserRoleResponse> | undefined): boolean {
+    return proto3.util.equals(SetUserRoleResponse, a, b);
   }
 }
 

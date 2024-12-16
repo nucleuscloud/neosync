@@ -1386,6 +1386,65 @@ func (_c *MockQuerier_GetAccountIdFromJobId_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// GetAccountIds provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) GetAccountIds(ctx context.Context, db DBTX) ([]pgtype.UUID, error) {
+	ret := _m.Called(ctx, db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountIds")
+	}
+
+	var r0 []pgtype.UUID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]pgtype.UUID, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []pgtype.UUID); ok {
+		r0 = rf(ctx, db)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]pgtype.UUID)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountIds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountIds'
+type MockQuerier_GetAccountIds_Call struct {
+	*mock.Call
+}
+
+// GetAccountIds is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) GetAccountIds(ctx interface{}, db interface{}) *MockQuerier_GetAccountIds_Call {
+	return &MockQuerier_GetAccountIds_Call{Call: _e.mock.On("GetAccountIds", ctx, db)}
+}
+
+func (_c *MockQuerier_GetAccountIds_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetAccountIds_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountIds_Call) Return(_a0 []pgtype.UUID, _a1 error) *MockQuerier_GetAccountIds_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountIds_Call) RunAndReturn(run func(context.Context, DBTX) ([]pgtype.UUID, error)) *MockQuerier_GetAccountIds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountInvite provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, id)
@@ -1616,6 +1675,66 @@ func (_c *MockQuerier_GetAccountUserAssociation_Call) Return(_a0 NeosyncApiAccou
 }
 
 func (_c *MockQuerier_GetAccountUserAssociation_Call) RunAndReturn(run func(context.Context, DBTX, GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)) *MockQuerier_GetAccountUserAssociation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountUsers provides a mock function with given fields: ctx, db, accountid
+func (_m *MockQuerier) GetAccountUsers(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]pgtype.UUID, error) {
+	ret := _m.Called(ctx, db, accountid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountUsers")
+	}
+
+	var r0 []pgtype.UUID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]pgtype.UUID, error)); ok {
+		return rf(ctx, db, accountid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []pgtype.UUID); ok {
+		r0 = rf(ctx, db, accountid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]pgtype.UUID)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountUsers'
+type MockQuerier_GetAccountUsers_Call struct {
+	*mock.Call
+}
+
+// GetAccountUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountid pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountUsers(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetAccountUsers_Call {
+	return &MockQuerier_GetAccountUsers_Call{Call: _e.mock.On("GetAccountUsers", ctx, db, accountid)}
+}
+
+func (_c *MockQuerier_GetAccountUsers_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetAccountUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountUsers_Call) Return(_a0 []pgtype.UUID, _a1 error) *MockQuerier_GetAccountUsers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountUsers_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]pgtype.UUID, error)) *MockQuerier_GetAccountUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

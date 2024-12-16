@@ -11,8 +11,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -20,12 +22,20 @@ func (s *Service) GetUserDefinedTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserDefinedTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformersResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_View)
+	if err != nil {
+		return nil, err
+	}
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	transformers, err := s.db.Q.GetUserDefinedTransformersByAccount(ctx, s.db.Db, *accountUuid)
+	transformers, err := s.db.Q.GetUserDefinedTransformersByAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +59,7 @@ func (s *Service) GetUserDefinedTransformerById(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformerByIdResponse], error) {
-	tId, err := neosyncdb.ToUuid(req.Msg.TransformerId)
+	tId, err := neosyncdb.ToUuid(req.Msg.GetTransformerId())
 	if err != nil {
 		return nil, err
 	}
@@ -61,14 +71,18 @@ func (s *Service) GetUserDefinedTransformerById(
 		return nil, nucleuserrors.NewNotFound("unable to find transformer by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, s.getSystemTransformerSourceMap())
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(transformer.ID), transformer.Source, err)
+	}
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(dto.GetAccountId()), rbac.JobAction_View)
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
@@ -77,24 +91,27 @@ func (s *Service) GetUserDefinedTransformerById(
 }
 
 func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	userUuid, err := s.getUserUuid(ctx)
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_Edit)
+	if err != nil {
+		return nil, err
+	}
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
 	UserDefinedTransformer := &db_queries.CreateUserDefinedTransformerParams{
-		AccountID:         *accountUuid,
+		AccountID:         accountUuid,
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
 		TransformerConfig: &pg_models.TransformerConfig{},
 		Source:            int32(req.Msg.Source),
-		CreatedByID:       *userUuid,
-		UpdatedByID:       *userUuid,
+		CreatedByID:       user.PgId(),
+		UpdatedByID:       user.PgId(),
 	}
 
 	err = UserDefinedTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
@@ -119,9 +136,9 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 
 func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("transformerId", req.Msg.TransformerId)
+	logger = logger.With("transformerId", req.Msg.GetTransformerId())
 
-	tId, err := neosyncdb.ToUuid(req.Msg.TransformerId)
+	tId, err := neosyncdb.ToUuid(req.Msg.GetTransformerId())
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +150,11 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 		return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)), rbac.JobAction_Delete)
 	if err != nil {
 		return nil, err
 	}
@@ -160,12 +181,11 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, nucleuserrors.NewNotFound("unable to find transformer by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
+	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	userUuid, err := s.getUserUuid(ctx)
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)), rbac.JobAction_Edit)
 	if err != nil {
 		return nil, err
 	}
@@ -174,11 +194,11 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
 		TransformerConfig: &pg_models.TransformerConfig{},
-		UpdatedByID:       *userUuid,
+		UpdatedByID:       user.PgId(),
 		ID:                tUuid,
 	}
 	// todo: must verify that this updated config is valid for the configured source
-	err = updateParams.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = updateParams.TransformerConfig.FromTransformerConfigDto(req.Msg.GetTransformerConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -199,13 +219,21 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 }
 
 func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_View)
+	if err != nil {
+		return nil, err
+	}
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
 	count, err := s.db.Q.IsTransformerNameAvailable(ctx, s.db.Db, db_queries.IsTransformerNameAvailableParams{
-		AccountId:       *accountUuid,
+		AccountId:       accountUuid,
 		TransformerName: req.Msg.TransformerName,
 	})
 	if err != nil {

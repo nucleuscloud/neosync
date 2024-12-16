@@ -14,8 +14,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,16 +34,27 @@ func (s *Service) GetAccountStatus(
 ) (*connect.Response[mgmtv1alpha1.GetAccountStatusResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	logger = logger.With("accountId", accountId)
+	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+	if err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	logger = logger.With("accountId", req.Msg.GetAccountId())
 	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountId)
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account: %w", err)
 	}
@@ -212,12 +225,21 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure, "/")))
 	}
 	logger = logger.With("accountId", req.Msg.GetAccountId())
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -225,8 +247,8 @@ func (s *Service) GetAccountBillingCheckoutSession(
 	// retrieve the account, creates a customer id if one doesn't already exist
 	account, err := s.db.UpsertStripeCustomerId(
 		ctx,
-		*accountId,
-		s.getCreateStripeAccountFunction(user.Msg.GetUserId(), logger),
+		accountUuid,
+		s.getCreateStripeAccountFunction(user.Id(), logger),
 		logger,
 	)
 	if err != nil {
@@ -236,7 +258,7 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		return nil, errors.New("stripe customer id does not exist on account after creation attempt")
 	}
 
-	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
+	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Id(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate billing checkout session: %w", err)
 	}
@@ -253,12 +275,23 @@ func (s *Service) GetAccountBillingPortalSession(
 	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure, "/")))
 	}
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountId)
+	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	if err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +312,12 @@ func (s *Service) GetBillingAccounts(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetBillingAccountsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetBillingAccountsResponse], error) {
-	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
 		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
 	}
 
@@ -312,7 +350,12 @@ func (s *Service) SetBillingMeterEvent(
 	if s.billingclient == nil {
 		return nil, nucleuserrors.NewUnauthorized("billing is not currently enabled")
 	}
-	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
 		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
 	}
 

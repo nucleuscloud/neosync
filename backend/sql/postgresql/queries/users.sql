@@ -28,10 +28,18 @@ INSERT INTO neosync_api.users (
 RETURNING *;
 
 -- name: GetUserIdentitiesByTeamAccount :many
-SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
-JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
-JOIN neosync_api.accounts a ON a.id = aua.account_id
+SELECT aipa.*
+FROM neosync_api.user_identity_provider_associations aipa
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
 WHERE aua.account_id = sqlc.arg('accountId') AND a.account_type = 1;
+
+-- name: GetAccountUsers :many
+SELECT u.id
+FROM neosync_api.users u
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
+WHERE a.id = sqlc.arg('accountId') AND u.user_type = 0;
 
 -- name: GetUserIdentityByUserId :one
 SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
@@ -226,3 +234,6 @@ SET account_slug = sqlc.arg('teamName'),
     max_allowed_records = NULL
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
+
+-- name: GetAccountIds :many
+SELECT id FROM neosync_api.accounts;

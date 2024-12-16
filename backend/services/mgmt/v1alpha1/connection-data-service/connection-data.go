@@ -75,10 +75,6 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 	connection := connResp.Msg.Connection
-	_, err = s.verifyUserInAccount(ctx, connection.AccountId)
-	if err != nil {
-		return err
-	}
 
 	connectionTimeout := uint32(5)
 
@@ -483,10 +479,6 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 	connection := connResp.Msg.Connection
-	_, err = s.verifyUserInAccount(ctx, connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
@@ -753,11 +745,6 @@ func (s *Service) GetConnectionForeignConstraints(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
@@ -816,11 +803,6 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
@@ -866,11 +848,6 @@ func (s *Service) GetConnectionInitStatements(
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -1213,11 +1190,6 @@ func (s *Service) GetConnectionUniqueConstraints(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
@@ -1277,10 +1249,6 @@ func (s *Service) GetAiGeneratedData(
 		return nil, err
 	}
 	aiconnection := aiconnectionResp.Msg.GetConnection()
-	_, err = s.verifyUserInAccount(ctx, aiconnection.GetAccountId())
-	if err != nil {
-		return nil, err
-	}
 
 	dbconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.GetDataConnectionId(),
@@ -1372,11 +1340,6 @@ func (s *Service) GetConnectionTableConstraints(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
@@ -1454,11 +1417,6 @@ func (s *Service) GetTableRowCount(
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
 	if err != nil {
 		return nil, err
 	}

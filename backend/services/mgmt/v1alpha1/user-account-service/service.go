@@ -3,6 +3,7 @@ package v1alpha1_useraccountservice
 import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/internal/billing"
@@ -15,6 +16,7 @@ type Service struct {
 	authclient             auth_client.Interface
 	authadminclient        authmgmt.Interface
 	billingclient          billing.Interface
+	rbacClient             rbac.Interface
 }
 
 type Config struct {
@@ -30,6 +32,7 @@ func New(
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
 	billingclient billing.Interface,
+	rbacClient rbac.Interface,
 ) *Service {
 	return &Service{
 		cfg:                    cfg,
@@ -38,5 +41,6 @@ func New(
 		authclient:             authclient,
 		authadminclient:        authadminclient,
 		billingclient:          billingclient,
+		rbacClient:             rbacClient,
 	}
 }
