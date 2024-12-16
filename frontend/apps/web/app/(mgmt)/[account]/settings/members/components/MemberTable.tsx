@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getAccountRoleString, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { AccountRole } from '@neosync/sdk';
@@ -54,7 +55,7 @@ interface MemberRow {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getColumns(): ColumnDef<MemberRow, any>[] {
+function getColumns(isRbacEnabled: boolean): ColumnDef<MemberRow, any>[] {
   const columnHelper = createColumnHelper<MemberRow>();
   const nameColumn = columnHelper.accessor('name', {
     header: 'Name',
@@ -63,8 +64,7 @@ function getColumns(): ColumnDef<MemberRow, any>[] {
         <Avatar className="mr-2 h-12 w-12">
           <AvatarImage
             src={
-              row.getValue('image') ||
-              `https://avatar.vercel.sh/${getValue()}.png`
+              row.original.image || `https://avatar.vercel.sh/${getValue()}.png`
             }
             alt={getValue()}
           />
@@ -95,19 +95,21 @@ function getColumns(): ColumnDef<MemberRow, any>[] {
     cell: ({ row, table }) => {
       return (
         <DataTableRowActions
-          userId={row.getValue('id')}
+          userId={row.original.id}
           onDeleted={() =>
-            table.options.meta?.membersTable?.onDeleted(row.getValue('id'))
+            table.options.meta?.membersTable?.onDeleted(row.original.id)
           }
         />
       );
     },
   });
 
-  return [nameColumn, emailColumn, roleColumn, actionsColumn];
-}
+  if (isRbacEnabled) {
+    return [nameColumn, emailColumn, roleColumn, actionsColumn];
+  }
 
-const MEMBER_COLUMNS = getColumns();
+  return [nameColumn, emailColumn, actionsColumn];
+}
 
 interface Props {
   accountId: string;
@@ -121,7 +123,7 @@ export default function MembersTable(props: Props): ReactElement {
     { enabled: !!accountId }
   );
 
-  const users = data?.users || [];
+  const users = data?.users ?? [];
   const members = useMemo(() => {
     return users.map((d): MemberRow => {
       return {
@@ -134,16 +136,22 @@ export default function MembersTable(props: Props): ReactElement {
     });
   }, [isFetching, users]);
 
+  const columns = useGetColumns();
+
   if (isLoading) {
     return <SkeletonTable />;
   }
   return (
-    <DataTable
-      data={members}
-      columns={MEMBER_COLUMNS}
-      onDeleted={() => refetch()}
-    />
+    <DataTable data={members} columns={columns} onDeleted={() => refetch()} />
   );
+}
+
+function useGetColumns(): ColumnDef<MemberRow>[] {
+  const { data: config } = useGetSystemAppConfig();
+  const isRbacEnabled = config?.isRbacEnabled ?? false;
+  return useMemo(() => {
+    return getColumns(isRbacEnabled);
+  }, [isRbacEnabled]);
 }
 
 declare module '@tanstack/react-table' {
