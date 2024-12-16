@@ -23,7 +23,7 @@ import {
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getAccountRoleString, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { AccountRole } from '@neosync/sdk';
+import { AccountRole, AccountUser } from '@neosync/sdk';
 import {
   getTeamAccountMembers,
   removeTeamAccountMember,
@@ -45,6 +45,7 @@ import {
 } from '@tanstack/react-table';
 import { ReactElement, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import UpdateMemberRoleDialog from './UpdateMemberRoleDialog';
 
 interface MemberRow {
   id: string;
@@ -95,9 +96,16 @@ function getColumns(isRbacEnabled: boolean): ColumnDef<MemberRow, any>[] {
     cell: ({ row, table }) => {
       return (
         <DataTableRowActions
-          userId={row.original.id}
+          member={{
+            id: row.original.id,
+            name: row.original.name,
+            role: row.original.role,
+          }}
           onDeleted={() =>
             table.options.meta?.membersTable?.onDeleted(row.original.id)
+          }
+          onUpdated={() =>
+            table.options.meta?.membersTable?.onUpdated(row.original.id)
           }
         />
       );
@@ -142,7 +150,12 @@ export default function MembersTable(props: Props): ReactElement {
     return <SkeletonTable />;
   }
   return (
-    <DataTable data={members} columns={columns} onDeleted={() => refetch()} />
+    <DataTable
+      data={members}
+      columns={columns}
+      onDeleted={() => refetch()}
+      onUpdated={() => refetch()}
+    />
   );
 }
 
@@ -159,6 +172,7 @@ declare module '@tanstack/react-table' {
   interface TableMeta<TData extends RowData> {
     membersTable?: {
       onDeleted(userId: string): void;
+      onUpdated(userId: string): void;
     };
   }
 }
@@ -167,10 +181,11 @@ interface DataTableProps {
   data: MemberRow[];
   columns: ColumnDef<MemberRow>[];
   onDeleted(userId: string): void;
+  onUpdated(userId: string): void;
 }
 
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, columns, onDeleted } = props;
+  const { data, columns, onDeleted, onUpdated } = props;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -196,6 +211,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
     meta: {
       membersTable: {
         onDeleted,
+        onUpdated,
       },
     },
   });
@@ -287,11 +303,16 @@ function DataTable(props: DataTableProps): React.ReactElement {
 }
 
 interface DataTableRowActionsProps {
+  member: Pick<AccountUser, 'id' | 'name' | 'role'>;
   onDeleted(): void;
-  userId: string;
+  onUpdated(): void;
 }
 
-function DataTableRowActions({ onDeleted, userId }: DataTableRowActionsProps) {
+function DataTableRowActions({
+  member,
+  onDeleted,
+  onUpdated,
+}: DataTableRowActionsProps) {
   const { account } = useAccount();
 
   const { mutateAsync } = useMutation(removeTeamAccountMember);
@@ -301,7 +322,7 @@ function DataTableRowActions({ onDeleted, userId }: DataTableRowActionsProps) {
       return;
     }
     try {
-      await mutateAsync({ accountId: account.id, userId: userId });
+      await mutateAsync({ accountId: account.id, userId: member.id });
       toast.success('User removed from account!');
       onDeleted();
     } catch (err) {
@@ -320,6 +341,18 @@ function DataTableRowActions({ onDeleted, userId }: DataTableRowActionsProps) {
         <DotsHorizontalIcon className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <UpdateMemberRoleDialog
+          member={member}
+          onUpdated={() => onUpdated()}
+          dialogButton={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}
+            >
+              Update Role
+            </DropdownMenuItem>
+          }
+        />
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem

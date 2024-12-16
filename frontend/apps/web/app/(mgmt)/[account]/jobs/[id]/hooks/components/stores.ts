@@ -1,18 +1,6 @@
+import { BaseHookStore } from '@/util/zustand.stores.util';
 import { create } from 'zustand';
 import { EditJobHookFormValues, NewJobHookFormValues } from './validation';
-
-type FieldValues = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-type FieldErrors = Record<string, string>; // todo: make this type safe
-
-interface BaseHookStore<T extends FieldValues = FieldValues> {
-  formData: T;
-  errors: FieldErrors;
-  isSubmitting: boolean;
-  setFormData(data: Partial<T>): void;
-  setErrors(errors: Record<string, string>): void;
-  setSubmitting(isSubmitting: boolean): void;
-  resetForm(): void;
-}
 
 function getInitialEditFormState(): EditJobHookFormValues {
   return {

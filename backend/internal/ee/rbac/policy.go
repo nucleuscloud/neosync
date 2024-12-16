@@ -244,7 +244,7 @@ func (r *Rbac) SetAccountRole(
 	account EntityString,
 	role mgmtv1alpha1.AccountRole,
 ) error {
-	roleName, err := toRoleName(role)
+	roleName, err := fromRoleDto(role)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (r *Rbac) RemoveAccountRole(
 	account EntityString,
 	role mgmtv1alpha1.AccountRole,
 ) error {
-	roleName, err := toRoleName(role)
+	roleName, err := fromRoleDto(role)
 	if err != nil {
 		return err
 	}
@@ -383,19 +383,6 @@ func (r *Rbac) EnforceAccount(
 		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s account", action))
 	}
 	return nil
-}
-
-func toRoleName(role mgmtv1alpha1.AccountRole) (string, error) {
-	switch role {
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN:
-		return Role_AccountAdmin.String(), nil
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_DEVELOPER:
-		return Role_JobDeveloper.String(), nil
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER:
-		return Role_JobViewer.String(), nil
-	default:
-		return "", fmt.Errorf("account role provided has not be mapped to a casbin role name: %d", role)
-	}
 }
 
 func setPolicy(e casbin.IEnforcer, policy []string) error {

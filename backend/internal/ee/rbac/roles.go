@@ -1,6 +1,10 @@
 package rbac
 
-import mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+import (
+	"fmt"
+
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+)
 
 type Role string
 
@@ -27,5 +31,20 @@ func (r Role) ToDto() mgmtv1alpha1.AccountRole {
 		return mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER
 	default:
 		return mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED
+	}
+}
+
+func fromRoleDto(role mgmtv1alpha1.AccountRole) (string, error) {
+	switch role {
+	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN:
+		return Role_AccountAdmin.String(), nil
+	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_DEVELOPER:
+		return Role_JobDeveloper.String(), nil
+	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_EXECUTOR:
+		return Role_JobExecutor.String(), nil
+	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER:
+		return Role_JobViewer.String(), nil
+	default:
+		return "", fmt.Errorf("account role provided has not be mapped to a casbin role name: %d", role)
 	}
 }

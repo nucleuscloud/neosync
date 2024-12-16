@@ -22,15 +22,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { getAccountRoleString, getErrorMessage } from '@/util/util';
+import { getErrorMessage } from '@/util/util';
 import { InviteMembersForm } from '@/yup-validations/invite-members';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -41,6 +34,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import SelectAccountRole from './SelectAccountRole';
 
 interface Props {
   accountId: string;
@@ -142,32 +136,10 @@ export default function InviteUserForm(props: Props): ReactElement {
                         The role of the user that will be invited.
                       </FormDescription>
                       <FormControl>
-                        <Select
-                          onValueChange={(newValue) => {
-                            field.onChange(newValue);
-                          }}
-                          value={field.value.toString()}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[
-                              AccountRole.ADMIN,
-                              AccountRole.JOB_DEVELOPER,
-                              AccountRole.JOB_EXECUTOR,
-                              AccountRole.JOB_VIEWER,
-                            ].map((role) => (
-                              <SelectItem
-                                key={role}
-                                className="cursor-pointer"
-                                value={role.toString()}
-                              >
-                                {getAccountRoleString(role)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SelectAccountRole
+                          role={field.value}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
