@@ -29,8 +29,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { formatDateTime, getErrorMessage } from '@/util/util';
+import {
+  formatDateTime,
+  getAccountRoleString,
+  getErrorMessage,
+} from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { AccountRole } from '@neosync/sdk';
 import {
   getTeamAccountInvites,
   removeTeamAccountInvite,
@@ -46,10 +51,11 @@ interface MemberInviteRow {
   createdAt: Date;
   expiresAt: Date;
   token: string;
+  role: AccountRole;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getColumns(): ColumnDef<MemberInviteRow, any>[] {
+function getColumns(isRbacEnabled: boolean): ColumnDef<MemberInviteRow, any>[] {
   const columnHelper = createColumnHelper<MemberInviteRow>();
   const emailColumn = columnHelper.accessor('email', {
     header: 'Email',
@@ -70,27 +76,52 @@ function getColumns(): ColumnDef<MemberInviteRow, any>[] {
     },
   });
 
+  const roleColumn = columnHelper.accessor('role', {
+    header: 'Role',
+    cell: ({ getValue }) => (
+      <span className="truncate font-medium">
+        {getAccountRoleString(getValue())}
+      </span>
+    ),
+  });
+
   const actionsColumn = columnHelper.display({
     id: 'actions',
     cell: ({ row, table }) => {
       return (
         <div className="flex flex-row gap-2">
-          <CopyInviteButton token={row.getValue('token')} />
+          <CopyInviteButton token={row.original.token} />
           <DeleteInviteButton
             onDeleted={() =>
-              table.options.meta?.invitesTable?.onDeleted(row.getValue('id'))
+              table.options.meta?.invitesTable?.onDeleted(row.original.id)
             }
-            inviteId={row.getValue('id')}
+            inviteId={row.original.id}
           />
         </div>
       );
     },
   });
 
+  if (isRbacEnabled) {
+    return [
+      emailColumn,
+      createdAtColumn,
+      expiresAtColumn,
+      roleColumn,
+      actionsColumn,
+    ];
+  }
+
   return [emailColumn, createdAtColumn, expiresAtColumn, actionsColumn];
 }
 
-const INVITE_COLUMNS = getColumns();
+function useGetColumns(): ColumnDef<MemberInviteRow>[] {
+  const { data: config } = useGetSystemAppConfig();
+  const isRbacEnabled = config?.isRbacEnabled ?? false;
+  return useMemo(() => {
+    return getColumns(isRbacEnabled);
+  }, [isRbacEnabled]);
+}
 
 interface Props {
   accountId: string;
@@ -112,9 +143,12 @@ export function InvitesTable(props: Props): React.ReactElement {
         createdAt: invite.createdAt?.toDate() ?? new Date(),
         expiresAt: invite.expiresAt?.toDate() ?? new Date(),
         token: invite.token,
+        role: invite.role,
       };
     });
   }, [isFetching, invites]);
+
+  const columns = useGetColumns();
 
   if (isLoading) {
     return <SkeletonTable />;
@@ -123,7 +157,7 @@ export function InvitesTable(props: Props): React.ReactElement {
   return (
     <DataTable
       data={invitesRows}
-      columns={INVITE_COLUMNS}
+      columns={columns}
       onDeleted={() => refetch()}
     />
   );
