@@ -1069,6 +1069,11 @@ components:
           allOf:
             - title: expires_at
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountInvite
       additionalProperties: false
     mgmt.v1alpha1.AccountOnboardingConfig:
@@ -1471,15 +1476,37 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - role
+            - not:
+                anyOf:
+                  - required:
+                      - role
+      anyOf:
+        - required:
+            - role
+        - not:
+            anyOf:
+              - required:
+                  - role
       properties:
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The account id to invite the user to
         email:
           type: string
           title: email
           minLength: 1
+          description: The email of the user to invite
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: InviteUserToTeamAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountResponse:

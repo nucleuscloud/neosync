@@ -164,9 +164,9 @@ WHERE account_id = sqlc.arg('accountId') AND user_id = sqlc.arg('userId');
 
 -- name: CreateAccountInvite :one
 INSERT INTO neosync_api.account_invites (
-  account_id, sender_user_id, email, expires_at
+  account_id, sender_user_id, email, expires_at, role
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 )
 RETURNING *;
 

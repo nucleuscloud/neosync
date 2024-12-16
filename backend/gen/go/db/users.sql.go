@@ -45,11 +45,11 @@ func (q *Queries) ConvertPersonalAccountToTeam(ctx context.Context, db DBTX, arg
 
 const createAccountInvite = `-- name: CreateAccountInvite :one
 INSERT INTO neosync_api.account_invites (
-  account_id, sender_user_id, email, expires_at
+  account_id, sender_user_id, email, expires_at, role
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 )
-RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at
+RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role
 `
 
 type CreateAccountInviteParams struct {
@@ -57,6 +57,7 @@ type CreateAccountInviteParams struct {
 	SenderUserID pgtype.UUID
 	Email        string
 	ExpiresAt    pgtype.Timestamp
+	Role         pgtype.Int4
 }
 
 func (q *Queries) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error) {
@@ -65,6 +66,7 @@ func (q *Queries) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAc
 		arg.SenderUserID,
 		arg.Email,
 		arg.ExpiresAt,
+		arg.Role,
 	)
 	var i NeosyncApiAccountInvite
 	err := row.Scan(
@@ -77,6 +79,7 @@ func (q *Queries) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAc
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.Role,
 	)
 	return i, err
 }
@@ -273,7 +276,7 @@ func (q *Queries) GetAccountIds(ctx context.Context, db DBTX) ([]pgtype.UUID, er
 }
 
 const getAccountInvite = `-- name: GetAccountInvite :one
-SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at FROM neosync_api.account_invites
+SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role FROM neosync_api.account_invites
 WHERE id = $1
 `
 
@@ -290,12 +293,13 @@ func (q *Queries) GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.Role,
 	)
 	return i, err
 }
 
 const getAccountInviteByToken = `-- name: GetAccountInviteByToken :one
-SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at FROM neosync_api.account_invites
+SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role FROM neosync_api.account_invites
 WHERE token = $1
 `
 
@@ -312,6 +316,7 @@ func (q *Queries) GetAccountInviteByToken(ctx context.Context, db DBTX, token st
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.Role,
 	)
 	return i, err
 }
@@ -429,7 +434,7 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID
 }
 
 const getActiveAccountInvites = `-- name: GetActiveAccountInvites :many
-SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at FROM neosync_api.account_invites
+SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role FROM neosync_api.account_invites
 WHERE account_id = $1 AND expires_at > CURRENT_TIMESTAMP AND accepted = false
 `
 
@@ -452,6 +457,7 @@ func (q *Queries) GetActiveAccountInvites(ctx context.Context, db DBTX, accounti
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ExpiresAt,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}
@@ -876,7 +882,7 @@ const updateAccountInviteToAccepted = `-- name: UpdateAccountInviteToAccepted :o
 UPDATE neosync_api.account_invites
 SET accepted = true
 WHERE id = $1
-RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at
+RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role
 `
 
 func (q *Queries) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
@@ -892,6 +898,7 @@ func (q *Queries) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.Role,
 	)
 	return i, err
 }
@@ -929,7 +936,7 @@ const updateActiveAccountInvitesToExpired = `-- name: UpdateActiveAccountInvites
 UPDATE neosync_api.account_invites
 SET expires_at = CURRENT_TIMESTAMP
 WHERE account_id = $1 AND email = $2 AND expires_at > CURRENT_TIMESTAMP
-RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at
+RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at, role
 `
 
 type UpdateActiveAccountInvitesToExpiredParams struct {
@@ -950,6 +957,7 @@ func (q *Queries) UpdateActiveAccountInvitesToExpired(ctx context.Context, db DB
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.Role,
 	)
 	return i, err
 }

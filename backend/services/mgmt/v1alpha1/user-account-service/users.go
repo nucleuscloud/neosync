@@ -596,9 +596,12 @@ func (s *Service) InviteUserToTeamAccount(
 		return nil, err
 	}
 
-	// todo: this method will need the intended role for the user
+	var role pgtype.Int4
+	if req.Msg.GetRole() != mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED {
+		role = pgtype.Int4{Int32: int32(req.Msg.GetRole()), Valid: true}
+	}
 
-	invite, err := s.db.CreateTeamAccountInvite(ctx, accountUuid, user.PgId(), req.Msg.GetEmail(), expiresAt)
+	invite, err := s.db.CreateTeamAccountInvite(ctx, accountUuid, user.PgId(), req.Msg.GetEmail(), expiresAt, role)
 	if err != nil {
 		return nil, err
 	}
@@ -693,7 +696,7 @@ func (s *Service) AcceptTeamAccountInvite(
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
+	userUuid, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -724,21 +727,20 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, nucleuserrors.NewUnauthenticated("unable to find email to valid to add user to account")
 	}
 
-	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
+	validateResp, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
 	if err != nil {
 		return nil, err
 	}
 
-	// todo: this should be updated to set the intended role based on what was configured in the invite
-	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountId)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(validateResp.AccountId)), validateResp.Role); err != nil {
 		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
 	}
 
-	if err := s.verifyTeamAccount(ctx, accountId); err != nil {
+	if err := s.verifyTeamAccount(ctx, validateResp.AccountId); err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, validateResp.AccountId)
 	if err != nil {
 		return nil, err
 	}

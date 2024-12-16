@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
@@ -315,6 +316,7 @@ func (d *NeosyncDb) CreateTeamAccountInvite(
 	userId pgtype.UUID,
 	email string,
 	expiresAt pgtype.Timestamp,
+	role pgtype.Int4,
 ) (*db_queries.NeosyncApiAccountInvite, error) {
 	var accountInvite *db_queries.NeosyncApiAccountInvite
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
@@ -341,6 +343,7 @@ func (d *NeosyncDb) CreateTeamAccountInvite(
 			SenderUserID: userId,
 			Email:        email,
 			ExpiresAt:    expiresAt,
+			Role:         role,
 		})
 		if err != nil {
 			return err
@@ -354,13 +357,19 @@ func (d *NeosyncDb) CreateTeamAccountInvite(
 	return accountInvite, nil
 }
 
+type ValidateInviteAddUserToAccountResponse struct {
+	AccountId pgtype.UUID
+	Role      mgmtv1alpha1.AccountRole
+}
+
 func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	token string,
 	userEmail string,
-) (pgtype.UUID, error) {
-	var accountId pgtype.UUID
+) (*ValidateInviteAddUserToAccountResponse, error) {
+	resp := &ValidateInviteAddUserToAccountResponse{}
+
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
 		invite, err := d.Q.GetAccountInviteByToken(ctx, dbtx, token)
 		if err != nil && !IsNoRows(err) {
@@ -377,7 +386,13 @@ func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 				return err
 			}
 		}
-		accountId = invite.AccountID
+		resp.AccountId = invite.AccountID
+		if invite.Role.Valid {
+			resp.Role = mgmtv1alpha1.AccountRole(invite.Role.Int32)
+		} else {
+			resp.Role = mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER
+		}
+
 		_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
 			AccountId: invite.AccountID,
 			UserId:    userId,
@@ -405,7 +420,7 @@ func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 		}
 		return nil
 	}); err != nil {
-		return pgtype.UUID{}, err
+		return nil, err
 	}
-	return accountId, nil
+	return resp, nil
 }
