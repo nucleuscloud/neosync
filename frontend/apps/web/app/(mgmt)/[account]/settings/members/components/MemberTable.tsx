@@ -1,20 +1,5 @@
 'use client';
 
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import * as React from 'react';
-
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -43,6 +28,20 @@ import {
   removeTeamAccountMember,
 } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  Row,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ReactElement, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ColumnProps {
@@ -97,45 +96,35 @@ interface Props {
   accountId: string;
 }
 
-export default function MembersTable(props: Props) {
+export default function MembersTable(props: Props): ReactElement {
   const { accountId } = props;
   const { data, isLoading, refetch } = useQuery(
     getTeamAccountMembers,
     { accountId: accountId },
     { enabled: !!accountId }
   );
+  const columns = useMemo(
+    () => getColumns({ accountId, onDeleted: () => refetch() }),
+    [accountId, refetch]
+  );
+  const users = data?.users || [];
   if (isLoading) {
     return <SkeletonTable />;
   }
-  return (
-    <DataTable
-      data={data?.users || []}
-      accountId={accountId}
-      onDeleted={() => refetch()}
-    />
-  );
+  return <DataTable data={users} columns={columns} />;
 }
 
 interface DataTableProps {
   data: AccountUser[];
-  accountId: string;
-  onDeleted(id: string): void;
+  columns: ColumnDef<PlainMessage<AccountUser>>[];
 }
 
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, accountId, onDeleted } = props;
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const columns = React.useMemo(
-    () => getColumns({ accountId, onDeleted }),
-    [accountId]
-  );
+  const { data, columns } = props;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
@@ -219,10 +208,6 @@ function DataTable(props: DataTableProps): React.ReactElement {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        {/* <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
         <div className="space-x-2">
           <Button
             variant="outline"
