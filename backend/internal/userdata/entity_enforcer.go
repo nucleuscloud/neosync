@@ -10,6 +10,7 @@ type UserEntityEnforcer struct {
 	enforcer             rbac.EntityEnforcer
 	user                 rbac.EntityString
 	enforceAccountAccess func(ctx context.Context, accountId string) error
+	isApiKey             bool
 }
 
 var _ EntityEnforcer = (*UserEntityEnforcer)(nil)
@@ -28,6 +29,9 @@ func (u *UserEntityEnforcer) EnforceJob(ctx context.Context, job DomainEntity, a
 	if err := u.enforceAccountAccess(ctx, job.GetAccountId()); err != nil {
 		return err
 	}
+	if u.isApiKey {
+		return nil
+	}
 	return u.enforcer.EnforceJob(ctx, u.user, rbac.NewAccountIdEntity(job.GetAccountId()), rbac.NewJobIdEntity(job.GetId()), action)
 }
 
@@ -35,12 +39,18 @@ func (u *UserEntityEnforcer) EnforceConnection(ctx context.Context, connection D
 	if err := u.enforceAccountAccess(ctx, connection.GetAccountId()); err != nil {
 		return err
 	}
+	if u.isApiKey {
+		return nil
+	}
 	return u.enforcer.EnforceConnection(ctx, u.user, rbac.NewAccountIdEntity(connection.GetAccountId()), rbac.NewConnectionIdEntity(connection.GetId()), action)
 }
 
 func (u *UserEntityEnforcer) EnforceAccount(ctx context.Context, account Identifier, action rbac.AccountAction) error {
 	if err := u.enforceAccountAccess(ctx, account.GetId()); err != nil {
 		return err
+	}
+	if u.isApiKey {
+		return nil
 	}
 	return u.enforcer.EnforceAccount(ctx, u.user, rbac.NewAccountIdEntity(account.GetId()), action)
 }
