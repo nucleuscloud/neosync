@@ -171,6 +171,7 @@ func getAccountPolicyRules(accountId string) [][]string {
 			Wildcard, // any resource in the account
 			Wildcard, // all actions in the account
 		},
+		// Job Developer
 		{
 			Role_JobDeveloper.String(),
 			accountKey,
@@ -189,17 +190,37 @@ func getAccountPolicyRules(accountId string) [][]string {
 			accountKey,
 			AccountAction_View.String(), // job developer can view the account
 		},
+		// Job Executor
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_View.String(), // job executor can view all jobs in the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			ConnectionWildcard.String(),
+			ConnectionAction_View.String(), // job executor can view all connections in the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			accountKey,
+			AccountAction_View.String(), // job executor can view the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_Execute.String(), // job executor can execute all jobs in the account
+		},
+		// Job Viewer
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			JobWildcard.String(),
 			JobAction_View.String(), // job viewer can view all jobs in the account
-		},
-		{
-			Role_JobViewer.String(),
-			accountKey,
-			JobWildcard.String(),
-			JobAction_Execute.String(), // job viewer can execute all jobs in the account
 		},
 		{
 			Role_JobViewer.String(),
