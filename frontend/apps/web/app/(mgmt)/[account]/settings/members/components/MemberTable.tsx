@@ -55,8 +55,6 @@ interface MemberRow {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getColumns(): ColumnDef<MemberRow, any>[] {
-  // props: ColumnProps
-  // const { onDeleted, accountId } = props;
   const columnHelper = createColumnHelper<MemberRow>();
   const nameColumn = columnHelper.accessor('name', {
     header: 'Name',

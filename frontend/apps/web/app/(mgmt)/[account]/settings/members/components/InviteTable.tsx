@@ -3,8 +3,10 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowData,
   SortingState,
   VisibilityState,
+  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -12,7 +14,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import * as React from 'react';
 
 import { CopyButton } from '@/components/CopyButton';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
@@ -29,107 +30,125 @@ import {
 } from '@/components/ui/table';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { AccountInvite } from '@neosync/sdk';
 import {
   getTeamAccountInvites,
   removeTeamAccountInvite,
 } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildInviteLink } from './InviteUserForm';
 
-interface ColumnProps {
-  onDeleted(id: string): void;
+interface MemberInviteRow {
+  id: string;
+  email: string;
+  createdAt: Date;
+  expiresAt: Date;
+  token: string;
 }
 
-function getColumns(
-  props: ColumnProps
-): ColumnDef<PlainMessage<AccountInvite>>[] {
-  const { onDeleted } = props;
-  return [
-    {
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => <div>{row.getValue('email')}</div>,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getColumns(): ColumnDef<MemberInviteRow, any>[] {
+  const columnHelper = createColumnHelper<MemberInviteRow>();
+  const emailColumn = columnHelper.accessor('email', {
+    header: 'Email',
+    cell: ({ getValue }) => <div>{getValue()}</div>,
+  });
+
+  const createdAtColumn = columnHelper.accessor('createdAt', {
+    header: 'Created At',
+    cell: ({ getValue }) => {
+      return <div className="flex space-x-2">{formatDateTime(getValue())}</div>;
     },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created At',
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
-            </span>
-          </div>
-        );
-      },
+  });
+
+  const expiresAtColumn = columnHelper.accessor('expiresAt', {
+    header: 'Expires At',
+    cell: ({ getValue }) => {
+      return <div className="flex space-x-2">{formatDateTime(getValue())}</div>;
     },
-    {
-      accessorKey: 'expiresAt',
-      header: 'Expires At',
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('expiresAt')?.toDate())}
-            </span>
-          </div>
-        );
-      },
+  });
+
+  const actionsColumn = columnHelper.display({
+    id: 'actions',
+    cell: ({ row, table }) => {
+      return (
+        <div className="flex flex-row gap-2">
+          <CopyInviteButton token={row.getValue('token')} />
+          <DeleteInviteButton
+            onDeleted={() =>
+              table.options.meta?.invitesTable?.onDeleted(row.getValue('id'))
+            }
+            inviteId={row.getValue('id')}
+          />
+        </div>
+      );
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-row gap-2">
-            <CopyInviteButton token={row.original.token} />
-            <DeleteInviteButton
-              onDeleted={onDeleted}
-              inviteId={row.original.id}
-            />
-          </div>
-        );
-      },
-    },
-  ];
+  });
+
+  return [emailColumn, createdAtColumn, expiresAtColumn, actionsColumn];
 }
+
+const INVITE_COLUMNS = getColumns();
 
 interface Props {
   accountId: string;
 }
 
-export function InvitesTable(props: Props) {
+export function InvitesTable(props: Props): React.ReactElement {
   const { accountId } = props;
-  const { data, isLoading, refetch } = useQuery(
+  const { data, isLoading, refetch, isFetching } = useQuery(
     getTeamAccountInvites,
     { accountId: accountId },
     { enabled: !!accountId }
   );
+  const invites = data?.invites || [];
+  const invitesRows = useMemo(() => {
+    return invites.map((invite): MemberInviteRow => {
+      return {
+        id: invite.id,
+        email: invite.email,
+        createdAt: invite.createdAt?.toDate() ?? new Date(),
+        expiresAt: invite.expiresAt?.toDate() ?? new Date(),
+        token: invite.token,
+      };
+    });
+  }, [isFetching, invites]);
+
   if (isLoading) {
     return <SkeletonTable />;
   }
 
-  return <DataTable data={data?.invites || []} onDeleted={() => refetch()} />;
+  return (
+    <DataTable
+      data={invitesRows}
+      columns={INVITE_COLUMNS}
+      onDeleted={() => refetch()}
+    />
+  );
+}
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface TableMeta<TData extends RowData> {
+    invitesTable?: {
+      onDeleted(id: string): void;
+    };
+  }
 }
 
 interface DataTableProps {
-  data: AccountInvite[];
+  data: MemberInviteRow[];
+  columns: ColumnDef<MemberInviteRow>[];
   onDeleted(id: string): void;
 }
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, onDeleted } = props;
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const columns = React.useMemo(() => getColumns({ onDeleted }), []);
+  const { data, columns, onDeleted } = props;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
@@ -147,6 +166,11 @@ function DataTable(props: DataTableProps): React.ReactElement {
       columnFilters,
       columnVisibility,
       rowSelection,
+    },
+    meta: {
+      invitesTable: {
+        onDeleted,
+      },
     },
   });
 
