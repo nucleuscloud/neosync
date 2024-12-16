@@ -100,6 +100,7 @@ function getColumns(isRbacEnabled: boolean): ColumnDef<MemberRow, any>[] {
             id: row.original.id,
             name: row.original.name,
             role: row.original.role,
+            email: row.original.email,
           }}
           onDeleted={() =>
             table.options.meta?.membersTable?.onDeleted(row.original.id)
@@ -303,7 +304,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
 }
 
 interface DataTableRowActionsProps {
-  member: Pick<AccountUser, 'id' | 'name' | 'role'>;
+  member: Pick<AccountUser, 'id' | 'name' | 'role' | 'email'>;
   onDeleted(): void;
   onUpdated(): void;
 }

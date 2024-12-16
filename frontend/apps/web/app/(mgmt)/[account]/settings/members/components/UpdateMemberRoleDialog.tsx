@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import UpdateMemberRoleForm from './UpdateMemberRoleForm';
 
 interface Props {
-  member: Pick<AccountUser, 'id' | 'name' | 'role'>;
+  member: Pick<AccountUser, 'id' | 'name' | 'role' | 'email'>;
   onUpdated(): void;
   dialogButton: ReactNode;
 }
@@ -54,10 +54,12 @@ export default function UpdateMemberRoleDialog(props: Props): ReactElement {
       <DialogTrigger asChild>{dialogButton}</DialogTrigger>
       <DialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="lg:max-w-4xl max-h-[85vh] overflow-y-auto"
+        className="max-h-[85vh] overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle>Update role for {member.name}</DialogTitle>
+          <DialogTitle>
+            Update role for {member.name} ({member.email})
+          </DialogTitle>
           <DialogDescription>Change the role of the user.</DialogDescription>
         </DialogHeader>
         <UpdateMemberRoleForm
