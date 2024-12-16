@@ -20,8 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getErrorMessage } from '@/util/util';
+import { getAccountRoleString, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { AccountRole } from '@neosync/sdk';
 import {
   getTeamAccountMembers,
   removeTeamAccountMember,
@@ -49,6 +50,7 @@ interface MemberRow {
   name: string;
   email: string;
   image?: string;
+  role: AccountRole;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,6 +83,15 @@ function getColumns(): ColumnDef<MemberRow, any>[] {
     ),
   });
 
+  const roleColumn = columnHelper.accessor('role', {
+    header: 'Role',
+    cell: ({ getValue }) => (
+      <span className="truncate font-medium">
+        {getAccountRoleString(getValue())}
+      </span>
+    ),
+  });
+
   const actionsColumn = columnHelper.display({
     id: 'actions',
     cell: ({ row, table }) => {
@@ -95,7 +106,7 @@ function getColumns(): ColumnDef<MemberRow, any>[] {
     },
   });
 
-  return [nameColumn, emailColumn, actionsColumn];
+  return [nameColumn, emailColumn, roleColumn, actionsColumn];
 }
 
 const MEMBER_COLUMNS = getColumns();
@@ -120,6 +131,7 @@ export default function MembersTable(props: Props): ReactElement {
         email: d.email,
         image: d.image,
         id: d.id,
+        role: d.role,
       };
     });
   }, [isFetching, users]);
