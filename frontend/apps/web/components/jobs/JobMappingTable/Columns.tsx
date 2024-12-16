@@ -189,7 +189,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
       },
       cell({ table, row }) {
         const transformer =
-          table.options.meta?.jmTable.getTransformerFromField(row.index) ??
+          table.options.meta?.jmTable?.getTransformerFromField(row.index) ??
           new SystemTransformer();
         const transformerForm = row.original.transformer;
         return (
@@ -197,7 +197,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
             <div>
               <TransformerSelect
                 getTransformers={() =>
-                  table.options.meta?.jmTable.getAvailableTransformers(
+                  table.options.meta?.jmTable?.getAvailableTransformers(
                     row.index
                   ) ?? {
                     system: [],
@@ -208,7 +208,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
                 buttonClassName="w-[140px]"
                 value={transformerForm}
                 onSelect={(updatedValue) =>
-                  table.options.meta?.jmTable.onTransformerUpdate(
+                  table.options.meta?.jmTable?.onTransformerUpdate(
                     row.index,
                     updatedValue
                   )
@@ -221,7 +221,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
                 transformer={transformer}
                 value={transformerForm}
                 onSubmit={(updatedValue) => {
-                  table.options.meta?.jmTable.onTransformerUpdate(
+                  table.options.meta?.jmTable?.onTransformerUpdate(
                     row.index,
                     updatedValue
                   );
@@ -306,12 +306,12 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
         <EditCollection
           text={getValue()}
           collections={
-            table.options.meta?.jmTable.getAvailableCollectionsByRow(
+            table.options.meta?.jmTable?.getAvailableCollectionsByRow(
               row.index
             ) ?? []
           }
           onEdit={(updatedValue) => {
-            if (table.options.meta?.jmTable.onRowUpdate) {
+            if (table.options.meta?.jmTable?.onRowUpdate) {
               table.options.meta.jmTable.onRowUpdate(row.index, {
                 ...row.original,
                 collection: updatedValue.collection,
@@ -334,7 +334,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
           isDuplicate={(newValue, currValue) => {
             return (
               newValue !== currValue &&
-              (table.options.meta?.jmTable.canRenameColumn(
+              (table.options.meta?.jmTable?.canRenameColumn(
                 row.index,
                 newValue
               ) ??
@@ -342,7 +342,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
             );
           }}
           onEdit={(updatedValue) => {
-            if (table.options.meta?.jmTable.onRowUpdate) {
+            if (table.options.meta?.jmTable?.onRowUpdate) {
               table.options.meta.jmTable.onRowUpdate(row.index, {
                 ...row.original,
                 column: updatedValue.column,
@@ -369,7 +369,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
       },
       cell({ table, row }) {
         const transformer =
-          table.options.meta?.jmTable.getTransformerFromField(row.index) ??
+          table.options.meta?.jmTable?.getTransformerFromField(row.index) ??
           new SystemTransformer();
         const transformerForm = row.original.transformer;
         return (
@@ -377,7 +377,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
             <div>
               <TransformerSelect
                 getTransformers={() =>
-                  table.options.meta?.jmTable.getAvailableTransformers(
+                  table.options.meta?.jmTable?.getAvailableTransformers(
                     row.index
                   ) ?? {
                     system: [],
@@ -388,7 +388,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
                 buttonClassName="w-[175px]"
                 value={transformerForm}
                 onSelect={(updatedValue) =>
-                  table.options.meta?.jmTable.onTransformerUpdate(
+                  table.options.meta?.jmTable?.onTransformerUpdate(
                     row.index,
                     updatedValue
                   )
@@ -401,7 +401,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
                 transformer={transformer}
                 value={transformerForm}
                 onSubmit={(updatedValue) => {
-                  table.options.meta?.jmTable.onTransformerUpdate(
+                  table.options.meta?.jmTable?.onTransformerUpdate(
                     row.index,
                     updatedValue
                   );
@@ -426,9 +426,9 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
         <DataTableRowActions
           row={row}
           onDuplicate={() =>
-            table.options.meta?.jmTable.onDuplicateRow(row.index)
+            table.options.meta?.jmTable?.onDuplicateRow(row.index)
           }
-          onDelete={() => table.options.meta?.jmTable.onDeleteRow(row.index)}
+          onDelete={() => table.options.meta?.jmTable?.onDeleteRow(row.index)}
         />
       );
     },
