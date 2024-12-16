@@ -33,6 +33,7 @@ type RoleAdmin interface {
 	RemoveAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
 	RemoveAccountUser(ctx context.Context, user EntityString, account EntityString) error
 	SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error
+	GetUserRoles(ctx context.Context, users []EntityString, account EntityString, logger *slog.Logger) map[string]Role
 }
 
 // Initialize default policies for existing accounts at startup
@@ -259,6 +260,29 @@ func (r *Rbac) RemoveAccountUser(
 ) error {
 	_, err := r.e.DeleteRolesForUserInDomain(user.String(), account.String())
 	return err
+}
+
+// GetUserRoles returns a map of user entities to their associated roles for a given account
+func (r *Rbac) GetUserRoles(
+	ctx context.Context,
+	users []EntityString,
+	account EntityString,
+	logger *slog.Logger,
+) map[string]Role {
+	result := make(map[string]Role)
+	for _, user := range users {
+		roles := r.e.GetRolesForUserInDomain(user.String(), account.String())
+		if len(roles) > 1 {
+			logger.Warn("user has multiple roles when they should only have one",
+				"user", user.String(),
+				"account", account.String(),
+				"roles", roles)
+		}
+		if len(roles) > 0 {
+			result[user.String()] = Role(roles[0])
+		}
+	}
+	return result
 }
 
 func (r *Rbac) Job(

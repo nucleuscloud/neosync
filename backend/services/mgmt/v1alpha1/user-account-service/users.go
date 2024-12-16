@@ -478,6 +478,14 @@ func (s *Service) GetTeamAccountMembers(
 		return nil, err
 	}
 
+	rbacUsers := []rbac.EntityString{}
+	for _, user := range userIdentities {
+		rbacUsers = append(rbacUsers, rbac.NewPgUserIdEntity(user.UserID))
+	}
+
+	userRoles := s.rbacClient.GetUserRoles(ctx, rbacUsers, rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid)), logger)
+	logger.Debug(fmt.Sprintf("found %d users with roles", len(userRoles)))
+
 	dtoUsers := make([]*mgmtv1alpha1.AccountUser, len(userIdentities))
 	group := new(errgroup.Group)
 	for i := range userIdentities {
@@ -487,11 +495,17 @@ func (s *Service) GetTeamAccountMembers(
 			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
 				Id: neosyncdb.UUIDString(user.UserID),
 			}
+			role, ok := userRoles[rbac.NewPgUserIdEntity(user.UserID).String()]
+			if ok {
+				logger.Debug(fmt.Sprintf("found role for user: %s - %s", neosyncdb.UUIDString(user.UserID), role.String()))
+				dtoUsers[i].Role = role.ToDto()
+			} else {
+				dtoUsers[i].Role = mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED
+			}
 			if user.ProviderSub == "" {
 				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", neosyncdb.UUIDString(user.UserID)))
 				return nil
-			}
-			if user.ProviderSub != "" {
+			} else {
 				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
 				if err != nil {
 					logger.Warn(fmt.Sprintf("unable to retrieve user by sub: %s", err.Error()))

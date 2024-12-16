@@ -51,6 +51,9 @@ func (a *AllowAllClient) RemoveAccountUser(ctx context.Context, user, account En
 func (a *AllowAllClient) SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error {
 	return nil
 }
+func (a *AllowAllClient) GetUserRoles(ctx context.Context, users []EntityString, account EntityString, logger *slog.Logger) map[string]Role {
+	return map[string]Role{}
+}
 
 func NewAllowAllClient() *AllowAllClient {
 	return &AllowAllClient{}
