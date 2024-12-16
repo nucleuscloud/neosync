@@ -193,16 +193,18 @@ class CreateTeamAccountResponse(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., checkout_session_url: _Optional[str] = ...) -> None: ...
 
 class AccountUser(_message.Message):
-    __slots__ = ("id", "name", "image", "email")
+    __slots__ = ("id", "name", "image", "email", "role")
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     IMAGE_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
     id: str
     name: str
     image: str
     email: str
-    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., image: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
+    role: AccountRole
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., image: _Optional[str] = ..., email: _Optional[str] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
 
 class GetTeamAccountMembersRequest(_message.Message):
     __slots__ = ("account_id",)

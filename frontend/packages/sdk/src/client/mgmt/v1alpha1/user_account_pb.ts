@@ -1012,6 +1012,13 @@ export class AccountUser extends Message<AccountUser> {
    */
   email = "";
 
+  /**
+   * The role of the user in the account. If RBAC is not enabled, will be unspecified.
+   *
+   * @generated from field: mgmt.v1alpha1.AccountRole role = 5;
+   */
+  role = AccountRole.UNSPECIFIED;
+
   constructor(data?: PartialMessage<AccountUser>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1024,6 +1031,7 @@ export class AccountUser extends Message<AccountUser> {
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "role", kind: "enum", T: proto3.getEnumType(AccountRole) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountUser {

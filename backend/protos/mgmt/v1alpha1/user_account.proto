@@ -102,6 +102,8 @@ message AccountUser {
   string name = 2;
   string image = 3;
   string email = 4;
+  // The role of the user in the account. If RBAC is not enabled, will be unspecified.
+  AccountRole role = 5;
 }
 
 message GetTeamAccountMembersRequest {

@@ -1127,6 +1127,11 @@ components:
         email:
           type: string
           title: email
+        role:
+          allOf:
+            - title: role
+              description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountUser
       additionalProperties: false
     mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:

@@ -16170,6 +16170,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "role",
+              "description": "The role of the user in the account. If RBAC is not enabled, will be unspecified.",
+              "label": "",
+              "type": "AccountRole",
+              "longType": "AccountRole",
+              "fullType": "mgmt.v1alpha1.AccountRole",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
