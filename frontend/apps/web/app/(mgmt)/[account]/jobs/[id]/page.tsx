@@ -8,8 +8,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { GetJobResponse } from '@neosync/sdk';
+import { GetJobResponseSchema } from '@neosync/sdk';
 import { getJob, getJobStatus } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
@@ -53,8 +54,12 @@ export default function Page({ params }: PageProps): ReactElement {
               job={data.job}
               mutate={(newjob) => {
                 queryclient.setQueryData(
-                  createConnectQueryKey(getJob, { id }),
-                  new GetJobResponse({ job: newjob })
+                  createConnectQueryKey({
+                    schema: getJob,
+                    input: { id },
+                    cardinality: undefined,
+                  }),
+                  create(GetJobResponseSchema, { job: newjob })
                 );
               }}
             />
@@ -78,8 +83,12 @@ export default function Page({ params }: PageProps): ReactElement {
                     job={data.job}
                     mutate={(newjob) => {
                       queryclient.setQueryData(
-                        createConnectQueryKey(getJob, { id }),
-                        new GetJobResponse({ job: newjob })
+                        createConnectQueryKey({
+                          schema: getJob,
+                          input: { id },
+                          cardinality: undefined,
+                        }),
+                        create(GetJobResponseSchema, { job: newjob })
                       );
                     }}
                   />
@@ -89,8 +98,12 @@ export default function Page({ params }: PageProps): ReactElement {
                     job={data.job}
                     mutate={(newjob) => {
                       queryclient.setQueryData(
-                        createConnectQueryKey(getJob, { id }),
-                        new GetJobResponse({ job: newjob })
+                        createConnectQueryKey({
+                          schema: getJob,
+                          input: { id },
+                          cardinality: undefined,
+                        }),
+                        create(GetJobResponseSchema, { job: newjob })
                       );
                     }}
                   />
