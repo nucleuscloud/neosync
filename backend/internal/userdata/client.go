@@ -62,6 +62,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 		enforceAccountAccess: func(ctx context.Context, accountId string) error {
 			return EnforceAccountAccess(ctx, user, accountId)
 		},
+		isApiKey: user.IsApiKey(),
 	}
 
 	return user, nil
