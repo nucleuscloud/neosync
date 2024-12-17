@@ -3,6 +3,7 @@ package neosynctypes
 import (
 	"fmt"
 
+	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
@@ -61,7 +62,7 @@ func (a *NeosyncArray) ValuePgx() (any, error) {
 		}
 		values[i] = v
 	}
-	return values, nil
+	return pq.Array(values), nil
 }
 
 func (a *NeosyncArray) ScanJson(value any) error {
@@ -84,6 +85,34 @@ func (a *NeosyncArray) ValueJson() (any, error) {
 	values := make([]any, len(a.Elements))
 	for i, e := range a.Elements {
 		v, err := e.ValueJson()
+		if err != nil {
+			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
+		}
+		values[i] = v
+	}
+	return values, nil
+}
+
+func (a *NeosyncArray) ScanMysql(value any) error {
+	valueSlice, err := gotypeutil.ParseSlice(value)
+	if err != nil {
+		return err
+	}
+	if len(valueSlice) != len(a.Elements) {
+		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+	}
+	for i, v := range valueSlice {
+		if err := a.Elements[i].ScanMysql(v); err != nil {
+			return fmt.Errorf("scanning element %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func (a *NeosyncArray) ValueMysql() (any, error) {
+	values := make([]any, len(a.Elements))
+	for i, e := range a.Elements {
+		v, err := e.ValueMysql()
 		if err != nil {
 			return nil, fmt.Errorf("getting value for element %d: %w", i, err)
 		}

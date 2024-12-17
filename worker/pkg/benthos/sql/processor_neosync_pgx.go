@@ -2,7 +2,6 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -120,7 +119,6 @@ func transformNeosyncToPgx(
 		}
 		colDefaults := columnDefaultProperties[col]
 		datatype := columnDataTypes[col]
-
 		newVal, err := getPgxValue(val, colDefaults, datatype)
 		if err != nil {
 			logger.Warn(err.Error())
@@ -145,28 +143,57 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 		return goqu.Default(), nil
 	}
 
-	switch v := value.(type) {
-	case nil:
-		return v, nil
-	case []byte:
-		value, err := handlePgxByteSlice(v, datatype)
+	if value == nil {
+		return nil, nil
+	}
+
+	switch {
+	case pgutil.IsJsonPgDataType(datatype):
+		bits, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("unable to handle byte slice: %w", err)
+			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+		}
+		return bits, nil
+	case pgutil.IsPgArrayColumnDataType(datatype):
+		if byteSlice, ok := value.([]byte); ok {
+			// this handles the case where the array is in the form {1,2,3}
+			if strings.HasPrefix(string(byteSlice), "{") {
+				return string(byteSlice), nil
+			}
+			pgarray, err := processPgArrayFromJson(byteSlice, datatype)
+			if err != nil {
+				return nil, fmt.Errorf("unable to process PG Array: %w", err)
+			}
+			return pgarray, nil
+		} else if gotypeutil.IsMultiDimensionalSlice(value) || gotypeutil.IsSliceOfMaps(value) {
+			return goqu.Literal(pgutil.FormatPgArrayLiteral(value, datatype)), nil
+		} else if gotypeutil.IsSlice(value) {
+			return pq.Array(value), nil
+		}
+		return value, nil
+	// case datatype == "bytea":
+	// 	if b64String, ok := value.(string); ok {
+	// 		bytes, err := base64.StdEncoding.DecodeString(b64String)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("unable to decode base64 string: %w", err)
+	// 		}
+	// 		return bytes, nil
+	// 	}
+	// 	return value, nil
+	case datatype == "date":
+		return convertDateForPostgres(value)
+	case datatype == "timestamp with time zone":
+		return convertTimestampWithTimezoneForPostgres(value), nil
+	case datatype == "timestamp" || datatype == "timestamp without time zone":
+		return convertTimestampForPostgres(value)
+	case datatype == "money" || datatype == "uuid" || datatype == "tsvector" || datatype == "time with time zone":
+		if byteSlice, ok := value.([]byte); ok {
+			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
+			return string(byteSlice), nil
 		}
 		return value, nil
 	default:
-		if pgutil.IsJsonPgDataType(datatype) {
-			bits, err := json.Marshal(value)
-			if err != nil {
-				return nil, fmt.Errorf("unable to marshal JSON: %w", err)
-			}
-			return bits, nil
-		} else if gotypeutil.IsMultiDimensionalSlice(v) || gotypeutil.IsSliceOfMaps(v) {
-			return goqu.Literal(pgutil.FormatPgArrayLiteral(v, datatype)), nil
-		} else if gotypeutil.IsSlice(v) {
-			return pq.Array(v), nil
-		}
-		return v, nil
+		return value, nil
 	}
 }
 
@@ -176,54 +203,22 @@ func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 		if err != nil {
 			return nil, false, fmt.Errorf("unable to get PGX value from NeosyncPgxValuer: %w", err)
 		}
-		if gotypeutil.IsSlice(value) {
-			return pq.Array(value), true, nil
-		}
 		return value, true, nil
 	}
 	return root, false, nil
 }
 
-func handlePgxByteSlice(v []byte, datatype string) (any, error) {
-	if pgutil.IsPgArrayColumnDataType(datatype) {
-		// this handles the case where the array is in the form {1,2,3}
-		if strings.HasPrefix(string(v), "{") {
-			return string(v), nil
-		}
-		pgarray, err := processPgArrayFromJson(v, datatype)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process PG Array: %w", err)
-		}
-		return pgarray, nil
+func convertBitsToTime(input any) (time.Time, error) {
+	var timeStr string
+	switch v := input.(type) {
+	case []byte:
+		timeStr = string(v)
+	case string:
+		timeStr = v
+	default:
+		return time.Time{}, fmt.Errorf("unsupported type for time conversion: %T", input)
 	}
-	switch datatype {
-	case "bit":
-		bit, err := convertStringToBit(string(v))
-		if err != nil {
-			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
-		}
-		return bit, nil
-	case "json", "jsonb":
-		validJson, err := getValidJson(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get valid json: %w", err)
-		}
-		return validJson, nil
-	case "date":
-		return convertDateForPostgres(v)
-	case "timestamp with time zone":
-		return convertTimestampWithTimezoneForPostgres(v), nil
-	case "timestamp", "timestamp without time zone":
-		return convertTimestampForPostgres(v)
-	case "money", "uuid", "tsvector", "time with time zone":
-		// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
-		return string(v), nil
-	}
-	return v, nil
-}
 
-func convertBitsToTime(bits []byte) (time.Time, error) {
-	timeStr := string(bits)
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
 		// Try parsing as DateTime format if not RFC3339 format
@@ -236,19 +231,29 @@ func convertBitsToTime(bits []byte) (time.Time, error) {
 	return t, nil
 }
 
-func convertDateForPostgres(input []byte) (string, error) {
+func convertDateForPostgres(input any) (string, error) {
 	return convertTimeForPostgres(input, time.DateOnly)
 }
 
-func convertTimestampForPostgres(input []byte) (string, error) {
+func convertTimestampForPostgres(input any) (string, error) {
 	return convertTimeForPostgres(input, time.DateTime)
 }
 
 // pgtypes does not handle BC dates correctly
 // convertTimeForPostgres handles BC dates properly
-func convertTimeForPostgres(timebits []byte, layout string) (string, error) {
-	if strings.HasPrefix(string(timebits), "-") {
-		t, err := time.Parse("-2006-01-02T15:04:05Z", string(timebits))
+func convertTimeForPostgres(input any, layout string) (string, error) {
+	var timeStr string
+	switch v := input.(type) {
+	case []byte:
+		timeStr = string(v)
+	case string:
+		timeStr = v
+	default:
+		return "", fmt.Errorf("unsupported type for time conversion: %T", input)
+	}
+
+	if strings.HasPrefix(timeStr, "-") {
+		t, err := time.Parse("-2006-01-02T15:04:05Z", timeStr)
 		if err != nil {
 			return "", err
 		}
@@ -260,7 +265,7 @@ func convertTimeForPostgres(timebits []byte, layout string) (string, error) {
 		return fmt.Sprintf("%s BC", newT.Format(layout)), nil
 	}
 
-	t, err := convertBitsToTime(timebits)
+	t, err := convertBitsToTime(timeStr)
 	if err != nil {
 		return "", err
 	}
@@ -274,9 +279,19 @@ func convertTimeForPostgres(timebits []byte, layout string) (string, error) {
 }
 
 // pgtype.Timestamptz does not support BC dates, so we need to reformat them
-func convertTimestampWithTimezoneForPostgres(input []byte) string {
+func convertTimestampWithTimezoneForPostgres(input any) string {
+	var timeStr string
+	switch v := input.(type) {
+	case []byte:
+		timeStr = string(v)
+	case string:
+		timeStr = v
+	default:
+		return fmt.Sprintf("%v", input) // Fallback to string representation
+	}
+
 	// Remove the 'T'
-	withoutT := strings.Replace(string(input), "T", " ", 1)
+	withoutT := strings.Replace(timeStr, "T", " ", 1)
 
 	// Handle year 0000 case (should become 0001 BC)
 	if strings.HasPrefix(withoutT, "0000") {
@@ -293,7 +308,7 @@ func convertTimestampWithTimezoneForPostgres(input []byte) string {
 		return year + rest[:len(rest)-6] + rest[len(rest)-6:] + " BC"
 	}
 
-	return string(input)
+	return timeStr
 }
 
 // this expects the bits to be in the form [1,2,3]
@@ -339,21 +354,6 @@ func stringifyJsonArray(pgarray []any) ([]string, error) {
 		jsonArray[i] = string(bytes)
 	}
 	return jsonArray, nil
-}
-
-func convertStringToBit(bitString string) ([]byte, error) {
-	val, err := strconv.ParseUint(bitString, 2, len(bitString))
-	if err != nil {
-		return nil, err
-	}
-
-	// Always allocate 8 bytes for PutUint64
-	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, val)
-
-	// Calculate actual needed bytes and return only those
-	neededBytes := (len(bitString) + 7) / 8
-	return bytes[len(bytes)-neededBytes:], nil
 }
 
 func isColumnInList(column string, columns []string) bool {

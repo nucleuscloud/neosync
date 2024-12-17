@@ -168,6 +168,12 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case strings.EqualFold(dbTypeName, "_interval"):
 			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bytea") || strings.EqualFold(dbTypeName, "_varbit"):
+			values[i] = &PgxArray[[]byte]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bit"):
+			values[i] = &PgxArray[*pgtype.Bits]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
 		case strings.EqualFold(dbTypeName, "interval"):
 			values[i] = &pgtype.Interval{}
 			scanTargets = append(scanTargets, values[i])
@@ -182,14 +188,15 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
-	jObj := parsePgRowValues(values, columnNames)
+	jObj := parsePgRowValues(values, columnNames, cTypes)
 	return jObj, nil
 }
 
-func parsePgRowValues(values []any, columnNames []string) map[string]any {
+func parsePgRowValues(values []any, columnNames []string, columnTypes []*sql.ColumnType) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
+		colType := columnTypes[i].DatabaseTypeName()
 		switch t := v.(type) {
 		case nil:
 			jObj[col] = t
@@ -212,6 +219,20 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				continue
 			}
 			jObj[col] = ia
+		case *PgxArray[[]byte]:
+			ba, err := toBinaryArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
+		case *PgxArray[*pgtype.Bits]:
+			ba, err := toBitsArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
 		case *pgtype.Interval:
@@ -226,7 +247,24 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 			}
 			jObj[col] = neoInterval
 		default:
-			jObj[col] = t
+			switch colType {
+			case "bit", "BIT", "varbit", "VARBIT":
+				bits, err := neosynctypes.NewBitsFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = bits
+			case "bytea", "BYTEA":
+				binary, err := neosynctypes.NewBinaryFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = binary
+			default:
+				jObj[col] = t
+			}
 		}
 	}
 	return jObj
@@ -245,6 +283,40 @@ func isPgxPgArrayType(dbTypeName string) bool {
 
 func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
+}
+
+func toBinaryArray(array *PgxArray[[]byte]) (any, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	binaryArray, err := neosynctypes.NewBinaryArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return binaryArray, nil
+}
+
+func toBitsArray(array *PgxArray[*pgtype.Bits]) (any, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	bitsArray, err := neosynctypes.NewBitsArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return bitsArray, nil
 }
 
 func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/nucleuscloud/neosync/internal/sqlscanners"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
@@ -25,13 +25,14 @@ func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
 	for i := range values {
-		colType := cTypes[i].DatabaseTypeName()
-		if isBitDataType(colType) {
-			values[i] = &sqlscanners.BitString{}
-			valuesWrapped = append(valuesWrapped, values[i])
-		} else {
-			valuesWrapped = append(valuesWrapped, &values[i])
-		}
+		// colType := cTypes[i].DatabaseTypeName()
+		// if isBitDataType(colType) {
+		// 	values[i] = &sqlscanners.BitString{}
+		// 	valuesWrapped = append(valuesWrapped, values[i])
+		// } else {
+		// 	valuesWrapped = append(valuesWrapped, &values[i])
+		// }
+		valuesWrapped = append(valuesWrapped, &values[i])
 	}
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
@@ -56,9 +57,20 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[
 					jObj[col] = js
 					continue
 				}
-			}
-			if isBinaryDataType(colDataType) {
-				jObj[col] = t
+			} else if isBinaryDataType(colDataType) {
+				binary, err := neosynctypes.NewBinaryFromMysql(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = binary
+			} else if isBitDataType(colDataType) || strings.EqualFold(colDataType, "varbit") {
+				bits, err := neosynctypes.NewBitsFromMysql(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = bits
 			} else {
 				jObj[col] = string(t)
 			}

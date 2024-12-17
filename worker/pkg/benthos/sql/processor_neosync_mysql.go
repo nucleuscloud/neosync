@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -129,53 +129,65 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 		return goqu.Default(), nil
 	}
 
-	switch v := value.(type) {
-	case nil:
-		return v, nil
-	case []byte:
-		value, err := handleMysqlByteSlice(v, datatype)
-		if err != nil {
-			return nil, fmt.Errorf("unable to handle byte slice: %w", err)
-		}
-		return value, nil
-	default:
-		if mysqlutil.IsJsonDataType(datatype) {
-			bits, err := json.Marshal(value)
-			if err != nil {
-				return nil, fmt.Errorf("unable to marshal JSON: %w", err)
-			}
-			return bits, nil
-		}
-		return v, nil
+	if value == nil {
+		return nil, nil
 	}
-}
 
-func handleMysqlByteSlice(v []byte, datatype string) (any, error) {
+	value, isNeosyncValue, err := getMysqlNeosyncValue(value)
+	if err != nil {
+		return nil, err
+	}
+	if isNeosyncValue {
+		return value, nil
+	}
+
 	switch datatype {
-	case "bit":
-		bit, err := convertStringToBit(string(v))
-		if err != nil {
-			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
-		}
-		return bit, nil
 	case "json":
-		validJson, err := getValidJson(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get valid json: %w", err)
+		if v, ok := value.([]byte); ok {
+			validJson, err := getValidJson(v)
+			if err != nil {
+				return nil, fmt.Errorf("unable to get valid json: %w", err)
+			}
+			return validJson, nil
 		}
-		return validJson, nil
-	case "date":
-		t, err := convertBitsToTime(v)
+		bits, err := json.Marshal(value)
 		if err != nil {
-			return string(v), nil
+			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+		}
+		return bits, nil
+	// case "binary":
+	// 	if b64String, ok := value.(string); ok {
+	// 		bytes, err := base64.StdEncoding.DecodeString(b64String)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("unable to decode base64 string: %w", err)
+	// 		}
+	// 		return bytes, nil
+	// 	}
+	// 	return value, nil
+	case "date":
+		t, err := convertBitsToTime(value)
+		if err != nil {
+			return value, nil
 		}
 		return t.Format(time.DateOnly), nil
 	case "timestamp", "datetime":
-		t, err := convertBitsToTime(v)
+		t, err := convertBitsToTime(value)
 		if err != nil {
-			return string(v), nil
+			return value, nil
 		}
 		return t.Format(time.DateTime), nil
+	default:
+		return value, nil
 	}
-	return v, nil
+}
+
+func getMysqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+	if valuer, ok := root.(neosynctypes.NeosyncMysqlValuer); ok {
+		value, err := valuer.ValueMysql()
+		if err != nil {
+			return nil, false, fmt.Errorf("unable to get MYSQL value from NeosyncMysqlValuer: %w", err)
+		}
+		return value, true, nil
+	}
+	return root, false, nil
 }

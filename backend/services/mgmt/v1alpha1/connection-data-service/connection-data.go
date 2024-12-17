@@ -1,6 +1,7 @@
 package v1alpha1_connectiondataservice
 
 import (
+	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -30,6 +31,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	myutil "github.com/nucleuscloud/neosync/internal/mysql"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
@@ -125,18 +128,13 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
-			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
+			r, err := myutil.MysqlSqlRowToMap(rows)
+			if err != nil {
 				return err
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
+			msgBits := encodeJSON(r)
+			row := map[string][]byte{
+				"row": msgBits,
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -187,20 +185,14 @@ func (s *Service) GetConnectionDataStream(
 		}
 		defer rows.Close()
 
-		// todo: this is probably way fucking broken now
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
-			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
+			r, err := pgutil.SqlRowToPgTypesMap(rows)
+			if err != nil {
 				return err
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
+			msgBits := encodeJSON(r)
+			row := map[string][]byte{
+				"row": msgBits,
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -404,6 +396,19 @@ func (s *Service) GetConnectionDataStream(
 		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 	return nil
+}
+
+func encodeJSON(d any) (rawBytes []byte) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(d); err != nil {
+		return nil
+	}
+	if buf.Len() > 1 {
+		rawBytes = buf.Bytes()[:buf.Len()-1]
+	}
+	return
 }
 
 func (s *Service) GetConnectionSchemaMaps(

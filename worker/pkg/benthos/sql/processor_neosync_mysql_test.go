@@ -108,21 +108,6 @@ func Test_getMysqlValue(t *testing.T) {
 	})
 }
 
-func Test_handleMysqlByteSlice(t *testing.T) {
-	t.Run("converts bit string to bytes", func(t *testing.T) {
-		result, err := handleMysqlByteSlice([]byte("1"), "bit")
-		require.NoError(t, err)
-		require.Equal(t, []byte{1}, result)
-	})
-
-	t.Run("returns original bytes for non-bit type", func(t *testing.T) {
-		input := []byte("test")
-		result, err := handleMysqlByteSlice(input, "varchar")
-		require.NoError(t, err)
-		require.Equal(t, input, result)
-	})
-}
-
 func Test_NeosyncToMysqlProcessor(t *testing.T) {
 	conf := `
 columns:
