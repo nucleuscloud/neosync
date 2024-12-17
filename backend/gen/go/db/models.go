@@ -44,6 +44,7 @@ type NeosyncApiAccountInvite struct {
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
 	ExpiresAt    pgtype.Timestamp
+	Role         pgtype.Int4
 }
 
 type NeosyncApiAccountUserAssociation struct {

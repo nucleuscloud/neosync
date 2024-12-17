@@ -94,6 +94,35 @@ func TestRbac(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("job_executor", func(t *testing.T) {
+		t.Parallel()
+
+		accountId := uuid.NewString()
+		userId := uuid.NewString()
+		err := rbacclient.SetupNewAccount(ctx, accountId, testutil.GetTestLogger(t))
+		require.NoError(t, err)
+
+		// Set user as job executor
+		err = rbacclient.SetAccountRole(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_EXECUTOR)
+		require.NoError(t, err)
+
+		// Test Account permissions (should only have view)
+		err = rbacclient.EnforceAccount(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), AccountAction_View)
+		require.NoError(t, err)
+
+		// Test Job permissions (should only have view and execute)
+		jobId := uuid.NewString()
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_View)
+		require.NoError(t, err)
+
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Execute)
+		require.NoError(t, err)
+
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Create)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to create job")
+	})
+
 	t.Run("job_viewer", func(t *testing.T) {
 		t.Parallel()
 
@@ -110,14 +139,14 @@ func TestRbac(t *testing.T) {
 		err = rbacclient.EnforceAccount(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), AccountAction_View)
 		require.NoError(t, err)
 
-		// Test Job permissions (should only have view and execute)
+		// Test Job permissions (should only have view)
 		jobId := uuid.NewString()
 		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_View)
 		require.NoError(t, err)
 
 		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Execute)
-		require.NoError(t, err)
-
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to execute job")
 		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(userId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Create)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "user does not have permission to create job")
@@ -212,10 +241,13 @@ func TestRbac(t *testing.T) {
 		// Verify job viewer can only view and execute jobs
 		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_View)
 		require.NoError(t, err)
-		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Execute)
-		require.NoError(t, err)
 
 		// Verify job viewer cannot perform other actions
+
+		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Execute)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "user does not have permission to execute job")
+
 		err = rbacclient.EnforceJob(ctx, NewUserIdEntity(viewerUserId), NewAccountIdEntity(accountId), NewJobIdEntity(jobId), JobAction_Create)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "user does not have permission to create job")

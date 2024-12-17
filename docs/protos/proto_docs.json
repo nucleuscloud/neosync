@@ -15990,6 +15990,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "role",
+              "description": "The role of the user to invite. Only used if RBAC is enabled.",
+              "label": "",
+              "type": "AccountRole",
+              "longType": "AccountRole",
+              "fullType": "mgmt.v1alpha1.AccountRole",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -16166,6 +16178,18 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "role",
+              "description": "The role of the user in the account. If RBAC is not enabled, will be unspecified.",
+              "label": "",
+              "type": "AccountRole",
+              "longType": "AccountRole",
+              "fullType": "mgmt.v1alpha1.AccountRole",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -16885,12 +16909,12 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The account id to invite the user to",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16902,7 +16926,7 @@
             },
             {
               "name": "email",
-              "description": "",
+              "description": "The email of the user to invite",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16910,6 +16934,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "role",
+              "description": "The role of the user to invite. Only used if RBAC is enabled.",
+              "label": "optional",
+              "type": "AccountRole",
+              "longType": "AccountRole",
+              "fullType": "mgmt.v1alpha1.AccountRole",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_role",
               "defaultValue": ""
             }
           ]

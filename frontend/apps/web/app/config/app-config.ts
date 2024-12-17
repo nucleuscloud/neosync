@@ -18,6 +18,7 @@ export interface SystemAppConfig {
   neosyncApiBaseUrl: string;
   // public (client-side) base url;
   publicNeosyncApiBaseUrl: string;
+  isRbacEnabled: boolean;
 }
 
 interface PosthogConfig {

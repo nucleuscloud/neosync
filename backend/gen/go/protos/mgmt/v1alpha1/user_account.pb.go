@@ -1223,6 +1223,8 @@ type AccountUser struct {
 	Name  string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Image string `protobuf:"bytes,3,opt,name=image,proto3" json:"image,omitempty"`
 	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	// The role of the user in the account. If RBAC is not enabled, will be unspecified.
+	Role AccountRole `protobuf:"varint,5,opt,name=role,proto3,enum=mgmt.v1alpha1.AccountRole" json:"role,omitempty"`
 }
 
 func (x *AccountUser) Reset() {
@@ -1281,6 +1283,13 @@ func (x *AccountUser) GetEmail() string {
 		return x.Email
 	}
 	return ""
+}
+
+func (x *AccountUser) GetRole() AccountRole {
+	if x != nil {
+		return x.Role
+	}
+	return AccountRole_ACCOUNT_ROLE_UNSPECIFIED
 }
 
 type GetTeamAccountMembersRequest struct {
@@ -1467,8 +1476,12 @@ type InviteUserToTeamAccountRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The account id to invite the user to
 	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	Email     string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// The email of the user to invite
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// The role of the user to invite. Only used if RBAC is enabled.
+	Role *AccountRole `protobuf:"varint,3,opt,name=role,proto3,enum=mgmt.v1alpha1.AccountRole,oneof" json:"role,omitempty"`
 }
 
 func (x *InviteUserToTeamAccountRequest) Reset() {
@@ -1515,6 +1528,13 @@ func (x *InviteUserToTeamAccountRequest) GetEmail() string {
 	return ""
 }
 
+func (x *InviteUserToTeamAccountRequest) GetRole() AccountRole {
+	if x != nil && x.Role != nil {
+		return *x.Role
+	}
+	return AccountRole_ACCOUNT_ROLE_UNSPECIFIED
+}
+
 type AccountInvite struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1529,6 +1549,8 @@ type AccountInvite struct {
 	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	ExpiresAt    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// The role of the user to invite. Only used if RBAC is enabled.
+	Role AccountRole `protobuf:"varint,10,opt,name=role,proto3,enum=mgmt.v1alpha1.AccountRole" json:"role,omitempty"`
 }
 
 func (x *AccountInvite) Reset() {
@@ -1622,6 +1644,13 @@ func (x *AccountInvite) GetExpiresAt() *timestamppb.Timestamp {
 		return x.ExpiresAt
 	}
 	return nil
+}
+
+func (x *AccountInvite) GetRole() AccountRole {
+	if x != nil {
+		return x.Role
+	}
+	return AccountRole_ACCOUNT_ROLE_UNSPECIFIED
 }
 
 type InviteUserToTeamAccountResponse struct {
@@ -3190,38 +3219,45 @@ var file_mgmt_v1alpha1_user_account_proto_rawDesc = []byte{
 	0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x12, 0x63, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75,
 	0x74, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x55, 0x72, 0x6c, 0x88, 0x01, 0x01, 0x42, 0x17,
 	0x0a, 0x15, 0x5f, 0x63, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x73, 0x73,
-	0x69, 0x6f, 0x6e, 0x5f, 0x75, 0x72, 0x6c, 0x22, 0x5d, 0x0a, 0x0b, 0x41, 0x63, 0x63, 0x6f, 0x75,
-	0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6d,
-	0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65,
-	0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0x47, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x54, 0x65, 0x61,
-	0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e,
-	0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72,
-	0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22,
-	0x51, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x54, 0x65, 0x61, 0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e,
-	0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x30, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
-	0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
-	0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73, 0x65,
-	0x72, 0x73, 0x22, 0x6c, 0x0a, 0x1e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x54, 0x65, 0x61, 0x6d,
-	0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52,
-	0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
-	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05,
+	0x69, 0x6f, 0x6e, 0x5f, 0x75, 0x72, 0x6c, 0x22, 0x8d, 0x01, 0x0a, 0x0b, 0x41, 0x63, 0x63, 0x6f,
+	0x75, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x69,
+	0x6d, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67,
+	0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x2e, 0x0a, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x6f, 0x6c,
+	0x65, 0x52, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x22, 0x47, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x54, 0x65,
+	0x61, 0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05,
 	0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64,
-	0x22, 0x21, 0x0a, 0x1f, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x54, 0x65, 0x61, 0x6d, 0x41, 0x63,
-	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x68, 0x0a, 0x1e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x55, 0x73, 0x65,
-	0x72, 0x54, 0x6f, 0x54, 0x65, 0x61, 0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
-	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03,
-	0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x1d,
-	0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07, 0xba,
-	0x48, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0xdd, 0x02,
+	0x22, 0x51, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x54, 0x65, 0x61, 0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x30, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73,
+	0x65, 0x72, 0x73, 0x22, 0x6c, 0x0a, 0x1e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x54, 0x65, 0x61,
+	0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01,
+	0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f,
+	0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48,
+	0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49,
+	0x64, 0x22, 0x21, 0x0a, 0x1f, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x54, 0x65, 0x61, 0x6d, 0x41,
+	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0xa6, 0x01, 0x0a, 0x1e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x55,
+	0x73, 0x65, 0x72, 0x54, 0x6f, 0x54, 0x65, 0x61, 0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05,
+	0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64,
+	0x12, 0x1d, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42,
+	0x07, 0xba, 0x48, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12,
+	0x33, 0x0a, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x63,
+	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x48, 0x00, 0x52, 0x04, 0x72, 0x6f, 0x6c,
+	0x65, 0x88, 0x01, 0x01, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x72, 0x6f, 0x6c, 0x65, 0x22, 0x8d, 0x03,
 	0x0a, 0x0d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x12,
 	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12,
 	0x1d, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
@@ -3243,7 +3279,10 @@ var file_mgmt_v1alpha1_user_account_proto_rawDesc = []byte{
 	0x41, 0x74, 0x12, 0x39, 0x0a, 0x0a, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x5f, 0x61, 0x74,
 	0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
-	0x6d, 0x70, 0x52, 0x09, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x41, 0x74, 0x22, 0x57, 0x0a,
+	0x6d, 0x70, 0x52, 0x09, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x41, 0x74, 0x12, 0x2e, 0x0a,
+	0x04, 0x72, 0x6f, 0x6c, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e, 0x6d, 0x67,
+	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x63, 0x63, 0x6f,
+	0x75, 0x6e, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x22, 0x57, 0x0a,
 	0x1f, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x54, 0x6f, 0x54, 0x65, 0x61,
 	0x6d, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x12, 0x34, 0x0a, 0x06, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
@@ -3778,77 +3817,80 @@ var file_mgmt_v1alpha1_user_account_proto_depIdxs = []int32{
 	21, // 2: mgmt.v1alpha1.GetAccountTemporalConfigResponse.config:type_name -> mgmt.v1alpha1.AccountTemporalConfig
 	21, // 3: mgmt.v1alpha1.SetAccountTemporalConfigRequest.config:type_name -> mgmt.v1alpha1.AccountTemporalConfig
 	21, // 4: mgmt.v1alpha1.SetAccountTemporalConfigResponse.config:type_name -> mgmt.v1alpha1.AccountTemporalConfig
-	24, // 5: mgmt.v1alpha1.GetTeamAccountMembersResponse.users:type_name -> mgmt.v1alpha1.AccountUser
-	59, // 6: mgmt.v1alpha1.AccountInvite.created_at:type_name -> google.protobuf.Timestamp
-	59, // 7: mgmt.v1alpha1.AccountInvite.updated_at:type_name -> google.protobuf.Timestamp
-	59, // 8: mgmt.v1alpha1.AccountInvite.expires_at:type_name -> google.protobuf.Timestamp
-	30, // 9: mgmt.v1alpha1.InviteUserToTeamAccountResponse.invite:type_name -> mgmt.v1alpha1.AccountInvite
-	30, // 10: mgmt.v1alpha1.GetTeamAccountInvitesResponse.invites:type_name -> mgmt.v1alpha1.AccountInvite
-	10, // 11: mgmt.v1alpha1.AcceptTeamAccountInviteResponse.account:type_name -> mgmt.v1alpha1.UserAccount
-	59, // 12: mgmt.v1alpha1.GetSystemInformationResponse.build_date:type_name -> google.protobuf.Timestamp
-	44, // 13: mgmt.v1alpha1.GetAccountOnboardingConfigResponse.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
-	44, // 14: mgmt.v1alpha1.SetAccountOnboardingConfigRequest.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
-	44, // 15: mgmt.v1alpha1.SetAccountOnboardingConfigResponse.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
-	1,  // 16: mgmt.v1alpha1.GetAccountStatusResponse.subscription_status:type_name -> mgmt.v1alpha1.BillingStatus
-	2,  // 17: mgmt.v1alpha1.IsAccountStatusValidResponse.account_status:type_name -> mgmt.v1alpha1.AccountStatus
-	59, // 18: mgmt.v1alpha1.IsAccountStatusValidResponse.trial_expires_at:type_name -> google.protobuf.Timestamp
-	10, // 19: mgmt.v1alpha1.GetBillingAccountsResponse.accounts:type_name -> mgmt.v1alpha1.UserAccount
-	3,  // 20: mgmt.v1alpha1.SetUserRoleRequest.role:type_name -> mgmt.v1alpha1.AccountRole
-	4,  // 21: mgmt.v1alpha1.UserAccountService.GetUser:input_type -> mgmt.v1alpha1.GetUserRequest
-	6,  // 22: mgmt.v1alpha1.UserAccountService.SetUser:input_type -> mgmt.v1alpha1.SetUserRequest
-	8,  // 23: mgmt.v1alpha1.UserAccountService.GetUserAccounts:input_type -> mgmt.v1alpha1.GetUserAccountsRequest
-	13, // 24: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:input_type -> mgmt.v1alpha1.SetPersonalAccountRequest
-	11, // 25: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:input_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest
-	22, // 26: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:input_type -> mgmt.v1alpha1.CreateTeamAccountRequest
-	15, // 27: mgmt.v1alpha1.UserAccountService.IsUserInAccount:input_type -> mgmt.v1alpha1.IsUserInAccountRequest
-	17, // 28: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:input_type -> mgmt.v1alpha1.GetAccountTemporalConfigRequest
-	19, // 29: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:input_type -> mgmt.v1alpha1.SetAccountTemporalConfigRequest
-	25, // 30: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:input_type -> mgmt.v1alpha1.GetTeamAccountMembersRequest
-	27, // 31: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:input_type -> mgmt.v1alpha1.RemoveTeamAccountMemberRequest
-	29, // 32: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:input_type -> mgmt.v1alpha1.InviteUserToTeamAccountRequest
-	32, // 33: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:input_type -> mgmt.v1alpha1.GetTeamAccountInvitesRequest
-	34, // 34: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:input_type -> mgmt.v1alpha1.RemoveTeamAccountInviteRequest
-	36, // 35: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:input_type -> mgmt.v1alpha1.AcceptTeamAccountInviteRequest
-	38, // 36: mgmt.v1alpha1.UserAccountService.GetSystemInformation:input_type -> mgmt.v1alpha1.GetSystemInformationRequest
-	40, // 37: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.GetAccountOnboardingConfigRequest
-	42, // 38: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.SetAccountOnboardingConfigRequest
-	45, // 39: mgmt.v1alpha1.UserAccountService.GetAccountStatus:input_type -> mgmt.v1alpha1.GetAccountStatusRequest
-	47, // 40: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:input_type -> mgmt.v1alpha1.IsAccountStatusValidRequest
-	49, // 41: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:input_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest
-	51, // 42: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:input_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
-	53, // 43: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:input_type -> mgmt.v1alpha1.GetBillingAccountsRequest
-	55, // 44: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:input_type -> mgmt.v1alpha1.SetBillingMeterEventRequest
-	57, // 45: mgmt.v1alpha1.UserAccountService.SetUserRole:input_type -> mgmt.v1alpha1.SetUserRoleRequest
-	5,  // 46: mgmt.v1alpha1.UserAccountService.GetUser:output_type -> mgmt.v1alpha1.GetUserResponse
-	7,  // 47: mgmt.v1alpha1.UserAccountService.SetUser:output_type -> mgmt.v1alpha1.SetUserResponse
-	9,  // 48: mgmt.v1alpha1.UserAccountService.GetUserAccounts:output_type -> mgmt.v1alpha1.GetUserAccountsResponse
-	14, // 49: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:output_type -> mgmt.v1alpha1.SetPersonalAccountResponse
-	12, // 50: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:output_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse
-	23, // 51: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:output_type -> mgmt.v1alpha1.CreateTeamAccountResponse
-	16, // 52: mgmt.v1alpha1.UserAccountService.IsUserInAccount:output_type -> mgmt.v1alpha1.IsUserInAccountResponse
-	18, // 53: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:output_type -> mgmt.v1alpha1.GetAccountTemporalConfigResponse
-	20, // 54: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:output_type -> mgmt.v1alpha1.SetAccountTemporalConfigResponse
-	26, // 55: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:output_type -> mgmt.v1alpha1.GetTeamAccountMembersResponse
-	28, // 56: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:output_type -> mgmt.v1alpha1.RemoveTeamAccountMemberResponse
-	31, // 57: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:output_type -> mgmt.v1alpha1.InviteUserToTeamAccountResponse
-	33, // 58: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:output_type -> mgmt.v1alpha1.GetTeamAccountInvitesResponse
-	35, // 59: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:output_type -> mgmt.v1alpha1.RemoveTeamAccountInviteResponse
-	37, // 60: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:output_type -> mgmt.v1alpha1.AcceptTeamAccountInviteResponse
-	39, // 61: mgmt.v1alpha1.UserAccountService.GetSystemInformation:output_type -> mgmt.v1alpha1.GetSystemInformationResponse
-	41, // 62: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.GetAccountOnboardingConfigResponse
-	43, // 63: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.SetAccountOnboardingConfigResponse
-	46, // 64: mgmt.v1alpha1.UserAccountService.GetAccountStatus:output_type -> mgmt.v1alpha1.GetAccountStatusResponse
-	48, // 65: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:output_type -> mgmt.v1alpha1.IsAccountStatusValidResponse
-	50, // 66: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:output_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse
-	52, // 67: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:output_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
-	54, // 68: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:output_type -> mgmt.v1alpha1.GetBillingAccountsResponse
-	56, // 69: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:output_type -> mgmt.v1alpha1.SetBillingMeterEventResponse
-	58, // 70: mgmt.v1alpha1.UserAccountService.SetUserRole:output_type -> mgmt.v1alpha1.SetUserRoleResponse
-	46, // [46:71] is the sub-list for method output_type
-	21, // [21:46] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	3,  // 5: mgmt.v1alpha1.AccountUser.role:type_name -> mgmt.v1alpha1.AccountRole
+	24, // 6: mgmt.v1alpha1.GetTeamAccountMembersResponse.users:type_name -> mgmt.v1alpha1.AccountUser
+	3,  // 7: mgmt.v1alpha1.InviteUserToTeamAccountRequest.role:type_name -> mgmt.v1alpha1.AccountRole
+	59, // 8: mgmt.v1alpha1.AccountInvite.created_at:type_name -> google.protobuf.Timestamp
+	59, // 9: mgmt.v1alpha1.AccountInvite.updated_at:type_name -> google.protobuf.Timestamp
+	59, // 10: mgmt.v1alpha1.AccountInvite.expires_at:type_name -> google.protobuf.Timestamp
+	3,  // 11: mgmt.v1alpha1.AccountInvite.role:type_name -> mgmt.v1alpha1.AccountRole
+	30, // 12: mgmt.v1alpha1.InviteUserToTeamAccountResponse.invite:type_name -> mgmt.v1alpha1.AccountInvite
+	30, // 13: mgmt.v1alpha1.GetTeamAccountInvitesResponse.invites:type_name -> mgmt.v1alpha1.AccountInvite
+	10, // 14: mgmt.v1alpha1.AcceptTeamAccountInviteResponse.account:type_name -> mgmt.v1alpha1.UserAccount
+	59, // 15: mgmt.v1alpha1.GetSystemInformationResponse.build_date:type_name -> google.protobuf.Timestamp
+	44, // 16: mgmt.v1alpha1.GetAccountOnboardingConfigResponse.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
+	44, // 17: mgmt.v1alpha1.SetAccountOnboardingConfigRequest.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
+	44, // 18: mgmt.v1alpha1.SetAccountOnboardingConfigResponse.config:type_name -> mgmt.v1alpha1.AccountOnboardingConfig
+	1,  // 19: mgmt.v1alpha1.GetAccountStatusResponse.subscription_status:type_name -> mgmt.v1alpha1.BillingStatus
+	2,  // 20: mgmt.v1alpha1.IsAccountStatusValidResponse.account_status:type_name -> mgmt.v1alpha1.AccountStatus
+	59, // 21: mgmt.v1alpha1.IsAccountStatusValidResponse.trial_expires_at:type_name -> google.protobuf.Timestamp
+	10, // 22: mgmt.v1alpha1.GetBillingAccountsResponse.accounts:type_name -> mgmt.v1alpha1.UserAccount
+	3,  // 23: mgmt.v1alpha1.SetUserRoleRequest.role:type_name -> mgmt.v1alpha1.AccountRole
+	4,  // 24: mgmt.v1alpha1.UserAccountService.GetUser:input_type -> mgmt.v1alpha1.GetUserRequest
+	6,  // 25: mgmt.v1alpha1.UserAccountService.SetUser:input_type -> mgmt.v1alpha1.SetUserRequest
+	8,  // 26: mgmt.v1alpha1.UserAccountService.GetUserAccounts:input_type -> mgmt.v1alpha1.GetUserAccountsRequest
+	13, // 27: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:input_type -> mgmt.v1alpha1.SetPersonalAccountRequest
+	11, // 28: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:input_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest
+	22, // 29: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:input_type -> mgmt.v1alpha1.CreateTeamAccountRequest
+	15, // 30: mgmt.v1alpha1.UserAccountService.IsUserInAccount:input_type -> mgmt.v1alpha1.IsUserInAccountRequest
+	17, // 31: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:input_type -> mgmt.v1alpha1.GetAccountTemporalConfigRequest
+	19, // 32: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:input_type -> mgmt.v1alpha1.SetAccountTemporalConfigRequest
+	25, // 33: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:input_type -> mgmt.v1alpha1.GetTeamAccountMembersRequest
+	27, // 34: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:input_type -> mgmt.v1alpha1.RemoveTeamAccountMemberRequest
+	29, // 35: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:input_type -> mgmt.v1alpha1.InviteUserToTeamAccountRequest
+	32, // 36: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:input_type -> mgmt.v1alpha1.GetTeamAccountInvitesRequest
+	34, // 37: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:input_type -> mgmt.v1alpha1.RemoveTeamAccountInviteRequest
+	36, // 38: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:input_type -> mgmt.v1alpha1.AcceptTeamAccountInviteRequest
+	38, // 39: mgmt.v1alpha1.UserAccountService.GetSystemInformation:input_type -> mgmt.v1alpha1.GetSystemInformationRequest
+	40, // 40: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.GetAccountOnboardingConfigRequest
+	42, // 41: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:input_type -> mgmt.v1alpha1.SetAccountOnboardingConfigRequest
+	45, // 42: mgmt.v1alpha1.UserAccountService.GetAccountStatus:input_type -> mgmt.v1alpha1.GetAccountStatusRequest
+	47, // 43: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:input_type -> mgmt.v1alpha1.IsAccountStatusValidRequest
+	49, // 44: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:input_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest
+	51, // 45: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:input_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
+	53, // 46: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:input_type -> mgmt.v1alpha1.GetBillingAccountsRequest
+	55, // 47: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:input_type -> mgmt.v1alpha1.SetBillingMeterEventRequest
+	57, // 48: mgmt.v1alpha1.UserAccountService.SetUserRole:input_type -> mgmt.v1alpha1.SetUserRoleRequest
+	5,  // 49: mgmt.v1alpha1.UserAccountService.GetUser:output_type -> mgmt.v1alpha1.GetUserResponse
+	7,  // 50: mgmt.v1alpha1.UserAccountService.SetUser:output_type -> mgmt.v1alpha1.SetUserResponse
+	9,  // 51: mgmt.v1alpha1.UserAccountService.GetUserAccounts:output_type -> mgmt.v1alpha1.GetUserAccountsResponse
+	14, // 52: mgmt.v1alpha1.UserAccountService.SetPersonalAccount:output_type -> mgmt.v1alpha1.SetPersonalAccountResponse
+	12, // 53: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount:output_type -> mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse
+	23, // 54: mgmt.v1alpha1.UserAccountService.CreateTeamAccount:output_type -> mgmt.v1alpha1.CreateTeamAccountResponse
+	16, // 55: mgmt.v1alpha1.UserAccountService.IsUserInAccount:output_type -> mgmt.v1alpha1.IsUserInAccountResponse
+	18, // 56: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig:output_type -> mgmt.v1alpha1.GetAccountTemporalConfigResponse
+	20, // 57: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig:output_type -> mgmt.v1alpha1.SetAccountTemporalConfigResponse
+	26, // 58: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers:output_type -> mgmt.v1alpha1.GetTeamAccountMembersResponse
+	28, // 59: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember:output_type -> mgmt.v1alpha1.RemoveTeamAccountMemberResponse
+	31, // 60: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount:output_type -> mgmt.v1alpha1.InviteUserToTeamAccountResponse
+	33, // 61: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites:output_type -> mgmt.v1alpha1.GetTeamAccountInvitesResponse
+	35, // 62: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite:output_type -> mgmt.v1alpha1.RemoveTeamAccountInviteResponse
+	37, // 63: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite:output_type -> mgmt.v1alpha1.AcceptTeamAccountInviteResponse
+	39, // 64: mgmt.v1alpha1.UserAccountService.GetSystemInformation:output_type -> mgmt.v1alpha1.GetSystemInformationResponse
+	41, // 65: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.GetAccountOnboardingConfigResponse
+	43, // 66: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig:output_type -> mgmt.v1alpha1.SetAccountOnboardingConfigResponse
+	46, // 67: mgmt.v1alpha1.UserAccountService.GetAccountStatus:output_type -> mgmt.v1alpha1.GetAccountStatusResponse
+	48, // 68: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid:output_type -> mgmt.v1alpha1.IsAccountStatusValidResponse
+	50, // 69: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession:output_type -> mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse
+	52, // 70: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession:output_type -> mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
+	54, // 71: mgmt.v1alpha1.UserAccountService.GetBillingAccounts:output_type -> mgmt.v1alpha1.GetBillingAccountsResponse
+	56, // 72: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent:output_type -> mgmt.v1alpha1.SetBillingMeterEventResponse
+	58, // 73: mgmt.v1alpha1.UserAccountService.SetUserRole:output_type -> mgmt.v1alpha1.SetUserRoleResponse
+	49, // [49:74] is the sub-list for method output_type
+	24, // [24:49] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_user_account_proto_init() }
@@ -3859,6 +3901,7 @@ func file_mgmt_v1alpha1_user_account_proto_init() {
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[7].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[8].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[19].OneofWrappers = []any{}
+	file_mgmt_v1alpha1_user_account_proto_msgTypes[25].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[42].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[43].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_user_account_proto_msgTypes[44].OneofWrappers = []any{}

@@ -33,6 +33,7 @@ type RoleAdmin interface {
 	RemoveAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
 	RemoveAccountUser(ctx context.Context, user EntityString, account EntityString) error
 	SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error
+	GetUserRoles(ctx context.Context, users []EntityString, account EntityString, logger *slog.Logger) map[string]Role
 }
 
 // Initialize default policies for existing accounts at startup
@@ -170,6 +171,7 @@ func getAccountPolicyRules(accountId string) [][]string {
 			Wildcard, // any resource in the account
 			Wildcard, // all actions in the account
 		},
+		// Job Developer
 		{
 			Role_JobDeveloper.String(),
 			accountKey,
@@ -188,17 +190,37 @@ func getAccountPolicyRules(accountId string) [][]string {
 			accountKey,
 			AccountAction_View.String(), // job developer can view the account
 		},
+		// Job Executor
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_View.String(), // job executor can view all jobs in the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			ConnectionWildcard.String(),
+			ConnectionAction_View.String(), // job executor can view all connections in the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			accountKey,
+			AccountAction_View.String(), // job executor can view the account
+		},
+		{
+			Role_JobExecutor.String(),
+			accountKey,
+			JobWildcard.String(),
+			JobAction_Execute.String(), // job executor can execute all jobs in the account
+		},
+		// Job Viewer
 		{
 			Role_JobViewer.String(),
 			accountKey,
 			JobWildcard.String(),
 			JobAction_View.String(), // job viewer can view all jobs in the account
-		},
-		{
-			Role_JobViewer.String(),
-			accountKey,
-			JobWildcard.String(),
-			JobAction_Execute.String(), // job viewer can execute all jobs in the account
 		},
 		{
 			Role_JobViewer.String(),
@@ -222,7 +244,7 @@ func (r *Rbac) SetAccountRole(
 	account EntityString,
 	role mgmtv1alpha1.AccountRole,
 ) error {
-	roleName, err := toRoleName(role)
+	roleName, err := fromRoleDto(role)
 	if err != nil {
 		return err
 	}
@@ -243,7 +265,7 @@ func (r *Rbac) RemoveAccountRole(
 	account EntityString,
 	role mgmtv1alpha1.AccountRole,
 ) error {
-	roleName, err := toRoleName(role)
+	roleName, err := fromRoleDto(role)
 	if err != nil {
 		return err
 	}
@@ -259,6 +281,29 @@ func (r *Rbac) RemoveAccountUser(
 ) error {
 	_, err := r.e.DeleteRolesForUserInDomain(user.String(), account.String())
 	return err
+}
+
+// GetUserRoles returns a map of user entities to their associated roles for a given account
+func (r *Rbac) GetUserRoles(
+	ctx context.Context,
+	users []EntityString,
+	account EntityString,
+	logger *slog.Logger,
+) map[string]Role {
+	result := make(map[string]Role)
+	for _, user := range users {
+		roles := r.e.GetRolesForUserInDomain(user.String(), account.String())
+		if len(roles) > 1 {
+			logger.Warn("user has multiple roles when they should only have one",
+				"user", user.String(),
+				"account", account.String(),
+				"roles", roles)
+		}
+		if len(roles) > 0 {
+			result[user.String()] = Role(roles[0])
+		}
+	}
+	return result
 }
 
 func (r *Rbac) Job(
@@ -338,19 +383,6 @@ func (r *Rbac) EnforceAccount(
 		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s account", action))
 	}
 	return nil
-}
-
-func toRoleName(role mgmtv1alpha1.AccountRole) (string, error) {
-	switch role {
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN:
-		return Role_AccountAdmin.String(), nil
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_DEVELOPER:
-		return Role_JobDeveloper.String(), nil
-	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER:
-		return Role_JobViewer.String(), nil
-	default:
-		return "", fmt.Errorf("account role provided has not be mapped to a casbin role name: %d", role)
-	}
 }
 
 func setPolicy(e casbin.IEnforcer, policy []string) error {

@@ -102,6 +102,8 @@ message AccountUser {
   string name = 2;
   string image = 3;
   string email = 4;
+  // The role of the user in the account. If RBAC is not enabled, will be unspecified.
+  AccountRole role = 5;
 }
 
 message GetTeamAccountMembersRequest {
@@ -118,8 +120,12 @@ message RemoveTeamAccountMemberRequest {
 message RemoveTeamAccountMemberResponse {}
 
 message InviteUserToTeamAccountRequest {
+  // The account id to invite the user to
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The email of the user to invite
   string email = 2 [(buf.validate.field).string.min_len = 1];
+  // The role of the user to invite. Only used if RBAC is enabled.
+  optional AccountRole role = 3;
 }
 
 message AccountInvite {
@@ -132,6 +138,8 @@ message AccountInvite {
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
   google.protobuf.Timestamp expires_at = 9;
+  // The role of the user to invite. Only used if RBAC is enabled.
+  AccountRole role = 10;
 }
 
 message InviteUserToTeamAccountResponse {

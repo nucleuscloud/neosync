@@ -2,6 +2,7 @@ import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-ha
 import { Transformer } from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
+  AccountRole,
   AwsS3DestinationConnectionOptions_StorageClass,
   GenerateEmailType,
   GenerateIpAddressType,
@@ -137,6 +138,11 @@ export function getInvalidEmailActionString(
   invalidEmailAction: InvalidEmailAction
 ): string {
   const value = InvalidEmailAction[invalidEmailAction];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+export function getAccountRoleString(role: AccountRole): string {
+  const value = AccountRole[role];
   return value ? value.toLowerCase() : 'unknown';
 }
 

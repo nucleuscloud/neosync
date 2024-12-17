@@ -1012,6 +1012,13 @@ export class AccountUser extends Message<AccountUser> {
    */
   email = "";
 
+  /**
+   * The role of the user in the account. If RBAC is not enabled, will be unspecified.
+   *
+   * @generated from field: mgmt.v1alpha1.AccountRole role = 5;
+   */
+  role = AccountRole.UNSPECIFIED;
+
   constructor(data?: PartialMessage<AccountUser>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1024,6 +1031,7 @@ export class AccountUser extends Message<AccountUser> {
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "role", kind: "enum", T: proto3.getEnumType(AccountRole) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountUser {
@@ -1196,14 +1204,25 @@ export class RemoveTeamAccountMemberResponse extends Message<RemoveTeamAccountMe
  */
 export class InviteUserToTeamAccountRequest extends Message<InviteUserToTeamAccountRequest> {
   /**
+   * The account id to invite the user to
+   *
    * @generated from field: string account_id = 1;
    */
   accountId = "";
 
   /**
+   * The email of the user to invite
+   *
    * @generated from field: string email = 2;
    */
   email = "";
+
+  /**
+   * The role of the user to invite. Only used if RBAC is enabled.
+   *
+   * @generated from field: optional mgmt.v1alpha1.AccountRole role = 3;
+   */
+  role?: AccountRole;
 
   constructor(data?: PartialMessage<InviteUserToTeamAccountRequest>) {
     super();
@@ -1215,6 +1234,7 @@ export class InviteUserToTeamAccountRequest extends Message<InviteUserToTeamAcco
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "role", kind: "enum", T: proto3.getEnumType(AccountRole), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InviteUserToTeamAccountRequest {
@@ -1283,6 +1303,13 @@ export class AccountInvite extends Message<AccountInvite> {
    */
   expiresAt?: Timestamp;
 
+  /**
+   * The role of the user to invite. Only used if RBAC is enabled.
+   *
+   * @generated from field: mgmt.v1alpha1.AccountRole role = 10;
+   */
+  role = AccountRole.UNSPECIFIED;
+
   constructor(data?: PartialMessage<AccountInvite>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1300,6 +1327,7 @@ export class AccountInvite extends Message<AccountInvite> {
     { no: 7, name: "created_at", kind: "message", T: Timestamp },
     { no: 8, name: "updated_at", kind: "message", T: Timestamp },
     { no: 9, name: "expires_at", kind: "message", T: Timestamp },
+    { no: 10, name: "role", kind: "enum", T: proto3.getEnumType(AccountRole) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountInvite {
