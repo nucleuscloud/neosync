@@ -1,5 +1,5 @@
 import { TransformerConfigFormValue } from '@/yup-validations/transformer-validations';
-import { create, fromJson, toJson } from '@bufbuild/protobuf';
+import { create, fromJson, JsonObject, toJson } from '@bufbuild/protobuf';
 import {
   JobMappingTransformer,
   JobMappingTransformerSchema,
@@ -48,21 +48,13 @@ export function convertTransformerConfigToForm(
   const json = toJson(TransformerConfigSchema, tc);
   return {
     case: config.case,
-    value: (json as any).value, // eslint-disable-line @typescript-eslint/no-explicit-any
+    value: (json as JsonObject)[config.case],
   };
 }
 
 export function convertTransformerConfigSchemaToTransformerConfig(
   tcs: TransformerConfigFormValue
 ): TransformerConfig {
-  // hack job that fixes bigint json transformation until we can fit this with better types
-  const value = tcs.value ?? {};
-  Object.entries(tcs.value).forEach(([key, val]) => {
-    value[key] = val;
-    if (typeof val === 'bigint') {
-      value[key] = val.toString();
-    }
-  });
   if (tcs.case) {
     return fromJson(TransformerConfigSchema, { [tcs.case]: tcs.value });
   }
