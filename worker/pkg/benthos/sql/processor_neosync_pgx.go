@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -171,22 +169,13 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 			return pq.Array(value), nil
 		}
 		return value, nil
-	// case datatype == "bytea":
-	// 	if b64String, ok := value.(string); ok {
-	// 		bytes, err := base64.StdEncoding.DecodeString(b64String)
-	// 		if err != nil {
-	// 			return nil, fmt.Errorf("unable to decode base64 string: %w", err)
-	// 		}
-	// 		return bytes, nil
-	// 	}
-	// 	return value, nil
-	case datatype == "date":
-		return convertDateForPostgres(value)
-	case datatype == "timestamp with time zone":
-		return convertTimestampWithTimezoneForPostgres(value), nil
-	case datatype == "timestamp" || datatype == "timestamp without time zone":
-		return convertTimestampForPostgres(value)
-	case datatype == "money" || datatype == "uuid" || datatype == "tsvector" || datatype == "time with time zone":
+	// case datatype == "date":
+	// 	return convertDateForPostgres(value)
+	// case datatype == "timestamp with time zone":
+	// 	return convertTimestampWithTimezoneForPostgres(value), nil
+	// case datatype == "timestamp" || datatype == "timestamp without time zone":
+	// 	return convertTimestampForPostgres(value)
+	case datatype == "money" || datatype == "uuid" || datatype == "tsvector":
 		if byteSlice, ok := value.([]byte); ok {
 			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
 			return string(byteSlice), nil
@@ -206,109 +195,6 @@ func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
 		return value, true, nil
 	}
 	return root, false, nil
-}
-
-func convertBitsToTime(input any) (time.Time, error) {
-	var timeStr string
-	switch v := input.(type) {
-	case []byte:
-		timeStr = string(v)
-	case string:
-		timeStr = v
-	default:
-		return time.Time{}, fmt.Errorf("unsupported type for time conversion: %T", input)
-	}
-
-	t, err := time.Parse(time.RFC3339, timeStr)
-	if err != nil {
-		// Try parsing as DateTime format if not RFC3339 format
-		t, err = time.Parse(time.DateTime, timeStr)
-		if err != nil {
-			return time.Time{}, err
-		}
-	}
-
-	return t, nil
-}
-
-func convertDateForPostgres(input any) (string, error) {
-	return convertTimeForPostgres(input, time.DateOnly)
-}
-
-func convertTimestampForPostgres(input any) (string, error) {
-	return convertTimeForPostgres(input, time.DateTime)
-}
-
-// pgtypes does not handle BC dates correctly
-// convertTimeForPostgres handles BC dates properly
-func convertTimeForPostgres(input any, layout string) (string, error) {
-	var timeStr string
-	switch v := input.(type) {
-	case []byte:
-		timeStr = string(v)
-	case string:
-		timeStr = v
-	default:
-		return "", fmt.Errorf("unsupported type for time conversion: %T", input)
-	}
-
-	if strings.HasPrefix(timeStr, "-") {
-		t, err := time.Parse("-2006-01-02T15:04:05Z", timeStr)
-		if err != nil {
-			return "", err
-		}
-		// For negative years, add 1 to get correct BC year
-		// year -1 is 2 BC, year -2 is 3 BC, etc.
-		yearsToAdd := t.Year() + 1
-
-		newT := time.Date(yearsToAdd, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
-		return fmt.Sprintf("%s BC", newT.Format(layout)), nil
-	}
-
-	t, err := convertBitsToTime(timeStr)
-	if err != nil {
-		return "", err
-	}
-	// Handle BC dates year 0
-	// year 0 is 1 BC,
-	if t.Year() == 0 {
-		newT := time.Date(1, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
-		return fmt.Sprintf("%s BC", newT.Format(layout)), nil
-	}
-	return t.Format(layout), nil
-}
-
-// pgtype.Timestamptz does not support BC dates, so we need to reformat them
-func convertTimestampWithTimezoneForPostgres(input any) string {
-	var timeStr string
-	switch v := input.(type) {
-	case []byte:
-		timeStr = string(v)
-	case string:
-		timeStr = v
-	default:
-		return fmt.Sprintf("%v", input) // Fallback to string representation
-	}
-
-	// Remove the 'T'
-	withoutT := strings.Replace(timeStr, "T", " ", 1)
-
-	// Handle year 0000 case (should become 0001 BC)
-	if strings.HasPrefix(withoutT, "0000") {
-		rest := withoutT[4:]
-		return "0001" + rest[:len(rest)-6] + rest[len(rest)-6:] + " BC"
-	}
-
-	// If starts with '-', remove it and add BC before timezone
-	if strings.HasPrefix(withoutT, "-") {
-		yearNum, _ := strconv.Atoi(withoutT[1:5])
-		yearNum++ // Add 1 to convert from Go BC year to Postgres BC year
-		year := fmt.Sprintf("%04d", yearNum)
-		rest := withoutT[5:]
-		return year + rest[:len(rest)-6] + rest[len(rest)-6:] + " BC"
-	}
-
-	return timeStr
 }
 
 // this expects the bits to be in the form [1,2,3]

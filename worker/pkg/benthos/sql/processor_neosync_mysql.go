@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
@@ -155,27 +154,6 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
 		}
 		return bits, nil
-	// case "binary":
-	// 	if b64String, ok := value.(string); ok {
-	// 		bytes, err := base64.StdEncoding.DecodeString(b64String)
-	// 		if err != nil {
-	// 			return nil, fmt.Errorf("unable to decode base64 string: %w", err)
-	// 		}
-	// 		return bytes, nil
-	// 	}
-	// 	return value, nil
-	case "date":
-		t, err := convertBitsToTime(value)
-		if err != nil {
-			return value, nil
-		}
-		return t.Format(time.DateOnly), nil
-	case "timestamp", "datetime":
-		t, err := convertBitsToTime(value)
-		if err != nil {
-			return value, nil
-		}
-		return t.Format(time.DateTime), nil
 	default:
 		return value, nil
 	}

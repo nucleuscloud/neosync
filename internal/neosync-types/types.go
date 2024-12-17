@@ -13,10 +13,11 @@ const (
 )
 
 const (
-	NeosyncIntervalId = "NEOSYNC_INTERVAL"
 	NeosyncArrayId    = "NEOSYNC_ARRAY"
 	NeosyncBitsId     = "NEOSYNC_BIT"
 	NeosyncBinaryId   = "NEOSYNC_BINARY"
+	NeosyncDateTimeId = "NEOSYNC_DATETIME"
+	NeosyncIntervalId = "NEOSYNC_INTERVAL"
 )
 
 type NeosyncAdapter interface {

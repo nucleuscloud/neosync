@@ -156,6 +156,13 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 
 	values := make([]any, len(columnNames))
 	scanTargets := make([]any, 0, len(columnNames))
+	// Debug log column types
+	for _, ct := range cTypes {
+		fmt.Printf("Column %s: type=%s, scanType=%v\n",
+			ct.Name(),
+			ct.DatabaseTypeName(),
+			ct.ScanType())
+	}
 	for i := range values {
 		dbTypeName := cTypes[i].DatabaseTypeName()
 		switch {
@@ -177,6 +184,9 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case strings.EqualFold(dbTypeName, "interval"):
 			values[i] = &pgtype.Interval{}
 			scanTargets = append(scanTargets, values[i])
+		// case strings.EqualFold(dbTypeName, "timestampz"):
+		// 	values[i] = &pgtype.Timestamptz{}
+		// 	scanTargets = append(scanTargets, values[i])
 		case isPgxPgArrayType(dbTypeName):
 			values[i] = &PgxArray[any]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
@@ -187,8 +197,23 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	if err := rows.Scan(scanTargets...); err != nil {
 		return nil, err
 	}
+	// Debug log scanned values
+	for i, v := range values {
+		fmt.Printf("Scanned value for %s: %#v\n",
+			columnNames[i],
+			v)
+	}
 
 	jObj := parsePgRowValues(values, columnNames, cTypes)
+
+	// Debug log final converted values
+	for k, v := range jObj {
+		fmt.Printf("Final value for %s: %#v\n", k, v)
+	}
+
+	jsonF, _ := json.MarshalIndent(jObj, "", " ")
+	fmt.Printf("\n jObj: %s \n\n", string(jsonF))
+
 	return jObj, nil
 }
 
@@ -247,15 +272,23 @@ func parsePgRowValues(values []any, columnNames []string, columnTypes []*sql.Col
 			}
 			jObj[col] = neoInterval
 		default:
-			switch colType {
-			case "bit", "BIT", "varbit", "VARBIT":
+			switch {
+			case strings.EqualFold(colType, "date"), strings.EqualFold(colType, "timestamp"), strings.EqualFold(colType, "timestamptz"):
+				fmt.Println("NEOSYNC DATETIME")
+				dt, err := neosynctypes.NewDateTimeFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = dt
+			case strings.EqualFold(colType, "bit"), strings.EqualFold(colType, "varbit"):
 				bits, err := neosynctypes.NewBitsFromPgx(t)
 				if err != nil {
 					jObj[col] = t
 					continue
 				}
 				jObj[col] = bits
-			case "bytea", "BYTEA":
+			case strings.EqualFold(colType, "bytea"):
 				binary, err := neosynctypes.NewBinaryFromPgx(t)
 				if err != nil {
 					jObj[col] = t

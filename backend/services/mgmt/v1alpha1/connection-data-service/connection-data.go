@@ -278,7 +278,7 @@ func (s *Service) GetConnectionDataStream(
 
 				decoder := json.NewDecoder(gzr)
 				for {
-					var data map[string]any
+					var data json.RawMessage
 
 					// Decode the next JSON object
 					err = decoder.Decode(&data)
@@ -289,28 +289,35 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-					rowMap := make(map[string][]byte)
-					for key, value := range data {
-						var byteValue []byte
-						switch v := value.(type) {
-						case string:
-							// try converting string directly to []byte
-							// prevents quoted strings
-							byteValue = []byte(v)
-						default:
-							// if not a string use JSON encoding
-							byteValue, err = json.Marshal(v)
-							if err != nil {
-								result.Body.Close()
-								gzr.Close()
-								return err
-							}
-							if string(byteValue) == "null" {
-								byteValue = nil
-							}
-						}
-						rowMap[key] = byteValue
+
+					// rowMap := make(map[string][]byte)
+					// for key, value := range data {
+					//   var byteValue []byte
+					//   switch v := value.(type) {
+					//   case string:
+					//     // try converting string directly to []byte
+					//     // prevents quoted strings
+					//     byteValue = []byte(v)
+					//   default:
+					//     // if not a string use JSON encoding
+					//     byteValue, err = json.Marshal(v)
+					//     if err != nil {
+					//       result.Body.Close()
+					//       gzr.Close()
+					//       return err
+					//     }
+					//     if string(byteValue) == "null" {
+					//       byteValue = nil
+					//     }
+					//   }
+					//   rowMap[key] = byteValue
+					// }
+
+					// Send single row with JSON bytes
+					rowMap := map[string][]byte{
+						"row": data,
 					}
+
 					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: rowMap}); err != nil {
 						result.Body.Close()
 						gzr.Close()

@@ -3,6 +3,7 @@ package neosync_benthos_connectiondata
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -210,6 +211,9 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		valuesMap := map[string]any{}
 		err := json.Unmarshal(row["row"], &valuesMap)
 		if err != nil {
+			fmt.Println("valuemap unmarshal ERROR", err, "table", g.table, "schema", g.schema)
+			jsonF, _ := json.MarshalIndent(row, "", " ")
+			fmt.Printf("\n\n %s \n\n", string(jsonF))
 			return nil, nil, err
 		}
 		for k, v := range valuesMap {
@@ -228,6 +232,7 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		}, nil
 	}
 
+	fmt.Println("HERE")
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {

@@ -33,6 +33,10 @@ func NewTypeRegistry(logger *slog.Logger) *TypeRegistry {
 		return NewBinary(WithVersion(LatestVersion))
 	})
 
+	registry.Register(NeosyncDateTimeId, LatestVersion, func() (NeosyncAdapter, error) {
+		return NewDateTime(WithVersion(LatestVersion))
+	})
+
 	return registry
 }
 
@@ -239,7 +243,7 @@ func (r *TypeRegistry) UnmarshalAny(value any) (any, error) {
 	}
 
 	if err := json.Unmarshal(data, obj); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling value into neosync types: %w", err)
 	}
 
 	return obj, nil

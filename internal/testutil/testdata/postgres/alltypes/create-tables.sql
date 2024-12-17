@@ -145,7 +145,7 @@ INSERT INTO all_data_types (
     'A',  -- char_col
     'DEFAULT',  -- varchar_col
     'default',  -- text_col
-    decode('NEOSYNC', 'hex'),  -- bytea_col
+    'NEOSYNC'::bytea,  -- bytea_col
     '2024-01-01 12:34:56',  -- timestamp_col
     '2024-01-01 12:34:56+00',  -- timestamptz_col
     '2024-01-01',  -- date_col
@@ -331,7 +331,7 @@ INSERT INTO array_types (
     ARRAY[1.23::numeric, 4.56::numeric],
     ARRAY[10.00::money, 20.00::money],
     ARRAY['<root>value1</root>'::xml, '<root>value2</root>'::xml],
-    ARRAY[E'\\x6E656F73796E63'::bytea, E'\\x636E79736F656E'::bytea]
+    ARRAY['NEOSYNC'::bytea, 'CNYSOEN'::bytea]
     -- ARRAY[[1, 2], [3, 4]] 
 );
 
