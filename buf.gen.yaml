@@ -17,17 +17,13 @@ plugins:
     out: backend/gen/go/protos
     opt: paths=source_relative
 
-  - remote: buf.build/bufbuild/es:v1.10.0
+  - remote: buf.build/bufbuild/es:v2.2.3
     out: frontend/packages/sdk/src/client
     opt:
       - target=ts
       - import_extension=.js
-  - remote: buf.build/connectrpc/es:v1.5.0
-    out: frontend/packages/sdk/src/client
-    opt:
-      - target=ts
-      - import_extension=.js
-  - remote: buf.build/connectrpc/query-es:v1.4.2
+    include_imports: true
+  - remote: buf.build/connectrpc/query-es:v2.0.1
     out: frontend/packages/sdk/src/client
     opt:
       - target=ts

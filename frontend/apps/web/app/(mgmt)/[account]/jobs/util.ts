@@ -4,86 +4,107 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
   DestinationOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
   NewDestinationFormValues,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
-  VirtualForeignConstraintFormValues,
-  convertJobMappingTransformerFormToJobMappingTransformer,
-  convertJobMappingTransformerToForm,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
+  VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
-import { Struct, Value } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
+import { Struct, Value } from '@bufbuild/protobuf/wkt';
 import {
   ActivityOptions,
+  ActivityOptionsSchema,
   AiGenerateSourceOptions,
-  AiGenerateSourceSchemaOption,
-  AiGenerateSourceTableOption,
-  AwsS3DestinationConnectionOptions,
+  AiGenerateSourceOptionsSchema,
+  AiGenerateSourceSchemaOptionSchema,
+  AiGenerateSourceTableOptionSchema,
   AwsS3DestinationConnectionOptions_StorageClass,
-  BatchConfig,
+  AwsS3DestinationConnectionOptionsSchema,
+  BatchConfigSchema,
   Connection,
+  CreateJobDestination,
+  CreateJobDestinationSchema,
   CreateJobRequest,
-  DatabaseTable,
-  DynamoDBDestinationConnectionOptions,
-  DynamoDBDestinationTableMapping,
-  DynamoDBSourceConnectionOptions,
-  DynamoDBSourceSchemaSubset,
+  CreateJobRequestSchema,
+  DatabaseTableSchema,
+  DynamoDBDestinationConnectionOptionsSchema,
+  DynamoDBDestinationTableMappingSchema,
+  DynamoDBSourceConnectionOptionsSchema,
+  DynamoDBSourceSchemaSubsetSchema,
   DynamoDBSourceTableOption,
+  DynamoDBSourceTableOptionSchema,
   DynamoDBSourceUnmappedTransformConfig,
-  GcpCloudStorageDestinationConnectionOptions,
-  GenerateBool,
+  DynamoDBSourceUnmappedTransformConfigSchema,
+  GcpCloudStorageDestinationConnectionOptionsSchema,
+  GenerateBoolSchema,
   GenerateSourceOptions,
-  GenerateSourceSchemaOption,
-  GenerateSourceTableOption,
-  GenerateString,
+  GenerateSourceOptionsSchema,
+  GenerateSourceSchemaOptionSchema,
+  GenerateSourceTableOptionSchema,
+  GenerateStringSchema,
   GetAiGeneratedDataRequest,
+  GetAiGeneratedDataRequestSchema,
   Job,
   JobDestination,
   JobDestinationOptions,
+  JobDestinationOptionsSchema,
   JobMapping,
-  JobMappingTransformer,
+  JobMappingSchema,
+  JobMappingTransformerSchema,
   JobSource,
   JobSourceOptions,
+  JobSourceOptionsSchema,
+  JobSourceSchema,
   JobSourceSqlSubetSchemas,
-  MongoDBDestinationConnectionOptions,
-  MongoDBSourceConnectionOptions,
-  MssqlDestinationConnectionOptions,
-  MssqlOnConflictConfig,
-  MssqlSourceConnectionOptions,
+  JobSourceSqlSubetSchemasSchema,
+  MongoDBDestinationConnectionOptionsSchema,
+  MongoDBSourceConnectionOptionsSchema,
+  MssqlDestinationConnectionOptionsSchema,
+  MssqlOnConflictConfigSchema,
+  MssqlSourceConnectionOptionsSchema,
   MssqlSourceSchemaOption,
-  MssqlSourceSchemaSubset,
-  MssqlSourceTableOption,
-  MssqlTruncateTableConfig,
-  MysqlDestinationConnectionOptions,
-  MysqlOnConflictConfig,
-  MysqlSourceConnectionOptions,
+  MssqlSourceSchemaOptionSchema,
+  MssqlSourceSchemaSubsetSchema,
+  MssqlSourceTableOptionSchema,
+  MssqlTruncateTableConfigSchema,
+  MysqlDestinationConnectionOptionsSchema,
+  MysqlOnConflictConfigSchema,
+  MysqlSourceConnectionOptionsSchema,
   MysqlSourceSchemaOption,
-  MysqlSourceSchemaSubset,
-  MysqlSourceTableOption,
-  MysqlTruncateTableConfig,
-  Passthrough,
-  PostgresDestinationConnectionOptions,
-  PostgresOnConflictConfig,
-  PostgresSourceConnectionOptions,
+  MysqlSourceSchemaOptionSchema,
+  MysqlSourceSchemaSubsetSchema,
+  MysqlSourceTableOptionSchema,
+  MysqlTruncateTableConfigSchema,
+  PassthroughSchema,
+  PostgresDestinationConnectionOptionsSchema,
+  PostgresOnConflictConfigSchema,
+  PostgresSourceConnectionOptionsSchema,
   PostgresSourceSchemaOption,
-  PostgresSourceSchemaSubset,
-  PostgresSourceTableOption,
-  PostgresTruncateTableConfig,
-  RetryPolicy,
-  TransformerConfig,
+  PostgresSourceSchemaOptionSchema,
+  PostgresSourceSchemaSubsetSchema,
+  PostgresSourceTableOptionSchema,
+  PostgresTruncateTableConfigSchema,
+  RetryPolicySchema,
+  TransformerConfigSchema,
   ValidateJobMappingsRequest,
+  ValidateJobMappingsRequestSchema,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
-  VirtualForeignKey,
+  VirtualForeignConstraintSchema,
+  VirtualForeignKeySchema,
   WorkflowOptions,
+  WorkflowOptionsSchema,
 } from '@neosync/sdk';
 import { ConnectionConfigCase } from '../connections/util';
 import {
-  ActivityOptionsSchema,
+  ActivityOptionsFormValues,
   ConnectFormValues,
   CreateJobFormValues,
   CreateSingleTableAiGenerateJobFormValues,
@@ -106,14 +127,14 @@ export function getCreateNewSingleTableAiGenerateJobRequest(
   accountId: string,
   getConnectionById: GetConnectionById
 ): CreateJobRequest {
-  return new CreateJobRequest({
+  return create(CreateJobRequestSchema, {
     accountId,
     jobName: values.define.jobName,
     cronSchedule: values.define.cronSchedule,
     initiateJobRun: values.define.initiateJobRun,
     mappings: [],
     source: toSingleTableAiGenerateJobSource(values),
-    destinations: toSingleTableGenerateJobDestinations(
+    destinations: toSingleTableGenerateCreateJobDestinations(
       values,
       getConnectionById
     ),
@@ -125,13 +146,13 @@ export function getCreateNewSingleTableAiGenerateJobRequest(
 export function getSampleAiGeneratedRecordsRequest(
   values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>
 ): GetAiGeneratedDataRequest {
-  return new GetAiGeneratedDataRequest({
+  return create(GetAiGeneratedDataRequestSchema, {
     aiConnectionId: values.connect.sourceId,
     count: BigInt(10),
     modelName: values.schema.model,
     userPrompt: values.schema.userPrompt,
     dataConnectionId: values.connect.fkSourceConnectionId,
-    table: new DatabaseTable({
+    table: create(DatabaseTableSchema, {
       schema: values.schema.schema,
       table: values.schema.table,
     }),
@@ -140,13 +161,13 @@ export function getSampleAiGeneratedRecordsRequest(
 export function getSampleEditAiGeneratedRecordsRequest(
   values: SingleTableEditAiSourceFormValues
 ): GetAiGeneratedDataRequest {
-  return new GetAiGeneratedDataRequest({
+  return create(GetAiGeneratedDataRequestSchema, {
     aiConnectionId: values.source.sourceId,
     count: BigInt(10),
     modelName: values.schema.model,
     userPrompt: values.schema.userPrompt,
     dataConnectionId: values.source.fkSourceConnectionId,
-    table: new DatabaseTable({
+    table: create(DatabaseTableSchema, {
       schema: values.schema.schema,
       table: values.schema.table,
     }),
@@ -158,14 +179,14 @@ export function getCreateNewSingleTableGenerateJobRequest(
   accountId: string,
   getConnectionById: GetConnectionById
 ): CreateJobRequest {
-  return new CreateJobRequest({
+  return create(CreateJobRequestSchema, {
     accountId,
     jobName: values.define.jobName,
     cronSchedule: values.define.cronSchedule,
     initiateJobRun: values.define.initiateJobRun,
     mappings: toSingleGenerateJobMappings(values),
     source: toSingleTableGenerateJobSource(values),
-    destinations: toSingleTableGenerateJobDestinations(
+    destinations: toSingleTableGenerateCreateJobDestinations(
       values,
       getConnectionById
     ),
@@ -200,21 +221,21 @@ function handleValue(value: Value): unknown {
 function toSingleTableAiGenerateJobSource(
   values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>
 ): JobSource {
-  return new JobSource({
-    options: new JobSourceOptions({
+  return create(JobSourceSchema, {
+    options: create(JobSourceOptionsSchema, {
       config: {
         case: 'aiGenerate',
-        value: new AiGenerateSourceOptions({
+        value: create(AiGenerateSourceOptionsSchema, {
           aiConnectionId: values.connect.sourceId,
           modelName: values.schema.model,
           fkSourceConnectionId: values.connect.fkSourceConnectionId,
           userPrompt: values.schema.userPrompt,
           generateBatchSize: BigInt(values.schema.generateBatchSize),
           schemas: [
-            new AiGenerateSourceSchemaOption({
+            create(AiGenerateSourceSchemaOptionSchema, {
               schema: values.schema.schema,
               tables: [
-                new AiGenerateSourceTableOption({
+                create(AiGenerateSourceTableOptionSchema, {
                   table: values.schema.table,
                   rowCount: BigInt(values.schema.numRows),
                 }),
@@ -229,21 +250,21 @@ function toSingleTableAiGenerateJobSource(
 export function toSingleTableEditAiGenerateJobSource(
   values: SingleTableEditAiSourceFormValues
 ): JobSource {
-  return new JobSource({
-    options: new JobSourceOptions({
+  return create(JobSourceSchema, {
+    options: create(JobSourceOptionsSchema, {
       config: {
         case: 'aiGenerate',
-        value: new AiGenerateSourceOptions({
+        value: create(AiGenerateSourceOptionsSchema, {
           aiConnectionId: values.source.sourceId,
           modelName: values.schema.model,
           fkSourceConnectionId: values.source.fkSourceConnectionId,
           userPrompt: values.schema.userPrompt,
           generateBatchSize: BigInt(values.schema.generateBatchSize),
           schemas: [
-            new AiGenerateSourceSchemaOption({
+            create(AiGenerateSourceSchemaOptionSchema, {
               schema: values.schema.schema,
               tables: [
-                new AiGenerateSourceTableOption({
+                create(AiGenerateSourceTableOptionSchema, {
                   table: values.schema.table,
                   rowCount: BigInt(values.schema.numRows),
                 }),
@@ -264,19 +285,19 @@ function toSingleTableGenerateJobSource(
   const table =
     values.schema.mappings.length > 0 ? values.schema.mappings[0].table : null;
 
-  return new JobSource({
-    options: {
+  return create(JobSourceSchema, {
+    options: create(JobSourceOptionsSchema, {
       config: {
         case: 'generate',
-        value: new GenerateSourceOptions({
+        value: create(GenerateSourceOptionsSchema, {
           fkSourceConnectionId: values.connect.fkSourceConnectionId,
           schemas:
             tableSchema && table
               ? [
-                  new GenerateSourceSchemaOption({
+                  create(GenerateSourceSchemaOptionSchema, {
                     schema: tableSchema,
                     tables: [
-                      new GenerateSourceTableOption({
+                      create(GenerateSourceTableOptionSchema, {
                         rowCount: BigInt(values.schema.numRows),
                         table: table,
                       }),
@@ -286,7 +307,7 @@ function toSingleTableGenerateJobSource(
               : [],
         }),
       },
-    },
+    }),
   });
 }
 
@@ -295,19 +316,19 @@ export function toSingleTableEditGenerateJobSource(
 ): JobSource {
   const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
   const table = values.mappings.length > 0 ? values.mappings[0].table : null;
-  return new JobSource({
-    options: new JobSourceOptions({
+  return create(JobSourceSchema, {
+    options: create(JobSourceOptionsSchema, {
       config: {
         case: 'generate',
-        value: new GenerateSourceOptions({
+        value: create(GenerateSourceOptionsSchema, {
           fkSourceConnectionId: values.source.fkSourceConnectionId,
           schemas:
             schema && table
               ? [
-                  new GenerateSourceSchemaOption({
+                  create(GenerateSourceSchemaOptionSchema, {
                     schema: schema,
                     tables: [
-                      new GenerateSourceTableOption({
+                      create(GenerateSourceTableOptionSchema, {
                         table: table,
                         rowCount: BigInt(values.numRows),
                       }),
@@ -333,7 +354,7 @@ export function getCreateNewSyncJobRequest(
     },
     {} as Record<string, SchemaFormValuesDestinationOptions>
   );
-  return new CreateJobRequest({
+  return create(CreateJobRequestSchema, {
     accountId,
     jobName: values.define.jobName,
     cronSchedule: values.define.cronSchedule,
@@ -341,7 +362,7 @@ export function getCreateNewSyncJobRequest(
     mappings: toSyncJobMappings(values),
     virtualForeignKeys: toSyncVirtualForeignKeys(values),
     source: toJobSource(values, getConnectionById),
-    destinations: toSyncJobDestinations(
+    destinations: toSyncCreateJobDestinations(
       {
         connect: {
           ...values.connect,
@@ -368,7 +389,7 @@ export function toWorkflowOptions(
   values?: WorkflowSettingsSchema
 ): WorkflowOptions | undefined {
   if (values?.runTimeout) {
-    return new WorkflowOptions({
+    return create(WorkflowOptionsSchema, {
       runTimeout: convertMinutesToNanoseconds(values.runTimeout),
     });
   }
@@ -380,7 +401,7 @@ function toSyncOptions(
 ): ActivityOptions | undefined {
   if (values.define.syncActivityOptions) {
     const formSyncOpts = values.define.syncActivityOptions;
-    return new ActivityOptions({
+    return create(ActivityOptionsSchema, {
       scheduleToCloseTimeout:
         formSyncOpts.scheduleToCloseTimeout !== undefined
           ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
@@ -389,7 +410,7 @@ function toSyncOptions(
         formSyncOpts.startToCloseTimeout !== undefined
           ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
           : undefined,
-      retryPolicy: new RetryPolicy({
+      retryPolicy: create(RetryPolicySchema, {
         maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
       }),
     });
@@ -397,12 +418,12 @@ function toSyncOptions(
   return undefined;
 }
 
-function toSingleTableGenerateJobDestinations(
+function toSingleTableGenerateCreateJobDestinations(
   values: Pick<CreateSingleTableGenerateJobFormValues, 'connect'>,
   getConnectionById: GetConnectionById
-): JobDestination[] {
+): CreateJobDestination[] {
   return [
-    new JobDestination({
+    create(CreateJobDestinationSchema, {
       connectionId: values.connect.destination.connectionId,
       options: toJobDestinationOptions(
         values.connect.destination,
@@ -412,12 +433,12 @@ function toSingleTableGenerateJobDestinations(
   ];
 }
 
-function toSyncJobDestinations(
+function toSyncCreateJobDestinations(
   values: Pick<CreateJobFormValues, 'connect'>,
   getConnectionById: GetConnectionById
-): JobDestination[] {
+): CreateJobDestination[] {
   return values.connect.destinations.map((d) => {
-    return new JobDestination({
+    return create(CreateJobDestinationSchema, {
       connectionId: d.connectionId,
       options: toJobDestinationOptions(d, getConnectionById(d.connectionId)),
     });
@@ -429,22 +450,22 @@ export function toJobDestinationOptions(
   connection?: Connection
 ): JobDestinationOptions {
   if (!connection) {
-    return new JobDestinationOptions();
+    return create(JobDestinationOptionsSchema, {});
   }
   switch (connection.connectionConfig?.config.case) {
     case 'pgConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'postgresOptions',
-          value: new PostgresDestinationConnectionOptions({
-            truncateTable: new PostgresTruncateTableConfig({
+          value: create(PostgresDestinationConnectionOptionsSchema, {
+            truncateTable: create(PostgresTruncateTableConfigSchema, {
               truncateBeforeInsert:
                 values.destinationOptions.postgres?.truncateBeforeInsert ??
                 false,
               cascade:
                 values.destinationOptions.postgres?.truncateCascade ?? false,
             }),
-            onConflict: new PostgresOnConflictConfig({
+            onConflict: create(PostgresOnConflictConfigSchema, {
               doNothing:
                 values.destinationOptions.postgres?.onConflictDoNothing ??
                 false,
@@ -454,7 +475,7 @@ export function toJobDestinationOptions(
             skipForeignKeyViolations:
               values.destinationOptions.postgres?.skipForeignKeyViolations,
             maxInFlight: values.destinationOptions.postgres?.maxInFlight,
-            batch: new BatchConfig({
+            batch: create(BatchConfigSchema, {
               ...values.destinationOptions.postgres?.batch,
             }),
           }),
@@ -462,15 +483,15 @@ export function toJobDestinationOptions(
       });
     }
     case 'mysqlConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'mysqlOptions',
-          value: new MysqlDestinationConnectionOptions({
-            truncateTable: new MysqlTruncateTableConfig({
+          value: create(MysqlDestinationConnectionOptionsSchema, {
+            truncateTable: create(MysqlTruncateTableConfigSchema, {
               truncateBeforeInsert:
                 values.destinationOptions.mysql?.truncateBeforeInsert ?? false,
             }),
-            onConflict: new MysqlOnConflictConfig({
+            onConflict: create(MysqlOnConflictConfigSchema, {
               doNothing:
                 values.destinationOptions.mysql?.onConflictDoNothing ?? false,
             }),
@@ -478,7 +499,7 @@ export function toJobDestinationOptions(
             skipForeignKeyViolations:
               values.destinationOptions.mysql?.skipForeignKeyViolations,
             maxInFlight: values.destinationOptions.mysql?.maxInFlight,
-            batch: new BatchConfig({
+            batch: create(BatchConfigSchema, {
               ...values.destinationOptions.mysql?.batch,
             }),
           }),
@@ -486,14 +507,14 @@ export function toJobDestinationOptions(
       });
     }
     case 'awsS3Config': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'awsS3Options',
-          value: new AwsS3DestinationConnectionOptions({
+          value: create(AwsS3DestinationConnectionOptionsSchema, {
             storageClass: values.destinationOptions.awss3?.storageClass,
             timeout: values.destinationOptions.awss3?.timeout,
             maxInFlight: values.destinationOptions.awss3?.maxInFlight,
-            batch: new BatchConfig({
+            batch: create(BatchConfigSchema, {
               ...values.destinationOptions.awss3?.batch,
             }),
           }),
@@ -501,48 +522,47 @@ export function toJobDestinationOptions(
       });
     }
     case 'mongoConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'mongodbOptions',
-          value: new MongoDBDestinationConnectionOptions({}),
+          value: create(MongoDBDestinationConnectionOptionsSchema, {}),
         },
       });
     }
     case 'gcpCloudstorageConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'gcpCloudstorageOptions',
-          value: new GcpCloudStorageDestinationConnectionOptions({}),
+          value: create(GcpCloudStorageDestinationConnectionOptionsSchema, {}),
         },
       });
     }
     case 'dynamodbConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'dynamodbOptions',
-          value: new DynamoDBDestinationConnectionOptions({
+          value: create(DynamoDBDestinationConnectionOptionsSchema, {
             tableMappings:
-              values.destinationOptions.dynamodb?.tableMappings.map(
-                (tm) =>
-                  new DynamoDBDestinationTableMapping({
-                    sourceTable: tm.sourceTable,
-                    destinationTable: tm.destinationTable,
-                  })
+              values.destinationOptions.dynamodb?.tableMappings.map((tm) =>
+                create(DynamoDBDestinationTableMappingSchema, {
+                  sourceTable: tm.sourceTable,
+                  destinationTable: tm.destinationTable,
+                })
               ),
           }),
         },
       });
     }
     case 'mssqlConfig': {
-      return new JobDestinationOptions({
+      return create(JobDestinationOptionsSchema, {
         config: {
           case: 'mssqlOptions',
-          value: new MssqlDestinationConnectionOptions({
-            truncateTable: new MssqlTruncateTableConfig({
+          value: create(MssqlDestinationConnectionOptionsSchema, {
+            truncateTable: create(MssqlTruncateTableConfigSchema, {
               truncateBeforeInsert:
                 values.destinationOptions.mssql?.truncateBeforeInsert ?? false,
             }),
-            onConflict: new MssqlOnConflictConfig({
+            onConflict: create(MssqlOnConflictConfigSchema, {
               doNothing:
                 values.destinationOptions.mssql?.onConflictDoNothing ?? false,
             }),
@@ -550,7 +570,7 @@ export function toJobDestinationOptions(
             skipForeignKeyViolations:
               values.destinationOptions.mssql?.skipForeignKeyViolations,
             maxInFlight: values.destinationOptions.mssql?.maxInFlight,
-            batch: new BatchConfig({
+            batch: create(BatchConfigSchema, {
               ...values.destinationOptions.mssql?.batch,
             }),
           }),
@@ -558,7 +578,7 @@ export function toJobDestinationOptions(
       });
     }
     default: {
-      return new JobDestinationOptions();
+      return create(JobDestinationOptionsSchema, {});
     }
   }
 }
@@ -567,7 +587,7 @@ function toSingleGenerateJobMappings(
   values: Pick<CreateSingleTableGenerateJobFormValues, 'schema'>
 ): JobMapping[] {
   return values.schema.mappings.map((m) => {
-    return new JobMapping({
+    return create(JobMappingSchema, {
       schema: m.schema,
       table: m.table,
       column: m.column,
@@ -582,7 +602,7 @@ function toSyncJobMappings(
   values: Pick<CreateJobFormValues, 'schema'>
 ): JobMapping[] {
   return values.schema.mappings.map((m) => {
-    return new JobMapping({
+    return create(JobMappingSchema, {
       schema: m.schema,
       table: m.table,
       column: m.column,
@@ -598,11 +618,11 @@ function toSyncVirtualForeignKeys(
 ): VirtualForeignConstraint[] {
   return (
     values.schema.virtualForeignKeys?.map((v) => {
-      return new VirtualForeignConstraint({
+      return create(VirtualForeignConstraintSchema, {
         schema: v.schema,
         table: v.table,
         columns: v.columns,
-        foreignKey: new VirtualForeignKey({
+        foreignKey: create(VirtualForeignKeySchema, {
           schema: v.foreignKey.schema,
           table: v.foreignKey.table,
           columns: v.foreignKey.columns,
@@ -616,7 +636,7 @@ function toJobSource(
   values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
   getConnectionById: GetConnectionById
 ): JobSource {
-  return new JobSource({
+  return create(JobSourceSchema, {
     options: toJobSourceOptions(values, getConnectionById),
   });
 }
@@ -627,14 +647,14 @@ function toJobSourceOptions(
 ): JobSourceOptions {
   const sourceConnection = getConnectionById(values.connect.sourceId);
   if (!sourceConnection) {
-    return new JobSourceOptions();
+    return create(JobSourceOptionsSchema, {});
   }
   switch (sourceConnection.connectionConfig?.config.case) {
     case 'pgConfig':
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'postgres',
-          value: new PostgresSourceConnectionOptions({
+          value: create(PostgresSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
             newColumnAdditionStrategy:
               toJobSourcePostgresNewColumnAdditionStrategy(
@@ -649,10 +669,10 @@ function toJobSourceOptions(
         },
       });
     case 'mysqlConfig':
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mysql',
-          value: new MysqlSourceConnectionOptions({
+          value: create(MysqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
@@ -666,19 +686,19 @@ function toJobSourceOptions(
         },
       });
     case 'mongoConfig':
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mongodb',
-          value: new MongoDBSourceConnectionOptions({
+          value: create(MongoDBSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
           }),
         },
       });
     case 'dynamodbConfig': {
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'dynamodb',
-          value: new DynamoDBSourceConnectionOptions({
+          value: create(DynamoDBSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
             tables: toDynamoDbSourceTableOptions(values.subset?.subsets ?? []),
             unmappedTransforms: toDynamoDbSourceUnmappedOptions(
@@ -693,10 +713,10 @@ function toJobSourceOptions(
       });
     }
     case 'mssqlConfig': {
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mssql',
-          value: new MssqlSourceConnectionOptions({
+          value: create(MssqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
@@ -718,41 +738,44 @@ function toJobSourceOptions(
 export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformConfigFormValues {
   return {
     boolean: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        config: new TransformerConfig({
+      create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'generateBoolConfig',
-            value: new GenerateBool(),
+            value: create(GenerateBoolSchema, {}),
           },
         }),
       })
     ),
     byte: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        config: new TransformerConfig({
+      create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'passthroughConfig',
-            value: new Passthrough(),
+            value: create(PassthroughSchema, {}),
           },
         }),
       })
     ),
     n: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        config: new TransformerConfig({
+      create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'passthroughConfig',
-            value: new Passthrough(),
+            value: create(PassthroughSchema, {}),
           },
         }),
       })
     ),
     s: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        config: new TransformerConfig({
+      create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'generateStringConfig',
-            value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
+            value: create(GenerateStringSchema, {
+              min: BigInt(1),
+              max: BigInt(100),
+            }),
           },
         }),
       })
@@ -766,13 +789,13 @@ function toPostgresSourceSchemaOptions(
   const schemaMap = subsets.reduce(
     (map, subset) => {
       if (!map[subset.schema]) {
-        map[subset.schema] = new PostgresSourceSchemaOption({
+        map[subset.schema] = create(PostgresSourceSchemaOptionSchema, {
           schema: subset.schema,
           tables: [],
         });
       }
       map[subset.schema].tables.push(
-        new PostgresSourceTableOption({
+        create(PostgresSourceTableOptionSchema, {
           table: subset.table,
           whereClause: subset.whereClause,
         })
@@ -790,13 +813,13 @@ function toMysqlSourceSchemaOptions(
   const schemaMap = subsets.reduce(
     (map, subset) => {
       if (!map[subset.schema]) {
-        map[subset.schema] = new MysqlSourceSchemaOption({
+        map[subset.schema] = create(MysqlSourceSchemaOptionSchema, {
           schema: subset.schema,
           tables: [],
         });
       }
       map[subset.schema].tables.push(
-        new MysqlSourceTableOption({
+        create(MysqlSourceTableOptionSchema, {
           table: subset.table,
           whereClause: subset.whereClause,
         })
@@ -814,13 +837,13 @@ function toMssqlSourceSchemaOptions(
   const schemaMap = subsets.reduce(
     (map, subset) => {
       if (!map[subset.schema]) {
-        map[subset.schema] = new MssqlSourceSchemaOption({
+        map[subset.schema] = create(MssqlSourceSchemaOptionSchema, {
           schema: subset.schema,
           tables: [],
         });
       }
       map[subset.schema].tables.push(
-        new MssqlSourceTableOption({
+        create(MssqlSourceTableOptionSchema, {
           table: subset.table,
           whereClause: subset.whereClause,
         })
@@ -835,19 +858,18 @@ function toMssqlSourceSchemaOptions(
 function toDynamoDbSourceTableOptions(
   subsets: SubsetFormValues['subsets']
 ): DynamoDBSourceTableOption[] {
-  return subsets.map(
-    (ss) =>
-      new DynamoDBSourceTableOption({
-        table: ss.table,
-        whereClause: ss.whereClause,
-      })
+  return subsets.map((ss) =>
+    create(DynamoDBSourceTableOptionSchema, {
+      table: ss.table,
+      whereClause: ss.whereClause,
+    })
   );
 }
 
 function toDynamoDbSourceUnmappedOptions(
   unmappedTransformConfig: DynamoDBSourceUnmappedTransformConfigFormValues
 ): DynamoDBSourceUnmappedTransformConfig {
-  return new DynamoDBSourceUnmappedTransformConfig({
+  return create(DynamoDBSourceUnmappedTransformConfigSchema, {
     b: convertJobMappingTransformerFormToJobMappingTransformer(
       unmappedTransformConfig.byte
     ),
@@ -872,44 +894,47 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
   return {
     boolean: convertJobMappingTransformerToForm(
       ut.boolean ||
-        new JobMappingTransformer({
-          config: new TransformerConfig({
+        create(JobMappingTransformerSchema, {
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'generateBoolConfig',
-              value: new GenerateBool(),
+              value: create(GenerateBoolSchema, {}),
             },
           }),
         })
     ),
     byte: convertJobMappingTransformerToForm(
       ut.b ||
-        new JobMappingTransformer({
-          config: new TransformerConfig({
+        create(JobMappingTransformerSchema, {
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'passthroughConfig',
-              value: new Passthrough(),
+              value: create(PassthroughSchema, {}),
             },
           }),
         })
     ),
     n: convertJobMappingTransformerToForm(
       ut.n ||
-        new JobMappingTransformer({
-          config: new TransformerConfig({
+        create(JobMappingTransformerSchema, {
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'passthroughConfig',
-              value: new Passthrough(),
+              value: create(PassthroughSchema, {}),
             },
           }),
         })
     ),
     s: convertJobMappingTransformerToForm(
       ut.s ||
-        new JobMappingTransformer({
-          config: new TransformerConfig({
+        create(JobMappingTransformerSchema, {
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'generateStringConfig',
-              value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
+              value: create(GenerateStringSchema, {
+                min: BigInt(1),
+                max: BigInt(100),
+              }),
             },
           }),
         })
@@ -918,9 +943,9 @@ export function toDynamoDbSourceUnmappedOptionsFormValues(
 }
 
 export function toActivityOptions(
-  values: ActivityOptionsSchema
+  values: ActivityOptionsFormValues
 ): ActivityOptions {
-  return new ActivityOptions({
+  return create(ActivityOptionsSchema, {
     startToCloseTimeout:
       values.startToCloseTimeout !== undefined && values.startToCloseTimeout > 0
         ? convertMinutesToNanoseconds(values.startToCloseTimeout)
@@ -930,9 +955,11 @@ export function toActivityOptions(
       values.scheduleToCloseTimeout > 0
         ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
         : undefined,
-    retryPolicy: new RetryPolicy({
-      maximumAttempts: values.retryPolicy?.maximumAttempts,
-    }),
+    retryPolicy: values.retryPolicy
+      ? create(RetryPolicySchema, {
+          maximumAttempts: values.retryPolicy.maximumAttempts,
+        })
+      : undefined,
   });
 }
 
@@ -942,47 +969,47 @@ export function toJobSourceSqlSubsetSchemas(
 ): JobSourceSqlSubetSchemas {
   switch (dbType) {
     case 'mysqlConfig': {
-      return new JobSourceSqlSubetSchemas({
+      return create(JobSourceSqlSubetSchemasSchema, {
         schemas: {
           case: 'mysqlSubset',
-          value: new MysqlSourceSchemaSubset({
+          value: create(MysqlSourceSchemaSubsetSchema, {
             mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
           }),
         },
       });
     }
     case 'pgConfig': {
-      return new JobSourceSqlSubetSchemas({
+      return create(JobSourceSqlSubetSchemasSchema, {
         schemas: {
           case: 'postgresSubset',
-          value: new PostgresSourceSchemaSubset({
+          value: create(PostgresSourceSchemaSubsetSchema, {
             postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
           }),
         },
       });
     }
     case 'dynamodbConfig': {
-      return new JobSourceSqlSubetSchemas({
+      return create(JobSourceSqlSubetSchemasSchema, {
         schemas: {
           case: 'dynamodbSubset',
-          value: new DynamoDBSourceSchemaSubset({
+          value: create(DynamoDBSourceSchemaSubsetSchema, {
             tables: toDynamoDbSourceTableOptions(values.subsets),
           }),
         },
       });
     }
     case 'mssqlConfig': {
-      return new JobSourceSqlSubetSchemas({
+      return create(JobSourceSqlSubetSchemasSchema, {
         schemas: {
           case: 'mssqlSubset',
-          value: new MssqlSourceSchemaSubset({
+          value: create(MssqlSourceSchemaSubsetSchema, {
             mssqlSchemas: toMssqlSourceSchemaOptions(values.subsets),
           }),
         },
       });
     }
     default: {
-      return new JobSourceSqlSubetSchemas();
+      return create(JobSourceSqlSubetSchemasSchema, {});
     }
   }
 }
@@ -1224,7 +1251,9 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+              : convertJobMappingTransformerToForm(
+                  create(JobMappingTransformerSchema, {})
+                ),
           };
         }),
       };
@@ -1244,7 +1273,9 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+              : convertJobMappingTransformerToForm(
+                  create(JobMappingTransformerSchema, {})
+                ),
           };
         }),
         virtualForeignKeys: job.virtualForeignKeys.map((v) => {
@@ -1286,7 +1317,9 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+              : convertJobMappingTransformerToForm(
+                  create(JobMappingTransformerSchema, {})
+                ),
           };
         }),
         virtualForeignKeys: job.virtualForeignKeys.map((v) => {
@@ -1639,10 +1672,10 @@ export async function validateJobMapping(
     req: ValidateJobMappingsRequest
   ) => Promise<ValidateJobMappingsResponse>
 ): Promise<ValidateJobMappingsResponse> {
-  const body = new ValidateJobMappingsRequest({
+  const body = create(ValidateJobMappingsRequestSchema, {
     accountId,
     mappings: formMappings.map((m) => {
-      return new JobMapping({
+      return create(JobMappingSchema, {
         schema: m.schema,
         table: m.table,
         column: m.column,
@@ -1650,8 +1683,8 @@ export async function validateJobMapping(
           ? convertJobMappingTransformerFormToJobMappingTransformer(
               m.transformer
             )
-          : new JobMappingTransformer({
-              config: new TransformerConfig({
+          : create(JobMappingTransformerSchema, {
+              config: create(TransformerConfigSchema, {
                 config: {
                   case: 'passthroughConfig',
                   value: {},
@@ -1661,11 +1694,11 @@ export async function validateJobMapping(
       });
     }),
     virtualForeignKeys: virtualForeignKeys.map((v) => {
-      return new VirtualForeignConstraint({
+      return create(VirtualForeignConstraintSchema, {
         schema: v.schema,
         table: v.table,
         columns: v.columns,
-        foreignKey: new VirtualForeignKey({
+        foreignKey: create(VirtualForeignKeySchema, {
           schema: v.foreignKey.schema,
           table: v.foreignKey.table,
           columns: v.foreignKey.columns,

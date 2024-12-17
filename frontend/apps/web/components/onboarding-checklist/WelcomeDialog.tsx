@@ -6,12 +6,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
   useQuery,
 } from '@connectrpc/connect-query';
-import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
+import { GetAccountOnboardingConfigResponseSchema } from '@neosync/sdk';
 import {
   getAccountOnboardingConfig,
   setAccountOnboardingConfig,
@@ -156,10 +157,14 @@ export default function WelcomeDialog(): ReactElement {
         },
       });
       queryclient.setQueryData(
-        createConnectQueryKey(getAccountOnboardingConfig, {
-          accountId: account.id,
+        createConnectQueryKey({
+          schema: getAccountOnboardingConfig,
+          input: {
+            accountId: account.id,
+          },
+          cardinality: undefined,
         }),
-        new GetAccountOnboardingConfigResponse({
+        create(GetAccountOnboardingConfigResponseSchema, {
           config: resp.config,
         })
       );

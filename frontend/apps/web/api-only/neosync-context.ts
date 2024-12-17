@@ -24,7 +24,7 @@ export function withNeosyncContext<T = unknown>(
   handler: NeosyncApiHandler<T>
 ): (req: NextRequest) => Promise<NextResponse<T | ErrorMessageResponse>> {
   const systemAppConfig = getSystemAppConfig();
-  return async (req) => {
+  return async (_req) => {
     try {
       const neosyncClient = getNeosyncClient({
         getAccessToken: getAccessTokenFn(systemAppConfig.isAuthEnabled),

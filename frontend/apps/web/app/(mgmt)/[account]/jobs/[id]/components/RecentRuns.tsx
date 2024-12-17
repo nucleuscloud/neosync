@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatDateTime, getErrorMessage } from '@/util/util';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import {
@@ -176,12 +177,19 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell className="px-6">
                       <span className="font-medium">
-                        {formatDateTime(r.startTime?.toDate())}
+                        {formatDateTime(
+                          r.startTime ? timestampDate(r.startTime) : undefined
+                        )}
                       </span>
                     </TableCell>
                     <TableCell className="px-6">
                       <span className="font-medium">
-                        {jobRun && formatDateTime(jobRun.completedAt?.toDate())}
+                        {jobRun &&
+                          formatDateTime(
+                            jobRun.completedAt
+                              ? timestampDate(jobRun.completedAt)
+                              : undefined
+                          )}
                       </span>
                     </TableCell>
                     <TableCell className="px-6">

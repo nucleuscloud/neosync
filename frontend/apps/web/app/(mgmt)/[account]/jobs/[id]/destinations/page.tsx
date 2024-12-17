@@ -5,8 +5,9 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
-import { Connection } from '@neosync/sdk';
+import { Connection, ConnectionSchema } from '@neosync/sdk';
 import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
@@ -53,7 +54,7 @@ export default function Page({ params }: PageProps): ReactElement {
       ? sourceConnectionId
       : '';
   const sourceConnection =
-    connectionsRecord[destinationJobSourceId] ?? new Connection();
+    connectionsRecord[destinationJobSourceId] ?? create(ConnectionSchema, {});
 
   return (
     <div className="job-details-container flex flex-col gap-5">

@@ -3,8 +3,10 @@ import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { create } from '@bufbuild/protobuf';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
-import { Job } from '@neosync/sdk';
+import { Job, JobSchema } from '@neosync/sdk';
 import { getConnections, getJob, getJobHooks } from '@neosync/sdk/connectquery';
 import { ReactElement, ReactNode, useMemo } from 'react';
 import { MdWebhook } from 'react-icons/md';
@@ -41,14 +43,14 @@ export default function HooksCard(props: Props): ReactElement {
 
   const jobHooks = useMemo(() => {
     return [...(getJobHooksResp?.hooks ?? [])].sort((a, b) => {
-      const timeA = a.createdAt ? a.createdAt.toDate().getTime() : 0;
-      const timeB = b.createdAt ? b.createdAt.toDate().getTime() : 0;
+      const timeA = a.createdAt ? timestampDate(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? timestampDate(b.createdAt).getTime() : 0;
       return timeA - timeB;
     });
   }, [getJobHooksResp?.hooks, isGetJobHooksFetching]);
 
   const jobConnectionIds = useMemo(() => {
-    return new Set(getJobConnectionIds(getJobResp?.job ?? new Job()));
+    return new Set(getJobConnectionIds(getJobResp?.job ?? create(JobSchema)));
   }, [getJobResp?.job, isGetJobFetching]);
 
   const jobConnections = useMemo(() => {

@@ -20,7 +20,7 @@ import { setJobSyncOptions } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ActivityOptionsSchema } from '../../../new/job/job-form-validations';
+import { ActivityOptionsFormValues } from '../../../new/job/job-form-validations';
 import { toActivityOptions } from '../../util';
 
 interface Props {
@@ -32,9 +32,9 @@ export default function ActivitySyncOptionsCard({
   job,
   mutate,
 }: Props): ReactElement {
-  const form = useForm<ActivityOptionsSchema>({
+  const form = useForm<ActivityOptionsFormValues>({
     mode: 'onChange',
-    resolver: yupResolver<ActivityOptionsSchema>(ActivityOptionsSchema),
+    resolver: yupResolver<ActivityOptionsFormValues>(ActivityOptionsSchema),
     values: {
       scheduleToCloseTimeout: job?.syncOptions?.scheduleToCloseTimeout
         ? convertNanosecondsToMinutes(job.syncOptions.scheduleToCloseTimeout)
@@ -51,7 +51,7 @@ export default function ActivitySyncOptionsCard({
   const { mutateAsync: updateJobSyncActivityOptions } =
     useMutation(setJobSyncOptions);
 
-  async function onSubmit(values: ActivityOptionsSchema) {
+  async function onSubmit(values: ActivityOptionsFormValues) {
     if (!account?.id) {
       return;
     }

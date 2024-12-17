@@ -11,9 +11,14 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { Editor, useMonaco } from '@monaco-editor/react';
-import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
+import {
+  CheckSqlQueryResponse,
+  CheckSqlQueryResponseSchema,
+  GetTableRowCountResponse,
+} from '@neosync/sdk';
 import { checkSqlQuery, getTableRowCount } from '@neosync/sdk/connectquery';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
@@ -137,7 +142,7 @@ export default function EditItem(props: Props): ReactElement {
         setValidateResp(resp);
       } catch (err) {
         setValidateResp(
-          new CheckSqlQueryResponse({
+          create(CheckSqlQueryResponseSchema, {
             isValid: false,
             erorrMessage: getErrorMessage(err),
           })

@@ -29,11 +29,13 @@ import {
   DynamoDbFormValues,
   EditConnectionFormContext,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  UpdateConnectionRequest,
+  CheckConnectionConfigResponseSchema,
+  UpdateConnectionRequestSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import {
@@ -92,7 +94,7 @@ export default function DynamoDBForm(props: Props) {
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
-        new CheckConnectionConfigResponse({
+        create(CheckConnectionConfigResponseSchema, {
           isConnected: false,
           connectionError: err instanceof Error ? err.message : 'unknown error',
         })
@@ -105,7 +107,7 @@ export default function DynamoDBForm(props: Props) {
   async function onSubmit(values: DynamoDbFormValues) {
     try {
       const connectionResp = await mutateAsync(
-        new UpdateConnectionRequest({
+        create(UpdateConnectionRequestSchema, {
           id: connectionId,
           name: values.connectionName,
           connectionConfig: buildConnectionConfigDynamoDB(values),
@@ -328,7 +330,8 @@ export default function DynamoDBForm(props: Props) {
 
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}

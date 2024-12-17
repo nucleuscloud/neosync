@@ -1,12 +1,17 @@
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import {
   JobHook,
   JobHookConfig,
-  JobHookConfig_JobSqlHook,
   JobHookConfig_JobSqlHook_Timing,
-  JobHookTimingPostSync,
-  JobHookTimingPreSync,
+  JobHookConfig_JobSqlHook_TimingSchema,
+  JobHookConfig_JobSqlHookSchema,
+  JobHookConfigSchema,
+  JobHookSchema,
+  JobHookTimingPostSyncSchema,
+  JobHookTimingPreSyncSchema,
   NewJobHook,
+  NewJobHookSchema,
 } from '@neosync/sdk';
 import * as yup from 'yup';
 
@@ -82,11 +87,11 @@ export function toEditFormData(input: JobHook): EditJobHookFormValues {
   return {
     name: input.name,
     description: input.description,
-    hookType: toHookType(input.config ?? new JobHookConfig()),
+    hookType: toHookType(input.config ?? create(JobHookConfigSchema)),
     priority: input.priority,
     enabled: input.enabled,
     config: {
-      sql: toSqlConfig(input.config ?? new JobHookConfig()),
+      sql: toSqlConfig(input.config ?? create(JobHookConfigSchema)),
     },
   };
 }
@@ -108,7 +113,8 @@ function toSqlConfig(input: JobHookConfig): JobHookSqlFormValues {
         connectionId: input.config.value.connectionId,
         query: input.config.value.query,
         timing: toSqlTimingConfig(
-          input.config.value.timing ?? new JobHookConfig_JobSqlHook_Timing()
+          input.config.value.timing ??
+            create(JobHookConfig_JobSqlHook_TimingSchema)
         ),
       };
     }
@@ -152,16 +158,21 @@ export function editFormDataToJobHook(
   input: JobHook,
   values: EditJobHookFormValues
 ): JobHook {
-  return new JobHook({
+  const newValues = newFormDataToNewJobHook(values);
+  return create(JobHookSchema, {
     ...input,
-    ...newFormDataToNewJobHook(values),
+    name: newValues.name,
+    description: newValues.description,
+    enabled: newValues.enabled,
+    priority: newValues.priority,
+    config: newValues.config,
   });
 }
 
 export function newFormDataToNewJobHook(
   values: NewJobHookFormValues
 ): NewJobHook {
-  return new NewJobHook({
+  return create(NewJobHookSchema, {
     name: values.name,
     description: values.description,
     enabled: values.enabled,
@@ -175,10 +186,10 @@ function toJobHookConfig(
 ): JobHookConfig | undefined {
   switch (values.hookType) {
     case 'sql': {
-      return new JobHookConfig({
+      return create(JobHookConfigSchema, {
         config: {
           case: 'sql',
-          value: new JobHookConfig_JobSqlHook({
+          value: create(JobHookConfig_JobSqlHookSchema, {
             connectionId: values.config.sql.connectionId,
             query: values.config.sql.query,
             timing: toJobHookSqlTimingConfig(values.config.sql.timing),
@@ -194,26 +205,26 @@ function toJobHookSqlTimingConfig(
 ): JobHookConfig_JobSqlHook_Timing {
   switch (values) {
     case 'preSync': {
-      return new JobHookConfig_JobSqlHook_Timing({
+      return create(JobHookConfig_JobSqlHook_TimingSchema, {
         timing: {
           case: 'preSync',
-          value: new JobHookTimingPreSync(),
+          value: create(JobHookTimingPreSyncSchema),
         },
       });
     }
     case 'postSync': {
-      return new JobHookConfig_JobSqlHook_Timing({
+      return create(JobHookConfig_JobSqlHook_TimingSchema, {
         timing: {
           case: 'postSync',
-          value: new JobHookTimingPostSync(),
+          value: create(JobHookTimingPostSyncSchema),
         },
       });
     }
     default: {
-      return new JobHookConfig_JobSqlHook_Timing({
+      return create(JobHookConfig_JobSqlHook_TimingSchema, {
         timing: {
           case: 'preSync',
-          value: new JobHookTimingPreSync(),
+          value: create(JobHookTimingPreSyncSchema),
         },
       });
     }

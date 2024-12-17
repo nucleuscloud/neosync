@@ -27,10 +27,12 @@ import {
   EditConnectionFormContext,
   MongoDbFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  CheckConnectionConfigResponseSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import {
@@ -91,7 +93,7 @@ export default function MongoDbForm(props: Props): ReactElement {
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
-        new CheckConnectionConfigResponse({
+        create(CheckConnectionConfigResponseSchema, {
           isConnected: false,
           connectionError: err instanceof Error ? err.message : 'unknown error',
         })
@@ -246,7 +248,8 @@ export default function MongoDbForm(props: Props): ReactElement {
 
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}

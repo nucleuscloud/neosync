@@ -16,12 +16,13 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import {
   ConnectionConfig,
+  ConnectionConfigSchema,
   ConnectionRolePrivilege,
-  GetConnectionResponse,
+  GetConnectionResponseSchema,
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
@@ -75,7 +76,8 @@ export default function PermissionsPage({ params }: PageProps) {
     () =>
       getPermissionColumns(
         getPermissionColumnType(
-          data?.connection?.connectionConfig ?? new ConnectionConfig()
+          data?.connection?.connectionConfig ??
+            create(ConnectionConfigSchema, {})
         )
       ),
     [isLoading]
@@ -99,8 +101,12 @@ export default function PermissionsPage({ params }: PageProps) {
     connection: data?.connection!,
     onSaved: (resp) => {
       queryclient.setQueryData(
-        createConnectQueryKey(getConnection, { id: resp.connection?.id }),
-        new GetConnectionResponse({
+        createConnectQueryKey({
+          schema: getConnection,
+          input: { id: resp.connection?.id },
+          cardinality: undefined,
+        }),
+        create(GetConnectionResponseSchema, {
           connection: resp.connection,
         })
       );
@@ -116,7 +122,8 @@ export default function PermissionsPage({ params }: PageProps) {
           data?.connection?.id && (
             <CloneConnectionButton
               connectionConfig={
-                data?.connection?.connectionConfig ?? new ConnectionConfig()
+                data?.connection?.connectionConfig ??
+                create(ConnectionConfigSchema, {})
               }
               id={data?.connection?.id ?? ''}
             />
@@ -176,7 +183,7 @@ interface PermissionsPageContainerProps {
   connectionName: string;
   data: ConnectionRolePrivilege[];
   isDbConnected: boolean;
-  columns: ColumnDef<PlainMessage<ConnectionRolePrivilege>>[];
+  columns: ColumnDef<ConnectionRolePrivilege>[];
   recheck(): Promise<void>;
   isRechecking: boolean;
 }

@@ -14,8 +14,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { Connection, ConnectionConfig } from '@neosync/sdk';
+import { Connection, ConnectionConfigSchema } from '@neosync/sdk';
 import { deleteConnection } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -73,7 +74,10 @@ export function DataTableRowActions<TData>({
           className="cursor-pointer"
           onClick={() =>
             router.push(
-              `/${account?.name}/new/connection/${getConnectionUrlSlugName(connection.connectionConfig ?? new ConnectionConfig())}?sourceId=${connection.id}`
+              `/${account?.name}/new/connection/${getConnectionUrlSlugName(
+                connection.connectionConfig ??
+                  create(ConnectionConfigSchema, {})
+              )}?sourceId=${connection.id}`
             )
           }
         >

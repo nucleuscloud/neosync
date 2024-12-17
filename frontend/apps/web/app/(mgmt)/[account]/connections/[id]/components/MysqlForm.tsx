@@ -38,10 +38,12 @@ import {
   MysqlEditConnectionFormContext,
   MysqlFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  CheckConnectionConfigResponseSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import {
@@ -654,7 +656,8 @@ export default function MysqlForm(props: Props) {
         </Accordion>
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
@@ -681,7 +684,7 @@ export default function MysqlForm(props: Props) {
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
                 setValidationResponse(
-                  new CheckConnectionConfigResponse({
+                  create(CheckConnectionConfigResponseSchema, {
                     isConnected: false,
                     connectionError:
                       err instanceof Error ? err.message : 'unknown error',

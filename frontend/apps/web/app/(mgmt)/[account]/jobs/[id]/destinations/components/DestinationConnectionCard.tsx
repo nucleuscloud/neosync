@@ -24,11 +24,7 @@ import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Connection,
-  JobDestination,
-  JobDestinationOptions,
-} from '@neosync/sdk';
+import { Connection, JobDestination } from '@neosync/sdk';
 import {
   deleteJobDestinationConnection,
   updateJobDestinationConnection,
@@ -80,9 +76,7 @@ export default function DestinationConnectionCard({
         jobId,
         connectionId: values.connectionId,
         destinationId: destination.id,
-        options: new JobDestinationOptions(
-          toJobDestinationOptions(values, connection)
-        ),
+        options: toJobDestinationOptions(values, connection),
       });
       mutate();
       toast.success('Successfully updated job destination!');
