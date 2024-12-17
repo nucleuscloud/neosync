@@ -61,7 +61,6 @@ import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
-  fromStructToRecord,
   getSampleEditAiGeneratedRecordsRequest,
   getSingleTableAiGenerateNumRows,
   getSingleTableAiSchemaTable,
@@ -233,7 +232,7 @@ export default function AiDataGenConnectionCard({
       const output = await sampleRecords(
         getSampleEditAiGeneratedRecordsRequest(form.getValues())
       );
-      setaioutput(output.records.map((r) => fromStructToRecord(r)));
+      setaioutput(output.records);
     } catch (err) {
       toast.error('Unable to generate sample data', {
         description: getErrorMessage(err),
@@ -271,7 +270,11 @@ export default function AiDataGenConnectionCard({
         async (id) => {
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnection, { id }),
+            createConnectQueryKey({
+              schema: getConnection,
+              input: { id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -279,7 +282,11 @@ export default function AiDataGenConnectionCard({
         async (id) => {
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            createConnectQueryKey({
+              schema: getConnectionSchemaMap,
+              input: { connectionId: id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
