@@ -137,7 +137,6 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.ingress.enabled | bool | `false` | Enable this if using K8s ingress to expose the backend to the internet |
 | app.istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
 | app.jobHooks.enabled | bool | `false` | Enables Job Hooks on the frontend. Note: This will only work if it has also been enabled via the backend with a valid license |
-| app.unify.key | string | `nil` | Unify Key |
 | app.nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | app.neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |
 | app.neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
@@ -163,6 +162,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | app.terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | app.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
+| app.unify.key | string | `nil` | Unify Key |
 | app.updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
 | worker.autoscaling.enabled | bool | `false` | Whether or not to install the HPA autoscaler |
 | worker.autoscaling.maxReplicas | int | `4` | The maximum number of replicas to scale to |

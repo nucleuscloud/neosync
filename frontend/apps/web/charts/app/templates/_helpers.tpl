@@ -134,7 +134,7 @@ POSTHOG_KEY: {{ .Values.posthog.key }}
 POSTHOG_HOST: {{ .Values.posthog.host }}
 {{- end }}
 {{- if and .Values.unify .Values.unify.key }}
-KOALA_KEY: {{ .Values.unify.key }}
+UNIFY_KEY: {{ .Values.unify.key }}
 {{- end }}
 NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
 ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}
