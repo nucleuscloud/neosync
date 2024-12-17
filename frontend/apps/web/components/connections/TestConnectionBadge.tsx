@@ -1,5 +1,8 @@
 'use client';
-import { CheckConnectionConfigResponse } from '@neosync/sdk';
+import {
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigResponse,
+} from '@neosync/sdk';
 import { ArrowTopRightIcon, CheckCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
@@ -7,7 +10,10 @@ import { MdErrorOutline } from 'react-icons/md';
 import { TiWarningOutline } from 'react-icons/ti';
 
 interface TestConnectionBadgeProps {
-  validationResponse: CheckConnectionConfigResponse | undefined;
+  validationResponse:
+    | CheckConnectionConfigResponse
+    | CheckConnectionConfigByIdResponse
+    | undefined;
   connectionId: string | undefined;
   accountName: string;
 }
@@ -27,7 +33,10 @@ export default function TestConnectionBadge(
 }
 
 interface ValidationResponseBadgeProps {
-  validationResponse: CheckConnectionConfigResponse | undefined;
+  validationResponse:
+    | CheckConnectionConfigResponse
+    | CheckConnectionConfigByIdResponse
+    | undefined;
   accountName: string;
   connectionId: string;
 }

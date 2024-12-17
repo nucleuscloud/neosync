@@ -3,11 +3,13 @@ import {
   convertJobMappingTransformerToForm,
   JobMappingFormValues,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
-  GenerateDefault,
+  GenerateDefaultSchema,
   JobMappingTransformer,
-  Passthrough,
-  TransformerConfig,
+  JobMappingTransformerSchema,
+  PassthroughSchema,
+  TransformerConfigSchema,
 } from '@neosync/sdk';
 
 interface Props {
@@ -57,19 +59,19 @@ export function useOnApplyDefaultClick(
 
 function getDefaultJMTransformer(useDefault: boolean): JobMappingTransformer {
   return useDefault
-    ? new JobMappingTransformer({
-        config: new TransformerConfig({
+    ? create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'generateDefaultConfig',
-            value: new GenerateDefault(),
+            value: create(GenerateDefaultSchema),
           },
         }),
       })
-    : new JobMappingTransformer({
-        config: new TransformerConfig({
+    : create(JobMappingTransformerSchema, {
+        config: create(TransformerConfigSchema, {
           config: {
             case: 'passthroughConfig',
-            value: new Passthrough(),
+            value: create(PassthroughSchema),
           },
         }),
       });

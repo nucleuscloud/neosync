@@ -2,15 +2,11 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformPhoneNumber } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { TransformPhoneNumber, TransformPhoneNumberSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
-interface Props
-  extends TransformerConfigProps<
-    TransformPhoneNumber,
-    PlainMessage<TransformPhoneNumber>
-  > {}
+interface Props extends TransformerConfigProps<TransformPhoneNumber> {}
 
 export default function TransformPhoneNumberForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -29,7 +25,7 @@ export default function TransformPhoneNumberForm(props: Props): ReactElement {
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
             setValue(
-              new TransformPhoneNumber({
+              create(TransformPhoneNumberSchema, {
                 ...value,
                 preserveLength: checked,
               })

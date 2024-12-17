@@ -34,6 +34,7 @@ import {
   getAccountRoleString,
   getErrorMessage,
 } from '@/util/util';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { AccountRole } from '@neosync/sdk';
 import {
@@ -140,8 +141,12 @@ export function InvitesTable(props: Props): React.ReactElement {
       return {
         id: invite.id,
         email: invite.email,
-        createdAt: invite.createdAt?.toDate() ?? new Date(),
-        expiresAt: invite.expiresAt?.toDate() ?? new Date(),
+        createdAt: invite.createdAt
+          ? timestampDate(invite.createdAt)
+          : new Date(),
+        expiresAt: invite.expiresAt
+          ? timestampDate(invite.expiresAt)
+          : new Date(),
         token: invite.token,
         role: invite.role,
       };

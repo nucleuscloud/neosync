@@ -2,16 +2,15 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateE164PhoneNumber } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  GenerateE164PhoneNumber,
+  GenerateE164PhoneNumberSchema,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateE164PhoneNumber,
-    PlainMessage<GenerateE164PhoneNumber>
-  > {}
+interface Props extends TransformerConfigProps<GenerateE164PhoneNumber> {}
 
 export default function GenerateInternationalPhoneNumberForm(
   props: Props
@@ -37,7 +36,7 @@ export default function GenerateInternationalPhoneNumberForm(
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateE164PhoneNumber({
+                      create(GenerateE164PhoneNumberSchema, {
                         ...value,
                         min: BigInt(e.target.valueAsNumber),
                       })
@@ -68,7 +67,7 @@ export default function GenerateInternationalPhoneNumberForm(
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateE164PhoneNumber({
+                      create(GenerateE164PhoneNumberSchema, {
                         ...value,
                         max: BigInt(e.target.valueAsNumber),
                       })

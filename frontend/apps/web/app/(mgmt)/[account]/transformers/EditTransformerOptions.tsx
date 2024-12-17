@@ -27,9 +27,14 @@ import {
   convertTransformerConfigToForm,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerConfig, TransformerSource } from '@neosync/sdk';
+import {
+  TransformerConfig,
+  TransformerConfigSchema,
+  TransformerSource,
+} from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
   EyeOpenIcon,
@@ -116,7 +121,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   ? convertTransformerConfigSchemaToTransformerConfig(
                       value.config
                     )
-                  : (transformer.config ?? new TransformerConfig())
+                  : (transformer.config ?? create(TransformerConfigSchema))
               }
               onSubmit={(newval) => {
                 onSubmit({

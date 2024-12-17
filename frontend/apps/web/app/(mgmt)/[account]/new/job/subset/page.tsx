@@ -30,9 +30,10 @@ import { Separator } from '@/components/ui/separator';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfig, JobMapping } from '@neosync/sdk';
+import { ConnectionConfigSchema, JobMappingSchema } from '@neosync/sdk';
 import {
   createJob,
   getConnections,
@@ -152,7 +153,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const connectionType = getConnectionType(
-    connection?.connectionConfig ?? new ConnectionConfig()
+    connection?.connectionConfig ?? create(ConnectionConfigSchema, {})
   );
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
@@ -335,7 +336,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           }}
                           columns={GetColumnsForSqlAutocomplete(
                             schemaFormValues?.mappings.map((row) => {
-                              return new JobMapping({
+                              return create(JobMappingSchema, {
                                 schema: row.schema,
                                 table: row.table,
                                 column: row.column,

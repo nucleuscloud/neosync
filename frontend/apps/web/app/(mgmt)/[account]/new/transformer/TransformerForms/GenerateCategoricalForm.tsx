@@ -2,16 +2,12 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateCategorical } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateCategorical, GenerateCategoricalSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateCategorical,
-    PlainMessage<GenerateCategorical>
-  > {}
+interface Props extends TransformerConfigProps<GenerateCategorical> {}
 
 export default function GenerateCategoricalForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -31,7 +27,10 @@ export default function GenerateCategoricalForm(props: Props): ReactElement {
           type="string"
           onChange={(e) =>
             setValue(
-              new GenerateCategorical({ ...value, categories: e.target.value })
+              create(GenerateCategoricalSchema, {
+                ...value,
+                categories: e.target.value,
+              })
             )
           }
           disabled={isDisabled}

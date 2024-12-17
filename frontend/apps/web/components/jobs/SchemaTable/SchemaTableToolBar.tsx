@@ -16,9 +16,10 @@ import {
   convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
   JobMapping,
-  JobMappingTransformer,
+  JobMappingTransformerSchema,
   SystemTransformer,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -69,7 +70,7 @@ export function SchemaTableToolbar<TData>({
 
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>(
-      convertJobMappingTransformerToForm(new JobMappingTransformer())
+      convertJobMappingTransformerToForm(create(JobMappingTransformerSchema))
     );
 
   const transformer = getTransformerFromField(bulkTransformer);
@@ -121,7 +122,9 @@ export function SchemaTableToolbar<TData>({
               }
               onBulkUpdate(rowIndices, bulkTransformer);
               setBulkTransformer(
-                convertJobMappingTransformerToForm(new JobMappingTransformer())
+                convertJobMappingTransformerToForm(
+                  create(JobMappingTransformerSchema)
+                )
               );
               table.resetRowSelection(true);
             }}

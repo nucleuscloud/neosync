@@ -34,6 +34,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -44,8 +45,8 @@ import {
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
   Job,
-  JobMapping,
-  JobMappingTransformer,
+  JobMappingSchema,
+  JobMappingTransformerSchema,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
@@ -195,7 +196,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             table: dbcol.table,
             column: dbcol.column,
             transformer: convertJobMappingTransformerToForm(
-              new JobMappingTransformer()
+              create(JobMappingTransformerSchema)
             ),
           });
         }
@@ -333,7 +334,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       await updateJobSrcConnection({
         id: job.id,
         mappings: values.mappings.map((m) => {
-          return new JobMapping({
+          return create(JobMappingSchema, {
             schema: m.schema,
             table: m.table,
             column: m.column,
@@ -393,7 +394,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnection, { id }),
+            createConnectQueryKey({
+              schema: getConnection,
+              input: { id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -401,7 +406,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            createConnectQueryKey({
+              schema: getConnectionSchemaMap,
+              input: { connectionId: id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -606,7 +615,9 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
       column: mapping.column,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+        : convertJobMappingTransformerToForm(
+            create(JobMappingTransformerSchema)
+          ),
     };
   });
 

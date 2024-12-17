@@ -26,19 +26,21 @@ import {
   SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionSchema,
   DatabaseColumn,
   ForeignConstraintTables,
   GetConnectionSchemaMapRequest,
-  GetConnectionSchemaMapsResponse,
+  GetConnectionSchemaMapRequestSchema,
+  GetConnectionSchemaMapsResponseSchema,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
-  VirtualForeignConstraint,
-  VirtualForeignKey,
+  VirtualForeignConstraintSchema,
+  VirtualForeignKeySchema,
 } from '@neosync/sdk';
 import {
   createJob,
@@ -165,9 +167,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     getConnectionSchemaMaps,
     {
       requests: connectFormValues.destinations.map(
-        (dest): PartialMessage<GetConnectionSchemaMapRequest> => ({
-          connectionId: dest.connectionId,
-        })
+        (dest): GetConnectionSchemaMapRequest =>
+          create(GetConnectionSchemaMapRequestSchema, {
+            connectionId: dest.connectionId,
+          })
       ),
     },
     {
@@ -280,11 +283,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const schemaConstraintHandler = useMemo(() => {
     const virtualForeignKeys = formVirtualForeignKeys?.map((v) => {
-      return new VirtualForeignConstraint({
+      return create(VirtualForeignConstraintSchema, {
         schema: v.schema,
         table: v.table,
         columns: v.columns,
-        foreignKey: new VirtualForeignKey({
+        foreignKey: create(VirtualForeignKeySchema, {
           schema: v.foreignKey.schema,
           table: v.foreignKey.table,
           columns: v.foreignKey.columns,
@@ -509,7 +512,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <JobsProgressSteps
                 steps={getJobProgressSteps(
                   'data-sync',
-                  isConnectionSubsettable(source ?? new Connection())
+                  isConnectionSubsettable(
+                    source ?? create(ConnectionSchema, {})
+                  )
                 )}
                 stepName={'schema'}
               />
@@ -522,7 +527,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {isNosqlSource(source ?? new Connection({})) && (
+          {isNosqlSource(source ?? create(ConnectionSchema, {})) && (
             <NosqlTable
               data={formMappings}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -657,11 +662,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 dynamoDbDestinations,
                 connectionsRecord,
                 destinationConnectionSchemaMapsResp ??
-                  new GetConnectionSchemaMapsResponse()
+                  create(GetConnectionSchemaMapsResponseSchema, {})
               )}
               onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
               showDestinationTableMappings={shouldShowDestinationTableMappings(
-                source ?? new Connection(),
+                source ?? create(ConnectionSchema, {}),
                 dynamoDbDestinationConnections.length > 0
               )}
               destinationOptions={form.watch('destinationOptions')}
@@ -688,7 +693,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             />
           )}
 
-          {!isNosqlSource(source ?? new Connection({})) && (
+          {!isNosqlSource(source ?? create(ConnectionSchema, {})) && (
             <SchemaTable
               data={formMappings}
               jobType="sync"
@@ -737,7 +742,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               Back
             </Button>
             <Button key="submit" type="submit">
-              {isConnectionSubsettable(source ?? new Connection())
+              {isConnectionSubsettable(source ?? create(ConnectionSchema, {}))
                 ? 'Next'
                 : 'Submit'}
             </Button>

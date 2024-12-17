@@ -1,12 +1,14 @@
+import { create } from '@bufbuild/protobuf';
 import {
   AwsS3ConnectionConfig,
   Connection,
   ConnectionConfig,
+  ConnectionSchema,
   DynamoDBConnectionConfig,
   GcpCloudStorageConnectionConfig,
-  GetJobRunEventsResponse,
-  GetJobRunResponse,
-  JobRun,
+  GetJobRunEventsResponseSchema,
+  GetJobRunResponseSchema,
+  JobRunSchema,
   JobRunStatus,
   MongoConnectionConfig,
   MysqlConnectionConfig,
@@ -57,32 +59,32 @@ describe('getSingleOrUndefined', () => {
 });
 
 describe('splitConnections', () => {
-  const postgres = new Connection({
+  const postgres = create(ConnectionSchema, {
     connectionConfig: {
       config: { case: 'pgConfig', value: {} as PostgresConnectionConfig },
     } as ConnectionConfig,
   });
-  const mysql = new Connection({
+  const mysql = create(ConnectionSchema, {
     connectionConfig: {
       config: { case: 'mysqlConfig', value: {} as MysqlConnectionConfig },
     } as ConnectionConfig,
   });
-  const s3 = new Connection({
+  const s3 = create(ConnectionSchema, {
     connectionConfig: {
       config: { case: 'awsS3Config', value: {} as AwsS3ConnectionConfig },
     } as ConnectionConfig,
   });
-  const openai = new Connection({
+  const openai = create(ConnectionSchema, {
     connectionConfig: {
       config: { case: 'openaiConfig', value: {} as OpenAiConnectionConfig },
     } as ConnectionConfig,
   });
-  const mongodb = new Connection({
+  const mongodb = create(ConnectionSchema, {
     connectionConfig: {
       config: { case: 'mongoConfig', value: {} as MongoConnectionConfig },
     } as ConnectionConfig,
   });
-  const gcpcs = new Connection({
+  const gcpcs = create(ConnectionSchema, {
     connectionConfig: {
       config: {
         case: 'gcpCloudstorageConfig',
@@ -90,7 +92,7 @@ describe('splitConnections', () => {
       },
     } as ConnectionConfig,
   });
-  const dynamodb = new Connection({
+  const dynamodb = create(ConnectionSchema, {
     connectionConfig: {
       config: {
         case: 'dynamodbConfig',
@@ -169,8 +171,8 @@ describe('refreshJobRunWhenJobRunning', () => {
   const TEN_SECONDS = 10 * 1000;
 
   it('should return 0 since COMPLETE is not in the list of status that shoudl return 10 seconds', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {
         status: JobRunStatus.COMPLETE,
       }),
     });
@@ -178,8 +180,8 @@ describe('refreshJobRunWhenJobRunning', () => {
     expect(result).toEqual(0);
   });
   it('should return 10 seconds in milliseconds since RUNNING is in th elist of status should return 10 seconds', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {
         status: JobRunStatus.RUNNING,
       }),
     });
@@ -187,8 +189,8 @@ describe('refreshJobRunWhenJobRunning', () => {
     expect(result).toEqual(TEN_SECONDS);
   });
   it('should return 10 seconds in milliseconds since PENDING is in th elist of status should return 10 seconds', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {
         status: JobRunStatus.PENDING,
       }),
     });
@@ -196,8 +198,8 @@ describe('refreshJobRunWhenJobRunning', () => {
     expect(result).toEqual(TEN_SECONDS);
   });
   it('should return 10 seconds in milliseconds since ERROR is in th elist of status should return 10 seconds', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {
         status: JobRunStatus.ERROR,
       }),
     });
@@ -205,8 +207,8 @@ describe('refreshJobRunWhenJobRunning', () => {
     expect(result).toEqual(TEN_SECONDS);
   });
   it('should return 0 since CANCELED is not in the list of status that shoudl return 10 seconds', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {
         status: JobRunStatus.CANCELED,
       }),
     });
@@ -214,14 +216,14 @@ describe('refreshJobRunWhenJobRunning', () => {
     expect(result).toEqual(0);
   });
   it('should return 0 because there is no jobRun.status', () => {
-    const data = new GetJobRunResponse({
-      jobRun: new JobRun({}),
+    const data = create(GetJobRunResponseSchema, {
+      jobRun: create(JobRunSchema, {}),
     });
     const result = refreshJobRunWhenJobRunning(data);
     expect(result).toEqual(0);
   });
   it('should return 0 because there is no jobRun', () => {
-    const data = new GetJobRunResponse({});
+    const data = create(GetJobRunResponseSchema, {});
     const result = refreshJobRunWhenJobRunning(data);
     expect(result).toEqual(0);
   });
@@ -229,7 +231,7 @@ describe('refreshJobRunWhenJobRunning', () => {
 
 describe('refreshEventsWhenEventsIncomplete', () => {
   it('should return 0 since isRunComplete is true', () => {
-    const input = new GetJobRunEventsResponse({
+    const input = create(GetJobRunEventsResponseSchema, {
       events: [],
       isRunComplete: true,
     });
@@ -237,7 +239,7 @@ describe('refreshEventsWhenEventsIncomplete', () => {
     expect(result).toEqual(0);
   });
   it('should return 10 seconds in milliseconds since isRunComplete is false', () => {
-    const input = new GetJobRunEventsResponse({
+    const input = create(GetJobRunEventsResponseSchema, {
       events: [],
       isRunComplete: false,
     });
@@ -245,7 +247,7 @@ describe('refreshEventsWhenEventsIncomplete', () => {
     expect(result).toEqual(10 * 1000);
   });
   it('should return 10 seconds in milliseconds since isRunComplete is not there', () => {
-    const input = new GetJobRunEventsResponse({
+    const input = create(GetJobRunEventsResponseSchema, {
       events: [],
     });
     const result = refreshEventsWhenEventsIncomplete(input);

@@ -4,8 +4,9 @@ import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { getTransformerDataTypesString } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
+import { GetUserDefinedTransformerByIdResponseSchema } from '@neosync/sdk';
 import { getUserDefinedTransformerById } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
@@ -56,13 +57,14 @@ export default function UpdateUserDefinedTransformerPage({
                 <UpdateTransformerForm
                   currentTransformer={data.transformer}
                   onUpdated={(updatedTransformer) => {
-                    const key = createConnectQueryKey(
-                      getUserDefinedTransformerById,
-                      { transformerId: id }
-                    );
+                    const key = createConnectQueryKey({
+                      schema: getUserDefinedTransformerById,
+                      input: { transformerId: id },
+                      cardinality: undefined,
+                    });
                     queryclient.setQueryData(
                       key,
-                      new GetUserDefinedTransformerByIdResponse({
+                      create(GetUserDefinedTransformerByIdResponseSchema, {
                         transformer: updatedTransformer,
                       })
                     );

@@ -2,16 +2,12 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformFirstName } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { TransformFirstName, TransformFirstNameSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformFirstName,
-    PlainMessage<TransformFirstName>
-  > {}
+interface Props extends TransformerConfigProps<TransformFirstName> {}
 
 export default function TransformFirstNameForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -28,7 +24,10 @@ export default function TransformFirstNameForm(props: Props): ReactElement {
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
             setValue(
-              new TransformFirstName({ ...value, preserveLength: checked })
+              create(TransformFirstNameSchema, {
+                ...value,
+                preserveLength: checked,
+              })
             )
           }
           disabled={isDisabled}

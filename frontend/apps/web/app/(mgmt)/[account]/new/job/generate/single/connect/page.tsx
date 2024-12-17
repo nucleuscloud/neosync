@@ -29,13 +29,15 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  CheckConnectionConfigResponse,
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigByIdResponseSchema,
   Code,
   ConnectError,
-  ConnectionConfig,
+  ConnectionConfigSchema,
 } from '@neosync/sdk';
 import {
   checkConnectionConfigById,
@@ -80,13 +82,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [isSourceValidating, setIsSourceValidating] = useState<boolean>(false);
 
   const [sourceValidationResponse, setSourceValidationResponse] = useState<
-    CheckConnectionConfigResponse | undefined
+    CheckConnectionConfigByIdResponse | undefined
   >();
   const [isDestinationValidating, setIsDestinationValidating] =
     useState<boolean>(false);
 
   const [destinationValidationResponse, setDestinationValidationResponse] =
-    useState<CheckConnectionConfigResponse | undefined>();
+    useState<CheckConnectionConfigByIdResponse | undefined>();
 
   const form = useForm({
     resolver: yupResolver<SingleTableConnectFormValues>(
@@ -185,7 +187,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                                 const connType = getConnectionType(
                                   connection?.connectionConfig ??
-                                    new ConnectionConfig()
+                                    create(ConnectionConfigSchema, {})
                                 );
 
                                 if (connType) {
@@ -223,7 +225,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                                 const destConnType = getConnectionType(
                                   destConnection?.connectionConfig ??
-                                    new ConnectionConfig()
+                                    create(ConnectionConfigSchema, {})
                                 );
                                 const newOpts =
                                   getDefaultDestinationFormValueOptionsFromConnectionCase(
@@ -256,13 +258,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   setSourceValidationResponse(undefined);
                                 } else {
                                   setSourceValidationResponse(
-                                    new CheckConnectionConfigResponse({
-                                      isConnected: false,
-                                      connectionError:
-                                        err instanceof Error
-                                          ? err.message
-                                          : 'unknown error',
-                                    })
+                                    create(
+                                      CheckConnectionConfigByIdResponseSchema,
+                                      {
+                                        isConnected: false,
+                                        connectionError:
+                                          err instanceof Error
+                                            ? err.message
+                                            : 'unknown error',
+                                      }
+                                    )
                                   );
                                 }
                               } finally {
@@ -358,7 +363,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               const destConnType = getConnectionType(
                                 destConnection?.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               const newOpts =
                                 getDefaultDestinationFormValueOptionsFromConnectionCase(
@@ -391,13 +396,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   setDestinationValidationResponse(undefined);
                                 } else {
                                   setDestinationValidationResponse(
-                                    new CheckConnectionConfigResponse({
-                                      isConnected: false,
-                                      connectionError:
-                                        err instanceof Error
-                                          ? err.message
-                                          : 'unknown error',
-                                    })
+                                    create(
+                                      CheckConnectionConfigByIdResponseSchema,
+                                      {
+                                        isConnected: false,
+                                        connectionError:
+                                          err instanceof Error
+                                            ? err.message
+                                            : 'unknown error',
+                                      }
+                                    )
                                   );
                                 }
                               } finally {

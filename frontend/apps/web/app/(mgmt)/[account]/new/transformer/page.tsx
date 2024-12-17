@@ -30,12 +30,13 @@ import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  GenerateBool,
-  SystemTransformer,
-  TransformerConfig,
+  GenerateBoolSchema,
+  SystemTransformerSchema,
+  TransformerConfigSchema,
   TransformerSource,
 } from '@neosync/sdk';
 import {
@@ -95,8 +96,11 @@ export default function NewTransformer(): ReactElement {
       name: '',
       source: transformerSource,
       config: convertTransformerConfigToForm(
-        new TransformerConfig({
-          config: { case: 'generateBoolConfig', value: new GenerateBool() },
+        create(TransformerConfigSchema, {
+          config: {
+            case: 'generateBoolConfig',
+            value: create(GenerateBoolSchema, {}),
+          },
         })
       ),
       description: '',
@@ -151,7 +155,7 @@ export default function NewTransformer(): ReactElement {
 
   const base =
     transformers.find((t) => t.source === formSource) ??
-    new SystemTransformer();
+    create(SystemTransformerSchema, {});
 
   const configCase = form.watch('config.case');
 

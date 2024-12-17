@@ -8,21 +8,17 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useReadNeosyncTransformerDeclarationFile } from '@/libs/hooks/useReadNeosyncTransfomerDeclarationFile';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { TransformJavascript } from '@neosync/sdk';
+import { TransformJavascript, TransformJavascriptSchema } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformJavascript,
-    PlainMessage<TransformJavascript>
-  > {}
+interface Props extends TransformerConfigProps<TransformJavascript> {}
 
 export type ValidCode = 'valid' | 'invalid' | 'null';
 
@@ -135,7 +131,10 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
           theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
           onChange={(newCode) => {
             setValue(
-              new TransformJavascript({ ...value, code: newCode ?? '' })
+              create(TransformJavascriptSchema, {
+                ...value,
+                code: newCode ?? '',
+              })
             );
           }}
           options={options}

@@ -44,7 +44,7 @@ import {
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -53,25 +53,33 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionSchema,
   DynamoDBSourceConnectionOptions,
-  DynamoDBSourceUnmappedTransformConfig,
+  DynamoDBSourceConnectionOptionsSchema,
+  DynamoDBSourceUnmappedTransformConfigSchema,
   GetConnectionResponse,
   GetConnectionSchemaMapRequest,
+  GetConnectionSchemaMapRequestSchema,
   GetConnectionSchemaMapResponse,
-  GetConnectionSchemaMapsResponse,
+  GetConnectionSchemaMapsResponseSchema,
   GetConnectionSchemaResponse,
   Job,
-  JobMapping,
-  JobMappingTransformer,
-  JobSource,
+  JobMappingSchema,
+  JobMappingTransformerSchema,
   JobSourceOptions,
+  JobSourceOptionsSchema,
+  JobSourceSchema,
   MongoDBSourceConnectionOptions,
+  MongoDBSourceConnectionOptionsSchema,
   MssqlSourceConnectionOptions,
+  MssqlSourceConnectionOptionsSchema,
   MysqlSourceConnectionOptions,
+  MysqlSourceConnectionOptionsSchema,
   PostgresSourceConnectionOptions,
+  PostgresSourceConnectionOptionsSchema,
   ValidateJobMappingsResponse,
-  VirtualForeignConstraint,
-  VirtualForeignKey,
+  VirtualForeignConstraintSchema,
+  VirtualForeignKeySchema,
 } from '@neosync/sdk';
 import {
   getConnection,
@@ -138,9 +146,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     getConnectionSchemaMaps,
     {
       requests: data?.job?.destinations.map(
-        (dest): PartialMessage<GetConnectionSchemaMapRequest> => ({
-          connectionId: dest.connectionId,
-        })
+        (dest): GetConnectionSchemaMapRequest =>
+          create(GetConnectionSchemaMapRequestSchema, {
+            connectionId: dest.connectionId,
+          })
       ),
     },
     {
@@ -206,11 +215,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     const virtualForeignKeys = Array.from(data?.job?.virtualForeignKeys ?? []);
     formVirtualForeignKeys?.forEach((v) => {
       virtualForeignKeys.push(
-        new VirtualForeignConstraint({
+        create(VirtualForeignConstraintSchema, {
           schema: v.schema,
           table: v.table,
           columns: v.columns,
-          foreignKey: new VirtualForeignKey({
+          foreignKey: create(VirtualForeignKeySchema, {
             schema: v.foreignKey.schema,
             table: v.foreignKey.table,
             columns: v.foreignKey.columns,
@@ -267,7 +276,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnection, { id }),
+            createConnectQueryKey({
+              schema: getConnection,
+              input: { id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -275,7 +288,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            createConnectQueryKey({
+              schema: getConnectionSchemaMap,
+              input: { connectionId: id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -300,7 +317,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       await updateJobSrcConnection({
         id: job.id,
         mappings: values.mappings.map((m) => {
-          return new JobMapping({
+          return create(JobMappingSchema, {
             schema: m.schema,
             table: m.table,
             column: m.column,
@@ -312,18 +329,18 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         }),
         virtualForeignKeys:
           values.virtualForeignKeys?.map((v) => {
-            return new VirtualForeignConstraint({
+            return create(VirtualForeignConstraintSchema, {
               schema: v.schema,
               table: v.table,
               columns: v.columns,
-              foreignKey: new VirtualForeignKey({
+              foreignKey: create(VirtualForeignKeySchema, {
                 schema: v.foreignKey.schema,
                 table: v.foreignKey.table,
                 columns: v.foreignKey.columns,
               }),
             });
           }) || [],
-        source: new JobSource({
+        source: create(JobSourceSchema, {
           options: toJobSourceOptions(values, job, connection, values.sourceId),
         }),
       });
@@ -649,7 +666,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             }}
           />
 
-          {isNosqlSource(source ?? new Connection()) && (
+          {isNosqlSource(source ?? create(ConnectionSchema)) && (
             <NosqlTable
               data={formMappings}
               destinationOptions={form.watch('destinationOptions')}
@@ -786,11 +803,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 dynamoDBDestinations,
                 connectionsRecord,
                 destinationConnectionSchemaMapsResp ??
-                  new GetConnectionSchemaMapsResponse()
+                  create(GetConnectionSchemaMapsResponseSchema)
               )}
               onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
               showDestinationTableMappings={shouldShowDestinationTableMappings(
-                source ?? new Connection(),
+                source ?? create(ConnectionSchema),
                 dynamoDBDestinations.length > 0
               )}
               onImportMappingsClick={onImportMappingsClick}
@@ -816,7 +833,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             />
           )}
 
-          {!isNosqlSource(source ?? new Connection()) && (
+          {!isNosqlSource(source ?? create(ConnectionSchema)) && (
             <SchemaTable
               data={formMappings}
               virtualForeignKeys={formVirtualForeignKeys}
@@ -877,10 +894,10 @@ function toJobSourceOptions(
 ): JobSourceOptions {
   switch (connection.connectionConfig?.config.case) {
     case 'pgConfig': {
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'postgres',
-          value: new PostgresSourceConnectionOptions({
+          value: create(PostgresSourceConnectionOptionsSchema, {
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
             newColumnAdditionStrategy:
@@ -892,73 +909,76 @@ function toJobSourceOptions(
       });
     }
     case 'mysqlConfig':
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mysql',
-          value: new MysqlSourceConnectionOptions({
+          value: create(MysqlSourceConnectionOptionsSchema, {
             ...getExistingMysqlSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.mysql?.haltOnNewColumnAddition,
+              values.sourceOptions.mysql?.haltOnNewColumnAddition ?? false,
           }),
         },
       });
     case 'mongoConfig':
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mongodb',
-          value: new MongoDBSourceConnectionOptions({
+          value: create(MongoDBSourceConnectionOptionsSchema, {
             ...getExistingMongoSourceConnectionOptions(job),
             connectionId: newSourceId,
           }),
         },
       });
     case 'dynamodbConfig': {
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'dynamodb',
-          value: new DynamoDBSourceConnectionOptions({
+          value: create(DynamoDBSourceConnectionOptionsSchema, {
             ...getExistingDynamoDBSourceConnectionOptions(job),
             connectionId: newSourceId,
-            unmappedTransforms: new DynamoDBSourceUnmappedTransformConfig({
-              b: values.sourceOptions.dynamodb?.unmappedTransformConfig?.byte
-                ? convertJobMappingTransformerFormToJobMappingTransformer(
-                    values.sourceOptions.dynamodb.unmappedTransformConfig.byte
-                  )
-                : undefined,
-              boolean: values.sourceOptions.dynamodb?.unmappedTransformConfig
-                ?.boolean
-                ? convertJobMappingTransformerFormToJobMappingTransformer(
-                    values.sourceOptions.dynamodb.unmappedTransformConfig
-                      .boolean
-                  )
-                : undefined,
-              n: values.sourceOptions.dynamodb?.unmappedTransformConfig?.n
-                ? convertJobMappingTransformerFormToJobMappingTransformer(
-                    values.sourceOptions.dynamodb.unmappedTransformConfig.n
-                  )
-                : undefined,
-              s: values.sourceOptions.dynamodb?.unmappedTransformConfig?.s
-                ? convertJobMappingTransformerFormToJobMappingTransformer(
-                    values.sourceOptions.dynamodb.unmappedTransformConfig.s
-                  )
-                : undefined,
-            }),
+            unmappedTransforms: create(
+              DynamoDBSourceUnmappedTransformConfigSchema,
+              {
+                b: values.sourceOptions.dynamodb?.unmappedTransformConfig?.byte
+                  ? convertJobMappingTransformerFormToJobMappingTransformer(
+                      values.sourceOptions.dynamodb.unmappedTransformConfig.byte
+                    )
+                  : undefined,
+                boolean: values.sourceOptions.dynamodb?.unmappedTransformConfig
+                  ?.boolean
+                  ? convertJobMappingTransformerFormToJobMappingTransformer(
+                      values.sourceOptions.dynamodb.unmappedTransformConfig
+                        .boolean
+                    )
+                  : undefined,
+                n: values.sourceOptions.dynamodb?.unmappedTransformConfig?.n
+                  ? convertJobMappingTransformerFormToJobMappingTransformer(
+                      values.sourceOptions.dynamodb.unmappedTransformConfig.n
+                    )
+                  : undefined,
+                s: values.sourceOptions.dynamodb?.unmappedTransformConfig?.s
+                  ? convertJobMappingTransformerFormToJobMappingTransformer(
+                      values.sourceOptions.dynamodb.unmappedTransformConfig.s
+                    )
+                  : undefined,
+              }
+            ),
             enableConsistentRead:
-              values.sourceOptions.dynamodb?.enableConsistentRead,
+              values.sourceOptions.dynamodb?.enableConsistentRead ?? false,
           }),
         },
       });
     }
     case 'mssqlConfig': {
-      return new JobSourceOptions({
+      return create(JobSourceOptionsSchema, {
         config: {
           case: 'mssql',
-          value: new MssqlSourceConnectionOptions({
+          value: create(MssqlSourceConnectionOptionsSchema, {
             ...getExistingMssqlSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.mssql?.haltOnNewColumnAddition,
+              values.sourceOptions.mssql?.haltOnNewColumnAddition ?? false,
           }),
         },
       });
@@ -971,42 +991,42 @@ function toJobSourceOptions(
 
 function getExistingPostgresSourceConnectionOptions(
   job: Job
-): PostgresSourceConnectionOptions | undefined {
+): PostgresSourceConnectionOptions {
   return job.source?.options?.config.case === 'postgres'
     ? job.source.options.config.value
-    : undefined;
+    : create(PostgresSourceConnectionOptionsSchema);
 }
 
 function getExistingMysqlSourceConnectionOptions(
   job: Job
-): MysqlSourceConnectionOptions | undefined {
+): MysqlSourceConnectionOptions {
   return job.source?.options?.config.case === 'mysql'
     ? job.source.options.config.value
-    : undefined;
+    : create(MysqlSourceConnectionOptionsSchema);
 }
 
 function getExistingMssqlSourceConnectionOptions(
   job: Job
-): MssqlSourceConnectionOptions | undefined {
+): MssqlSourceConnectionOptions {
   return job.source?.options?.config.case === 'mssql'
     ? job.source.options.config.value
-    : undefined;
+    : create(MssqlSourceConnectionOptionsSchema);
 }
 
 function getExistingMongoSourceConnectionOptions(
   job: Job
-): MongoDBSourceConnectionOptions | undefined {
+): MongoDBSourceConnectionOptions {
   return job.source?.options?.config.case === 'mongodb'
     ? job.source.options.config.value
-    : undefined;
+    : create(MongoDBSourceConnectionOptionsSchema);
 }
 
 function getExistingDynamoDBSourceConnectionOptions(
   job: Job
-): DynamoDBSourceConnectionOptions | undefined {
+): DynamoDBSourceConnectionOptions {
   return job.source?.options?.config.case === 'dynamodb'
     ? job.source.options.config.value
-    : undefined;
+    : create(DynamoDBSourceConnectionOptionsSchema);
 }
 
 function getJobSource(
@@ -1026,7 +1046,7 @@ function getJobSource(
 
   const mapData: Record<string, Set<string>> = {};
 
-  const mappings = (job.mappings ?? []).map((mapping) => {
+  const mappings = (job.mappings ?? []).map((mapping): JobMappingFormValues => {
     const tkey = `${mapping.schema}.${mapping.table}`;
     const uniqcols = mapData[tkey];
     if (uniqcols) {
@@ -1039,7 +1059,9 @@ function getJobSource(
       ...mapping,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+        : convertJobMappingTransformerToForm(
+            create(JobMappingTransformerSchema)
+          ),
     };
   });
 
@@ -1071,7 +1093,7 @@ function getJobSource(
             table: dbcol.table,
             column: dbcol.column,
             transformer: convertJobMappingTransformerToForm(
-              new JobMappingTransformer()
+              create(JobMappingTransformerSchema)
             ),
           });
         }

@@ -32,12 +32,14 @@ import {
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
-  GetConnectionSchemaMapsResponse,
-  JobDestination,
+  ConnectionSchema,
+  CreateJobDestinationSchema,
+  GetConnectionSchemaMapsResponseSchema,
 } from '@neosync/sdk';
 import {
   createJobDestinationConnections,
@@ -88,7 +90,7 @@ export default function Page({ params }: PageProps): ReactElement {
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const sourceConnection = sourceConnectionId
     ? connRecord[sourceConnectionId]
-    : new Connection();
+    : create(ConnectionSchema, {});
 
   const form = useForm({
     resolver: yupResolver<FormValues>(FormValues),
@@ -132,7 +134,7 @@ export default function Page({ params }: PageProps): ReactElement {
       const job = await createJobConnections({
         jobId: id,
         destinations: values.destinations.map((d) => {
-          return new JobDestination({
+          return create(CreateJobDestinationSchema, {
             connectionId: d.connectionId,
             options: toJobDestinationOptions(d, connMap.get(d.connectionId)),
           });
@@ -269,7 +271,7 @@ export default function Page({ params }: PageProps): ReactElement {
                       }}
                       hideDynamoDbTableMappings={
                         !isDynamoDBConnection(
-                          destConnection ?? new Connection()
+                          destConnection ?? create(ConnectionSchema, {})
                         )
                       }
                       destinationDetailsRecord={getDestinationDetailsRecord(
@@ -279,7 +281,7 @@ export default function Page({ params }: PageProps): ReactElement {
                         })),
                         connRecord,
                         destinationConnectionSchemaMapsResp ??
-                          new GetConnectionSchemaMapsResponse()
+                          create(GetConnectionSchemaMapsResponseSchema, {})
                       )}
                       errors={destinationsErrors[index]?.destinationOptions}
                     />

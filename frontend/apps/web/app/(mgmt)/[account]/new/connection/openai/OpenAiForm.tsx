@@ -19,9 +19,10 @@ import {
   CreateConnectionFormContext,
   OpenAiFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
+import { GetConnectionResponseSchema } from '@neosync/sdk';
 import {
   createConnection,
   getConnection,
@@ -82,10 +83,14 @@ export default function OpenAiForm(props: Props): ReactElement {
       });
       toast.success('Successfully created OpenAI Connection!');
       queryclient.setQueryData(
-        createConnectQueryKey(getConnection, {
-          id: connectionResp.connection?.id,
+        createConnectQueryKey({
+          schema: getConnection,
+          input: { id: connectionResp.connection?.id },
+          cardinality: undefined,
         }),
-        new GetConnectionResponse({ connection: connectionResp.connection })
+        create(GetConnectionResponseSchema, {
+          connection: connectionResp.connection,
+        })
       );
 
       posthog.capture('New Connection Created', { type: 'openai' });

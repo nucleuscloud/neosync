@@ -22,9 +22,10 @@ import {
   CreateConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
+import { GetConnectionResponseSchema } from '@neosync/sdk';
 import {
   createConnection,
   getConnection,
@@ -92,10 +93,12 @@ export default function GcpCloudStorageForm(): ReactElement {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: newConnection.connection.id,
+          createConnectQueryKey({
+            schema: getConnection,
+            input: { id: newConnection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: newConnection.connection,
           })
         );

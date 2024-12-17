@@ -10,18 +10,17 @@ import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { Button } from '@/components/ui/button';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { TransformCharacterScramble } from '@neosync/sdk';
+import {
+  TransformCharacterScramble,
+  TransformCharacterScrambleSchema,
+} from '@neosync/sdk';
 import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformCharacterScramble,
-    PlainMessage<TransformCharacterScramble>
-  > {}
+interface Props extends TransformerConfigProps<TransformCharacterScramble> {}
 
 type ValidRegex = 'valid' | 'invalid' | 'null';
 
@@ -105,7 +104,7 @@ export default function TransformCharacterScrambleForm(
               value={value.userProvidedRegex}
               onChange={(e) => {
                 setValue(
-                  new TransformCharacterScramble({
+                  create(TransformCharacterScrambleSchema, {
                     ...value,
                     userProvidedRegex: e.target.value,
                   })

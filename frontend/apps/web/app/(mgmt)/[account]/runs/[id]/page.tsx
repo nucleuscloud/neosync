@@ -32,6 +32,7 @@ import {
   refreshJobRunWhenJobRunning,
 } from '@/libs/utils';
 import { formatDateTime, getErrorMessage } from '@/util/util';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { Editor } from '@monaco-editor/react';
 import {
@@ -118,8 +119,8 @@ export default function Page({ params }: PageProps): ReactElement {
     let timer: NodeJS.Timeout;
     if (jobRun?.startedAt && jobRun?.status === JobRunStatusEnum.RUNNING) {
       const updateDuration = () => {
-        if (jobRun?.startedAt?.toDate()) {
-          setDuration(getDuration(new Date(), jobRun?.startedAt?.toDate()));
+        if (jobRun?.startedAt) {
+          setDuration(getDuration(new Date(), timestampDate(jobRun.startedAt)));
         }
       };
 
@@ -128,7 +129,10 @@ export default function Page({ params }: PageProps): ReactElement {
       timer = setInterval(updateDuration, 1000);
     } else if (jobRun?.completedAt && jobRun?.startedAt) {
       setDuration(
-        getDuration(jobRun.completedAt.toDate(), jobRun.startedAt.toDate())
+        getDuration(
+          timestampDate(jobRun.completedAt),
+          timestampDate(jobRun.startedAt)
+        )
       );
     }
     // cleans up and restarts the interval if the job isn't done yet
@@ -309,11 +313,17 @@ export default function Page({ params }: PageProps): ReactElement {
             />
             <StatCard
               header="Start Time"
-              content={formatDateTime(jobRun?.startedAt?.toDate())}
+              content={formatDateTime(
+                jobRun?.startedAt ? timestampDate(jobRun.startedAt) : new Date()
+              )}
             />
             <StatCard
               header="Completion Time"
-              content={formatDateTime(jobRun?.completedAt?.toDate())}
+              content={formatDateTime(
+                jobRun?.completedAt
+                  ? timestampDate(jobRun.completedAt)
+                  : new Date()
+              )}
             />
             <StatCard header="Duration" content={duration} />
           </div>

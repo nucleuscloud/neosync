@@ -1,7 +1,8 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import { RequestContext } from '@/shared';
+import { create } from '@bufbuild/protobuf';
 import {
-  GetJobRunLogsStreamRequest,
+  GetJobRunLogsStreamRequestSchema,
   GetJobRunLogsStreamResponse,
   LogLevel,
   LogWindow,
@@ -16,7 +17,7 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const loglevel = searchParams.get('loglevel');
     const response = ctx.client.jobs.getJobRunLogsStream(
-      new GetJobRunLogsStreamRequest({
+      create(GetJobRunLogsStreamRequestSchema, {
         jobRunId: params.id,
         accountId: params.accountId,
         window: getWindow('1d'),

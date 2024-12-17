@@ -28,17 +28,17 @@ import {
   convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ConnectError,
-  JobMappingTransformer,
-  Passthrough,
-  SystemTransformer,
-  TransformerConfig,
+  JobMappingTransformerSchema,
+  PassthroughSchema,
+  SystemTransformerSchema,
+  TransformerConfigSchema,
   TransformerSource,
-  ValidateUserJavascriptCodeRequest,
+  ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
@@ -99,7 +99,7 @@ interface AddNewNosqlRecordFormContext {
   isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
-    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    MessageInitShape<typeof ValidateUserJavascriptCodeRequestSchema>,
     unknown
   >;
   isDuplicateKey: (value: string, schema: string, table: string) => boolean;
@@ -122,12 +122,12 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
       collection: '',
       key: '',
       transformer: convertJobMappingTransformerToForm(
-        new JobMappingTransformer({
+        create(JobMappingTransformerSchema, {
           source: TransformerSource.PASSTHROUGH,
-          config: new TransformerConfig({
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'passthroughConfig',
-              value: new Passthrough(),
+              value: create(PassthroughSchema),
             },
           }),
         })
@@ -239,7 +239,9 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
                       />
                     </div>
                     <EditTransformerOptions
-                      transformer={transformer ?? new SystemTransformer()}
+                      transformer={
+                        transformer ?? create(SystemTransformerSchema)
+                      }
                       value={fv}
                       onSubmit={(newvalue) => {
                         field.onChange(newvalue);

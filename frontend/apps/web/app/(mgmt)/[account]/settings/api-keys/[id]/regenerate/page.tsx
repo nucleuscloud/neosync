@@ -33,14 +33,18 @@ import {
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { RegenerateApiKeyForm } from '@/yup-validations/apikey';
-import { Timestamp } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
+import { timestampFromMs } from '@bufbuild/protobuf/wkt';
 import {
   createConnectQueryKey,
   useMutation,
   useQuery,
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetAccountApiKeyResponse } from '@neosync/sdk';
+import {
+  GetAccountApiKeyResponseSchema,
+  RegenerateAccountApiKeyRequestSchema,
+} from '@neosync/sdk';
 import {
   getAccountApiKey,
   regenerateAccountApiKey,
@@ -81,22 +85,28 @@ export default function RegenerateAccountApiKey({
       return;
     }
     try {
-      const updatedApiKey = await mutateAsync({
-        id,
-        expiresAt: new Timestamp({
-          seconds: BigInt(values.expiresAt.getTime() / 1000),
-        }),
-      });
+      const updatedApiKey = await mutateAsync(
+        create(RegenerateAccountApiKeyRequestSchema, {
+          id,
+          expiresAt: timestampFromMs(values.expiresAt.getTime()),
+        })
+      );
       if (updatedApiKey.apiKey?.keyValue && !!window?.sessionStorage) {
         const storeVal: ApiKeyValueSessionStore = {
           keyValue: updatedApiKey.apiKey.keyValue,
         };
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
-      const key = createConnectQueryKey(getAccountApiKey, { id });
+      const key = createConnectQueryKey({
+        schema: getAccountApiKey,
+        input: { id },
+        cardinality: undefined,
+      });
       queryclient.setQueryData(
         key,
-        new GetAccountApiKeyResponse({ apiKey: updatedApiKey.apiKey })
+        create(GetAccountApiKeyResponseSchema, {
+          apiKey: updatedApiKey.apiKey,
+        })
       );
       router.push(`/${account?.name}/settings/api-keys/${id}`);
       toast.success('Successfully regenerated api key!');

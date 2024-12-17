@@ -40,9 +40,13 @@ import {
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CheckConnectionConfigResponse } from '@neosync/sdk';
+import {
+  CheckConnectionConfigResponse,
+  CheckConnectionConfigResponseSchema,
+} from '@neosync/sdk';
 import {
   checkConnectionConfig,
   createConnection,
@@ -810,7 +814,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         </Accordion>
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
@@ -836,7 +841,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
                 setValidationResponse(
-                  new CheckConnectionConfigResponse({
+                  create(CheckConnectionConfigResponseSchema, {
                     isConnected: false,
                     connectionError:
                       err instanceof Error ? err.message : 'unknown error',

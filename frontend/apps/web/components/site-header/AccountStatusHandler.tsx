@@ -1,6 +1,7 @@
 'use client';
 import { SystemAppConfig } from '@/app/config/app-config';
 import { cn } from '@/libs/utils';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
 import { AccountStatus } from '@neosync/sdk';
 import { isAccountStatusValid } from '@neosync/sdk/connectquery';
@@ -32,13 +33,11 @@ export function AccountStatusHandler(props: Props) {
     (data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_ACTIVE ||
       data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_EXPIRED);
 
-  const trialEndDate = new Date(
-    data?.trialExpiresAt?.toDate() ?? Date.now()
-  ).getTime();
+  const trialEndDate = data?.trialExpiresAt
+    ? timestampDate(data.trialExpiresAt)
+    : new Date();
 
-  const daysRemaining = Math.max(
-    differenceInDays(Math.max(trialEndDate), Date.now())
-  );
+  const daysRemaining = Math.max(differenceInDays(trialEndDate, new Date()));
 
   return (
     <div className="flex flex-row items-center gap-2">

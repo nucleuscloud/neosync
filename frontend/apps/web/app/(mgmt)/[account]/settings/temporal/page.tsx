@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import { TemporalFormValues } from '@/yup-validations/temporal';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -23,8 +24,8 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  AccountTemporalConfig,
-  GetAccountTemporalConfigResponse,
+  AccountTemporalConfigSchema,
+  GetAccountTemporalConfigResponseSchema,
 } from '@neosync/sdk';
 import {
   getAccountTemporalConfig,
@@ -68,18 +69,22 @@ export default function Temporal(): ReactElement {
     try {
       const updatedResp = await mutateAsync({
         accountId: account.id,
-        config: new AccountTemporalConfig({
+        config: create(AccountTemporalConfigSchema, {
           namespace: values.namespace,
           syncJobQueueName: values.syncJobName,
           url: values.temporalUrl,
         }),
       });
-      const key = createConnectQueryKey(getAccountTemporalConfig, {
-        accountId: account.id,
+      const key = createConnectQueryKey({
+        schema: getAccountTemporalConfig,
+        input: { accountId: account.id },
+        cardinality: undefined,
       });
       queryclient.setQueryData(
         key,
-        new GetAccountTemporalConfigResponse({ config: updatedResp.config })
+        create(GetAccountTemporalConfigResponseSchema, {
+          config: updatedResp.config,
+        })
       );
       toast.success('Successfully updated temporal config');
     } catch (err) {

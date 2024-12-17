@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTimeMilliseconds } from '@/util/util';
-import { Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { JobRunEvent, JobRunEventTaskError } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getJobSyncMetadata } from './data-table';
@@ -41,7 +41,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {scheduledTime &&
-                formatDateTimeMilliseconds(scheduledTime?.toDate())}
+                formatDateTimeMilliseconds(timestampDate(scheduledTime))}
             </span>
           </div>
         );
@@ -57,7 +57,8 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {startTime && formatDateTimeMilliseconds(startTime?.toDate())}
+              {startTime &&
+                formatDateTimeMilliseconds(timestampDate(startTime))}
             </span>
           </div>
         );
@@ -77,7 +78,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {closeTime
-                ? formatDateTimeMilliseconds(closeTime?.toDate())
+                ? formatDateTimeMilliseconds(timestampDate(closeTime))
                 : 'N/A'}
             </span>
           </div>
