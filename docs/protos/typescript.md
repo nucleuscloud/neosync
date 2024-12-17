@@ -22,8 +22,10 @@ The correct entry point will be chosen based on using `import` or `require`.
 
 The `tsup` package is used to generated the distributed code.
 
+`@bufbuild/protobuf` provides methods to instantiate the messages used in the SDK.
+
 ```sh
-npm install @neosync/sdk
+npm install @neosync/sdk @bufbuild/protobuf
 ```
 
 | **Properties** | **Details**                                                                                                                                                                 |
@@ -70,11 +72,26 @@ const neosyncClient = getNeosyncClient({
 
 In this section, we're going to walk through two examples that show you how to make an API call using Neosync's TS SDK. For a complete list of the APIs, check out the APIs in the `Services` section of our [protos](/api/mgmt/v1alpha1/job.proto#jobservice).
 
+### Note on Types and Messages
+
+In each example there are some cases where the `create` function is used from the `@bufbuild/protobuf` package.
+
+This is a convenience function that allows you to create a message from a schema.
+
+It is generally only necessary for any top-level message that you are attempting to assign directly to any inferface.
+The generaly pattern is this: `TransformerConfig` -> `TransformerConfigSchema` -> `create(TransformerConfigSchema, {})`.
+
+The second parameter to the `create` function is a type that looks like this `MessageInit<TransformerConfig>`. which is effectively a `Partial<TransformerConfig>`.
+This is the same interface that will be found on all of the actual RPC calls from the API. So if you are just inlining the messages directlyinto the RPC call, the `create` function is generally not necessary. The examples below highlight when to use the `create` function.
+
+If inspecting the types or using your IDE's intellisense, you'll find that each message also contains two additional properties: `$typename` and `$unknown`.
+These should not be set directly and are generally set by the `create` function. This information is used by the underlying library to ensure correct serialization and deserialization of the message.
+
 ### Anonymizing Structured Data
 
 A straightforward use case is to anonymize sensitive data in an API request. Let's look at an example.
 
-```js
+```jsonc
 // input
 {
   "user": {
@@ -96,6 +113,15 @@ In order to anonymize this object, you can use Neosync's `AnonymizeSingle` API t
 Here's how you do it:
 
 ```ts
+import { create } from '@bufbuild/protobuf';
+import { createConnectTransport } from '@connectrpc/connect-node';
+import {
+  AnonymizeSingleResponse,
+  getNeosyncClient,
+  TransformerMapping,
+  TransformerMappingSchema,
+} from '@neosync/sdk';
+
 // authenticates with Neosync Cloud
 const neosyncClient = getNeosyncClient({
   getAccessToken: () => {
@@ -124,45 +150,45 @@ const data = {
 };
 
 const transformers: TransformerMapping[] = [
-  new TransformerMapping({
+  create(TransformerMappingSchema, {
     expression: '.user.name', // targets the name field in the user object with a jq expression
-    transformer: new TransformerConfig({
+    transformer: {
       config: {
         case: 'generateFullNameConfig', // sets the generateFullNameConfig
-        value: new GenerateFullName({}), // sets the GenerateFullName transformer
+        value: {}, // sets the GenerateFullName transformer
       },
-    }),
+    },
   }),
-  new TransformerMapping({
+  create(TransformerMappingSchema, {
     expression: '.user.email', // targets the email field in the user object with a jq expression
-    transformer: new TransformerConfig({
+    transformer: {
       config: {
-        case: 'generateEmaileConfig', // sets the generateEmailConfig
-        value: new GenerateEmail({}), // sets the GenerateEmail transformer
+        case: 'generateEmailConfig', // sets the generateEmailConfig
+        value: {}, // sets the GenerateEmail transformer
       },
-    }),
+    },
   }),
-  new TransformerMapping({
+  create(TransformerMappingSchema, {
     expression: '.details.address', // targets the address field in the details object with a jq expression
-    transformer: new TransformerConfig({
+    transformer: {
       config: {
         case: 'generateFullAddressConfig', // sets the generateFullAddressConfig
-        value: new GenerateFullAddress({}), // sets the GenerateFullAddress transformer
+        value: {}, // sets the GenerateFullAddress transformer
       },
-    }),
+    },
   }),
-  new TransformerMapping({
+  create(TransformerMappingSchema, {
     expression: '.details.phone', // targets the phone field in the details object with a jq expression
-    transformer: new TransformerConfig({
+    transformer: {
       config: {
         case: 'generateStringPhoneNumberConfig', // sets the generateStringPhoneNumberConfig
-        value: new GenerateStringPhoneNumber({
+        value: {
           // sets the GenerateStringPhoneNumber transformer
           max: BigInt(12), // sets the max number of digits in the string phone number
           min: BigInt(9), // sets the min number of digits in the string phone number
-        }),
+        },
       },
-    }),
+    },
   }),
 ];
 
@@ -190,7 +216,7 @@ Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API
 Our output will look something like this:
 
 ```js
-// output
+// output result
 Anonymization result: '{"user":{"email":"22fdd05dd75746728a9c2a37d3d58cf5@stackoverflow.com","name":"Bryam Begg"},"details":{"address":"212 Ambleside Drive Severna Park MD, 21146","favorites":["dog","cat","bird"],"phone":"58868075625"},}'
 ```
 
@@ -202,7 +228,7 @@ Another common use case is to anonymize free form text or unstructured data. Thi
 
 The best part is that all you have to do is change a transformer, that's it! Here's how:
 
-```js
+```jsonc
 // input
  {
     text: "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?",
@@ -213,12 +239,12 @@ Our input object is a transcription from a call from a doctor's office. In this 
 
 ```ts
 import {
-  getNeosyncClient,
-  TransformerConfig,
-  TransformerMapping,
   AnonymizeSingleResponse,
-  TransformPiiText,
+  getNeosyncClient,
+  TransformerMapping,
+  TransformerMappingSchema,
 } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf;
 import { createConnectTransport } from '@connectrpc/connect-node';
 
 const neosyncClient = getNeosyncClient({
@@ -239,33 +265,19 @@ const data = {
 };
 
 const transformers: TransformerMapping[] = [
-  new TransformerMapping({
+  create(TransformerMappingSchema, {
     expression: '.text',
-    transformer: new TransformerConfig({
+    transformer: {
       config: {
         case: 'transformPiiTextConfig', // set the case to transformPiiTextConfig
-        value: new TransformPiiText({
+        value: {
           // use the TransformPiiText transformer
           scoreThreshold: 0.1, // lower = more paranoid, higher chance of false positive; higher = less paranoid, higher chance of false negative
-        }),
+        },
       },
-    }),
+    },
   }),
 ];
-
-async function runAnonymization() {
-  try {
-    const result: AnonymizeSingleResponse =
-      await neosyncClient.anonymization.anonymizeSingle({
-        inputData: JSON.stringify(data),
-        transformerMappings: transformers,
-        accountId: 'xxxx', // your accountId found in the the App settings
-      });
-    console.log('Anonymization result:', result.outputData);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
 
 // calling our async function
 runAnonymization()
@@ -289,6 +301,19 @@ As you can see, we've identified and redacted the PII in the original message an
 Another common use case is to create resources in Neosync such as Jobs, Runs, Connections, Transformers and more. In this example, we'll create a Job. This can be used as part of a set-up script or custom workflow. Let's take a look at the code:
 
 ```ts
+import { createConnectTransport } from '@connectrpc/connect-node';
+import { create } from '@bufbuild/protobuf';
+import {
+  CreateJobDestination,
+  CreateJobDestinationSchema,
+  CreateJobResponse,
+  getNeosyncClient,
+  JobMapping,
+  JobMappingSchema,
+  JobSource,
+  JobSourceSchema,
+} from '@neosync/sdk';
+
 // authenticates with Neosync Cloud
 const neosyncClient = getNeosyncClient({
   getAccessToken: () => {
@@ -305,53 +330,50 @@ const neosyncClient = getNeosyncClient({
 
 // creates our job mappings which maps transformers -> columns
 const jobMapping: JobMapping[] = [
-  new JobMapping({
+  create(JobMappingSchema, {
     schema: 'public',
     table: 'users',
     column: 'email', // mapping the email column
-    transformer: new JobMappingTransformer({
-      source: 4,
-      config: new TransformerConfig({
+    transformer: {
+      config: {
         config: {
           case: 'generateEmailConfig', // setting the generateEmailConfig
-          value: new GenerateEmail({}), // setting the GenerateEmail transformer to the email column
+          value: {}, // setting the GenerateEmail transformer to the email column
         },
-      }),
-    }),
+      },
+    },
   }),
-  new JobMapping({
+  create(JobMappingSchema, {
     schema: 'public',
     table: 'users',
     column: 'age', // mapping the age column
-    transformer: new JobMappingTransformer({
-      source: 17,
-      config: new TransformerConfig({
+    transformer: {
+      config: {
         config: {
           case: 'generateInt64Config', // setting the generateInt64Config
-          value: new GenerateInt64({}), // setting the GenerateInt64 transformer to the age column
+          value: {}, // setting the GenerateInt64 transformer to the age column
         },
-      }),
-    }),
+      },
+    },
   }),
-  new JobMapping({
+  create(JobMappingSchema, {
     schema: 'public',
     table: 'users',
     column: 'address', // mapping the address column
-    transformer: new JobMappingTransformer({
-      source: 12,
-      config: new TransformerConfig({
+    transformer: {
+      config: {
         config: {
           case: 'generateFullAddressConfig', // setting the generateFullAddressConfig
-          value: new GenerateFullAddress({}), // setting the GenerateFullAddress transformer to the address column
+          value: {}, // setting the GenerateFullAddress transformer to the address column
         },
-      }),
-    }),
+      },
+    },
   }),
 ];
 
 // setting our source connection and connection optinos
-const sourceConnection: JobSource = new JobSource({
-  options: new JobSourceOptions({
+const sourceConnection: JobSource = create(JobSourceSchema, {
+  options: {
     config: {
       case: 'postgres',
       value: {
@@ -361,12 +383,12 @@ const sourceConnection: JobSource = new JobSource({
         haltOnNewColumnAddition: false,
       },
     },
-  }),
+  },
 });
 
 // setting our destination
 const destination: CreateJobDestination[] = [
-  new JobDestination({
+  create(CreateJobDestinationSchema, {
     connectionId: '3470533a-1fcc-43ec-9cba-8c037ea0da47',
   }),
 ];
