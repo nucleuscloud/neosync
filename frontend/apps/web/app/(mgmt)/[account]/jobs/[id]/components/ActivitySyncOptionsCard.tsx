@@ -34,7 +34,7 @@ export default function ActivitySyncOptionsCard({
 }: Props): ReactElement {
   const form = useForm<ActivityOptionsFormValues>({
     mode: 'onChange',
-    resolver: yupResolver<ActivityOptionsFormValues>(ActivityOptionsSchema),
+    resolver: yupResolver<ActivityOptionsFormValues>(ActivityOptionsFormValues),
     values: {
       scheduleToCloseTimeout: job?.syncOptions?.scheduleToCloseTimeout
         ? convertNanosecondsToMinutes(job.syncOptions.scheduleToCloseTimeout)

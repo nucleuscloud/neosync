@@ -33,7 +33,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && rm -rf .turbo",
     "build": "tsup src/index.ts src/connectquery.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts src/connectquery.ts --format esm,cjs --dts --watch",
     "lint": "eslint 'src/**/*.{js,ts,tsx}'",

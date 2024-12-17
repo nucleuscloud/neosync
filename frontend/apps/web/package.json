@@ -11,7 +11,8 @@
     "knip": "knip",
     "knip:production": "knip --production --strict",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",
