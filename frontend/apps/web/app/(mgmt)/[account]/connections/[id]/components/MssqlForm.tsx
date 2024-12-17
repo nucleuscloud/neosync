@@ -33,13 +33,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -57,7 +53,7 @@ export default function MssqlForm(props: Props): ReactElement {
   const { account } = useAccount();
 
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
 
   const form = useForm<MssqlFormValues, MssqlEditConnectionFormContext>({
@@ -70,8 +66,12 @@ export default function MssqlForm(props: Props): ReactElement {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync: updateMssqlConnection } = useMutation(updateConnection);
-  const { mutateAsync: checkConnection } = useMutation(checkConnectionConfig);
+  const { mutateAsync: updateMssqlConnection } = useMutation(
+    ConnectionService.method.updateConnection
+  );
+  const { mutateAsync: checkConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();

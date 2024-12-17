@@ -11,8 +11,11 @@ import { useReadNeosyncTransformerDeclarationFile } from '@/libs/hooks/useReadNe
 import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { TransformJavascript, TransformJavascriptSchema } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
+import {
+  TransformJavascript,
+  TransformJavascriptSchema,
+  TransformersService,
+} from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useState } from 'react';
@@ -47,7 +50,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   async function handleValidateCode(): Promise<void> {

@@ -34,11 +34,8 @@ import {
   ConnectError,
   ConnectionConfigSchema,
   ConnectionSchema,
+  ConnectionService,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfigById,
-  getConnections,
-} from '@neosync/sdk/connectquery';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -95,7 +92,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   >({});
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -124,7 +121,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     splitConnections(connections);
 
   const { mutateAsync: checkConnectionConfig } = useMutation(
-    checkConnectionConfigById
+    ConnectionService.method.checkConnectionConfigById
   );
 
   return (

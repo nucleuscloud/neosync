@@ -42,13 +42,10 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ApiKeyService,
   GetAccountApiKeyResponseSchema,
   RegenerateAccountApiKeyRequestSchema,
 } from '@neosync/sdk';
-import {
-  getAccountApiKey,
-  regenerateAccountApiKey,
-} from '@neosync/sdk/connectquery';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
@@ -65,11 +62,13 @@ export default function RegenerateAccountApiKey({
   const router = useRouter();
   const { account } = useAccount();
   const { data, isLoading } = useQuery(
-    getAccountApiKey,
+    ApiKeyService.method.getAccountApiKey,
     { id },
     { enabled: !!id }
   );
-  const { mutateAsync } = useMutation(regenerateAccountApiKey);
+  const { mutateAsync } = useMutation(
+    ApiKeyService.method.regenerateAccountApiKey
+  );
   const queryclient = useQueryClient();
 
   const form = useForm<RegenerateApiKeyForm>({
@@ -98,7 +97,7 @@ export default function RegenerateAccountApiKey({
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
       const key = createConnectQueryKey({
-        schema: getAccountApiKey,
+        schema: ApiKeyService.method.getAccountApiKey,
         input: { id },
         cardinality: undefined,
       });

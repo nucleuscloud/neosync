@@ -14,10 +14,10 @@ import { useMutation } from '@connectrpc/connect-query';
 import {
   Connection,
   CreateJobHookRequestSchema,
+  JobService,
   NewJobHook,
   NewJobHookSchema,
 } from '@neosync/sdk';
-import { createJobHook } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
@@ -31,7 +31,9 @@ interface Props {
 
 export default function NewHookButton(props: Props): ReactElement {
   const { jobId, jobConnections, onCreated } = props;
-  const { mutateAsync: createHook } = useMutation(createJobHook);
+  const { mutateAsync: createHook } = useMutation(
+    JobService.method.createJobHook
+  );
   const [open, setOpen] = useState(false);
 
   async function onCreate(values: Partial<NewJobHook>): Promise<void> {

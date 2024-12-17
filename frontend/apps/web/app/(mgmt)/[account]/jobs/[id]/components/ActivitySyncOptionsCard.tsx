@@ -15,8 +15,7 @@ import { Input } from '@/components/ui/input';
 import { convertNanosecondsToMinutes, getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Job } from '@neosync/sdk';
-import { setJobSyncOptions } from '@neosync/sdk/connectquery';
+import { Job, JobService } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -48,8 +47,9 @@ export default function ActivitySyncOptionsCard({
     },
   });
   const { account } = useAccount();
-  const { mutateAsync: updateJobSyncActivityOptions } =
-    useMutation(setJobSyncOptions);
+  const { mutateAsync: updateJobSyncActivityOptions } = useMutation(
+    JobService.method.setJobSyncOptions
+  );
 
   async function onSubmit(values: ActivityOptionsFormValues) {
     if (!account?.id) {

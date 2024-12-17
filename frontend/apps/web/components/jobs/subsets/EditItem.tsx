@@ -17,9 +17,10 @@ import { Editor, useMonaco } from '@monaco-editor/react';
 import {
   CheckSqlQueryResponse,
   CheckSqlQueryResponseSchema,
+  ConnectionDataService,
+  ConnectionService,
   GetTableRowCountResponse,
 } from '@neosync/sdk';
-import { checkSqlQuery, getTableRowCount } from '@neosync/sdk/connectquery';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
@@ -126,8 +127,12 @@ export default function EditItem(props: Props): ReactElement {
     setValidateResp(undefined);
   }, [item]);
 
-  const { mutateAsync: validateSql } = useMutation(checkSqlQuery);
-  const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
+  const { mutateAsync: validateSql } = useMutation(
+    ConnectionService.method.checkSqlQuery
+  );
+  const { mutateAsync: getRowCountByTable } = useMutation(
+    ConnectionDataService.method.getTableRowCount
+  );
 
   async function onValidate(): Promise<void> {
     if (connectionType === 'pgConfig' || connectionType === 'mysqlConfig') {

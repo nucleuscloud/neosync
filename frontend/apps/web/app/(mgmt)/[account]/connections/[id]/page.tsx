@@ -11,9 +11,9 @@ import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import {
   ConnectionConfigSchema,
+  ConnectionService,
   GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import { getConnection } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ export default function ConnectionPage({ params }: PageProps) {
   const { account } = useAccount();
 
   const { data, isLoading } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id: id },
     { enabled: !!id }
   );
@@ -47,7 +47,7 @@ export default function ConnectionPage({ params }: PageProps) {
     connection: data?.connection!,
     onSaved: (resp) => {
       const key = createConnectQueryKey({
-        schema: getConnection,
+        schema: ConnectionService.method.getConnection,
         input: { id },
         cardinality: undefined,
       });

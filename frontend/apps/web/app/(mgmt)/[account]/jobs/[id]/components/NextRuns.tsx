@@ -12,8 +12,7 @@ import {
 import { formatDateTime } from '@/util/util';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
-import { JobStatus } from '@neosync/sdk';
-import { getJobNextRuns } from '@neosync/sdk/connectquery';
+import { JobService, JobStatus } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface Props {
@@ -23,7 +22,7 @@ interface Props {
 
 export default function JobNextRuns({ jobId, status }: Props): ReactElement {
   const { data, isLoading, error } = useQuery(
-    getJobNextRuns,
+    JobService.method.getJobNextRuns,
     { jobId },
     { enabled: !!jobId }
   );

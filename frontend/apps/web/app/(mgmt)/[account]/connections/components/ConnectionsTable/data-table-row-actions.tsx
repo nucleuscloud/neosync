@@ -16,8 +16,11 @@ import {
 import { getErrorMessage } from '@/util/util';
 import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { Connection, ConnectionConfigSchema } from '@neosync/sdk';
-import { deleteConnection } from '@neosync/sdk/connectquery';
+import {
+  Connection,
+  ConnectionConfigSchema,
+  ConnectionService,
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getConnectionUrlSlugName } from '../../util';
@@ -34,7 +37,9 @@ export function DataTableRowActions<TData>({
   const connection = row.original as Connection;
   const router = useRouter();
   const { account } = useAccount();
-  const { mutateAsync } = useMutation(deleteConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.deleteConnection
+  );
 
   async function onDelete(): Promise<void> {
     try {

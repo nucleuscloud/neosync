@@ -38,10 +38,10 @@ import {
   SystemTransformerSchema,
   TransformerConfigSchema,
   TransformerSource,
+  TransformersService,
   ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -110,7 +110,7 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
   const form = useForm<
     AddNewNosqlRecordFormValues,

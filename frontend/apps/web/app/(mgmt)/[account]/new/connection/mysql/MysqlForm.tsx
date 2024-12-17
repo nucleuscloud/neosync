@@ -46,14 +46,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -74,7 +69,7 @@ export default function MysqlForm() {
   // used to know which tab - host or url that the user is on when we submit the form
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<MysqlFormValues, MysqlCreateConnectionFormContext>({
     resolver: yupResolver(MysqlFormValues),
@@ -125,11 +120,15 @@ export default function MysqlForm() {
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
   const posthog = usePostHog();
-  const { mutateAsync: createMysqlConnection } = useMutation(createConnection);
-  const { mutateAsync: checkMysqlConnection } = useMutation(
-    checkConnectionConfig
+  const { mutateAsync: createMysqlConnection } = useMutation(
+    ConnectionService.method.createConnection
   );
-  const { mutateAsync: getMysqlConnection } = useMutation(getConnection);
+  const { mutateAsync: checkMysqlConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+  const { mutateAsync: getMysqlConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
   const queryclient = useQueryClient();
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {
@@ -153,7 +152,7 @@ export default function MysqlForm() {
       } else if (connection.connection?.id) {
         queryclient.setQueryData(
           createConnectQueryKey({
-            schema: getConnection,
+            schema: ConnectionService.method.getConnection,
             input: { id: connection.connection.id },
             cardinality: undefined,
           }),

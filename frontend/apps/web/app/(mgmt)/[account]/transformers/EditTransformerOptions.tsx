@@ -34,8 +34,8 @@ import {
   TransformerConfig,
   TransformerConfigSchema,
   TransformerSource,
+  TransformersService,
 } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
   EyeOpenIcon,
   MixerHorizontalIcon,
@@ -154,7 +154,7 @@ function EditTransformerConfig(
 
   const { account } = useAccount();
   const { mutateAsync: isJavascriptCodeValid } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   const form = useForm<

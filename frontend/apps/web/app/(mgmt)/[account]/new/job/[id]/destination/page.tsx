@@ -37,16 +37,13 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionDataService,
   ConnectionSchema,
+  ConnectionService,
   CreateJobDestinationSchema,
   GetConnectionSchemaMapsResponseSchema,
+  JobService,
 } from '@neosync/sdk';
-import {
-  createJobDestinationConnections,
-  getConnections,
-  getConnectionSchemaMaps,
-  getJob,
-} from '@neosync/sdk/connectquery';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -66,14 +63,18 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
   const router = useRouter();
-  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data, isLoading } = useQuery(
+    JobService.method.getJob,
+    { id },
+    { enabled: !!id }
+  );
   const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
   const { mutateAsync: createJobConnections } = useMutation(
-    createJobDestinationConnections
+    JobService.method.createJobDestinationConnections
   );
 
   const connections = connectionsData?.connections ?? [];
@@ -119,7 +120,7 @@ export default function Page({ params }: PageProps): ReactElement {
     .filter((conn) => !!conn && isDynamoDBConnection(conn));
 
   const { data: destinationConnectionSchemaMapsResp } = useQuery(
-    getConnectionSchemaMaps,
+    ConnectionDataService.method.getConnectionSchemaMaps,
     {
       requests: newDynamoDestConnections.map((conn) => ({
         connectionId: conn.id,

@@ -53,7 +53,9 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionDataService,
   ConnectionSchema,
+  ConnectionService,
   DynamoDBSourceConnectionOptions,
   DynamoDBSourceConnectionOptionsSchema,
   DynamoDBSourceUnmappedTransformConfigSchema,
@@ -66,6 +68,7 @@ import {
   Job,
   JobMappingSchema,
   JobMappingTransformerSchema,
+  JobService,
   JobSourceOptions,
   JobSourceOptionsSchema,
   JobSourceSchema,
@@ -81,17 +84,6 @@ import {
   VirtualForeignConstraintSchema,
   VirtualForeignKeySchema,
 } from '@neosync/sdk';
-import {
-  getConnection,
-  getConnectionSchemaMap,
-  getConnectionSchemaMaps,
-  getConnectionTableConstraints,
-  getConnections,
-  getJob,
-  updateJobDestinationConnection,
-  updateJobSourceConnection,
-  validateJobMappings,
-} from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -126,7 +118,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     data,
     refetch: mutate,
     isLoading: isJobDataLoading,
-  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
+  } = useQuery(JobService.method.getJob, { id: jobId }, { enabled: !!jobId });
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
   const {
@@ -134,16 +126,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isSchemaDataMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: sourceConnectionId },
     { enabled: !!sourceConnectionId }
   );
   const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
-    getConnectionSchemaMap
+    ConnectionDataService.method.getConnectionSchemaMap
   );
 
   const { data: destinationConnectionSchemaMapsResp } = useQuery(
-    getConnectionSchemaMaps,
+    ConnectionDataService.method.getConnectionSchemaMaps,
     {
       requests: data?.job?.destinations.map(
         (dest): GetConnectionSchemaMapRequest =>
@@ -160,7 +152,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -174,10 +166,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 
   const { mutateAsync: updateJobSrcConnection } = useMutation(
-    updateJobSourceConnection
+    JobService.method.updateJobSourceConnection
   );
   const { mutateAsync: updateJobDestConnection } = useMutation(
-    updateJobDestinationConnection
+    JobService.method.updateJobDestinationConnection
   );
 
   const queryclient = useQueryClient();
@@ -196,11 +188,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: sourceConnectionId },
       { enabled: !!sourceConnectionId }
     );
-  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
+  const { mutateAsync: getConnectionAsync } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   const {
     append: appendVfk,
@@ -265,8 +259,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     );
   }, [isJobDataLoading, isSchemaDataMapLoading]);
 
-  const { mutateAsync: validateJobMappingsAsync } =
-    useMutation(validateJobMappings);
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -277,7 +272,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
             createConnectQueryKey({
-              schema: getConnection,
+              schema: ConnectionService.method.getConnection,
               input: { id },
               cardinality: undefined,
             }),
@@ -289,7 +284,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
             createConnectQueryKey({
-              schema: getConnectionSchemaMap,
+              schema: ConnectionDataService.method.getConnectionSchemaMap,
               input: { connectionId: id },
               cardinality: undefined,
             }),

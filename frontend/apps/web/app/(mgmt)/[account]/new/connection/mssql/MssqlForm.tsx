@@ -35,14 +35,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -59,7 +54,7 @@ export default function MssqlForm() {
   const [isLoading, setIsLoading] = useState<boolean>();
 
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<MssqlFormValues, MssqlCreateConnectionFormContext>({
     resolver: yupResolver(MssqlFormValues),
@@ -103,11 +98,15 @@ export default function MssqlForm() {
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
   const posthog = usePostHog();
-  const { mutateAsync: createMssqlConnection } = useMutation(createConnection);
-  const { mutateAsync: checkMssqlConnection } = useMutation(
-    checkConnectionConfig
+  const { mutateAsync: createMssqlConnection } = useMutation(
+    ConnectionService.method.createConnection
   );
-  const { mutateAsync: getMssqlConnection } = useMutation(getConnection);
+  const { mutateAsync: checkMssqlConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+  const { mutateAsync: getMssqlConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
   const queryclient = useQueryClient();
   async function onSubmit(values: MssqlFormValues) {
     if (!account) {
@@ -127,7 +126,7 @@ export default function MssqlForm() {
       } else if (connection.connection?.id) {
         queryclient.setQueryData(
           createConnectQueryKey({
-            schema: getConnection,
+            schema: ConnectionService.method.getConnection,
             input: { id: connection.connection.id },
             cardinality: undefined,
           }),

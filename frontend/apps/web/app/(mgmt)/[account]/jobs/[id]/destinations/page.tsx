@@ -7,8 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
-import { Connection, ConnectionSchema } from '@neosync/sdk';
-import { getConnections, getJob } from '@neosync/sdk/connectquery';
+import {
+  Connection,
+  ConnectionSchema,
+  ConnectionService,
+  JobService,
+} from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -24,12 +28,12 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
   const { data, isLoading, refetch } = useQuery(
-    getJob,
+    JobService.method.getJob,
     { id },
     { enabled: !!id }
   );
   const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );

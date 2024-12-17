@@ -26,11 +26,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   AccountTemporalConfigSchema,
   GetAccountTemporalConfigResponseSchema,
+  UserAccountService,
 } from '@neosync/sdk';
-import {
-  getAccountTemporalConfig,
-  setAccountTemporalConfig,
-} from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { ReactElement } from 'react';
@@ -42,11 +39,13 @@ export default function Temporal(): ReactElement {
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
   const { data: tcData, isLoading: isTemporalConfigLoading } = useQuery(
-    getAccountTemporalConfig,
+    UserAccountService.method.getAccountTemporalConfig,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );
-  const { mutateAsync } = useMutation(setAccountTemporalConfig);
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.setAccountTemporalConfig
+  );
   const queryclient = useQueryClient();
 
   const form = useForm<TemporalFormValues>({
@@ -76,7 +75,7 @@ export default function Temporal(): ReactElement {
         }),
       });
       const key = createConnectQueryKey({
-        schema: getAccountTemporalConfig,
+        schema: UserAccountService.method.getAccountTemporalConfig,
         input: { accountId: account.id },
         cardinality: undefined,
       });

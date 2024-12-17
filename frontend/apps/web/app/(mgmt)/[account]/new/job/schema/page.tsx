@@ -31,26 +31,20 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionDataService,
   ConnectionSchema,
+  ConnectionService,
   DatabaseColumn,
   ForeignConstraintTables,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapRequestSchema,
   GetConnectionSchemaMapsResponseSchema,
+  JobService,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
   VirtualForeignConstraintSchema,
   VirtualForeignKeySchema,
 } from '@neosync/sdk';
-import {
-  createJob,
-  getConnection,
-  getConnections,
-  getConnectionSchemaMap,
-  getConnectionSchemaMaps,
-  getConnectionTableConstraints,
-  validateJobMappings,
-} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
@@ -128,7 +122,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { data: connectionData, isLoading: isConnectionLoading } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id: connectFormValues.sourceId },
     { enabled: !!connectFormValues.sourceId }
   );
@@ -138,12 +132,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isLoading: isSchemaMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: connectFormValues.sourceId },
     { enabled: !!connectFormValues.sourceId }
   );
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -158,13 +152,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: connectFormValues.sourceId },
       { enabled: !!connectFormValues.sourceId }
     );
 
   const { data: destinationConnectionSchemaMapsResp } = useQuery(
-    getConnectionSchemaMaps,
+    ConnectionDataService.method.getConnectionSchemaMaps,
     {
       requests: connectFormValues.destinations.map(
         (dest): GetConnectionSchemaMapRequest =>
@@ -181,7 +175,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+  const { mutateAsync: createNewSyncJob } = useMutation(
+    JobService.method.createJob
+  );
 
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SchemaFormValues),
@@ -189,8 +185,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     context: { accountId: account?.id },
   });
 
-  const { mutateAsync: validateJobMappingsAsync } =
-    useMutation(validateJobMappings);
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
 
   async function onSubmit(values: SchemaFormValues) {
     if (!account || !source) {

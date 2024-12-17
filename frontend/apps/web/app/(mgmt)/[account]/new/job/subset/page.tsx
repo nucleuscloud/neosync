@@ -33,12 +33,13 @@ import { SchemaFormValues } from '@/yup-validations/jobs';
 import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfigSchema, JobMappingSchema } from '@neosync/sdk';
 import {
-  createJob,
-  getConnections,
-  getConnectionTableConstraints,
-} from '@neosync/sdk/connectquery';
+  ConnectionConfigSchema,
+  ConnectionDataService,
+  ConnectionService,
+  JobMappingSchema,
+  JobService,
+} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -73,7 +74,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -120,12 +121,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: schemaFormValues.connectionId },
       { enabled: !!schemaFormValues.connectionId }
     );
 
-  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+  const { mutateAsync: createNewSyncJob } = useMutation(
+    JobService.method.createJob
+  );
 
   const fkConstraints = tableConstraints?.foreignKeyConstraints;
   const [rootTables, setRootTables] = useState<Set<string>>(new Set());

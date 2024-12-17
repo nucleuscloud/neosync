@@ -3,8 +3,7 @@ import { SystemAppConfig } from '@/app/config/app-config';
 import { cn } from '@/libs/utils';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
-import { AccountStatus } from '@neosync/sdk';
-import { isAccountStatusValid } from '@neosync/sdk/connectquery';
+import { AccountStatus, UserAccountService } from '@neosync/sdk';
 import { differenceInDays } from 'date-fns';
 import { useAccount } from '../providers/account-provider';
 import { Skeleton } from '../ui/skeleton';
@@ -19,7 +18,7 @@ export function AccountStatusHandler(props: Props) {
   const { account } = useAccount();
 
   const { data: data, isLoading } = useQuery(
-    isAccountStatusValid,
+    UserAccountService.method.isAccountStatusValid,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );

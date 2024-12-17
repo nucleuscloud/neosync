@@ -13,7 +13,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
+import { JobRunStatus as JobRunStatusEnum, JobService } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
 import { CopyButton } from '@/components/CopyButton';
@@ -35,14 +35,6 @@ import { formatDateTime, getErrorMessage } from '@/util/util';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { Editor } from '@monaco-editor/react';
-import {
-  cancelJobRun,
-  deleteJobRun,
-  getJobRun,
-  getJobRunEvents,
-  getRunContext,
-  terminateJobRun,
-} from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useTheme } from 'next-themes';
@@ -67,7 +59,7 @@ export default function Page({ params }: PageProps): ReactElement {
     isLoading,
     refetch: mutate,
   } = useQuery(
-    getJobRun,
+    JobService.method.getJobRun,
     { jobRunId: id, accountId: accountId },
     {
       enabled: !!id && !!accountId,
@@ -86,7 +78,7 @@ export default function Page({ params }: PageProps): ReactElement {
     isFetching: isValidating,
     refetch: eventMutate,
   } = useQuery(
-    getJobRunEvents,
+    JobService.method.getJobRunEvents,
     { jobRunId: id, accountId: accountId },
     {
       enabled: !!id && !!accountId,
@@ -98,10 +90,18 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   );
 
-  const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
-  const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
-  const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
-  const { mutateAsync: getRunContextAsync } = useMutation(getRunContext);
+  const { mutateAsync: removeJobRunAsync } = useMutation(
+    JobService.method.deleteJobRun
+  );
+  const { mutateAsync: cancelJobRunAsync } = useMutation(
+    JobService.method.cancelJobRun
+  );
+  const { mutateAsync: terminateJobRunAsync } = useMutation(
+    JobService.method.terminateJobRun
+  );
+  const { mutateAsync: getRunContextAsync } = useMutation(
+    JobService.method.getRunContext
+  );
 
   const [isViewSelectDialogOpen, setIsSelectDialogOpen] =
     useState<boolean>(false);

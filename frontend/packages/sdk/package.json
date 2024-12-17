@@ -19,23 +19,13 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    },
-    "./connectquery": {
-      "import": {
-        "types": "./dist/connectquery.d.ts",
-        "default": "./dist/connectquery.js"
-      },
-      "require": {
-        "types": "./dist/connectquery.d.cts",
-        "default": "./dist/connectquery.cjs"
-      }
     }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "clean": "rm -rf dist && rm -rf .turbo",
-    "build": "tsup src/index.ts src/connectquery.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/connectquery.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
     "lint": "eslint 'src/**/*.{js,ts,tsx}'",
     "typecheck": "tsc --noEmit"
   },

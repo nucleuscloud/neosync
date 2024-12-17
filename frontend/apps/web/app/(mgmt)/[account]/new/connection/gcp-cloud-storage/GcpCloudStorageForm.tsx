@@ -25,12 +25,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponseSchema } from '@neosync/sdk';
-import {
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
+import { ConnectionService, GetConnectionResponseSchema } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -49,7 +44,7 @@ export default function GcpCloudStorageForm(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
@@ -69,10 +64,12 @@ export default function GcpCloudStorageForm(): ReactElement {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const posthog = usePostHog();
-  const { mutateAsync: createGcpCloudStorageConnection } =
-    useMutation(createConnection);
-  const { mutateAsync: getGcpCloudStorageConnection } =
-    useMutation(getConnection);
+  const { mutateAsync: createGcpCloudStorageConnection } = useMutation(
+    ConnectionService.method.createConnection
+  );
+  const { mutateAsync: getGcpCloudStorageConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
   const queryclient = useQueryClient();
 
   async function onSubmit(values: GcpCloudStorageFormValues) {
@@ -94,7 +91,7 @@ export default function GcpCloudStorageForm(): ReactElement {
       } else if (newConnection.connection?.id) {
         queryclient.setQueryData(
           createConnectQueryKey({
-            schema: getConnection,
+            schema: ConnectionService.method.getConnection,
             input: { id: newConnection.connection.id },
             cardinality: undefined,
           }),

@@ -21,11 +21,7 @@ import {
 } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UpdateConnectionResponse } from '@neosync/sdk';
-import {
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
+import { ConnectionService, UpdateConnectionResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { buildConnectionConfigOpenAi } from '../../util';
@@ -41,7 +37,7 @@ export default function OpenAiForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<OpenAiFormValues, EditConnectionFormContext>({
     resolver: yupResolver(OpenAiFormValues),
@@ -53,7 +49,9 @@ export default function OpenAiForm(props: Props): ReactElement {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
 
   async function onSubmit(values: OpenAiFormValues): Promise<void> {
     if (!account) {

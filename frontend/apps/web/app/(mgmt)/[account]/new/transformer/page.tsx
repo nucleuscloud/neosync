@@ -38,13 +38,8 @@ import {
   SystemTransformerSchema,
   TransformerConfigSchema,
   TransformerSource,
+  TransformersService,
 } from '@neosync/sdk';
-import {
-  createUserDefinedTransformer,
-  getSystemTransformers,
-  isTransformerNameAvailable,
-  validateUserJavascriptCode,
-} from '@neosync/sdk/connectquery';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -69,7 +64,9 @@ function getTransformerSource(sourceStr: string): TransformerSource {
 export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
-  const { data, isLoading } = useQuery(getSystemTransformers);
+  const { data, isLoading } = useQuery(
+    TransformersService.method.getSystemTransformers
+  );
   const transformers = data?.transformers ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
@@ -77,10 +74,10 @@ export default function NewTransformer(): ReactElement {
     transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
   );
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
-    isTransformerNameAvailable
+    TransformersService.method.isTransformerNameAvailable
   );
   const { mutateAsync: isJavascriptCodeValid } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
@@ -113,7 +110,9 @@ export default function NewTransformer(): ReactElement {
   });
 
   const router = useRouter();
-  const { mutateAsync } = useMutation(createUserDefinedTransformer);
+  const { mutateAsync } = useMutation(
+    TransformersService.method.createUserDefinedTransformer
+  );
 
   async function onSubmit(
     values: CreateUserDefinedTransformerFormValues

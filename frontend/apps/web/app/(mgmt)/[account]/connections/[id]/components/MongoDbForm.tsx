@@ -33,13 +33,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -56,7 +52,7 @@ export default function MongoDbForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
 
   const form = useForm<MongoDbFormValues, EditConnectionFormContext>({
@@ -75,9 +71,11 @@ export default function MongoDbForm(props: Props): ReactElement {
   >();
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
-  const { mutateAsync: updateConnectionAsync } = useMutation(updateConnection);
+  const { mutateAsync: updateConnectionAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
   const { mutateAsync: checkConnectionConfigAsync } = useMutation(
-    checkConnectionConfig
+    ConnectionService.method.checkConnectionConfig
   );
 
   async function onValidationClick(): Promise<void> {

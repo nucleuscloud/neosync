@@ -22,12 +22,9 @@ import {
   ConnectionConfig,
   ConnectionConfigSchema,
   ConnectionRolePrivilege,
+  ConnectionService,
   GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  getConnection,
-} from '@neosync/sdk/connectquery';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
@@ -58,7 +55,7 @@ export default function PermissionsPage({ params }: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
   const { data, isLoading } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id },
     { enabled: !!id }
   );
@@ -68,7 +65,7 @@ export default function PermissionsPage({ params }: PageProps) {
     isLoading: isCheckConnLoading,
     isFetching,
     refetch: refetchCheckConnectionConfig,
-  } = useQuery(checkConnectionConfig, {
+  } = useQuery(ConnectionService.method.checkConnectionConfig, {
     connectionConfig: data?.connection?.connectionConfig,
   });
 
@@ -102,7 +99,7 @@ export default function PermissionsPage({ params }: PageProps) {
     onSaved: (resp) => {
       queryclient.setQueryData(
         createConnectQueryKey({
-          schema: getConnection,
+          schema: ConnectionService.method.getConnection,
           input: { id: resp.connection?.id },
           cardinality: undefined,
         }),

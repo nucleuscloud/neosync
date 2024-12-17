@@ -2,11 +2,11 @@ import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
 import {
   DayResult,
+  MetricsService,
   Date as NeosyncDate,
   DateSchema as NeosyncDateSchema,
   RangedMetricName,
 } from '@neosync/sdk';
-import { getDailyMetricCount } from '@neosync/sdk/connectquery';
 import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
@@ -48,7 +48,7 @@ export default function DailyMetricCount(props: Props): ReactElement {
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);
   const { data: metricCountData, isLoading } = useQuery(
-    getDailyMetricCount,
+    MetricsService.method.getDailyMetricCount,
     {
       metric,
       start: dateToNeoDate(start),

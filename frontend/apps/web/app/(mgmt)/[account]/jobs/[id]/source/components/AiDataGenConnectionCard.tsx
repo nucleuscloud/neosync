@@ -41,19 +41,13 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ConnectionDataService,
+  ConnectionService,
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
   Job,
+  JobService,
 } from '@neosync/sdk';
-import {
-  getAiGeneratedData,
-  getConnection,
-  getConnections,
-  getConnectionSchemaMap,
-  getConnectionTableConstraints,
-  getJob,
-  updateJobSourceConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
@@ -81,20 +75,22 @@ export default function AiDataGenConnectionCard({
     data,
     refetch: mutate,
     isLoading: isJobLoading,
-  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
+  } = useQuery(JobService.method.getJob, { id: jobId }, { enabled: !!jobId });
 
   const {
     data: connectionsData,
     isLoading: isConnectionsLoading,
     isFetching: isConnectionsValidating,
   } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
 
-  const { mutateAsync: sampleRecords } = useMutation(getAiGeneratedData);
+  const { mutateAsync: sampleRecords } = useMutation(
+    ConnectionDataService.method.getAiGeneratedData
+  );
 
   const form = useForm<SingleTableEditAiSourceFormValues>({
     resolver: yupResolver(SingleTableEditAiSourceFormValues),
@@ -109,26 +105,28 @@ export default function AiDataGenConnectionCard({
     isLoading: isSchemaDataMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: fkSourceConnectionId },
     { enabled: !!fkSourceConnectionId }
   );
   const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
-    getConnectionSchemaMap
+    ConnectionDataService.method.getConnectionSchemaMap
   );
   const queryclient = useQueryClient();
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: fkSourceConnectionId },
       { enabled: !!fkSourceConnectionId }
     );
 
   const { mutateAsync: updateSourceConnection } = useMutation(
-    updateJobSourceConnection
+    JobService.method.updateJobSourceConnection
   );
-  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
+  const { mutateAsync: getConnectionAsync } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   const schemaConstraintHandler = useMemo(
     () =>
@@ -271,7 +269,7 @@ export default function AiDataGenConnectionCard({
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
             createConnectQueryKey({
-              schema: getConnection,
+              schema: ConnectionService.method.getConnection,
               input: { id },
               cardinality: undefined,
             }),
@@ -283,7 +281,7 @@ export default function AiDataGenConnectionCard({
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
             createConnectQueryKey({
-              schema: getConnectionSchemaMap,
+              schema: ConnectionDataService.method.getConnectionSchemaMap,
               input: { connectionId: id },
               cardinality: undefined,
             }),

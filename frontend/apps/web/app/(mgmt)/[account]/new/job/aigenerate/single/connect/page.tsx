@@ -30,8 +30,7 @@ import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfigSchema } from '@neosync/sdk';
-import { getConnections } from '@neosync/sdk/connectquery';
+import { ConnectionConfigSchema, ConnectionService } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
@@ -77,7 +76,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );

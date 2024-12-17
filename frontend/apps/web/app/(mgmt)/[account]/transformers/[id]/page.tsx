@@ -6,8 +6,10 @@ import { PageProps } from '@/components/types';
 import { getTransformerDataTypesString } from '@/util/util';
 import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { GetUserDefinedTransformerByIdResponseSchema } from '@neosync/sdk';
-import { getUserDefinedTransformerById } from '@neosync/sdk/connectquery';
+import {
+  GetUserDefinedTransformerByIdResponseSchema,
+  TransformersService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateTransformerForm from './components/UpdateTransformerForm';
@@ -18,7 +20,7 @@ export default function UpdateUserDefinedTransformerPage({
   const id = params?.id ?? '';
 
   const { data, isLoading } = useQuery(
-    getUserDefinedTransformerById,
+    TransformersService.method.getUserDefinedTransformerById,
     { transformerId: id },
     { enabled: !!id }
   );
@@ -58,7 +60,9 @@ export default function UpdateUserDefinedTransformerPage({
                   currentTransformer={data.transformer}
                   onUpdated={(updatedTransformer) => {
                     const key = createConnectQueryKey({
-                      schema: getUserDefinedTransformerById,
+                      schema:
+                        TransformersService.method
+                          .getUserDefinedTransformerById,
                       input: { transformerId: id },
                       cardinality: undefined,
                     });

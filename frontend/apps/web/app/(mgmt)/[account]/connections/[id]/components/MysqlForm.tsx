@@ -44,13 +44,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -72,7 +68,7 @@ export default function MysqlForm(props: Props) {
     defaultValues.url ? 'url' : 'host'
   );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
 
   const form = useForm<MysqlFormValues, MysqlEditConnectionFormContext>({
@@ -86,9 +82,11 @@ export default function MysqlForm(props: Props) {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync: createMysqlConnection } = useMutation(updateConnection);
+  const { mutateAsync: createMysqlConnection } = useMutation(
+    ConnectionService.method.updateConnection
+  );
   const { mutateAsync: checkMysqlConnection } = useMutation(
-    checkConnectionConfig
+    ConnectionService.method.checkConnectionConfig
   );
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined

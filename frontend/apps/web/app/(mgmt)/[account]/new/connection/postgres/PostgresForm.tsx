@@ -46,13 +46,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -69,7 +64,7 @@ export default function PostgresForm() {
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
 
   // used to know which tab - host or url that the user is on when we submit the form
@@ -118,12 +113,15 @@ export default function PostgresForm() {
       },
     }
   );
-  const { mutateAsync: createPostgresConnection } =
-    useMutation(createConnection);
-  const { mutateAsync: checkPostgresConnection } = useMutation(
-    checkConnectionConfig
+  const { mutateAsync: createPostgresConnection } = useMutation(
+    ConnectionService.method.createConnection
   );
-  const { mutateAsync: getPostgresConnection } = useMutation(getConnection);
+  const { mutateAsync: checkPostgresConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+  const { mutateAsync: getPostgresConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   const router = useRouter();
   const [validationResponse, setValidationResponse] = useState<

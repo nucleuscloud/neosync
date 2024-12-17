@@ -24,14 +24,7 @@ import {
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
-import {
-  cancelJobRun,
-  deleteJobRun,
-  getJobRecentRuns,
-  getJobRuns,
-  terminateJobRun,
-} from '@neosync/sdk/connectquery';
+import { JobRunStatus as JobRunStatusEnum, JobService } from '@neosync/sdk';
 import {
   Cross2Icon,
   DotsHorizontalIcon,
@@ -55,20 +48,30 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     error: recentRunsError,
     refetch: recentRunsMutate,
     isFetching: isValidating,
-  } = useQuery(getJobRecentRuns, { jobId }, { enabled: !!jobId });
+  } = useQuery(
+    JobService.method.getJobRecentRuns,
+    { jobId },
+    { enabled: !!jobId }
+  );
   const {
     data: jobRunsData,
     isLoading: jobRunsLoading,
     isFetching: jobRunsValidating,
     refetch: jobRunsMutate,
   } = useQuery(
-    getJobRuns,
+    JobService.method.getJobRuns,
     { id: { case: 'jobId', value: jobId } },
     { enabled: !!jobId }
   );
-  const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
-  const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
-  const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
+  const { mutateAsync: removeJobRunAsync } = useMutation(
+    JobService.method.deleteJobRun
+  );
+  const { mutateAsync: cancelJobRunAsync } = useMutation(
+    JobService.method.cancelJobRun
+  );
+  const { mutateAsync: terminateJobRunAsync } = useMutation(
+    JobService.method.terminateJobRun
+  );
 
   const recentRuns = (recentRunsData?.recentRuns ?? []).toReversed();
   const jobRunsIdMap = new Map(

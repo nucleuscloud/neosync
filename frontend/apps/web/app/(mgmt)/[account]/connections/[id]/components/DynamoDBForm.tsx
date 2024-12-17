@@ -35,14 +35,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   UpdateConnectionRequestSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -60,7 +56,7 @@ export default function DynamoDBForm(props: Props) {
   const { account } = useAccount();
   const { data: systemAppConfig } = useGetSystemAppConfig();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<DynamoDbFormValues, EditConnectionFormContext>({
     resolver: yupResolver(DynamoDbFormValues),
@@ -71,8 +67,12 @@ export default function DynamoDBForm(props: Props) {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
-  const { mutateAsync: checkDbConnection } = useMutation(checkConnectionConfig);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
+  const { mutateAsync: checkDbConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [validationResponse, setValidationResponse] = useState<

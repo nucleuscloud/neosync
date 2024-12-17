@@ -36,11 +36,7 @@ import {
 } from '@/util/util';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { AccountRole } from '@neosync/sdk';
-import {
-  getTeamAccountInvites,
-  removeTeamAccountInvite,
-} from '@neosync/sdk/connectquery';
+import { AccountRole, UserAccountService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -131,7 +127,7 @@ interface Props {
 export function InvitesTable(props: Props): React.ReactElement {
   const { accountId } = props;
   const { data, isLoading, refetch, isFetching } = useQuery(
-    getTeamAccountInvites,
+    UserAccountService.method.getTeamAccountInvites,
     { accountId: accountId },
     { enabled: !!accountId }
   );
@@ -285,7 +281,9 @@ interface DeleteInviteButtonProps {
 }
 
 function DeleteInviteButton({ inviteId, onDeleted }: DeleteInviteButtonProps) {
-  const { mutateAsync } = useMutation(removeTeamAccountInvite);
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.removeTeamAccountInvite
+  );
 
   async function onRemove(): Promise<void> {
     try {

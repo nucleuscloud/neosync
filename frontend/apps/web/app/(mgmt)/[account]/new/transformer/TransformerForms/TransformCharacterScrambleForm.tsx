@@ -15,8 +15,8 @@ import { useMutation } from '@connectrpc/connect-query';
 import {
   TransformCharacterScramble,
   TransformCharacterScrambleSchema,
+  TransformersService,
 } from '@neosync/sdk';
-import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
@@ -34,7 +34,7 @@ export default function TransformCharacterScrambleForm(
 
   const { account } = useAccount();
   const { mutateAsync: validateUserRegexCodeAsync } = useMutation(
-    validateUserRegexCode
+    TransformersService.method.validateUserRegexCode
   );
 
   async function handleValidateCode(): Promise<void> {

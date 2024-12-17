@@ -16,12 +16,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { JobRun, JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import {
-  cancelJobRun,
-  deleteJobRun,
-  terminateJobRun,
-} from '@neosync/sdk/connectquery';
+  JobRun,
+  JobRunStatus as JobRunStatusEnum,
+  JobService,
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -37,9 +36,15 @@ export function DataTableRowActions<TData>({
   const run = row.original as JobRun;
   const router = useRouter();
   const { account } = useAccount();
-  const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
-  const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
-  const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
+  const { mutateAsync: removeJobRunAsync } = useMutation(
+    JobService.method.deleteJobRun
+  );
+  const { mutateAsync: cancelJobRunAsync } = useMutation(
+    JobService.method.cancelJobRun
+  );
+  const { mutateAsync: terminateJobRunAsync } = useMutation(
+    JobService.method.terminateJobRun
+  );
 
   async function onDelete(): Promise<void> {
     try {

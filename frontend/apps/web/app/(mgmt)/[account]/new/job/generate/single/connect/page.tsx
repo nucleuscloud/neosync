@@ -38,11 +38,8 @@ import {
   Code,
   ConnectError,
   ConnectionConfigSchema,
+  ConnectionService,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfigById,
-  getConnections,
-} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -98,7 +95,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -121,7 +118,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const { mutateAsync: checkConnectionConfig } = useMutation(
-    checkConnectionConfigById
+    ConnectionService.method.checkConnectionConfigById
   );
 
   return (

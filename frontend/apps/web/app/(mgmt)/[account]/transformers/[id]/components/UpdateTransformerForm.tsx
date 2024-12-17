@@ -25,12 +25,7 @@ import {
 } from '@/yup-validations/transformer-validations';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UserDefinedTransformer } from '@neosync/sdk';
-import {
-  isTransformerNameAvailable,
-  updateUserDefinedTransformer,
-  validateUserJavascriptCode,
-} from '@neosync/sdk/connectquery';
+import { TransformersService, UserDefinedTransformer } from '@neosync/sdk';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -46,10 +41,10 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
-    isTransformerNameAvailable
+    TransformersService.method.isTransformerNameAvailable
   );
   const { mutateAsync: isJavascriptCodeValid } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   const form = useForm<
@@ -71,7 +66,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
       isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
-  const { mutateAsync } = useMutation(updateUserDefinedTransformer);
+  const { mutateAsync } = useMutation(
+    TransformersService.method.updateUserDefinedTransformer
+  );
 
   async function onSubmit(
     values: UpdateUserDefinedTransformerFormValues

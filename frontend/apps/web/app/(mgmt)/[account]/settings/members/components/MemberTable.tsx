@@ -23,11 +23,7 @@ import {
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getAccountRoleString, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { AccountRole, AccountUser } from '@neosync/sdk';
-import {
-  getTeamAccountMembers,
-  removeTeamAccountMember,
-} from '@neosync/sdk/connectquery';
+import { AccountRole, AccountUser, UserAccountService } from '@neosync/sdk';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   ColumnDef,
@@ -127,7 +123,7 @@ interface Props {
 export default function MembersTable(props: Props): ReactElement {
   const { accountId } = props;
   const { data, isLoading, refetch, isFetching } = useQuery(
-    getTeamAccountMembers,
+    UserAccountService.method.getTeamAccountMembers,
     { accountId: accountId },
     { enabled: !!accountId }
   );
@@ -316,7 +312,9 @@ function DataTableRowActions({
 }: DataTableRowActionsProps) {
   const { account } = useAccount();
 
-  const { mutateAsync } = useMutation(removeTeamAccountMember);
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.removeTeamAccountMember
+  );
 
   async function onRemove(): Promise<void> {
     if (!account?.id) {

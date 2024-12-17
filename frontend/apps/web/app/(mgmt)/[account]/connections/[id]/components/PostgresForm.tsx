@@ -44,13 +44,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  ConnectionService,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -71,7 +67,7 @@ export default function PostgresForm(props: Props): ReactElement {
     defaultValues.url ? 'url' : 'host'
   );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
 
   const form = useForm<PostgresFormValues, PostgresEditConnectionFormContext>({
@@ -92,10 +88,11 @@ export default function PostgresForm(props: Props): ReactElement {
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
-  const { mutateAsync: updatePostgresConnection } =
-    useMutation(updateConnection);
+  const { mutateAsync: updatePostgresConnection } = useMutation(
+    ConnectionService.method.updateConnection
+  );
   const { mutateAsync: checkPostgresConnection } = useMutation(
-    checkConnectionConfig
+    ConnectionService.method.checkConnectionConfig
   );
 
   async function onSubmit(values: PostgresFormValues) {

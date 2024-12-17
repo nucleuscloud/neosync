@@ -23,11 +23,6 @@ plugins:
       - target=ts
       - import_extension=.js
     include_imports: true
-  - remote: buf.build/connectrpc/query-es:v2.0.1
-    out: frontend/packages/sdk/src/client
-    opt:
-      - target=ts
-      - import_extension=.js
 
   - remote: buf.build/community/pseudomuto-doc:v1.5.1
     out: docs/protos

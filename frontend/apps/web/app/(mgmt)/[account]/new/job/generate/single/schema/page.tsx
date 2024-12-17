@@ -43,14 +43,12 @@ import { getErrorMessage, getTransformerFromField } from '@/util/util';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ValidateJobMappingsResponse } from '@neosync/sdk';
 import {
-  createJob,
-  getConnections,
-  getConnectionSchemaMap,
-  getConnectionTableConstraints,
-  validateJobMappings,
-} from '@neosync/sdk/connectquery';
+  ConnectionDataService,
+  ConnectionService,
+  JobService,
+  ValidateJobMappingsResponse,
+} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -84,7 +82,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -124,12 +122,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isLoading: isSchemaMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: connectFormValues.fkSourceConnectionId },
     { enabled: !!connectFormValues.fkSourceConnectionId }
   );
 
-  const { mutateAsync: createJobAsync } = useMutation(createJob);
+  const { mutateAsync: createJobAsync } = useMutation(
+    JobService.method.createJob
+  );
 
   const form = useForm({
     mode: 'onChange',
@@ -145,8 +145,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setIsClient(true);
   }, []);
 
-  const { mutateAsync: validateJobMappingsAsync } =
-    useMutation(validateJobMappings);
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
 
   async function onSubmit(values: SingleTableSchemaFormValues) {
     if (!account) {
@@ -209,7 +210,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: connectFormValues.fkSourceConnectionId },
       { enabled: !!connectFormValues.fkSourceConnectionId }
     );
