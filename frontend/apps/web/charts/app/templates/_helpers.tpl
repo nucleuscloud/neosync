@@ -133,8 +133,8 @@ POSTHOG_KEY: {{ .Values.posthog.key }}
 {{- if and .Values.posthog .Values.posthog.host }}
 POSTHOG_HOST: {{ .Values.posthog.host }}
 {{- end }}
-{{- if and .Values.koala .Values.koala.key }}
-KOALA_KEY: {{ .Values.koala.key }}
+{{- if and .Values.unify .Values.unify.key }}
+KOALA_KEY: {{ .Values.unify.key }}
 {{- end }}
 NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
 ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}

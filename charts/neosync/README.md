@@ -112,7 +112,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
 | api.volumeMounts | list | `[]` | Volumes that will be mounted to the deployment |
 | api.volumes | list | `[]` | Volumes that will be attached to the deployment |
-| app.analytics.enabled | bool | `true` | Enables analytics such as Posthog/Koala (if keys have been provided for them) |
+| app.analytics.enabled | bool | `true` | Enables analytics such as Posthog/Unify (if keys have been provided for them) |
 | app.auth.audience | string | `nil` | The audience that should be present in the JWT token |
 | app.auth.clientId | string | `nil` | The client id that will be used by the app to retrieve user tokens |
 | app.auth.clientSecret | string | `nil` | The client secret that will be used by the app |
@@ -137,7 +137,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.ingress.enabled | bool | `false` | Enable this if using K8s ingress to expose the backend to the internet |
 | app.istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
 | app.jobHooks.enabled | bool | `false` | Enables Job Hooks on the frontend. Note: This will only work if it has also been enabled via the backend with a valid license |
-| app.koala.key | string | `nil` | Koala Key |
+| app.unify.key | string | `nil` | Unify Key |
 | app.nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | app.neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |
 | app.neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
