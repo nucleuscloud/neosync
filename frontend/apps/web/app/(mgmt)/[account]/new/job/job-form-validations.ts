@@ -5,11 +5,10 @@ import {
   SchemaFormValues,
   SourceFormValues,
 } from '@/yup-validations/jobs';
-import { create } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import {
   ConnectError,
   Connection,
-  IsJobNameAvailableRequest,
   IsJobNameAvailableRequestSchema,
   IsJobNameAvailableResponse,
 } from '@neosync/sdk';
@@ -97,7 +96,7 @@ export const DefineFormValues = Yup.object({
           | UseMutateAsyncFunction<
               IsJobNameAvailableResponse,
               ConnectError,
-              IsJobNameAvailableRequest,
+              MessageInitShape<typeof IsJobNameAvailableRequestSchema>,
               unknown
             >
           | undefined = context?.options?.context?.isJobNameAvailable;
@@ -451,7 +450,7 @@ export interface DefineFormValuesContext {
   isJobNameAvailable: UseMutateAsyncFunction<
     IsJobNameAvailableResponse,
     ConnectError,
-    IsJobNameAvailableRequest,
+    MessageInitShape<typeof IsJobNameAvailableRequestSchema>,
     unknown
   >;
 }

@@ -11,11 +11,9 @@ import {
 import { create, MessageInitShape } from '@bufbuild/protobuf';
 import {
   ConnectError,
-  IsTransformerNameAvailableRequest,
   IsTransformerNameAvailableRequestSchema,
   IsTransformerNameAvailableResponse,
   TransformerConfig,
-  ValidateUserJavascriptCodeRequest,
   ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
@@ -325,7 +323,9 @@ const JavascriptConfig = Yup.object().shape({
             | UseMutateAsyncFunction<
                 ValidateUserJavascriptCodeResponse,
                 ConnectError,
-                ValidateUserJavascriptCodeRequest,
+                MessageInitShape<
+                  typeof ValidateUserJavascriptCodeRequestSchema
+                >,
                 unknown
               >
             | undefined = context?.options?.context?.isUserJavascriptCodeValid;
@@ -517,7 +517,7 @@ const transformerNameSchema = Yup.string()
           | UseMutateAsyncFunction<
               IsTransformerNameAvailableResponse,
               ConnectError,
-              IsTransformerNameAvailableRequest,
+              MessageInitShape<typeof IsTransformerNameAvailableRequestSchema>,
               unknown
             >
           | undefined = context?.options?.context?.isTransformerNameAvailable;
