@@ -92,7 +92,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout), sqlconnect.WithMysqlParseTimeDisabled())
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout))
 		if err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 0)
 		if err != nil {
 			return err
 		}
@@ -132,12 +132,8 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			msgBits := encodeJSON(r)
-			row := map[string][]byte{
-				"row": msgBits,
-			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			rowbytes := encodeJSON(r)
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
 		}
@@ -160,7 +156,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 0)
 		if err != nil {
 			return err
 		}
@@ -190,12 +186,8 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			msgBits := encodeJSON(r)
-			row := map[string][]byte{
-				"row": msgBits,
-			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			rowbytes := encodeJSON(r)
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
 		}
@@ -278,10 +270,9 @@ func (s *Service) GetConnectionDataStream(
 
 				decoder := json.NewDecoder(gzr)
 				for {
-					var data json.RawMessage
-
+					var rowbytes json.RawMessage
 					// Decode the next JSON object
-					err = decoder.Decode(&data)
+					err = decoder.Decode(&rowbytes)
 					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
@@ -290,35 +281,7 @@ func (s *Service) GetConnectionDataStream(
 						return err
 					}
 
-					// rowMap := make(map[string][]byte)
-					// for key, value := range data {
-					//   var byteValue []byte
-					//   switch v := value.(type) {
-					//   case string:
-					//     // try converting string directly to []byte
-					//     // prevents quoted strings
-					//     byteValue = []byte(v)
-					//   default:
-					//     // if not a string use JSON encoding
-					//     byteValue, err = json.Marshal(v)
-					//     if err != nil {
-					//       result.Body.Close()
-					//       gzr.Close()
-					//       return err
-					//     }
-					//     if string(byteValue) == "null" {
-					//       byteValue = nil
-					//     }
-					//   }
-					//   rowMap[key] = byteValue
-					// }
-
-					// Send single row with JSON bytes
-					rowMap := map[string][]byte{
-						"row": data,
-					}
-
-					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: rowMap}); err != nil {
+					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
@@ -360,7 +323,8 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		onRecord := func(record map[string][]byte) error {
-			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: record})
+			rowbytes := encodeJSON(record)
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes})
 		}
 		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
 		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
@@ -381,14 +345,11 @@ func (s *Service) GetConnectionDataStream(
 			}
 
 			for _, item := range output.Items {
-				row := make(map[string][]byte)
-
 				itemBits, err := neosync_dynamodb.ConvertMapToJSONBytes(item)
 				if err != nil {
 					return err
 				}
-				row["item"] = itemBits
-				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBits}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
 				}
 			}

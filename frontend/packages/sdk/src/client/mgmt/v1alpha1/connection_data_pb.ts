@@ -332,11 +332,19 @@ export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStr
  */
 export class GetConnectionDataStreamResponse extends Message<GetConnectionDataStreamResponse> {
   /**
+   * @deprecated - use row_bytes
    * A map of column name to the bytes value of the data that was found for that column and row
    *
    * @generated from field: map<string, bytes> row = 1;
    */
   row: { [key: string]: Uint8Array } = {};
+
+  /**
+   * A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.
+   *
+   * @generated from field: bytes row_bytes = 2;
+   */
+  rowBytes = new Uint8Array(0);
 
   constructor(data?: PartialMessage<GetConnectionDataStreamResponse>) {
     super();
@@ -347,6 +355,7 @@ export class GetConnectionDataStreamResponse extends Message<GetConnectionDataSt
   static readonly typeName = "mgmt.v1alpha1.GetConnectionDataStreamResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "row", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 12 /* ScalarType.BYTES */} },
+    { no: 2, name: "row_bytes", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionDataStreamResponse {

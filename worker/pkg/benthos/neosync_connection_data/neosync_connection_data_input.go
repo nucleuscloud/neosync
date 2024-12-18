@@ -187,6 +187,29 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		return nil, nil, service.ErrEndOfInput
 	}
 	row := g.resp.Msg().Row
+	rowBytes := g.resp.Msg().RowBytes
+
+	if rowBytes != nil {
+		valuesMap := map[string]any{}
+		err := json.Unmarshal(rowBytes, &valuesMap)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error unmarshalling row: %w", err)
+		}
+		for k, v := range valuesMap {
+			newVal, err := g.neosyncTypeRegistry.UnmarshalAny(v)
+			if err != nil {
+				return nil, nil, err
+			}
+			valuesMap[k] = newVal
+		}
+
+		msg := service.NewMessage(nil)
+		msg.SetStructuredMut(valuesMap)
+		return msg, func(ctx context.Context, err error) error {
+			// Nacks are retried automatically when we use service.AutoRetryNacks
+			return nil
+		}, nil
+	}
 
 	if g.connectionType == "awsDynamoDB" {
 		for _, val := range row {
@@ -207,32 +230,6 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		}
 	}
 
-	if len(row) == 1 && row["row"] != nil {
-		valuesMap := map[string]any{}
-		err := json.Unmarshal(row["row"], &valuesMap)
-		if err != nil {
-			fmt.Println("valuemap unmarshal ERROR", err, "table", g.table, "schema", g.schema)
-			jsonF, _ := json.MarshalIndent(row, "", " ")
-			fmt.Printf("\n\n %s \n\n", string(jsonF))
-			return nil, nil, err
-		}
-		for k, v := range valuesMap {
-			newVal, err := g.neosyncTypeRegistry.UnmarshalAny(v)
-			if err != nil {
-				return nil, nil, err
-			}
-			valuesMap[k] = newVal
-		}
-
-		msg := service.NewMessage(nil)
-		msg.SetStructuredMut(valuesMap)
-		return msg, func(ctx context.Context, err error) error {
-			// Nacks are retried automatically when we use service.AutoRetryNacks
-			return nil
-		}, nil
-	}
-
-	fmt.Println("HERE")
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {

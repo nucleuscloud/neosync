@@ -981,7 +981,14 @@ components:
             type: string
             title: value
             format: byte
-          description: A map of column name to the bytes value of the data that was found for that column and row
+          description: |-
+            @deprecated - use row_bytes
+             A map of column name to the bytes value of the data that was found for that column and row
+        rowBytes:
+          type: string
+          title: row_bytes
+          format: byte
+          description: A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.
       title: GetConnectionDataStreamResponse
       additionalProperties: false
       description: Each stream response is a single row in the requested schema and table

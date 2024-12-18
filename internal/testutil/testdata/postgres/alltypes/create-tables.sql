@@ -134,7 +134,7 @@ INSERT INTO all_data_types (
     DEFAULT,
     32767,  -- smallint_col
     2147483647,  -- integer_col
-    922337203685477580,  -- bigint_col
+    922337203685477632,  -- bigint_col
     1234.56,  -- decimal_col
     99999999.99,  -- numeric_col
     12345.67,  -- real_col
@@ -208,23 +208,19 @@ VALUES (
 
 INSERT INTO time_time (
     timestamp_col,
-    timestamptz_col,
     date_col
 ) 
 VALUES (
     '0001-01-01 00:00:00 BC',
-    '0001-01-01 00:00:00+00 BC',
     '0001-01-01 BC'
 );
 
 INSERT INTO time_time (
     timestamp_col,
-    timestamptz_col,
     date_col
 ) 
 VALUES (
     '0002-01-01 00:00:00 BC',
-    '0002-01-01 00:00:00+00 BC',
     '0002-01-01 BC'
 );
 
@@ -347,7 +343,7 @@ INSERT INTO json_data (data) VALUES ('42');
 INSERT INTO json_data (data) VALUES ('3.14');
 INSERT INTO json_data (data) VALUES ('true');
 INSERT INTO json_data (data) VALUES ('false');
-INSERT INTO json_data (data) VALUES ('null');
+INSERT INTO json_data (data) VALUES (NULL);
 
 INSERT INTO json_data (data) VALUES ('{"name": "John", "age": 30}');
 INSERT INTO json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');

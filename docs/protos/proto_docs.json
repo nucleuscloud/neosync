@@ -7482,12 +7482,24 @@
           "fields": [
             {
               "name": "row",
-              "description": "A map of column name to the bytes value of the data that was found for that column and row",
+              "description": "@deprecated - use row_bytes\nA map of column name to the bytes value of the data that was found for that column and row",
               "label": "repeated",
               "type": "RowEntry",
               "longType": "GetConnectionDataStreamResponse.RowEntry",
               "fullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
               "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "row_bytes",
+              "description": "A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""

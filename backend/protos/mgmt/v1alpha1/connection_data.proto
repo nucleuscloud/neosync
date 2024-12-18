@@ -42,8 +42,9 @@ message GetConnectionDataStreamRequest {
 
 // Each stream response is a single row in the requested schema and table
 message GetConnectionDataStreamResponse {
-  // A map of column name to the bytes value of the data that was found for that column and row
-  map<string, bytes> row = 1;
+  reserved 1; // was map<string, bytes> row = 1;
+  // A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.
+  bytes row_bytes = 2;
 }
 
 message PostgresSchemaConfig {}

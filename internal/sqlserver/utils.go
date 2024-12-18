@@ -35,8 +35,6 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 		col := columnNames[i]
 		colType := cTypes[i]
 		switch t := v.(type) {
-		case string:
-			jObj[col] = t
 		case []byte:
 			if IsUuidDataType(colType.DatabaseTypeName()) {
 				uuidStr, err := BitsToUuidString(t)
@@ -46,12 +44,6 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 				}
 			}
 			jObj[col] = string(t)
-		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			jObj[col] = t
-		case float32, float64:
-			jObj[col] = t
-		case bool:
-			jObj[col] = t
 		default:
 			jObj[col] = t
 		}
