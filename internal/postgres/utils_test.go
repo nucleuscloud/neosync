@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -193,19 +194,150 @@ func Test_parsePgRowValues(t *testing.T) {
 			"text_col", "int_col", "bool_col", "nil_col", "json_col", "array_col",
 			"binary_col", "xml_col", "uuid_col",
 		}
-
-		result := parsePgRowValues(values, columnNames)
-		expected := map[string]any{
-			"text_col":   "Hello",
-			"int_col":    int64(42),
-			"bool_col":   true,
-			"nil_col":    nil,
-			"json_col":   map[string]any{"key": "value"},
-			"array_col":  []any{1, 2, 3},
-			"binary_col": binaryData,
-			"xml_col":    xmlStr,
-			"uuid_col":   uuidValue,
+		columnTypes := []string{
+			"text", "integer", "boolean", "text", "json", "_integer", "bytea", "xml", "uuid",
 		}
+
+		result := parsePgRowValues(values, columnNames, columnTypes)
+		expected := map[string]any{
+			"text_col":  "Hello",
+			"int_col":   int64(42),
+			"bool_col":  true,
+			"nil_col":   nil,
+			"json_col":  map[string]any{"key": "value"},
+			"array_col": []any{1, 2, 3},
+			"binary_col": &neosynctypes.Binary{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_BINARY",
+					},
+				},
+				Bytes: binaryData,
+			},
+			"xml_col":  xmlStr,
+			"uuid_col": uuidValue,
+		}
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("Bit and Binary Columns", func(t *testing.T) {
+		// Test bit type
+		bits := &pgtype.Bits{Bytes: []byte{0x05}, Len: 3, Valid: true} // binary 101
+
+		// Test varbit type
+		varbits := &pgtype.Bits{Bytes: []byte{0x0D}, Len: 4, Valid: true} // binary 1101
+
+		// Test bytea
+		byteaValue := []byte{0xDE, 0xAD, 0xBE, 0xEF}
+
+		// Test array types
+		bitArray := &PgxArray[*pgtype.Bits]{
+			Array: pgtype.Array[*pgtype.Bits]{
+				Elements: []*pgtype.Bits{
+					{Bytes: []byte{0x05}, Len: 3, Valid: true}, // 101
+					{Bytes: []byte{0x03}, Len: 2, Valid: true}, // 11
+				},
+			},
+			colDataType: "_bit",
+		}
+
+		byteaArray := &PgxArray[[]byte]{
+			Array: pgtype.Array[[]byte]{
+				Elements: [][]byte{
+					{0x01, 0x02},
+					{0x03, 0x04},
+				},
+			},
+			colDataType: "_bytea",
+		}
+
+		values := []any{
+			bits,
+			varbits,
+			byteaValue,
+			bitArray,
+			byteaArray,
+		}
+
+		columnNames := []string{
+			"bit_col",
+			"varbit_col",
+			"bytea_col",
+			"bit_array_col",
+			"bytea_array_col",
+		}
+
+		columnTypes := []string{
+			"_bit", "_varbit", "_bytea", "_bit[]", "_bytea[]",
+		}
+
+		result := parsePgRowValues(values, columnNames, columnTypes)
+
+		expected := map[string]any{
+			"bit_col":    bits,
+			"varbit_col": varbits,
+			"bytea_col":  byteaValue,
+			"bit_array_col": &neosynctypes.NeosyncArray{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_ARRAY",
+					},
+				},
+				Elements: []neosynctypes.NeosyncAdapter{
+					&neosynctypes.Bits{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BIT",
+							},
+						},
+						Bytes: []byte{0x05},
+						Len:   3,
+					},
+					&neosynctypes.Bits{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BIT",
+							},
+						},
+						Bytes: []byte{0x03},
+						Len:   2,
+					},
+				},
+			},
+			"bytea_array_col": &neosynctypes.NeosyncArray{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_ARRAY",
+					},
+				},
+				Elements: []neosynctypes.NeosyncAdapter{
+					&neosynctypes.Binary{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BINARY",
+							},
+						},
+						Bytes: []byte{0x01, 0x02},
+					},
+					&neosynctypes.Binary{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BINARY",
+							},
+						},
+						Bytes: []byte{0x03, 0x04},
+					},
+				},
+			},
+		}
+
 		require.Equal(t, expected, result)
 	})
 
@@ -219,8 +351,9 @@ func Test_parsePgRowValues(t *testing.T) {
 			&NullableJSON{RawMessage: json.RawMessage(`[1,2,3]`), Valid: true},
 		}
 		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
+		columnTypes := []string{"json", "json", "json", "json", "json", "_json"}
 
-		result := parsePgRowValues(values, columnNames)
+		result := parsePgRowValues(values, columnNames, columnTypes)
 
 		expected := map[string]any{
 			"text_col":  "Hello",
@@ -260,8 +393,8 @@ func Test_parsePgRowValues(t *testing.T) {
 				}},
 				colDataType: "_json",
 			},
-			&PgxArray[any]{
-				Array:       pgtype.Array[any]{Elements: []any{binaryData1, binaryData2}},
+			&PgxArray[[]byte]{
+				Array:       pgtype.Array[[]byte]{Elements: [][]byte{binaryData1, binaryData2}},
 				colDataType: "_bytea",
 			},
 			&PgxArray[any]{
@@ -286,24 +419,51 @@ func Test_parsePgRowValues(t *testing.T) {
 			"binary_array", "xml_array", "uuid_array", "multidim_array",
 		}
 
-		result := parsePgRowValues(values, columnNames)
+		columnTypes := []string{
+			"_text", "_integer", "_boolean", "_json",
+			"_bytea", "_xml", "_uuid", "_integer[]",
+		}
+		result := parsePgRowValues(values, columnNames, columnTypes)
 
 		expected := map[string]any{
-			"text_array":     []any{"Hello", "World"},
-			"int_array":      []any{int64(42), int64(43)},
-			"bool_array":     []any{true, false},
-			"json_array":     []any{map[string]any{"key": "value1"}, map[string]any{"key": "value2"}},
-			"binary_array":   []any{binaryData1, binaryData2},
+			"text_array": []any{"Hello", "World"},
+			"int_array":  []any{int64(42), int64(43)},
+			"bool_array": []any{true, false},
+			"json_array": []any{map[string]any{"key": "value1"}, map[string]any{"key": "value2"}},
+			"binary_array": &neosynctypes.NeosyncArray{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_ARRAY",
+					},
+				},
+				Elements: []neosynctypes.NeosyncAdapter{
+					&neosynctypes.Binary{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BINARY",
+							},
+						},
+						Bytes: binaryData1,
+					},
+					&neosynctypes.Binary{
+						BaseType: neosynctypes.BaseType{
+							Neosync: neosynctypes.Neosync{
+								Version: 1,
+								TypeId:  "NEOSYNC_BINARY",
+							},
+						},
+						Bytes: binaryData2,
+					},
+				},
+			},
 			"xml_array":      []any{xmlData1, xmlData2},
 			"uuid_array":     []any{uuidValue1, uuidValue2},
 			"multidim_array": []any{[]any{1, 2}, []any{3, 4}},
 		}
 
-		for key, expectedArray := range expected {
-			actual, ok := result[key]
-			require.True(t, ok)
-			require.ElementsMatch(t, actual, expectedArray)
-		}
+		require.Equal(t, expected, result)
 	})
 
 	t.Run("Null Values", func(t *testing.T) {
@@ -312,8 +472,9 @@ func Test_parsePgRowValues(t *testing.T) {
 			&NullableJSON{Valid: false},
 		}
 		columnNames := []string{"null_string", "null_json"}
+		columnTypes := []string{"text", "text"}
 
-		result := parsePgRowValues(values, columnNames)
+		result := parsePgRowValues(values, columnNames, columnTypes)
 
 		expected := map[string]any{
 			"null_string": nil,

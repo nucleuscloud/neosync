@@ -3,10 +3,11 @@ package mysql
 import (
 	"testing"
 
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_parsePgRowValues(t *testing.T) {
+func Test_parseMysqlRowValues(t *testing.T) {
 	t.Run("Multiple Columns", func(t *testing.T) {
 		binaryData := []byte{0x01, 0x02, 0x03}
 
@@ -32,12 +33,20 @@ func Test_parsePgRowValues(t *testing.T) {
 		}
 		result := parseMysqlRowValues(values, columnNames, cTypes)
 		expected := map[string]any{
-			"text_col":   "Hello",
-			"int_col":    int64(42),
-			"bool_col":   true,
-			"nil_col":    nil,
-			"json_col":   map[string]any{"key": "value"},
-			"binary_col": binaryData,
+			"text_col": "Hello",
+			"int_col":  int64(42),
+			"bool_col": true,
+			"nil_col":  nil,
+			"json_col": map[string]any{"key": "value"},
+			"binary_col": &neosynctypes.Binary{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_BINARY",
+					},
+				},
+				Bytes: binaryData,
+			},
 		}
 		require.Equal(t, expected, result)
 	})

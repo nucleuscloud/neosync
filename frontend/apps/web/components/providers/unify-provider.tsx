@@ -6,21 +6,21 @@ import Script from 'next/script';
 import { ReactElement, useEffect } from 'react';
 import { useAccount } from './account-provider';
 
-export function KoalaScriptProvider(): ReactElement {
+export function UnifyScriptProvider(): ReactElement {
   const { data: systemAppConfig, isLoading } = useGetSystemAppConfig();
 
   if (
     isLoading ||
-    !systemAppConfig?.koala.enabled ||
-    !systemAppConfig.koala.key
+    !systemAppConfig?.unify.enabled ||
+    !systemAppConfig.unify.key
   ) {
     return <></>;
   }
   return (
     <Script
-      id="koala"
+      id="unify"
       dangerouslySetInnerHTML={{
-        __html: `!function(t){if(window.ko)return;window.ko=[],["identify","track","removeListeners","open","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/${systemAppConfig.koala.key}/sdk.js"),(document.body || document.head).appendChild(n)}();`,
+        __html: `!function(){window.unify||(window.unify=Object.assign([],["identify","page","startAutoPage","stopAutoPage","startAutoIdentify","stopAutoIdentify"].reduce((function(t,e){return t[e]=function(){return unify.push([e,[].slice.call(arguments)]),unify},t}),{})));var t=document.createElement("script");t.async=!0,t.setAttribute("src","https://tag.unifyintent.com/v1/3bzXn1sjuq1cb6wQF3Cp86/script.js"),t.setAttribute("data-api-key","${systemAppConfig.unify.key}"),t.setAttribute("id","unifytag"),(document.body||document.head).appendChild(t)}();`,
       }}
     />
   );
@@ -28,7 +28,7 @@ export function KoalaScriptProvider(): ReactElement {
 
 const isBrowser = () => typeof window !== 'undefined';
 
-export function KoalaIdentifier(): ReactElement {
+export function UnifyIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
@@ -42,8 +42,8 @@ export function KoalaIdentifier(): ReactElement {
       isUserDataLoading ||
       isAccountLoading ||
       isSystemAppConfigLoading ||
-      !systemAppConfig?.koala.enabled ||
-      !systemAppConfig.koala.key ||
+      !systemAppConfig?.unify.enabled ||
+      !systemAppConfig.unify.key ||
       !systemAppConfig.isAuthEnabled ||
       !user?.email
     ) {
@@ -74,8 +74,8 @@ export function KoalaIdentifier(): ReactElement {
     systemAppConfig?.isNeosyncCloud,
     user?.email,
     user?.name,
-    systemAppConfig?.koala.enabled,
-    systemAppConfig?.koala.key,
+    systemAppConfig?.unify.enabled,
+    systemAppConfig?.unify.key,
   ]);
 
   return <></>;

@@ -2,11 +2,10 @@ package sync_cmd
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"testing"
 
 	"connectrpc.com/connect"
-	"github.com/jackc/pgx/v5/pgxpool"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
@@ -14,8 +13,10 @@ import (
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
+	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	mysqlalltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
 	pgalltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
+
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
@@ -74,11 +75,12 @@ func Test_Sync(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = postgres.Source.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, "alltypes")
+			alltypesSchema := "alltypes"
+			err = postgres.Source.RunCreateStmtsInSchema(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = postgres.Target.CreateSchemas(ctx, []string{"humanresources", "alltypes"})
+			err = postgres.Target.CreateSchemas(ctx, []string{"humanresources", alltypesSchema})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -127,16 +129,18 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 0)
 
-			var tsvectorVal, jsonVal, jsonbVal string
-			row := postgres.Target.DB.QueryRow(ctx, "select tsvector_col::text, json_col::text, jsonb_col::text from alltypes.all_data_types where tsvector_col is not null and json_col is not null;")
-			err = row.Scan(&tsvectorVal, &jsonVal, &jsonbVal)
+			source, err := sql.Open("postgres", postgres.Source.URL)
 			require.NoError(t, err)
-			require.Equal(t, "'example' 'tsvector'", tsvectorVal)
-			require.Equal(t, `{"name": "John", "age": 30}`, jsonVal)
-			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
+			defer source.Close()
 
-			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB, "alltypes")
+			target, err := sql.Open("postgres", postgres.Target.URL)
 			require.NoError(t, err)
+			defer target.Close()
+
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {
@@ -240,16 +244,18 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 0)
 
-			var tsvectorVal, jsonVal, jsonbVal string
-			row := postgres.Target.DB.QueryRow(ctx, fmt.Sprintf("select tsvector_col::text, json_col::text, jsonb_col::text from %s.all_data_types where tsvector_col is not null and json_col is not null;", alltypesSchema))
-			err = row.Scan(&tsvectorVal, &jsonVal, &jsonbVal)
+			source, err := sql.Open("postgres", postgres.Source.URL)
 			require.NoError(t, err)
-			require.Equal(t, "'example' 'tsvector'", tsvectorVal)
-			require.Equal(t, `{"age":30,"name":"John"}`, jsonVal)
-			require.Equal(t, `{"age": 30, "name": "John"}`, jsonbVal) // Note: JSONB reorders keys
+			defer source.Close()
 
-			err = verifyPostgresTimeTimeTableValues(t, ctx, postgres.Target.DB, alltypesSchema)
+			target, err := sql.Open("postgres", postgres.Target.URL)
 			require.NoError(t, err)
+			defer target.Close()
+
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
 		})
 
 		t.Cleanup(func() {
@@ -275,15 +281,16 @@ func Test_Sync(t *testing.T) {
 			// right now CLI sync and init schema takes everything in source and copies it to target since there are no job mappings defined by the user
 			// so it can't be scoped to specific schema
 			// t.Parallel()
+			alltypesSchema := "alltypes"
 			err = mysql.Source.RunCreateStmtsInDatabase(ctx, &testdataFolder, []string{"humanresources/create-tables.sql"}, "humanresources")
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = mysql.Source.RunCreateStmtsInDatabase(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, "alltypes")
+			err = mysql.Source.RunCreateStmtsInDatabase(ctx, &testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = mysql.Target.CreateDatabases(ctx, []string{"humanresources", "alltypes"})
+			err = mysql.Target.CreateDatabases(ctx, []string{"humanresources", alltypesSchema})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -322,9 +329,12 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rowCount, err = mysql.Target.GetTableRowCount(ctx, "alltypes", "all_data_types")
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, alltypesSchema, "all_data_types")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "json_data", "mysql", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "all_data_types", "mysql", "id")
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {
@@ -422,6 +432,9 @@ func Test_Sync(t *testing.T) {
 			rowCount, err = mysql.Target.GetTableRowCount(ctx, alltypesSchema, "json_data")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
+
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "json_data", "mysql", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "all_data_types", "mysql", "id")
 		})
 
 		t.Cleanup(func() {
@@ -438,43 +451,4 @@ func Test_Sync(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
-}
-
-func verifyPostgresTimeTimeTableValues(t *testing.T, ctx context.Context, db *pgxpool.Pool, schema string) error {
-	rows, err := db.Query(ctx, fmt.Sprintf("select timestamp_col::text, date_col::text from %q.time_time;", schema))
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	expectedTimestamps := [][]byte{
-		[]byte("2024-03-18 10:30:00"),
-		[]byte("0001-01-01 00:00:00 BC"),
-		[]byte("0002-01-01 00:00:00 BC"),
-	}
-	expectedDates := [][]byte{
-		[]byte("2024-03-18"),
-		[]byte("0001-01-01 BC"),
-		[]byte("0002-01-01 BC"),
-	}
-	var actualTimestamps [][]byte
-	var actualDates [][]byte
-
-	for rows.Next() {
-		var timestampCol, dateCol []byte
-		err = rows.Scan(&timestampCol, &dateCol)
-		if err != nil {
-			return err
-		}
-		actualTimestamps = append(actualTimestamps, timestampCol)
-		actualDates = append(actualDates, dateCol)
-	}
-
-	if err = rows.Err(); err != nil {
-		return err
-	}
-
-	require.ElementsMatch(t, expectedTimestamps, actualTimestamps, "Expected timestamp_col values to match")
-	require.ElementsMatch(t, expectedDates, actualDates, "Expected date_col values to match")
-	return nil
 }

@@ -117,7 +117,7 @@ ingress:
   enabled: false
 
 analytics:
-  # -- Enables analytics such as Posthog/Koala (if keys have been provided for them)
+  # -- Enables analytics such as Posthog/Unify (if keys have been provided for them)
   enabled: true
 
 posthog:
@@ -125,8 +125,8 @@ posthog:
   key: phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
   # host:
 
-koala:
-  # -- Koala Key
+unify:
+  # -- Unify Key
   key:
 
 # -- Any tolerations that should be applied to the deployment

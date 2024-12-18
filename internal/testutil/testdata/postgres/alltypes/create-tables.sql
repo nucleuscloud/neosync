@@ -134,7 +134,7 @@ INSERT INTO all_data_types (
     DEFAULT,
     32767,  -- smallint_col
     2147483647,  -- integer_col
-    922337203685477580,  -- bigint_col
+    922337203685477632,  -- bigint_col
     1234.56,  -- decimal_col
     99999999.99,  -- numeric_col
     12345.67,  -- real_col
@@ -145,7 +145,7 @@ INSERT INTO all_data_types (
     'A',  -- char_col
     'DEFAULT',  -- varchar_col
     'default',  -- text_col
-    decode('DEADBEEF', 'hex'),  -- bytea_col
+    'NEOSYNC'::bytea,  -- bytea_col
     '2024-01-01 12:34:56',  -- timestamp_col
     '2024-01-01 12:34:56+00',  -- timestamptz_col
     '2024-01-01',  -- date_col
@@ -208,23 +208,19 @@ VALUES (
 
 INSERT INTO time_time (
     timestamp_col,
-    timestamptz_col,
     date_col
 ) 
 VALUES (
     '0001-01-01 00:00:00 BC',
-    '0001-01-01 00:00:00+00 BC',
     '0001-01-01 BC'
 );
 
 INSERT INTO time_time (
     timestamp_col,
-    timestamptz_col,
     date_col
 ) 
 VALUES (
     '0002-01-01 00:00:00 BC',
-    '0002-01-01 00:00:00+00 BC',
     '0002-01-01 BC'
 );
 
@@ -258,11 +254,12 @@ CREATE TABLE IF NOT EXISTS array_types (
     "uuid_array" _uuid,
     "json_array" _json,
     "jsonb_array" _jsonb,
-    -- "bit_array" _bit,
-    -- "varbit_array" _varbit,
+    "bit_array" _bit,
+    "varbit_array" _varbit,
     "numeric_array" _numeric,
     "money_array" _money,
-    "xml_array" _xml
+    "xml_array" _xml,
+    "bytea_array" _bytea
     -- "int_double_array" _int4
 );
 
@@ -290,10 +287,12 @@ INSERT INTO array_types (
     -- path_array, polygon_array, circle_array, 
     uuid_array,
     json_array, jsonb_array, 
-    -- bit_array, varbit_array,
+    bit_array,
+    varbit_array,
     numeric_array,
     money_array,
-    xml_array
+    xml_array,
+    bytea_array
     -- int_double_array
 ) VALUES (
     1,
@@ -323,11 +322,12 @@ INSERT INTO array_types (
     ARRAY['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid, 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid],
     ARRAY['{"key": "value1"}'::json, '{"key": "value2"}'::json],
     ARRAY['{"key": "value1"}'::jsonb, '{"key": "value2"}'::jsonb],
-    -- ARRAY['101'::bit(3), '110'::bit(3)],
-    -- ARRAY['10101'::bit varying(5), '01010'::bit varying(5)],
+    ARRAY['101'::bit(3), '110'::bit(3)],
+    ARRAY['10101'::bit varying(5), '01010'::bit varying(5)],
     ARRAY[1.23::numeric, 4.56::numeric],
     ARRAY[10.00::money, 20.00::money],
-    ARRAY['<root>value1</root>'::xml, '<root>value2</root>'::xml]
+    ARRAY['<root>value1</root>'::xml, '<root>value2</root>'::xml],
+    ARRAY['NEOSYNC'::bytea, 'CNYSOEN'::bytea]
     -- ARRAY[[1, 2], [3, 4]] 
 );
 
@@ -343,7 +343,7 @@ INSERT INTO json_data (data) VALUES ('42');
 INSERT INTO json_data (data) VALUES ('3.14');
 INSERT INTO json_data (data) VALUES ('true');
 INSERT INTO json_data (data) VALUES ('false');
-INSERT INTO json_data (data) VALUES ('null');
+INSERT INTO json_data (data) VALUES (NULL);
 
 INSERT INTO json_data (data) VALUES ('{"name": "John", "age": 30}');
 INSERT INTO json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');

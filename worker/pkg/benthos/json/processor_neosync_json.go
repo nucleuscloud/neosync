@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/nucleuscloud/neosync/internal/sqlscanners"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -74,9 +73,6 @@ func transform(root any) any {
 		return v.Format(time.RFC3339)
 	case []uint8:
 		return string(v)
-	// TODO this should be neosync bit type
-	case *sqlscanners.BitString:
-		return v.String()
 	default:
 		return v
 	}
