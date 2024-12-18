@@ -61,6 +61,8 @@ kubectl logs -n neosync deployment/neosync-worker -f`
 
 #### Neosync UI
 
+> **NB:** This requires a valid Neosync Enterprise license for OSS deployments. If you would like to try this out, please contact us.
+
 Neosync can be configured to surface pod logs via the UI by configuring `neosync-api` to surface these.
 
 If you've deployed Neosync via the helm chart, this should come pre-configured with kubernetes pod logs.
@@ -71,9 +73,9 @@ This are great for basic deployments, but will disappear on worker pod shutdown.
 
 ## Persistence with Loki
 
-Neosync has native support for surfacing logs that come from a [Grafana Loki](https://grafana.com/oss/loki/) instance.
+Neosync has native support for surfacing logs that come from a [Grafana Loki](https://grafana.com/oss/loki/) instance (with a valid Neosync Enterprise license).
 
-Please note that Neosync does not natively handle shipping logs to Loki, but it can natively handle querying a Loki instance and surfacing logs natively into Neosync UI.
+Please note that Neosync does not natively handle shipping logs to Loki, however it can natively handle querying a Loki instance to surface logs into Neosync UI.
 
 This can be configured by setting the `RUN_LOGS_TYPE` environment variable to `loki`, along with configuring the `RUN_LOGS_LOKICONFIG_BASEURL`.
 To see the full environment variables, view the [api env vars](../deploy/environment-variables.md#backend-api).

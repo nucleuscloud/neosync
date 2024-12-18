@@ -145,6 +145,10 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.AnonymizationServiceName,
 	}
 
+	if shouldEnableMetricsService() && !cascadelicense.IsValid() {
+		return errors.New("metrics service is enabled but no license is present")
+	}
+
 	if shouldEnableMetricsService() {
 		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
 	}
@@ -547,6 +551,9 @@ func serve(ctx context.Context) error {
 	runLogConfig, err := getRunLogConfig()
 	if err != nil {
 		return err
+	}
+	if runLogConfig != nil && !cascadelicense.IsValid() {
+		return errors.New("run logs are enabled but no license is present")
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
