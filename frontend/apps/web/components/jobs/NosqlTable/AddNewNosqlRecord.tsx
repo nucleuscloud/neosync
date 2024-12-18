@@ -37,7 +37,6 @@ import {
   PassthroughSchema,
   SystemTransformerSchema,
   TransformerConfigSchema,
-  TransformerSource,
   TransformersService,
   ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
@@ -123,7 +122,6 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
       key: '',
       transformer: convertJobMappingTransformerToForm(
         create(JobMappingTransformerSchema, {
-          source: TransformerSource.PASSTHROUGH,
           config: create(TransformerConfigSchema, {
             config: {
               case: 'passthroughConfig',
