@@ -114,7 +114,6 @@ func getJsTransformerJobmappings() []*mgmtv1alpha1.JobMapping {
 
 func getJavascriptTransformerConfig(code string) *mgmtv1alpha1.JobMappingTransformer {
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: code},

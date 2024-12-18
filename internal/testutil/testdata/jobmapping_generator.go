@@ -127,7 +127,11 @@ func generateJobMapping(tables []*Table) []*mgmtv1alpha1.JobMapping {
 				Table:  t.Name,
 				Column: c.Name,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
 				},
 			})
 
@@ -163,11 +167,15 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Table:  "{{ .Table }}",
 			Column: "{{ .Column }}",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{{- end }}
-	} 
+	}
 }
 {{ if .GenerateTypeMap }}
 
