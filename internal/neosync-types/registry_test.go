@@ -93,6 +93,26 @@ func Test_TypeRegistry(t *testing.T) {
 		require.NotNil(t, interval)
 	})
 
+	t.Run("Unmarshal handles NeosyncInterval type in map[string]any", func(t *testing.T) {
+		registry := NewTypeRegistry(testutil.GetTestLogger(t))
+		intervalMap := map[string]any{
+			"_neosync": map[string]any{
+				"type_id": "NEOSYNC_INTERVAL",
+				"version": 1,
+			},
+			"microseconds": 1,
+			"days":         10,
+			"months":       0,
+		}
+
+		result, err := registry.Unmarshal(intervalMap)
+		require.NoError(t, err)
+
+		interval, ok := result.(NeosyncAdapter)
+		require.True(t, ok)
+		require.NotNil(t, interval)
+	})
+
 	t.Run("Unmarshal handles NeosyncArray type", func(t *testing.T) {
 		registry := NewTypeRegistry(testutil.GetTestLogger(t))
 		arrayJSON := []byte(`{

@@ -189,15 +189,20 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
-	jObj := parsePgRowValues(values, columnNames, cTypes)
+	columnTypes := make([]string, len(cTypes))
+	for i, ct := range cTypes {
+		columnTypes[i] = ct.DatabaseTypeName()
+	}
+
+	jObj := parsePgRowValues(values, columnNames, columnTypes)
 	return jObj, nil
 }
 
-func parsePgRowValues(values []any, columnNames []string, columnTypes []*sql.ColumnType) map[string]any {
+func parsePgRowValues(values []any, columnNames, columnTypes []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		colType := columnTypes[i].DatabaseTypeName()
+		colType := columnTypes[i]
 		switch t := v.(type) {
 		case nil:
 			jObj[col] = t

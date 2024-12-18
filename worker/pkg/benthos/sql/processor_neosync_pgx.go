@@ -169,12 +169,6 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 			return pq.Array(value), nil
 		}
 		return value, nil
-	// case datatype == "date":
-	// 	return convertDateForPostgres(value)
-	// case datatype == "timestamp with time zone":
-	// 	return convertTimestampWithTimezoneForPostgres(value), nil
-	// case datatype == "timestamp" || datatype == "timestamp without time zone":
-	// 	return convertTimestampForPostgres(value)
 	case datatype == "money" || datatype == "uuid" || datatype == "tsvector":
 		if byteSlice, ok := value.([]byte); ok {
 			// Convert UUID []byte to string before inserting since postgres driver stores uuid bytes in different order
