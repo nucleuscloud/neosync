@@ -1,7 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -32,20 +31,15 @@ export default function TransformCharacterScrambleForm(
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
   const [isRegexValid, setIsRegexValid] = useState<ValidRegex>('null');
 
-  const { account } = useAccount();
   const { mutateAsync: validateUserRegexCodeAsync } = useMutation(
     TransformersService.method.validateUserRegexCode
   );
 
   async function handleValidateCode(): Promise<void> {
-    if (!account) {
-      return;
-    }
     setIsValidatingRegex(true);
 
     try {
       const res = await validateUserRegexCodeAsync({
-        accountId: account.id,
         userProvidedRegex: value.userProvidedRegex,
       });
       setIsValidatingRegex(false);

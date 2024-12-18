@@ -312,12 +312,6 @@ const JavascriptConfig = Yup.object().shape({
       'is-valid-javascript',
       'The JavaScript code is invalid.',
       async (value, context) => {
-        const accountId = context?.options?.context?.accountId;
-        if (!accountId) {
-          return context.createError({
-            message: 'Unable to verify Account Id.',
-          });
-        }
         try {
           const isUserJavascriptCodeValid:
             | UseMutateAsyncFunction<
@@ -332,7 +326,6 @@ const JavascriptConfig = Yup.object().shape({
           if (isUserJavascriptCodeValid) {
             const res = await isUserJavascriptCodeValid(
               create(ValidateUserJavascriptCodeRequestSchema, {
-                accountId,
                 code: value,
               })
             );

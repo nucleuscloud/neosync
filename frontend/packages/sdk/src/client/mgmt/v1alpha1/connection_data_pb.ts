@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/connection_data.proto.
  */
 export const file_mgmt_v1alpha1_connection_data: GenFile = /*@__PURE__*/
-  fileDesc("CiNtZ210L3YxYWxwaGExL2Nvbm5lY3Rpb25fZGF0YS5wcm90bxINbWdtdC52MWFscGhhMSIWChRQb3N0Z3Jlc1N0cmVhbUNvbmZpZyITChFNeXNxbFN0cmVhbUNvbmZpZyIZChdBd3NEeW5hbW9EQlN0cmVhbUNvbmZpZyJUChFBd3NTM1N0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIl4KG0djcENsb3VkU3RvcmFnZVN0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIuoCChZDb25uZWN0aW9uU3RyZWFtQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTdHJlYW1Db25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1N0cmVhbUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTdHJlYW1Db25maWdIABJNChdnY3BfY2xvdWRzdG9yYWdlX2NvbmZpZxgEIAEoCzIqLm1nbXQudjFhbHBoYTEuR2NwQ2xvdWRTdG9yYWdlU3RyZWFtQ29uZmlnSAASQQoPZHluYW1vZGJfY29uZmlnGAUgASgLMiYubWdtdC52MWFscGhhMS5Bd3NEeW5hbW9EQlN0cmVhbUNvbmZpZ0gAQg8KBmNvbmZpZxIFukgCCAEingEKHkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABARI8Cg1zdHJlYW1fY29uZmlnGAIgASgLMiUubWdtdC52MWFscGhhMS5Db25uZWN0aW9uU3RyZWFtQ29uZmlnEg4KBnNjaGVtYRgDIAEoCRINCgV0YWJsZRgEIAEoCSKTAQofR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXNwb25zZRJECgNyb3cYASADKAsyNy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVzcG9uc2UuUm93RW50cnkaKgoIUm93RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgMOgI4ASIWChRQb3N0Z3Jlc1NjaGVtYUNvbmZpZyITChFNeXNxbFNjaGVtYUNvbmZpZyITChFNc3NxbFNjaGVtYUNvbmZpZyJUChFBd3NTM1NjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIhMKEU1vbmdvU2NoZW1hQ29uZmlnIhYKFER5bmFtb0RCU2NoZW1hQ29uZmlnIl4KG0djcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkItsDChZDb25uZWN0aW9uU2NoZW1hQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTY2hlbWFDb25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1NjaGVtYUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTY2hlbWFDb25maWdIABI4Cgxtb25nb19jb25maWcYBCABKAsyIC5tZ210LnYxYWxwaGExLk1vbmdvU2NoZW1hQ29uZmlnSAASTQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYBSABKAsyKi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZ0gAEj4KD2R5bmFtb2RiX2NvbmZpZxgGIAEoCzIjLm1nbXQudjFhbHBoYTEuRHluYW1vREJTY2hlbWFDb25maWdIABI4Cgxtc3NxbF9jb25maWcYByABKAsyIC5tZ210LnYxYWxwaGExLk1zc3FsU2NoZW1hQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASKBAgoORGF0YWJhc2VDb2x1bW4SDgoGc2NoZW1hGAEgASgJEg0KBXRhYmxlGAIgASgJEg4KBmNvbHVtbhgDIAEoCRIRCglkYXRhX3R5cGUYBCABKAkSEwoLaXNfbnVsbGFibGUYBSABKAkSGwoOY29sdW1uX2RlZmF1bHQYBiABKAlIAIgBARIbCg5nZW5lcmF0ZWRfdHlwZRgHIAEoCUgBiAEBEiAKE2lkZW50aXR5X2dlbmVyYXRpb24YCCABKAlIAogBAUIRCg9fY29sdW1uX2RlZmF1bHRCEQoPX2dlbmVyYXRlZF90eXBlQhYKFF9pZGVudGl0eV9nZW5lcmF0aW9uInsKGkdldENvbm5lY3Rpb25TY2hlbWFSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWciTQobR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlEi4KB3NjaGVtYXMYASADKAsyHS5tZ210LnYxYWxwaGExLkRhdGFiYXNlQ29sdW1uIn4KHUdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWci0AEKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRJQCgpzY2hlbWFfbWFwGAEgAygLMjwubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UuU2NoZW1hTWFwRW50cnkaXAoOU2NoZW1hTWFwRW50cnkSCwoDa2V5GAEgASgJEjkKBXZhbHVlGAIgASgLMioubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVzcG9uc2U6AjgBImAKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVxdWVzdBI+CghyZXF1ZXN0cxgBIAMoCzIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QiewofR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXNwb25zZRJACglyZXNwb25zZXMYASADKAsyLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRIWCg5jb25uZWN0aW9uX2lkcxgCIAMoCSJJCiZHZXRDb25uZWN0aW9uRm9yZWlnbkNvbnN0cmFpbnRzUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABASI8CgpGb3JlaWduS2V5Eg0KBXRhYmxlGAEgASgJEg4KBmNvbHVtbhgCIAEoCRIPCgdjb2x1bW5zGAMgAygJIo8BChFGb3JlaWduQ29uc3RyYWludBIOCgZjb2x1bW4YASABKAkSEwoLaXNfbnVsbGFibGUYAiABKAgSLgoLZm9yZWlnbl9rZXkYAyABKAsyGS5tZ210LnYxYWxwaGExLkZvcmVpZ25LZXkSDwoHY29sdW1ucxgEIAMoCRIUCgxub3RfbnVsbGFibGUYBSADKAgiUAoXRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXMSNQoLY29uc3RyYWludHMYASADKAsyIC5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50IvMBCidHZXRDb25uZWN0aW9uRm9yZWlnbkNvbnN0cmFpbnRzUmVzcG9uc2USZwoRdGFibGVfY29uc3RyYWludHMYASADKAsyTC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Gb3JlaWduQ29uc3RyYWludHNSZXNwb25zZS5UYWJsZUNvbnN0cmFpbnRzRW50cnkaXwoVVGFibGVDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRI1CgV2YWx1ZRgCIAEoCzImLm1nbXQudjFhbHBoYTEuRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXM6AjgBImUKFEluaXRTdGF0ZW1lbnRPcHRpb25zEhMKC2luaXRfc2NoZW1hGAEgASgIEh4KFnRydW5jYXRlX2JlZm9yZV9pbnNlcnQYAiABKAgSGAoQdHJ1bmNhdGVfY2FzY2FkZRgDIAEoCCJ7CiJHZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjQKB29wdGlvbnMYAiABKAsyIy5tZ210LnYxYWxwaGExLkluaXRTdGF0ZW1lbnRPcHRpb25zIjkKFFNjaGVtYUluaXRTdGF0ZW1lbnRzEg0KBWxhYmVsGAEgASgJEhIKCnN0YXRlbWVudHMYAiADKAkixgMKI0dldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlEmoKFXRhYmxlX2luaXRfc3RhdGVtZW50cxgBIAMoCzJLLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzUmVzcG9uc2UuVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EnIKGXRhYmxlX3RydW5jYXRlX3N0YXRlbWVudHMYAiADKAsyTy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlLlRhYmxlVHJ1bmNhdGVTdGF0ZW1lbnRzRW50cnkSQwoWc2NoZW1hX2luaXRfc3RhdGVtZW50cxgDIAMoCzIjLm1nbXQudjFhbHBoYTEuU2NoZW1hSW5pdFN0YXRlbWVudHMaOgoYVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaPgocVGFibGVUcnVuY2F0ZVN0YXRlbWVudHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIiQKEVByaW1hcnlDb25zdHJhaW50Eg8KB2NvbHVtbnMYASADKAkiSQomR2V0Q29ubmVjdGlvblByaW1hcnlDb25zdHJhaW50c1JlcXVlc3QSHwoNY29ubmVjdGlvbl9pZBgBIAEoCUIIukgFcgOwAQEi7QEKJ0dldENvbm5lY3Rpb25QcmltYXJ5Q29uc3RyYWludHNSZXNwb25zZRJnChF0YWJsZV9jb25zdHJhaW50cxgBIAMoCzJMLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblByaW1hcnlDb25zdHJhaW50c1Jlc3BvbnNlLlRhYmxlQ29uc3RyYWludHNFbnRyeRpZChVUYWJsZUNvbnN0cmFpbnRzRW50cnkSCwoDa2V5GAEgASgJEi8KBXZhbHVlGAIgASgLMiAubWdtdC52MWFscGhhMS5QcmltYXJ5Q29uc3RyYWludDoCOAEiSAolR2V0Q29ubmVjdGlvblVuaXF1ZUNvbnN0cmFpbnRzUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABASLqAQomR2V0Q29ubmVjdGlvblVuaXF1ZUNvbnN0cmFpbnRzUmVzcG9uc2USZgoRdGFibGVfY29uc3RyYWludHMYASADKAsySy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25VbmlxdWVDb25zdHJhaW50c1Jlc3BvbnNlLlRhYmxlQ29uc3RyYWludHNFbnRyeRpYChVUYWJsZUNvbnN0cmFpbnRzRW50cnkSCwoDa2V5GAEgASgJEi4KBXZhbHVlGAIgASgLMh8ubWdtdC52MWFscGhhMS5VbmlxdWVDb25zdHJhaW50OgI4ASIjChBVbmlxdWVDb25zdHJhaW50Eg8KB2NvbHVtbnMYASADKAki8wEKGUdldEFpR2VuZXJhdGVkRGF0YVJlcXVlc3QSIgoQYWlfY29ubmVjdGlvbl9pZBgBIAEoCUIIukgFcgOwAQESGAoFY291bnQYAiABKANCCbpIBiIEGAooARIbCgptb2RlbF9uYW1lGAMgASgJQge6SARyAhABEhgKC3VzZXJfcHJvbXB0GAQgASgJSACIAQESJAoSZGF0YV9jb25uZWN0aW9uX2lkGAUgASgJQgi6SAVyA7ABARIrCgV0YWJsZRgGIAEoCzIcLm1nbXQudjFhbHBoYTEuRGF0YWJhc2VUYWJsZUIOCgxfdXNlcl9wcm9tcHQiQAoNRGF0YWJhc2VUYWJsZRIXCgZzY2hlbWEYASABKAlCB7pIBHICEAESFgoFdGFibGUYAiABKAlCB7pIBHICEAEiRgoaR2V0QWlHZW5lcmF0ZWREYXRhUmVzcG9uc2USKAoHcmVjb3JkcxgBIAMoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiRwokR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBIkkKEVVuaXF1ZUNvbnN0cmFpbnRzEjQKC2NvbnN0cmFpbnRzGAEgAygLMh8ubWdtdC52MWFscGhhMS5VbmlxdWVDb25zdHJhaW50IpYFCiVHZXRDb25uZWN0aW9uVGFibGVDb25zdHJhaW50c1Jlc3BvbnNlEnAKF2ZvcmVpZ25fa2V5X2NvbnN0cmFpbnRzGAEgAygLMk8ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uVGFibGVDb25zdHJhaW50c1Jlc3BvbnNlLkZvcmVpZ25LZXlDb25zdHJhaW50c0VudHJ5EnAKF3ByaW1hcnlfa2V5X2NvbnN0cmFpbnRzGAIgAygLMk8ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uVGFibGVDb25zdHJhaW50c1Jlc3BvbnNlLlByaW1hcnlLZXlDb25zdHJhaW50c0VudHJ5EmcKEnVuaXF1ZV9jb25zdHJhaW50cxgDIAMoCzJLLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5VbmlxdWVDb25zdHJhaW50c0VudHJ5GmQKGkZvcmVpZ25LZXlDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRI1CgV2YWx1ZRgCIAEoCzImLm1nbXQudjFhbHBoYTEuRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXM6AjgBGl4KGlByaW1hcnlLZXlDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRIvCgV2YWx1ZRgCIAEoCzIgLm1nbXQudjFhbHBoYTEuUHJpbWFyeUNvbnN0cmFpbnQ6AjgBGloKFlVuaXF1ZUNvbnN0cmFpbnRzRW50cnkSCwoDa2V5GAEgASgJEi8KBXZhbHVlGAIgASgLMiAubWdtdC52MWFscGhhMS5VbmlxdWVDb25zdHJhaW50czoCOAEiewoXR2V0VGFibGVSb3dDb3VudFJlcXVlc3QSFQoNY29ubmVjdGlvbl9pZBgBIAEoCRIOCgZzY2hlbWEYAiABKAkSDQoFdGFibGUYAyABKAkSGQoMd2hlcmVfY2xhdXNlGAQgASgJSACIAQFCDwoNX3doZXJlX2NsYXVzZSIpChhHZXRUYWJsZVJvd0NvdW50UmVzcG9uc2USDQoFY291bnQYASABKAMyogsKFUNvbm5lY3Rpb25EYXRhU2VydmljZRJ8ChdHZXRDb25uZWN0aW9uRGF0YVN0cmVhbRItLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uRGF0YVN0cmVhbVJlc3BvbnNlIgAwARJuChNHZXRDb25uZWN0aW9uU2NoZW1hEikubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVxdWVzdBoqLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlIgASdwoWR2V0Q29ubmVjdGlvblNjaGVtYU1hcBIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QaLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZSIAEnoKF0dldENvbm5lY3Rpb25TY2hlbWFNYXBzEi0ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwc1JlcXVlc3QaLi5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVzcG9uc2UiABKMAQodR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHMSMy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVxdWVzdBo0Lm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZSIAEpIBCh9HZXRDb25uZWN0aW9uRm9yZWlnbkNvbnN0cmFpbnRzEjUubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uRm9yZWlnbkNvbnN0cmFpbnRzUmVxdWVzdBo2Lm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkZvcmVpZ25Db25zdHJhaW50c1Jlc3BvbnNlIgASkgEKH0dldENvbm5lY3Rpb25QcmltYXJ5Q29uc3RyYWludHMSNS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25QcmltYXJ5Q29uc3RyYWludHNSZXF1ZXN0GjYubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uUHJpbWFyeUNvbnN0cmFpbnRzUmVzcG9uc2UiABKGAQobR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzEjEubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0GjIubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXNwb25zZSIAEo8BCh5HZXRDb25uZWN0aW9uVW5pcXVlQ29uc3RyYWludHMSNC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25VbmlxdWVDb25zdHJhaW50c1JlcXVlc3QaNS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25VbmlxdWVDb25zdHJhaW50c1Jlc3BvbnNlIgASawoSR2V0QWlHZW5lcmF0ZWREYXRhEigubWdtdC52MWFscGhhMS5HZXRBaUdlbmVyYXRlZERhdGFSZXF1ZXN0GikubWdtdC52MWFscGhhMS5HZXRBaUdlbmVyYXRlZERhdGFSZXNwb25zZSIAEmUKEEdldFRhYmxlUm93Q291bnQSJi5tZ210LnYxYWxwaGExLkdldFRhYmxlUm93Q291bnRSZXF1ZXN0GicubWdtdC52MWFscGhhMS5HZXRUYWJsZVJvd0NvdW50UmVzcG9uc2UiAELPAQoRY29tLm1nbXQudjFhbHBoYTFCE0Nvbm5lY3Rpb25EYXRhUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_struct]);
+  fileDesc("CiNtZ210L3YxYWxwaGExL2Nvbm5lY3Rpb25fZGF0YS5wcm90bxINbWdtdC52MWFscGhhMSIWChRQb3N0Z3Jlc1N0cmVhbUNvbmZpZyITChFNeXNxbFN0cmVhbUNvbmZpZyIZChdBd3NEeW5hbW9EQlN0cmVhbUNvbmZpZyJUChFBd3NTM1N0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIl4KG0djcENsb3VkU3RvcmFnZVN0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIuoCChZDb25uZWN0aW9uU3RyZWFtQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTdHJlYW1Db25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1N0cmVhbUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTdHJlYW1Db25maWdIABJNChdnY3BfY2xvdWRzdG9yYWdlX2NvbmZpZxgEIAEoCzIqLm1nbXQudjFhbHBoYTEuR2NwQ2xvdWRTdG9yYWdlU3RyZWFtQ29uZmlnSAASQQoPZHluYW1vZGJfY29uZmlnGAUgASgLMiYubWdtdC52MWFscGhhMS5Bd3NEeW5hbW9EQlN0cmVhbUNvbmZpZ0gAQg8KBmNvbmZpZxIFukgCCAEingEKHkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABARI8Cg1zdHJlYW1fY29uZmlnGAIgASgLMiUubWdtdC52MWFscGhhMS5Db25uZWN0aW9uU3RyZWFtQ29uZmlnEg4KBnNjaGVtYRgDIAEoCRINCgV0YWJsZRgEIAEoCSKTAQofR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXNwb25zZRJECgNyb3cYASADKAsyNy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVzcG9uc2UuUm93RW50cnkaKgoIUm93RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgMOgI4ASIWChRQb3N0Z3Jlc1NjaGVtYUNvbmZpZyITChFNeXNxbFNjaGVtYUNvbmZpZyITChFNc3NxbFNjaGVtYUNvbmZpZyJUChFBd3NTM1NjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIhMKEU1vbmdvU2NoZW1hQ29uZmlnIhYKFER5bmFtb0RCU2NoZW1hQ29uZmlnIl4KG0djcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkItsDChZDb25uZWN0aW9uU2NoZW1hQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTY2hlbWFDb25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1NjaGVtYUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTY2hlbWFDb25maWdIABI4Cgxtb25nb19jb25maWcYBCABKAsyIC5tZ210LnYxYWxwaGExLk1vbmdvU2NoZW1hQ29uZmlnSAASTQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYBSABKAsyKi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZ0gAEj4KD2R5bmFtb2RiX2NvbmZpZxgGIAEoCzIjLm1nbXQudjFhbHBoYTEuRHluYW1vREJTY2hlbWFDb25maWdIABI4Cgxtc3NxbF9jb25maWcYByABKAsyIC5tZ210LnYxYWxwaGExLk1zc3FsU2NoZW1hQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASKBAgoORGF0YWJhc2VDb2x1bW4SDgoGc2NoZW1hGAEgASgJEg0KBXRhYmxlGAIgASgJEg4KBmNvbHVtbhgDIAEoCRIRCglkYXRhX3R5cGUYBCABKAkSEwoLaXNfbnVsbGFibGUYBSABKAkSGwoOY29sdW1uX2RlZmF1bHQYBiABKAlIAIgBARIbCg5nZW5lcmF0ZWRfdHlwZRgHIAEoCUgBiAEBEiAKE2lkZW50aXR5X2dlbmVyYXRpb24YCCABKAlIAogBAUIRCg9fY29sdW1uX2RlZmF1bHRCEQoPX2dlbmVyYXRlZF90eXBlQhYKFF9pZGVudGl0eV9nZW5lcmF0aW9uInsKGkdldENvbm5lY3Rpb25TY2hlbWFSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWciTQobR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlEi4KB3NjaGVtYXMYASADKAsyHS5tZ210LnYxYWxwaGExLkRhdGFiYXNlQ29sdW1uIn4KHUdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWci0AEKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRJQCgpzY2hlbWFfbWFwGAEgAygLMjwubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UuU2NoZW1hTWFwRW50cnkaXAoOU2NoZW1hTWFwRW50cnkSCwoDa2V5GAEgASgJEjkKBXZhbHVlGAIgASgLMioubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVzcG9uc2U6AjgBImAKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVxdWVzdBI+CghyZXF1ZXN0cxgBIAMoCzIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QiewofR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXNwb25zZRJACglyZXNwb25zZXMYASADKAsyLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRIWCg5jb25uZWN0aW9uX2lkcxgCIAMoCSIyCgpGb3JlaWduS2V5Eg0KBXRhYmxlGAEgASgJEg8KB2NvbHVtbnMYAyADKAlKBAgCEAMidgoRRm9yZWlnbkNvbnN0cmFpbnQSLgoLZm9yZWlnbl9rZXkYAyABKAsyGS5tZ210LnYxYWxwaGExLkZvcmVpZ25LZXkSDwoHY29sdW1ucxgEIAMoCRIUCgxub3RfbnVsbGFibGUYBSADKAhKBAgBEAJKBAgCEAMiUAoXRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXMSNQoLY29uc3RyYWludHMYASADKAsyIC5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50ImUKFEluaXRTdGF0ZW1lbnRPcHRpb25zEhMKC2luaXRfc2NoZW1hGAEgASgIEh4KFnRydW5jYXRlX2JlZm9yZV9pbnNlcnQYAiABKAgSGAoQdHJ1bmNhdGVfY2FzY2FkZRgDIAEoCCJ7CiJHZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjQKB29wdGlvbnMYAiABKAsyIy5tZ210LnYxYWxwaGExLkluaXRTdGF0ZW1lbnRPcHRpb25zIjkKFFNjaGVtYUluaXRTdGF0ZW1lbnRzEg0KBWxhYmVsGAEgASgJEhIKCnN0YXRlbWVudHMYAiADKAkixgMKI0dldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlEmoKFXRhYmxlX2luaXRfc3RhdGVtZW50cxgBIAMoCzJLLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzUmVzcG9uc2UuVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EnIKGXRhYmxlX3RydW5jYXRlX3N0YXRlbWVudHMYAiADKAsyTy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlLlRhYmxlVHJ1bmNhdGVTdGF0ZW1lbnRzRW50cnkSQwoWc2NoZW1hX2luaXRfc3RhdGVtZW50cxgDIAMoCzIjLm1nbXQudjFhbHBoYTEuU2NoZW1hSW5pdFN0YXRlbWVudHMaOgoYVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaPgocVGFibGVUcnVuY2F0ZVN0YXRlbWVudHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIiQKEVByaW1hcnlDb25zdHJhaW50Eg8KB2NvbHVtbnMYASADKAkiIwoQVW5pcXVlQ29uc3RyYWludBIPCgdjb2x1bW5zGAEgAygJIvMBChlHZXRBaUdlbmVyYXRlZERhdGFSZXF1ZXN0EiIKEGFpX2Nvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEhgKBWNvdW50GAIgASgDQgm6SAYiBBgKKAESGwoKbW9kZWxfbmFtZRgDIAEoCUIHukgEcgIQARIYCgt1c2VyX3Byb21wdBgEIAEoCUgAiAEBEiQKEmRhdGFfY29ubmVjdGlvbl9pZBgFIAEoCUIIukgFcgOwAQESKwoFdGFibGUYBiABKAsyHC5tZ210LnYxYWxwaGExLkRhdGFiYXNlVGFibGVCDgoMX3VzZXJfcHJvbXB0IkAKDURhdGFiYXNlVGFibGUSFwoGc2NoZW1hGAEgASgJQge6SARyAhABEhYKBXRhYmxlGAIgASgJQge6SARyAhABIkYKGkdldEFpR2VuZXJhdGVkRGF0YVJlc3BvbnNlEigKB3JlY29yZHMYASADKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IkcKJEdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABASJJChFVbmlxdWVDb25zdHJhaW50cxI0Cgtjb25zdHJhaW50cxgBIAMoCzIfLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludCKWBQolR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZRJwChdmb3JlaWduX2tleV9jb25zdHJhaW50cxgBIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5Gb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRJwChdwcmltYXJ5X2tleV9jb25zdHJhaW50cxgCIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5QcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRJnChJ1bmlxdWVfY29uc3RyYWludHMYAyADKAsySy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVzcG9uc2UuVW5pcXVlQ29uc3RyYWludHNFbnRyeRpkChpGb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSNQoFdmFsdWUYAiABKAsyJi5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50VGFibGVzOgI4ARpeChpQcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSLwoFdmFsdWUYAiABKAsyIC5tZ210LnYxYWxwaGExLlByaW1hcnlDb25zdHJhaW50OgI4ARpaChZVbmlxdWVDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRIvCgV2YWx1ZRgCIAEoCzIgLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludHM6AjgBInsKF0dldFRhYmxlUm93Q291bnRSZXF1ZXN0EhUKDWNvbm5lY3Rpb25faWQYASABKAkSDgoGc2NoZW1hGAIgASgJEg0KBXRhYmxlGAMgASgJEhkKDHdoZXJlX2NsYXVzZRgEIAEoCUgAiAEBQg8KDV93aGVyZV9jbGF1c2UiKQoYR2V0VGFibGVSb3dDb3VudFJlc3BvbnNlEg0KBWNvdW50GAEgASgDMuYHChVDb25uZWN0aW9uRGF0YVNlcnZpY2USfAoXR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW0SLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBouLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXNwb25zZSIAMAESbgoTR2V0Q29ubmVjdGlvblNjaGVtYRIpLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYVJlcXVlc3QaKi5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFSZXNwb25zZSIAEncKFkdldENvbm5lY3Rpb25TY2hlbWFNYXASLC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Gi0ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UiABJ6ChdHZXRDb25uZWN0aW9uU2NoZW1hTWFwcxItLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwc1Jlc3BvbnNlIgASjAEKHUdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzEjMubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uVGFibGVDb25zdHJhaW50c1JlcXVlc3QaNC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVzcG9uc2UiABKGAQobR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzEjEubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0GjIubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXNwb25zZSIAEmsKEkdldEFpR2VuZXJhdGVkRGF0YRIoLm1nbXQudjFhbHBoYTEuR2V0QWlHZW5lcmF0ZWREYXRhUmVxdWVzdBopLm1nbXQudjFhbHBoYTEuR2V0QWlHZW5lcmF0ZWREYXRhUmVzcG9uc2UiABJlChBHZXRUYWJsZVJvd0NvdW50EiYubWdtdC52MWFscGhhMS5HZXRUYWJsZVJvd0NvdW50UmVxdWVzdBonLm1nbXQudjFhbHBoYTEuR2V0VGFibGVSb3dDb3VudFJlc3BvbnNlIgBCzwEKEWNvbS5tZ210LnYxYWxwaGExQhNDb25uZWN0aW9uRGF0YVByb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_struct]);
 
 /**
  * @generated from message mgmt.v1alpha1.PostgresStreamConfig
@@ -588,23 +588,6 @@ export const GetConnectionSchemaMapsResponseSchema: GenMessage<GetConnectionSche
   messageDesc(file_mgmt_v1alpha1_connection_data, 22);
 
 /**
- * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
- */
-export type GetConnectionForeignConstraintsRequest = Message<"mgmt.v1alpha1.GetConnectionForeignConstraintsRequest"> & {
-  /**
-   * @generated from field: string connection_id = 1;
-   */
-  connectionId: string;
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionForeignConstraintsRequest.
- * Use `create(GetConnectionForeignConstraintsRequestSchema)` to create a new message.
- */
-export const GetConnectionForeignConstraintsRequestSchema: GenMessage<GetConnectionForeignConstraintsRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 23);
-
-/**
  * @generated from message mgmt.v1alpha1.ForeignKey
  */
 export type ForeignKey = Message<"mgmt.v1alpha1.ForeignKey"> & {
@@ -612,13 +595,6 @@ export type ForeignKey = Message<"mgmt.v1alpha1.ForeignKey"> & {
    * @generated from field: string table = 1;
    */
   table: string;
-
-  /**
-   * @deprecated - use columns
-   *
-   * @generated from field: string column = 2;
-   */
-  column: string;
 
   /**
    * @generated from field: repeated string columns = 3;
@@ -631,26 +607,12 @@ export type ForeignKey = Message<"mgmt.v1alpha1.ForeignKey"> & {
  * Use `create(ForeignKeySchema)` to create a new message.
  */
 export const ForeignKeySchema: GenMessage<ForeignKey> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 24);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 23);
 
 /**
  * @generated from message mgmt.v1alpha1.ForeignConstraint
  */
 export type ForeignConstraint = Message<"mgmt.v1alpha1.ForeignConstraint"> & {
-  /**
-   * @deprecated - use columns
-   *
-   * @generated from field: string column = 1;
-   */
-  column: string;
-
-  /**
-   * @deprecated - use not_nullable
-   *
-   * @generated from field: bool is_nullable = 2;
-   */
-  isNullable: boolean;
-
   /**
    * @generated from field: mgmt.v1alpha1.ForeignKey foreign_key = 3;
    */
@@ -672,7 +634,7 @@ export type ForeignConstraint = Message<"mgmt.v1alpha1.ForeignConstraint"> & {
  * Use `create(ForeignConstraintSchema)` to create a new message.
  */
 export const ForeignConstraintSchema: GenMessage<ForeignConstraint> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 25);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 24);
 
 /**
  * @generated from message mgmt.v1alpha1.ForeignConstraintTables
@@ -689,28 +651,7 @@ export type ForeignConstraintTables = Message<"mgmt.v1alpha1.ForeignConstraintTa
  * Use `create(ForeignConstraintTablesSchema)` to create a new message.
  */
 export const ForeignConstraintTablesSchema: GenMessage<ForeignConstraintTables> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 26);
-
-/**
- * Dependency constraints for a specific table
- *
- * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
- */
-export type GetConnectionForeignConstraintsResponse = Message<"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse"> & {
-  /**
-   * the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
-   *
-   * @generated from field: map<string, mgmt.v1alpha1.ForeignConstraintTables> table_constraints = 1;
-   */
-  tableConstraints: { [key: string]: ForeignConstraintTables };
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.
- * Use `create(GetConnectionForeignConstraintsResponseSchema)` to create a new message.
- */
-export const GetConnectionForeignConstraintsResponseSchema: GenMessage<GetConnectionForeignConstraintsResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 27);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 25);
 
 /**
  * @generated from message mgmt.v1alpha1.InitStatementOptions
@@ -737,7 +678,7 @@ export type InitStatementOptions = Message<"mgmt.v1alpha1.InitStatementOptions">
  * Use `create(InitStatementOptionsSchema)` to create a new message.
  */
 export const InitStatementOptionsSchema: GenMessage<InitStatementOptions> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 28);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 26);
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionInitStatementsRequest
@@ -759,7 +700,7 @@ export type GetConnectionInitStatementsRequest = Message<"mgmt.v1alpha1.GetConne
  * Use `create(GetConnectionInitStatementsRequestSchema)` to create a new message.
  */
 export const GetConnectionInitStatementsRequestSchema: GenMessage<GetConnectionInitStatementsRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 29);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 27);
 
 /**
  * @generated from message mgmt.v1alpha1.SchemaInitStatements
@@ -781,7 +722,7 @@ export type SchemaInitStatements = Message<"mgmt.v1alpha1.SchemaInitStatements">
  * Use `create(SchemaInitStatementsSchema)` to create a new message.
  */
 export const SchemaInitStatementsSchema: GenMessage<SchemaInitStatements> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 30);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 28);
 
 /**
  * Init statement for a specific table
@@ -814,7 +755,7 @@ export type GetConnectionInitStatementsResponse = Message<"mgmt.v1alpha1.GetConn
  * Use `create(GetConnectionInitStatementsResponseSchema)` to create a new message.
  */
 export const GetConnectionInitStatementsResponseSchema: GenMessage<GetConnectionInitStatementsResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 31);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 29);
 
 /**
  * @generated from message mgmt.v1alpha1.PrimaryConstraint
@@ -831,83 +772,7 @@ export type PrimaryConstraint = Message<"mgmt.v1alpha1.PrimaryConstraint"> & {
  * Use `create(PrimaryConstraintSchema)` to create a new message.
  */
 export const PrimaryConstraintSchema: GenMessage<PrimaryConstraint> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 32);
-
-/**
- * Primary constraints for a specific table
- *
- * @generated from message mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest
- */
-export type GetConnectionPrimaryConstraintsRequest = Message<"mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest"> & {
-  /**
-   * @generated from field: string connection_id = 1;
-   */
-  connectionId: string;
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest.
- * Use `create(GetConnectionPrimaryConstraintsRequestSchema)` to create a new message.
- */
-export const GetConnectionPrimaryConstraintsRequestSchema: GenMessage<GetConnectionPrimaryConstraintsRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 33);
-
-/**
- * @generated from message mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse
- */
-export type GetConnectionPrimaryConstraintsResponse = Message<"mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse"> & {
-  /**
-   * the key here is <schema>.<table> and value is the primary constraint
-   *
-   * @generated from field: map<string, mgmt.v1alpha1.PrimaryConstraint> table_constraints = 1;
-   */
-  tableConstraints: { [key: string]: PrimaryConstraint };
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.
- * Use `create(GetConnectionPrimaryConstraintsResponseSchema)` to create a new message.
- */
-export const GetConnectionPrimaryConstraintsResponseSchema: GenMessage<GetConnectionPrimaryConstraintsResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 34);
-
-/**
- * Unique constraints for a specific table
- *
- * @generated from message mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest
- */
-export type GetConnectionUniqueConstraintsRequest = Message<"mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest"> & {
-  /**
-   * @generated from field: string connection_id = 1;
-   */
-  connectionId: string;
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest.
- * Use `create(GetConnectionUniqueConstraintsRequestSchema)` to create a new message.
- */
-export const GetConnectionUniqueConstraintsRequestSchema: GenMessage<GetConnectionUniqueConstraintsRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 35);
-
-/**
- * @generated from message mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse
- */
-export type GetConnectionUniqueConstraintsResponse = Message<"mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse"> & {
-  /**
-   * the key here is <schema>.<table> and value is the unique constraint
-   *
-   * @generated from field: map<string, mgmt.v1alpha1.UniqueConstraint> table_constraints = 1;
-   */
-  tableConstraints: { [key: string]: UniqueConstraint };
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.
- * Use `create(GetConnectionUniqueConstraintsResponseSchema)` to create a new message.
- */
-export const GetConnectionUniqueConstraintsResponseSchema: GenMessage<GetConnectionUniqueConstraintsResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 36);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 30);
 
 /**
  * @generated from message mgmt.v1alpha1.UniqueConstraint
@@ -924,7 +789,7 @@ export type UniqueConstraint = Message<"mgmt.v1alpha1.UniqueConstraint"> & {
  * Use `create(UniqueConstraintSchema)` to create a new message.
  */
 export const UniqueConstraintSchema: GenMessage<UniqueConstraint> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 37);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 31);
 
 /**
  * @generated from message mgmt.v1alpha1.GetAiGeneratedDataRequest
@@ -966,7 +831,7 @@ export type GetAiGeneratedDataRequest = Message<"mgmt.v1alpha1.GetAiGeneratedDat
  * Use `create(GetAiGeneratedDataRequestSchema)` to create a new message.
  */
 export const GetAiGeneratedDataRequestSchema: GenMessage<GetAiGeneratedDataRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 38);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 32);
 
 /**
  * @generated from message mgmt.v1alpha1.DatabaseTable
@@ -988,7 +853,7 @@ export type DatabaseTable = Message<"mgmt.v1alpha1.DatabaseTable"> & {
  * Use `create(DatabaseTableSchema)` to create a new message.
  */
 export const DatabaseTableSchema: GenMessage<DatabaseTable> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 39);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 33);
 
 /**
  * @generated from message mgmt.v1alpha1.GetAiGeneratedDataResponse
@@ -1007,7 +872,7 @@ export type GetAiGeneratedDataResponse = Message<"mgmt.v1alpha1.GetAiGeneratedDa
  * Use `create(GetAiGeneratedDataResponseSchema)` to create a new message.
  */
 export const GetAiGeneratedDataResponseSchema: GenMessage<GetAiGeneratedDataResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 40);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 34);
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionTableConstraintsRequest
@@ -1024,7 +889,7 @@ export type GetConnectionTableConstraintsRequest = Message<"mgmt.v1alpha1.GetCon
  * Use `create(GetConnectionTableConstraintsRequestSchema)` to create a new message.
  */
 export const GetConnectionTableConstraintsRequestSchema: GenMessage<GetConnectionTableConstraintsRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 41);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 35);
 
 /**
  * @generated from message mgmt.v1alpha1.UniqueConstraints
@@ -1041,7 +906,7 @@ export type UniqueConstraints = Message<"mgmt.v1alpha1.UniqueConstraints"> & {
  * Use `create(UniqueConstraintsSchema)` to create a new message.
  */
 export const UniqueConstraintsSchema: GenMessage<UniqueConstraints> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 42);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 36);
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionTableConstraintsResponse
@@ -1074,7 +939,7 @@ export type GetConnectionTableConstraintsResponse = Message<"mgmt.v1alpha1.GetCo
  * Use `create(GetConnectionTableConstraintsResponseSchema)` to create a new message.
  */
 export const GetConnectionTableConstraintsResponseSchema: GenMessage<GetConnectionTableConstraintsResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 43);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 37);
 
 /**
  * @generated from message mgmt.v1alpha1.GetTableRowCountRequest
@@ -1106,7 +971,7 @@ export type GetTableRowCountRequest = Message<"mgmt.v1alpha1.GetTableRowCountReq
  * Use `create(GetTableRowCountRequestSchema)` to create a new message.
  */
 export const GetTableRowCountRequestSchema: GenMessage<GetTableRowCountRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 44);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 38);
 
 /**
  * @generated from message mgmt.v1alpha1.GetTableRowCountResponse
@@ -1123,7 +988,7 @@ export type GetTableRowCountResponse = Message<"mgmt.v1alpha1.GetTableRowCountRe
  * Use `create(GetTableRowCountResponseSchema)` to create a new message.
  */
 export const GetTableRowCountResponseSchema: GenMessage<GetTableRowCountResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_connection_data, 45);
+  messageDesc(file_mgmt_v1alpha1_connection_data, 39);
 
 /**
  * Service for managing connection data.
@@ -1184,28 +1049,6 @@ export const ConnectionDataService: GenService<{
     output: typeof GetConnectionTableConstraintsResponseSchema;
   },
   /**
-   * For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-   * Used primarily by the CLI sync command to determine stream order.
-   *
-   * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints
-   */
-  getConnectionForeignConstraints: {
-    methodKind: "unary";
-    input: typeof GetConnectionForeignConstraintsRequestSchema;
-    output: typeof GetConnectionForeignConstraintsResponseSchema;
-  },
-  /**
-   * For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-   * Used primarily by the CLI sync command to determine stream order.
-   *
-   * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints
-   */
-  getConnectionPrimaryConstraints: {
-    methodKind: "unary";
-    input: typeof GetConnectionPrimaryConstraintsRequestSchema;
-    output: typeof GetConnectionPrimaryConstraintsResponseSchema;
-  },
-  /**
    * For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
    * Used primarily by the CLI sync command to create table schema init statement.
    *
@@ -1215,16 +1058,6 @@ export const ConnectionDataService: GenService<{
     methodKind: "unary";
     input: typeof GetConnectionInitStatementsRequestSchema;
     output: typeof GetConnectionInitStatementsResponseSchema;
-  },
-  /**
-   * For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
-   *
-   * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints
-   */
-  getConnectionUniqueConstraints: {
-    methodKind: "unary";
-    input: typeof GetConnectionUniqueConstraintsRequestSchema;
-    output: typeof GetConnectionUniqueConstraintsResponseSchema;
   },
   /**
    * Query an AI connection by providing the necessary values. Typically used for generating preview data

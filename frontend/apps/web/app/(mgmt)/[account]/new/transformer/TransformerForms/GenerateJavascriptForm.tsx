@@ -60,7 +60,6 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
 
     try {
       const res = await validateUserJsCodeAsync({
-        accountId: account.id,
         code: value.code,
       });
       setIsValidatingCode(false);

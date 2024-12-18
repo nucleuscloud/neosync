@@ -52,14 +52,6 @@ message GetAuthorizeUrlResponse {
   string url = 1;
 }
 
-message GetCliIssuerRequest {}
-message GetCliIssuerResponse {
-  // The backing authentication issuer url
-  string issuer_url = 1;
-  // The audience that will be used in the access token. This corresponds to the "aud" claim
-  string audience = 2;
-}
-
 message RefreshCliRequest {
   // The token used to retrieve a new access token.
   string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
@@ -82,9 +74,7 @@ service AuthService {
   rpc RefreshCli(RefreshCliRequest) returns (RefreshCliResponse) {}
   // Empty endpoint to simply check if the provided access token is valid
   rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse) {}
-  // Used by the CLI to retrieve Auth Issuer information
-  // @deprecated
-  rpc GetCliIssuer(GetCliIssuerRequest) returns (GetCliIssuerResponse) {}
+
   // Used by the CLI to retrieve an Authorize URL for use with OAuth login.
   rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}
 

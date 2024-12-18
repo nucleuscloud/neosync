@@ -15,7 +15,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "addresses",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -23,7 +27,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "addresses",
 			Column: "order_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -31,7 +39,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "customers",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -39,7 +51,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "customers",
 			Column: "address_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -47,7 +63,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "orders",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -55,9 +75,13 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "orders",
 			Column: "customer_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
-	} 
+	}
 }
 

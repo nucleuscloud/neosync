@@ -324,20 +324,18 @@ class MysqlConnectionConfig(_message.Message):
     def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[MysqlConnection, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
 
 class AwsS3ConnectionConfig(_message.Message):
-    __slots__ = ("bucket_arn", "path_prefix", "credentials", "region", "endpoint", "bucket")
-    BUCKET_ARN_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("path_prefix", "credentials", "region", "endpoint", "bucket")
     PATH_PREFIX_FIELD_NUMBER: _ClassVar[int]
     CREDENTIALS_FIELD_NUMBER: _ClassVar[int]
     REGION_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     BUCKET_FIELD_NUMBER: _ClassVar[int]
-    bucket_arn: str
     path_prefix: str
     credentials: AwsS3Credentials
     region: str
     endpoint: str
     bucket: str
-    def __init__(self, bucket_arn: _Optional[str] = ..., path_prefix: _Optional[str] = ..., credentials: _Optional[_Union[AwsS3Credentials, _Mapping]] = ..., region: _Optional[str] = ..., endpoint: _Optional[str] = ..., bucket: _Optional[str] = ...) -> None: ...
+    def __init__(self, path_prefix: _Optional[str] = ..., credentials: _Optional[_Union[AwsS3Credentials, _Mapping]] = ..., region: _Optional[str] = ..., endpoint: _Optional[str] = ..., bucket: _Optional[str] = ...) -> None: ...
 
 class AwsS3Credentials(_message.Message):
     __slots__ = ("profile", "access_key_id", "secret_access_key", "session_token", "from_ec2_role", "role_arn", "role_external_id")

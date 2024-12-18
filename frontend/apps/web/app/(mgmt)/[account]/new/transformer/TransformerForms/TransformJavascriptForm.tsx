@@ -61,7 +61,6 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
 
     try {
       const res = await validateUserJsCodeAsync({
-        accountId: account.id,
         code: value.code,
       });
       setIsValidatingCode(false);

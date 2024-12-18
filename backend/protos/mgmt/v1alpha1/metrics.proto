@@ -3,7 +3,6 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
-import "google/protobuf/timestamp.proto";
 
 // Represents a whole or partial calendar date, such as a birthday. The time of
 // day and time zone are either specified elsewhere or are insignificant. The
@@ -89,10 +88,8 @@ message DayResult {
 }
 
 message GetMetricCountRequest {
-  // @deprecated - use start_day
-  google.protobuf.Timestamp start = 1;
-  // @deprecated - use end_day
-  google.protobuf.Timestamp end = 2;
+  reserved 1; // Was: google.protobuf.Timestamp start = 1;
+  reserved 2; // Was: google.protobuf.Timestamp end = 2;
   // The metric to return
   RangedMetricName metric = 3;
 

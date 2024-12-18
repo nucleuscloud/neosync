@@ -609,10 +609,6 @@ components:
         description:
           type: string
           title: description
-        type:
-          type: string
-          title: type
-          description: '@deprecated'
         source:
           allOf:
             - title: source
@@ -2433,10 +2429,6 @@ components:
     mgmt.v1alpha1.ValidateUserJavascriptCodeRequest:
       type: object
       properties:
-        accountId:
-          type: string
-          title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
         code:
           type: string
           title: code
@@ -2454,10 +2446,6 @@ components:
     mgmt.v1alpha1.ValidateUserRegexCodeRequest:
       type: object
       properties:
-        accountId:
-          type: string
-          title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
         userProvidedRegex:
           type: string
           title: user_provided_regex

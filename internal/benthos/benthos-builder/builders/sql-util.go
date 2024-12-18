@@ -494,10 +494,6 @@ func getSqlJobSourceOpts(
 		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
 			shouldGenerateNewColTransforms = true
 		}
-		// deprecated fallback if no strategy has been defined
-		if !shouldHalt && !shouldGenerateNewColTransforms {
-			shouldHalt = jobSourceConfig.Postgres.GetHaltOnNewColumnAddition()
-		}
 
 		return &sqlJobSourceOpts{
 			HaltOnNewColumnAddition:       shouldHalt,
