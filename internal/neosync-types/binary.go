@@ -36,6 +36,14 @@ func (b *Binary) ValueMysql() (any, error) {
 	return b.Bytes, nil
 }
 
+func (b *Binary) ScanMssql(value any) error {
+	return b.ScanMysql(value)
+}
+
+func (b *Binary) ValueMssql() (any, error) {
+	return b.ValueMysql()
+}
+
 func (b *Binary) ScanJson(value any) error {
 	return b.JsonScanner.ScanJson(value, b)
 }

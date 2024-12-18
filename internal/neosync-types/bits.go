@@ -47,6 +47,14 @@ func (b *Bits) ScanMysql(value any) error {
 	return nil
 }
 
+func (b *Bits) ScanMssql(value any) error {
+	return b.ScanMysql(value)
+}
+
+func (b *Bits) ValueMssql() (any, error) {
+	return b.ValueMysql()
+}
+
 func (b *Bits) ValueMysql() (any, error) {
 	return b.Bytes, nil
 }

@@ -57,6 +57,14 @@ func (i *Interval) ValueMysql() (any, error) {
 	return nil, errors.ErrUnsupported
 }
 
+func (i *Interval) ScanMssql(value any) error {
+	return errors.ErrUnsupported
+}
+
+func (i *Interval) ValueMssql() (any, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (i *Interval) setVersion(v Version) {
 	i.Neosync.Version = v
 }

@@ -234,12 +234,31 @@ func (dt *NeosyncDateTime) ValueMysql() (any, error) {
 	return t.Format(time.DateTime), nil
 }
 
+func (dt *NeosyncDateTime) ScanMssql(value any) error {
+	return dt.ScanMysql(value)
+}
+
+func (dt *NeosyncDateTime) ValueMssql() (any, error) {
+	return dt.ValueMysql()
+}
+
 func NewDateTimeFromMysql(value any, opts ...NeosyncTypeOption) (*NeosyncDateTime, error) {
 	dt, err := NewDateTime(opts...)
 	if err != nil {
 		return nil, err
 	}
 	if err := dt.ScanMysql(value); err != nil {
+		return nil, err
+	}
+	return dt, nil
+}
+
+func NewDateTimeFromMssql(value any, opts ...NeosyncTypeOption) (*NeosyncDateTime, error) {
+	dt, err := NewDateTime(opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := dt.ScanMssql(value); err != nil {
 		return nil, err
 	}
 	return dt, nil

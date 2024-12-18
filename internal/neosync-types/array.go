@@ -120,3 +120,11 @@ func (a *NeosyncArray) ValueMysql() (any, error) {
 	}
 	return values, nil
 }
+
+func (a *NeosyncArray) ScanMssql(value any) error {
+	return a.ScanMysql(value)
+}
+
+func (a *NeosyncArray) ValueMssql() (any, error) {
+	return a.ValueMysql()
+}

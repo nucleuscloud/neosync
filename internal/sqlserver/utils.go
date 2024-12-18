@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofrs/uuid"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -35,6 +37,13 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 		col := columnNames[i]
 		colType := cTypes[i]
 		switch t := v.(type) {
+		case time.Time:
+			dt, err := neosynctypes.NewDateTimeFromMssql(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = dt
 		case []byte:
 			if IsUuidDataType(colType.DatabaseTypeName()) {
 				uuidStr, err := BitsToUuidString(t)
