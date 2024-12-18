@@ -11,13 +11,13 @@ type NeosyncDateTime struct {
 	BaseType    `json:",inline"`
 	JsonScanner `json:"-"`
 
-	Year   int32 `json:"year"`   // Absolute year number (converted to negative for BC dates)
-	Month  uint8 `json:"month"`  // 1-12
-	Day    uint8 `json:"day"`    // 1-31
-	Hour   uint8 `json:"hour"`   // 0-23
-	Minute uint8 `json:"minute"` // 0-59
-	Second uint8 `json:"second"` // 0-59
-	Nano   int32 `json:"nano"`   // 0-999999999
+	Year   int `json:"year"`   // Absolute year number (converted to negative for BC dates)
+	Month  int `json:"month"`  // 1-12
+	Day    int `json:"day"`    // 1-31
+	Hour   int `json:"hour"`   // 0-23
+	Minute int `json:"minute"` // 0-59
+	Second int `json:"second"` // 0-59
+	Nano   int `json:"nano"`   // 0-999999999
 
 	TimeZone  string `json:"timezone,omitempty"`
 	Precision int8   `json:"precision,omitempty"`
@@ -89,20 +89,20 @@ func (dt *NeosyncDateTime) ScanPgx(value any) error {
 	if dt.IsBC {
 		year = -year + 1 // Convert BC year to positive internal format
 	}
-	dt.Year = int32(year)
-	dt.Month = uint8(t.Month())
-	dt.Day = uint8(t.Day())
-	dt.Hour = uint8(t.Hour())
-	dt.Minute = uint8(t.Minute())
-	dt.Second = uint8(t.Second())
-	dt.Nano = int32(t.Nanosecond())
+	dt.Year = year
+	dt.Month = int(t.Month())
+	dt.Day = t.Day()
+	dt.Hour = t.Hour()
+	dt.Minute = t.Minute()
+	dt.Second = t.Second()
+	dt.Nano = t.Nanosecond()
 	dt.TimeZone = tz
 
 	return nil
 }
 
 func (dt *NeosyncDateTime) ValuePgx() (any, error) {
-	year := int(dt.Year)
+	year := dt.Year
 	if dt.IsBC {
 		return dt.handlePgxBCDate()
 	}
@@ -116,11 +116,11 @@ func (dt *NeosyncDateTime) ValuePgx() (any, error) {
 		t := time.Date(
 			year,
 			time.Month(dt.Month),
-			int(dt.Day),
-			int(dt.Hour),
-			int(dt.Minute),
-			int(dt.Second),
-			int(dt.Nano),
+			dt.Day,
+			dt.Hour,
+			dt.Minute,
+			dt.Second,
+			dt.Nano,
 			loc,
 		)
 		return &pgtype.Timestamptz{Time: t, Valid: true}, nil
@@ -130,11 +130,11 @@ func (dt *NeosyncDateTime) ValuePgx() (any, error) {
 	t := time.Date(
 		year,
 		time.Month(dt.Month),
-		int(dt.Day),
-		int(dt.Hour),
-		int(dt.Minute),
-		int(dt.Second),
-		int(dt.Nano),
+		dt.Day,
+		dt.Hour,
+		dt.Minute,
+		dt.Second,
+		dt.Nano,
 		time.UTC,
 	)
 
@@ -147,16 +147,16 @@ func (dt *NeosyncDateTime) ValuePgx() (any, error) {
 }
 
 func (dt *NeosyncDateTime) handlePgxBCDate() (any, error) {
-	year := -int(dt.Year) + 1 // Convert to BC year
+	year := -dt.Year + 1 // Convert to BC year
 
 	t := time.Date(
 		year,
 		time.Month(dt.Month),
-		int(dt.Day),
-		int(dt.Hour),
-		int(dt.Minute),
-		int(dt.Second),
-		int(dt.Nano),
+		dt.Day,
+		dt.Hour,
+		dt.Minute,
+		dt.Second,
+		dt.Nano,
 		time.UTC,
 	)
 
@@ -183,13 +183,13 @@ func (dt *NeosyncDateTime) ScanMysql(value any) error {
 		if dt.IsBC {
 			year = -year + 1 // Convert BC year to positive internal format
 		}
-		dt.Year = int32(year)
-		dt.Month = uint8(v.Month())
-		dt.Day = uint8(v.Day())
-		dt.Hour = uint8(v.Hour())
-		dt.Minute = uint8(v.Minute())
-		dt.Second = uint8(v.Second())
-		dt.Nano = int32(v.Nanosecond())
+		dt.Year = year
+		dt.Month = int(v.Month())
+		dt.Day = v.Day()
+		dt.Hour = v.Hour()
+		dt.Minute = v.Minute()
+		dt.Second = v.Second()
+		dt.Nano = v.Nanosecond()
 		if loc := v.Location(); loc != time.UTC {
 			dt.TimeZone = loc.String()
 		}
@@ -200,7 +200,7 @@ func (dt *NeosyncDateTime) ScanMysql(value any) error {
 }
 
 func (dt *NeosyncDateTime) ValueMysql() (any, error) {
-	year := int(dt.Year)
+	year := dt.Year
 	if dt.IsBC {
 		year = -year + 1 // Convert to BC year
 	}
@@ -217,11 +217,11 @@ func (dt *NeosyncDateTime) ValueMysql() (any, error) {
 	t := time.Date(
 		year,
 		time.Month(dt.Month),
-		int(dt.Day),
-		int(dt.Hour),
-		int(dt.Minute),
-		int(dt.Second),
-		int(dt.Nano),
+		dt.Day,
+		dt.Hour,
+		dt.Minute,
+		dt.Second,
+		dt.Nano,
 		loc,
 	)
 

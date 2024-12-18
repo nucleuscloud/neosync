@@ -197,7 +197,7 @@ func (r *TypeRegistry) UnmarshalAny(value any) (any, error) {
 
 	var version Version
 	if versionRaw, ok := neosyncRaw["version"].(float64); ok {
-		version = Version(int(versionRaw))
+		version = Version(uint(versionRaw))
 	} else {
 		r.logger.Debug("value missing _neosync.version. Using latest version instead.")
 		version = LatestVersion

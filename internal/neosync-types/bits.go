@@ -2,6 +2,7 @@ package neosynctypes
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -42,8 +43,11 @@ func (b *Bits) ScanMysql(value any) error {
 	if !ok {
 		return fmt.Errorf("expected *sqlscanners.BitString, got %T", value)
 	}
+	if len(bits) > math.MaxInt32 {
+		return fmt.Errorf("bit string length %d exceeds maximum int32 value", len(bits))
+	}
 	b.Bytes = bits
-	b.Len = int32(len(bits))
+	b.Len = int32(len(bits)) //nolint:gosec
 	return nil
 }
 
