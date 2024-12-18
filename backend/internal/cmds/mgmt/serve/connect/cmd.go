@@ -335,6 +335,10 @@ func serve(ctx context.Context) error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
+		slogger.Debug("auth is enabled")
+		if !cascadelicense.IsValid() {
+			return errors.New("auth is enabled but no license is present")
+		}
 		jwtcfg, err := getJwtClientConfig()
 		if err != nil {
 			return err
@@ -534,7 +538,7 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if ncloudlicense.IsValid() || eelicense.IsValid() {
+	if cascadelicense.IsValid() {
 		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
 	}
 
