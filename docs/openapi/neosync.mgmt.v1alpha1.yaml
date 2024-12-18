@@ -12357,7 +12357,13 @@ components:
         buildDate:
           allOf:
             - title: build_date
+              description: The time when the build was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        license:
+          allOf:
+            - title: license
+              description: The license information for the system
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SystemLicense'
       title: GetSystemInformationResponse
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountInvitesRequest:
@@ -12733,6 +12739,24 @@ components:
     mgmt.v1alpha1.SetUserRoleResponse:
       type: object
       title: SetUserRoleResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SystemLicense:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          title: is_valid
+          description: Whether or not a valid license was found
+        expiresAt:
+          allOf:
+            - title: expires_at
+              description: The time when the license expires
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        isNeosyncCloud:
+          type: boolean
+          title: is_neosync_cloud
+          description: Whether or not the license is for NeosyncCloud
+      title: SystemLicense
       additionalProperties: false
     mgmt.v1alpha1.UserAccount:
       type: object

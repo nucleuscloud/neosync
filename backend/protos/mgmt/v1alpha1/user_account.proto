@@ -175,7 +175,19 @@ message GetSystemInformationResponse {
   string compiler = 3;
   // The Go platform flag that was used to build this version of Neosync
   string platform = 4;
+  // The time when the build was created
   google.protobuf.Timestamp build_date = 5;
+  // The license information for the system
+  SystemLicense license = 6;
+}
+
+message SystemLicense {
+  // Whether or not a valid license was found
+  bool is_valid = 1;
+  // The time when the license expires
+  google.protobuf.Timestamp expires_at = 2;
+  // Whether or not the license is for NeosyncCloud
+  bool is_neosync_cloud = 3;
 }
 
 message GetAccountOnboardingConfigRequest {

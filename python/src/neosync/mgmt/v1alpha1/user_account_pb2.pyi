@@ -305,18 +305,30 @@ class GetSystemInformationRequest(_message.Message):
     def __init__(self) -> None: ...
 
 class GetSystemInformationResponse(_message.Message):
-    __slots__ = ("version", "commit", "compiler", "platform", "build_date")
+    __slots__ = ("version", "commit", "compiler", "platform", "build_date", "license")
     VERSION_FIELD_NUMBER: _ClassVar[int]
     COMMIT_FIELD_NUMBER: _ClassVar[int]
     COMPILER_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_FIELD_NUMBER: _ClassVar[int]
     BUILD_DATE_FIELD_NUMBER: _ClassVar[int]
+    LICENSE_FIELD_NUMBER: _ClassVar[int]
     version: str
     commit: str
     compiler: str
     platform: str
     build_date: _timestamp_pb2.Timestamp
-    def __init__(self, version: _Optional[str] = ..., commit: _Optional[str] = ..., compiler: _Optional[str] = ..., platform: _Optional[str] = ..., build_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    license: SystemLicense
+    def __init__(self, version: _Optional[str] = ..., commit: _Optional[str] = ..., compiler: _Optional[str] = ..., platform: _Optional[str] = ..., build_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., license: _Optional[_Union[SystemLicense, _Mapping]] = ...) -> None: ...
+
+class SystemLicense(_message.Message):
+    __slots__ = ("is_valid", "expires_at", "is_neosync_cloud")
+    IS_VALID_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    IS_NEOSYNC_CLOUD_FIELD_NUMBER: _ClassVar[int]
+    is_valid: bool
+    expires_at: _timestamp_pb2.Timestamp
+    is_neosync_cloud: bool
+    def __init__(self, is_valid: bool = ..., expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., is_neosync_cloud: bool = ...) -> None: ...
 
 class GetAccountOnboardingConfigRequest(_message.Message):
     __slots__ = ("account_id",)
