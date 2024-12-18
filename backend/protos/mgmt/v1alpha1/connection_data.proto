@@ -42,7 +42,7 @@ message GetConnectionDataStreamRequest {
 
 // Each stream response is a single row in the requested schema and table
 message GetConnectionDataStreamResponse {
-  reserved 1; // was map<string, bytes> row = 1;
+  reserved 1; // Was: map<string, bytes> row = 1;
   // A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.
   bytes row_bytes = 2;
 }

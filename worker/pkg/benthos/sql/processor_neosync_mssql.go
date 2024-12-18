@@ -128,7 +128,7 @@ func transformNeosyncToMssql(
 }
 
 func getMssqlValue(value any) (any, error) {
-	value, isNeosyncValue, err := getMysqlNeosyncValue(value)
+	value, isNeosyncValue, err := getMssqlNeosyncValue(value)
 	if err != nil {
 		return nil, err
 	}
