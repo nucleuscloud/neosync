@@ -17,8 +17,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
@@ -62,6 +64,10 @@ func (s *Service) GetUser(
 		if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.AccountApiKey && tokenctxResp.ApiKeyContextData.ApiKey != nil {
 			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 				UserId: neosyncdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+			}), nil
+		} else if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.WorkerApiKey {
+			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+				UserId: "00000000-0000-0000-0000-000000000000",
 			}), nil
 		}
 		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("invalid api key type when calling GetUser: %s", tokenctxResp.ApiKeyContextData.ApiKeyType))
@@ -136,7 +142,7 @@ func (s *Service) GetUserAccounts(
 	if err != nil {
 		return nil, err
 	}
-	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +200,28 @@ func (s *Service) ConvertPersonalToTeamAccount(
 				break
 			}
 		}
+	} else {
+		personalAccountUuid, err := neosyncdb.ToUuid(personalAccountId)
+		if err != nil {
+			return nil, err
+		}
+		count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+			AccountId: personalAccountUuid,
+			UserId:    userId,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if count == 0 {
+			return nil, nucleuserrors.NewNotFound("user is not in the provided account")
+		}
+		account, err := s.db.Q.GetAccount(ctx, s.db.Db, personalAccountUuid)
+		if err != nil {
+			return nil, err
+		}
+		if account.AccountType != int16(neosyncdb.AccountType_Personal) {
+			return nil, nucleuserrors.NewNotFound("account is not a personal account")
+		}
 	}
 
 	personalAccountUuid, err := neosyncdb.ToUuid(personalAccountId)
@@ -245,7 +273,7 @@ func (s *Service) SetPersonalAccount(
 		return nil, err
 	}
 
-	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -253,6 +281,19 @@ func (s *Service) SetPersonalAccount(
 	account, err := s.db.SetPersonalAccount(ctx, userId, s.cfg.DefaultMaxAllowedRecords)
 	if err != nil {
 		return nil, err
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", neosyncdb.UUIDString(account.ID), "userId", user.Msg.GetUserId())
+
+	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
+	}
+
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetPersonalAccountResponse{
@@ -327,6 +368,8 @@ func (s *Service) CreateTeamAccount(
 		return nil, err
 	}
 
+	logger = logger.With("accountId", neosyncdb.UUIDString(account.ID))
+
 	var checkoutSessionUrl *string
 	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.billingclient != nil {
 		account, err = s.db.UpsertStripeCustomerId(
@@ -344,6 +387,16 @@ func (s *Service) CreateTeamAccount(
 		}
 		logger.Debug("stripe checkout session created", "id", session.ID)
 		checkoutSessionUrl = &session.URL
+	}
+
+	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
+	}
+
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
@@ -401,19 +454,37 @@ func (s *Service) GetTeamAccountMembers(
 	req *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View); err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+	if err := s.verifyTeamAccount(ctx, accountUuid); err != nil {
 		return nil, err
 	}
 
-	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, *accountId)
+	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
+
+	rbacUsers := []rbac.EntityString{}
+	for _, user := range userIdentities {
+		rbacUsers = append(rbacUsers, rbac.NewPgUserIdEntity(user.UserID))
+	}
+
+	userRoles := s.rbacClient.GetUserRoles(ctx, rbacUsers, rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid)), logger)
+	logger.Debug(fmt.Sprintf("found %d users with roles", len(userRoles)))
 
 	dtoUsers := make([]*mgmtv1alpha1.AccountUser, len(userIdentities))
 	group := new(errgroup.Group)
@@ -424,11 +495,17 @@ func (s *Service) GetTeamAccountMembers(
 			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
 				Id: neosyncdb.UUIDString(user.UserID),
 			}
+			role, ok := userRoles[rbac.NewPgUserIdEntity(user.UserID).String()]
+			if ok {
+				logger.Debug(fmt.Sprintf("found role for user: %s - %s", neosyncdb.UUIDString(user.UserID), role.String()))
+				dtoUsers[i].Role = role.ToDto()
+			} else {
+				dtoUsers[i].Role = mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED
+			}
 			if user.ProviderSub == "" {
 				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", neosyncdb.UUIDString(user.UserID)))
 				return nil
-			}
-			if user.ProviderSub != "" {
+			} else {
 				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
 				if err != nil {
 					logger.Warn(fmt.Sprintf("unable to retrieve user by sub: %s", err.Error()))
@@ -455,11 +532,21 @@ func (s *Service) RemoveTeamAccountMember(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest],
 ) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error) {
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.verifyTeamAccount(ctx, accountUuid); err != nil {
 		return nil, err
 	}
 	memberUserId, err := neosyncdb.ToUuid(req.Msg.UserId)
@@ -467,11 +554,15 @@ func (s *Service) RemoveTeamAccountMember(
 		return nil, err
 	}
 	err = s.db.Q.RemoveAccountUser(ctx, s.db.Db, db_queries.RemoveAccountUserParams{
-		AccountId: *accountId,
+		AccountId: accountUuid,
 		UserId:    memberUserId,
 	})
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to remove account user from db: %w", err)
+	}
+
+	if err := s.rbacClient.RemoveAccountUser(ctx, rbac.NewPgUserIdEntity(memberUserId), rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid))); err != nil {
+		return nil, fmt.Errorf("unable to remove account user from rbac engine: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountMemberResponse{}), nil
@@ -481,21 +572,21 @@ func (s *Service) InviteUserToTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error) {
-	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+	if err := s.verifyTeamAccount(ctx, accountUuid); err != nil {
 		return nil, err
 	}
 
@@ -505,7 +596,12 @@ func (s *Service) InviteUserToTeamAccount(
 		return nil, err
 	}
 
-	invite, err := s.db.CreateTeamAccountInvite(ctx, *accountId, userId, req.Msg.Email, expiresAt)
+	var role pgtype.Int4
+	if req.Msg.GetRole() != mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED {
+		role = pgtype.Int4{Int32: int32(req.Msg.GetRole()), Valid: true}
+	}
+
+	invite, err := s.db.CreateTeamAccountInvite(ctx, accountUuid, user.PgId(), req.Msg.GetEmail(), expiresAt, role)
 	if err != nil {
 		return nil, err
 	}
@@ -519,16 +615,25 @@ func (s *Service) GetTeamAccountInvites(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error) {
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View); err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+	if err := s.verifyTeamAccount(ctx, accountUuid); err != nil {
 		return nil, err
 	}
 
-	invites, err := s.db.Q.GetActiveAccountInvites(ctx, s.db.Db, *accountId)
+	invites, err := s.db.Q.GetActiveAccountInvites(ctx, s.db.Db, accountUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -551,7 +656,7 @@ func (s *Service) RemoveTeamAccountInvite(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest],
 ) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error) {
-	inviteId, err := neosyncdb.ToUuid(req.Msg.Id)
+	inviteId, err := neosyncdb.ToUuid(req.Msg.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -561,20 +666,23 @@ func (s *Service) RemoveTeamAccountInvite(
 	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
 	}
-	accountId, err := s.verifyUserInAccount(ctx, neosyncdb.UUIDString(invite.AccountID))
+
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(neosyncdb.UUIDString(invite.AccountID)), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
 
-	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+	if err := s.verifyTeamAccount(ctx, invite.AccountID); err != nil {
 		return nil, err
 	}
 
 	err = s.db.Q.RemoveAccountInvite(ctx, s.db.Db, inviteId)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
-	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
@@ -588,7 +696,7 @@ func (s *Service) AcceptTeamAccountInvite(
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
+	userUuid, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -619,16 +727,20 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, nucleuserrors.NewUnauthenticated("unable to find email to valid to add user to account")
 	}
 
-	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
+	validateResp, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.verifyTeamAccount(ctx, accountId); err != nil {
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(validateResp.AccountId)), validateResp.Role); err != nil {
+		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+	}
+
+	if err := s.verifyTeamAccount(ctx, validateResp.AccountId); err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, validateResp.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -638,46 +750,58 @@ func (s *Service) AcceptTeamAccountInvite(
 	}), nil
 }
 
+func (s *Service) SetUserRole(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetUserRoleRequest],
+) (*connect.Response[mgmtv1alpha1.SetUserRoleResponse], error) {
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	requestingUserUuid, err := neosyncdb.ToUuid(req.Msg.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+		AccountId: accountUuid,
+		UserId:    requestingUserUuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		return nil, nucleuserrors.NewBadRequest("provided user id is not in account")
+	}
+
+	err = s.rbacClient.SetAccountRole(ctx, rbac.NewPgUserIdEntity(requestingUserUuid), rbac.NewAccountIdEntity(req.Msg.GetAccountId()), req.Msg.GetRole())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.SetUserRoleResponse{}), nil
+}
+
 func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) error {
 	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
 	if err != nil {
 		return err
 	}
-	if account.AccountType != 1 {
+	if account.AccountType != int16(neosyncdb.AccountType_Team) && account.AccountType != int16(neosyncdb.AccountType_Enterprise) {
 		return nucleuserrors.NewForbidden("account is not a team account")
 	}
 	return nil
-}
-func isWorkerApiKey(ctx context.Context) bool {
-	data, err := auth_apikey.GetTokenDataFromCtx(ctx)
-	if err != nil {
-		return false
-	}
-	return data.ApiKeyType == apikey.WorkerApiKey
-}
-
-func (s *Service) verifyUserInAccount(
-	ctx context.Context,
-	accountId string,
-) (*pgtype.UUID, error) {
-	accountUuid, err := neosyncdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	if isWorkerApiKey(ctx) {
-		return &accountUuid, nil
-	}
-
-	resp, err := s.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
-	if err != nil {
-		return nil, err
-	}
-	if !resp.Msg.Ok {
-		return nil, nucleuserrors.NewForbidden("user in not in requested account")
-	}
-
-	return &accountUuid, nil
 }
 
 func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {

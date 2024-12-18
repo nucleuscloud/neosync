@@ -274,6 +274,10 @@ func (s *IntegrationTestSuite) Test_UpsertStripeCustomerId() {
 	})
 }
 
+var (
+	dbViewerRole = pgtype.Int4{Int32: int32(mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER), Valid: true}
+)
+
 func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 	t := s.T()
 
@@ -282,15 +286,15 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 	requireNoErrResp(t, account, err)
 
 	t.Run("new invite", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 1*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 1*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite, err)
 	})
 
 	t.Run("expire old invites", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite, err)
 
-		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour))
+		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite2, err)
 		// Add time here as the expired invites as updated to CURRENT_TIMESTAMP, so this reduces flakiness
 		now := time.Now().Add(5 * time.Second)
@@ -304,7 +308,7 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 		account, err := s.db.SetPersonalAccount(s.ctx, user.ID, nil)
 		requireNoErrResp(t, account, err)
 
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 1*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 1*time.Hour), dbViewerRole)
 		requireErrResp(t, invite, err)
 		forbiddin := nucleuserrors.NewForbidden("")
 		require.ErrorAs(t, err, &forbiddin)
@@ -319,7 +323,7 @@ func (s *IntegrationTestSuite) Test_ValidateInviteAddUserToAccount() {
 	requireNoErrResp(t, account, err)
 
 	t.Run("accept invite", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 24*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 24*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite, err)
 
 		user2 := s.setUser(t, s.ctx, "foo2")
@@ -329,27 +333,27 @@ func (s *IntegrationTestSuite) Test_ValidateInviteAddUserToAccount() {
 	})
 
 	t.Run("expired invite", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo3@example.com", getFutureTs(t, -1*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo3@example.com", getFutureTs(t, -1*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite, err)
 
 		user3 := s.setUser(t, s.ctx, "foo3")
 
-		accountId, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user3.ID, invite.Token, "foo3@example.com")
+		verifyResp, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user3.ID, invite.Token, "foo3@example.com")
 		require.Error(t, err)
-		require.False(t, accountId.Valid)
+		require.Nil(t, verifyResp)
 		forbidden := nucleuserrors.NewForbidden("")
 		require.ErrorAs(t, err, &forbidden)
 	})
 
 	t.Run("incorrect email", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo4@example.com", getFutureTs(t, -1*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo4@example.com", getFutureTs(t, -1*time.Hour), dbViewerRole)
 		requireNoErrResp(t, invite, err)
 
 		user4 := s.setUser(t, s.ctx, "foo3")
 
-		accountId, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user4.ID, invite.Token, "blah@example.com")
+		verifyResp, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user4.ID, invite.Token, "blah@example.com")
 		require.Error(t, err)
-		require.False(t, accountId.Valid)
+		require.Nil(t, verifyResp)
 		badrequest := nucleuserrors.NewBadRequest("")
 		require.ErrorAs(t, err, &badrequest)
 		t.Log(err.Error())

@@ -105,6 +105,9 @@ const (
 	// UserAccountServiceSetBillingMeterEventProcedure is the fully-qualified name of the
 	// UserAccountService's SetBillingMeterEvent RPC.
 	UserAccountServiceSetBillingMeterEventProcedure = "/mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent"
+	// UserAccountServiceSetUserRoleProcedure is the fully-qualified name of the UserAccountService's
+	// SetUserRole RPC.
+	UserAccountServiceSetUserRoleProcedure = "/mgmt.v1alpha1.UserAccountService/SetUserRole"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -134,6 +137,7 @@ var (
 	userAccountServiceGetAccountBillingPortalSessionMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountBillingPortalSession")
 	userAccountServiceGetBillingAccountsMethodDescriptor               = userAccountServiceServiceDescriptor.Methods().ByName("GetBillingAccounts")
 	userAccountServiceSetBillingMeterEventMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("SetBillingMeterEvent")
+	userAccountServiceSetUserRoleMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("SetUserRole")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -170,6 +174,8 @@ type UserAccountServiceClient interface {
 	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
 	// Sends a new metered event to the billing system
 	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
+	// Sets the users role
+	SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -330,6 +336,12 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		setUserRole: connect.NewClient[v1alpha1.SetUserRoleRequest, v1alpha1.SetUserRoleResponse](
+			httpClient,
+			baseURL+UserAccountServiceSetUserRoleProcedure,
+			connect.WithSchema(userAccountServiceSetUserRoleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -359,6 +371,7 @@ type userAccountServiceClient struct {
 	getAccountBillingPortalSession   *connect.Client[v1alpha1.GetAccountBillingPortalSessionRequest, v1alpha1.GetAccountBillingPortalSessionResponse]
 	getBillingAccounts               *connect.Client[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse]
 	setBillingMeterEvent             *connect.Client[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse]
+	setUserRole                      *connect.Client[v1alpha1.SetUserRoleRequest, v1alpha1.SetUserRoleResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -483,6 +496,11 @@ func (c *userAccountServiceClient) SetBillingMeterEvent(ctx context.Context, req
 	return c.setBillingMeterEvent.CallUnary(ctx, req)
 }
 
+// SetUserRole calls mgmt.v1alpha1.UserAccountService.SetUserRole.
+func (c *userAccountServiceClient) SetUserRole(ctx context.Context, req *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error) {
+	return c.setUserRole.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -517,6 +535,8 @@ type UserAccountServiceHandler interface {
 	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
 	// Sends a new metered event to the billing system
 	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
+	// Sets the users role
+	SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -673,6 +693,12 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	userAccountServiceSetUserRoleHandler := connect.NewUnaryHandler(
+		UserAccountServiceSetUserRoleProcedure,
+		svc.SetUserRole,
+		connect.WithSchema(userAccountServiceSetUserRoleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -723,6 +749,8 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceGetBillingAccountsHandler.ServeHTTP(w, r)
 		case UserAccountServiceSetBillingMeterEventProcedure:
 			userAccountServiceSetBillingMeterEventHandler.ServeHTTP(w, r)
+		case UserAccountServiceSetUserRoleProcedure:
+			userAccountServiceSetUserRoleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -826,4 +854,8 @@ func (UnimplementedUserAccountServiceHandler) GetBillingAccounts(context.Context
 
 func (UnimplementedUserAccountServiceHandler) SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetUserRole is not implemented"))
 }

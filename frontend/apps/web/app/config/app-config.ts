@@ -2,7 +2,7 @@ export interface SystemAppConfig {
   isAuthEnabled: boolean;
   publicAppBaseUrl: string;
   posthog: PosthogConfig;
-  koala: KoalaConfig;
+  unify: UnifyConfig;
   isNeosyncCloud: boolean;
   isStripeEnabled: boolean;
   enableRunLogs: boolean;
@@ -18,6 +18,7 @@ export interface SystemAppConfig {
   neosyncApiBaseUrl: string;
   // public (client-side) base url;
   publicNeosyncApiBaseUrl: string;
+  isRbacEnabled: boolean;
 }
 
 interface PosthogConfig {
@@ -26,7 +27,7 @@ interface PosthogConfig {
   host: string;
 }
 
-interface KoalaConfig {
+interface UnifyConfig {
   enabled: boolean;
   key?: string;
 }

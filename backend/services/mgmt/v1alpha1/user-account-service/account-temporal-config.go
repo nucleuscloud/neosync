@@ -6,7 +6,10 @@ import (
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -17,7 +20,12 @@ func (s *Service) GetAccountTemporalConfig(
 	if s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
 	}
-	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +47,18 @@ func (s *Service) SetAccountTemporalConfig(
 	if s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
 	}
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	userdataclient := userdata.NewClient(s, s.rbacClient)
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	if err != nil {
+		return nil, err
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +73,7 @@ func (s *Service) SetAccountTemporalConfig(
 
 	_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, s.db.Db, db_queries.UpdateTemporalConfigByAccountParams{
 		TemporalConfig: tc,
-		AccountId:      *accountUuid,
+		AccountId:      accountUuid,
 	})
 	if err != nil {
 		return nil, err

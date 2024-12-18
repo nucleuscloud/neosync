@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountBillingCheckoutSessionRequest, GetAccountBillingCheckoutSessionResponse, GetAccountBillingPortalSessionRequest, GetAccountBillingPortalSessionResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetBillingAccountsRequest, GetBillingAccountsResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetBillingMeterEventRequest, SetBillingMeterEventResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
+import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountBillingCheckoutSessionRequest, GetAccountBillingCheckoutSessionResponse, GetAccountBillingPortalSessionRequest, GetAccountBillingPortalSessionResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetBillingAccountsRequest, GetBillingAccountsResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetBillingMeterEventRequest, SetBillingMeterEventResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse, SetUserRoleRequest, SetUserRoleResponse } from "./user_account_pb.js";
 import { MethodIdempotency, MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -246,6 +246,17 @@ export const UserAccountService = {
       name: "SetBillingMeterEvent",
       I: SetBillingMeterEventRequest,
       O: SetBillingMeterEventResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Sets the users role
+     *
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.SetUserRole
+     */
+    setUserRole: {
+      name: "SetUserRole",
+      I: SetUserRoleRequest,
+      O: SetUserRoleResponse,
       kind: MethodKind.Unary,
     },
   }

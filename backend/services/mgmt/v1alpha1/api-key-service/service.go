@@ -1,14 +1,14 @@
 package v1alpha1_apikeyservice
 
 import (
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 )
 
 type Service struct {
-	cfg                *Config
-	db                 *neosyncdb.NeosyncDb
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
+	cfg            *Config
+	db             *neosyncdb.NeosyncDb
+	userdataclient userdata.Interface
 }
 
 type Config struct {
@@ -18,7 +18,7 @@ type Config struct {
 func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
-	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
+	userdataclient userdata.Interface,
 ) *Service {
-	return &Service{cfg: cfg, db: db, useraccountService: useraccountService}
+	return &Service{cfg: cfg, db: db, userdataclient: userdataclient}
 }

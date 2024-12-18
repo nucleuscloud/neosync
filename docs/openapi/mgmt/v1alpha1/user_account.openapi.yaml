@@ -851,8 +851,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventResponse'
+  /mgmt.v1alpha1.UserAccountService/SetUserRole:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetUserRole
+      description: Sets the users role
+      operationId: mgmt.v1alpha1.UserAccountService.SetUserRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleResponse'
 components:
   schemas:
+    mgmt.v1alpha1.AccountRole:
+      type: string
+      title: AccountRole
+      enum:
+        - ACCOUNT_ROLE_UNSPECIFIED
+        - ACCOUNT_ROLE_ADMIN
+        - ACCOUNT_ROLE_JOB_DEVELOPER
+        - ACCOUNT_ROLE_JOB_VIEWER
+        - ACCOUNT_ROLE_JOB_EXECUTOR
     mgmt.v1alpha1.AccountStatus:
       type: string
       title: AccountStatus
@@ -1024,6 +1069,11 @@ components:
           allOf:
             - title: expires_at
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountInvite
       additionalProperties: false
     mgmt.v1alpha1.AccountOnboardingConfig:
@@ -1082,6 +1132,11 @@ components:
         email:
           type: string
           title: email
+        role:
+          allOf:
+            - title: role
+              description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountUser
       additionalProperties: false
     mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:
@@ -1421,15 +1476,37 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - role
+            - not:
+                anyOf:
+                  - required:
+                      - role
+      anyOf:
+        - required:
+            - role
+        - not:
+            anyOf:
+              - required:
+                  - role
       properties:
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The account id to invite the user to
         email:
           type: string
           title: email
           minLength: 1
+          description: The email of the user to invite
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: InviteUserToTeamAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountResponse:
@@ -1700,6 +1777,30 @@ components:
           type: string
           title: user_id
       title: SetUserResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account id to apply this role to
+        userId:
+          type: string
+          title: user_id
+          format: uuid
+          description: The user that this will be applied to
+        role:
+          allOf:
+            - title: role
+              description: The role that this user will obtain
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+      title: SetUserRoleRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleResponse:
+      type: object
+      title: SetUserRoleResponse
       additionalProperties: false
     mgmt.v1alpha1.UserAccount:
       type: object

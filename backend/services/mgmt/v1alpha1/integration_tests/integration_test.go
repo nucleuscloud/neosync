@@ -20,7 +20,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	api, err := tcneosyncapi.NewNeosyncApiTestClient(s.ctx, s.T())
 	if err != nil {
-		panic(err)
+		s.T().Fatalf("unable to create neosync api test client: %v", err)
 	}
 	s.NeosyncApiTestClient = *api
 }
@@ -29,21 +29,21 @@ func (s *IntegrationTestSuite) SetupSuite() {
 func (s *IntegrationTestSuite) SetupTest() {
 	err := s.InitializeTest(s.ctx, s.T())
 	if err != nil {
-		panic(err)
+		s.T().Fatalf("unable to initialize test: %v", err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
 	err := s.CleanupTest(s.ctx)
 	if err != nil {
-		panic(err)
+		s.T().Fatalf("unable to cleanup test: %v", err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	err := s.TearDown(s.ctx)
 	if err != nil {
-		panic(err)
+		s.T().Fatalf("unable to cleanup test: %v", err)
 	}
 }
 

@@ -134,6 +134,11 @@ class UserAccountServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventResponse.FromString,
                 _registered_method=True)
+        self.SetUserRole = channel.unary_unary(
+                '/mgmt.v1alpha1.UserAccountService/SetUserRole',
+                request_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleResponse.FromString,
+                _registered_method=True)
 
 
 class UserAccountServiceServicer(object):
@@ -291,6 +296,13 @@ class UserAccountServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SetUserRole(self, request, context):
+        """Sets the users role
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_UserAccountServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -413,6 +425,11 @@ def add_UserAccountServiceServicer_to_server(servicer, server):
                     servicer.SetBillingMeterEvent,
                     request_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventResponse.SerializeToString,
+            ),
+            'SetUserRole': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetUserRole,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1063,6 +1080,33 @@ class UserAccountService(object):
             '/mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent',
             mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_user__account__pb2.SetBillingMeterEventResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SetUserRole(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.UserAccountService/SetUserRole',
+            mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_user__account__pb2.SetUserRoleResponse.FromString,
             options,
             channel_credentials,
             insecure,

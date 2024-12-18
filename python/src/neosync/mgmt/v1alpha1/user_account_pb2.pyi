@@ -31,6 +31,14 @@ class AccountStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: _ClassVar[AccountStatus]
+
+class AccountRole(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACCOUNT_ROLE_UNSPECIFIED: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_ADMIN: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_DEVELOPER: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_VIEWER: _ClassVar[AccountRole]
+    ACCOUNT_ROLE_JOB_EXECUTOR: _ClassVar[AccountRole]
 USER_ACCOUNT_TYPE_UNSPECIFIED: UserAccountType
 USER_ACCOUNT_TYPE_PERSONAL: UserAccountType
 USER_ACCOUNT_TYPE_TEAM: UserAccountType
@@ -46,6 +54,11 @@ ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: AccountStatus
+ACCOUNT_ROLE_UNSPECIFIED: AccountRole
+ACCOUNT_ROLE_ADMIN: AccountRole
+ACCOUNT_ROLE_JOB_DEVELOPER: AccountRole
+ACCOUNT_ROLE_JOB_VIEWER: AccountRole
+ACCOUNT_ROLE_JOB_EXECUTOR: AccountRole
 
 class GetUserRequest(_message.Message):
     __slots__ = ()
@@ -180,16 +193,18 @@ class CreateTeamAccountResponse(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., checkout_session_url: _Optional[str] = ...) -> None: ...
 
 class AccountUser(_message.Message):
-    __slots__ = ("id", "name", "image", "email")
+    __slots__ = ("id", "name", "image", "email", "role")
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     IMAGE_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
     id: str
     name: str
     image: str
     email: str
-    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., image: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
+    role: AccountRole
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., image: _Optional[str] = ..., email: _Optional[str] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
 
 class GetTeamAccountMembersRequest(_message.Message):
     __slots__ = ("account_id",)
@@ -216,15 +231,17 @@ class RemoveTeamAccountMemberResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class InviteUserToTeamAccountRequest(_message.Message):
-    __slots__ = ("account_id", "email")
+    __slots__ = ("account_id", "email", "role")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     email: str
-    def __init__(self, account_id: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
+    role: AccountRole
+    def __init__(self, account_id: _Optional[str] = ..., email: _Optional[str] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
 
 class AccountInvite(_message.Message):
-    __slots__ = ("id", "account_id", "sender_user_id", "email", "token", "accepted", "created_at", "updated_at", "expires_at")
+    __slots__ = ("id", "account_id", "sender_user_id", "email", "token", "accepted", "created_at", "updated_at", "expires_at", "role")
     ID_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     SENDER_USER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -234,6 +251,7 @@ class AccountInvite(_message.Message):
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
     id: str
     account_id: str
     sender_user_id: str
@@ -243,7 +261,8 @@ class AccountInvite(_message.Message):
     created_at: _timestamp_pb2.Timestamp
     updated_at: _timestamp_pb2.Timestamp
     expires_at: _timestamp_pb2.Timestamp
-    def __init__(self, id: _Optional[str] = ..., account_id: _Optional[str] = ..., sender_user_id: _Optional[str] = ..., email: _Optional[str] = ..., token: _Optional[str] = ..., accepted: bool = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    role: AccountRole
+    def __init__(self, id: _Optional[str] = ..., account_id: _Optional[str] = ..., sender_user_id: _Optional[str] = ..., email: _Optional[str] = ..., token: _Optional[str] = ..., accepted: bool = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
 
 class InviteUserToTeamAccountResponse(_message.Message):
     __slots__ = ("invite",)
@@ -436,5 +455,19 @@ class SetBillingMeterEventRequest(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., event_name: _Optional[str] = ..., value: _Optional[str] = ..., event_id: _Optional[str] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class SetBillingMeterEventResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class SetUserRoleRequest(_message.Message):
+    __slots__ = ("account_id", "user_id", "role")
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    user_id: str
+    role: AccountRole
+    def __init__(self, account_id: _Optional[str] = ..., user_id: _Optional[str] = ..., role: _Optional[_Union[AccountRole, str]] = ...) -> None: ...
+
+class SetUserRoleResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

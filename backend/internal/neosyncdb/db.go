@@ -58,7 +58,7 @@ func New(db DBTX, q db_queries.Querier) *NeosyncDb {
 	}
 }
 
-func NewFromConfig(config *ConnectConfig) (*NeosyncDb, error) {
+func NewPool(config *ConnectConfig) (*pgxpool.Pool, error) {
 	pgxconfig, err := pgxpool.ParseConfig(GetDbUrl(config))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse pgxpool config: %w", err)
@@ -71,6 +71,14 @@ func NewFromConfig(config *ConnectConfig) (*NeosyncDb, error) {
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgxconfig)
 	if err != nil {
 		return nil, fmt.Errorf("uanble to initialize pgx pool from configuration: %w", err)
+	}
+	return pool, nil
+}
+
+func NewFromConfig(config *ConnectConfig) (*NeosyncDb, error) {
+	pool, err := NewPool(config)
+	if err != nil {
+		return nil, err
 	}
 	return New(pool, nil), nil
 }

@@ -2,6 +2,7 @@ package v1alpha1_apikeyservice
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -11,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	pgxmock "github.com/nucleuscloud/neosync/internal/mocks/github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,9 +23,9 @@ import (
 func Test_Service_GetAccountApiKeys(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := []db_queries.NeosyncApiAccountApiKey{
 		{
@@ -52,7 +53,7 @@ func Test_Service_GetAccountApiKeys(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeys", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, true)
+	mockIsUserInAccount(t, mockUserService, true)
 
 	resp, err := svc.GetAccountApiKeys(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountApiKeysRequest{
 		AccountId: uuid.NewString(),
@@ -76,11 +77,11 @@ func Test_Service_GetAccountApiKeys(t *testing.T) {
 func Test_Service_GetAccountApiKeys_ForbiddenAccount(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
-	mockIsUserInAccount(mockUserAccountService, false)
+	mockIsUserInAccount(t, mockUserService, false)
 
 	resp, err := svc.GetAccountApiKeys(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountApiKeysRequest{
 		AccountId: uuid.NewString(),
@@ -92,9 +93,9 @@ func Test_Service_GetAccountApiKeys_ForbiddenAccount(t *testing.T) {
 func Test_Service_GetAccountApiKey_Found(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -109,7 +110,7 @@ func Test_Service_GetAccountApiKey_Found(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, true)
+	mockIsUserInAccount(t, mockUserService, true)
 
 	resp, err := svc.GetAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountApiKeyRequest{
 		Id: uuid.NewString(),
@@ -123,9 +124,9 @@ func Test_Service_GetAccountApiKey_Found(t *testing.T) {
 func Test_Service_GetAccountApiKey_NotFound(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -140,9 +141,9 @@ func Test_Service_GetAccountApiKey_NotFound(t *testing.T) {
 func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -157,7 +158,7 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, false)
+	mockIsUserInAccount(t, mockUserService, false)
 
 	resp, err := svc.GetAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountApiKeyRequest{
 		Id: uuid.NewString(),
@@ -170,12 +171,12 @@ func Test_Service_CreateAccountApiKey(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockTx := pgxmock.NewMockTx(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
-	mockIsUserInAccount(mockUserAccountService, true)
-	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
+	mockIsUserInAccount(t, mockUserService, true)
+
 	mockDbtx.On("Begin", mock.Anything).Return(mockTx, nil)
 	mockTx.On("Commit", mock.Anything).Return(nil)
 	mockTx.On("Rollback", mock.Anything).Return(nil)
@@ -214,12 +215,12 @@ func Test_Service_CreateAccountApiKey(t *testing.T) {
 func Test_Service_RegenerateAccountApiKey(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
-	mockIsUserInAccount(mockUserAccountService, true)
-	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
+	mockIsUserInAccount(t, mockUserService, true)
+
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
 		AccountID:   newPgUuid(t),
@@ -249,11 +250,11 @@ func Test_Service_RegenerateAccountApiKey(t *testing.T) {
 func Test_Service_RegenerateAccountApiKey_ForbiddenAccount(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
-	mockIsUserInAccount(mockUserAccountService, false)
+	mockIsUserInAccount(t, mockUserService, false)
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
 		AccountID:   newPgUuid(t),
@@ -279,9 +280,9 @@ func Test_Service_RegenerateAccountApiKey_ForbiddenAccount(t *testing.T) {
 func Test_Service_RegenerateAccountApiKey_NotFound(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -297,11 +298,11 @@ func Test_Service_RegenerateAccountApiKey_NotFound(t *testing.T) {
 func Test_Service_CreateAccountApiKey_ForbiddenAccount(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
-	mockIsUserInAccount(mockUserAccountService, false)
+	mockIsUserInAccount(t, mockUserService, false)
 
 	resp, err := svc.CreateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.CreateAccountApiKeyRequest{
 		AccountId: uuid.NewString(),
@@ -315,9 +316,9 @@ func Test_Service_CreateAccountApiKey_ForbiddenAccount(t *testing.T) {
 func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -332,7 +333,7 @@ func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, true)
+	mockIsUserInAccount(t, mockUserService, true)
 	mockQuerier.On("RemoveAccountApiKey", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
@@ -345,9 +346,9 @@ func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
 func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -362,7 +363,7 @@ func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, false)
+	mockIsUserInAccount(t, mockUserService, false)
 
 	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
 		Id: uuid.NewString(),
@@ -374,9 +375,9 @@ func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
 func Test_Service_DeleteAccountApiKey_NotFound(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -391,9 +392,9 @@ func Test_Service_DeleteAccountApiKey_NotFound(t *testing.T) {
 func Test_Service_DeleteAccountApiKey_Existing_DeleteRace(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 
-	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -408,7 +409,7 @@ func Test_Service_DeleteAccountApiKey_Existing_DeleteRace(t *testing.T) {
 	}
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
-	mockIsUserInAccount(mockUserAccountService, true)
+	mockIsUserInAccount(t, mockUserService, true)
 	mockQuerier.On("RemoveAccountApiKey", mock.Anything, mock.Anything, mock.Anything).Return(pgx.ErrNoRows)
 
 	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
@@ -426,19 +427,14 @@ func newPgUuid(t *testing.T) pgtype.UUID {
 	return val
 }
 
-func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
-	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
-		Ok: isInAccount,
-	}), nil)
-}
-
-func mockUserAccountCalls(
-	userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient,
-	isInAccount bool,
-	userId string,
-) {
-	mockIsUserInAccount(userAccountServiceMock, isInAccount)
-	userAccountServiceMock.On("GetUser", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-		UserId: userId,
-	}), nil)
+func mockIsUserInAccount(t testing.TB, userServiceMock *userdata.MockInterface, isInAccount bool) {
+	mockEntityEnforcer := userdata.NewMockEntityEnforcer(t)
+	if isInAccount {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(nil)
+	} else {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(errors.New("test: not in account"))
+	}
+	userServiceMock.On("GetUser", mock.Anything).Once().Return(&userdata.User{
+		EntityEnforcer: mockEntityEnforcer,
+	}, nil)
 }

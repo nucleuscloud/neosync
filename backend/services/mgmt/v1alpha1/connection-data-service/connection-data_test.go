@@ -60,7 +60,6 @@ func Test_GetConnectionSchema_AwsS3(t *testing.T) {
 	mockKey := "workflows/7c54e1ce-3924-477c-bfa8-ab8bd36cfee2-2023-12-21T22:02:35Z/activities/public.regions/data/228.txt.gz"
 	path := fmt.Sprintf("workflows/%s/activities/", mockJobRunId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, AwsS3Mock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -138,7 +137,6 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 	m.DbMock.On("Close").Return(nil)
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -187,7 +185,6 @@ func Test_GetConnectionSchema_Mysql(t *testing.T) {
 	}
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -217,7 +214,6 @@ func Test_GetConnectionSchema_NoRows(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -244,7 +240,6 @@ func Test_GetConnectionSchema_Error(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -270,7 +265,6 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -321,7 +315,6 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -366,7 +359,6 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -409,7 +401,6 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -453,7 +444,6 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -506,7 +496,6 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -553,7 +542,6 @@ func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -607,7 +595,6 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 	)
 	m.DbMock.On("Close").Return(nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -644,29 +631,27 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 }
 
 type serviceMocks struct {
-	Service                *Service
-	DbtxMock               *neosyncdb.MockDBTX
-	QuerierMock            *db_queries.MockQuerier
-	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
-	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
-	JobServiceMock         *mgmtv1alpha1connect.MockJobServiceHandler
-	SqlMock                sqlmock.Sqlmock
-	SqlDbMock              *sql.DB
-	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
-	PgQueierMock           *pg_queries.MockQuerier
-	MysqlQueierMock        *mysql_queries.MockQuerier
-	SqlConnectorMock       *sqlconnect.MockSqlConnector
-	AwsManagerMock         *awsmanager.MockNeosyncAwsManagerClient
-	MongoConnectorMock     *mongoconnect.MockInterface
-	SqlManagerMock         *sqlmanager.MockSqlManagerClient
-	DbMock                 *sqlmanager.MockSqlDatabase
-	GcpManagerMock         *neosync_gcp.MockManagerInterface
+	Service               *Service
+	DbtxMock              *neosyncdb.MockDBTX
+	QuerierMock           *db_queries.MockQuerier
+	ConnectionServiceMock *mgmtv1alpha1connect.MockConnectionServiceClient
+	JobServiceMock        *mgmtv1alpha1connect.MockJobServiceHandler
+	SqlMock               sqlmock.Sqlmock
+	SqlDbMock             *sql.DB
+	SqlDbContainerMock    *sqlconnect.MockSqlDbContainer
+	PgQueierMock          *pg_queries.MockQuerier
+	MysqlQueierMock       *mysql_queries.MockQuerier
+	SqlConnectorMock      *sqlconnect.MockSqlConnector
+	AwsManagerMock        *awsmanager.MockNeosyncAwsManagerClient
+	MongoConnectorMock    *mongoconnect.MockInterface
+	SqlManagerMock        *sqlmanager.MockSqlManagerClient
+	DbMock                *sqlmanager.MockSqlDatabase
+	GcpManagerMock        *neosync_gcp.MockManagerInterface
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockJobService := mgmtv1alpha1connect.NewMockJobServiceHandler(t)
 	mockPgquerier := pg_queries.NewMockQuerier(t)
@@ -685,7 +670,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 
 	service := New(
 		&Config{},
-		mockUserAccountService,
 		mockConnectionService,
 		mockJobService,
 		mockAwsManager,
@@ -698,30 +682,23 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	)
 
 	return &serviceMocks{
-		Service:                service,
-		DbtxMock:               mockDbtx,
-		QuerierMock:            mockQuerier,
-		UserAccountServiceMock: mockUserAccountService,
-		ConnectionServiceMock:  mockConnectionService,
-		JobServiceMock:         mockJobService,
-		SqlMock:                sqlMock,
-		SqlDbMock:              sqlDbMock,
-		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
-		PgQueierMock:           mockPgquerier,
-		MysqlQueierMock:        mockMysqlquerier,
-		SqlConnectorMock:       mockSqlConnector,
-		AwsManagerMock:         mockAwsManager,
-		MongoConnectorMock:     mockMongoConnector,
-		SqlManagerMock:         mockSqlManager,
-		DbMock:                 mockSqlDb,
-		GcpManagerMock:         mockGcpManager,
+		Service:               service,
+		DbtxMock:              mockDbtx,
+		QuerierMock:           mockQuerier,
+		ConnectionServiceMock: mockConnectionService,
+		JobServiceMock:        mockJobService,
+		SqlMock:               sqlMock,
+		SqlDbMock:             sqlDbMock,
+		SqlDbContainerMock:    sqlconnect.NewMockSqlDbContainer(t),
+		PgQueierMock:          mockPgquerier,
+		MysqlQueierMock:       mockMysqlquerier,
+		SqlConnectorMock:      mockSqlConnector,
+		AwsManagerMock:        mockAwsManager,
+		MongoConnectorMock:    mockMongoConnector,
+		SqlManagerMock:        mockSqlManager,
+		DbMock:                mockSqlDb,
+		GcpManagerMock:        mockGcpManager,
 	}
-}
-
-func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) { //nolint
-	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
-		Ok: isInAccount,
-	}), nil)
 }
 
 //nolint:all
@@ -909,7 +886,6 @@ func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
@@ -954,7 +930,6 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)

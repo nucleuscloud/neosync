@@ -31,6 +31,10 @@ services:
       - AUTH_CLI_AUDIENCE=neosync
       - AUTH_CLIENTID_SECRET={"neosync-cli":"GkVsthDzDvBfzb2vT4UO95xbXrwoXE5w"}
       - AUTH_SIGNATURE_ALGORITHM=RS256
+      - AUTH_API_CLIENT_ID=neosync-api
+      - AUTH_API_CLIENT_SECRET=PufiCKGRDISEokPZ9VwB6T86aDKj33f4
+      - AUTH_API_BASEURL=http://keycloak:8080/admin/realms/neosync
+      - AUTH_API_PROVIDER=keycloak
 
     networks:
       - kc-network

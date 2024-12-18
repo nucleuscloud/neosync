@@ -15,7 +15,7 @@ export default function ValidateQueryBadge(props: Props): ReactElement | null {
   return (
     <Badge
       variant={resp.isValid ? 'success' : 'destructive'}
-      className="cursor-default px-4 py-2"
+      className="cursor-default px-4 py-2 h-6"
     >
       {text}
     </Badge>
