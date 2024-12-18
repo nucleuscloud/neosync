@@ -1,7 +1,6 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -132,7 +131,10 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			rowbytes := encodeJSON(r)
+			rowbytes, err := json.Marshal(r)
+			if err != nil {
+				return err
+			}
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
@@ -186,7 +188,10 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			rowbytes := encodeJSON(r)
+			rowbytes, err := json.Marshal(r)
+			if err != nil {
+				return err
+			}
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
@@ -323,7 +328,10 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		onRecord := func(record map[string][]byte) error {
-			rowbytes := encodeJSON(record)
+			rowbytes, err := json.Marshal(record)
+			if err != nil {
+				return err
+			}
 			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes})
 		}
 		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
@@ -364,19 +372,6 @@ func (s *Service) GetConnectionDataStream(
 		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 	return nil
-}
-
-func encodeJSON(d any) (rawBytes []byte) {
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(d); err != nil {
-		return nil
-	}
-	if buf.Len() > 1 {
-		rawBytes = buf.Bytes()[:buf.Len()-1]
-	}
-	return
 }
 
 func (s *Service) GetConnectionSchemaMaps(

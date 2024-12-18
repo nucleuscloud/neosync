@@ -84,9 +84,6 @@ func (r *TypeRegistry) Unmarshal(value any) (any, error) {
 		return value, nil
 	}
 
-	jsonF, _ := json.MarshalIndent(rawMsg, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-
 	neosyncRaw, ok := rawMsg["_neosync"].(map[string]any)
 	if !ok {
 		r.logger.Debug("value not a neosync type")

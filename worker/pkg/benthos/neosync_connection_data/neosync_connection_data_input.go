@@ -208,10 +208,10 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	valuesMap := map[string]any{}
 	err := json.Unmarshal(rowBytes, &valuesMap)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error unmarshalling row: %w", err)
+		return nil, nil, fmt.Errorf("error unmarshaling row: %w", err)
 	}
 	for k, v := range valuesMap {
-		newVal, err := g.neosyncTypeRegistry.UnmarshalAny(v)
+		newVal, err := g.neosyncTypeRegistry.Unmarshal(v)
 		if err != nil {
 			return nil, nil, err
 		}
