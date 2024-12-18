@@ -13,15 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { Job, JobSourceOptions, JobStatus } from '@neosync/sdk';
-import {
-  createJobRun,
-  deleteJob,
-  getJob,
-  getJobRecentRuns,
-  getJobRuns,
-  getJobStatus,
-} from '@neosync/sdk/connectquery';
+import { Job, JobService, JobSourceOptions, JobStatus } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -33,26 +25,32 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data, isLoading } = useQuery(
+    JobService.method.getJob,
+    { id },
+    { enabled: !!id }
+  );
   const { data: jobStatus, refetch: mutateJobStatus } = useQuery(
-    getJobStatus,
+    JobService.method.getJobStatus,
     { jobId: id },
     { enabled: !!id }
   );
   const { refetch: mutateRecentRuns } = useQuery(
-    getJobRecentRuns,
+    JobService.method.getJobRecentRuns,
     { jobId: id },
     { enabled: !!id }
   );
   const { refetch: mutateJobRunsByJob } = useQuery(
-    getJobRuns,
+    JobService.method.getJobRuns,
     { id: { case: 'jobId', value: id } },
     { enabled: !!id }
   );
   const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
     useGetSystemAppConfig();
-  const { mutateAsync: removeJob } = useMutation(deleteJob);
-  const { mutateAsync: triggerJobRun } = useMutation(createJobRun);
+  const { mutateAsync: removeJob } = useMutation(JobService.method.deleteJob);
+  const { mutateAsync: triggerJobRun } = useMutation(
+    JobService.method.createJobRun
+  );
 
   async function onTriggerJobRun(): Promise<void> {
     try {

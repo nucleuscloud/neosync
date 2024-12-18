@@ -8,13 +8,13 @@ import {
   getNumberValidateMaxFn,
   getNumberValidateMinFn,
 } from '@/yup-validations/number';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import {
   ConnectError,
-  IsTransformerNameAvailableRequest,
+  IsTransformerNameAvailableRequestSchema,
   IsTransformerNameAvailableResponse,
   TransformerConfig,
-  ValidateUserJavascriptCodeRequest,
+  ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
@@ -323,15 +323,19 @@ const JavascriptConfig = Yup.object().shape({
             | UseMutateAsyncFunction<
                 ValidateUserJavascriptCodeResponse,
                 ConnectError,
-                PartialMessage<ValidateUserJavascriptCodeRequest>,
+                MessageInitShape<
+                  typeof ValidateUserJavascriptCodeRequestSchema
+                >,
                 unknown
               >
             | undefined = context?.options?.context?.isUserJavascriptCodeValid;
           if (isUserJavascriptCodeValid) {
-            const res = await isUserJavascriptCodeValid({
-              accountId,
-              code: value,
-            });
+            const res = await isUserJavascriptCodeValid(
+              create(ValidateUserJavascriptCodeRequestSchema, {
+                accountId,
+                code: value,
+              })
+            );
             if (!res.valid) {
               return context.createError({
                 message: 'Javascript is not valid',
@@ -448,7 +452,7 @@ const KEYED_TRANSFORMER_SCHEMA_CONFIGS: Record<
   Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 > = TRANSFORMER_SCHEMA_CONFIGS;
 
-export const TransformerConfigSchema = Yup.lazy((v) => {
+export const TransformerConfigFormValue = Yup.lazy((v) => {
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return Yup.object({
@@ -468,8 +472,8 @@ export const TransformerConfigSchema = Yup.lazy((v) => {
 });
 
 // Simplified version of a job mapping transformer config for use with react-hook-form only
-export type TransformerConfigSchema = Yup.InferType<
-  typeof TransformerConfigSchema
+export type TransformerConfigFormValue = Yup.InferType<
+  typeof TransformerConfigFormValue
 >;
 
 const transformerNameSchema = Yup.string()
@@ -513,15 +517,17 @@ const transformerNameSchema = Yup.string()
           | UseMutateAsyncFunction<
               IsTransformerNameAvailableResponse,
               ConnectError,
-              PartialMessage<IsTransformerNameAvailableRequest>,
+              MessageInitShape<typeof IsTransformerNameAvailableRequestSchema>,
               unknown
             >
           | undefined = context?.options?.context?.isTransformerNameAvailable;
         if (isTransformerNameAvailable) {
-          const res = await isTransformerNameAvailable({
-            accountId,
-            transformerName: value,
-          });
+          const res = await isTransformerNameAvailable(
+            create(IsTransformerNameAvailableRequestSchema, {
+              accountId,
+              transformerName: value,
+            })
+          );
           if (!res.isAvailable) {
             return context.createError({
               message: 'This Transformer Name is already taken.',
@@ -541,7 +547,7 @@ export const CreateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   source: Yup.number(),
   description: Yup.string().required('Description is a required field.'),
-  config: TransformerConfigSchema,
+  config: TransformerConfigFormValue,
 });
 
 export type CreateUserDefinedTransformerFormValues = Yup.InferType<
@@ -553,19 +559,19 @@ export interface CreateUserDefinedTransformerFormContext {
   isTransformerNameAvailable: UseMutateAsyncFunction<
     IsTransformerNameAvailableResponse,
     ConnectError,
-    PartialMessage<IsTransformerNameAvailableRequest>,
+    MessageInitShape<typeof IsTransformerNameAvailableRequestSchema>,
     unknown
   >;
   isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
-    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    MessageInitShape<typeof ValidateUserJavascriptCodeRequestSchema>,
     unknown
   >;
 }
 
 export const EditJobMappingTransformerConfigFormValues = Yup.object({
-  config: TransformerConfigSchema,
+  config: TransformerConfigFormValue,
 }).required('The Transformer config is required.');
 export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
   typeof EditJobMappingTransformerConfigFormValues
@@ -576,7 +582,7 @@ export interface EditJobMappingTransformerConfigFormContext {
   isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
-    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    MessageInitShape<typeof ValidateUserJavascriptCodeRequestSchema>,
     unknown
   >;
 }
@@ -585,7 +591,7 @@ export const UpdateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
   description: Yup.string().required('The Description is required.'),
-  config: TransformerConfigSchema,
+  config: TransformerConfigFormValue,
 });
 
 export type UpdateUserDefinedTransformerFormValues = Yup.InferType<

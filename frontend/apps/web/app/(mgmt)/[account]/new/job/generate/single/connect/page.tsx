@@ -29,18 +29,17 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  CheckConnectionConfigResponse,
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigByIdResponseSchema,
   Code,
   ConnectError,
-  ConnectionConfig,
+  ConnectionConfigSchema,
+  ConnectionService,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfigById,
-  getConnections,
-} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -80,13 +79,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [isSourceValidating, setIsSourceValidating] = useState<boolean>(false);
 
   const [sourceValidationResponse, setSourceValidationResponse] = useState<
-    CheckConnectionConfigResponse | undefined
+    CheckConnectionConfigByIdResponse | undefined
   >();
   const [isDestinationValidating, setIsDestinationValidating] =
     useState<boolean>(false);
 
   const [destinationValidationResponse, setDestinationValidationResponse] =
-    useState<CheckConnectionConfigResponse | undefined>();
+    useState<CheckConnectionConfigByIdResponse | undefined>();
 
   const form = useForm({
     resolver: yupResolver<SingleTableConnectFormValues>(
@@ -96,7 +95,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -119,7 +118,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const { mutateAsync: checkConnectionConfig } = useMutation(
-    checkConnectionConfigById
+    ConnectionService.method.checkConnectionConfigById
   );
 
   return (
@@ -185,7 +184,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                                 const connType = getConnectionType(
                                   connection?.connectionConfig ??
-                                    new ConnectionConfig()
+                                    create(ConnectionConfigSchema, {})
                                 );
 
                                 if (connType) {
@@ -223,7 +222,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                                 const destConnType = getConnectionType(
                                   destConnection?.connectionConfig ??
-                                    new ConnectionConfig()
+                                    create(ConnectionConfigSchema, {})
                                 );
                                 const newOpts =
                                   getDefaultDestinationFormValueOptionsFromConnectionCase(
@@ -256,13 +255,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   setSourceValidationResponse(undefined);
                                 } else {
                                   setSourceValidationResponse(
-                                    new CheckConnectionConfigResponse({
-                                      isConnected: false,
-                                      connectionError:
-                                        err instanceof Error
-                                          ? err.message
-                                          : 'unknown error',
-                                    })
+                                    create(
+                                      CheckConnectionConfigByIdResponseSchema,
+                                      {
+                                        isConnected: false,
+                                        connectionError:
+                                          err instanceof Error
+                                            ? err.message
+                                            : 'unknown error',
+                                      }
+                                    )
                                   );
                                 }
                               } finally {
@@ -358,7 +360,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               const destConnType = getConnectionType(
                                 destConnection?.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               const newOpts =
                                 getDefaultDestinationFormValueOptionsFromConnectionCase(
@@ -391,13 +393,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   setDestinationValidationResponse(undefined);
                                 } else {
                                   setDestinationValidationResponse(
-                                    new CheckConnectionConfigResponse({
-                                      isConnected: false,
-                                      connectionError:
-                                        err instanceof Error
-                                          ? err.message
-                                          : 'unknown error',
-                                    })
+                                    create(
+                                      CheckConnectionConfigByIdResponseSchema,
+                                      {
+                                        isConnected: false,
+                                        connectionError:
+                                          err instanceof Error
+                                            ? err.message
+                                            : 'unknown error',
+                                      }
+                                    )
                                   );
                                 }
                               } finally {

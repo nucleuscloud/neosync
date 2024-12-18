@@ -1,7 +1,6 @@
 'use client';
 import { useQuery } from '@connectrpc/connect-query';
-import { UserAccount } from '@neosync/sdk';
-import { getUserAccounts } from '@neosync/sdk/connectquery';
+import { UserAccount, UserAccountService } from '@neosync/sdk';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ReactElement,
@@ -46,7 +45,7 @@ export default function AccountProvider(props: Props): ReactElement {
     data: accountsResponse,
     isLoading,
     refetch: mutate,
-  } = useQuery(getUserAccounts);
+  } = useQuery(UserAccountService.method.getUserAccounts);
   const router = useRouter();
 
   const [userAccount, setUserAccount] = useState<UserAccount | undefined>(

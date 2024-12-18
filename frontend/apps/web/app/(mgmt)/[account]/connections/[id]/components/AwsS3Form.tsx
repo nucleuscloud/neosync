@@ -22,16 +22,14 @@ import {
   AWS_FORM_SCHEMA,
   EditConnectionFormContext,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  UpdateConnectionRequest,
+  ConnectionService,
+  UpdateConnectionRequestSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { buildConnectionConfigAwsS3 } from '../../util';
@@ -47,7 +45,7 @@ export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<AWSFormValues, EditConnectionFormContext>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
@@ -62,12 +60,14 @@ export default function AwsS3Form(props: Props) {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
 
   async function onSubmit(values: AWSFormValues) {
     try {
       const connectionResp = await mutateAsync(
-        new UpdateConnectionRequest({
+        create(UpdateConnectionRequestSchema, {
           id: connectionId,
           name: values.connectionName,
           connectionConfig: buildConnectionConfigAwsS3(values),

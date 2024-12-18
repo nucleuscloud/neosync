@@ -19,14 +19,10 @@ import {
   CreateConnectionFormContext,
   OpenAiFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
-import {
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
+import { ConnectionService, GetConnectionResponseSchema } from '@neosync/sdk';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import NextLink from 'next/link';
@@ -47,11 +43,15 @@ export default function OpenAiForm(props: Props): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const posthog = usePostHog();
-  const { mutateAsync: createOpenAiConnection } = useMutation(createConnection);
+  const { mutateAsync: createOpenAiConnection } = useMutation(
+    ConnectionService.method.createConnection
+  );
   const queryclient = useQueryClient();
-  const { mutateAsync: getOpenAiConnection } = useMutation(getConnection);
+  const { mutateAsync: getOpenAiConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<OpenAiFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(OpenAiFormValues),
@@ -82,10 +82,14 @@ export default function OpenAiForm(props: Props): ReactElement {
       });
       toast.success('Successfully created OpenAI Connection!');
       queryclient.setQueryData(
-        createConnectQueryKey(getConnection, {
-          id: connectionResp.connection?.id,
+        createConnectQueryKey({
+          schema: ConnectionService.method.getConnection,
+          input: { id: connectionResp.connection?.id },
+          cardinality: undefined,
         }),
-        new GetConnectionResponse({ connection: connectionResp.connection })
+        create(GetConnectionResponseSchema, {
+          connection: connectionResp.connection,
+        })
       );
 
       posthog.capture('New Connection Created', { type: 'openai' });

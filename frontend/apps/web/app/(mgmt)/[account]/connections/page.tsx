@@ -7,7 +7,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@connectrpc/connect-query';
-import { getConnections } from '@neosync/sdk/connectquery';
+import { ConnectionService } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement, useMemo } from 'react';
@@ -37,7 +37,7 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
   const { data, isLoading, refetch } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );

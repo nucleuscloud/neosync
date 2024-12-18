@@ -1,17 +1,21 @@
-import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
+import { TransformerConfigFormValue } from '@/yup-validations/transformer-validations';
+import { create, fromJson, JsonObject, toJson } from '@bufbuild/protobuf';
 import {
   JobMappingTransformer,
+  JobMappingTransformerSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
-  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap,
-  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
   TransformerConfig,
+  TransformerConfigSchema,
 } from '@neosync/sdk';
 import * as Yup from 'yup';
 import { getDurationValidateFn } from './number';
 
 // Yup schema form JobMappingTransformers
 export const JobMappingTransformerForm = Yup.object({
-  config: TransformerConfigSchema,
+  config: TransformerConfigFormValue,
 });
 
 // Simplified version of a job mapping transformer for use with react-hook-form only
@@ -29,43 +33,32 @@ export function convertJobMappingTransformerToForm(
 export function convertJobMappingTransformerFormToJobMappingTransformer(
   form: JobMappingTransformerForm
 ): JobMappingTransformer {
-  return new JobMappingTransformer({
+  return create(JobMappingTransformerSchema, {
     config: convertTransformerConfigSchemaToTransformerConfig(form.config),
   });
 }
 
 export function convertTransformerConfigToForm(
   tc?: TransformerConfig
-): TransformerConfigSchema {
+): TransformerConfigFormValue {
   const config = tc?.config ?? { case: '', value: {} };
-  if (!config.case) {
+  if (!tc || !config.case) {
     return { case: '', value: {} };
   }
+  const json = toJson(TransformerConfigSchema, tc);
   return {
     case: config.case,
-    value: config.value.toJson(),
+    value: (json as JsonObject)[config.case],
   };
 }
 
 export function convertTransformerConfigSchemaToTransformerConfig(
-  tcs: TransformerConfigSchema
+  tcs: TransformerConfigFormValue
 ): TransformerConfig {
-  // hack job that fixes bigint json transformation until we can fit this with better types
-  const value = tcs.value ?? {};
-  Object.entries(tcs.value).forEach(([key, val]) => {
-    value[key] = val;
-    if (typeof val === 'bigint') {
-      value[key] = val.toString();
-    }
-  });
-  if (tcs instanceof TransformerConfig) {
-    return tcs;
-  } else {
-    if (tcs.case) {
-      return TransformerConfig.fromJson({ [tcs.case]: tcs.value });
-    }
-    return new TransformerConfig();
+  if (tcs.case) {
+    return fromJson(TransformerConfigSchema, { [tcs.case]: tcs.value });
   }
+  return create(TransformerConfigSchema);
 }
 
 const BatchFormValues = Yup.object({
@@ -351,22 +344,30 @@ export function toJobSourcePostgresNewColumnAdditionStrategy(
       return undefined;
     }
     case 'automap': {
-      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
-        strategy: {
-          case: 'autoMap',
-          value:
-            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap(),
-        },
-      });
+      return create(
+        PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'autoMap',
+            value: create(
+              PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema
+            ),
+          },
+        }
+      );
     }
     case 'halt': {
-      return new PostgresSourceConnectionOptions_NewColumnAdditionStrategy({
-        strategy: {
-          case: 'haltJob',
-          value:
-            new PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob(),
-        },
-      });
+      return create(
+        PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'haltJob',
+            value: create(
+              PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
     }
     default: {
       return undefined;

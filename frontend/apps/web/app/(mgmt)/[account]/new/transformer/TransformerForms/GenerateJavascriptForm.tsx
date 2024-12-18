@@ -8,22 +8,21 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useReadNeosyncTransformerDeclarationFile } from '@/libs/hooks/useReadNeosyncTransfomerDeclarationFile';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { GenerateJavascript } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
+import {
+  GenerateJavascript,
+  GenerateJavascriptSchema,
+  TransformersService,
+} from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useState } from 'react';
 import { ValidCode } from './TransformJavascriptForm';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateJavascript,
-    PlainMessage<GenerateJavascript>
-  > {}
+interface Props extends TransformerConfigProps<GenerateJavascript> {}
 
 export default function GenerateJavascriptForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -50,7 +49,7 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   async function handleValidateCode(): Promise<void> {
@@ -124,7 +123,9 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
           value={value.code}
           theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
           onChange={(e) => {
-            setValue(new GenerateJavascript({ ...value, code: e ?? '' }));
+            setValue(
+              create(GenerateJavascriptSchema, { ...value, code: e ?? '' })
+            );
           }}
           options={options}
         />

@@ -2,7 +2,8 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   JobMappingFormValues,
 } from '@/yup-validations/jobs';
-import { JobMapping } from '@neosync/sdk';
+import { create, toJson } from '@bufbuild/protobuf';
+import { JobMappingSchema } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { useJsonFileDownload } from '../../useJsonFileDownload';
@@ -33,14 +34,18 @@ export function useOnExportMappings<T>(
           ? jobMappings
           : selectedRows.map((row) => jobMappings[row.index]);
       const jms = dataToDownload.map((d) => {
-        return new JobMapping({
-          schema: d.schema,
-          table: d.table,
-          column: d.column,
-          transformer: convertJobMappingTransformerFormToJobMappingTransformer(
-            d.transformer
-          ),
-        }).toJson();
+        return toJson(
+          JobMappingSchema,
+          create(JobMappingSchema, {
+            schema: d.schema,
+            table: d.table,
+            column: d.column,
+            transformer:
+              convertJobMappingTransformerFormToJobMappingTransformer(
+                d.transformer
+              ),
+          })
+        );
       });
       await downloadFile({
         data: jms,

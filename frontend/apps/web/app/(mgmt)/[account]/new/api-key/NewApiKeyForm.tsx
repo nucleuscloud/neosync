@@ -26,10 +26,10 @@ import {
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { ApiKeyFormValues } from '@/yup-validations/apikey';
-import { Timestamp } from '@bufbuild/protobuf';
+import { timestampFromMs } from '@bufbuild/protobuf/wkt';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { createAccountApiKey } from '@neosync/sdk/connectquery';
+import { ApiKeyService } from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';
@@ -56,7 +56,7 @@ export default function NewApiKeyForm(): ReactElement {
     },
   });
   const posthog = usePostHog();
-  const { mutateAsync } = useMutation(createAccountApiKey);
+  const { mutateAsync } = useMutation(ApiKeyService.method.createAccountApiKey);
 
   async function onSubmit(values: ApiKeyFormValues): Promise<void> {
     if (!account) {
@@ -65,9 +65,7 @@ export default function NewApiKeyForm(): ReactElement {
     try {
       const apiKey = await mutateAsync({
         accountId: account.id,
-        expiresAt: new Timestamp({
-          seconds: BigInt(values.expiresAt.getTime() / 1000),
-        }),
+        expiresAt: timestampFromMs(values.expiresAt.getTime()),
         name: values.name,
       });
       if (apiKey.apiKey?.id) {

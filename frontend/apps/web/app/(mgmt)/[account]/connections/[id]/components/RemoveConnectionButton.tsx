@@ -4,7 +4,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { deleteConnection } from '@neosync/sdk/connectquery';
+import { ConnectionService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -18,7 +18,9 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
   const { connectionId } = props;
   const router = useRouter();
   const account = useAccount();
-  const { mutateAsync } = useMutation(deleteConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.deleteConnection
+  );
 
   async function onDelete(): Promise<void> {
     try {

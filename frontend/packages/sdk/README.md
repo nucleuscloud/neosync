@@ -6,8 +6,14 @@ This SDK is dogfooded by the main Neosync webapp to ensure its durability.
 ## Installation
 
 ```sh
-npm install @neosync/sdk
+npm install @neosync/sdk @bufbuild/protobuf
 ```
+
+## Detailed Docs
+
+This README shows the basics of how to use the SDK.
+
+For more detailed docs, go [here](https://docs.neosync.dev/api/typescript).
 
 ## Usage
 

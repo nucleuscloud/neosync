@@ -24,19 +24,18 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  CheckConnectionConfigResponse,
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigByIdResponseSchema,
   Code,
   ConnectError,
-  Connection,
-  ConnectionConfig,
+  ConnectionConfigSchema,
+  ConnectionSchema,
+  ConnectionService,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfigById,
-  getConnections,
-} from '@neosync/sdk/connectquery';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -62,7 +61,7 @@ const NEW_CONNECTION_VALUE = 'new-connection';
 
 interface DestinationValidationState {
   isValidating: boolean;
-  response?: CheckConnectionConfigResponse;
+  response?: CheckConnectionConfigByIdResponse;
 }
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -85,7 +84,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [isSourceValidating, setIsSourceValidating] = useState<boolean>(false);
 
   const [sourceValidationResponse, setSourceValidationResponse] = useState<
-    CheckConnectionConfigResponse | undefined
+    CheckConnectionConfigByIdResponse | undefined
   >();
 
   const [destinationValidation, setDestinationValidation] = useState<
@@ -93,7 +92,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   >({});
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -122,7 +121,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     splitConnections(connections);
 
   const { mutateAsync: checkConnectionConfig } = useMutation(
-    checkConnectionConfigById
+    ConnectionService.method.checkConnectionConfigById
   );
 
   return (
@@ -193,7 +192,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                     .map((c) =>
                                       getConnectionType(
                                         c.connectionConfig ??
-                                          new ConnectionConfig()
+                                          create(ConnectionConfigSchema, {})
                                       )
                                     )
                                     .filter((x) => !!x)
@@ -214,10 +213,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               field.onChange(value);
                               const connection =
                                 connections.find((c) => c.id === value) ??
-                                new Connection();
+                                create(ConnectionSchema, {});
                               const connectionType = getConnectionType(
                                 connection.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               setIsSourceValidating(true);
                               try {
@@ -234,13 +233,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   setSourceValidationResponse(undefined);
                                 } else {
                                   setSourceValidationResponse(
-                                    new CheckConnectionConfigResponse({
-                                      isConnected: false,
-                                      connectionError:
-                                        err instanceof Error
-                                          ? err.message
-                                          : 'unknown error',
-                                    })
+                                    create(
+                                      CheckConnectionConfigByIdResponseSchema,
+                                      {
+                                        isConnected: false,
+                                        connectionError:
+                                          err instanceof Error
+                                            ? err.message
+                                            : 'unknown error',
+                                      }
+                                    )
                                   );
                                 }
                               } finally {
@@ -457,7 +459,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         );
                                         const destConnType = getConnectionType(
                                           destConnection?.connectionConfig ??
-                                            new ConnectionConfig()
+                                            create(ConnectionConfigSchema, {})
                                         );
 
                                         setDestinationValidation(
@@ -465,10 +467,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             ...prevState,
                                             [value]: {
                                               isValidating: true,
-                                              response:
-                                                new CheckConnectionConfigResponse(
-                                                  {}
-                                                ),
+                                              response: create(
+                                                CheckConnectionConfigByIdResponseSchema,
+                                                {}
+                                              ),
                                             },
                                           })
                                         );
@@ -509,16 +511,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 ...prevState,
                                                 [value]: {
                                                   isValidating: false,
-                                                  response:
-                                                    new CheckConnectionConfigResponse(
-                                                      {
-                                                        isConnected: false,
-                                                        connectionError:
-                                                          err instanceof Error
-                                                            ? err.message
-                                                            : 'unknown error',
-                                                      }
-                                                    ),
+                                                  response: create(
+                                                    CheckConnectionConfigByIdResponseSchema,
+                                                    {
+                                                      isConnected: false,
+                                                      connectionError:
+                                                        err instanceof Error
+                                                          ? err.message
+                                                          : 'unknown error',
+                                                    }
+                                                  ),
                                                 },
                                               })
                                             );

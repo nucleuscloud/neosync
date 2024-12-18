@@ -1,9 +1,9 @@
 'use client';
 import { SystemAppConfig } from '@/app/config/app-config';
 import { cn } from '@/libs/utils';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
-import { AccountStatus } from '@neosync/sdk';
-import { isAccountStatusValid } from '@neosync/sdk/connectquery';
+import { AccountStatus, UserAccountService } from '@neosync/sdk';
 import { differenceInDays } from 'date-fns';
 import { useAccount } from '../providers/account-provider';
 import { Skeleton } from '../ui/skeleton';
@@ -18,7 +18,7 @@ export function AccountStatusHandler(props: Props) {
   const { account } = useAccount();
 
   const { data: data, isLoading } = useQuery(
-    isAccountStatusValid,
+    UserAccountService.method.isAccountStatusValid,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -32,13 +32,11 @@ export function AccountStatusHandler(props: Props) {
     (data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_ACTIVE ||
       data?.accountStatus == AccountStatus.ACCOUNT_TRIAL_EXPIRED);
 
-  const trialEndDate = new Date(
-    data?.trialExpiresAt?.toDate() ?? Date.now()
-  ).getTime();
+  const trialEndDate = data?.trialExpiresAt
+    ? timestampDate(data.trialExpiresAt)
+    : new Date();
 
-  const daysRemaining = Math.max(
-    differenceInDays(Math.max(trialEndDate), Date.now())
-  );
+  const daysRemaining = Math.max(differenceInDays(trialEndDate, new Date()));
 
   return (
     <div className="flex flex-row items-center gap-2">

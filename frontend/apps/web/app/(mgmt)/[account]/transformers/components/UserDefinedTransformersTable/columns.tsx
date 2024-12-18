@@ -7,7 +7,7 @@ import {
   getTransformerDataTypesString,
   getTransformerSourceString,
 } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { UserDefinedTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
@@ -21,7 +21,7 @@ interface getUserDefinedTransformerColumnsProps {
 
 export function getUserDefinedTransformerColumns(
   props: getUserDefinedTransformerColumnsProps
-): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
+): ColumnDef<UserDefinedTransformer>[] {
   const { onTransformerDeleted, accountName } = props;
 
   return [
@@ -89,7 +89,9 @@ export function getUserDefinedTransformerColumns(
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {row.original.createdAt &&
-                formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
+                formatDateTime(
+                  timestampDate(row.getValue<Timestamp>('createdAt'))
+                )}
             </span>
           </div>
         );
@@ -108,7 +110,9 @@ export function getUserDefinedTransformerColumns(
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {row.original.updatedAt &&
-                formatDateTime(row.getValue<Timestamp>('updatedAt')?.toDate())}
+                formatDateTime(
+                  timestampDate(row.getValue<Timestamp>('updatedAt'))
+                )}
             </span>
           </div>
         );

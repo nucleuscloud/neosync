@@ -5,7 +5,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/libs/utils';
-import { Timestamp } from '@bufbuild/protobuf';
+import {
+  Timestamp,
+  timestampDate,
+  TimestampSchema,
+} from '@bufbuild/protobuf/wkt';
 import { JobRunEvent, JobRunStatus } from '@neosync/sdk';
 
 import {
@@ -14,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { isMessage } from '@bufbuild/protobuf';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import {
   CheckCircledIcon,
@@ -394,7 +399,7 @@ function TableHeader(props: TableHeaderProps): ReactElement {
 
 // converts a timestamp to a date and handles undefined values
 function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
-  return timestamp ? timestamp.toDate() : new Date();
+  return timestamp ? timestampDate(timestamp) : new Date();
 }
 
 // calculates the last time if the job is not successful so we can give the timeline an end date
@@ -512,7 +517,7 @@ function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
 function formatFullDate(date: Timestamp | Date | undefined) {
   if (!date) return 'N/A';
 
-  if (date instanceof Timestamp) {
+  if (isMessage(date, TimestampSchema)) {
     return format(convertTimestampToDate(date), 'MM/dd/yyyy HH:mm:ss:SSS');
   }
 

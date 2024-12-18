@@ -38,7 +38,7 @@ import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { useMutation } from '@connectrpc/connect-query';
-import { isJobNameAvailable } from '@neosync/sdk/connectquery';
+import { JobService } from '@neosync/sdk';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
@@ -77,8 +77,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, []);
 
-  const { mutateAsync: isJobNameAvailableAsync } =
-    useMutation(isJobNameAvailable);
+  const { mutateAsync: isJobNameAvailableAsync } = useMutation(
+    JobService.method.isJobNameAvailable
+  );
   const form = useForm<DefineFormValues, DefineFormValuesContext>({
     mode: 'onChange',
     resolver: yupResolver<DefineFormValues>(DefineFormValues),

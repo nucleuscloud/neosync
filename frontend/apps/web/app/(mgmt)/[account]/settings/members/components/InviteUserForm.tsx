@@ -27,8 +27,7 @@ import { getErrorMessage } from '@/util/util';
 import { InviteMembersForm } from '@/yup-validations/invite-members';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { AccountRole } from '@neosync/sdk';
-import { inviteUserToTeamAccount } from '@neosync/sdk/connectquery';
+import { AccountRole, UserAccountService } from '@neosync/sdk';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
@@ -55,7 +54,9 @@ export default function InviteUserForm(props: Props): ReactElement {
       role: AccountRole.JOB_VIEWER,
     },
   });
-  const { mutateAsync } = useMutation(inviteUserToTeamAccount);
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.inviteUserToTeamAccount
+  );
 
   async function onSubmit(values: InviteMembersForm): Promise<void> {
     try {

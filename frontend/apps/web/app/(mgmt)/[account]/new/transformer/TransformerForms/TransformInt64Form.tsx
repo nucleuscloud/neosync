@@ -2,16 +2,12 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformInt64 } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { TransformInt64, TransformInt64Schema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformInt64,
-    PlainMessage<TransformInt64>
-  > {}
+interface Props extends TransformerConfigProps<TransformInt64> {}
 
 export default function TransformInt64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -41,7 +37,7 @@ export default function TransformInt64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new TransformInt64({
+                      create(TransformInt64Schema, {
                         ...value,
                         randomizationRangeMin: BigInt(e.target.valueAsNumber),
                       })
@@ -78,7 +74,7 @@ export default function TransformInt64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new TransformInt64({
+                      create(TransformInt64Schema, {
                         ...value,
                         randomizationRangeMax: BigInt(e.target.valueAsNumber),
                       })

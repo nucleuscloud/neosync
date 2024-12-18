@@ -4,7 +4,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { deleteUserDefinedTransformer } from '@neosync/sdk/connectquery';
+import { TransformersService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -18,7 +18,9 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   const { transformerID } = props;
   const router = useRouter();
   const { account } = useAccount();
-  const { mutateAsync } = useMutation(deleteUserDefinedTransformer);
+  const { mutateAsync } = useMutation(
+    TransformersService.method.deleteUserDefinedTransformer
+  );
 
   async function deleteTransformer(): Promise<void> {
     try {

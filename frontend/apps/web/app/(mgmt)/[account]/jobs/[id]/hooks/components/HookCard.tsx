@@ -1,10 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { create } from '@bufbuild/protobuf';
 import {
   Connection,
   JobHook,
   JobHookConfig,
   JobHookConfig_JobSqlHook,
+  JobHookConfigSchema,
 } from '@neosync/sdk';
 import { ClockIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
@@ -22,7 +24,7 @@ interface Props {
 export default function HookCard(props: Props): ReactElement {
   const { hook, onDeleted, onEdited, jobConnections, jobConnectionsMap } =
     props;
-  const hookTiming = getHookTiming(hook.config ?? new JobHookConfig());
+  const hookTiming = getHookTiming(hook.config ?? create(JobHookConfigSchema));
   return (
     <div id={`jobhook-${hook.id}`}>
       <Card>

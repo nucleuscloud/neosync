@@ -27,8 +27,7 @@ import {
   convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
 import { useQuery } from '@connectrpc/connect-query';
-import { TransformerSource } from '@neosync/sdk';
-import { getSystemTransformerBySource } from '@neosync/sdk/connectquery';
+import { TransformerSource, TransformersService } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -48,7 +47,7 @@ export default function ViewSystemTransformers({
 }: PageProps): ReactElement {
   const sourceParam = getTransformerSource(params?.source ?? '');
   const { data: systemTransformerData, isLoading } = useQuery(
-    getSystemTransformerBySource,
+    TransformersService.method.getSystemTransformerBySource,
     { source: sourceParam },
     { enabled: !!sourceParam }
   );

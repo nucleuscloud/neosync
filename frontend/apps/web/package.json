@@ -11,14 +11,15 @@
     "knip": "knip",
     "knip:production": "knip --production --strict",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",
-    "@bufbuild/protobuf": "^1.10.0",
-    "@connectrpc/connect-node": "^1.5.0",
-    "@connectrpc/connect-query": "^1.4.2",
-    "@connectrpc/connect-web": "^1.5.0",
+    "@bufbuild/protobuf": "^2.2.3",
+    "@connectrpc/connect-node": "^2.0.0",
+    "@connectrpc/connect-query": "^2.0.1",
+    "@connectrpc/connect-web": "^2.0.0",
     "@hookform/resolvers": "^3.9.0",
     "@monaco-editor/react": "^4.6.0",
     "@neosync/sdk": "file:../../packages/sdk",

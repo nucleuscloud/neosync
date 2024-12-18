@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { CheckConnectionConfigResponse } from '@neosync/sdk';
 import {
   CheckCircledIcon,
@@ -21,7 +20,7 @@ import PermissionsDataTable from './PermissionsDataTable';
 import { PermissionConnectionType, getPermissionColumns } from './columns';
 
 interface Props {
-  checkResponse: PlainMessage<CheckConnectionConfigResponse>;
+  checkResponse: CheckConnectionConfigResponse;
   openPermissionDialog: boolean;
   setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;

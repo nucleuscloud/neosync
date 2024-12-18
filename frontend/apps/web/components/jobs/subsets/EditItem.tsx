@@ -11,10 +11,16 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { Editor, useMonaco } from '@monaco-editor/react';
-import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
-import { checkSqlQuery, getTableRowCount } from '@neosync/sdk/connectquery';
+import {
+  CheckSqlQueryResponse,
+  CheckSqlQueryResponseSchema,
+  ConnectionDataService,
+  ConnectionService,
+  GetTableRowCountResponse,
+} from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
@@ -121,8 +127,12 @@ export default function EditItem(props: Props): ReactElement {
     setValidateResp(undefined);
   }, [item]);
 
-  const { mutateAsync: validateSql } = useMutation(checkSqlQuery);
-  const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
+  const { mutateAsync: validateSql } = useMutation(
+    ConnectionService.method.checkSqlQuery
+  );
+  const { mutateAsync: getRowCountByTable } = useMutation(
+    ConnectionDataService.method.getTableRowCount
+  );
 
   async function onValidate(): Promise<void> {
     if (connectionType === 'pgConfig' || connectionType === 'mysqlConfig') {
@@ -137,7 +147,7 @@ export default function EditItem(props: Props): ReactElement {
         setValidateResp(resp);
       } catch (err) {
         setValidateResp(
-          new CheckSqlQueryResponse({
+          create(CheckSqlQueryResponseSchema, {
             isValid: false,
             erorrMessage: getErrorMessage(err),
           })
