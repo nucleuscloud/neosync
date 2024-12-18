@@ -124,6 +124,9 @@ services:
       - REDIS_URL=redis://default:foofar@redis:6379
       - LOG_LEVEL=DEBUG
       - DB_LOG_LEVEL=ERROR
+    env_file:
+      - path: ./.env.worker.local
+        required: false
     networks:
       - neosync-network
       - temporal-network
