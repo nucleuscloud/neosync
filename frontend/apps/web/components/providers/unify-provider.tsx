@@ -28,7 +28,7 @@ export function UnifyScriptProvider(): ReactElement {
 
 const isBrowser = () => typeof window !== 'undefined';
 
-export function UnifyProvider(): ReactElement {
+export function UnifyIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
