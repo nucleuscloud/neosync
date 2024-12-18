@@ -14,9 +14,7 @@ export default function NewConnectionPage(): ReactElement {
 
   const connections = getConnectionsMetadata(
     connectionTypes,
-    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false,
-    systemAppConfigData?.isDynamoDbConnectionsEnabled ?? false,
-    systemAppConfigData?.isMsSqlServerEnabled ?? false
+    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
   );
   return (
     <OverviewContainer
