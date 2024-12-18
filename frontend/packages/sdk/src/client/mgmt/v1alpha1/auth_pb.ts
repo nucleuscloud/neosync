@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/auth.proto.
  */
 export const file_mgmt_v1alpha1_auth: GenFile = /*@__PURE__*/
-  fileDesc("ChhtZ210L3YxYWxwaGExL2F1dGgucHJvdG8SDW1nbXQudjFhbHBoYTEiRwoPTG9naW5DbGlSZXF1ZXN0EhUKBGNvZGUYASABKAlCB7pIBHICEAESHQoMcmVkaXJlY3RfdXJpGAIgASgJQge6SARyAhABIkQKEExvZ2luQ2xpUmVzcG9uc2USMAoMYWNjZXNzX3Rva2VuGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2Nlc3NUb2tlbiIWChRHZXRBdXRoU3RhdHVzUmVxdWVzdCIrChVHZXRBdXRoU3RhdHVzUmVzcG9uc2USEgoKaXNfZW5hYmxlZBgBIAEoCCKsAQoLQWNjZXNzVG9rZW4SFAoMYWNjZXNzX3Rva2VuGAEgASgJEhoKDXJlZnJlc2hfdG9rZW4YAiABKAlIAIgBARISCgpleHBpcmVzX2luGAMgASgDEg0KBXNjb3BlGAQgASgJEhUKCGlkX3Rva2VuGAUgASgJSAGIAQESEgoKdG9rZW5fdHlwZRgGIAEoCUIQCg5fcmVmcmVzaF90b2tlbkILCglfaWRfdG9rZW4iZwoWR2V0QXV0aG9yaXplVXJsUmVxdWVzdBIWCgVzdGF0ZRgBIAEoCUIHukgEcgIQARIdCgxyZWRpcmVjdF91cmkYAiABKAlCB7pIBHICEAESFgoFc2NvcGUYAyABKAlCB7pIBHICEAEiJgoXR2V0QXV0aG9yaXplVXJsUmVzcG9uc2USCwoDdXJsGAEgASgJIhUKE0dldENsaUlzc3VlclJlcXVlc3QiPAoUR2V0Q2xpSXNzdWVyUmVzcG9uc2USEgoKaXNzdWVyX3VybBgBIAEoCRIQCghhdWRpZW5jZRgCIAEoCSIzChFSZWZyZXNoQ2xpUmVxdWVzdBIeCg1yZWZyZXNoX3Rva2VuGAEgASgJQge6SARyAhABIkYKElJlZnJlc2hDbGlSZXNwb25zZRIwCgxhY2Nlc3NfdG9rZW4YASABKAsyGi5tZ210LnYxYWxwaGExLkFjY2Vzc1Rva2VuIhMKEUNoZWNrVG9rZW5SZXF1ZXN0IhQKEkNoZWNrVG9rZW5SZXNwb25zZTKjBAoLQXV0aFNlcnZpY2USTQoITG9naW5DbGkSHi5tZ210LnYxYWxwaGExLkxvZ2luQ2xpUmVxdWVzdBofLm1nbXQudjFhbHBoYTEuTG9naW5DbGlSZXNwb25zZSIAElMKClJlZnJlc2hDbGkSIC5tZ210LnYxYWxwaGExLlJlZnJlc2hDbGlSZXF1ZXN0GiEubWdtdC52MWFscGhhMS5SZWZyZXNoQ2xpUmVzcG9uc2UiABJTCgpDaGVja1Rva2VuEiAubWdtdC52MWFscGhhMS5DaGVja1Rva2VuUmVxdWVzdBohLm1nbXQudjFhbHBoYTEuQ2hlY2tUb2tlblJlc3BvbnNlIgASWQoMR2V0Q2xpSXNzdWVyEiIubWdtdC52MWFscGhhMS5HZXRDbGlJc3N1ZXJSZXF1ZXN0GiMubWdtdC52MWFscGhhMS5HZXRDbGlJc3N1ZXJSZXNwb25zZSIAEmIKD0dldEF1dGhvcml6ZVVybBIlLm1nbXQudjFhbHBoYTEuR2V0QXV0aG9yaXplVXJsUmVxdWVzdBomLm1nbXQudjFhbHBoYTEuR2V0QXV0aG9yaXplVXJsUmVzcG9uc2UiABJcCg1HZXRBdXRoU3RhdHVzEiMubWdtdC52MWFscGhhMS5HZXRBdXRoU3RhdHVzUmVxdWVzdBokLm1nbXQudjFhbHBoYTEuR2V0QXV0aFN0YXR1c1Jlc3BvbnNlIgBCxQEKEWNvbS5tZ210LnYxYWxwaGExQglBdXRoUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate]);
+  fileDesc("ChhtZ210L3YxYWxwaGExL2F1dGgucHJvdG8SDW1nbXQudjFhbHBoYTEiRwoPTG9naW5DbGlSZXF1ZXN0EhUKBGNvZGUYASABKAlCB7pIBHICEAESHQoMcmVkaXJlY3RfdXJpGAIgASgJQge6SARyAhABIkQKEExvZ2luQ2xpUmVzcG9uc2USMAoMYWNjZXNzX3Rva2VuGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2Nlc3NUb2tlbiIWChRHZXRBdXRoU3RhdHVzUmVxdWVzdCIrChVHZXRBdXRoU3RhdHVzUmVzcG9uc2USEgoKaXNfZW5hYmxlZBgBIAEoCCKsAQoLQWNjZXNzVG9rZW4SFAoMYWNjZXNzX3Rva2VuGAEgASgJEhoKDXJlZnJlc2hfdG9rZW4YAiABKAlIAIgBARISCgpleHBpcmVzX2luGAMgASgDEg0KBXNjb3BlGAQgASgJEhUKCGlkX3Rva2VuGAUgASgJSAGIAQESEgoKdG9rZW5fdHlwZRgGIAEoCUIQCg5fcmVmcmVzaF90b2tlbkILCglfaWRfdG9rZW4iZwoWR2V0QXV0aG9yaXplVXJsUmVxdWVzdBIWCgVzdGF0ZRgBIAEoCUIHukgEcgIQARIdCgxyZWRpcmVjdF91cmkYAiABKAlCB7pIBHICEAESFgoFc2NvcGUYAyABKAlCB7pIBHICEAEiJgoXR2V0QXV0aG9yaXplVXJsUmVzcG9uc2USCwoDdXJsGAEgASgJIjMKEVJlZnJlc2hDbGlSZXF1ZXN0Eh4KDXJlZnJlc2hfdG9rZW4YASABKAlCB7pIBHICEAEiRgoSUmVmcmVzaENsaVJlc3BvbnNlEjAKDGFjY2Vzc190b2tlbhgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjZXNzVG9rZW4iEwoRQ2hlY2tUb2tlblJlcXVlc3QiFAoSQ2hlY2tUb2tlblJlc3BvbnNlMsgDCgtBdXRoU2VydmljZRJNCghMb2dpbkNsaRIeLm1nbXQudjFhbHBoYTEuTG9naW5DbGlSZXF1ZXN0Gh8ubWdtdC52MWFscGhhMS5Mb2dpbkNsaVJlc3BvbnNlIgASUwoKUmVmcmVzaENsaRIgLm1nbXQudjFhbHBoYTEuUmVmcmVzaENsaVJlcXVlc3QaIS5tZ210LnYxYWxwaGExLlJlZnJlc2hDbGlSZXNwb25zZSIAElMKCkNoZWNrVG9rZW4SIC5tZ210LnYxYWxwaGExLkNoZWNrVG9rZW5SZXF1ZXN0GiEubWdtdC52MWFscGhhMS5DaGVja1Rva2VuUmVzcG9uc2UiABJiCg9HZXRBdXRob3JpemVVcmwSJS5tZ210LnYxYWxwaGExLkdldEF1dGhvcml6ZVVybFJlcXVlc3QaJi5tZ210LnYxYWxwaGExLkdldEF1dGhvcml6ZVVybFJlc3BvbnNlIgASXAoNR2V0QXV0aFN0YXR1cxIjLm1nbXQudjFhbHBoYTEuR2V0QXV0aFN0YXR1c1JlcXVlc3QaJC5tZ210LnYxYWxwaGExLkdldEF1dGhTdGF0dXNSZXNwb25zZSIAQsUBChFjb20ubWdtdC52MWFscGhhMUIJQXV0aFByb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * @generated from message mgmt.v1alpha1.LoginCliRequest
@@ -201,45 +201,6 @@ export const GetAuthorizeUrlResponseSchema: GenMessage<GetAuthorizeUrlResponse> 
   messageDesc(file_mgmt_v1alpha1_auth, 6);
 
 /**
- * @generated from message mgmt.v1alpha1.GetCliIssuerRequest
- */
-export type GetCliIssuerRequest = Message<"mgmt.v1alpha1.GetCliIssuerRequest"> & {
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetCliIssuerRequest.
- * Use `create(GetCliIssuerRequestSchema)` to create a new message.
- */
-export const GetCliIssuerRequestSchema: GenMessage<GetCliIssuerRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 7);
-
-/**
- * @generated from message mgmt.v1alpha1.GetCliIssuerResponse
- */
-export type GetCliIssuerResponse = Message<"mgmt.v1alpha1.GetCliIssuerResponse"> & {
-  /**
-   * The backing authentication issuer url
-   *
-   * @generated from field: string issuer_url = 1;
-   */
-  issuerUrl: string;
-
-  /**
-   * The audience that will be used in the access token. This corresponds to the "aud" claim
-   *
-   * @generated from field: string audience = 2;
-   */
-  audience: string;
-};
-
-/**
- * Describes the message mgmt.v1alpha1.GetCliIssuerResponse.
- * Use `create(GetCliIssuerResponseSchema)` to create a new message.
- */
-export const GetCliIssuerResponseSchema: GenMessage<GetCliIssuerResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 8);
-
-/**
  * @generated from message mgmt.v1alpha1.RefreshCliRequest
  */
 export type RefreshCliRequest = Message<"mgmt.v1alpha1.RefreshCliRequest"> & {
@@ -256,7 +217,7 @@ export type RefreshCliRequest = Message<"mgmt.v1alpha1.RefreshCliRequest"> & {
  * Use `create(RefreshCliRequestSchema)` to create a new message.
  */
 export const RefreshCliRequestSchema: GenMessage<RefreshCliRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 9);
+  messageDesc(file_mgmt_v1alpha1_auth, 7);
 
 /**
  * @generated from message mgmt.v1alpha1.RefreshCliResponse
@@ -275,7 +236,7 @@ export type RefreshCliResponse = Message<"mgmt.v1alpha1.RefreshCliResponse"> & {
  * Use `create(RefreshCliResponseSchema)` to create a new message.
  */
 export const RefreshCliResponseSchema: GenMessage<RefreshCliResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 10);
+  messageDesc(file_mgmt_v1alpha1_auth, 8);
 
 /**
  * @generated from message mgmt.v1alpha1.CheckTokenRequest
@@ -288,7 +249,7 @@ export type CheckTokenRequest = Message<"mgmt.v1alpha1.CheckTokenRequest"> & {
  * Use `create(CheckTokenRequestSchema)` to create a new message.
  */
 export const CheckTokenRequestSchema: GenMessage<CheckTokenRequest> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 11);
+  messageDesc(file_mgmt_v1alpha1_auth, 9);
 
 /**
  * @generated from message mgmt.v1alpha1.CheckTokenResponse
@@ -301,7 +262,7 @@ export type CheckTokenResponse = Message<"mgmt.v1alpha1.CheckTokenResponse"> & {
  * Use `create(CheckTokenResponseSchema)` to create a new message.
  */
 export const CheckTokenResponseSchema: GenMessage<CheckTokenResponse> = /*@__PURE__*/
-  messageDesc(file_mgmt_v1alpha1_auth, 12);
+  messageDesc(file_mgmt_v1alpha1_auth, 10);
 
 /**
  * Service that handles generic Authentication for Neosync
@@ -340,17 +301,6 @@ export const AuthService: GenService<{
     methodKind: "unary";
     input: typeof CheckTokenRequestSchema;
     output: typeof CheckTokenResponseSchema;
-  },
-  /**
-   * Used by the CLI to retrieve Auth Issuer information
-   * @deprecated
-   *
-   * @generated from rpc mgmt.v1alpha1.AuthService.GetCliIssuer
-   */
-  getCliIssuer: {
-    methodKind: "unary";
-    input: typeof GetCliIssuerRequestSchema;
-    output: typeof GetCliIssuerResponseSchema;
   },
   /**
    * Used by the CLI to retrieve an Authorize URL for use with OAuth login.

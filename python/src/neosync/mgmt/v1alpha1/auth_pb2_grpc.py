@@ -31,11 +31,6 @@ class AuthServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenResponse.FromString,
                 _registered_method=True)
-        self.GetCliIssuer = channel.unary_unary(
-                '/mgmt.v1alpha1.AuthService/GetCliIssuer',
-                request_serializer=mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerRequest.SerializeToString,
-                response_deserializer=mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerResponse.FromString,
-                _registered_method=True)
         self.GetAuthorizeUrl = channel.unary_unary(
                 '/mgmt.v1alpha1.AuthService/GetAuthorizeUrl',
                 request_serializer=mgmt_dot_v1alpha1_dot_auth__pb2.GetAuthorizeUrlRequest.SerializeToString,
@@ -75,14 +70,6 @@ class AuthServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetCliIssuer(self, request, context):
-        """Used by the CLI to retrieve Auth Issuer information
-        @deprecated
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def GetAuthorizeUrl(self, request, context):
         """Used by the CLI to retrieve an Authorize URL for use with OAuth login.
         """
@@ -115,11 +102,6 @@ def add_AuthServiceServicer_to_server(servicer, server):
                     servicer.CheckToken,
                     request_deserializer=mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenResponse.SerializeToString,
-            ),
-            'GetCliIssuer': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCliIssuer,
-                    request_deserializer=mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerRequest.FromString,
-                    response_serializer=mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerResponse.SerializeToString,
             ),
             'GetAuthorizeUrl': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAuthorizeUrl,
@@ -215,33 +197,6 @@ class AuthService(object):
             '/mgmt.v1alpha1.AuthService/CheckToken',
             mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_auth__pb2.CheckTokenResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCliIssuer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/mgmt.v1alpha1.AuthService/GetCliIssuer',
-            mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerRequest.SerializeToString,
-            mgmt_dot_v1alpha1_dot_auth__pb2.GetCliIssuerResponse.FromString,
             options,
             channel_credentials,
             insecure,

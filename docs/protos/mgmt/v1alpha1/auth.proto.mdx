@@ -45,28 +45,20 @@ _**package** mgmt.v1alpha1_
 <ProtoMessage key={6} message={{"name":"GetAuthorizeUrlResponse","longName":"GetAuthorizeUrlResponse","fullName":"mgmt.v1alpha1.GetAuthorizeUrlResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"url","description":"The generated url that is the client will be redirected to during the Oauth flow","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
-### `GetCliIssuerRequest`
-<ProtoMessage key={7} message={{"name":"GetCliIssuerRequest","longName":"GetCliIssuerRequest","fullName":"mgmt.v1alpha1.GetCliIssuerRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
-
-
-### `GetCliIssuerResponse`
-<ProtoMessage key={8} message={{"name":"GetCliIssuerResponse","longName":"GetCliIssuerResponse","fullName":"mgmt.v1alpha1.GetCliIssuerResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"issuer_url","description":"The backing authentication issuer url","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"audience","description":"The audience that will be used in the access token. This corresponds to the \"aud\" claim","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
-
-
 ### `LoginCliRequest`
-<ProtoMessage key={9} message={{"name":"LoginCliRequest","longName":"LoginCliRequest","fullName":"mgmt.v1alpha1.LoginCliRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"code","description":"The oauth code","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"redirect_uri","description":"The oauth redirect uri that the client uses during the oauth request","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+<ProtoMessage key={7} message={{"name":"LoginCliRequest","longName":"LoginCliRequest","fullName":"mgmt.v1alpha1.LoginCliRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"code","description":"The oauth code","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"redirect_uri","description":"The oauth redirect uri that the client uses during the oauth request","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
 ### `LoginCliResponse`
-<ProtoMessage key={10} message={{"name":"LoginCliResponse","longName":"LoginCliResponse","fullName":"mgmt.v1alpha1.LoginCliResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"access_token","description":"The access token that is returned on successful login","label":"","type":"AccessToken","longType":"AccessToken","fullType":"mgmt.v1alpha1.AccessToken","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/auth.proto#accesstoken"}]}} />
+<ProtoMessage key={8} message={{"name":"LoginCliResponse","longName":"LoginCliResponse","fullName":"mgmt.v1alpha1.LoginCliResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"access_token","description":"The access token that is returned on successful login","label":"","type":"AccessToken","longType":"AccessToken","fullType":"mgmt.v1alpha1.AccessToken","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/auth.proto#accesstoken"}]}} />
 
 
 ### `RefreshCliRequest`
-<ProtoMessage key={11} message={{"name":"RefreshCliRequest","longName":"RefreshCliRequest","fullName":"mgmt.v1alpha1.RefreshCliRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"refresh_token","description":"The token used to retrieve a new access token.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+<ProtoMessage key={9} message={{"name":"RefreshCliRequest","longName":"RefreshCliRequest","fullName":"mgmt.v1alpha1.RefreshCliRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"refresh_token","description":"The token used to retrieve a new access token.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
 ### `RefreshCliResponse`
-<ProtoMessage key={12} message={{"name":"RefreshCliResponse","longName":"RefreshCliResponse","fullName":"mgmt.v1alpha1.RefreshCliResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"access_token","description":"The access token that is returned on successful refresh","label":"","type":"AccessToken","longType":"AccessToken","fullType":"mgmt.v1alpha1.AccessToken","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/auth.proto#accesstoken"}]}} />
+<ProtoMessage key={10} message={{"name":"RefreshCliResponse","longName":"RefreshCliResponse","fullName":"mgmt.v1alpha1.RefreshCliResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"access_token","description":"The access token that is returned on successful refresh","label":"","type":"AccessToken","longType":"AccessToken","fullType":"mgmt.v1alpha1.AccessToken","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/auth.proto#accesstoken"}]}} />
 
 ---
 ## Services
@@ -90,16 +82,12 @@ Today this is mostly used by the CLI to receive authentication information
 <ProtoServiceMethod key={'CheckToken-2'} method={{"name":"CheckToken","description":"Empty endpoint to simply check if the provided access token is valid","requestType":"CheckTokenRequest","requestLongType":"CheckTokenRequest","requestFullType":"mgmt.v1alpha1.CheckTokenRequest","requestStreaming":false,"responseType":"CheckTokenResponse","responseLongType":"CheckTokenResponse","responseFullType":"mgmt.v1alpha1.CheckTokenResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#checktokenrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#checktokenresponse"}} />
 
 
-#### `GetCliIssuer`
-<ProtoServiceMethod key={'GetCliIssuer-3'} method={{"name":"GetCliIssuer","description":"Used by the CLI to retrieve Auth Issuer information\n@deprecated","requestType":"GetCliIssuerRequest","requestLongType":"GetCliIssuerRequest","requestFullType":"mgmt.v1alpha1.GetCliIssuerRequest","requestStreaming":false,"responseType":"GetCliIssuerResponse","responseLongType":"GetCliIssuerResponse","responseFullType":"mgmt.v1alpha1.GetCliIssuerResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#getcliissuerrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#getcliissuerresponse"}} />
-
-
 #### `GetAuthorizeUrl`
-<ProtoServiceMethod key={'GetAuthorizeUrl-4'} method={{"name":"GetAuthorizeUrl","description":"Used by the CLI to retrieve an Authorize URL for use with OAuth login.","requestType":"GetAuthorizeUrlRequest","requestLongType":"GetAuthorizeUrlRequest","requestFullType":"mgmt.v1alpha1.GetAuthorizeUrlRequest","requestStreaming":false,"responseType":"GetAuthorizeUrlResponse","responseLongType":"GetAuthorizeUrlResponse","responseFullType":"mgmt.v1alpha1.GetAuthorizeUrlResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthorizeurlrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthorizeurlresponse"}} />
+<ProtoServiceMethod key={'GetAuthorizeUrl-3'} method={{"name":"GetAuthorizeUrl","description":"Used by the CLI to retrieve an Authorize URL for use with OAuth login.","requestType":"GetAuthorizeUrlRequest","requestLongType":"GetAuthorizeUrlRequest","requestFullType":"mgmt.v1alpha1.GetAuthorizeUrlRequest","requestStreaming":false,"responseType":"GetAuthorizeUrlResponse","responseLongType":"GetAuthorizeUrlResponse","responseFullType":"mgmt.v1alpha1.GetAuthorizeUrlResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthorizeurlrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthorizeurlresponse"}} />
 
 
 #### `GetAuthStatus`
-<ProtoServiceMethod key={'GetAuthStatus-5'} method={{"name":"GetAuthStatus","description":"Returns the auth status of the API server. Whether or not the backend has authentication enabled.\nThis is used by clients to make decisions on whether or not they should send access tokens to the API.","requestType":"GetAuthStatusRequest","requestLongType":"GetAuthStatusRequest","requestFullType":"mgmt.v1alpha1.GetAuthStatusRequest","requestStreaming":false,"responseType":"GetAuthStatusResponse","responseLongType":"GetAuthStatusResponse","responseFullType":"mgmt.v1alpha1.GetAuthStatusResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthstatusrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthstatusresponse"}} />
+<ProtoServiceMethod key={'GetAuthStatus-4'} method={{"name":"GetAuthStatus","description":"Returns the auth status of the API server. Whether or not the backend has authentication enabled.\nThis is used by clients to make decisions on whether or not they should send access tokens to the API.","requestType":"GetAuthStatusRequest","requestLongType":"GetAuthStatusRequest","requestFullType":"mgmt.v1alpha1.GetAuthStatusRequest","requestStreaming":false,"responseType":"GetAuthStatusResponse","responseLongType":"GetAuthStatusResponse","responseFullType":"mgmt.v1alpha1.GetAuthStatusResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthstatusrequest","responseTypeLink":"/api/mgmt/v1alpha1/auth.proto#getauthstatusresponse"}} />
 
 
 ---

@@ -41,25 +41,10 @@ class ConnectionDataServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionTableConstraintsRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionTableConstraintsResponse.FromString,
                 _registered_method=True)
-        self.GetConnectionForeignConstraints = channel.unary_unary(
-                '/mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints',
-                request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsRequest.SerializeToString,
-                response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsResponse.FromString,
-                _registered_method=True)
-        self.GetConnectionPrimaryConstraints = channel.unary_unary(
-                '/mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints',
-                request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsRequest.SerializeToString,
-                response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsResponse.FromString,
-                _registered_method=True)
         self.GetConnectionInitStatements = channel.unary_unary(
                 '/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements',
                 request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsResponse.FromString,
-                _registered_method=True)
-        self.GetConnectionUniqueConstraints = channel.unary_unary(
-                '/mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints',
-                request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsRequest.SerializeToString,
-                response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsResponse.FromString,
                 _registered_method=True)
         self.GetAiGeneratedData = channel.unary_unary(
                 '/mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData',
@@ -114,32 +99,9 @@ class ConnectionDataServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetConnectionForeignConstraints(self, request, context):
-        """For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-        Used primarily by the CLI sync command to determine stream order.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetConnectionPrimaryConstraints(self, request, context):
-        """For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-        Used primarily by the CLI sync command to determine stream order.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def GetConnectionInitStatements(self, request, context):
         """For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
         Used primarily by the CLI sync command to create table schema init statement.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetConnectionUniqueConstraints(self, request, context):
-        """For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -187,25 +149,10 @@ def add_ConnectionDataServiceServicer_to_server(servicer, server):
                     request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionTableConstraintsRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionTableConstraintsResponse.SerializeToString,
             ),
-            'GetConnectionForeignConstraints': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetConnectionForeignConstraints,
-                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsRequest.FromString,
-                    response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsResponse.SerializeToString,
-            ),
-            'GetConnectionPrimaryConstraints': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetConnectionPrimaryConstraints,
-                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsRequest.FromString,
-                    response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsResponse.SerializeToString,
-            ),
             'GetConnectionInitStatements': grpc.unary_unary_rpc_method_handler(
                     servicer.GetConnectionInitStatements,
                     request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsResponse.SerializeToString,
-            ),
-            'GetConnectionUniqueConstraints': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetConnectionUniqueConstraints,
-                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsRequest.FromString,
-                    response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsResponse.SerializeToString,
             ),
             'GetAiGeneratedData': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAiGeneratedData,
@@ -366,60 +313,6 @@ class ConnectionDataService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetConnectionForeignConstraints(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints',
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsRequest.SerializeToString,
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionForeignConstraintsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetConnectionPrimaryConstraints(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints',
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsRequest.SerializeToString,
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionPrimaryConstraintsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
     def GetConnectionInitStatements(request,
             target,
             options=(),
@@ -436,33 +329,6 @@ class ConnectionDataService(object):
             '/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements',
             mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionInitStatementsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetConnectionUniqueConstraints(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints',
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsRequest.SerializeToString,
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetConnectionUniqueConstraintsResponse.FromString,
             options,
             channel_credentials,
             insecure,

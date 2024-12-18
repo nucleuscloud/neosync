@@ -56,24 +56,20 @@ class DayResult(_message.Message):
     def __init__(self, date: _Optional[_Union[Date, _Mapping]] = ..., count: _Optional[int] = ...) -> None: ...
 
 class GetMetricCountRequest(_message.Message):
-    __slots__ = ("start", "end", "metric", "account_id", "job_id", "run_id", "start_day", "end_day")
-    START_FIELD_NUMBER: _ClassVar[int]
-    END_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("metric", "account_id", "job_id", "run_id", "start_day", "end_day")
     METRIC_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     RUN_ID_FIELD_NUMBER: _ClassVar[int]
     START_DAY_FIELD_NUMBER: _ClassVar[int]
     END_DAY_FIELD_NUMBER: _ClassVar[int]
-    start: _timestamp_pb2.Timestamp
-    end: _timestamp_pb2.Timestamp
     metric: RangedMetricName
     account_id: str
     job_id: str
     run_id: str
     start_day: Date
     end_day: Date
-    def __init__(self, start: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., end: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., metric: _Optional[_Union[RangedMetricName, str]] = ..., account_id: _Optional[str] = ..., job_id: _Optional[str] = ..., run_id: _Optional[str] = ..., start_day: _Optional[_Union[Date, _Mapping]] = ..., end_day: _Optional[_Union[Date, _Mapping]] = ...) -> None: ...
+    def __init__(self, metric: _Optional[_Union[RangedMetricName, str]] = ..., account_id: _Optional[str] = ..., job_id: _Optional[str] = ..., run_id: _Optional[str] = ..., start_day: _Optional[_Union[Date, _Mapping]] = ..., end_day: _Optional[_Union[Date, _Mapping]] = ...) -> None: ...
 
 class GetMetricCountResponse(_message.Message):
     __slots__ = ("count",)

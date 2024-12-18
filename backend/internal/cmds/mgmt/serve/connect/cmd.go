@@ -358,8 +358,6 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
 			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
 			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
@@ -392,7 +390,6 @@ func serve(ctx context.Context) error {
 				[]string{
 					mgmtv1alpha1connect.AuthServiceGetAuthStatusProcedure,
 					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
-					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
 					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
 					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},

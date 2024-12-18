@@ -89,10 +89,8 @@ message DayResult {
 }
 
 message GetMetricCountRequest {
-  // @deprecated - use start_day
-  google.protobuf.Timestamp start = 1;
-  // @deprecated - use end_day
-  google.protobuf.Timestamp end = 2;
+  reserved 1; // Was: google.protobuf.Timestamp start = 1;
+  reserved 2; // Was: google.protobuf.Timestamp end = 2;
   // The metric to return
   RangedMetricName metric = 3;
 
