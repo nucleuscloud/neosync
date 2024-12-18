@@ -493,7 +493,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}
 
 	expected := &mgmtv1alpha1.JobMappingTransformer{
-		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{

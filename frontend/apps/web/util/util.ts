@@ -1,6 +1,7 @@
 import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-handler';
 import { Transformer } from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
   AccountRole,
   AwsS3DestinationConnectionOptions_StorageClass,
@@ -9,6 +10,7 @@ import {
   InvalidEmailAction,
   SupportedJobType,
   SystemTransformer,
+  SystemTransformerSchema,
   TransformerDataType,
   TransformerSource,
   UserDefinedTransformer,
@@ -161,12 +163,12 @@ export function getTransformerFromField(
   if (value.config.case === 'userDefinedTransformerConfig') {
     return (
       handler.getUserDefinedTransformerById(value.config.value.id) ??
-      new SystemTransformer()
+      create(SystemTransformerSchema)
     );
   }
   return (
     handler.getSystemTransformerByConfigCase(value.config.case) ??
-    new SystemTransformer()
+    create(SystemTransformerSchema)
   );
 }
 

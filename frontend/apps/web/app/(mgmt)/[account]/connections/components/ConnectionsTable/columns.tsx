@@ -6,7 +6,7 @@ import NextLink from 'next/link';
 
 import TruncatedText from '@/components/TruncatedText';
 import { formatDateTime } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { Connection } from '@neosync/sdk';
 import { getCategory } from '../../util';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -17,9 +17,7 @@ interface GetColumnsProps {
   accountName: string;
 }
 
-export function getColumns(
-  props: GetColumnsProps
-): ColumnDef<PlainMessage<Connection>>[] {
+export function getColumns(props: GetColumnsProps): ColumnDef<Connection>[] {
   const { accountName, onConnectionDeleted } = props;
   return [
     {
@@ -84,10 +82,14 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Created At" />
       ),
       cell: ({ row }) => {
+        const ts = row.getValue<Timestamp>('createdAt') ?? {
+          nanos: 0,
+          seconds: 0,
+        };
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
+              {formatDateTime(timestampDate(ts))}
             </span>
           </div>
         );
@@ -102,10 +104,14 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Updated At" />
       ),
       cell: ({ row }) => {
+        const ts = row.getValue<Timestamp>('updatedAt') ?? {
+          nanos: 0,
+          seconds: 0,
+        };
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt')?.toDate())}
+              {formatDateTime(timestampDate(ts))}
             </span>
           </div>
         );

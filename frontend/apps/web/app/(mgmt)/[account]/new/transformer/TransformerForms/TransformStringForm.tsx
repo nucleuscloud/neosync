@@ -3,16 +3,12 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformString } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { TransformString, TransformStringSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformString,
-    PlainMessage<TransformString>
-  > {}
+interface Props extends TransformerConfigProps<TransformString> {}
 
 export default function TransformStringForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -29,7 +25,12 @@ export default function TransformStringForm(props: Props): ReactElement {
         <Switch
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
-            setValue(new TransformString({ ...value, preserveLength: checked }))
+            setValue(
+              create(TransformStringSchema, {
+                ...value,
+                preserveLength: checked,
+              })
+            )
           }
           disabled={isDisabled}
         />

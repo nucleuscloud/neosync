@@ -30,14 +30,16 @@ import { Separator } from '@/components/ui/separator';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfig, JobMapping } from '@neosync/sdk';
 import {
-  createJob,
-  getConnections,
-  getConnectionTableConstraints,
-} from '@neosync/sdk/connectquery';
+  ConnectionConfigSchema,
+  ConnectionDataService,
+  ConnectionService,
+  JobMappingSchema,
+  JobService,
+} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -72,7 +74,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -119,12 +121,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: schemaFormValues.connectionId },
       { enabled: !!schemaFormValues.connectionId }
     );
 
-  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+  const { mutateAsync: createNewSyncJob } = useMutation(
+    JobService.method.createJob
+  );
 
   const fkConstraints = tableConstraints?.foreignKeyConstraints;
   const [rootTables, setRootTables] = useState<Set<string>>(new Set());
@@ -152,7 +156,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const connectionType = getConnectionType(
-    connection?.connectionConfig ?? new ConnectionConfig()
+    connection?.connectionConfig ?? create(ConnectionConfigSchema, {})
   );
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
@@ -335,7 +339,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           }}
                           columns={GetColumnsForSqlAutocomplete(
                             schemaFormValues?.mappings.map((row) => {
-                              return new JobMapping({
+                              return create(JobMappingSchema, {
                                 schema: row.schema,
                                 table: row.table,
                                 column: row.column,

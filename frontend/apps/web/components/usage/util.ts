@@ -1,4 +1,8 @@
-import { Date as NeosyncDate } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  Date as NeosyncDate,
+  DateSchema as NeosyncDateSchema,
+} from '@neosync/sdk';
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
 
 export type MetricIdentifierType = 'accountId' | 'jobId' | 'runId';
@@ -23,7 +27,7 @@ export function shortNumberFormatter(
 export type UsagePeriod = 'current' | 'last-month';
 
 export function dateToNeoDate(date: Date): NeosyncDate {
-  return new NeosyncDate({
+  return create(NeosyncDateSchema, {
     day: date.getDate(),
     month: date.getMonth() + 1,
     year: date.getFullYear(),

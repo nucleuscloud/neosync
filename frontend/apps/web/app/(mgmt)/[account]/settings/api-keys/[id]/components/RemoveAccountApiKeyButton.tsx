@@ -4,7 +4,7 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { deleteAccountApiKey } from '@neosync/sdk/connectquery';
+import { ApiKeyService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -17,7 +17,7 @@ interface Props {
 
 export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   const { id, trigger, onDeleted } = props;
-  const { mutateAsync } = useMutation(deleteAccountApiKey);
+  const { mutateAsync } = useMutation(ApiKeyService.method.deleteAccountApiKey);
 
   async function onDelete(): Promise<void> {
     try {

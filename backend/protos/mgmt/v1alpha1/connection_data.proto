@@ -130,22 +130,15 @@ message GetConnectionSchemaMapsResponse {
   repeated string connection_ids = 2;
 }
 
-message GetConnectionForeignConstraintsRequest {
-  string connection_id = 1 [(buf.validate.field).string.uuid = true];
-}
-
 message ForeignKey {
   string table = 1;
-  // @deprecated - use columns
-  string column = 2;
+  reserved 2; // Was: string column = 2;
   repeated string columns = 3;
 }
 
 message ForeignConstraint {
-  // @deprecated - use columns
-  string column = 1;
-  // @deprecated - use not_nullable
-  bool is_nullable = 2;
+  reserved 1; // Was: string column = 1;
+  reserved 2; // Was: bool is_nullable = 2;
   ForeignKey foreign_key = 3;
   repeated string columns = 4;
   repeated bool not_nullable = 5;
@@ -153,12 +146,6 @@ message ForeignConstraint {
 
 message ForeignConstraintTables {
   repeated ForeignConstraint constraints = 1;
-}
-
-// Dependency constraints for a specific table
-message GetConnectionForeignConstraintsResponse {
-  // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
-  map<string, ForeignConstraintTables> table_constraints = 1;
 }
 
 message InitStatementOptions {
@@ -187,26 +174,6 @@ message GetConnectionInitStatementsResponse {
 
 message PrimaryConstraint {
   repeated string columns = 1;
-}
-
-// Primary constraints for a specific table
-message GetConnectionPrimaryConstraintsRequest {
-  string connection_id = 1 [(buf.validate.field).string.uuid = true];
-}
-
-message GetConnectionPrimaryConstraintsResponse {
-  // the key here is <schema>.<table> and value is the primary constraint
-  map<string, PrimaryConstraint> table_constraints = 1;
-}
-
-// Unique constraints for a specific table
-message GetConnectionUniqueConstraintsRequest {
-  string connection_id = 1 [(buf.validate.field).string.uuid = true];
-}
-
-message GetConnectionUniqueConstraintsResponse {
-  // the key here is <schema>.<table> and value is the unique constraint
-  map<string, UniqueConstraint> table_constraints = 1;
 }
 
 message UniqueConstraint {
@@ -277,17 +244,9 @@ service ConnectionDataService {
   rpc GetConnectionSchemaMaps(GetConnectionSchemaMapsRequest) returns (GetConnectionSchemaMapsResponse) {}
   // For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
   rpc GetConnectionTableConstraints(GetConnectionTableConstraintsRequest) returns (GetConnectionTableConstraintsResponse) {}
-  // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-  // Used primarily by the CLI sync command to determine stream order.
-  rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
-  // For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-  // Used primarily by the CLI sync command to determine stream order.
-  rpc GetConnectionPrimaryConstraints(GetConnectionPrimaryConstraintsRequest) returns (GetConnectionPrimaryConstraintsResponse) {}
   // For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
   // Used primarily by the CLI sync command to create table schema init statement.
   rpc GetConnectionInitStatements(GetConnectionInitStatementsRequest) returns (GetConnectionInitStatementsResponse) {}
-  // For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
-  rpc GetConnectionUniqueConstraints(GetConnectionUniqueConstraintsRequest) returns (GetConnectionUniqueConstraintsResponse) {}
   // Query an AI connection by providing the necessary values. Typically used for generating preview data
   rpc GetAiGeneratedData(GetAiGeneratedDataRequest) returns (GetAiGeneratedDataResponse) {}
   // Query table with subset to get row count

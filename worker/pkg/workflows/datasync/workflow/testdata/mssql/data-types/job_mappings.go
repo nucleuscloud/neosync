@@ -15,7 +15,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_bigint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -23,7 +27,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_numeric",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -31,7 +39,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_bit",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -39,7 +51,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_smallint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -47,7 +63,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_decimal",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -55,7 +75,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_smallmoney",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -63,7 +87,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_int",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -71,7 +99,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_tinyint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -79,7 +111,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_money",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -87,7 +123,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_float",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -95,7 +135,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_real",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -103,7 +147,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_date",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -111,7 +159,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_datetimeoffset",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -119,7 +171,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_datetime2",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -127,7 +183,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_smalldatetime",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -135,7 +195,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_datetime",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -143,7 +207,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_time",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -151,7 +219,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_char",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -159,7 +231,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_varchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -167,7 +243,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_text",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -175,7 +255,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_nchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -183,7 +267,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_nvarchar",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -191,7 +279,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_json",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -199,7 +291,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_ntext",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -207,7 +303,11 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_uniqueidentifier",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
 		{
@@ -215,10 +315,14 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Table:  "alldatatypes",
 			Column: "col_xml",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 		},
-	} 
+	}
 }
 
 

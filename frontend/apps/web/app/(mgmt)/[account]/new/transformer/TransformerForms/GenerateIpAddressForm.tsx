@@ -9,16 +9,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getGenerateIpAddressVersionString } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateIpAddress, GenerateIpAddressType } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  GenerateIpAddress,
+  GenerateIpAddressSchema,
+  GenerateIpAddressType,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateIpAddress,
-    PlainMessage<GenerateIpAddress>
-  > {}
+interface Props extends TransformerConfigProps<GenerateIpAddress> {}
 
 export default function GenerateIpAddressForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -38,7 +38,7 @@ export default function GenerateIpAddressForm(props: Props): ReactElement {
               disabled={isDisabled}
               onValueChange={(newValue) => {
                 setValue(
-                  new GenerateIpAddress({
+                  create(GenerateIpAddressSchema, {
                     ...value,
                     // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                     ipType: parseInt(newValue, 10),

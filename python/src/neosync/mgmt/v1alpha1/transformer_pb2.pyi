@@ -229,20 +229,18 @@ class GetUserDefinedTransformerByIdResponse(_message.Message):
     def __init__(self, transformer: _Optional[_Union[UserDefinedTransformer, _Mapping]] = ...) -> None: ...
 
 class CreateUserDefinedTransformerRequest(_message.Message):
-    __slots__ = ("account_id", "name", "description", "type", "source", "transformer_config")
+    __slots__ = ("account_id", "name", "description", "source", "transformer_config")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    TYPE_FIELD_NUMBER: _ClassVar[int]
     SOURCE_FIELD_NUMBER: _ClassVar[int]
     TRANSFORMER_CONFIG_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     name: str
     description: str
-    type: str
     source: TransformerSource
     transformer_config: TransformerConfig
-    def __init__(self, account_id: _Optional[str] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., source: _Optional[_Union[TransformerSource, str]] = ..., transformer_config: _Optional[_Union[TransformerConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, account_id: _Optional[str] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., source: _Optional[_Union[TransformerSource, str]] = ..., transformer_config: _Optional[_Union[TransformerConfig, _Mapping]] = ...) -> None: ...
 
 class CreateUserDefinedTransformerResponse(_message.Message):
     __slots__ = ("transformer",)
@@ -727,12 +725,10 @@ class UserDefinedTransformerConfig(_message.Message):
     def __init__(self, id: _Optional[str] = ...) -> None: ...
 
 class ValidateUserJavascriptCodeRequest(_message.Message):
-    __slots__ = ("account_id", "code")
-    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("code",)
     CODE_FIELD_NUMBER: _ClassVar[int]
-    account_id: str
     code: str
-    def __init__(self, account_id: _Optional[str] = ..., code: _Optional[str] = ...) -> None: ...
+    def __init__(self, code: _Optional[str] = ...) -> None: ...
 
 class ValidateUserJavascriptCodeResponse(_message.Message):
     __slots__ = ("valid",)
@@ -759,12 +755,10 @@ class GenerateJavascript(_message.Message):
     def __init__(self, code: _Optional[str] = ...) -> None: ...
 
 class ValidateUserRegexCodeRequest(_message.Message):
-    __slots__ = ("account_id", "user_provided_regex")
-    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("user_provided_regex",)
     USER_PROVIDED_REGEX_FIELD_NUMBER: _ClassVar[int]
-    account_id: str
     user_provided_regex: str
-    def __init__(self, account_id: _Optional[str] = ..., user_provided_regex: _Optional[str] = ...) -> None: ...
+    def __init__(self, user_provided_regex: _Optional[str] = ...) -> None: ...
 
 class ValidateUserRegexCodeResponse(_message.Message):
     __slots__ = ("valid",)

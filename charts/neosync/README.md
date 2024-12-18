@@ -87,7 +87,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.resources.limits.memory | string | `"512Mi"` | Sets the max Memory amount |
 | api.resources.requests.cpu | string | `"100m"` | Sets the CPU amount to be requested |
 | api.resources.requests.memory | string | `"128Mi"` | Sets the Memory amount to be requested |
-| api.runLogs.enabled | bool | `true` | Independently set so that configuration can exist but logs can still be independently disabled. Defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes |
+| api.runLogs.enabled | bool | `false` | Enable this if planning to surface logs within Neosync API and UI (requires a valid license). |
 | api.runLogs.lokiConfig.baseUrl | string | `nil` | The base url to the loki instance |
 | api.runLogs.lokiConfig.keepLabels | string | `nil` | List format. |
 | api.runLogs.lokiConfig.labelsQuery | string | `nil` | LogQL labels query (without the {} as those are provided by the system) |

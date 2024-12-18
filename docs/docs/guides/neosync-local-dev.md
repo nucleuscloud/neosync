@@ -38,7 +38,7 @@ The docker compose environment runs entirely by itself.
 
 To start:
 
-```
+```console
 make compose/dev/up
 ```
 
@@ -48,7 +48,7 @@ Once they have a build cache, they will come online and re-build much faster!
 
 To stop:
 
-```
+```console
 make compose/dev/down
 ```
 
@@ -58,13 +58,15 @@ Once everything is up and running, The app can be accessed locally at [http://lo
 
 This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
 
-```sh
+> **NB:** This requires a valid Neosync Enterprise license to be present in the API container. If you would like to try this out, please contact us.
+
+```console
 make compose/dev/auth/up
 ```
 
 To stop, run:
 
-```sh
+```console
 make compose/dev/auth/down
 ```
 
@@ -162,6 +164,6 @@ This lets us declare the versions in code and docker takes care of the rest.
 
 Each tool above can be straightforwardly installed with brew if on Linux/MacOS
 
-```
+```console
 brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```

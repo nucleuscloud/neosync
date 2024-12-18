@@ -148,82 +148,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionForeignConstraints
-      description: |-
-        For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-         Used primarily by the CLI sync command to determine stream order.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionPrimaryConstraints
-      description: |-
-        For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-         Used primarily by the CLI sync command to determine stream order.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse'
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
     post:
       tags:
@@ -262,42 +186,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionUniqueConstraints
-      description: For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse'
   /mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData:
     post:
       tags:
@@ -772,14 +660,6 @@ components:
     mgmt.v1alpha1.ForeignConstraint:
       type: object
       properties:
-        column:
-          type: string
-          title: column
-          description: '@deprecated - use columns'
-        isNullable:
-          type: boolean
-          title: is_nullable
-          description: '@deprecated - use not_nullable'
         foreignKey:
           allOf:
             - title: foreign_key
@@ -812,10 +692,6 @@ components:
         table:
           type: string
           title: table
-        column:
-          type: string
-          title: column
-          description: '@deprecated - use columns'
         columns:
           type: array
           items:
@@ -974,16 +850,6 @@ components:
     mgmt.v1alpha1.GetConnectionDataStreamResponse:
       type: object
       properties:
-        row:
-          type: object
-          title: row
-          additionalProperties:
-            type: string
-            title: value
-            format: byte
-          description: |-
-            @deprecated - use row_bytes
-             A map of column name to the bytes value of the data that was found for that column and row
         rowBytes:
           type: string
           title: row_bytes
@@ -992,53 +858,6 @@ components:
       title: GetConnectionDataStreamResponse
       additionalProperties: false
       description: Each stream response is a single row in the requested schema and table
-    mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-          format: byte
-      title: RowEntry
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionForeignConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionForeignConstraintsRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
-          description: the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
-      title: GetConnectionForeignConstraintsResponse
-      additionalProperties: false
-      description: Dependency constraints for a specific table
-    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
-      title: TableConstraintsEntry
-      additionalProperties: false
     mgmt.v1alpha1.GetConnectionInitStatementsRequest:
       type: object
       properties:
@@ -1098,41 +917,6 @@ components:
           type: string
           title: value
       title: TableTruncateStatementsEntry
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionPrimaryConstraintsRequest
-      additionalProperties: false
-      description: Primary constraints for a specific table
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
-          description: the key here is <schema>.<table> and value is the primary constraint
-      title: GetConnectionPrimaryConstraintsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
-      title: TableConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionSchemaMapRequest:
       type: object
@@ -1296,41 +1080,6 @@ components:
             - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
       title: UniqueConstraintsEntry
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionUniqueConstraintsRequest
-      additionalProperties: false
-      description: Unique constraints for a specific table
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
-          description: the key here is <schema>.<table> and value is the unique constraint
-      title: GetConnectionUniqueConstraintsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
-      title: TableConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
       type: object

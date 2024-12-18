@@ -1150,12 +1150,6 @@ func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnecti
 	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
 		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{}
 		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
-	} else if dto.GetHaltOnNewColumnAddition() {
-		// halt on new column addition is deprecated, so if the new column strategy is nil but the deprecated value is true,
-		// we are going to store it in the new strategy format.
-		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{
-			HaltJob: &PostgresHaltJobStrategy{},
-		}
 	}
 }
 

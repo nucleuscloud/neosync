@@ -145,6 +145,10 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.AnonymizationServiceName,
 	}
 
+	if shouldEnableMetricsService() && !cascadelicense.IsValid() {
+		return errors.New("metrics service is enabled but no license is present")
+	}
+
 	if shouldEnableMetricsService() {
 		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
 	}
@@ -335,6 +339,10 @@ func serve(ctx context.Context) error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
+		slogger.Debug("auth is enabled")
+		if !cascadelicense.IsValid() {
+			return errors.New("auth is enabled but no license is present")
+		}
 		jwtcfg, err := getJwtClientConfig()
 		if err != nil {
 			return err
@@ -350,8 +358,6 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
 			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
 			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
@@ -384,7 +390,6 @@ func serve(ctx context.Context) error {
 				[]string{
 					mgmtv1alpha1connect.AuthServiceGetAuthStatusProcedure,
 					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
-					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
 					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
 					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},
@@ -534,7 +539,7 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if ncloudlicense.IsValid() || eelicense.IsValid() {
+	if cascadelicense.IsValid() {
 		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
 	}
 
@@ -547,6 +552,9 @@ func serve(ctx context.Context) error {
 	runLogConfig, err := getRunLogConfig()
 	if err != nil {
 		return err
+	}
+	if runLogConfig != nil && !cascadelicense.IsValid() {
+		return errors.New("run logs are enabled but no license is present")
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{

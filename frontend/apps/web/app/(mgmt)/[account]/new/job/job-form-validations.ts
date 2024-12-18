@@ -5,11 +5,11 @@ import {
   SchemaFormValues,
   SourceFormValues,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import {
   ConnectError,
   Connection,
-  IsJobNameAvailableRequest,
+  IsJobNameAvailableRequestSchema,
   IsJobNameAvailableResponse,
 } from '@neosync/sdk';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
@@ -30,7 +30,7 @@ export type WorkflowSettingsSchema = Yup.InferType<
   typeof WorkflowSettingsSchema
 >;
 
-export const ActivityOptionsSchema = Yup.object({
+export const ActivityOptionsFormValues = Yup.object({
   scheduleToCloseTimeout: Yup.number()
     .optional()
     .min(
@@ -65,7 +65,9 @@ export const ActivityOptionsSchema = Yup.object({
   }).optional(),
 });
 
-export type ActivityOptionsSchema = Yup.InferType<typeof ActivityOptionsSchema>;
+export type ActivityOptionsFormValues = Yup.InferType<
+  typeof ActivityOptionsFormValues
+>;
 
 export const DefineFormValues = Yup.object({
   jobName: Yup.string()
@@ -94,12 +96,17 @@ export const DefineFormValues = Yup.object({
           | UseMutateAsyncFunction<
               IsJobNameAvailableResponse,
               ConnectError,
-              PartialMessage<IsJobNameAvailableRequest>,
+              MessageInitShape<typeof IsJobNameAvailableRequestSchema>,
               unknown
             >
           | undefined = context?.options?.context?.isJobNameAvailable;
         if (isJobNameAvailable) {
-          const res = await isJobNameAvailable({ accountId, name: value });
+          const res = await isJobNameAvailable(
+            create(IsJobNameAvailableRequestSchema, {
+              accountId,
+              name: value,
+            })
+          );
           if (!res.isAvailable) {
             return context.createError({
               message: 'This Job Name is already taken.',
@@ -133,7 +140,7 @@ export const DefineFormValues = Yup.object({
     ),
   initiateJobRun: Yup.boolean(),
   workflowSettings: WorkflowSettingsSchema.optional(),
-  syncActivityOptions: ActivityOptionsSchema.optional(),
+  syncActivityOptions: ActivityOptionsFormValues.optional(),
 });
 
 export type DefineFormValues = Yup.InferType<typeof DefineFormValues>;
@@ -443,7 +450,7 @@ export interface DefineFormValuesContext {
   isJobNameAvailable: UseMutateAsyncFunction<
     IsJobNameAvailableResponse,
     ConnectError,
-    PartialMessage<IsJobNameAvailableRequest>,
+    MessageInitShape<typeof IsJobNameAvailableRequestSchema>,
     unknown
   >;
 }

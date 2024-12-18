@@ -1,8 +1,8 @@
 import { getErrorMessage } from '@/util/util';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import {
   ConnectError,
-  IsConnectionNameAvailableRequest,
+  IsConnectionNameAvailableRequestSchema,
   IsConnectionNameAvailableResponse,
 } from '@neosync/sdk';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
@@ -50,15 +50,17 @@ const connectionNameSchema = Yup.string()
           | UseMutateAsyncFunction<
               IsConnectionNameAvailableResponse,
               ConnectError,
-              PartialMessage<IsConnectionNameAvailableRequest>,
+              MessageInitShape<typeof IsConnectionNameAvailableRequestSchema>,
               unknown
             >
           | undefined = context?.options?.context?.isConnectionNameAvailable;
         if (isConnectionNameAvailable) {
-          const res = await isConnectionNameAvailable({
-            accountId: accountId,
-            connectionName: value,
-          });
+          const res = await isConnectionNameAvailable(
+            create(IsConnectionNameAvailableRequestSchema, {
+              accountId: accountId,
+              connectionName: value,
+            })
+          );
           if (!res.isAvailable) {
             return context.createError({
               message: 'This Connection Name is already taken.',
@@ -295,10 +297,11 @@ export type GcpCloudStorageFormValues = Yup.InferType<
 
 export interface CreateConnectionFormContext {
   accountId: string;
+
   isConnectionNameAvailable: UseMutateAsyncFunction<
     IsConnectionNameAvailableResponse,
     ConnectError,
-    PartialMessage<IsConnectionNameAvailableRequest>,
+    MessageInitShape<typeof IsConnectionNameAvailableRequestSchema>,
     unknown
   >;
 }

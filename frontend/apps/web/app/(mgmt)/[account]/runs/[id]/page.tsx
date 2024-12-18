@@ -13,7 +13,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
+import { JobRunStatus as JobRunStatusEnum, JobService } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
 import { CopyButton } from '@/components/CopyButton';
@@ -32,16 +32,9 @@ import {
   refreshJobRunWhenJobRunning,
 } from '@/libs/utils';
 import { formatDateTime, getErrorMessage } from '@/util/util';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { Editor } from '@monaco-editor/react';
-import {
-  cancelJobRun,
-  deleteJobRun,
-  getJobRun,
-  getJobRunEvents,
-  getRunContext,
-  terminateJobRun,
-} from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useTheme } from 'next-themes';
@@ -66,7 +59,7 @@ export default function Page({ params }: PageProps): ReactElement {
     isLoading,
     refetch: mutate,
   } = useQuery(
-    getJobRun,
+    JobService.method.getJobRun,
     { jobRunId: id, accountId: accountId },
     {
       enabled: !!id && !!accountId,
@@ -85,7 +78,7 @@ export default function Page({ params }: PageProps): ReactElement {
     isFetching: isValidating,
     refetch: eventMutate,
   } = useQuery(
-    getJobRunEvents,
+    JobService.method.getJobRunEvents,
     { jobRunId: id, accountId: accountId },
     {
       enabled: !!id && !!accountId,
@@ -97,10 +90,18 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   );
 
-  const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
-  const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
-  const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
-  const { mutateAsync: getRunContextAsync } = useMutation(getRunContext);
+  const { mutateAsync: removeJobRunAsync } = useMutation(
+    JobService.method.deleteJobRun
+  );
+  const { mutateAsync: cancelJobRunAsync } = useMutation(
+    JobService.method.cancelJobRun
+  );
+  const { mutateAsync: terminateJobRunAsync } = useMutation(
+    JobService.method.terminateJobRun
+  );
+  const { mutateAsync: getRunContextAsync } = useMutation(
+    JobService.method.getRunContext
+  );
 
   const [isViewSelectDialogOpen, setIsSelectDialogOpen] =
     useState<boolean>(false);
@@ -118,8 +119,8 @@ export default function Page({ params }: PageProps): ReactElement {
     let timer: NodeJS.Timeout;
     if (jobRun?.startedAt && jobRun?.status === JobRunStatusEnum.RUNNING) {
       const updateDuration = () => {
-        if (jobRun?.startedAt?.toDate()) {
-          setDuration(getDuration(new Date(), jobRun?.startedAt?.toDate()));
+        if (jobRun?.startedAt) {
+          setDuration(getDuration(new Date(), timestampDate(jobRun.startedAt)));
         }
       };
 
@@ -128,7 +129,10 @@ export default function Page({ params }: PageProps): ReactElement {
       timer = setInterval(updateDuration, 1000);
     } else if (jobRun?.completedAt && jobRun?.startedAt) {
       setDuration(
-        getDuration(jobRun.completedAt.toDate(), jobRun.startedAt.toDate())
+        getDuration(
+          timestampDate(jobRun.completedAt),
+          timestampDate(jobRun.startedAt)
+        )
       );
     }
     // cleans up and restarts the interval if the job isn't done yet
@@ -309,11 +313,17 @@ export default function Page({ params }: PageProps): ReactElement {
             />
             <StatCard
               header="Start Time"
-              content={formatDateTime(jobRun?.startedAt?.toDate())}
+              content={formatDateTime(
+                jobRun?.startedAt ? timestampDate(jobRun.startedAt) : new Date()
+              )}
             />
             <StatCard
               header="Completion Time"
-              content={formatDateTime(jobRun?.completedAt?.toDate())}
+              content={formatDateTime(
+                jobRun?.completedAt
+                  ? timestampDate(jobRun.completedAt)
+                  : new Date()
+              )}
             />
             <StatCard header="Duration" content={duration} />
           </div>

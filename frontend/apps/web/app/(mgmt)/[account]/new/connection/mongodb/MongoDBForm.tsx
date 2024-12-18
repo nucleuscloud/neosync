@@ -29,18 +29,15 @@ import {
   CreateConnectionFormContext,
   MongoDbFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  GetConnectionResponse,
+  CheckConnectionConfigResponseSchema,
+  ConnectionService,
+  GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -57,7 +54,7 @@ export default function MongoDBForm(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>();
   const queryclient = useQueryClient();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<MongoDbFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(MongoDbFormValues),
@@ -88,12 +85,15 @@ export default function MongoDBForm(): ReactElement {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
-  const { mutateAsync: createMongoDbConnection } =
-    useMutation(createConnection);
-  const { mutateAsync: checkMongoDbConnection } = useMutation(
-    checkConnectionConfig
+  const { mutateAsync: createMongoDbConnection } = useMutation(
+    ConnectionService.method.createConnection
   );
-  const { mutateAsync: getMongoDbConnection } = useMutation(getConnection);
+  const { mutateAsync: checkMongoDbConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+  const { mutateAsync: getMongoDbConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,10 +154,12 @@ export default function MongoDBForm(): ReactElement {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: newConnection.connection.id,
+          createConnectQueryKey({
+            schema: ConnectionService.method.getConnection,
+            input: { id: newConnection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: newConnection.connection,
           })
         );
@@ -189,7 +191,7 @@ export default function MongoDBForm(): ReactElement {
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
-        new CheckConnectionConfigResponse({
+        create(CheckConnectionConfigResponseSchema, {
           isConnected: false,
           connectionError: err instanceof Error ? err.message : 'unknown error',
         })
@@ -330,7 +332,8 @@ export default function MongoDBForm(): ReactElement {
 
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}

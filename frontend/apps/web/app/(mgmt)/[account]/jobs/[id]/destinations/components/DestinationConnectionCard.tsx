@@ -24,15 +24,7 @@ import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Connection,
-  JobDestination,
-  JobDestinationOptions,
-} from '@neosync/sdk';
-import {
-  deleteJobDestinationConnection,
-  updateJobDestinationConnection,
-} from '@neosync/sdk/connectquery';
+import { Connection, JobDestination, JobService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
@@ -62,10 +54,10 @@ export default function DestinationConnectionCard({
   jobSourceId,
 }: Props): ReactElement {
   const { mutateAsync: setJobDestConnection } = useMutation(
-    updateJobDestinationConnection
+    JobService.method.updateJobDestinationConnection
   );
   const { mutateAsync: removeJobDestConnection } = useMutation(
-    deleteJobDestinationConnection
+    JobService.method.deleteJobDestinationConnection
   );
 
   const form = useForm({
@@ -80,9 +72,7 @@ export default function DestinationConnectionCard({
         jobId,
         connectionId: values.connectionId,
         destinationId: destination.id,
-        options: new JobDestinationOptions(
-          toJobDestinationOptions(values, connection)
-        ),
+        options: toJobDestinationOptions(values, connection),
       });
       mutate();
       toast.success('Successfully updated job destination!');

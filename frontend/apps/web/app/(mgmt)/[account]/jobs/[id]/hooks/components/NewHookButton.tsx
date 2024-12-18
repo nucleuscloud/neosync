@@ -9,10 +9,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { getErrorMessage } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { Connection, NewJobHook } from '@neosync/sdk';
-import { createJobHook } from '@neosync/sdk/connectquery';
+import { Connection, JobService, NewJobHook } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,16 +24,22 @@ interface Props {
 
 export default function NewHookButton(props: Props): ReactElement {
   const { jobId, jobConnections, onCreated } = props;
-  const { mutateAsync: createHook } = useMutation(createJobHook);
+  const { mutateAsync: createHook } = useMutation(
+    JobService.method.createJobHook
+  );
   const [open, setOpen] = useState(false);
 
-  async function onCreate(
-    values: Partial<PlainMessage<NewJobHook>>
-  ): Promise<void> {
+  async function onCreate(values: Partial<NewJobHook>): Promise<void> {
     try {
       await createHook({
         jobId,
-        hook: values,
+        hook: {
+          config: values.config,
+          description: values.description,
+          enabled: values.enabled,
+          name: values.name,
+          priority: values.priority,
+        },
       });
       toast.success('Successfully created job hook!');
       onCreated();

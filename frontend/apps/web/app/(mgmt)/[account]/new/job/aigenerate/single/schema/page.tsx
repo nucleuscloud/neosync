@@ -3,7 +3,6 @@
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
   clearNewJobSession,
-  fromStructToRecord,
   getCreateNewSingleTableAiGenerateJobRequest,
   getNewJobSessionKeys,
   getSampleAiGeneratedRecordsRequest,
@@ -38,12 +37,10 @@ import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  createJob,
-  getAiGeneratedData,
-  getConnections,
-  getConnectionSchemaMap,
-  getConnectionTableConstraints,
-} from '@neosync/sdk/connectquery';
+  ConnectionDataService,
+  ConnectionService,
+  JobService,
+} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
@@ -77,14 +74,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
 
-  const { mutateAsync: createJobAsync } = useMutation(createJob);
-  const { mutateAsync: sampleRecords } = useMutation(getAiGeneratedData);
+  const { mutateAsync: createJobAsync } = useMutation(
+    JobService.method.createJob
+  );
+  const { mutateAsync: sampleRecords } = useMutation(
+    ConnectionDataService.method.getAiGeneratedData
+  );
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
@@ -113,7 +114,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isLoading: isSchemaMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: connectFormValues.fkSourceConnectionId },
     { enabled: !!connectFormValues.fkSourceConnectionId }
   );
@@ -182,7 +183,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: connectFormValues.fkSourceConnectionId },
       { enabled: !!connectFormValues.fkSourceConnectionId }
     );
@@ -222,7 +223,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           schema: form.getValues(),
         })
       );
-      setaioutput(output.records.map((r) => fromStructToRecord(r)));
+      setaioutput(output.records);
     } catch (err) {
       toast.error('Unable to generate sample data', {
         description: getErrorMessage(err),

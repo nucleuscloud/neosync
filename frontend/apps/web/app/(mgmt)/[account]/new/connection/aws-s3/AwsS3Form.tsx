@@ -24,14 +24,10 @@ import {
   AWS_FORM_SCHEMA,
   CreateConnectionFormContext,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
-import {
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
+import { ConnectionService, GetConnectionResponseSchema } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -47,7 +43,7 @@ export default function AwsS3Form() {
   const [isLoading, setIsLoading] = useState<boolean>();
   const queryclient = useQueryClient();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<AWSFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
@@ -63,8 +59,12 @@ export default function AwsS3Form() {
     },
   });
   const router = useRouter();
-  const { mutateAsync: createAwsS3Connection } = useMutation(createConnection);
-  const { mutateAsync: getAwsS3Connection } = useMutation(getConnection);
+  const { mutateAsync: createAwsS3Connection } = useMutation(
+    ConnectionService.method.createConnection
+  );
+  const { mutateAsync: getAwsS3Connection } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   async function onSubmit(values: AWSFormValues) {
     if (!account) {
@@ -82,10 +82,12 @@ export default function AwsS3Form() {
         router.push(returnTo);
       } else if (connection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: connection.connection.id,
+          createConnectQueryKey({
+            schema: ConnectionService.method.getConnection,
+            input: { id: connection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: connection.connection,
           })
         );

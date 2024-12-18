@@ -9,13 +9,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getGenerateEmailTypeString } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateEmail, GenerateEmailType } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  GenerateEmail,
+  GenerateEmailSchema,
+  GenerateEmailType,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<GenerateEmail, PlainMessage<GenerateEmail>> {}
+interface Props extends TransformerConfigProps<GenerateEmail> {}
 
 export default function GenerateEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -35,7 +38,7 @@ export default function GenerateEmailForm(props: Props): ReactElement {
             disabled={isDisabled}
             onValueChange={(newValue) => {
               setValue(
-                new GenerateEmail({
+                create(GenerateEmailSchema, {
                   ...value,
                   // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                   emailType: parseInt(newValue, 10),

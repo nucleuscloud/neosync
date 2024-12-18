@@ -1,10 +1,15 @@
-import { JsonValue } from '@bufbuild/protobuf';
-import { GetJobRunLogsStreamResponse, LogLevel } from '@neosync/sdk';
+import { fromJson, isMessage } from '@bufbuild/protobuf';
+import {
+  GetJobRunLogsStreamResponse,
+  GetJobRunLogsStreamResponseSchema,
+  LogLevel,
+} from '@neosync/sdk';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { fetcher } from '../fetcher';
 
 interface GetJobRunLogsOptions {
-  refreshIntervalFn?(data: JsonValue): number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  refreshIntervalFn?(data: any): number;
 }
 
 export function useGetJobRunLogs(
@@ -30,15 +35,15 @@ export function useGetJobRunLogs(
     queryFn: (ctx) => fetcher(ctx.queryKey.join('/')),
     refetchInterval(query) {
       return query.state.data && refreshIntervalFn
-        ? refreshIntervalFn(query.state.data as JsonValue)
+        ? refreshIntervalFn(query.state.data)
         : 0;
     },
     select(data) {
       const dataArr = Array.isArray(data) ? data : [data];
       return dataArr.map((d) =>
-        d instanceof GetJobRunLogsStreamResponse
+        isMessage(GetJobRunLogsStreamResponseSchema, d)
           ? d
-          : GetJobRunLogsStreamResponse.fromJson(d)
+          : fromJson(GetJobRunLogsStreamResponseSchema, d)
       );
     },
     enabled: !!runId && !!accountId && !!loglevel,
@@ -47,13 +52,16 @@ export function useGetJobRunLogs(
 
 const TEN_SECONDS = 5 * 1000;
 
-export function refreshLogsWhenRunNotComplete(data: JsonValue): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function refreshLogsWhenRunNotComplete(data: any): number {
   const dataArr = Array.isArray(data) ? data : [data];
   return dataArr.some((d) => {
-    const converted =
-      d instanceof GetJobRunLogsStreamResponse
-        ? d
-        : GetJobRunLogsStreamResponse.fromJson(d);
+    const converted: GetJobRunLogsStreamResponse = isMessage(
+      GetJobRunLogsStreamResponseSchema,
+      d
+    )
+      ? d
+      : fromJson(GetJobRunLogsStreamResponseSchema, d);
     return (
       converted.logLine.includes('context canceled') ||
       converted.logLine.includes('workflow completed')

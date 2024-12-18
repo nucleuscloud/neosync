@@ -416,45 +416,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/connect.error'
       security: []
-  /mgmt.v1alpha1.AuthService/GetCliIssuer:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: GetCliIssuer
-      description: |-
-        Used by the CLI to retrieve Auth Issuer information
-         @deprecated
-      operationId: mgmt.v1alpha1.AuthService.GetCliIssuer
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerRequest'
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerResponse'
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-      security: []
   /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
     post:
       tags:
@@ -1039,90 +1000,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/connect.error'
       security: []
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionForeignConstraints
-      description: >-
-        For a specific connection, returns the foreign key constraints. Mostly
-        useful for SQL-based Connections.
-         Used primarily by the CLI sync command to determine stream order.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: >-
-                #/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: >-
-                  #/components/schemas/mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-      security: []
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionPrimaryConstraints
-      description: >-
-        For a specific connection, returns the primary key constraints. Mostly
-        useful for SQL-based Connections.
-         Used primarily by the CLI sync command to determine stream order.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: >-
-                #/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: >-
-                  #/components/schemas/mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-      security: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
     post:
       tags:
@@ -1158,47 +1035,6 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsResponse
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-      security: []
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionUniqueConstraints
-      description: >-
-        For a specific connection, returns the unique constraints. Mostly useful
-        for SQL-based connections.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: >-
-                #/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: >-
-                  #/components/schemas/mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse
         default:
           description: Error
           content:
@@ -6308,25 +6144,6 @@ components:
             the Oauth flow
       title: GetAuthorizeUrlResponse
       additionalProperties: false
-    mgmt.v1alpha1.GetCliIssuerRequest:
-      type: object
-      title: GetCliIssuerRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetCliIssuerResponse:
-      type: object
-      properties:
-        issuerUrl:
-          type: string
-          title: issuer_url
-          description: The backing authentication issuer url
-        audience:
-          type: string
-          title: audience
-          description: >-
-            The audience that will be used in the access token. This corresponds
-            to the "aud" claim
-      title: GetCliIssuerResponse
-      additionalProperties: false
     mgmt.v1alpha1.LoginCliRequest:
       type: object
       properties:
@@ -6404,9 +6221,6 @@ components:
                   - required:
                       - region
       properties:
-        bucketArn:
-          type: string
-          title: bucket_arn
         pathPrefix:
           type: string
           title: path_prefix
@@ -7968,14 +7782,6 @@ components:
     mgmt.v1alpha1.ForeignConstraint:
       type: object
       properties:
-        column:
-          type: string
-          title: column
-          description: '@deprecated - use columns'
-        isNullable:
-          type: boolean
-          title: is_nullable
-          description: '@deprecated - use not_nullable'
         foreignKey:
           allOf:
             - title: foreign_key
@@ -8008,10 +7814,6 @@ components:
         table:
           type: string
           title: table
-        column:
-          type: string
-          title: column
-          description: '@deprecated - use columns'
         columns:
           type: array
           items:
@@ -8195,43 +7997,6 @@ components:
           format: byte
       title: RowEntry
       additionalProperties: false
-    mgmt.v1alpha1.GetConnectionForeignConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionForeignConstraintsRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
-          description: >-
-            the key here is <schema>.<table> and the list of tables that it
-            depends on, also `<schema>.<table>` format.
-      title: GetConnectionForeignConstraintsResponse
-      additionalProperties: false
-      description: Dependency constraints for a specific table
-    mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
-      title: TableConstraintsEntry
-      additionalProperties: false
     mgmt.v1alpha1.GetConnectionInitStatementsRequest:
       type: object
       properties:
@@ -8295,41 +8060,6 @@ components:
           type: string
           title: value
       title: TableTruncateStatementsEntry
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionPrimaryConstraintsRequest
-      additionalProperties: false
-      description: Primary constraints for a specific table
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
-          description: the key here is <schema>.<table> and value is the primary constraint
-      title: GetConnectionPrimaryConstraintsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
-      title: TableConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionSchemaMapRequest:
       type: object
@@ -8497,41 +8227,6 @@ components:
             - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
       title: UniqueConstraintsEntry
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest:
-      type: object
-      properties:
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-      title: GetConnectionUniqueConstraintsRequest
-      additionalProperties: false
-      description: Unique constraints for a specific table
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse:
-      type: object
-      properties:
-        tableConstraints:
-          type: object
-          title: table_constraints
-          additionalProperties:
-            allOf:
-              - title: value
-              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
-          description: the key here is <schema>.<table> and value is the unique constraint
-      title: GetConnectionUniqueConstraintsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          allOf:
-            - title: value
-            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
-      title: TableConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
       type: object
@@ -8723,59 +8418,6 @@ components:
         - LOG_WINDOW_FIFTEEN_MIN
         - LOG_WINDOW_ONE_HOUR
         - LOG_WINDOW_ONE_DAY
-    mgmt.v1alpha1.TransformerSource:
-      type: string
-      title: TransformerSource
-      enum:
-        - TRANSFORMER_SOURCE_UNSPECIFIED
-        - TRANSFORMER_SOURCE_PASSTHROUGH
-        - TRANSFORMER_SOURCE_GENERATE_DEFAULT
-        - TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-        - TRANSFORMER_SOURCE_GENERATE_EMAIL
-        - TRANSFORMER_SOURCE_TRANSFORM_EMAIL
-        - TRANSFORMER_SOURCE_GENERATE_BOOL
-        - TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_CITY
-        - TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_FIRST_NAME
-        - TRANSFORMER_SOURCE_GENERATE_FLOAT64
-        - TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS
-        - TRANSFORMER_SOURCE_GENERATE_FULL_NAME
-        - TRANSFORMER_SOURCE_GENERATE_GENDER
-        - TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_INT64
-        - TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64
-        - TRANSFORMER_SOURCE_GENERATE_LAST_NAME
-        - TRANSFORMER_SOURCE_GENERATE_SHA256HASH
-        - TRANSFORMER_SOURCE_GENERATE_SSN
-        - TRANSFORMER_SOURCE_GENERATE_STATE
-        - TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS
-        - TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_STRING
-        - TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING
-        - TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP
-        - TRANSFORMER_SOURCE_GENERATE_USERNAME
-        - TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP
-        - TRANSFORMER_SOURCE_GENERATE_UUID
-        - TRANSFORMER_SOURCE_GENERATE_ZIPCODE
-        - TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_FLOAT64
-        - TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_INT64
-        - TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_STRING
-        - TRANSFORMER_SOURCE_GENERATE_NULL
-        - TRANSFORMER_SOURCE_GENERATE_CATEGORICAL
-        - TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE
-        - TRANSFORMER_SOURCE_USER_DEFINED
-        - TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-        - TRANSFORMER_SOURCE_GENERATE_COUNTRY
-        - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
-        - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
-        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     mgmt.v1alpha1.ActivityFailure:
       type: object
       properties:
@@ -10286,13 +9928,6 @@ components:
     mgmt.v1alpha1.JobMappingTransformer:
       type: object
       properties:
-        source:
-          allOf:
-            - title: source
-              description: >-
-                @deprecated - This is no longer used in favor just providing the
-                TransformerConfig
-            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         config:
           allOf:
             - title: config
@@ -11120,26 +10755,7 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
-      allOf:
-        - anyOf:
-            - required:
-                - haltOnNewColumnAddition
-            - not:
-                anyOf:
-                  - required:
-                      - haltOnNewColumnAddition
-      anyOf:
-        - required:
-            - haltOnNewColumnAddition
-        - not:
-            anyOf:
-              - required:
-                  - haltOnNewColumnAddition
       properties:
-        haltOnNewColumnAddition:
-          type: boolean
-          title: halt_on_new_column_addition
-          description: '@deprecated - Use new_column_addition_strategy instead'
         schemas:
           type: array
           items:
@@ -11191,9 +10807,7 @@ components:
         haltJob:
           allOf:
             - title: halt_job
-              description: >-
-                halt job if a new column is detected. This is equiavlent to the
-                deprecated halt_on_new_column_addition
+              description: halt job if a new column is detected.
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         autoMap:
@@ -11908,16 +11522,6 @@ components:
               - required:
                   - runId
       properties:
-        start:
-          allOf:
-            - title: start
-              description: '@deprecated - use start_day'
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        end:
-          allOf:
-            - title: end
-              description: '@deprecated - use end_day'
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
         metric:
           allOf:
             - title: metric
@@ -11981,6 +11585,59 @@ components:
         - TRANSFORMER_DATA_TYPE_ANY
         - TRANSFORMER_DATA_TYPE_TIME
         - TRANSFORMER_DATA_TYPE_UUID
+    mgmt.v1alpha1.TransformerSource:
+      type: string
+      title: TransformerSource
+      enum:
+        - TRANSFORMER_SOURCE_UNSPECIFIED
+        - TRANSFORMER_SOURCE_PASSTHROUGH
+        - TRANSFORMER_SOURCE_GENERATE_DEFAULT
+        - TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
+        - TRANSFORMER_SOURCE_GENERATE_EMAIL
+        - TRANSFORMER_SOURCE_TRANSFORM_EMAIL
+        - TRANSFORMER_SOURCE_GENERATE_BOOL
+        - TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER
+        - TRANSFORMER_SOURCE_GENERATE_CITY
+        - TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_GENERATE_FIRST_NAME
+        - TRANSFORMER_SOURCE_GENERATE_FLOAT64
+        - TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS
+        - TRANSFORMER_SOURCE_GENERATE_FULL_NAME
+        - TRANSFORMER_SOURCE_GENERATE_GENDER
+        - TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_GENERATE_INT64
+        - TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64
+        - TRANSFORMER_SOURCE_GENERATE_LAST_NAME
+        - TRANSFORMER_SOURCE_GENERATE_SHA256HASH
+        - TRANSFORMER_SOURCE_GENERATE_SSN
+        - TRANSFORMER_SOURCE_GENERATE_STATE
+        - TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS
+        - TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_GENERATE_STRING
+        - TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING
+        - TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP
+        - TRANSFORMER_SOURCE_GENERATE_USERNAME
+        - TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP
+        - TRANSFORMER_SOURCE_GENERATE_UUID
+        - TRANSFORMER_SOURCE_GENERATE_ZIPCODE
+        - TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME
+        - TRANSFORMER_SOURCE_TRANSFORM_FLOAT64
+        - TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME
+        - TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_TRANSFORM_INT64
+        - TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME
+        - TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER
+        - TRANSFORMER_SOURCE_TRANSFORM_STRING
+        - TRANSFORMER_SOURCE_GENERATE_NULL
+        - TRANSFORMER_SOURCE_GENERATE_CATEGORICAL
+        - TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE
+        - TRANSFORMER_SOURCE_USER_DEFINED
+        - TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+        - TRANSFORMER_SOURCE_GENERATE_COUNTRY
+        - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
+        - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
+        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     mgmt.v1alpha1.CreateUserDefinedTransformerRequest:
       type: object
       properties:
@@ -11995,10 +11652,6 @@ components:
         description:
           type: string
           title: description
-        type:
-          type: string
-          title: type
-          description: '@deprecated'
         source:
           allOf:
             - title: source
@@ -12255,10 +11908,6 @@ components:
     mgmt.v1alpha1.ValidateUserJavascriptCodeRequest:
       type: object
       properties:
-        accountId:
-          type: string
-          title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
         code:
           type: string
           title: code
@@ -12276,10 +11925,6 @@ components:
     mgmt.v1alpha1.ValidateUserRegexCodeRequest:
       type: object
       properties:
-        accountId:
-          type: string
-          title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
         userProvidedRegex:
           type: string
           title: user_provided_regex
@@ -12307,8 +11952,6 @@ components:
       title: AccountStatus
       enum:
         - ACCOUNT_STATUS_REASON_UNSPECIFIED
-        - ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT
-        - ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT
         - ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
         - ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
         - ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
@@ -12390,22 +12033,6 @@ components:
     mgmt.v1alpha1.AccountOnboardingConfig:
       type: object
       properties:
-        hasCreatedSourceConnection:
-          type: boolean
-          title: has_created_source_connection
-          description: '@deprecated - use has_completed_onboarding'
-        hasCreatedDestinationConnection:
-          type: boolean
-          title: has_created_destination_connection
-          description: '@deprecated - use has_completed_onboarding'
-        hasCreatedJob:
-          type: boolean
-          title: has_created_job
-          description: '@deprecated - use has_completed_onboarding'
-        hasInvitedMembers:
-          type: boolean
-          title: has_invited_members
-          description: '@deprecated - use has_completed_onboarding'
         hasCompletedOnboarding:
           type: boolean
           title: has_completed_onboarding
@@ -12878,13 +12505,6 @@ components:
       allOf:
         - anyOf:
             - required:
-                - allowedRecordCount
-            - not:
-                anyOf:
-                  - required:
-                      - allowedRecordCount
-        - anyOf:
-            - required:
                 - reason
             - not:
                 anyOf:
@@ -12911,24 +12531,6 @@ components:
           description: >-
             Whether or not the process should decide to continue polling for
             validitiy updates
-        usedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: used_record_count
-          description: >-
-            A count of the currently used records for the current billing
-            period.
-             This may go over the allowed record count depending on when the record count is polled by the metric system.
-             @deprecated
-        allowedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: allowed_record_count
-          description: |-
-            The allowed record count. It will be null if there is no limit.
-             @deprecated
         accountStatus:
           allOf:
             - title: account_status

@@ -2,16 +2,15 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateStringPhoneNumber } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  GenerateStringPhoneNumber,
+  GenerateStringPhoneNumberSchema,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateStringPhoneNumber,
-    PlainMessage<GenerateStringPhoneNumber>
-  > {}
+interface Props extends TransformerConfigProps<GenerateStringPhoneNumber> {}
 
 export default function GenerateStringPhoneNumberNumberForm(
   props: Props
@@ -36,7 +35,7 @@ export default function GenerateStringPhoneNumberNumberForm(
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateStringPhoneNumber({
+                      create(GenerateStringPhoneNumberSchema, {
                         ...value,
                         min: BigInt(e.target.valueAsNumber),
                       })
@@ -66,7 +65,7 @@ export default function GenerateStringPhoneNumberNumberForm(
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateStringPhoneNumber({
+                      create(GenerateStringPhoneNumberSchema, {
                         ...value,
                         max: BigInt(e.target.valueAsNumber),
                       })

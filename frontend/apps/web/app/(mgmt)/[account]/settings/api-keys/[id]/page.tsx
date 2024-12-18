@@ -11,9 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDateTime } from '@/util/util';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useQuery } from '@connectrpc/connect-query';
-import { AccountApiKey } from '@neosync/sdk';
-import { getAccountApiKey } from '@neosync/sdk/connectquery';
+import { AccountApiKey, ApiKeyService } from '@neosync/sdk';
 import { InfoCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
   const { data, isLoading } = useQuery(
-    getAccountApiKey,
+    ApiKeyService.method.getAccountApiKey,
     { id },
     { enabled: !!id }
   );
@@ -136,19 +136,25 @@ function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement {
           <div className="flex flex-row gap-2">
             <p className=" text-sm tracking-tight w-[100px]">Created At:</p>
             <Badge variant="outline">
-              {formatDateTime(apiKey.createdAt?.toDate())}
+              {formatDateTime(
+                apiKey.createdAt ? timestampDate(apiKey.createdAt) : new Date()
+              )}
             </Badge>
           </div>
           <div className="flex flex-row gap-2">
             <p className="text-sm tracking-tight w-[100px]">Updated At:</p>
             <Badge variant="outline">
-              {formatDateTime(apiKey.updatedAt?.toDate())}
+              {formatDateTime(
+                apiKey.updatedAt ? timestampDate(apiKey.updatedAt) : new Date()
+              )}
             </Badge>
           </div>
           <div className="flex flex-row gap-2">
             <p className=" text-sm tracking-tight w-[100px]">Expires At:</p>
             <Badge variant="outline">
-              {formatDateTime(apiKey.expiresAt?.toDate())}
+              {formatDateTime(
+                apiKey.expiresAt ? timestampDate(apiKey.expiresAt) : new Date()
+              )}
             </Badge>
           </div>
           <div className="flex flex-row gap-2">

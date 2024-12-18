@@ -3,16 +3,12 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateGender } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateGender, GenerateGenderSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateGender,
-    PlainMessage<GenerateGender>
-  > {}
+interface Props extends TransformerConfigProps<GenerateGender> {}
 
 export default function GenerateGenderForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -31,7 +27,12 @@ export default function GenerateGenderForm(props: Props): ReactElement {
           <Switch
             checked={value.abbreviate}
             onCheckedChange={(checked) =>
-              setValue(new GenerateGender({ ...value, abbreviate: checked }))
+              setValue(
+                create(GenerateGenderSchema, {
+                  ...value,
+                  abbreviate: checked,
+                })
+              )
             }
             disabled={isDisabled}
           />

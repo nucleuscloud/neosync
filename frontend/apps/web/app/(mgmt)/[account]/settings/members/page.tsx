@@ -5,8 +5,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@connectrpc/connect-query';
-import { UserAccountType } from '@neosync/sdk';
-import { getTeamAccountInvites } from '@neosync/sdk/connectquery';
+import { UserAccountService, UserAccountType } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { InvitesTable } from './components/InviteTable';
 import InviteUserForm from './components/InviteUserForm';
@@ -19,7 +18,7 @@ export default function MemberManagementSettings(_: Props): ReactElement {
   const accountId = account?.id || '';
 
   const { refetch } = useQuery(
-    getTeamAccountInvites,
+    UserAccountService.method.getTeamAccountInvites,
     { accountId: accountId },
     { enabled: !!accountId }
   );

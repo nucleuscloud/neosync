@@ -10,8 +10,7 @@ import {
 import { getErrorMessage } from '@/util/util';
 import { UpdateMemberRoleFormValues } from '@/yup-validations/invite-members';
 import { useMutation } from '@connectrpc/connect-query';
-import { AccountUser } from '@neosync/sdk';
-import { setUserRole } from '@neosync/sdk/connectquery';
+import { AccountUser, UserAccountService } from '@neosync/sdk';
 import { ReactElement, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import UpdateMemberRoleForm from './UpdateMemberRoleForm';
@@ -24,7 +23,9 @@ interface Props {
 
 export default function UpdateMemberRoleDialog(props: Props): ReactElement {
   const { member, onUpdated, dialogButton } = props;
-  const { mutateAsync: updateUserRole } = useMutation(setUserRole);
+  const { mutateAsync: updateUserRole } = useMutation(
+    UserAccountService.method.setUserRole
+  );
   const { account } = useAccount();
   const [open, setOpen] = useState(false);
 

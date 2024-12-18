@@ -2,7 +2,8 @@ import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Button } from '@/components/ui/button';
-import { JobMapping } from '@neosync/sdk';
+import { fromJson } from '@bufbuild/protobuf';
+import { JobMapping, JobMappingSchema } from '@neosync/sdk';
 import { filesize } from 'filesize';
 import {
   ReactElement,
@@ -199,7 +200,7 @@ function Body(props: BodyProps): ReactElement {
 
             try {
               if (Array.isArray(data)) {
-                const mappings = data.map((d) => JobMapping.fromJson(d));
+                const mappings = data.map((d) => fromJson(JobMappingSchema, d));
                 resolve({
                   success: true,
                   data: mappings,

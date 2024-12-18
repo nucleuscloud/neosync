@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18mgmt/v1alpha1/auth.proto\x12\rmgmt.v1alpha1\x1a\x1b\x62uf/validate/validate.proto\"Z\n\x0fLoginCliRequest\x12\x1b\n\x04\x63ode\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x04\x63ode\x12*\n\x0credirect_uri\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0bredirectUri\"Q\n\x10LoginCliResponse\x12=\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\x0b\x32\x1a.mgmt.v1alpha1.AccessTokenR\x0b\x61\x63\x63\x65ssToken\"\x16\n\x14GetAuthStatusRequest\"6\n\x15GetAuthStatusResponse\x12\x1d\n\nis_enabled\x18\x01 \x01(\x08R\tisEnabled\"\xed\x01\n\x0b\x41\x63\x63\x65ssToken\x12!\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\tR\x0b\x61\x63\x63\x65ssToken\x12(\n\rrefresh_token\x18\x02 \x01(\tH\x00R\x0crefreshToken\x88\x01\x01\x12\x1d\n\nexpires_in\x18\x03 \x01(\x03R\texpiresIn\x12\x14\n\x05scope\x18\x04 \x01(\tR\x05scope\x12\x1e\n\x08id_token\x18\x05 \x01(\tH\x01R\x07idToken\x88\x01\x01\x12\x1d\n\ntoken_type\x18\x06 \x01(\tR\ttokenTypeB\x10\n\x0e_refresh_tokenB\x0b\n\t_id_token\"\x82\x01\n\x16GetAuthorizeUrlRequest\x12\x1d\n\x05state\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x05state\x12*\n\x0credirect_uri\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0bredirectUri\x12\x1d\n\x05scope\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x05scope\"+\n\x17GetAuthorizeUrlResponse\x12\x10\n\x03url\x18\x01 \x01(\tR\x03url\"\x15\n\x13GetCliIssuerRequest\"Q\n\x14GetCliIssuerResponse\x12\x1d\n\nissuer_url\x18\x01 \x01(\tR\tissuerUrl\x12\x1a\n\x08\x61udience\x18\x02 \x01(\tR\x08\x61udience\"A\n\x11RefreshCliRequest\x12,\n\rrefresh_token\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0crefreshToken\"S\n\x12RefreshCliResponse\x12=\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\x0b\x32\x1a.mgmt.v1alpha1.AccessTokenR\x0b\x61\x63\x63\x65ssToken\"\x13\n\x11\x43heckTokenRequest\"\x14\n\x12\x43heckTokenResponse2\xa3\x04\n\x0b\x41uthService\x12M\n\x08LoginCli\x12\x1e.mgmt.v1alpha1.LoginCliRequest\x1a\x1f.mgmt.v1alpha1.LoginCliResponse\"\x00\x12S\n\nRefreshCli\x12 .mgmt.v1alpha1.RefreshCliRequest\x1a!.mgmt.v1alpha1.RefreshCliResponse\"\x00\x12S\n\nCheckToken\x12 .mgmt.v1alpha1.CheckTokenRequest\x1a!.mgmt.v1alpha1.CheckTokenResponse\"\x00\x12Y\n\x0cGetCliIssuer\x12\".mgmt.v1alpha1.GetCliIssuerRequest\x1a#.mgmt.v1alpha1.GetCliIssuerResponse\"\x00\x12\x62\n\x0fGetAuthorizeUrl\x12%.mgmt.v1alpha1.GetAuthorizeUrlRequest\x1a&.mgmt.v1alpha1.GetAuthorizeUrlResponse\"\x00\x12\\\n\rGetAuthStatus\x12#.mgmt.v1alpha1.GetAuthStatusRequest\x1a$.mgmt.v1alpha1.GetAuthStatusResponse\"\x00\x42\xc5\x01\n\x11\x63om.mgmt.v1alpha1B\tAuthProtoP\x01ZPgithub.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1;mgmtv1alpha1\xa2\x02\x03MXX\xaa\x02\rMgmt.V1alpha1\xca\x02\rMgmt\\V1alpha1\xe2\x02\x19Mgmt\\V1alpha1\\GPBMetadata\xea\x02\x0eMgmt::V1alpha1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18mgmt/v1alpha1/auth.proto\x12\rmgmt.v1alpha1\x1a\x1b\x62uf/validate/validate.proto\"Z\n\x0fLoginCliRequest\x12\x1b\n\x04\x63ode\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x04\x63ode\x12*\n\x0credirect_uri\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0bredirectUri\"Q\n\x10LoginCliResponse\x12=\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\x0b\x32\x1a.mgmt.v1alpha1.AccessTokenR\x0b\x61\x63\x63\x65ssToken\"\x16\n\x14GetAuthStatusRequest\"6\n\x15GetAuthStatusResponse\x12\x1d\n\nis_enabled\x18\x01 \x01(\x08R\tisEnabled\"\xed\x01\n\x0b\x41\x63\x63\x65ssToken\x12!\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\tR\x0b\x61\x63\x63\x65ssToken\x12(\n\rrefresh_token\x18\x02 \x01(\tH\x00R\x0crefreshToken\x88\x01\x01\x12\x1d\n\nexpires_in\x18\x03 \x01(\x03R\texpiresIn\x12\x14\n\x05scope\x18\x04 \x01(\tR\x05scope\x12\x1e\n\x08id_token\x18\x05 \x01(\tH\x01R\x07idToken\x88\x01\x01\x12\x1d\n\ntoken_type\x18\x06 \x01(\tR\ttokenTypeB\x10\n\x0e_refresh_tokenB\x0b\n\t_id_token\"\x82\x01\n\x16GetAuthorizeUrlRequest\x12\x1d\n\x05state\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x05state\x12*\n\x0credirect_uri\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0bredirectUri\x12\x1d\n\x05scope\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x05scope\"+\n\x17GetAuthorizeUrlResponse\x12\x10\n\x03url\x18\x01 \x01(\tR\x03url\"A\n\x11RefreshCliRequest\x12,\n\rrefresh_token\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01R\x0crefreshToken\"S\n\x12RefreshCliResponse\x12=\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\x0b\x32\x1a.mgmt.v1alpha1.AccessTokenR\x0b\x61\x63\x63\x65ssToken\"\x13\n\x11\x43heckTokenRequest\"\x14\n\x12\x43heckTokenResponse2\xc8\x03\n\x0b\x41uthService\x12M\n\x08LoginCli\x12\x1e.mgmt.v1alpha1.LoginCliRequest\x1a\x1f.mgmt.v1alpha1.LoginCliResponse\"\x00\x12S\n\nRefreshCli\x12 .mgmt.v1alpha1.RefreshCliRequest\x1a!.mgmt.v1alpha1.RefreshCliResponse\"\x00\x12S\n\nCheckToken\x12 .mgmt.v1alpha1.CheckTokenRequest\x1a!.mgmt.v1alpha1.CheckTokenResponse\"\x00\x12\x62\n\x0fGetAuthorizeUrl\x12%.mgmt.v1alpha1.GetAuthorizeUrlRequest\x1a&.mgmt.v1alpha1.GetAuthorizeUrlResponse\"\x00\x12\\\n\rGetAuthStatus\x12#.mgmt.v1alpha1.GetAuthStatusRequest\x1a$.mgmt.v1alpha1.GetAuthStatusResponse\"\x00\x42\xc5\x01\n\x11\x63om.mgmt.v1alpha1B\tAuthProtoP\x01ZPgithub.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1;mgmtv1alpha1\xa2\x02\x03MXX\xaa\x02\rMgmt.V1alpha1\xca\x02\rMgmt\\V1alpha1\xe2\x02\x19Mgmt\\V1alpha1\\GPBMetadata\xea\x02\x0eMgmt::V1alpha1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -59,18 +59,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETAUTHORIZEURLREQUEST']._serialized_end=698
   _globals['_GETAUTHORIZEURLRESPONSE']._serialized_start=700
   _globals['_GETAUTHORIZEURLRESPONSE']._serialized_end=743
-  _globals['_GETCLIISSUERREQUEST']._serialized_start=745
-  _globals['_GETCLIISSUERREQUEST']._serialized_end=766
-  _globals['_GETCLIISSUERRESPONSE']._serialized_start=768
-  _globals['_GETCLIISSUERRESPONSE']._serialized_end=849
-  _globals['_REFRESHCLIREQUEST']._serialized_start=851
-  _globals['_REFRESHCLIREQUEST']._serialized_end=916
-  _globals['_REFRESHCLIRESPONSE']._serialized_start=918
-  _globals['_REFRESHCLIRESPONSE']._serialized_end=1001
-  _globals['_CHECKTOKENREQUEST']._serialized_start=1003
-  _globals['_CHECKTOKENREQUEST']._serialized_end=1022
-  _globals['_CHECKTOKENRESPONSE']._serialized_start=1024
-  _globals['_CHECKTOKENRESPONSE']._serialized_end=1044
-  _globals['_AUTHSERVICE']._serialized_start=1047
-  _globals['_AUTHSERVICE']._serialized_end=1594
+  _globals['_REFRESHCLIREQUEST']._serialized_start=745
+  _globals['_REFRESHCLIREQUEST']._serialized_end=810
+  _globals['_REFRESHCLIRESPONSE']._serialized_start=812
+  _globals['_REFRESHCLIRESPONSE']._serialized_end=895
+  _globals['_CHECKTOKENREQUEST']._serialized_start=897
+  _globals['_CHECKTOKENREQUEST']._serialized_end=916
+  _globals['_CHECKTOKENRESPONSE']._serialized_start=918
+  _globals['_CHECKTOKENRESPONSE']._serialized_end=938
+  _globals['_AUTHSERVICE']._serialized_start=941
+  _globals['_AUTHSERVICE']._serialized_end=1397
 # @@protoc_insertion_point(module_scope)
