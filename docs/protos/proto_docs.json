@@ -4579,21 +4579,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "bucket_arn",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
-            },
-            {
               "name": "path_prefix",
               "description": "",
               "label": "optional",

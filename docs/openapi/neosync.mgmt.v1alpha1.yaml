@@ -6221,9 +6221,6 @@ components:
                   - required:
                       - region
       properties:
-        bucketArn:
-          type: string
-          title: bucket_arn
         pathPrefix:
           type: string
           title: path_prefix
