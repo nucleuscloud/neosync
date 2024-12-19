@@ -9,9 +9,9 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_Available() {
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	resp, err := s.UnauthdClients.Connections.IsConnectionNameAvailable(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().IsConnectionNameAvailable(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.IsConnectionNameAvailableRequest{
 			AccountId:      accountId,
@@ -23,10 +23,10 @@ func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_
 }
 
 func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_NotAvailable() {
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
-	s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", "test-url")
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", "test-url")
 
-	resp, err := s.UnauthdClients.Connections.IsConnectionNameAvailable(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().IsConnectionNameAvailable(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.IsConnectionNameAvailableRequest{
 			AccountId:      accountId,
@@ -39,14 +39,14 @@ func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_
 
 func (s *IntegrationTestSuite) Test_ConnectionService_CheckConnectionConfig() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	conn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+	conn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
 	t.Run("valid-pg-connstr", func(t *testing.T) {
 		t.Parallel()
 
-		resp, err := s.UnauthdClients.Connections.CheckConnectionConfig(
+		resp, err := s.OSSUnauthenticatedLicensedClients.Connections().CheckConnectionConfig(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
 				ConnectionConfig: conn.GetConnectionConfig(),
@@ -60,21 +60,21 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CheckConnectionConfig() {
 
 func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
 	t.Run("postgres-success", func(t *testing.T) {
-		s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+		s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 	})
 }
 
 func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
 	t.Run("postgres-success", func(t *testing.T) {
-		conn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+		conn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
-		resp, err := s.UnauthdClients.Connections.UpdateConnection(
+		resp, err := s.OSSUnauthenticatedLicensedClients.Connections().UpdateConnection(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.UpdateConnectionRequest{
 				Id:               conn.GetId(),
@@ -89,11 +89,11 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 
 func (s *IntegrationTestSuite) Test_ConnectionService_GetConnection() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	conn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+	conn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
-	resp, err := s.UnauthdClients.Connections.GetConnection(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().GetConnection(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 			Id: conn.GetId(),
@@ -105,11 +105,11 @@ func (s *IntegrationTestSuite) Test_ConnectionService_GetConnection() {
 
 func (s *IntegrationTestSuite) Test_ConnectionService_GetConnections() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+	s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
-	resp, err := s.UnauthdClients.Connections.GetConnections(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().GetConnections(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.GetConnectionsRequest{
 			AccountId: accountId,
@@ -121,11 +121,11 @@ func (s *IntegrationTestSuite) Test_ConnectionService_GetConnections() {
 
 func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	conn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+	conn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
-	resp, err := s.UnauthdClients.Connections.GetConnections(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().GetConnections(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.GetConnectionsRequest{
 			AccountId: accountId,
@@ -134,7 +134,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 	requireNoErrResp(t, resp, err)
 	require.NotEmpty(t, resp.Msg.GetConnections())
 
-	resp2, err := s.UnauthdClients.Connections.DeleteConnection(
+	resp2, err := s.OSSUnauthenticatedLicensedClients.Connections().DeleteConnection(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.DeleteConnectionRequest{
 			Id: conn.GetId(),
@@ -143,7 +143,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 	requireNoErrResp(t, resp2, err)
 
 	// again to test idempotency
-	resp2, err = s.UnauthdClients.Connections.DeleteConnection(
+	resp2, err = s.OSSUnauthenticatedLicensedClients.Connections().DeleteConnection(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.DeleteConnectionRequest{
 			Id: conn.GetId(),
@@ -154,11 +154,11 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 
 func (s *IntegrationTestSuite) Test_ConnectionService_CheckSqlQuery() {
 	t := s.T()
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	conn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "foo", s.Pgcontainer.URL)
+	conn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "foo", s.Pgcontainer.URL)
 
-	resp, err := s.UnauthdClients.Connections.CheckSqlQuery(
+	resp, err := s.OSSUnauthenticatedLicensedClients.Connections().CheckSqlQuery(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.CheckSqlQueryRequest{
 			Id:    conn.GetId(),
