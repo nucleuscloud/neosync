@@ -60,7 +60,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 		enforcer: c.enforcer,
 		user:     rbac.NewUserIdEntity(resp.Msg.GetUserId()),
 		enforceAccountAccess: func(ctx context.Context, accountId string) error {
-			return EnforceAccountAccess(ctx, user, accountId)
+			return enforceAccountAccess(ctx, user, accountId)
 		},
 		isApiKey: user.IsApiKey(),
 	}

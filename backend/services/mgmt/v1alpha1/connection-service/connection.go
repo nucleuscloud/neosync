@@ -342,7 +342,7 @@ func (s *Service) CreateConnection(
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	cc := &pg_models.ConnectionConfig{}
-	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
+	if err := cc.FromDto(req.Msg.GetConnectionConfig()); err != nil {
 		return nil, err
 	}
 
@@ -350,6 +350,10 @@ func (s *Service) CreateConnection(
 	if err != nil {
 		return nil, err
 	}
+	if err := user.EnforceLicense(ctx, req.Msg.GetAccountId()); err != nil {
+		return nil, err
+	}
+
 	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
@@ -360,7 +364,7 @@ func (s *Service) CreateConnection(
 
 	connection, err := s.db.Q.CreateConnection(ctx, s.db.Db, db_queries.CreateConnectionParams{
 		AccountID:        accountUuid,
-		Name:             req.Msg.Name,
+		Name:             req.Msg.GetName(),
 		ConnectionConfig: cc,
 		CreatedByID:      user.PgId(),
 		UpdatedByID:      user.PgId(),
@@ -394,6 +398,9 @@ func (s *Service) UpdateConnection(
 
 	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceLicense(ctx, neosyncdb.UUIDString(connection.AccountID)); err != nil {
 		return nil, err
 	}
 
@@ -461,13 +468,13 @@ func (s *Service) CheckSqlQuery(
 	req *connect.Request[mgmtv1alpha1.CheckSqlQueryRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("connectionId", req.Msg.Id)
-	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.Id}))
+	logger = logger.With("connectionId", req.Msg.GetId())
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(10))
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.GetConnection().GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(10))
 	if err != nil {
 		return nil, err
 	}
@@ -487,7 +494,7 @@ func (s *Service) CheckSqlQuery(
 	}
 	defer neosyncdb.HandleSqlRollback(tx, logger)
 
-	_, err = tx.PrepareContext(ctx, req.Msg.Query)
+	_, err = tx.PrepareContext(ctx, req.Msg.GetQuery())
 	var errorMsg *string
 	if err != nil {
 		msg := err.Error()
