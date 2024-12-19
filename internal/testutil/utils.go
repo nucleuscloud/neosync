@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/neilotoole/slogt"
 	"github.com/testcontainers/testcontainers-go"
@@ -84,6 +85,10 @@ func NewFakeEELicense(opts ...Option) *FakeEELicense {
 
 func (f *FakeEELicense) IsValid() bool {
 	return f.isValid
+}
+
+func (f *FakeEELicense) ExpiresAt() time.Time {
+	return time.Now().Add(time.Hour * 24 * 365)
 }
 
 func GetConcurrentTestLogger(t testing.TB) *slog.Logger {

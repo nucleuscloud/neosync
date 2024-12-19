@@ -2,6 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -18,8 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  AWSFormValues,
-  AWS_FORM_SCHEMA,
+  AwsFormValues,
   EditConnectionFormContext,
 } from '@/yup-validations/connections';
 import { create } from '@bufbuild/protobuf';
@@ -36,7 +36,7 @@ import { buildConnectionConfigAwsS3 } from '../../util';
 
 interface Props {
   connectionId: string;
-  defaultValues: AWSFormValues;
+  defaultValues: AwsFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
@@ -47,8 +47,8 @@ export default function AwsS3Form(props: Props) {
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
   );
-  const form = useForm<AWSFormValues, EditConnectionFormContext>({
-    resolver: yupResolver(AWS_FORM_SCHEMA),
+  const form = useForm<AwsFormValues, EditConnectionFormContext>({
+    resolver: yupResolver(AwsFormValues),
     defaultValues: {
       connectionName: '',
       s3: {},
@@ -64,7 +64,7 @@ export default function AwsS3Form(props: Props) {
     ConnectionService.method.updateConnection
   );
 
-  async function onSubmit(values: AWSFormValues) {
+  async function onSubmit(values: AwsFormValues) {
     try {
       const connectionResp = await mutateAsync(
         create(UpdateConnectionRequestSchema, {
@@ -81,6 +81,7 @@ export default function AwsS3Form(props: Props) {
   }
   return (
     <div className="flex flex-col gap-4">
+      <SystemLicenseAlert />
       <Alert variant="warning">
         <div className="flex flex-row items-center gap-2">
           <IoAlertCircleOutline className="h-6 w-6" />

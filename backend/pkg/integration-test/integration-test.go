@@ -193,6 +193,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	enforcedRbacClient := rbac.New(rbacenforcer)
 
 	maxAllowed := int64(10000)
+	validLicense := testutil.NewFakeEELicense(testutil.WithIsValid())
 	unauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false, DefaultMaxAllowedRecords: &maxAllowed},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
@@ -201,6 +202,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.Authmanagerclient,
 		nil,                  // billing client
 		permissiveRbacClient, // rbac client
+		validLicense,
 	)
 	unauthdUserClient := userdata.NewClient(unauthdUserService, permissiveRbacClient)
 
@@ -212,6 +214,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.Authmanagerclient,
 		nil,                // billing client
 		enforcedRbacClient, // rbac client
+		validLicense,
 	)
 
 	sqlmanagerclient := NewTestSqlManagerClient()
@@ -236,6 +239,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		s.Mocks.Authmanagerclient,
 		s.Mocks.Billingclient,
 		enforcedRbacClient, // rbac client
+		validLicense,
 	)
 	neoCloudUserDataClient := userdata.NewClient(neoCloudAuthdUserService, enforcedRbacClient)
 	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(

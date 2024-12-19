@@ -480,7 +480,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

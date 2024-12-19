@@ -808,7 +808,7 @@ func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request
 	versionInfo := version.Get()
 	builtDate, err := time.Parse(time.RFC3339, versionInfo.BuildDate)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to parse build date: %w", err)
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemInformationResponse{
 		Version:   versionInfo.GitVersion,
@@ -816,5 +816,10 @@ func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request
 		Compiler:  versionInfo.Compiler,
 		Platform:  versionInfo.Platform,
 		BuildDate: timestamppb.New(builtDate),
+		License: &mgmtv1alpha1.SystemLicense{
+			IsValid:        s.licenseclient.IsValid(),
+			ExpiresAt:      timestamppb.New(s.licenseclient.ExpiresAt()),
+			IsNeosyncCloud: s.cfg.IsNeosyncCloud,
+		},
 	}), nil
 }

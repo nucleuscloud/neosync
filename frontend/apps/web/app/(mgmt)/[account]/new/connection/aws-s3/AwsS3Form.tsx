@@ -2,6 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -20,14 +21,21 @@ import {
 import { Input } from '@/components/ui/input';
 import { getErrorMessage } from '@/util/util';
 import {
-  AWSFormValues,
-  AWS_FORM_SCHEMA,
+  AwsFormValues,
   CreateConnectionFormContext,
 } from '@/yup-validations/connections';
 import { create } from '@bufbuild/protobuf';
-import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionService, GetConnectionResponseSchema } from '@neosync/sdk';
+import {
+  ConnectionService,
+  GetConnectionResponseSchema,
+  UserAccountService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -45,8 +53,8 @@ export default function AwsS3Form() {
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
   );
-  const form = useForm<AWSFormValues, CreateConnectionFormContext>({
-    resolver: yupResolver(AWS_FORM_SCHEMA),
+  const form = useForm<AwsFormValues, CreateConnectionFormContext>({
+    resolver: yupResolver(AwsFormValues),
     defaultValues: {
       connectionName: '',
       s3: {
@@ -65,8 +73,11 @@ export default function AwsS3Form() {
   const { mutateAsync: getAwsS3Connection } = useMutation(
     ConnectionService.method.getConnection
   );
+  const { data: systemInfo, isLoading: isSystemInfoLoading } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
 
-  async function onSubmit(values: AWSFormValues) {
+  async function onSubmit(values: AwsFormValues) {
     if (!account) {
       return;
     }
@@ -155,8 +166,11 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
     fetchData();
   }, [account?.id]);
 
-  if (isLoading || !account?.id) {
+  if (isLoading || !account?.id || isSystemInfoLoading) {
     return <SkeletonForm />;
+  }
+  if (!systemInfo?.license?.isValid) {
+    return <SystemLicenseAlert />;
   }
 
   return (
