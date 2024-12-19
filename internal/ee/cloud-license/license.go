@@ -25,6 +25,7 @@ type licenseFile struct {
 
 type Interface interface {
 	IsValid() bool
+	ExpiresAt() time.Time
 }
 
 var _ Interface = (*CloudLicense)(nil)
@@ -49,6 +50,13 @@ func NewFromEnv() (*CloudLicense, error) {
 
 func (c *CloudLicense) IsValid() bool {
 	return c.contents != nil && c.contents.IsValid()
+}
+
+func (c *CloudLicense) ExpiresAt() time.Time {
+	if c.contents == nil {
+		return time.Now().UTC()
+	}
+	return c.contents.ExpiresAt
 }
 
 type licenseContents struct {

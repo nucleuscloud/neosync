@@ -29,6 +29,7 @@ type licenseFile struct {
 
 type EEInterface interface {
 	IsValid() bool
+	ExpiresAt() time.Time
 }
 
 var _ EEInterface = (*EELicense)(nil)
@@ -39,6 +40,13 @@ type EELicense struct {
 
 func (e *EELicense) IsValid() bool {
 	return e.contents != nil && e.contents.IsValid()
+}
+
+func (e *EELicense) ExpiresAt() time.Time {
+	if e.contents == nil {
+		return time.Now().UTC()
+	}
+	return e.contents.ExpiresAt
 }
 
 // Retrieves the EE license from the environment

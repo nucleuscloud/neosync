@@ -1,6 +1,7 @@
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import {
   AwsCredentialsFormValues,
-  AWSFormValues,
+  AwsFormValues,
   ClientTlsFormValues,
   DynamoDbFormValues,
   GcpCloudStorageFormValues,
@@ -13,6 +14,7 @@ import {
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import { create } from '@bufbuild/protobuf';
+import { useQuery } from '@connectrpc/connect-query';
 import {
   AwsS3ConnectionConfigSchema,
   AwsS3Credentials,
@@ -43,6 +45,7 @@ import {
   SSHPrivateKeySchema,
   SSHTunnel,
   SSHTunnelSchema,
+  UserAccountService,
 } from '@neosync/sdk';
 
 export interface ConnectionMeta {
@@ -52,6 +55,7 @@ export interface ConnectionMeta {
   connectionType: ConnectionConfigCase;
   connectionTypeVariant?: ConnectionTypeVariant;
   isExperimental?: boolean;
+  isLicenseOnly?: boolean;
 }
 
 const CONNECTIONS_METADATA: ConnectionMeta[] = [
@@ -75,6 +79,7 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Amazon Simple Storage Service (Amazon S3) is an object storage service used to store and retrieve any data.',
     connectionType: 'awsS3Config',
+    isLicenseOnly: true,
   },
   {
     urlSlug: 'gcp-cloud-storage',
@@ -82,6 +87,7 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'GCP Cloud Storage is an object storage service used to store and retrieve any data.',
     connectionType: 'gcpCloudstorageConfig',
+    isLicenseOnly: true,
   },
   {
     urlSlug: 'neon',
@@ -129,15 +135,34 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
   },
 ];
 
-export function getConnectionsMetadata(
+export function useGetConnectionsMetadata(
+  allowedConnectionTypes: Set<string>
+): ConnectionMeta[] {
+  const { data: systemAppConfigData } = useGetSystemAppConfig();
+  const { data: systemInfo } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
+
+  return getConnectionsMetadata(
+    allowedConnectionTypes,
+    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false,
+    systemInfo?.license?.isValid ?? false
+  );
+}
+
+function getConnectionsMetadata(
   connectionTypes: Set<string>,
-  isGcpCloudStorageConnectionsEnabled: boolean
+  isGcpCloudStorageConnectionsEnabled: boolean,
+  hasValidLicense: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS_METADATA;
   if (!isGcpCloudStorageConnectionsEnabled) {
     connections = connections.filter(
       (c) => c.connectionType !== 'gcpCloudstorageConfig'
     );
+  }
+  if (!hasValidLicense) {
+    connections = connections.filter((c) => !c.isLicenseOnly);
   }
 
   if (connectionTypes.size > 0) {
@@ -325,7 +350,7 @@ export function buildConnectionConfigDynamoDB(
 }
 
 export function buildConnectionConfigAwsS3(
-  values: AWSFormValues
+  values: AwsFormValues
 ): ConnectionConfig {
   return create(ConnectionConfigSchema, {
     config: {

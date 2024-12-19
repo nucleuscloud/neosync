@@ -11,6 +11,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 )
 
 type UserAccountServiceClient interface {
@@ -25,6 +26,8 @@ type User struct {
 	userAccountServiceClient UserAccountServiceClient
 
 	EntityEnforcer
+
+	license license.EEInterface
 }
 
 func (u *User) Id() string {
@@ -42,7 +45,39 @@ func (u *User) IsApiKey() bool {
 	return u.apiKeyData != nil
 }
 
-func EnforceAccountAccess(ctx context.Context, user *User, accountId string) error {
+func (u *User) EnforceAccountAccess(ctx context.Context, accountId string) error {
+	return enforceAccountAccess(ctx, u, accountId)
+}
+
+func (u *User) EnforceLicense(ctx context.Context, accountId string) error {
+	ok, err := u.IsLicensed(ctx, accountId)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nucleuserrors.NewUnauthorized("account does not have an active license")
+	}
+	return nil
+}
+
+func (u *User) IsLicensed(ctx context.Context, accountId string) (bool, error) {
+	if err := u.EnforceAccountAccess(ctx, accountId); err != nil {
+		return false, err
+	}
+
+	// todo: check account type for Neosync Cloud Cloud?
+	// if: personal, then check if free trial is active
+	// if: pro, then no? or maybe still do a trial check?
+	// if: enterprise, then check for valid license
+
+	if u.license == nil {
+		return false, nil
+	}
+
+	return u.license.IsValid(), nil
+}
+
+func enforceAccountAccess(ctx context.Context, user *User, accountId string) error {
 	if user.IsApiKey() {
 		if user.IsWorkerApiKey() {
 			return nil
@@ -50,7 +85,7 @@ func EnforceAccountAccess(ctx context.Context, user *User, accountId string) err
 		// We first want to check to make sure the api key is valid and that it says it's in the account
 		// However, we still want to make a DB request to ensure the DB still says it's in the account
 		if user.apiKeyData.ApiKey == nil || neosyncdb.UUIDString(user.apiKeyData.ApiKey.AccountID) != accountId {
-			return nucleuserrors.NewForbidden("api key is not valid for account")
+			return nucleuserrors.NewUnauthorized("api key is not valid for account")
 		}
 	}
 
@@ -60,7 +95,7 @@ func EnforceAccountAccess(ctx context.Context, user *User, accountId string) err
 		return fmt.Errorf("unable to check if user is in account: %w", err)
 	}
 	if !inAccountResp.Msg.GetOk() {
-		return nucleuserrors.NewForbidden("user is not in account")
+		return nucleuserrors.NewUnauthorized("user is not in account")
 	}
 	return nil
 }

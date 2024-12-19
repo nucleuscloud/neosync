@@ -11,7 +11,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_TransformersService_GetSystemTransformers() {
-	resp, err := s.UnauthdClients.Transformers.GetSystemTransformers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformersRequest{}))
+	resp, err := s.OSSUnauthenticatedLicensedClients.Transformers().GetSystemTransformers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformersRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 	require.NotEmpty(s.T(), resp.Msg.GetTransformers())
 }
@@ -19,7 +19,7 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetSystemTransformers() 
 func (s *IntegrationTestSuite) Test_TransformersService_GetSystemTransformersBySource() {
 	t := s.T()
 	t.Run("ok", func(t *testing.T) {
-		resp, err := s.UnauthdClients.Transformers.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
+		resp, err := s.OSSUnauthenticatedLicensedClients.Transformers().GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
 		}))
 		requireNoErrResp(t, resp, err)
@@ -28,7 +28,7 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetSystemTransformersByS
 		require.Equal(t, transformer.GetSource(), mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL)
 	})
 	t.Run("not_found", func(t *testing.T) {
-		resp, err := s.UnauthdClients.Transformers.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
+		resp, err := s.OSSUnauthenticatedLicensedClients.Transformers().GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 		}))
 		requireErrResp(t, resp, err)
@@ -47,8 +47,8 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetTransformPiiRecognize
 				JSON200: &allowed,
 			}, nil)
 
-		accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
-		resp, err := s.UnauthdClients.Transformers.GetTransformPiiEntities(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformPiiEntitiesRequest{
+		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		resp, err := s.OSSUnauthenticatedLicensedClients.Transformers().GetTransformPiiEntities(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformPiiEntitiesRequest{
 			AccountId: accountId,
 		}))
 		requireNoErrResp(t, resp, err)

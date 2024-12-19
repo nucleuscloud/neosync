@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -23,9 +24,17 @@ import {
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
 import { create } from '@bufbuild/protobuf';
-import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionService, GetConnectionResponseSchema } from '@neosync/sdk';
+import {
+  ConnectionService,
+  GetConnectionResponseSchema,
+  UserAccountService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -153,11 +162,23 @@ export default function GcpCloudStorageForm(): ReactElement {
     fetchData();
   }, [account?.id]);
 
-  if (isLoading || !account?.id || isSystemAppConfigLoading) {
+  const { data: systemInfo, isLoading: isSystemInfoLoading } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
+
+  if (
+    isLoading ||
+    !account?.id ||
+    isSystemAppConfigLoading ||
+    isSystemInfoLoading
+  ) {
     return <SkeletonForm />;
   }
   if (!systemAppConfig?.isGcpCloudStorageConnectionsEnabled) {
     return <Error statusCode={404} />;
+  }
+  if (!systemInfo?.license?.isValid) {
+    return <SystemLicenseAlert />;
   }
 
   return (

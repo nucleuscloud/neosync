@@ -247,7 +247,7 @@ export type AwsCredentialsFormValues = Yup.InferType<
   typeof AwsCredentialsFormValues
 >;
 
-export const AWS_FORM_SCHEMA = Yup.object({
+export const AwsFormValues = Yup.object({
   connectionName: connectionNameSchema,
   s3: Yup.object({
     bucket: Yup.string().required('The Bucket name is required.'),
@@ -258,7 +258,7 @@ export const AWS_FORM_SCHEMA = Yup.object({
   }).required('The AWS form fields are required.'),
 });
 
-export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
+export type AwsFormValues = Yup.InferType<typeof AwsFormValues>;
 
 export const DynamoDbFormValues = Yup.object({
   connectionName: connectionNameSchema,

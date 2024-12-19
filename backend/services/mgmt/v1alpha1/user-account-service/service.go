@@ -6,7 +6,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 )
 
 type Service struct {
@@ -17,6 +19,7 @@ type Service struct {
 	authadminclient        authmgmt.Interface
 	billingclient          billing.Interface
 	rbacClient             rbac.Interface
+	licenseclient          license.EEInterface
 }
 
 type Config struct {
@@ -33,6 +36,7 @@ func New(
 	authadminclient authmgmt.Interface,
 	billingclient billing.Interface,
 	rbacClient rbac.Interface,
+	licenseclient license.EEInterface,
 ) *Service {
 	return &Service{
 		cfg:                    cfg,
@@ -42,5 +46,10 @@ func New(
 		authadminclient:        authadminclient,
 		billingclient:          billingclient,
 		rbacClient:             rbacClient,
+		licenseclient:          licenseclient,
 	}
+}
+
+func (s *Service) UserDataClient() userdata.Interface {
+	return userdata.NewClient(s, s.rbacClient, s.licenseclient)
 }

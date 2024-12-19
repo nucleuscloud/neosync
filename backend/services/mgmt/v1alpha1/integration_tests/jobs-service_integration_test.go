@@ -9,13 +9,14 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	integrationtests_test "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
 
 func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
-	resp, err := s.UnauthdClients.Jobs.GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
+	resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -24,13 +25,13 @@ func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
 }
 
 func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
-	srcconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "source", "test")
-	destconn := s.createPostgresConnection(s.UnauthdClients.Connections, accountId, "dest", "test2")
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	srcconn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "source", "test")
+	destconn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "dest", "test2")
 
 	s.MockTemporalForCreateJob("test-id")
 
-	resp, err := s.UnauthdClients.Jobs.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
+	resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: accountId,
 		JobName:   "test",
 		Mappings:  []*mgmtv1alpha1.JobMapping{},
@@ -63,7 +64,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 	ctx := s.ctx
 
 	t.Run("OSS-unimplemented", func(t *testing.T) {
-		client := s.UnauthdClients.Jobs
+		client := s.OSSUnauthenticatedLicensedClients.Jobs()
 		t.Run("GetJobHooks", func(t *testing.T) {
 			resp, err := client.GetJobHooks(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHooksRequest{}))
 			requireErrResp(t, resp, err)
@@ -102,12 +103,12 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 	})
 
 	t.Run("Cloud", func(t *testing.T) {
-		client := s.NeosyncCloudClients.GetJobClient(testAuthUserId)
-		s.setUser(ctx, s.NeosyncCloudClients.GetUserClient(testAuthUserId))
-		accountId := s.createPersonalAccount(ctx, s.NeosyncCloudClients.GetUserClient(testAuthUserId))
+		client := s.NeosyncCloudAuthenticatedLicensedClients.Jobs(integrationtests_test.WithUserId(testAuthUserId))
+		s.setUser(ctx, s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId)))
+		accountId := s.createPersonalAccount(ctx, s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId)))
 
-		srcconn := s.createPostgresConnection(s.NeosyncCloudClients.GetConnectionClient(testAuthUserId), accountId, "source", "test")
-		destconn := s.createPostgresConnection(s.NeosyncCloudClients.GetConnectionClient(testAuthUserId), accountId, "dest", "test2")
+		srcconn := s.createPostgresConnection(s.NeosyncCloudAuthenticatedLicensedClients.Connections(integrationtests_test.WithUserId(testAuthUserId)), accountId, "source", "test")
+		destconn := s.createPostgresConnection(s.NeosyncCloudAuthenticatedLicensedClients.Connections(integrationtests_test.WithUserId(testAuthUserId)), accountId, "dest", "test2")
 
 		s.MockTemporalForCreateJob("test-id")
 		jobResp, err := client.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{

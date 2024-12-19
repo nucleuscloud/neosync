@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <SystemLicenseAlert />
         <FormField
           control={form.control}
           name="connectionName"

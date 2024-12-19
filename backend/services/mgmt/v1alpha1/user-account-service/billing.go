@@ -34,7 +34,7 @@ func (s *Service) GetAccountStatus(
 ) (*connect.Response[mgmtv1alpha1.GetAccountStatusResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -225,7 +225,7 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure, "/")))
 	}
 	logger = logger.With("accountId", req.Msg.GetAccountId())
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -275,7 +275,7 @@ func (s *Service) GetAccountBillingPortalSession(
 	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure, "/")))
 	}
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -312,7 +312,7 @@ func (s *Service) GetBillingAccounts(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetBillingAccountsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetBillingAccountsResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -350,7 +350,7 @@ func (s *Service) SetBillingMeterEvent(
 	if s.billingclient == nil {
 		return nil, nucleuserrors.NewUnauthorized("billing is not currently enabled")
 	}
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err

@@ -89,10 +89,10 @@ func NewTestDataSyncWorkflowEnv(
 	}
 	workflowEnv.redisclient = redisclient
 
-	connclient := neosyncApi.UnauthdClients.Connections
-	jobclient := neosyncApi.UnauthdClients.Jobs
-	transformerclient := neosyncApi.UnauthdClients.Transformers
-	userclient := neosyncApi.UnauthdClients.Users
+	connclient := neosyncApi.OSSUnauthenticatedLicensedClients.Connections()
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	transformerclient := neosyncApi.OSSUnauthenticatedLicensedClients.Transformers()
+	userclient := neosyncApi.OSSUnauthenticatedLicensedClients.Users()
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))

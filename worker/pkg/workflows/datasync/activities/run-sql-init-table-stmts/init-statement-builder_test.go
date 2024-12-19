@@ -21,11 +21,9 @@ const (
 	workflowId = "workflow-id"
 )
 
-type fakeLicense struct{}
-
-func (f *fakeLicense) IsValid() bool {
-	return true
-}
+var (
+	fakeEELicense = testutil.NewFakeEELicense(testutil.WithIsValid())
+)
 
 func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	t.Parallel()
@@ -167,7 +165,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
@@ -269,7 +267,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
@@ -401,7 +399,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
@@ -541,7 +539,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE \"public\".\"accounts\", \"public\".\"users\" RESTART IDENTITY;").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
@@ -685,7 +683,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},
@@ -797,7 +795,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewMysqlSqlConnection(mockSqlDb), nil)
 	mockSqlDb.On("Close").Return(nil)
 
-	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, &fakeLicense{}, workflowId)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123"},

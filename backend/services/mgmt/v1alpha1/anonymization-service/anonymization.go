@@ -12,7 +12,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	jsonanonymizer "github.com/nucleuscloud/neosync/internal/json-anonymizer"
 	"go.opentelemetry.io/otel/attribute"
@@ -40,7 +39,7 @@ func (s *Service) AnonymizeMany(
 	if err != nil {
 		return nil, err
 	}
-	err = userdata.EnforceAccountAccess(ctx, user, req.Msg.GetAccountId())
+	err = user.EnforceAccountAccess(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +139,7 @@ func (s *Service) AnonymizeSingle(
 	if err != nil {
 		return nil, err
 	}
-	err = userdata.EnforceAccountAccess(ctx, user, req.Msg.GetAccountId())
+	err = user.EnforceAccountAccess(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}

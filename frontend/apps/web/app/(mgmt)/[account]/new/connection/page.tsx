@@ -1,21 +1,16 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
-import { getConnectionsMetadata } from '../../connections/util';
+import { useGetConnectionsMetadata } from '../../connections/util';
 import ConnectionCard from './components/ConnectionCard';
 
 export default function NewConnectionPage(): ReactElement {
   const searchParams = useSearchParams();
-  const { data: systemAppConfigData } = useGetSystemAppConfig();
   const connectionTypes = new Set(searchParams.getAll('connectionType'));
 
-  const connections = getConnectionsMetadata(
-    connectionTypes,
-    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
-  );
+  const connections = useGetConnectionsMetadata(connectionTypes);
   return (
     <OverviewContainer
       Header={

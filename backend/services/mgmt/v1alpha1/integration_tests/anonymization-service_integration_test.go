@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	integrationtests_test "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go/v79"
@@ -17,10 +18,10 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	t := s.T()
 
 	t.Run("OSS-fail", func(t *testing.T) {
-		userclient := s.UnauthdClients.Users
+		userclient := s.OSSUnauthenticatedLicensedClients.Users()
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
-		resp, err := s.UnauthdClients.Anonymize.AnonymizeMany(
+		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeMany(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
 				AccountId:           accountId,
@@ -35,8 +36,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	})
 
 	t.Run("cloud-personal-fail", func(t *testing.T) {
-		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
-		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
 		resp, err := anonclient.AnonymizeMany(
@@ -87,8 +88,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 }`,
 		}
 
-		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
-		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
 
 		s.setUser(s.ctx, userclient)
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "team1", "foo")
@@ -170,8 +171,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
   "sports": ["basketball", "golf", "swimming"]
 }`
 
-	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
-	resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 			AccountId: accountId,
@@ -228,11 +229,11 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 	t := s.T()
 
 	t.Run("OSS", func(t *testing.T) {
-		accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 
 		t.Run("transformpiitext", func(t *testing.T) {
 			t.Run("mappings", func(t *testing.T) {
-				resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
+				resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 					s.ctx,
 					connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 						AccountId: accountId,
@@ -252,7 +253,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 
 			t.Run("defaults", func(t *testing.T) {
 				t.Run("Bool", func(t *testing.T) {
-					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
+					resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -268,7 +269,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 					requireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("S", func(t *testing.T) {
-					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
+					resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -284,7 +285,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 					requireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("N", func(t *testing.T) {
-					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
+					resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -304,8 +305,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 	})
 
 	t.Run("cloud-personal", func(t *testing.T) {
-		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
-		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
 
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)

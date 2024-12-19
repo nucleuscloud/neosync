@@ -16,7 +16,7 @@ func (s *Service) GetAccountOnboardingConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (s *Service) SetAccountOnboardingConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err

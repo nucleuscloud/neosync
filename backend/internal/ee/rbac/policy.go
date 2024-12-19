@@ -328,7 +328,7 @@ func (r *Rbac) EnforceJob(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s job", action))
+		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s job", action))
 	}
 	return nil
 }
@@ -355,7 +355,7 @@ func (r *Rbac) EnforceConnection(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s connection", action))
+		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s connection", action))
 	}
 	return nil
 }
@@ -380,7 +380,7 @@ func (r *Rbac) EnforceAccount(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewForbidden(fmt.Sprintf("user does not have permission to %s account", action))
+		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s account", action))
 	}
 	return nil
 }
