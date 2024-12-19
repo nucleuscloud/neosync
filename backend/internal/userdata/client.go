@@ -9,6 +9,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 )
 
 type UserServiceClient interface {
@@ -19,6 +20,7 @@ type UserServiceClient interface {
 type Client struct {
 	userServiceClient UserServiceClient
 	enforcer          rbac.EntityEnforcer
+	license           license.EEInterface
 }
 
 type Interface interface {
@@ -32,10 +34,12 @@ type GetUserResponse struct {
 func NewClient(
 	userServiceClient UserServiceClient,
 	enforcer rbac.EntityEnforcer,
+	license license.EEInterface,
 ) *Client {
 	return &Client{
 		userServiceClient: userServiceClient,
 		enforcer:          enforcer,
+		license:           license,
 	}
 }
 
@@ -55,6 +59,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 		id:                       pguuid,
 		apiKeyData:               apiKeyData,
 		userAccountServiceClient: c.userServiceClient,
+		license:                  c.license,
 	}
 	user.EntityEnforcer = &UserEntityEnforcer{
 		enforcer: c.enforcer,

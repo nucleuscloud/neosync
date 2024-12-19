@@ -455,7 +455,7 @@ func (s *Service) GetTeamAccountMembers(
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -532,7 +532,7 @@ func (s *Service) RemoveTeamAccountMember(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest],
 ) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -572,7 +572,7 @@ func (s *Service) InviteUserToTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -615,7 +615,7 @@ func (s *Service) GetTeamAccountInvites(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := userdata.NewClient(s, s.rbacClient, s.licenseclient)
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -667,7 +667,7 @@ func (s *Service) RemoveTeamAccountInvite(
 		return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
 	}
 
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -754,7 +754,7 @@ func (s *Service) SetUserRole(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetUserRoleRequest],
 ) (*connect.Response[mgmtv1alpha1.SetUserRoleResponse], error) {
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err

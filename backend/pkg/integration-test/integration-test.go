@@ -48,13 +48,13 @@ type NeosyncApiTestClient struct {
 
 	httpsrv *httptest.Server
 
-	// OSS, Licensed, Unauthenticated
+	// OSS, Unauthenticated, Licensed
 	OSSUnauthenticatedLicensedClients *NeosyncClients
-	// OSS, Licensed, Authenticated
+	// OSS, Authenticated, Licensed
 	OSSAuthenticatedLicensedClients *NeosyncClients
-	// OSS, Unlicensed, Unauthenticated
-	OSSUnlicensedUnauthenticatedClients *NeosyncClients
-	// NeoCloud, Licensed, Authenticated
+	// OSS, Unauthenticated, Unlicensed
+	OSSUnauthenticatedUnlicensedClients *NeosyncClients
+	// NeoCloud, Authenticated, Licensed
 	NeosyncCloudAuthenticatedLicensedClients *NeosyncClients
 
 	Mocks *Mocks
@@ -119,31 +119,35 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated licensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceUnauthenticatedLicensedPostfix, http.StripPrefix(openSourceUnauthenticatedLicensedPostfix, ossUnauthLicensedMux))
+	rootmux.Handle(openSourceUnauthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedLicensedPostfix, ossUnauthLicensedMux))
 
 	ossAuthLicensedMux, err := s.setupOssLicensedAuthMux(ctx, pgcontainer)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss authenticated licensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceAuthenticatedLicensedPostfix, http.StripPrefix(openSourceAuthenticatedLicensedPostfix, ossAuthLicensedMux))
+	rootmux.Handle(openSourceAuthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceAuthenticatedLicensedPostfix, ossAuthLicensedMux))
 
-	ossUnauthUnlicensedMux, err := s.setupOssUnlicensedMux(ctx, pgcontainer)
+	ossUnauthUnlicensedMux, err := s.setupOssUnlicensedMux(pgcontainer)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated unlicensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceUnlicensedUnauthenticatedPostfix, http.StripPrefix(openSourceUnlicensedUnauthenticatedPostfix, ossUnauthUnlicensedMux))
+	rootmux.Handle(openSourceUnauthenticatedUnlicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedUnlicensedPostfix, ossUnauthUnlicensedMux))
 
 	neoCloudAuthdMux, err := s.setupNeoCloudMux(ctx, pgcontainer)
 	if err != nil {
 		return fmt.Errorf("unable to setup neo cloud authenticated mux: %w", err)
 	}
-	rootmux.Handle(neoCloudAuthenticatedLicensedPostfix, http.StripPrefix(neoCloudAuthenticatedLicensedPostfix, neoCloudAuthdMux))
+	rootmux.Handle(neoCloudAuthenticatedLicensedPostfix+"/", http.StripPrefix(neoCloudAuthenticatedLicensedPostfix, neoCloudAuthdMux))
 
 	s.httpsrv = startHTTPServer(t, rootmux)
+	rootmux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("404 for URL: %s\n", r.URL.Path)
+		http.NotFound(w, r)
+	})
 
 	s.OSSUnauthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceUnauthenticatedLicensedPostfix)
 	s.OSSAuthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceAuthenticatedLicensedPostfix)
-	s.OSSUnlicensedUnauthenticatedClients = newNeosyncClients(s.httpsrv.URL + openSourceUnlicensedUnauthenticatedPostfix)
+	s.OSSUnauthenticatedUnlicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceUnauthenticatedUnlicensedPostfix)
 	s.NeosyncCloudAuthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + neoCloudAuthenticatedLicensedPostfix)
 
 	return nil

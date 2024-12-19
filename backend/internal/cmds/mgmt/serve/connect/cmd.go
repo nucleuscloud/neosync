@@ -490,7 +490,7 @@ func serve(ctx context.Context) error {
 			connect.WithRecover(recoverHandler),
 		),
 	)
-	userdataclient := userdata.NewClient(useraccountService, rbacclient)
+	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,

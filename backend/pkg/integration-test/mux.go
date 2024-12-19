@@ -61,12 +61,12 @@ var (
 )
 
 const (
-	// OSS, Licensed, Unauthenticated
-	openSourceUnauthenticatedLicensedPostfix = "/oss-unlicensed-unauthenticated"
-	// OSS, Licensed, Authenticated
-	openSourceAuthenticatedLicensedPostfix = "/oss-ee-authenticated"
-	// OSS, Unlicensed, Unauthenticated
-	openSourceUnlicensedUnauthenticatedPostfix = "/oss-unlicensed-unauthenticated"
+	// OSS, Unauthenticated, Licensed
+	openSourceUnauthenticatedLicensedPostfix = "/oss-unauthenticated-licensed"
+	// OSS, Authenticated, Licensed
+	openSourceAuthenticatedLicensedPostfix = "/oss-authenticated-licensed"
+	// OSS, Unauthenticated, Unlicensed
+	openSourceUnauthenticatedUnlicensedPostfix = "/oss-unauthenticated-unlicensed"
 	// NeoCloud, Licensed, Authenticated
 	neoCloudAuthenticatedLicensedPostfix = "/neosynccloud-authenticated"
 )
@@ -79,7 +79,7 @@ func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Co
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(ctx, pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
 }
 
 func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
@@ -90,15 +90,15 @@ func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgco
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(ctx, pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
 }
 
-func (s *NeosyncApiTestClient) setupOssUnlicensedMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnlicensedMux(pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
 	isLicensed := false
 	isAuthEnabled := false
 	isNeosyncCloud := false
 	permissiveRbacClient := rbac.NewAllowAllClient()
-	return s.setupMux(ctx, pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient)
 }
 
 func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
@@ -109,11 +109,10 @@ func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(ctx, pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
 }
 
 func (s *NeosyncApiTestClient) setupMux(
-	ctx context.Context,
 	pgcontainer *tcpostgres.PostgresTestContainer,
 	isAuthEnabled bool,
 	isLicensed bool,
@@ -121,18 +120,14 @@ func (s *NeosyncApiTestClient) setupMux(
 	rbacClient rbac.Interface,
 ) (*http.ServeMux, error) {
 	isPresidioEnabled := false
-	rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stdlib.OpenDBFromPool(pgcontainer.DB), "neosync_api.casbin_rule")
-	if err != nil {
-		return nil, fmt.Errorf("unable to create rbac enforcer: %w", err)
-	}
-	rbacenforcer.EnableAutoSave(true)
-	err = rbacenforcer.LoadPolicy()
-	if err != nil {
-		return nil, fmt.Errorf("unable to load rbac policies: %w", err)
-	}
 
 	maxAllowed := int64(10000)
-	validLicense := testutil.NewFakeEELicense(testutil.WithIsValid())
+	var license *testutil.FakeEELicense
+	if isLicensed {
+		license = testutil.NewFakeEELicense(testutil.WithIsValid())
+	} else {
+		license = testutil.NewFakeEELicense()
+	}
 
 	neosyncDb := neosyncdb.New(pgcontainer.DB, db_queries.New())
 
@@ -144,9 +139,9 @@ func (s *NeosyncApiTestClient) setupMux(
 		s.Mocks.Authmanagerclient,
 		nil,        // billing client
 		rbacClient, // rbac client
-		validLicense,
+		license,
 	)
-	userclient := userdata.NewClient(userService, rbacClient)
+	userclient := userdata.NewClient(userService, rbacClient, license)
 
 	transformerService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{

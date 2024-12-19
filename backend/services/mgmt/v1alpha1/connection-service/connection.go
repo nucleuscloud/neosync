@@ -350,8 +350,12 @@ func (s *Service) CreateConnection(
 	if err != nil {
 		return nil, err
 	}
-	if err := user.EnforceLicense(ctx, req.Msg.GetAccountId()); err != nil {
-		return nil, err
+
+	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		if err := user.EnforceLicense(ctx, req.Msg.GetAccountId()); err != nil {
+			return nil, err
+		}
 	}
 
 	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
@@ -400,8 +404,11 @@ func (s *Service) UpdateConnection(
 	if err != nil {
 		return nil, err
 	}
-	if err := user.EnforceLicense(ctx, neosyncdb.UUIDString(connection.AccountID)); err != nil {
-		return nil, err
+	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		if err := user.EnforceLicense(ctx, neosyncdb.UUIDString(connection.AccountID)); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_Edit); err != nil {
