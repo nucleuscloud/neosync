@@ -298,7 +298,7 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
 }
 
-func toBinaryArray(array *PgxArray[[]byte]) (any, error) {
+func toBinaryArray(array *PgxArray[[]byte]) (*neosynctypes.NeosyncArray, error) {
 	if array.Elements == nil {
 		return nil, nil
 	}
@@ -315,7 +315,7 @@ func toBinaryArray(array *PgxArray[[]byte]) (any, error) {
 	return binaryArray, nil
 }
 
-func toBitsArray(array *PgxArray[*pgtype.Bits]) (any, error) {
+func toBitsArray(array *PgxArray[*pgtype.Bits]) (*neosynctypes.NeosyncArray, error) {
 	if array.Elements == nil {
 		return nil, nil
 	}
@@ -332,7 +332,7 @@ func toBitsArray(array *PgxArray[*pgtype.Bits]) (any, error) {
 	return bitsArray, nil
 }
 
-func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) (*neosynctypes.NeosyncArray, error) {
 	if array.Elements == nil {
 		return nil, nil
 	}

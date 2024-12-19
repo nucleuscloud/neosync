@@ -2,8 +2,6 @@ package neosynctypes
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -101,7 +99,6 @@ func Test_NeosyncArray(t *testing.T) {
 		value, err := array.ValuePgx()
 		require.NoError(t, err)
 
-		fmt.Println("value", value, reflect.TypeOf(value))
 		values, ok := value.(pq.GenericArray)
 		require.True(t, ok)
 

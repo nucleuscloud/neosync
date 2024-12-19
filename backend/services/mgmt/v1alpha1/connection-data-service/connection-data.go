@@ -1,8 +1,10 @@
 package v1alpha1_connectiondataservice
 
 import (
+	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,13 +32,20 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 	myutil "github.com/nucleuscloud/neosync/internal/mysql"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+var _ = func() any { //nolint:unparam
+	neosyncgob.RegisterGobTypes()
+	return nil
+}()
 
 type DatabaseSchema struct {
 	TableSchema string `db:"table_schema,omitempty"`
@@ -63,6 +72,9 @@ func (ds *DateScanner) Scan(input any) error {
 	}
 }
 
+// GetConnectionDataStream streams data from a connection source (e.g. MySQL, Postgres, S3, etc)
+// The data is first converted from its native format into Go types, then encoded using gob encoding
+// before being streamed back to the client.
 func (s *Service) GetConnectionDataStream(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest],
@@ -127,11 +139,12 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			rowbytes, err := json.Marshal(r)
-			if err != nil {
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(r); err != nil {
 				return err
 			}
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
 			}
 		}
@@ -184,11 +197,12 @@ func (s *Service) GetConnectionDataStream(
 			if err != nil {
 				return err
 			}
-			rowbytes, err := json.Marshal(r)
-			if err != nil {
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(r); err != nil {
 				return err
 			}
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
 			}
 		}
@@ -271,9 +285,9 @@ func (s *Service) GetConnectionDataStream(
 
 				decoder := json.NewDecoder(gzr)
 				for {
-					var rowbytes json.RawMessage
+					var rowData map[string]any
 					// Decode the next JSON object
-					err = decoder.Decode(&rowbytes)
+					err = decoder.Decode(&rowData)
 					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
@@ -282,7 +296,24 @@ func (s *Service) GetConnectionDataStream(
 						return err
 					}
 
-					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
+					for k, v := range rowData {
+						newVal, err := s.neosynctyperegistry.Unmarshal(v)
+						if err != nil {
+							return err
+						}
+						rowData[k] = newVal
+					}
+
+					// Encode the row data using gob
+					var rowbytes bytes.Buffer
+					enc := gob.NewEncoder(&rowbytes)
+					if err := enc.Encode(rowData); err != nil {
+						result.Body.Close()
+						gzr.Close()
+						return err
+					}
+
+					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
@@ -324,11 +355,12 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		onRecord := func(record map[string][]byte) error {
-			rowbytes, err := json.Marshal(record)
-			if err != nil {
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(record); err != nil {
 				return err
 			}
-			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes})
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()})
 		}
 		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
 		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
@@ -349,11 +381,17 @@ func (s *Service) GetConnectionDataStream(
 			}
 
 			for _, item := range output.Items {
-				itemBits, err := neosync_dynamodb.ConvertMapToJSONBytes(item)
+				itemBits, err := neosync_dynamodb.ConvertDynamoItemToGoMap(item)
 				if err != nil {
 					return err
 				}
-				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBits}); err != nil {
+
+				var itemBytes bytes.Buffer
+				enc := gob.NewEncoder(&itemBytes)
+				if err := enc.Encode(itemBits); err != nil {
+					return fmt.Errorf("failed to encode item: %w", err)
+				}
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBytes.Bytes()}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
 				}
 			}

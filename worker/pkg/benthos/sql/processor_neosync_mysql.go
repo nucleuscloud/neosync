@@ -151,7 +151,7 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 		}
 		bits, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			return nil, fmt.Errorf("unable to marshal mysql json to bits: %w", err)
 		}
 		return bits, nil
 	default:

@@ -6,6 +6,10 @@ import (
 	"log/slog"
 )
 
+type NeosyncTypeRegistry interface {
+	Unmarshal(value any) (any, error)
+}
+
 type TypeRegistry struct {
 	logger *slog.Logger
 	types  map[string]map[Version]func() (NeosyncAdapter, error)

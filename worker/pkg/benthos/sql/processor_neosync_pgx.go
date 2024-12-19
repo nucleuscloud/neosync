@@ -149,7 +149,7 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 	case pgutil.IsJsonPgDataType(datatype):
 		bits, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			return nil, fmt.Errorf("unable to marshal postgres json to bits: %w", err)
 		}
 		return bits, nil
 	case pgutil.IsPgArrayColumnDataType(datatype):
@@ -196,13 +196,13 @@ func processPgArrayFromJson(bits []byte, datatype string) (any, error) {
 	var pgarray []any
 	err := json.Unmarshal(bits, &pgarray)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to unmarshal postgres array from bits: %w", err)
 	}
 	switch datatype {
 	case "json[]", "jsonb[]":
 		jsonArray, err := stringifyJsonArray(pgarray)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to stringify postgres array: %w", err)
 		}
 		return pq.Array(jsonArray), nil
 	default:
@@ -219,7 +219,7 @@ func getValidJson(jsonData []byte) ([]byte, error) {
 
 	quotedData, err := json.Marshal(string(jsonData))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to marshal postgres json string to bits: %w", err)
 	}
 	return quotedData, nil
 }

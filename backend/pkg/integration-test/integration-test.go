@@ -43,6 +43,7 @@ import (
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/mock"
@@ -307,6 +308,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		unauthdUserClient,
 	)
 
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(testutil.GetTestLogger(t))
 	unauthdConnectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		unauthdConnectionsService,
@@ -318,6 +320,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		mongoconnect.NewConnector(),
 		sqlmanagerclient,
 		neosync_gcp.NewManager(),
+		neosynctyperegistry,
 	)
 
 	var presAnalyzeClient presidioapi.AnalyzeInterface

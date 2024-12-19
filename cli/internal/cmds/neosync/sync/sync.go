@@ -25,6 +25,7 @@ import (
 	cli_logger "github.com/nucleuscloud/neosync/cli/internal/logger"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
@@ -44,19 +45,13 @@ import (
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
-type ConnectionType string
+// TODO: remove this. should use connection type
 type DriverType string
 
 const (
 	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 	mssqlDriver    DriverType = "mssql"
-
-	awsS3Connection           ConnectionType = "awsS3"
-	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
-	postgresConnection        ConnectionType = "postgres"
-	mysqlConnection           ConnectionType = "mysql"
-	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
 
 	batchSize = 20
 )
@@ -331,7 +326,7 @@ func (c *clisync) configureAndRunSync() error {
 }
 
 func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, error) {
-	sourceConnectionType, err := getConnectionType(c.sourceConnection)
+	sourceConnectionType, err := benthosbuilder_shared.GetConnectionType(c.sourceConnection)
 	if err != nil {
 		return nil, err
 	}
@@ -624,6 +619,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 				Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
 					DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
 						Credentials: creds,
+						Endpoint:    cmd.AwsDynamoDbDestination.AwsCredConfig.Endpoint,
 					},
 				},
 			},
@@ -632,7 +628,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 	return &mgmtv1alpha1.Connection{}
 }
 
-func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDestinationOptions {
+func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig, tables map[string]string) *mgmtv1alpha1.JobDestinationOptions {
 	if cmd.Destination != nil {
 		switch cmd.Destination.Driver {
 		case postgresDriver:
@@ -670,9 +666,18 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig) *mgmtv1alpha1.JobDe
 			}
 		}
 	} else if cmd.AwsDynamoDbDestination != nil {
+		dynamoTableMappings := []*mgmtv1alpha1.DynamoDBDestinationTableMapping{}
+		for _, table := range tables {
+			dynamoTableMappings = append(dynamoTableMappings, &mgmtv1alpha1.DynamoDBDestinationTableMapping{
+				SourceTable:      table,
+				DestinationTable: table,
+			})
+		}
 		return &mgmtv1alpha1.JobDestinationOptions{
-			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
-				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+			Config: &mgmtv1alpha1.JobDestinationOptions_DynamodbOptions{
+				DynamodbOptions: &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{
+					TableMappings: dynamoTableMappings,
+				},
 			},
 		}
 	}
@@ -698,6 +703,9 @@ func (c *clisync) runDestinationInitStatements(
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
 	destConnection := cmdConfigToDestinationConnection(c.cmd)
+	if _, ok := destConnection.ConnectionConfig.Config.(*mgmtv1alpha1.ConnectionConfig_DynamodbConfig); ok {
+		return nil
+	}
 	db, err := c.sqlmanagerclient.NewSqlConnection(c.ctx, c.session, destConnection, c.logger)
 	if err != nil {
 		return err
@@ -897,16 +905,18 @@ func (c *clisync) getSourceConnectionSchemaConfig(
 		return nil
 	})
 
-	errgrp.Go(func() error {
-		initStatementsResp, err := getTableInitStatementMap(errctx, c.logger, c.connectiondataclient, c.cmd.Source.ConnectionId, c.cmd.Destination)
-		if err != nil {
-			return err
-		}
-		initTableStatementsMap = initStatementsResp.GetTableInitStatements()
-		truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
-		initSchemaStatements = initStatementsResp.GetSchemaInitStatements()
-		return nil
-	})
+	if c.cmd.Destination != nil {
+		errgrp.Go(func() error {
+			initStatementsResp, err := getTableInitStatementMap(errctx, c.logger, c.connectiondataclient, c.cmd.Source.ConnectionId, c.cmd.Destination)
+			if err != nil {
+				return err
+			}
+			initTableStatementsMap = initStatementsResp.GetTableInitStatements()
+			truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
+			initSchemaStatements = initStatementsResp.GetSchemaInitStatements()
+			return nil
+		})
+	}
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}

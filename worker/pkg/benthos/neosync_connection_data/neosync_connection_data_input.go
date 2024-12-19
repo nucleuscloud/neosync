@@ -1,8 +1,9 @@
 package neosync_benthos_connectiondata
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/gob"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -10,11 +11,19 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
-	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
+
+	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/warpstreamlabs/bento/public/service"
 )
+
+var _ = func() any { //nolint:unparam
+	neosyncgob.RegisterGobTypes()
+	return nil
+}()
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Summary("Streams Neosync connection data").
@@ -122,7 +131,7 @@ type neosyncInput struct {
 func (g *neosyncInput) Connect(ctx context.Context) error {
 	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
 
-	if g.connectionType == "aws-s3" {
+	if g.connectionType == string(benthosbuilder_shared.ConnectionTypeAwsS3) {
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
 			if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
@@ -136,7 +145,7 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 				AwsS3Config: awsS3Cfg,
 			},
 		}
-	} else if g.connectionType == "gcp-cloud-storage" {
+	} else if g.connectionType == string(benthosbuilder_shared.ConnectionTypeGCP) {
 		if g.connectionOpts != nil {
 			gcpCfg := &mgmtv1alpha1.GcpCloudStorageStreamConfig{}
 			if g.connectionOpts != nil {
@@ -188,11 +197,12 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	}
 	rowBytes := g.resp.Msg().RowBytes
 
-	if g.connectionType == "awsDynamoDB" {
+	if g.connectionType == string(benthosbuilder_shared.ConnectionTypeDynamodb) {
 		var dynamoDBItem map[string]any
-		err := json.Unmarshal(rowBytes, &dynamoDBItem)
+		decoder := gob.NewDecoder(bytes.NewReader(rowBytes))
+		err := decoder.Decode(&dynamoDBItem)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("error decoding data connection stream response with gob decoder: %w", err)
 		}
 
 		resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
@@ -206,18 +216,11 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	}
 
 	valuesMap := map[string]any{}
-	err := json.Unmarshal(rowBytes, &valuesMap)
+	decoder := gob.NewDecoder(bytes.NewReader(rowBytes))
+	err := decoder.Decode(&valuesMap)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error unmarshaling row: %w", err)
+		return nil, nil, fmt.Errorf("error decoding data connection stream response with gob decoder: %w", err)
 	}
-	for k, v := range valuesMap {
-		newVal, err := g.neosyncTypeRegistry.Unmarshal(v)
-		if err != nil {
-			return nil, nil, err
-		}
-		valuesMap[k] = newVal
-	}
-
 	msg := service.NewMessage(nil)
 	msg.SetStructuredMut(valuesMap)
 	return msg, func(ctx context.Context, err error) error {

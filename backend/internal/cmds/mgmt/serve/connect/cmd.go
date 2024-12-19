@@ -71,6 +71,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -553,7 +554,7 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if runLogConfig != nil && !cascadelicense.IsValid() {
+	if runLogConfig != nil && runLogConfig.IsEnabled && !cascadelicense.IsValid() {
 		return errors.New("run logs are enabled but no license is present")
 	}
 
@@ -634,6 +635,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
 	gcpmanager := neosync_gcp.NewManager()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
@@ -646,6 +648,7 @@ func serve(ctx context.Context) error {
 		mongoconnector,
 		sqlmanager,
 		gcpmanager,
+		neosynctyperegistry,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(

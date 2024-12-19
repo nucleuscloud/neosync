@@ -6,11 +6,15 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcdynamodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/dynamodb"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
@@ -86,7 +90,7 @@ func Test_Sync(t *testing.T) {
 			}
 
 			testlogger := testutil.GetTestLogger(t)
-			cmdConfig := &cmdConfig{
+			cmdconfig := &cmdConfig{
 				Source: &sourceConfig{
 					ConnectionId: sourceConn.Id,
 				},
@@ -106,7 +110,7 @@ func Test_Sync(t *testing.T) {
 				sqlmanagerclient:     sqlmanagerclient,
 				ctx:                  ctx,
 				logger:               testlogger,
-				cmd:                  cmdConfig,
+				cmd:                  cmdconfig,
 				connmanager:          connmanager,
 				session:              connectionmanager.NewUniqueSession(),
 			}
@@ -230,32 +234,31 @@ func Test_Sync(t *testing.T) {
 				}
 				err := sync.configureAndRunSync()
 				require.NoError(t, err)
+				rowCount, err := postgres.Target.GetTableRowCount(ctx, alltypesSchema, "all_data_types")
+				require.NoError(t, err)
+				require.Greater(t, rowCount, 1)
+
+				rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "json_data")
+				require.NoError(t, err)
+				require.Greater(t, rowCount, 1)
+
+				rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "time_time")
+				require.NoError(t, err)
+				require.Greater(t, rowCount, 0)
+
+				source, err := sql.Open("postgres", postgres.Source.URL)
+				require.NoError(t, err)
+				defer source.Close()
+
+				target, err := sql.Open("postgres", postgres.Target.URL)
+				require.NoError(t, err)
+				defer target.Close()
+
+				testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
+				testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
+				testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
+				testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
 			})
-
-			rowCount, err := postgres.Target.GetTableRowCount(ctx, alltypesSchema, "all_data_types")
-			require.NoError(t, err)
-			require.Greater(t, rowCount, 1)
-
-			rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "json_data")
-			require.NoError(t, err)
-			require.Greater(t, rowCount, 1)
-
-			rowCount, err = postgres.Target.GetTableRowCount(ctx, alltypesSchema, "time_time")
-			require.NoError(t, err)
-			require.Greater(t, rowCount, 0)
-
-			source, err := sql.Open("postgres", postgres.Source.URL)
-			require.NoError(t, err)
-			defer source.Close()
-
-			target, err := sql.Open("postgres", postgres.Target.URL)
-			require.NoError(t, err)
-			defer target.Close()
-
-			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
-			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
-			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
-			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
 		})
 
 		t.Cleanup(func() {
@@ -439,6 +442,145 @@ func Test_Sync(t *testing.T) {
 
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	})
+
+	t.Run("dynamodb", func(t *testing.T) {
+		t.Parallel()
+		dynamo, err := tcdynamodb.NewDynamoDBTestSyncContainer(ctx, t, []tcdynamodb.Option{}, []tcdynamodb.Option{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sourceConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "dynamo-source", dynamo.Source.URL, dynamo.Source.Credentials)
+
+		t.Run("dynamodb_sync", func(t *testing.T) {
+			t.Parallel()
+
+			tableName := "test-sync-source"
+			primaryKey := "id"
+
+			err = dynamo.Source.SetupDynamoDbTable(ctx, tableName, primaryKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = dynamo.Target.SetupDynamoDbTable(ctx, tableName, primaryKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			testData := []map[string]dyntypes.AttributeValue{
+				{
+					"id": &dyntypes.AttributeValueMemberS{Value: "1"},
+					"a":  &dyntypes.AttributeValueMemberBOOL{Value: true},
+					"NestedMap": &dyntypes.AttributeValueMemberM{
+						Value: map[string]dyntypes.AttributeValue{
+							"Level1": &dyntypes.AttributeValueMemberM{
+								Value: map[string]dyntypes.AttributeValue{
+									"Level2": &dyntypes.AttributeValueMemberM{
+										Value: map[string]dyntypes.AttributeValue{
+											"Attribute1": &dyntypes.AttributeValueMemberS{Value: "Value1"},
+											"NumberSet":  &dyntypes.AttributeValueMemberNS{Value: []string{"1", "2", "3"}},
+											"BinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("U29tZUJpbmFyeURhdGE=")},
+											"Level3": &dyntypes.AttributeValueMemberM{
+												Value: map[string]dyntypes.AttributeValue{
+													"Attribute2": &dyntypes.AttributeValueMemberS{Value: "Value2"},
+													"StringSet":  &dyntypes.AttributeValueMemberSS{Value: []string{"Item1", "Item2", "Item3"}},
+													"BinarySet": &dyntypes.AttributeValueMemberBS{
+														Value: [][]byte{
+															[]byte("U29tZUJpbmFyeQ=="),
+															[]byte("QW5vdGhlckJpbmFyeQ=="),
+														},
+													},
+													"Level4": &dyntypes.AttributeValueMemberM{
+														Value: map[string]dyntypes.AttributeValue{
+															"Attribute3":     &dyntypes.AttributeValueMemberS{Value: "Value3"},
+															"Boolean":        &dyntypes.AttributeValueMemberBOOL{Value: true},
+															"MoreBinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("TW9yZUJpbmFyeURhdGE=")},
+															"MoreBinarySet": &dyntypes.AttributeValueMemberBS{
+																Value: [][]byte{
+																	[]byte("TW9yZUJpbmFyeQ=="),
+																	[]byte("QW5vdGhlck1vcmVCaW5hcnk="),
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					"id": &dyntypes.AttributeValueMemberS{Value: "2"},
+					"a":  &dyntypes.AttributeValueMemberBOOL{Value: false},
+				},
+				{
+					"id":   &dyntypes.AttributeValueMemberS{Value: "3"},
+					"name": &dyntypes.AttributeValueMemberS{Value: "test3"},
+				},
+				{
+					"id":   &dyntypes.AttributeValueMemberS{Value: "4"},
+					"name": &dyntypes.AttributeValueMemberS{Value: "test4"},
+				},
+			}
+
+			err = dynamo.Source.InsertDynamoDBRecords(ctx, tableName, testData)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			testlogger := testutil.GetTestLogger(t)
+			cmdConfig := &cmdConfig{
+				Source: &sourceConfig{
+					ConnectionId: sourceConn.Id,
+				},
+				AwsDynamoDbDestination: &dynamoDbDestinationConfig{
+					AwsCredConfig: &AwsCredConfig{
+						Region:          "us-west-2",
+						AccessKeyID:     dynamo.Target.Credentials.AccessKeyId,
+						SecretAccessKey: dynamo.Target.Credentials.SecretAccessKey,
+						SessionToken:    dynamo.Target.Credentials.SessionToken,
+						Endpoint:        &dynamo.Target.URL,
+					},
+				},
+				OutputType: &outputType,
+				AccountId:  &accountId,
+			}
+			sync := &clisync{
+				connectiondataclient: conndataclient,
+				connectionclient:     connclient,
+				sqlmanagerclient:     sqlmanagerclient,
+				ctx:                  ctx,
+				logger:               testlogger,
+				cmd:                  cmdConfig,
+				connmanager:          connmanager,
+				session:              connectionmanager.NewUniqueSession(),
+			}
+			err := sync.configureAndRunSync()
+			require.NoError(t, err)
+
+			out, err := dynamo.Source.Client.Scan(ctx, &dynamodb.ScanInput{
+				TableName: &tableName,
+			})
+			require.NoError(t, err)
+			// Verify data was synced
+			out, err = dynamo.Target.Client.Scan(ctx, &dynamodb.ScanInput{
+				TableName: &tableName,
+			})
+			require.NoError(t, err)
+			require.Equal(t, int32(4), out.Count)
+		})
+
+		t.Cleanup(func() {
+			err := dynamo.TearDown(ctx)
 			if err != nil {
 				t.Fatal(err)
 			}

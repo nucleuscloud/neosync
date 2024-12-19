@@ -138,7 +138,7 @@ func getMssqlValue(value any) (any, error) {
 	if gotypeutil.IsMap(value) {
 		bits, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			return nil, fmt.Errorf("unable to marshal go map to json bits: %w", err)
 		}
 		return bits, nil
 	}
@@ -150,7 +150,7 @@ func getMssqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) 
 	if valuer, ok := root.(neosynctypes.NeosyncMssqlValuer); ok {
 		value, err := valuer.ValueMssql()
 		if err != nil {
-			return nil, false, fmt.Errorf("unable to get MSSQL value from NeosyncMysqlValuer: %w", err)
+			return nil, false, fmt.Errorf("unable to get MSSQL value from NeosyncMssqlValuer: %w", err)
 		}
 		return value, true, nil
 	}
