@@ -55,6 +55,11 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_virtual_foreign_keys(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("javascript_transformers", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_javascript_transformers(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Run("primary_key_transformations", func(t *testing.T) {
 			t.Parallel()
 			redis, err := tcredis.NewRedisTestContainer(ctx)

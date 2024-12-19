@@ -3,6 +3,7 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -16,15 +17,15 @@ import (
 	pg_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
+	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
+	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata"
-	pg_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata/postgres/primary-key-transformer"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	testdataFolder      string = "../../../internal/testutil/testdata/postgres"
-	localTestdataFolder string = "./testdata/postgres"
+	testdataFolder string = "../../../internal/testutil/testdata/postgres"
 )
 
 type createPostgresJobConfig struct {
@@ -192,13 +193,13 @@ func test_postgres_primary_key_transformations(
 ) {
 	jobclient := neosyncApi.UnauthdClients.Jobs
 	schema := "primary_$key"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, localTestdataFolder, []string{"primary-key-transformer/create-tables.sql"}, schema)
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"uuids/create-tables.sql"}, schema)
 	require.NoError(t, err)
 	err = postgres.Target.CreateSchemas(ctx, []string{schema})
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
-	defaultMappings := pg_primarykeytransformer.GetDefaultSyncJobMappings(schema)
+	defaultMappings := pg_uuids.GetDefaultSyncJobMappings(schema)
 	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
 	for _, jm := range defaultMappings {
 		if jm.Column != "id" {
@@ -448,9 +449,9 @@ func test_postgres_virtual_foreign_keys(
 	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
-	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: edgecases")
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: virtual-foreign-keys")
 	err = testworkflow.TestEnv.GetWorkflowError()
-	require.NoError(t, err, "Received Temporal Workflow Error: edgecases")
+	require.NoError(t, err, "Received Temporal Workflow Error: virtual-foreign-keys")
 
 	expectedResults := []struct {
 		schema   string
@@ -469,7 +470,7 @@ func test_postgres_virtual_foreign_keys(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: edgecases Table: %s", expected.table))
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: virtual-foreign-keys Table: %s", expected.table))
 	}
 
 	// tear down
@@ -477,4 +478,151 @@ func test_postgres_virtual_foreign_keys(
 	require.NoError(t, err)
 	err = postgres.Target.DropSchemas(ctx, []string{schema})
 	require.NoError(t, err)
+}
+
+func test_postgres_javascript_transformers(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.UnauthdClients.Jobs
+	transformersSchema := "transformers"
+	generatorsSchema := "generators"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"transformers/create-tables.sql"}, transformersSchema)
+	require.NoError(t, err)
+	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"transformers/create-tables.sql"}, generatorsSchema)
+	require.NoError(t, err)
+	err = postgres.Target.CreateSchemas(ctx, []string{transformersSchema, generatorsSchema})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	transformersMappings := getJsTransformerJobmappings(pg_transformers.GetDefaultSyncJobMappings(transformersSchema))
+	generatorsMappings := getJsGeneratorJobmappings(pg_transformers.GetDefaultSyncJobMappings(generatorsSchema))
+
+	job := createPostgresJob(t, ctx, jobclient, &createPostgresJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "javascript-transformers",
+		JobMappings: slices.Concat(transformersMappings, generatorsMappings),
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:        true,
+			TruncateCascade: true,
+			InitSchema:      true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: javascript-transformers")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: javascript-transformers")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: transformersSchema, table: "transformers", rowCount: 13},
+		{schema: generatorsSchema, table: "transformers", rowCount: 13},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: javascript-transformers Table: %s", expected.table))
+	}
+
+	// tear down
+	err = postgres.Source.DropSchemas(ctx, []string{transformersSchema, generatorsSchema})
+	require.NoError(t, err)
+	err = postgres.Target.DropSchemas(ctx, []string{transformersSchema, generatorsSchema})
+	require.NoError(t, err)
+}
+
+func getJsGeneratorJobmappings(jobmappings []*mgmtv1alpha1.JobMapping) []*mgmtv1alpha1.JobMapping {
+	colTransformerMap := map[string]*mgmtv1alpha1.JobMappingTransformer{
+		"e164_phone_number":   getJavascriptTransformerConfig("return neosync.generateInternationalPhoneNumber({ min: 9, max: 15});"),
+		"email":               getJavascriptTransformerConfig("return neosync.generateEmail({ maxLength: 255});"),
+		"str":                 getJavascriptTransformerConfig("return neosync.generateRandomString({ min: 1, max: 50});"),
+		"measurement":         getJavascriptTransformerConfig("return neosync.generateFloat64({ min: 3.14, max: 300.10});"),
+		"int64":               getJavascriptTransformerConfig("return neosync.generateInt64({ min: 1, max: 50});"),
+		"int64_phone_number":  getJavascriptTransformerConfig("return neosync.generateInt64PhoneNumber({});"),
+		"string_phone_number": getJavascriptTransformerConfig("return neosync.generateStringPhoneNumber({ min: 1, max: 15});"),
+		"first_name":          getJavascriptTransformerConfig("return neosync.generateFirstName({ maxLength: 25});"),
+		"last_name":           getJavascriptTransformerConfig("return neosync.generateLastName({ maxLength: 25});"),
+		"full_name":           getJavascriptTransformerConfig("return neosync.generateFullName({ maxLength: 25});"),
+		"character_scramble":  getJavascriptTransformerConfig("return neosync.generateCity({ maxLength: 100});"),
+		"bool":                getJavascriptTransformerConfig("return neosync.generateBool({});"),
+		"card_number":         getJavascriptTransformerConfig("return neosync.generateCardNumber({ validLuhn: true });"),
+		"categorical":         getJavascriptTransformerConfig("return neosync.generateCategorical({ categories: 'dog,cat,horse'});"),
+		"city":                getJavascriptTransformerConfig("return neosync.generateCity({ maxLength: 100 });"),
+		"full_address":        getJavascriptTransformerConfig("return neosync.generateFullAddress({ maxLength: 100 });"),
+		"gender":              getJavascriptTransformerConfig("return neosync.generateGender({});"),
+		"international_phone": getJavascriptTransformerConfig("return neosync.generateInternationalPhoneNumber({ min: 9, max: 14});"),
+		"sha256":              getJavascriptTransformerConfig("return neosync.generateSHA256Hash({});"),
+		"ssn":                 getJavascriptTransformerConfig("return neosync.generateSSN({});"),
+		"state":               getJavascriptTransformerConfig("return neosync.generateState({});"),
+		"street_address":      getJavascriptTransformerConfig("return neosync.generateStreetAddress({ maxLength: 100 });"),
+		"unix_time":           getJavascriptTransformerConfig("return neosync.generateUnixTimestamp({});"),
+		"username":            getJavascriptTransformerConfig("return neosync.generateUsername({ maxLength: 100 });"),
+		"utc_timestamp":       getJavascriptTransformerConfig("return neosync.generateUTCTimestamp({});"),
+		"uuid":                getJavascriptTransformerConfig("return neosync.generateUUID({});"),
+		"zipcode":             getJavascriptTransformerConfig("return neosync.generateZipcode({});"),
+	}
+	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
+	for _, jm := range jobmappings {
+		if _, ok := colTransformerMap[jm.Column]; !ok {
+			updatedJobmappings = append(updatedJobmappings, jm)
+		} else {
+			updatedJobmappings = append(updatedJobmappings, &mgmtv1alpha1.JobMapping{
+				Schema:      jm.Schema,
+				Table:       jm.Table,
+				Column:      jm.Column,
+				Transformer: colTransformerMap[jm.Column],
+			})
+		}
+	}
+	return updatedJobmappings
+}
+
+func getJsTransformerJobmappings(jobmappings []*mgmtv1alpha1.JobMapping) []*mgmtv1alpha1.JobMapping {
+	colTransformerMap := map[string]*mgmtv1alpha1.JobMappingTransformer{
+		"e164_phone_number":   getJavascriptTransformerConfig("return neosync.transformE164PhoneNumber(value, { preserveLength: true, maxLength: 20});"),
+		"email":               getJavascriptTransformerConfig("return neosync.transformEmail(value, { preserveLength: true, maxLength: 255});"),
+		"str":                 getJavascriptTransformerConfig("return neosync.transformString(value, { preserveLength: true, maxLength: 30});"),
+		"measurement":         getJavascriptTransformerConfig("return neosync.transformFloat64(value, { randomizationRangeMin: 3.14, randomizationRangeMax: 300.10});"),
+		"int64":               getJavascriptTransformerConfig("return neosync.transformInt64(value, { randomizationRangeMin: 1, randomizationRangeMax: 300});"),
+		"int64_phone_number":  getJavascriptTransformerConfig("return neosync.transformInt64PhoneNumber(value, { preserveLength: true});"),
+		"string_phone_number": getJavascriptTransformerConfig("return neosync.transformStringPhoneNumber(value, { preserveLength: true, maxLength: 200});"),
+		"first_name":          getJavascriptTransformerConfig("return neosync.transformFirstName(value, { preserveLength: true, maxLength: 25});"),
+		"last_name":           getJavascriptTransformerConfig("return neosync.transformLastName(value, { preserveLength: true, maxLength: 25});"),
+		"full_name":           getJavascriptTransformerConfig("return neosync.transformFullName(value, { preserveLength: true, maxLength: 25});"),
+		"character_scramble":  getJavascriptTransformerConfig("return neosync.transformCharacterScramble(value, { preserveLength: false, maxLength: 100});"),
+	}
+	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
+	for _, jm := range jobmappings {
+		updatedJobmappings = append(updatedJobmappings, &mgmtv1alpha1.JobMapping{
+			Schema:      jm.Schema,
+			Table:       jm.Table,
+			Column:      jm.Column,
+			Transformer: colTransformerMap[jm.Column],
+		})
+	}
+	return updatedJobmappings
+}
+
+func getJavascriptTransformerConfig(code string) *mgmtv1alpha1.JobMappingTransformer {
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: code},
+			},
+		},
+	}
 }

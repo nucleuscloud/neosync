@@ -3,5 +3,35 @@
 		"folder":"postgres/alltypes",
 		"sql_file": "create-tables.sql", 
 		"driver": "postgres"
+	},
+  {
+		"folder":"postgres/humanresources",
+		"sql_file": "create-tables.sql", 
+		"driver": "postgres"
+	},
+	{
+		"folder": "postgres/edgecases",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
+		"folder": "postgres/uuids",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
+		"folder": "postgres/transformers",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
+		"folder": "mysql/alltypes",
+		"sql_file": "create-tables.sql",
+		"driver": "mysql"
+	},
+  {
+		"folder": "mysql/humanresources",
+		"sql_file": "create-tables.sql",
+		"driver": "mysql"
 	}
 ]

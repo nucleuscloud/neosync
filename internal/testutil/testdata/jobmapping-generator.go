@@ -286,7 +286,7 @@ func main() {
 			return
 		}
 
-		output := fmt.Sprintf("%s/job_mappings.go", input.Folder)
+		output := fmt.Sprintf("%s/job-mappings.go", input.Folder)
 		outputFile, err := os.Create(output)
 		if err != nil {
 			fmt.Println("Error creating jobmapping.go file:", err)
