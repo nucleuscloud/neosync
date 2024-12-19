@@ -112,7 +112,6 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'MongoDB is a source-available, cross-platform, document-oriented database program.',
     connectionType: 'mongoConfig',
-    isExperimental: true,
   },
   {
     urlSlug: 'dynamodb',
@@ -120,7 +119,6 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Amazon DynamoDB is a fully managed proprietary NoSQL database offered by Amazon.com as part of the Amazon Web Services portfolio',
     connectionType: 'dynamodbConfig',
-    isExperimental: true,
   },
   {
     urlSlug: 'mssql',
@@ -128,15 +126,12 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Microsoft SQL Server is a proprietary relational database management system developed by Microsoft.',
     connectionType: 'mssqlConfig',
-    isExperimental: true,
   },
 ];
 
 export function getConnectionsMetadata(
   connectionTypes: Set<string>,
-  isGcpCloudStorageConnectionsEnabled: boolean,
-  isDynamoDbConnectionsEnabled: boolean,
-  isMssqlConnectionsEnabled: boolean
+  isGcpCloudStorageConnectionsEnabled: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS_METADATA;
   if (!isGcpCloudStorageConnectionsEnabled) {
@@ -144,14 +139,7 @@ export function getConnectionsMetadata(
       (c) => c.connectionType !== 'gcpCloudstorageConfig'
     );
   }
-  if (!isDynamoDbConnectionsEnabled) {
-    connections = connections.filter(
-      (c) => c.connectionType !== 'dynamodbConfig'
-    );
-  }
-  if (!isMssqlConnectionsEnabled) {
-    connections = connections.filter((c) => c.connectionType !== 'mssqlConfig');
-  }
+
   if (connectionTypes.size > 0) {
     connections = connections.filter((c) =>
       connectionTypes.has(c.connectionType)
