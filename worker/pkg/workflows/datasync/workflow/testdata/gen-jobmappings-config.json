@@ -1,18 +1,13 @@
 
 [
 	{
-		"folder": "postgres/double-reference",
-		"sql_file":    "source-create.sql",
-		"driver": "postgres"
-	},
-	{
 		"folder": "postgres/virtual-foreign-keys",
 		"sql_file":    "source-setup.sql",
 		"driver": "postgres"
 	},
 	{
-		"folder": "postgres/circular-dependencies", 
-		"sql_file": "setup.sql",
+		"folder": "postgres/edgecases", 
+		"sql_file": "create-tables.sql",
 		"driver": "postgres"
 	},
 	{

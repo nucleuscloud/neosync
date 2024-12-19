@@ -1,40 +1,37 @@
-CREATE TABLE regions (
+CREATE TABLE IF NOT EXISTS regions  (
 	region_id SERIAL PRIMARY KEY,
 	region_name CHARACTER VARYING (25)
 );
 
-CREATE TABLE countries (
+CREATE TABLE IF NOT EXISTS countries (
 	country_id CHARACTER (2) PRIMARY KEY,
 	country_name CHARACTER VARYING (40),
-	region_id INTEGER NOT NULL,
-	FOREIGN KEY (region_id) REFERENCES regions (region_id) ON UPDATE CASCADE ON DELETE CASCADE
+	region_id INTEGER NOT NULL
 );
 
-CREATE TABLE locations (
+CREATE TABLE IF NOT EXISTS locations (
 	location_id SERIAL PRIMARY KEY,
 	street_address CHARACTER VARYING (40),
 	postal_code CHARACTER VARYING (12),
 	city CHARACTER VARYING (30) NOT NULL,
 	state_province CHARACTER VARYING (25),
-	country_id CHARACTER (2) NOT NULL,
-	FOREIGN KEY (country_id) REFERENCES countries (country_id) ON UPDATE CASCADE ON DELETE CASCADE
+	country_id CHARACTER (2) NOT NULL
 );
 
-CREATE TABLE departments (
+CREATE TABLE IF NOT EXISTS departments (
 	department_id SERIAL PRIMARY KEY,
 	department_name CHARACTER VARYING (30) NOT NULL,
-	location_id INTEGER,
-	FOREIGN KEY (location_id) REFERENCES locations (location_id) ON UPDATE CASCADE ON DELETE CASCADE
+	location_id INTEGER
 );
 
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
 	job_id SERIAL PRIMARY KEY,
 	job_title CHARACTER VARYING (35) NOT NULL,
 	min_salary NUMERIC (8, 2),
 	max_salary NUMERIC (8, 2)
 );
 
-CREATE TABLE employees (
+CREATE TABLE IF NOT EXISTS employees (
 	employee_id SERIAL PRIMARY KEY,
 	first_name CHARACTER VARYING (20),
 	last_name CHARACTER VARYING (25) NOT NULL,
@@ -44,23 +41,17 @@ CREATE TABLE employees (
 	job_id INTEGER NOT NULL,
 	salary NUMERIC (8, 2) NOT NULL,
 	manager_id INTEGER,
-	department_id INTEGER,
-	FOREIGN KEY (job_id) REFERENCES jobs (job_id) ON UPDATE CASCADE ON DELETE CASCADE,
-	FOREIGN KEY (department_id) REFERENCES departments (department_id) ON UPDATE CASCADE ON DELETE CASCADE,
-	FOREIGN KEY (manager_id) REFERENCES employees (employee_id) ON UPDATE CASCADE ON DELETE CASCADE
+	department_id INTEGER
 );
 
-CREATE TABLE dependents (
+CREATE TABLE IF NOT EXISTS dependents (
 	dependent_id SERIAL PRIMARY KEY,
 	first_name CHARACTER VARYING (50) NOT NULL,
 	last_name CHARACTER VARYING (50) NOT NULL,
 	relationship CHARACTER VARYING (25) NOT NULL,
-	employee_id INTEGER NOT NULL,
-	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+	employee_id INTEGER NOT NULL
 );
 
-
-/*Data for the table regions */
 
 INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
 INSERT INTO regions(region_id,region_name) VALUES (2,'Americas');
@@ -221,22 +212,4 @@ INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_i
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (29,'Alec','Partners','Child',146);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (30,'Sandra','Taylor','Child',176);
 
--- Table with generated columns
-CREATE TABLE generated_table (
-    -- Identity column
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
-    amount DECIMAL(10,2) NOT NULL,
-    status text NOT NULL DEFAULT 'pending',
-    
-    -- Generated stored column 
-    amount_with_tax DECIMAL(10,2) GENERATED ALWAYS AS (amount * 1.2) STORED
-);
-
-
-INSERT INTO generated_table (amount, status)
-VALUES 
-    (199.99, 'pending'),
-    (299.50, 'processing'),
-    (499.99, 'completed'),
-    (150.00, 'cancelled');

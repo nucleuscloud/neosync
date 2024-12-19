@@ -8,54 +8,66 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "addresses",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "addresses",
 			Column: "order_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "customers",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "customers",
 			Column: "address_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "orders",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 		{
-			Schema: "circular_dependencies",
+			Schema: schema,
 			Table:  "orders",
 			Column: "customer_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+				},
 			},
 		},
 	} 

@@ -373,3 +373,24 @@ INSERT INTO json_data (data) VALUES (
         }
     }'
 );
+
+
+-- Table with generated columns
+CREATE TABLE generated_table (
+    -- Identity column
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    amount DECIMAL(10,2) NOT NULL,
+    status text NOT NULL DEFAULT 'pending',
+    
+    -- Generated stored column 
+    amount_with_tax DECIMAL(10,2) GENERATED ALWAYS AS (amount * 1.2) STORED
+);
+
+
+INSERT INTO generated_table (amount, status)
+VALUES 
+    (199.99, 'pending'),
+    (299.50, 'processing'),
+    (499.99, 'completed'),
+    (150.00, 'cancelled');

@@ -1,8 +1,8 @@
 
 [
 	{
-		"folder": "postgres/double-reference",
-		"sql_file":    "source-create.sql",
+		"folder": "postgres/edgecases",
+		"sql_file":    "create-tables.sql",
 		"driver": "postgres"
 	},
 	{
@@ -11,12 +11,7 @@
 		"driver": "postgres"
 	},
 	{
-		"folder": "postgres/circular-dependencies", 
-		"sql_file": "setup.sql",
-		"driver": "postgres"
-	},
-	{
-		"folder": "javascript-transformers",
+		"folder": "postgres/javascript-transformers",
 		"sql_file": "create.sql",
 		"driver": "postgres"
 	},
@@ -27,7 +22,7 @@
 	},
 	{
 		"folder": "postgres/primary-key-transformer",
-		"sql_file": "create.sql",
+		"sql_file": "create-tables.sql",
 		"driver": "postgres"
 	},
 	{
@@ -56,12 +51,7 @@
 		"driver": "sqlserver"
 	},
 	{
-		"folder":"postgres/all-types",
-		"sql_file": "create-tables.sql", 
-		"driver": "postgres"
-	},
-	{
-		"folder": "skip-fk-violations",
+		"folder": "postgres/skip-fk-violations",
 		"sql_file": "create.sql",
 		"driver": "postgres"
 	},

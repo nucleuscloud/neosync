@@ -45,6 +45,16 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_types(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("edgecases", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_edgecases(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("virtual_foreign_keys", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_virtual_foreign_keys(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Run("primary_key_transformations", func(t *testing.T) {
 			t.Parallel()
 			redis, err := tcredis.NewRedisTestContainer(ctx)
