@@ -850,29 +850,14 @@ components:
     mgmt.v1alpha1.GetConnectionDataStreamResponse:
       type: object
       properties:
-        row:
-          type: object
-          title: row
-          additionalProperties:
-            type: string
-            title: value
-            format: byte
-          description: A map of column name to the bytes value of the data that was found for that column and row
+        rowBytes:
+          type: string
+          title: row_bytes
+          format: byte
+          description: A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.
       title: GetConnectionDataStreamResponse
       additionalProperties: false
       description: Each stream response is a single row in the requested schema and table
-    mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-          format: byte
-      title: RowEntry
-      additionalProperties: false
     mgmt.v1alpha1.GetConnectionInitStatementsRequest:
       type: object
       properties:

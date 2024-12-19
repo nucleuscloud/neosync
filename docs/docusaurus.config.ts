@@ -12,9 +12,9 @@ const config: Config = {
     {
       tagName: 'script',
       attributes: {
-        id: 'koala-snippet',
+        id: 'unify-snippet',
 
-        innerHTML: `!function(t){if(window.ko)return;window.ko=[],["identify","track","removeListeners","open","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_4fa92236b6fe5d23fb878c88c14d209fd48e/sdk.js"),(document.body || document.head).appendChild(n)}();`,
+        innerHTML: `!function(){window.unify||(window.unify=Object.assign([],["identify","page","startAutoPage","stopAutoPage","startAutoIdentify","stopAutoIdentify"].reduce((function(t,e){return t[e]=function(){return unify.push([e,[].slice.call(arguments)]),unify},t}),{})));var t=document.createElement("script");t.async=!0,t.setAttribute("src","https://tag.unifyintent.com/v1/3bzXn1sjuq1cb6wQF3Cp86/script.js"),t.setAttribute("data-api-key","${process.env.UNIFY_KEY}"),t.setAttribute("id","unifytag"),(document.body||document.head).appendChild(t)}();`,
       },
     },
   ],

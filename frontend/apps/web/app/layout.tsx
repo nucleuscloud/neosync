@@ -1,10 +1,10 @@
 import '@/app/globals.css';
-import { KoalaScriptProvider } from '@/components/providers/koala-provider';
 import {
   PHProvider,
   PostHogPageview,
 } from '@/components/providers/posthog-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { UnifyScriptProvider } from '@/components/providers/unify-provider';
 import { Metadata } from 'next';
 import { ReactElement, Suspense } from 'react';
 import BaseLayout from './BaseLayout';
@@ -35,7 +35,7 @@ export default async function RootLayout({
               <BaseLayout>
                 <>
                   <Suspense>
-                    <KoalaScriptProvider />
+                    <UnifyScriptProvider />
                   </Suspense>
                   <Suspense>
                     <PostHogPageview />

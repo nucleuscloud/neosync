@@ -62,17 +62,10 @@ class GetConnectionDataStreamRequest(_message.Message):
     def __init__(self, connection_id: _Optional[str] = ..., stream_config: _Optional[_Union[ConnectionStreamConfig, _Mapping]] = ..., schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
 
 class GetConnectionDataStreamResponse(_message.Message):
-    __slots__ = ("row",)
-    class RowEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: bytes
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
-    ROW_FIELD_NUMBER: _ClassVar[int]
-    row: _containers.ScalarMap[str, bytes]
-    def __init__(self, row: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
+    __slots__ = ("row_bytes",)
+    ROW_BYTES_FIELD_NUMBER: _ClassVar[int]
+    row_bytes: bytes
+    def __init__(self, row_bytes: _Optional[bytes] = ...) -> None: ...
 
 class PostgresSchemaConfig(_message.Message):
     __slots__ = ()

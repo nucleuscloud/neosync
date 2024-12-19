@@ -30,6 +30,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	myutil "github.com/nucleuscloud/neosync/internal/mysql"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
@@ -85,7 +87,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout), sqlconnect.WithMysqlParseTimeDisabled())
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout))
 		if err != nil {
 			return err
 		}
@@ -97,7 +99,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 0)
 		if err != nil {
 			return err
 		}
@@ -121,21 +123,15 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
-			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
+			r, err := myutil.MysqlSqlRowToMap(rows)
+			if err != nil {
 				return err
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
+			rowbytes, err := json.Marshal(r)
+			if err != nil {
+				return err
 			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
 		}
@@ -158,7 +154,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 0)
 		if err != nil {
 			return err
 		}
@@ -183,23 +179,16 @@ func (s *Service) GetConnectionDataStream(
 		}
 		defer rows.Close()
 
-		// todo: this is probably way fucking broken now
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
-			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
+			r, err := pgutil.SqlRowToPgTypesMap(rows)
+			if err != nil {
 				return err
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
+			rowbytes, err := json.Marshal(r)
+			if err != nil {
+				return err
 			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 				return err
 			}
 		}
@@ -282,10 +271,9 @@ func (s *Service) GetConnectionDataStream(
 
 				decoder := json.NewDecoder(gzr)
 				for {
-					var data map[string]any
-
+					var rowbytes json.RawMessage
 					// Decode the next JSON object
-					err = decoder.Decode(&data)
+					err = decoder.Decode(&rowbytes)
 					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
@@ -293,29 +281,8 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-					rowMap := make(map[string][]byte)
-					for key, value := range data {
-						var byteValue []byte
-						switch v := value.(type) {
-						case string:
-							// try converting string directly to []byte
-							// prevents quoted strings
-							byteValue = []byte(v)
-						default:
-							// if not a string use JSON encoding
-							byteValue, err = json.Marshal(v)
-							if err != nil {
-								result.Body.Close()
-								gzr.Close()
-								return err
-							}
-							if string(byteValue) == "null" {
-								byteValue = nil
-							}
-						}
-						rowMap[key] = byteValue
-					}
-					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: rowMap}); err != nil {
+
+					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes}); err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
@@ -357,7 +324,11 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		onRecord := func(record map[string][]byte) error {
-			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: record})
+			rowbytes, err := json.Marshal(record)
+			if err != nil {
+				return err
+			}
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes})
 		}
 		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
 		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
@@ -378,14 +349,11 @@ func (s *Service) GetConnectionDataStream(
 			}
 
 			for _, item := range output.Items {
-				row := make(map[string][]byte)
-
 				itemBits, err := neosync_dynamodb.ConvertMapToJSONBytes(item)
 				if err != nil {
 					return err
 				}
-				row["item"] = itemBits
-				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBits}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
 				}
 			}

@@ -3,6 +3,7 @@ package neosync_benthos_connectiondata
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -185,38 +186,36 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		}
 		return nil, nil, service.ErrEndOfInput
 	}
-	row := g.resp.Msg().Row
+	rowBytes := g.resp.Msg().RowBytes
 
 	if g.connectionType == "awsDynamoDB" {
-		for _, val := range row {
-			var dynamoDBItem map[string]any
-			err := json.Unmarshal(val, &dynamoDBItem)
-			if err != nil {
-				return nil, nil, err
-			}
-
-			resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
-			msg := service.NewMessage(nil)
-			msg.MetaSetMut(neosync_metadata.MetaTypeMapStr, keyTypeMap)
-			msg.SetStructuredMut(resMap)
-			return msg, func(ctx context.Context, err error) error {
-				// Nacks are retried automatically when we use service.AutoRetryNacks
-				return nil
-			}, nil
+		var dynamoDBItem map[string]any
+		err := json.Unmarshal(rowBytes, &dynamoDBItem)
+		if err != nil {
+			return nil, nil, err
 		}
+
+		resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
+		msg := service.NewMessage(nil)
+		msg.MetaSetMut(neosync_metadata.MetaTypeMapStr, keyTypeMap)
+		msg.SetStructuredMut(resMap)
+		return msg, func(ctx context.Context, err error) error {
+			// Nacks are retried automatically when we use service.AutoRetryNacks
+			return nil
+		}, nil
 	}
 
 	valuesMap := map[string]any{}
-	for col, val := range row {
-		if len(val) == 0 {
-			valuesMap[col] = nil
-		} else {
-			newVal, err := g.neosyncTypeRegistry.Unmarshal(val)
-			if err != nil {
-				return nil, nil, err
-			}
-			valuesMap[col] = newVal
+	err := json.Unmarshal(rowBytes, &valuesMap)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error unmarshaling row: %w", err)
+	}
+	for k, v := range valuesMap {
+		newVal, err := g.neosyncTypeRegistry.Unmarshal(v)
+		if err != nil {
+			return nil, nil, err
 		}
+		valuesMap[k] = newVal
 	}
 
 	msg := service.NewMessage(nil)

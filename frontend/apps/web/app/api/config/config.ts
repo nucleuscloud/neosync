@@ -18,9 +18,9 @@ export function getSystemAppConfig(): SystemAppConfig {
       host: process.env.POSTHOG_HOST ?? 'https://app.posthog.com',
       key: process.env.POSTHOG_KEY,
     },
-    koala: {
-      enabled: isAnalyticsEnabled() && !!process.env.KOALA_KEY,
-      key: process.env.KOALA_KEY,
+    unify: {
+      enabled: isAnalyticsEnabled() && !!process.env.UNIFY_KEY,
+      key: process.env.UNIFY_KEY,
     },
     isNeosyncCloud,
     isStripeEnabled: process.env.STRIPE_ENABLED === 'true',
