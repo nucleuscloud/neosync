@@ -35,14 +35,14 @@ func Test_Sync(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	connclient := neosyncApi.OSSUnauthenticatedLicensedClients.Connections
-	conndataclient := neosyncApi.OSSUnauthenticatedLicensedClients.ConnectionData
-	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs
+	connclient := neosyncApi.OSSUnauthenticatedLicensedClients.Connections()
+	conndataclient := neosyncApi.OSSUnauthenticatedLicensedClients.ConnectionData()
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 
 	dbManagers := tcworkflow.NewTestDatabaseManagers(t)
 	connmanager := dbManagers.SqlConnManager
 	sqlmanagerclient := dbManagers.SqlManager
-	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Users)
+	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Users())
 	awsS3Config := testutil.GetTestAwsS3Config()
 	s3Conn := tcneosyncapi.CreateS3Connection(
 		ctx,
@@ -63,7 +63,7 @@ func Test_Sync(t *testing.T) {
 		}
 
 		testdataFolder := "../../../../../internal/testutil/testdata/postgres"
-		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Connections, accountId, "postgres-source", postgres.Source.URL)
+		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-source", postgres.Source.URL)
 
 		t.Run("postgres_sync", func(t *testing.T) {
 			// can't be run in parallel yet
@@ -268,7 +268,7 @@ func Test_Sync(t *testing.T) {
 		}
 
 		testdataFolder := "../../../../../internal/testutil/testdata/mysql"
-		sourceConn := tcneosyncapi.CreateMysqlConnection(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Connections, accountId, "mysql-source", mysql.Source.URL)
+		sourceConn := tcneosyncapi.CreateMysqlConnection(ctx, t, connclient, accountId, "mysql-source", mysql.Source.URL)
 
 		t.Run("mysql_sync", func(t *testing.T) {
 			// can't be run in parallel yet

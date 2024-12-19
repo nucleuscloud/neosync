@@ -34,12 +34,12 @@ type GetUserResponse struct {
 func NewClient(
 	userServiceClient UserServiceClient,
 	enforcer rbac.EntityEnforcer,
-	license license.EEInterface,
+	eeLicense license.EEInterface,
 ) *Client {
 	return &Client{
 		userServiceClient: userServiceClient,
 		enforcer:          enforcer,
-		license:           license,
+		license:           eeLicense,
 	}
 }
 
