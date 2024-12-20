@@ -42,10 +42,9 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var _ = func() any { //nolint:unparam
+func init() {
 	neosyncgob.RegisterGobTypes()
-	return nil
-}()
+}
 
 type DatabaseSchema struct {
 	TableSchema string `db:"table_schema,omitempty"`

@@ -20,10 +20,9 @@ import (
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
-var _ = func() any { //nolint:unparam
+func init() {
 	neosyncgob.RegisterGobTypes()
-	return nil
-}()
+}
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Summary("Streams Neosync connection data").

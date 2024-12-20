@@ -13,7 +13,6 @@ import (
 // because we use interfaces for the types
 func RegisterGobTypes() {
 	gob.Register(map[string]any{})
-	gob.Register(map[string]any{})
 	gob.Register(pgtype.Numeric{}) // TODO fix this
 	gob.Register([]any{})
 	gob.Register(time.Time{})
