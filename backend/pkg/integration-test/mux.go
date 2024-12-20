@@ -32,6 +32,7 @@ import (
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -131,13 +132,20 @@ func (s *NeosyncApiTestClient) setupMux(
 
 	neosyncDb := neosyncdb.New(pgcontainer.DB, db_queries.New())
 
+	var billingclient billing.Interface
+	if isNeosyncCloud {
+		billingclient = s.Mocks.Billingclient
+	} else {
+		billingclient = nil
+	}
+
 	userService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud, DefaultMaxAllowedRecords: &maxAllowed},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
 		s.Mocks.Authmanagerclient,
-		nil,        // billing client
+		billingclient,
 		rbacClient, // rbac client
 		license,
 	)

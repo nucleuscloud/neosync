@@ -63,8 +63,8 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 	t := s.T()
 	ctx := s.ctx
 
-	t.Run("OSS-unimplemented", func(t *testing.T) {
-		client := s.OSSUnauthenticatedLicensedClients.Jobs()
+	t.Run("OSS-unlicensed-unimplemented", func(t *testing.T) {
+		client := s.OSSUnauthenticatedUnlicensedClients.Jobs()
 		t.Run("GetJobHooks", func(t *testing.T) {
 			resp, err := client.GetJobHooks(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHooksRequest{}))
 			requireErrResp(t, resp, err)
