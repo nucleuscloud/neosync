@@ -137,12 +137,12 @@ func (s *Service) GetConnectionDataStream(
 		for rows.Next() {
 			r, err := myutil.MysqlSqlRowToMap(rows)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to convert mysql row to map: %w", err)
 			}
 			var rowbytes bytes.Buffer
 			enc := gob.NewEncoder(&rowbytes)
 			if err := enc.Encode(r); err != nil {
-				return err
+				return fmt.Errorf("unable to encode mysql row: %w", err)
 			}
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
@@ -195,12 +195,12 @@ func (s *Service) GetConnectionDataStream(
 		for rows.Next() {
 			r, err := pgutil.SqlRowToPgTypesMap(rows)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to convert postgres row to map: %w", err)
 			}
 			var rowbytes bytes.Buffer
 			enc := gob.NewEncoder(&rowbytes)
 			if err := enc.Encode(r); err != nil {
-				return err
+				return fmt.Errorf("unable to encode postgres row using gob: %w", err)
 			}
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
@@ -299,7 +299,7 @@ func (s *Service) GetConnectionDataStream(
 					for k, v := range rowData {
 						newVal, err := s.neosynctyperegistry.Unmarshal(v)
 						if err != nil {
-							return err
+							return fmt.Errorf("unable to unmarshal row value using neosync type registry: %w", err)
 						}
 						rowData[k] = newVal
 					}
@@ -310,7 +310,7 @@ func (s *Service) GetConnectionDataStream(
 					if err := enc.Encode(rowData); err != nil {
 						result.Body.Close()
 						gzr.Close()
-						return err
+						return fmt.Errorf("unable to encode S3 row data using gob: %w", err)
 					}
 
 					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
@@ -358,7 +358,7 @@ func (s *Service) GetConnectionDataStream(
 			var rowbytes bytes.Buffer
 			enc := gob.NewEncoder(&rowbytes)
 			if err := enc.Encode(record); err != nil {
-				return err
+				return fmt.Errorf("unable to encode gcp record using gob: %w", err)
 			}
 			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()})
 		}
@@ -389,7 +389,7 @@ func (s *Service) GetConnectionDataStream(
 				var itemBytes bytes.Buffer
 				enc := gob.NewEncoder(&itemBytes)
 				if err := enc.Encode(itemBits); err != nil {
-					return fmt.Errorf("failed to encode item: %w", err)
+					return fmt.Errorf("unable to encode dynamodb item using gob: %w", err)
 				}
 				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBytes.Bytes()}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
