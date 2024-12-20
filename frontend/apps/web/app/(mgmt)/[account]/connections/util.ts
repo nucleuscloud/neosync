@@ -14,7 +14,6 @@ import {
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import { create } from '@bufbuild/protobuf';
-import { useQuery } from '@connectrpc/connect-query';
 import {
   AwsS3ConnectionConfigSchema,
   AwsS3Credentials,
@@ -45,7 +44,6 @@ import {
   SSHPrivateKeySchema,
   SSHTunnel,
   SSHTunnelSchema,
-  UserAccountService,
 } from '@neosync/sdk';
 
 export interface ConnectionMeta {
@@ -139,30 +137,22 @@ export function useGetConnectionsMetadata(
   allowedConnectionTypes: Set<string>
 ): ConnectionMeta[] {
   const { data: systemAppConfigData } = useGetSystemAppConfig();
-  const { data: systemInfo } = useQuery(
-    UserAccountService.method.getSystemInformation
-  );
 
   return getConnectionsMetadata(
     allowedConnectionTypes,
-    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false,
-    systemInfo?.license?.isValid ?? false
+    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
   );
 }
 
 function getConnectionsMetadata(
   connectionTypes: Set<string>,
-  isGcpCloudStorageConnectionsEnabled: boolean,
-  hasValidLicense: boolean
+  isGcpCloudStorageConnectionsEnabled: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS_METADATA;
   if (!isGcpCloudStorageConnectionsEnabled) {
     connections = connections.filter(
       (c) => c.connectionType !== 'gcpCloudstorageConfig'
     );
-  }
-  if (!hasValidLicense) {
-    connections = connections.filter((c) => !c.isLicenseOnly);
   }
 
   if (connectionTypes.size > 0) {
