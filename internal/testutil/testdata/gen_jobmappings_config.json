@@ -25,6 +25,16 @@
 		"driver": "postgres"
 	},
 	{
+		"folder": "postgres/foreignkey-violations",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
+		"folder": "postgres/subsetting",
+		"sql_file": "create-tables.sql",
+		"driver": "postgres"
+	},
+	{
 		"folder": "mysql/alltypes",
 		"sql_file": "create-tables.sql",
 		"driver": "mysql"

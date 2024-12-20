@@ -16,7 +16,9 @@ import (
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	pg_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
+	pg_foreignkey_violations "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/foreignkey-violations"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
+	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
@@ -352,98 +354,39 @@ func test_postgres_virtual_foreign_keys(
 ) {
 	jobclient := neosyncApi.UnauthdClients.Jobs
 	schema := "vfk_hr"
+	subsetSchema := "vfk_hr_subset"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, subsetSchema)
 	require.NoError(t, err)
 	// only create foreign key constraints in target to test that virtual foreign keys are correct
 	err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
 	require.NoError(t, err)
+	err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, subsetSchema)
+	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
 	humanresourcesMappings := pg_humanresources.GetDefaultSyncJobMappings(schema)
+	subsetHumanresourcesMappings := pg_humanresources.GetDefaultSyncJobMappings(subsetSchema)
+	virtualForeignKeys := pg_humanresources.GetVirtualForeignKeys(schema)
+	subsetVirtualForeignKeys := pg_humanresources.GetVirtualForeignKeys(subsetSchema)
 
 	job := createPostgresJob(t, ctx, jobclient, &createPostgresJobConfig{
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
 		JobName:     schema,
-		JobMappings: humanresourcesMappings,
+		JobMappings: slices.Concat(humanresourcesMappings, subsetHumanresourcesMappings),
+		SubsetMap: map[string]string{
+			fmt.Sprintf("%s.employees", subsetSchema): "first_name = 'Alexander'",
+		},
 		JobOptions: &workflow_testdata.TestJobOptions{
-			Truncate:        true,
-			TruncateCascade: true,
-			InitSchema:      false,
+			Truncate:                      true,
+			TruncateCascade:               true,
+			InitSchema:                    false,
+			SubsetByForeignKeyConstraints: true,
 		},
-		VirtualForeignKeys: []*mgmtv1alpha1.VirtualForeignConstraint{
-			{
-				Schema:  "vfk_hr",
-				Table:   "countries",
-				Columns: []string{"region_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "regions",
-					Columns: []string{"region_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "departments",
-				Columns: []string{"location_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "locations",
-					Columns: []string{"location_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "dependents",
-				Columns: []string{"employee_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "employees",
-					Columns: []string{"employee_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "employees",
-				Columns: []string{"manager_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "employees",
-					Columns: []string{"employee_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "employees",
-				Columns: []string{"department_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "departments",
-					Columns: []string{"department_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "employees",
-				Columns: []string{"job_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "jobs",
-					Columns: []string{"job_id"},
-				},
-			},
-			{
-				Schema:  "vfk_hr",
-				Table:   "locations",
-				Columns: []string{"country_id"},
-				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
-					Schema:  "vfk_hr",
-					Table:   "countries",
-					Columns: []string{"country_id"},
-				},
-			},
-		},
+		VirtualForeignKeys: slices.Concat(virtualForeignKeys, subsetVirtualForeignKeys),
 	})
 
 	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
@@ -465,6 +408,13 @@ func test_postgres_virtual_foreign_keys(
 		{schema: schema, table: "jobs", rowCount: 19},
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: subsetSchema, table: "regions", rowCount: 4},
+		{schema: subsetSchema, table: "countries", rowCount: 25},
+		{schema: subsetSchema, table: "locations", rowCount: 7},
+		{schema: subsetSchema, table: "departments", rowCount: 11},
+		{schema: subsetSchema, table: "dependents", rowCount: 2},
+		{schema: subsetSchema, table: "employees", rowCount: 2},
+		{schema: subsetSchema, table: "jobs", rowCount: 19},
 	}
 
 	for _, expected := range expectedResults {
@@ -625,4 +575,209 @@ func getJavascriptTransformerConfig(code string) *mgmtv1alpha1.JobMappingTransfo
 			},
 		},
 	}
+}
+
+func test_postgres_skip_foreign_keys_violations(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.UnauthdClients.Jobs
+	schema := "fk_violations"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	jobmappings := pg_foreignkey_violations.GetDefaultSyncJobMappings(schema)
+
+	job := createPostgresJob(t, ctx, jobclient, &createPostgresJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: jobmappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:                 true,
+			TruncateCascade:          true,
+			InitSchema:               true,
+			SkipForeignKeyViolations: true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: skip-foreign-keys-violations")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "countries", rowCount: 24},
+		{schema: schema, table: "dependents", rowCount: 7},
+		{schema: schema, table: "employees", rowCount: 10},
+		{schema: schema, table: "locations", rowCount: 4},
+		{schema: schema, table: "departments", rowCount: 4},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "regions", rowCount: 4},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+	}
+
+	// tear down
+	err = postgres.Source.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_postgres_foreign_keys_violations_error(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.UnauthdClients.Jobs
+	schema := "fk_violations_error"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	jobmappings := pg_foreignkey_violations.GetDefaultSyncJobMappings(schema)
+
+	job := createPostgresJob(t, ctx, jobclient, &createPostgresJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: jobmappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:                 true,
+			TruncateCascade:          true,
+			InitSchema:               true,
+			SkipForeignKeyViolations: false,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: foreign-keys-violations-error")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.Error(t, err, "Received Temporal Workflow Error: foreign-keys-violations-error")
+
+	// tear down
+	err = postgres.Source.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_postgres_subsetting(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.UnauthdClients.Jobs
+	schema := "subsetting"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"subsetting/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	jobmappings := pg_subsetting.GetDefaultSyncJobMappings(schema)
+
+	subsetMappings := map[string]string{
+		"subsetting.users":     "user_id in (1,2,5,6,7,8)",
+		"subsetting.test_2_x":  "created > '2023-06-03'",
+		"subsetting.test_2_b":  "created > '2023-06-03'",
+		"subsetting.addresses": "id in (1,5)",
+		"subsetting.division":  "id in (3,5)",
+		"subsetting.bosses":    "id in (3,5)",
+	}
+
+	job := createPostgresJob(t, ctx, jobclient, &createPostgresJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: jobmappings,
+		SubsetMap:   subsetMappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:                      true,
+			TruncateCascade:               true,
+			InitSchema:                    true,
+			SubsetByForeignKeyConstraints: true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: skip-foreign-keys-violations")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "attachments", rowCount: 2},
+		{schema: schema, table: "comments", rowCount: 4},
+		{schema: schema, table: "initiatives", rowCount: 4},
+		{schema: schema, table: "skills", rowCount: 10},
+		{schema: schema, table: "tasks", rowCount: 2},
+		{schema: schema, table: "user_skills", rowCount: 6},
+		{schema: schema, table: "users", rowCount: 6},
+		{schema: schema, table: "test_2_x", rowCount: 3},
+		{schema: schema, table: "test_2_b", rowCount: 3},
+		{schema: schema, table: "test_2_a", rowCount: 4},
+		{schema: schema, table: "test_2_c", rowCount: 2},
+		{schema: schema, table: "test_2_d", rowCount: 2},
+		{schema: schema, table: "test_2_e", rowCount: 2},
+		{schema: schema, table: "orders", rowCount: 2},
+		{schema: schema, table: "addresses", rowCount: 2},
+		{schema: schema, table: "customers", rowCount: 2},
+		{schema: schema, table: "payments", rowCount: 1},
+		{schema: schema, table: "division", rowCount: 2},
+		{schema: schema, table: "employees", rowCount: 2},
+		{schema: schema, table: "projects", rowCount: 2},
+		{schema: schema, table: "bosses", rowCount: 2},
+		{schema: schema, table: "minions", rowCount: 2},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+	}
+
+	// tear down
+	err = postgres.Source.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
+	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	require.NoError(t, err)
 }

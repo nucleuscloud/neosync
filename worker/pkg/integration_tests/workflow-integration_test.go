@@ -60,6 +60,21 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_javascript_transformers(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("skip_foreign_keys_violations", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_skip_foreign_keys_violations(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("foreign_keys_violations_error", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_foreign_keys_violations_error(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("subsetting", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_subsetting(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Run("primary_key_transformations", func(t *testing.T) {
 			t.Parallel()
 			redis, err := tcredis.NewRedisTestContainer(ctx)
