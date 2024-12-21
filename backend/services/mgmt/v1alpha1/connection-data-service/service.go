@@ -9,6 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 type Service struct {
@@ -25,6 +26,8 @@ type Service struct {
 
 	mongoconnector mongoconnect.Interface
 	gcpmanager     neosync_gcp.ManagerInterface
+
+	neosynctyperegistry neosynctypes.NeosyncTypeRegistry
 }
 
 type Config struct {
@@ -43,17 +46,19 @@ func New(
 	mongoconnector mongoconnect.Interface,
 	sqlmanager sql_manager.SqlManagerClient,
 	gcpmanager neosync_gcp.ManagerInterface,
+	neosynctyperegistry neosynctypes.NeosyncTypeRegistry,
 ) *Service {
 	return &Service{
-		cfg:               cfg,
-		connectionService: connectionService,
-		jobService:        jobService,
-		awsManager:        awsManager,
-		sqlConnector:      sqlConnector,
-		pgquerier:         pgquerier,
-		mysqlquerier:      mysqlquerier,
-		sqlmanager:        sqlmanager,
-		mongoconnector:    mongoconnector,
-		gcpmanager:        gcpmanager,
+		cfg:                 cfg,
+		connectionService:   connectionService,
+		jobService:          jobService,
+		awsManager:          awsManager,
+		sqlConnector:        sqlConnector,
+		pgquerier:           pgquerier,
+		mysqlquerier:        mysqlquerier,
+		sqlmanager:          sqlmanager,
+		mongoconnector:      mongoconnector,
+		gcpmanager:          gcpmanager,
+		neosynctyperegistry: neosynctyperegistry,
 	}
 }

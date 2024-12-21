@@ -30,6 +30,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -499,6 +501,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		mockMongoConnector,
 		mockSqlManager,
 		mockGcpManager,
+		neosynctypes.NewTypeRegistry(testutil.GetTestLogger(t)),
 	)
 
 	return &serviceMocks{

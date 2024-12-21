@@ -6,6 +6,10 @@ import (
 	"log/slog"
 )
 
+type NeosyncTypeRegistry interface {
+	Unmarshal(value any) (any, error)
+}
+
 type TypeRegistry struct {
 	logger *slog.Logger
 	types  map[string]map[Version]func() (NeosyncAdapter, error)
@@ -23,6 +27,18 @@ func NewTypeRegistry(logger *slog.Logger) *TypeRegistry {
 
 	registry.Register(NeosyncArrayId, LatestVersion, func() (NeosyncAdapter, error) {
 		return NewNeosyncArray([]NeosyncAdapter{}, WithVersion(LatestVersion))
+	})
+
+	registry.Register(NeosyncBitsId, LatestVersion, func() (NeosyncAdapter, error) {
+		return NewBits(WithVersion(LatestVersion))
+	})
+
+	registry.Register(NeosyncBinaryId, LatestVersion, func() (NeosyncAdapter, error) {
+		return NewBinary(WithVersion(LatestVersion))
+	})
+
+	registry.Register(NeosyncDateTimeId, LatestVersion, func() (NeosyncAdapter, error) {
+		return NewDateTime(WithVersion(LatestVersion))
 	})
 
 	return registry
@@ -55,52 +71,40 @@ func (r *TypeRegistry) New(typeId string, version Version) (NeosyncAdapter, erro
 	return nil, fmt.Errorf("unknown version %d for type Id: %s. latest version not found.", version, typeId)
 }
 
-// Unmarshal deserializes JSON data into an appropriate type based on the Neosync type system.
-// It handles both regular JSON data and specialized Neosync objects that contain type information
-// in a "_neosync" metadata field.
+// UnmarshalAny deserializes a value of type any into an appropriate type based on the Neosync type system.
+// It handles specialized Neosync objects that contain type information in a "_neosync" metadata field.
 //
 // Parameters:
-//   - data: []byte - Raw JSON data to unmarshal
+//   - value: any - The value to unmarshal, expected to be map[string]any
 //
 // Returns:
 //   - any: The unmarshaled object, which could be:
-//   - The original data if it's not valid JSON
+//   - The original value if it's not a map[string]any
 //   - A new instance of the appropriate type for Neosync objects
 //   - A NeosyncArray containing unmarshaled elements for array types
-//
-// Special handling for arrays:
-// When typeId is NeosyncArrayId, each element in the array is recursively
-// unmarshaled and must implement the NeosyncAdapter interface.
-func (r *TypeRegistry) Unmarshal(data []byte) (any, error) {
-	isValidJson := json.Valid(data)
-	if !isValidJson {
-		return data, nil
-	}
-	var anyValue any
-	if err := json.Unmarshal(data, &anyValue); err != nil {
-		return nil, err
-	}
-
-	rawMsg, ok := anyValue.(map[string]any)
+func (r *TypeRegistry) Unmarshal(value any) (any, error) {
+	rawMsg, ok := getMapFromAny(value)
 	if !ok {
-		return data, nil
+		return value, nil
 	}
 
 	neosyncRaw, ok := rawMsg["_neosync"].(map[string]any)
 	if !ok {
-		r.logger.Debug("JSON data not a neosync type")
-		return data, nil
+		r.logger.Debug("value not a neosync type")
+		return value, nil
 	}
 
 	typeId, ok := neosyncRaw["type_id"].(string)
 	if !ok {
-		r.logger.Debug("JSON data missing _neosync.type_id field")
-		return data, nil
+		r.logger.Debug("value missing _neosync.type_id field")
+		return value, nil
 	}
 
-	version, ok := neosyncRaw["version"].(Version)
-	if !ok {
-		r.logger.Debug("JSON data missing _neosync.version. Using latest version instead.")
+	var version Version
+	if versionRaw, ok := neosyncRaw["version"].(float64); ok {
+		version = Version(uint(versionRaw))
+	} else {
+		r.logger.Debug("value missing _neosync.version. Using latest version instead.")
 		version = LatestVersion
 	}
 	r.logger.Debug(fmt.Sprintf("Neosync type %s version %d", typeId, version))
@@ -121,13 +125,8 @@ func (r *TypeRegistry) Unmarshal(data []byte) (any, error) {
 		neosyncArray.Elements = make([]NeosyncAdapter, len(elements))
 
 		for i, element := range elements {
-			elementBytes, err := json.Marshal(element)
-			if err != nil {
-				return nil, fmt.Errorf("error marshaling array element %d: %w", i, err)
-			}
-
 			// Recursively unmarshal each element
-			unmarshaledElement, err := r.Unmarshal(elementBytes)
+			unmarshaledElement, err := r.Unmarshal(element)
 			if err != nil {
 				return nil, fmt.Errorf("error unmarshaling array element %d: %w", i, err)
 			}
@@ -142,9 +141,32 @@ func (r *TypeRegistry) Unmarshal(data []byte) (any, error) {
 		return neosyncArray, nil
 	}
 
+	// Convert back to JSON to use standard unmarshaling
+	data, err := json.Marshal(rawMsg)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling value: %w", err)
+	}
+
 	if err := json.Unmarshal(data, obj); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling value into neosync types: %w", err)
 	}
 
 	return obj, nil
+}
+
+func getMapFromAny(value any) (map[string]any, bool) {
+	// If value is already a map, return it
+	if rawMsg, ok := value.(map[string]any); ok {
+		return rawMsg, true
+	}
+
+	// If value is bytes, try to unmarshal into a map
+	if rawBytes, ok := value.([]byte); ok && json.Valid(rawBytes) {
+		var rawMsg map[string]any
+		if err := json.Unmarshal(rawBytes, &rawMsg); err == nil {
+			return rawMsg, true
+		}
+	}
+
+	return nil, false
 }

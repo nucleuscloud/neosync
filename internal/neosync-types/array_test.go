@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -98,21 +99,12 @@ func Test_NeosyncArray(t *testing.T) {
 		value, err := array.ValuePgx()
 		require.NoError(t, err)
 
-		values, ok := value.([]interface{})
+		values, ok := value.(pq.GenericArray)
 		require.True(t, ok)
-		require.Len(t, values, 2)
 
-		pgInterval1, ok := values[0].(*pgtype.Interval)
-		require.True(t, ok)
-		require.Equal(t, int64(1000000), pgInterval1.Microseconds)
-		require.Equal(t, int32(7), pgInterval1.Days)
-		require.Equal(t, int32(1), pgInterval1.Months)
-
-		pgInterval2, ok := values[1].(*pgtype.Interval)
-		require.True(t, ok)
-		require.Equal(t, int64(2000000), pgInterval2.Microseconds)
-		require.Equal(t, int32(14), pgInterval2.Days)
-		require.Equal(t, int32(2), pgInterval2.Months)
+		arrValues, err := values.Value()
+		require.NoError(t, err)
+		require.Equal(t, `{"1 mon 7 day 00:00:01","2 mon 14 day 00:00:02"}`, arrValues)
 	})
 
 	t.Run("ScanJson handles type mismatch", func(t *testing.T) {

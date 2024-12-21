@@ -36,7 +36,7 @@ type BenthosConfigResponse struct {
 
 // Combines a connection type and job type to uniquely identify a builder configuration
 type BuilderKey struct {
-	ConnType bb_internal.ConnectionType
+	ConnType bb_shared.ConnectionType
 	JobType  bb_internal.JobType
 }
 
@@ -61,7 +61,7 @@ func NewBuilderProvider(logger *slog.Logger) *BuilderProvider {
 }
 
 // Handles registering new builders
-func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_internal.ConnectionType, builder bb_internal.BenthosBuilder) {
+func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_shared.ConnectionType, builder bb_internal.BenthosBuilder) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 
 	r.mu.Lock()
@@ -79,7 +79,10 @@ func (r *BuilderProvider) GetBuilder(
 	job *mgmtv1alpha1.Job,
 	connection *mgmtv1alpha1.Connection,
 ) (bb_internal.BenthosBuilder, error) {
-	connectionType := bb_internal.GetConnectionType(connection)
+	connectionType, err := bb_shared.GetConnectionType(connection)
+	if err != nil {
+		return nil, err
+	}
 	jobType := bb_internal.GetJobType(job)
 	key := BuilderKey{ConnType: connectionType, JobType: jobType}
 
@@ -103,33 +106,40 @@ func (b *BuilderProvider) registerStandardBuilders(
 	redisConfig *shared.RedisConfig,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) error {
-	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
+	sourceConnectionType, err := bb_shared.GetConnectionType(sourceConnection)
+	if err != nil {
+		return err
+	}
 	jobType := bb_internal.GetJobType(job)
-	connectionTypes := []bb_internal.ConnectionType{sourceConnectionType}
+	connectionTypes := []bb_shared.ConnectionType{sourceConnectionType}
 	for _, dest := range destinationConnections {
-		connectionTypes = append(connectionTypes, bb_internal.GetConnectionType(dest))
+		destConnType, err := bb_shared.GetConnectionType(dest)
+		if err != nil {
+			return err
+		}
+		connectionTypes = append(connectionTypes, destConnType)
 	}
 
 	if jobType == bb_internal.JobTypeSync {
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
-			case bb_internal.ConnectionTypePostgres:
+			case bb_shared.ConnectionTypePostgres:
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
-			case bb_internal.ConnectionTypeMysql:
+			case bb_shared.ConnectionTypeMysql:
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
-			case bb_internal.ConnectionTypeMssql:
+			case bb_shared.ConnectionTypeMssql:
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
-			case bb_internal.ConnectionTypeAwsS3:
-				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
-			case bb_internal.ConnectionTypeDynamodb:
-				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeDynamodb, bb_conns.NewDynamoDbSyncBuilder(transformerclient))
-			case bb_internal.ConnectionTypeMongo:
-				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeMongo, bb_conns.NewMongoDbSyncBuilder(transformerclient))
-			case bb_internal.ConnectionTypeGCP:
-				b.Register(bb_internal.JobTypeSync, bb_internal.ConnectionTypeGCP, bb_conns.NewGcpCloudStorageSyncBuilder())
+			case bb_shared.ConnectionTypeAwsS3:
+				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
+			case bb_shared.ConnectionTypeDynamodb:
+				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeDynamodb, bb_conns.NewDynamoDbSyncBuilder(transformerclient))
+			case bb_shared.ConnectionTypeMongo:
+				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeMongo, bb_conns.NewMongoDbSyncBuilder(transformerclient))
+			case bb_shared.ConnectionTypeGCP:
+				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeGCP, bb_conns.NewGcpCloudStorageSyncBuilder())
 			default:
 				return fmt.Errorf("unsupport connection type for sync job: %s", connectionType)
 			}
@@ -140,13 +150,16 @@ func (b *BuilderProvider) registerStandardBuilders(
 		if len(destinationConnections) != 1 {
 			return fmt.Errorf("unsupported destination count for AI generate job: %d", len(destinationConnections))
 		}
-		destConnType := bb_internal.GetConnectionType(destinationConnections[0])
+		destConnType, err := bb_shared.GetConnectionType(destinationConnections[0])
+		if err != nil {
+			return err
+		}
 		driver, err := bb_internal.GetSqlDriverByConnectionType(destConnType)
 		if err != nil {
 			return err
 		}
 		builder := bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver)
-		b.Register(bb_internal.JobTypeAIGenerate, bb_internal.ConnectionTypeOpenAI, builder)
+		b.Register(bb_internal.JobTypeAIGenerate, bb_shared.ConnectionTypeOpenAI, builder)
 		b.Register(bb_internal.JobTypeAIGenerate, destConnType, builder)
 	}
 	if jobType == bb_internal.JobTypeGenerate {
@@ -164,7 +177,10 @@ func withBenthosConfigLoggerTags(
 ) []any {
 	keyvals := []any{}
 
-	sourceConnectionType := bb_internal.GetConnectionType(sourceConnection)
+	sourceConnectionType, err := bb_shared.GetConnectionType(sourceConnection)
+	if err != nil {
+		sourceConnectionType = "unknown"
+	}
 	jobType := bb_internal.GetJobType(job)
 
 	if sourceConnectionType != "" {
@@ -276,7 +292,10 @@ func NewCliBenthosConfigManager(
 		return nil, err
 	}
 
-	sourceProvider := NewCliSourceBuilderProvider(config)
+	sourceProvider, err := NewCliSourceBuilderProvider(config)
+	if err != nil {
+		return nil, err
+	}
 
 	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
@@ -294,10 +313,13 @@ func NewCliBenthosConfigManager(
 // NewCliSourceBuilderProvider creates a specialized provider for CLI source operations
 func NewCliSourceBuilderProvider(
 	config *CliBenthosConfig,
-) *BuilderProvider {
+) (*BuilderProvider, error) {
 	provider := NewBuilderProvider(config.Logger)
 
-	sourceConnectionType := bb_internal.GetConnectionType(config.SourceConnection)
+	sourceConnectionType, err := bb_shared.GetConnectionType(config.SourceConnection)
+	if err != nil {
+		return nil, err
+	}
 	jobType := bb_internal.GetJobType(config.Job)
 
 	builder := bb_conns.NewNeosyncConnectionDataSyncBuilder(
@@ -311,11 +333,11 @@ func NewCliSourceBuilderProvider(
 
 	if jobType == bb_internal.JobTypeSync {
 		switch sourceConnectionType {
-		case bb_internal.ConnectionTypePostgres, bb_internal.ConnectionTypeMysql,
-			bb_internal.ConnectionTypeMssql, bb_internal.ConnectionTypeAwsS3, bb_internal.ConnectionTypeDynamodb:
+		case bb_shared.ConnectionTypePostgres, bb_shared.ConnectionTypeMysql,
+			bb_shared.ConnectionTypeMssql, bb_shared.ConnectionTypeAwsS3, bb_shared.ConnectionTypeDynamodb:
 			provider.Register(bb_internal.JobTypeSync, sourceConnectionType, builder)
 		}
 	}
 
-	return provider
+	return provider, nil
 }
