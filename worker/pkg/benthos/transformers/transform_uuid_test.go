@@ -15,9 +15,8 @@ import (
 func Test_TransformUuidRandom(t *testing.T) {
 	randomUuid := generateUuid(true)
 
-	res, err := transformUuid(rng.New(time.Now().UnixNano()), randomUuid)
+	res := transformUuid(rng.New(time.Now().UnixNano()), randomUuid)
 
-	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
 
 	assert.NotEqual(t, res, randomUuid, "The input UUID and the output UUID should be different")
@@ -33,8 +32,7 @@ func Test_TransformUuidSeeded(t *testing.T) {
 
 	//checks that the output uuid is the same everytime for given the same input since we're assigning it a specific seed value
 	for i := 0; i < 5; i++ {
-		res, err := transformUuid(randomizer, randomUuid)
-		assert.NoError(t, err)
+		res := transformUuid(randomizer, randomUuid)
 		assert.IsType(t, "", *res)
 		checkVars = append(checkVars, *res)
 	}
