@@ -435,6 +435,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateCountryConfig: generateCountryConfig,
   generateBusinessNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateIpAddressConfig: generateIpAddressConfig,
+  transformUuidConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;
