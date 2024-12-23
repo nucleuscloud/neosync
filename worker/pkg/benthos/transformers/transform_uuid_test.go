@@ -33,9 +33,10 @@ func Test_TransformUuidSeeded(t *testing.T) {
 	//checks that the output uuid is the same everytime for given the same input since we're assigning it a specific seed value
 	for i := 0; i < 5; i++ {
 		res := transformUuid(randomizer, randomUuid)
-		assert.IsType(t, "", *res)
 		checkVars = append(checkVars, *res)
 	}
+
+	fmt.Println("test", checkVars)
 
 	val := transformer_utils.ToSet(checkVars)
 	assert.Len(t, val, 1, "The set should only contain one value")

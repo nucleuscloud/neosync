@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -87,14 +86,22 @@ func transformUuid(randomizer rng.Rand, value string) *string {
 		return &value
 	}
 
-	randomFloat := randomizer.Float64()
-	randomBytes := make([]byte, 8)
+	inputUuid, err := uuid.Parse(value)
+	if err != nil {
+		return &value
+	}
 
-	// Convert the float to its bit representation to ensure consistent byte conversion
-	randomBits := math.Float64bits(randomFloat)
-	binary.LittleEndian.PutUint64(randomBytes, randomBits)
+	// Generate a deterministic byte slice based on the input UUID and the randomizer
+	seedBytes := make([]byte, 16)
 
-	output := uuid.NewSHA1(uuid.MustParse(value), randomBytes).String()
+	// Use the first 8 bytes from the input UUID
+	copy(seedBytes, inputUuid[:8])
+
+	randomInt := randomizer.Float64()
+	binary.LittleEndian.PutUint64(seedBytes[8:], uint64(randomInt))
+
+	// Create a new UUID using SHA1 namespace
+	output := uuid.NewSHA1(uuid.Nil, seedBytes).String()
 
 	return &output
 }
