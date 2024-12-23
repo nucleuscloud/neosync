@@ -16148,11 +16148,23 @@
             },
             {
               "name": "build_date",
-              "description": "",
+              "description": "The time when the build was created",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
               "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "license",
+              "description": "The license information for the system",
+              "label": "",
+              "type": "SystemLicense",
+              "longType": "SystemLicense",
+              "fullType": "mgmt.v1alpha1.SystemLicense",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -16967,6 +16979,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "SystemLicense",
+          "longName": "SystemLicense",
+          "fullName": "mgmt.v1alpha1.SystemLicense",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_valid",
+              "description": "Whether or not a valid license was found",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "expires_at",
+              "description": "The time when the license expires",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "is_neosync_cloud",
+              "description": "Whether or not the license is for NeosyncCloud",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "UserAccount",

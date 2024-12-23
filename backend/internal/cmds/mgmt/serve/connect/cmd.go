@@ -481,7 +481,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -491,7 +491,7 @@ func serve(ctx context.Context) error {
 			connect.WithRecover(recoverHandler),
 		),
 	)
-	userdataclient := userdata.NewClient(useraccountService, rbacclient)
+	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,
