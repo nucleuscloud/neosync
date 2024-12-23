@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/stretchr/testify/mock"
@@ -1688,11 +1687,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(false)
+		originalValue := generateUuid(true)
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
-		transformedValue := *result.(*uuid.UUID)
-		require.NotEqual(t, originalValue, transformedValue)
+		require.NotEqual(t, originalValue, result)
+		require.NotEmpty(t, result)
 	})
 
 	t.Run("TransformUuidConfig_Nil", func(t *testing.T) {
@@ -1702,11 +1701,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(false)
+		originalValue := generateUuid(true)
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
-		transformedValue := *result.(*uuid.UUID)
-		require.NotEqual(t, originalValue, transformedValue)
+		require.NotEqual(t, originalValue, result)
+		require.NotEmpty(t, result)
 	})
 
 	t.Run("UnsupportedConfig", func(t *testing.T) {

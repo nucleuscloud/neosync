@@ -651,7 +651,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformCharacterScramble().Transform
+		transform := NewTransformUuid().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
