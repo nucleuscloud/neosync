@@ -45,7 +45,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := transformUuid(randomizer, value)
+			res := transformUuid(randomizer, value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_uuid: %w", err)
 			}
@@ -78,18 +78,14 @@ func (t *TransformUuid) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformUuid(parsedOpts.randomizer, valueStr)
+	return transformUuid(parsedOpts.randomizer, valueStr), nil
 }
 
 // Transforms an existing Uuid into a new UUid v5. This is mainly used to deterministically transform UUIDs using seed values into new UUIDs in situations where the existing UUIDs are considered sensitive.
-func transformUuid(randomizer rng.Rand, value string) (*string, error) {
+func transformUuid(randomizer rng.Rand, value string) *string {
 	if value == "" {
-		return &value, nil
+		return &value
 	}
-
-	// output := uuid.NewSHA1(uuid.MustParse(value), []byte{randomizer.Float64()}).String()
-
-	fmt.Println("the entry value", value)
 
 	randomFloat := randomizer.Float64()
 	randomBytes := make([]byte, 8)
@@ -100,5 +96,5 @@ func transformUuid(randomizer rng.Rand, value string) (*string, error) {
 
 	output := uuid.NewSHA1(uuid.MustParse(value), randomBytes).String()
 
-	return &output, nil
+	return &output
 }
