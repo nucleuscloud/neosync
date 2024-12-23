@@ -115,25 +115,27 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 
 	rootmux := http.NewServeMux()
 
-	ossUnauthLicensedMux, err := s.setupOssUnauthenticatedLicensedMux(ctx, pgcontainer)
+	logger := testutil.GetConcurrentTestLogger(t)
+
+	ossUnauthLicensedMux, err := s.setupOssUnauthenticatedLicensedMux(ctx, pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated licensed mux: %w", err)
 	}
 	rootmux.Handle(openSourceUnauthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedLicensedPostfix, ossUnauthLicensedMux))
 
-	ossAuthLicensedMux, err := s.setupOssLicensedAuthMux(ctx, pgcontainer)
+	ossAuthLicensedMux, err := s.setupOssLicensedAuthMux(ctx, pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss authenticated licensed mux: %w", err)
 	}
 	rootmux.Handle(openSourceAuthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceAuthenticatedLicensedPostfix, ossAuthLicensedMux))
 
-	ossUnauthUnlicensedMux, err := s.setupOssUnlicensedMux(pgcontainer)
+	ossUnauthUnlicensedMux, err := s.setupOssUnlicensedMux(pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated unlicensed mux: %w", err)
 	}
 	rootmux.Handle(openSourceUnauthenticatedUnlicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedUnlicensedPostfix, ossUnauthUnlicensedMux))
 
-	neoCloudAuthdMux, err := s.setupNeoCloudMux(ctx, pgcontainer)
+	neoCloudAuthdMux, err := s.setupNeoCloudMux(ctx, pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup neo cloud authenticated mux: %w", err)
 	}

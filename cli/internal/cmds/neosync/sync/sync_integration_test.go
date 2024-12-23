@@ -455,7 +455,7 @@ func Test_Sync(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sourceConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "dynamo-source", dynamo.Source.URL, dynamo.Source.Credentials)
+		sourceConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Connections(), accountId, "dynamo-source", dynamo.Source.URL, dynamo.Source.Credentials)
 
 		t.Run("dynamodb_sync", func(t *testing.T) {
 			t.Parallel()

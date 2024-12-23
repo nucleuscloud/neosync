@@ -3,6 +3,7 @@ package integrationtests_test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"connectrpc.com/connect"
@@ -34,6 +35,7 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 )
@@ -72,7 +74,7 @@ const (
 	neoCloudAuthenticatedLicensedPostfix = "/neosynccloud-authenticated"
 )
 
-func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := false
 	isNeosyncCloud := false
@@ -80,10 +82,10 @@ func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Co
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
 }
 
-func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := false
@@ -91,18 +93,18 @@ func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgco
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
 }
 
-func (s *NeosyncApiTestClient) setupOssUnlicensedMux(pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnlicensedMux(pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
 	isLicensed := false
 	isAuthEnabled := false
 	isNeosyncCloud := false
 	permissiveRbacClient := rbac.NewAllowAllClient()
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient, logger)
 }
 
-func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := true
@@ -110,7 +112,7 @@ func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient)
+	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
 }
 
 func (s *NeosyncApiTestClient) setupMux(
@@ -119,6 +121,7 @@ func (s *NeosyncApiTestClient) setupMux(
 	isLicensed bool,
 	isNeosyncCloud bool,
 	rbacClient rbac.Interface,
+	logger *slog.Logger,
 ) (*http.ServeMux, error) {
 	isPresidioEnabled := false
 	if isLicensed || isNeosyncCloud {
@@ -223,6 +226,7 @@ func (s *NeosyncApiTestClient) setupMux(
 		mongoconnect.NewConnector(),
 		sqlmanagerclient,
 		neosync_gcp.NewManager(),
+		neosynctypes.NewTypeRegistry(logger),
 	)
 
 	mux := http.NewServeMux()
