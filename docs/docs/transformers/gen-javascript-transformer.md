@@ -431,6 +431,38 @@ const newValue = neosync.transformStringPhoneNumber(value, {
 <br/>
 
 
+<!--
+source: transform_uuid.go
+-->
+
+### transformUuid
+
+Transforms an existing UUID to a UUID v5
+
+**Parameters**
+
+**Value**  
+Type: Any  
+Description: Value that will be transformed
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.transformUuid(value, { 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
 ## Generators
 
 Neosync's generator functions enable the creation of various data values, facilitating the generation of realistic and diverse data for

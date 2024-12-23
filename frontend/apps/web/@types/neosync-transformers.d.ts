@@ -187,6 +187,17 @@ declare namespace neosync {
 	declare function transformStringPhoneNumber(value: any, options: TransformStringPhoneNumberOptions): any;
 
 	
+	export interface TransformUuidOptions {
+		/** An optional seed value used for generating deterministic transformations. */
+		seed?: number;
+	}
+ 
+  /**
+   * Transforms an existing UUID to a UUID v5
+   */
+	declare function transformUuid(value: any, options: TransformUuidOptions): any;
+
+	
 
 	
   /**

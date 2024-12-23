@@ -656,6 +656,19 @@ var (
 				},
 			},
 		},
+		{
+			Name:              "Transform UUID",
+			Description:       "Transforms a UUID",
+			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_UUID,
+			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_UUID, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING},
+			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
+			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_UUID,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{
+					TransformUuidConfig: &mgmtv1alpha1.TransformUuid{},
+				},
+			},
+		},
 	}
 
 	// base transformers + ee transformers

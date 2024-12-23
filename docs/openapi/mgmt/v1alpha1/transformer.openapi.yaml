@@ -502,6 +502,7 @@ components:
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
+        - TRANSFORMER_SOURCE_TRANSFORM_UUID
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -1779,6 +1780,10 @@ components:
           title: preserve_length
       title: TransformString
       additionalProperties: false
+    mgmt.v1alpha1.TransformUuid:
+      type: object
+      title: TransformUuid
+      additionalProperties: false
     mgmt.v1alpha1.TransformerConfig:
       type: object
       allOf:
@@ -1874,6 +1879,8 @@ components:
             - required:
                 - transformStringConfig
             - required:
+                - transformUuidConfig
+            - required:
                 - userDefinedTransformerConfig
             - not:
                 anyOf:
@@ -1968,6 +1975,8 @@ components:
                   - required:
                       - transformStringConfig
                   - required:
+                      - transformUuidConfig
+                  - required:
                       - userDefinedTransformerConfig
       anyOf:
         - required:
@@ -2060,6 +2069,8 @@ components:
             - transformPiiTextConfig
         - required:
             - transformStringConfig
+        - required:
+            - transformUuidConfig
         - required:
             - userDefinedTransformerConfig
         - not:
@@ -2154,6 +2165,8 @@ components:
                   - transformPiiTextConfig
               - required:
                   - transformStringConfig
+              - required:
+                  - transformUuidConfig
               - required:
                   - userDefinedTransformerConfig
       properties:
@@ -2342,6 +2355,10 @@ components:
           allOf:
             - title: generate_ip_address_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
+        transformUuidConfig:
+          allOf:
+            - title: transform_uuid_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.UpdateUserDefinedTransformerRequest:

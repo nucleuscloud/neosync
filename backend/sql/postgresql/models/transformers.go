@@ -54,6 +54,7 @@ type TransformerConfig struct {
 	GenerateCountry            *GenerateCountryConfig           `json:"generateCountryConfig,omitempty"`
 	GenerateBusinessName       *GenerateBusinessNameConfig      `json:"generateBusinessNameConfig,omitempty"`
 	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
+	TransformUuid              *TransformUuidConfig             `json:"transformUuid,omitempty"`
 }
 
 type GenerateEmailConfig struct {
@@ -207,6 +208,8 @@ type GenerateCountryConfig struct {
 }
 
 type GenerateBusinessNameConfig struct{}
+
+type TransformUuidConfig struct{}
 
 type GenerateIpAddressConfig struct {
 	IpType *int32 `json:"ipType,omitempty"`
@@ -388,6 +391,8 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		t.GenerateIpAddress = &GenerateIpAddressConfig{
 			IpType: (*int32)(tr.GetGenerateIpAddressConfig().IpType),
 		}
+	case *mgmtv1alpha1.TransformerConfig_TransformUuidConfig:
+		t.TransformUuid = &TransformUuidConfig{}
 	default:
 		t = &TransformerConfig{}
 	}
@@ -740,6 +745,12 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{
 					IpType: (*mgmtv1alpha1.GenerateIpAddressType)(t.GenerateIpAddress.IpType),
 				},
+			},
+		}
+	case t.TransformUuid != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{
+				TransformUuidConfig: &mgmtv1alpha1.TransformUuid{},
 			},
 		}
 	default:
