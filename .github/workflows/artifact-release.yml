@@ -6,7 +6,7 @@ on:
       - "v*.*.*"
     branches:
       - main
-      - develop/v0.[0-9]+
+      - "develop/v[0-9].[0-9]"
     paths: # path filters are not evaluated for pushes of tags
       - backend/**
       - cli/**
