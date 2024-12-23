@@ -6,6 +6,7 @@ on:
       - "v*.*.*"
     branches:
       - main
+      - develop/v0.[0-9]+
     paths: # path filters are not evaluated for pushes of tags
       - backend/**
       - cli/**
@@ -29,9 +30,25 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
 
       - name: Get current time
         id: current-time
@@ -53,6 +70,7 @@ jobs:
             type=semver,pattern={{raw}}
             type=sha
             type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=${{ steps.next_pre_version_develop.outputs.version }},enable=${{ startsWith(github.ref, 'refs/heads/develop/v') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -92,9 +110,24 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -111,7 +144,7 @@ jobs:
             type=semver,pattern={{raw}}
             type=sha
             type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-
+            type=raw,value=${{ steps.next_pre_version_develop.outputs.version }},enable=${{ startsWith(github.ref, 'refs/heads/develop/v') }}
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -146,9 +179,24 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -165,7 +213,7 @@ jobs:
             type=semver,pattern={{raw}}
             type=sha
             type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-
+            type=raw,value=${{ steps.next_pre_version_develop.outputs.version }},enable=${{ startsWith(github.ref, 'refs/heads/develop/v') }}
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -198,9 +246,24 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
@@ -211,6 +274,11 @@ jobs:
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+          elif [[ $GITHUB_REF =~ ^refs/heads/develop/v[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${{ steps.next_pre_version_develop.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
@@ -279,9 +347,24 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
@@ -292,6 +375,11 @@ jobs:
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+          elif [[ $GITHUB_REF =~ ^refs/heads/develop/v[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${{ steps.next_pre_version_develop.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
@@ -360,9 +448,25 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
@@ -373,6 +477,11 @@ jobs:
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+          elif [[ $GITHUB_REF =~ ^refs/heads/develop/v[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${{ steps.next_pre_version_develop.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
@@ -443,9 +552,25 @@ jobs:
           fetch-depth: 0
       - name: Calculate Next Pre-release version
         id: next_pre_version
+        if: github.ref == 'refs/heads/main'
         uses: paulhatch/semantic-version@v5.4.0
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
+
+      - name: Extract develop version
+        id: extract_version
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          VERSION_NUMBER="${BRANCH_NAME#develop/v}"
+          echo "VERSION=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Calculate Next Pre-release version (develop)
+        id: next_pre_version_develop
+        if: startsWith(github.ref, 'refs/heads/develop/v')
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          version_format: "${{ steps.extract_version.outputs.VERSION }}.0-dev.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
@@ -456,6 +581,11 @@ jobs:
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+          elif [[ $GITHUB_REF =~ ^refs/heads/develop/v[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${{ steps.next_pre_version_develop.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
