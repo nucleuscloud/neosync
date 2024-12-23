@@ -13,56 +13,14 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
-// ConnectionType represents supported connection types
-type ConnectionType string
-
-const (
-	ConnectionTypePostgres    ConnectionType = "postgres"
-	ConnectionTypeMysql       ConnectionType = "mysql"
-	ConnectionTypeMssql       ConnectionType = "mssql"
-	ConnectionTypeAwsS3       ConnectionType = "aws-s3"
-	ConnectionTypeGCP         ConnectionType = "gcp-cloud-storage"
-	ConnectionTypeMongo       ConnectionType = "mongodb"
-	ConnectionTypeDynamodb    ConnectionType = "aws-dynamodb"
-	ConnectionTypeLocalDir    ConnectionType = "local-directory"
-	ConnectionTypeOpenAI      ConnectionType = "openai"
-	ConnectionTypeNeosyncData ConnectionType = "neosync-data-stream"
-)
-
-// Determines type of connection from Connection
-func GetConnectionType(connection *mgmtv1alpha1.Connection) ConnectionType {
-	switch connection.GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return ConnectionTypePostgres
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return ConnectionTypeMysql
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return ConnectionTypeMssql
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		return ConnectionTypeAwsS3
-	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		return ConnectionTypeGCP
-	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		return ConnectionTypeMongo
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		return ConnectionTypeDynamodb
-	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
-		return ConnectionTypeLocalDir
-	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
-		return ConnectionTypeOpenAI
-	default:
-		return "unknown"
-	}
-}
-
 // Determines SQL driver from connection type
-func GetSqlDriverByConnectionType(connectionType ConnectionType) (string, error) {
+func GetSqlDriverByConnectionType(connectionType bb_shared.ConnectionType) (string, error) {
 	switch connectionType {
-	case ConnectionTypePostgres:
+	case bb_shared.ConnectionTypePostgres:
 		return sqlmanager_shared.PostgresDriver, nil
-	case ConnectionTypeMysql:
+	case bb_shared.ConnectionTypeMysql:
 		return sqlmanager_shared.MysqlDriver, nil
-	case ConnectionTypeMssql:
+	case bb_shared.ConnectionTypeMssql:
 		return sqlmanager_shared.MssqlDriver, nil
 	default:
 		return "", fmt.Errorf("unsupported SQL connection type: %s", connectionType)
