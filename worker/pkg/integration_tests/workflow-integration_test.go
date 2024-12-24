@@ -6,6 +6,7 @@ import (
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	tcdynamodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/dynamodb"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
@@ -170,6 +171,32 @@ func Test_Workflow(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
+	})
+
+	t.Run("dynamodb", func(t *testing.T) {
+		t.Parallel()
+		dynamo, err := tcdynamodb.NewDynamoDBTestSyncContainer(ctx, t, []tcdynamodb.Option{}, []tcdynamodb.Option{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		sourceConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, connclient, accountId, "dynamo-source", dynamo.Source.URL, dynamo.Source.Credentials)
+		destConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, connclient, accountId, "dynamo-dest", dynamo.Target.URL, dynamo.Target.Credentials)
+
+		t.Run("all_types", func(t *testing.T) {
+			t.Parallel()
+			test_dynamodb_alltypes(t, ctx, dynamo, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("subset", func(t *testing.T) {
+			t.Parallel()
+			test_dynamodb_subset(t, ctx, dynamo, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("default_transformers", func(t *testing.T) {
+			t.Parallel()
+			test_dynamodb_default_transformers(t, ctx, dynamo, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 	})
 
 	t.Cleanup(func() {

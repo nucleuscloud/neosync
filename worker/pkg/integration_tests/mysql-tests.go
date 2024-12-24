@@ -15,7 +15,6 @@ import (
 	mysql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
-	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata"
 	"github.com/stretchr/testify/require"
 )
 
@@ -126,7 +125,7 @@ func test_mysql_types(
 		DestConn:    destConn,
 		JobName:     "mysql_all_types",
 		JobMappings: alltypesMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:   true,
 			InitSchema: true,
 		},
@@ -190,7 +189,7 @@ func test_mysql_edgecases(
 		DestConn:    destConn,
 		JobName:     "mysql_all_types",
 		JobMappings: slices.Concat(mappings, mappings2),
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:   true,
 			InitSchema: true,
 		},

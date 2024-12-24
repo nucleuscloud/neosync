@@ -22,7 +22,6 @@ import (
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
-	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +37,7 @@ type createJobConfig struct {
 	JobMappings        []*mgmtv1alpha1.JobMapping
 	VirtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint
 	SubsetMap          map[string]string
-	JobOptions         *workflow_testdata.TestJobOptions
+	JobOptions         *TestJobOptions
 }
 
 func createPostgresSyncJob(
@@ -144,7 +143,7 @@ func test_postgres_types(
 		DestConn:    destConn,
 		JobName:     "all_types",
 		JobMappings: alltypesMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:        true,
 			TruncateCascade: true,
 			InitSchema:      true,
@@ -245,7 +244,7 @@ func test_postgres_primary_key_transformations(
 		DestConn:    destConn,
 		JobName:     "primary_key_transformations",
 		JobMappings: slices.Concat(updatedJobmappings, transformHumanresourcesMappings),
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:        true,
 			TruncateCascade: true,
 			InitSchema:      true,
@@ -322,7 +321,7 @@ func test_postgres_edgecases(
 		DestConn:    destConn,
 		JobName:     schema,
 		JobMappings: edgecasesMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:        true,
 			TruncateCascade: true,
 			InitSchema:      true,
@@ -402,7 +401,7 @@ func test_postgres_virtual_foreign_keys(
 		SubsetMap: map[string]string{
 			fmt.Sprintf("%s.employees", subsetSchema): "first_name = 'Alexander'",
 		},
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:                      true,
 			TruncateCascade:               true,
 			InitSchema:                    false,
@@ -481,7 +480,7 @@ func test_postgres_javascript_transformers(
 		DestConn:    destConn,
 		JobName:     "javascript-transformers",
 		JobMappings: slices.Concat(transformersMappings, generatorsMappings),
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:        true,
 			TruncateCascade: true,
 			InitSchema:      true,
@@ -624,7 +623,7 @@ func test_postgres_skip_foreign_keys_violations(
 		DestConn:    destConn,
 		JobName:     schema,
 		JobMappings: jobmappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:                 true,
 			TruncateCascade:          true,
 			InitSchema:               true,
@@ -691,7 +690,7 @@ func test_postgres_foreign_keys_violations_error(
 		DestConn:    destConn,
 		JobName:     schema,
 		JobMappings: jobmappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:                 true,
 			TruncateCascade:          true,
 			InitSchema:               true,
@@ -747,7 +746,7 @@ func test_postgres_subsetting(
 		JobName:     schema,
 		JobMappings: jobmappings,
 		SubsetMap:   subsetMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:                      true,
 			TruncateCascade:               true,
 			InitSchema:                    true,

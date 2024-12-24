@@ -15,7 +15,6 @@ import (
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
 	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
-	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata"
 	"github.com/stretchr/testify/require"
 )
 
@@ -126,7 +125,7 @@ func test_mssql_types(
 		DestConn:    destConn,
 		JobName:     "mssql_all_types",
 		JobMappings: alltypesMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:   true,
 			InitSchema: true,
 		},
@@ -187,7 +186,7 @@ func test_mssql_cross_schema_foreign_keys(
 		DestConn:    destConn,
 		JobName:     "mssql_cross_schema_foreign_keys",
 		JobMappings: mappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:   true,
 			InitSchema: true,
 		},
@@ -263,7 +262,7 @@ func test_mssql_subset(
 		JobName:     "mssql_subset",
 		JobMappings: mappings,
 		SubsetMap:   subsetMappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:                      true,
 			InitSchema:                    true,
 			SubsetByForeignKeyConstraints: true,
@@ -352,7 +351,7 @@ func test_mssql_identity_columns(
 		DestConn:    destConn,
 		JobName:     "mssql_identity_columns",
 		JobMappings: updatedJobmappings,
-		JobOptions: &workflow_testdata.TestJobOptions{
+		JobOptions: &TestJobOptions{
 			Truncate:   true,
 			InitSchema: true,
 		},
