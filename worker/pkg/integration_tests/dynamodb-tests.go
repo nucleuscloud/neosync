@@ -14,6 +14,7 @@ import (
 	tcdynamodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/dynamodb"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 func createDynamodbSyncJob(
@@ -80,12 +81,7 @@ func test_dynamodb_alltypes(
 	tableName := "test-all-types"
 	primaryKey := "id"
 
-	err := dynamo.Source.SetupDynamoDbTable(ctx, tableName, primaryKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = dynamo.Target.SetupDynamoDbTable(ctx, tableName, primaryKey)
+	err := createDynamodbTables(ctx, dynamo, tableName, primaryKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,6 +137,8 @@ func test_dynamodb_alltypes(
 	})
 	require.NoError(t, err)
 	require.Equal(t, int32(4), out.Count)
+	err = cleanupDynamodbTables(ctx, dynamo, tableName)
+	require.NoError(t, err)
 }
 
 func test_dynamodb_subset(
@@ -157,12 +155,7 @@ func test_dynamodb_subset(
 	tableName := "test-subset"
 	primaryKey := "id"
 
-	err := dynamo.Source.SetupDynamoDbTable(ctx, tableName, primaryKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = dynamo.Target.SetupDynamoDbTable(ctx, tableName, primaryKey)
+	err := createDynamodbTables(ctx, dynamo, tableName, primaryKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,6 +215,8 @@ func test_dynamodb_subset(
 	})
 	require.NoError(t, err)
 	require.Equal(t, int32(1), out.Count)
+	err = cleanupDynamodbTables(ctx, dynamo, tableName)
+	require.NoError(t, err)
 }
 
 func test_dynamodb_default_transformers(
@@ -238,12 +233,7 @@ func test_dynamodb_default_transformers(
 	tableName := "test-default-transformers"
 	primaryKey := "id"
 
-	err := dynamo.Source.SetupDynamoDbTable(ctx, tableName, primaryKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = dynamo.Target.SetupDynamoDbTable(ctx, tableName, primaryKey)
+	err := createDynamodbTables(ctx, dynamo, tableName, primaryKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,6 +317,23 @@ func test_dynamodb_default_transformers(
 	})
 	require.NoError(t, err)
 	require.Equal(t, int32(4), out.Count)
+	// tear down
+	err = cleanupDynamodbTables(ctx, dynamo, tableName)
+	require.NoError(t, err)
+}
+
+func cleanupDynamodbTables(ctx context.Context, dynamo *tcdynamodb.DynamoDBTestSyncContainer, tableName string) error {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error { return dynamo.Source.DestroyDynamoDbTable(errctx, tableName) })
+	errgrp.Go(func() error { return dynamo.Target.DestroyDynamoDbTable(errctx, tableName) })
+	return errgrp.Wait()
+}
+
+func createDynamodbTables(ctx context.Context, dynamo *tcdynamodb.DynamoDBTestSyncContainer, tableName string, primaryKey string) error {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error { return dynamo.Source.SetupDynamoDbTable(errctx, tableName, primaryKey) })
+	errgrp.Go(func() error { return dynamo.Target.SetupDynamoDbTable(errctx, tableName, primaryKey) })
+	return errgrp.Wait()
 }
 
 func getAllTypesTestData() []map[string]dyntypes.AttributeValue {

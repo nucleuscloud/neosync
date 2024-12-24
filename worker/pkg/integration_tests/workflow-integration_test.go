@@ -7,6 +7,7 @@ import (
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcdynamodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/dynamodb"
+	tcmongodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mongodb"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
@@ -174,6 +175,7 @@ func Test_Workflow(t *testing.T) {
 	})
 
 	t.Run("dynamodb", func(t *testing.T) {
+		t.Log("Starting dynamodb tests")
 		t.Parallel()
 		dynamo, err := tcdynamodb.NewDynamoDBTestSyncContainer(ctx, t, []tcdynamodb.Option{}, []tcdynamodb.Option{})
 		if err != nil {
@@ -197,6 +199,41 @@ func Test_Workflow(t *testing.T) {
 			test_dynamodb_default_transformers(t, ctx, dynamo, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Cleanup(func() {
+			err := dynamo.TearDown(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	})
+
+	t.Run("mongodb", func(t *testing.T) {
+		t.Log("Starting mongodb tests")
+		t.Parallel()
+		mongodb, err := tcmongodb.NewMongoDBTestSyncContainer(ctx, t)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sourceConn := tcneosyncapi.CreateMongodbConnection(ctx, t, connclient, accountId, "mongodb-source", mongodb.Source.URL)
+		destConn := tcneosyncapi.CreateMongodbConnection(ctx, t, connclient, accountId, "mongodb-dest", mongodb.Target.URL)
+
+		t.Run("all_types", func(t *testing.T) {
+			t.Parallel()
+			test_mongodb_alltypes(t, ctx, mongodb, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("transform", func(t *testing.T) {
+			t.Parallel()
+			test_mongodb_transform(t, ctx, mongodb, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Cleanup(func() {
+			err := mongodb.TearDown(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
 	})
 
 	t.Cleanup(func() {

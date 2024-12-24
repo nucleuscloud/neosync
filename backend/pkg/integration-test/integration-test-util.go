@@ -160,6 +160,32 @@ func CreateDynamoDBConnection(
 	return resp.Msg.GetConnection()
 }
 
+func CreateMongodbConnection(
+	ctx context.Context,
+	t *testing.T,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	accountId, name, url string,
+) *mgmtv1alpha1.Connection {
+	resp, err := connclient.CreateConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
+			AccountId: accountId,
+			Name:      name,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+					MongoConfig: &mgmtv1alpha1.MongoConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+							Url: url,
+						},
+					},
+				},
+			},
+		}),
+	)
+	RequireNoErrResp(t, resp, err)
+	return resp.Msg.GetConnection()
+}
+
 func SetUser(ctx context.Context, t *testing.T, client mgmtv1alpha1connect.UserAccountServiceClient) string {
 	resp, err := client.SetUser(ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
 	RequireNoErrResp(t, resp, err)
