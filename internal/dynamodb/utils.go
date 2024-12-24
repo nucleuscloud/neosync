@@ -32,12 +32,18 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 			case "S":
 				return dynamoValue.(string)
 			case "B":
-				s := dynamoValue.(string)
-				byteSlice, err := base64.StdEncoding.DecodeString(s)
-				if err != nil {
+				switch v := dynamoValue.(type) {
+				case string:
+					byteSlice, err := base64.StdEncoding.DecodeString(v)
+					if err != nil {
+						return dynamoValue
+					}
+					return byteSlice
+				case []byte:
+					return v
+				default:
 					return dynamoValue
 				}
-				return byteSlice
 			case "N":
 				n, err := gotypeutil.ParseStringAsNumber(dynamoValue.(string))
 				if err != nil {
@@ -67,36 +73,62 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				}
 				return mAny
 			case "BS":
-				bytes := dynamoValue.([]any)
-				result := make([][]byte, len(bytes))
-				for i, b := range bytes {
-					s := b.(string)
-					byteSlice, err := base64.StdEncoding.DecodeString(s)
-					if err != nil {
-						return dynamoValue
+				var result [][]byte
+				switch bytes := dynamoValue.(type) {
+				case []any:
+					result = make([][]byte, len(bytes))
+					for i, b := range bytes {
+						s := b.(string)
+						byteSlice, err := base64.StdEncoding.DecodeString(s)
+						if err != nil {
+							return dynamoValue
+						}
+						result[i] = byteSlice
 					}
-
-					result[i] = byteSlice
+				case [][]byte:
+					return bytes
+				default:
+					return dynamoValue
 				}
 				return result
 			case "SS":
 				keyTypeMap[key] = neosync_types.StringSet
-				ss := dynamoValue.([]any)
-				result := make([]string, len(ss))
-				for i, s := range ss {
-					result[i] = s.(string)
+				switch ss := dynamoValue.(type) {
+				case []any:
+					result := make([]string, len(ss))
+					for i, s := range ss {
+						result[i] = s.(string)
+					}
+					return result
+				case []string:
+					return ss
+				default:
+					return dynamoValue
 				}
-				return result
 			case "NS":
 				keyTypeMap[key] = neosync_types.NumberSet
-				numbers := dynamoValue.([]any)
-				result := make([]any, len(numbers))
-				for i, num := range numbers {
-					n, err := gotypeutil.ParseStringAsNumber(num.(string))
-					if err != nil {
-						result[i] = num
+				var result []any
+				switch ns := dynamoValue.(type) {
+				case []any:
+					result = make([]any, len(ns))
+					for i, num := range ns {
+						n, err := gotypeutil.ParseStringAsNumber(num.(string))
+						if err != nil {
+							result[i] = num
+						}
+						result[i] = n
 					}
-					result[i] = n
+				case []string:
+					result = make([]any, len(ns))
+					for i, num := range ns {
+						n, err := gotypeutil.ParseStringAsNumber(num)
+						if err != nil {
+							result[i] = num
+						}
+						result[i] = n
+					}
+				default:
+					return dynamoValue
 				}
 				return result
 			}
@@ -311,7 +343,7 @@ func anyToString(value any) string {
 	}
 }
 
-func ConvertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[string]any, error) {
+func ConvertAttributeValueToGoMap(av dynamotypes.AttributeValue) (map[string]any, error) {
 	switch v := av.(type) {
 	case *dynamotypes.AttributeValueMemberS:
 		return map[string]any{"S": v.Value}, nil
@@ -327,7 +359,7 @@ func ConvertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[str
 		m := make(map[string]any)
 		for k, val := range v.Value {
 			var err error
-			m[k], err = ConvertAttributeValueToDynamoDBJSON(val)
+			m[k], err = ConvertAttributeValueToGoMap(val)
 			if err != nil {
 				return nil, err
 			}
@@ -337,7 +369,7 @@ func ConvertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[str
 		l := make([]any, len(v.Value))
 		for i, val := range v.Value {
 			var err error
-			l[i], err = ConvertAttributeValueToDynamoDBJSON(val)
+			l[i], err = ConvertAttributeValueToGoMap(val)
 			if err != nil {
 				return nil, err
 			}
@@ -354,16 +386,16 @@ func ConvertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[str
 	}
 }
 
-func ConvertMapToJSONBytes(input map[string]dynamotypes.AttributeValue) ([]byte, error) {
+func ConvertDynamoItemToGoMap(input map[string]dynamotypes.AttributeValue) (map[string]any, error) {
 	result := make(map[string]any)
 
 	for key, av := range input {
-		dynamoDBJSON, err := ConvertAttributeValueToDynamoDBJSON(av)
+		dynamoDBJSON, err := ConvertAttributeValueToGoMap(av)
 		if err != nil {
 			return nil, fmt.Errorf("error converting key %s: %w", key, err)
 		}
 		result[key] = dynamoDBJSON
 	}
 
-	return json.Marshal(result)
+	return result, nil
 }

@@ -2,13 +2,12 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateUuid } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateUuid, GenerateUuidSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<GenerateUuid, PlainMessage<GenerateUuid>> {}
+interface Props extends TransformerConfigProps<GenerateUuid> {}
 
 export default function GenerateUuidForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -27,7 +26,12 @@ export default function GenerateUuidForm(props: Props): ReactElement {
         <Switch
           checked={value.includeHyphens}
           onCheckedChange={(checked) =>
-            setValue(new GenerateUuid({ ...value, includeHyphens: checked }))
+            setValue(
+              create(GenerateUuidSchema, {
+                ...value,
+                includeHyphens: checked,
+              })
+            )
           }
           disabled={isDisabled}
         />

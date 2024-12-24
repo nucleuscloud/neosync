@@ -2,6 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -18,27 +19,24 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  AWSFormValues,
-  AWS_FORM_SCHEMA,
+  AwsFormValues,
   EditConnectionFormContext,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  UpdateConnectionRequest,
+  ConnectionService,
+  UpdateConnectionRequestSchema,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import {
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
 import { useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { buildConnectionConfigAwsS3 } from '../../util';
 
 interface Props {
   connectionId: string;
-  defaultValues: AWSFormValues;
+  defaultValues: AwsFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
@@ -47,10 +45,10 @@ export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
-  const form = useForm<AWSFormValues, EditConnectionFormContext>({
-    resolver: yupResolver(AWS_FORM_SCHEMA),
+  const form = useForm<AwsFormValues, EditConnectionFormContext>({
+    resolver: yupResolver(AwsFormValues),
     defaultValues: {
       connectionName: '',
       s3: {},
@@ -62,12 +60,14 @@ export default function AwsS3Form(props: Props) {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
 
-  async function onSubmit(values: AWSFormValues) {
+  async function onSubmit(values: AwsFormValues) {
     try {
       const connectionResp = await mutateAsync(
-        new UpdateConnectionRequest({
+        create(UpdateConnectionRequestSchema, {
           id: connectionId,
           name: values.connectionName,
           connectionConfig: buildConnectionConfigAwsS3(values),
@@ -81,6 +81,7 @@ export default function AwsS3Form(props: Props) {
   }
   return (
     <div className="flex flex-col gap-4">
+      <SystemLicenseAlert />
       <Alert variant="warning">
         <div className="flex flex-row items-center gap-2">
           <IoAlertCircleOutline className="h-6 w-6" />

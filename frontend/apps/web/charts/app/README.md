@@ -12,7 +12,7 @@ A Helm chart for the Neosync App
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| analytics.enabled | bool | `true` | Enables analytics such as Posthog/Koala (if keys have been provided for them) |
+| analytics.enabled | bool | `true` | Enables analytics such as Posthog/Unify (if keys have been provided for them) |
 | auth.audience | string | `nil` | The audience that should be present in the JWT token |
 | auth.clientId | string | `nil` | The client id that will be used by the app to retrieve user tokens |
 | auth.clientSecret | string | `nil` | The client secret that will be used by the app |
@@ -37,7 +37,6 @@ A Helm chart for the Neosync App
 | ingress.enabled | bool | `false` | Enable this if using K8s ingress to expose the backend to the internet |
 | istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
 | jobHooks.enabled | bool | `false` | Enables Job Hooks on the frontend. Note: This will only work if it has also been enabled via the backend with a valid license |
-| koala.key | string | `nil` | Koala Key |
 | nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |
 | neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
@@ -63,4 +62,5 @@ A Helm chart for the Neosync App
 | sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
+| unify.key | string | `nil` | Unify Key |
 | updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |

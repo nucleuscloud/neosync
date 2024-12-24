@@ -18,12 +18,13 @@ import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
-  JobMappingTransformer,
+  JobMappingTransformerSchema,
   SystemTransformer,
-  TransformerConfig,
+  TransformerConfigSchema,
   UserDefinedTransformer,
-  UserDefinedTransformerConfig,
+  UserDefinedTransformerConfigSchema,
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
@@ -105,13 +106,16 @@ export default function TransformerSelect(props: Props): ReactElement {
                         onSelect={() => {
                           onSelect(
                             convertJobMappingTransformerToForm(
-                              new JobMappingTransformer({
-                                config: new TransformerConfig({
+                              create(JobMappingTransformerSchema, {
+                                config: create(TransformerConfigSchema, {
                                   config: {
                                     case: 'userDefinedTransformerConfig',
-                                    value: new UserDefinedTransformerConfig({
-                                      id: t.id,
-                                    }),
+                                    value: create(
+                                      UserDefinedTransformerConfigSchema,
+                                      {
+                                        id: t.id,
+                                      }
+                                    ),
                                   },
                                 }),
                               })
@@ -152,7 +156,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         onSelect={() => {
                           onSelect(
                             convertJobMappingTransformerToForm(
-                              new JobMappingTransformer({
+                              create(JobMappingTransformerSchema, {
                                 config: t.config,
                               })
                             )

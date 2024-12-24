@@ -102,6 +102,8 @@ message AccountUser {
   string name = 2;
   string image = 3;
   string email = 4;
+  // The role of the user in the account. If RBAC is not enabled, will be unspecified.
+  AccountRole role = 5;
 }
 
 message GetTeamAccountMembersRequest {
@@ -118,8 +120,12 @@ message RemoveTeamAccountMemberRequest {
 message RemoveTeamAccountMemberResponse {}
 
 message InviteUserToTeamAccountRequest {
+  // The account id to invite the user to
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The email of the user to invite
   string email = 2 [(buf.validate.field).string.min_len = 1];
+  // The role of the user to invite. Only used if RBAC is enabled.
+  optional AccountRole role = 3;
 }
 
 message AccountInvite {
@@ -132,6 +138,8 @@ message AccountInvite {
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
   google.protobuf.Timestamp expires_at = 9;
+  // The role of the user to invite. Only used if RBAC is enabled.
+  AccountRole role = 10;
 }
 
 message InviteUserToTeamAccountResponse {
@@ -167,7 +175,19 @@ message GetSystemInformationResponse {
   string compiler = 3;
   // The Go platform flag that was used to build this version of Neosync
   string platform = 4;
+  // The time when the build was created
   google.protobuf.Timestamp build_date = 5;
+  // The license information for the system
+  SystemLicense license = 6;
+}
+
+message SystemLicense {
+  // Whether or not a valid license was found
+  bool is_valid = 1;
+  // The time when the license expires
+  google.protobuf.Timestamp expires_at = 2;
+  // Whether or not the license is for NeosyncCloud
+  bool is_neosync_cloud = 3;
 }
 
 message GetAccountOnboardingConfigRequest {
@@ -186,14 +206,10 @@ message SetAccountOnboardingConfigResponse {
 }
 
 message AccountOnboardingConfig {
-  // @deprecated - use has_completed_onboarding
-  bool has_created_source_connection = 1;
-  // @deprecated - use has_completed_onboarding
-  bool has_created_destination_connection = 2;
-  // @deprecated - use has_completed_onboarding
-  bool has_created_job = 3;
-  // @deprecated - use has_completed_onboarding
-  bool has_invited_members = 4;
+  reserved 1; // Was: bool has_created_source_connection = 1;
+  reserved 2; // Was: bool has_created_destination_connection = 2;
+  reserved 3; // Was: bool has_created_job = 3;
+  reserved 4; // Was: bool has_invited_members = 4;
   bool has_completed_onboarding = 5;
 }
 
@@ -239,11 +255,9 @@ message IsAccountStatusValidResponse {
   bool should_poll = 3;
   // A count of the currently used records for the current billing period.
   // This may go over the allowed record count depending on when the record count is polled by the metric system.
-  // @deprecated
-  uint64 used_record_count = 4;
+  reserved 4; // Was: uint64 used_record_count = 4;
   // The allowed record count. It will be null if there is no limit.
-  // @deprecated
-  optional uint64 allowed_record_count = 5;
+  reserved 5; // Was: optional uint64 allowed_record_count = 5;
   // The current status of the account. Default is valid.
   AccountStatus account_status = 6;
   // The time when the trial expires
@@ -253,10 +267,8 @@ message IsAccountStatusValidResponse {
 enum AccountStatus {
   // Default value, should be used when no reason is specified
   ACCOUNT_STATUS_REASON_UNSPECIFIED = 0;
-  // @deprecated - Current usage exceeds allowed limit
-  ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT = 1;
-  // @deprecated - Adding requested records exceeds the allowed limit
-  ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
+  reserved 1, 2;
+  reserved "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT", "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT";
   // Account is currently in an expired state
   ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
   // The account is currently in an active trial period
@@ -307,6 +319,30 @@ message SetBillingMeterEventRequest {
 }
 
 message SetBillingMeterEventResponse {}
+
+message SetUserRoleRequest {
+  // The account id to apply this role to
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The user that this will be applied to
+  string user_id = 2 [(buf.validate.field).string.uuid = true];
+  // The role that this user will obtain
+  AccountRole role = 3;
+}
+
+enum AccountRole {
+  // Default value, this should not be used, but will default to ACCOUNT_ROLE_JOB_VIEWER
+  ACCOUNT_ROLE_UNSPECIFIED = 0;
+  // Admin, can do anything in the account.
+  ACCOUNT_ROLE_ADMIN = 1;
+  // Can view, edit jobs and connections
+  ACCOUNT_ROLE_JOB_DEVELOPER = 2;
+  // Can view
+  ACCOUNT_ROLE_JOB_VIEWER = 3;
+  // Can view and execute
+  ACCOUNT_ROLE_JOB_EXECUTOR = 4;
+}
+
+message SetUserRoleResponse {}
 
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
@@ -363,4 +399,7 @@ service UserAccountService {
 
   // Sends a new metered event to the billing system
   rpc SetBillingMeterEvent(SetBillingMeterEventRequest) returns (SetBillingMeterEventResponse) {}
+
+  // Sets the users role
+  rpc SetUserRole(SetUserRoleRequest) returns (SetUserRoleResponse) {}
 }

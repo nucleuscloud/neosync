@@ -1,10 +1,10 @@
 'use client';
 import { useQuery } from '@connectrpc/connect-query';
-import { getSystemInformation } from '@neosync/sdk/connectquery';
+import { UserAccountService } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 export default function NeosyncVersion(): ReactElement | null {
-  const { data } = useQuery(getSystemInformation);
+  const { data } = useQuery(UserAccountService.method.getSystemInformation);
   if (!data?.version) {
     return null;
   }

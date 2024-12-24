@@ -2,7 +2,7 @@ export interface SystemAppConfig {
   isAuthEnabled: boolean;
   publicAppBaseUrl: string;
   posthog: PosthogConfig;
-  koala: KoalaConfig;
+  unify: UnifyConfig;
   isNeosyncCloud: boolean;
   isStripeEnabled: boolean;
   enableRunLogs: boolean;
@@ -12,12 +12,11 @@ export interface SystemAppConfig {
 
   calendlyUpgradeLink: string;
   isGcpCloudStorageConnectionsEnabled: boolean;
-  isDynamoDbConnectionsEnabled: boolean;
-  isMsSqlServerEnabled: boolean;
   // server-side base url
   neosyncApiBaseUrl: string;
   // public (client-side) base url;
   publicNeosyncApiBaseUrl: string;
+  isRbacEnabled: boolean;
 }
 
 interface PosthogConfig {
@@ -26,7 +25,7 @@ interface PosthogConfig {
   host: string;
 }
 
-interface KoalaConfig {
+interface UnifyConfig {
   enabled: boolean;
   key?: string;
 }

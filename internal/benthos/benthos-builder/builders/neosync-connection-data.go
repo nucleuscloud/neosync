@@ -21,7 +21,7 @@ type neosyncConnectionDataBuilder struct {
 	sourceJobRunId        *string
 	syncConfigs           []*tabledependency.RunConfig
 	destinationConnection *mgmtv1alpha1.Connection
-	sourceConnectionType  bb_internal.ConnectionType
+	sourceConnectionType  bb_shared.ConnectionType
 }
 
 func NewNeosyncConnectionDataSyncBuilder(
@@ -30,7 +30,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 	sourceJobRunId *string,
 	syncConfigs []*tabledependency.RunConfig,
 	destinationConnection *mgmtv1alpha1.Connection,
-	sourceConnectionType bb_internal.ConnectionType,
+	sourceConnectionType bb_shared.ConnectionType,
 ) bb_internal.BenthosBuilder {
 	return &neosyncConnectionDataBuilder{
 		connectiondataclient:  connectiondataclient,

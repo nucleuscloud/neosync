@@ -11,10 +11,16 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { Editor, useMonaco } from '@monaco-editor/react';
-import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
-import { checkSqlQuery, getTableRowCount } from '@neosync/sdk/connectquery';
+import {
+  CheckSqlQueryResponse,
+  CheckSqlQueryResponseSchema,
+  ConnectionDataService,
+  ConnectionService,
+  GetTableRowCountResponse,
+} from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
@@ -121,8 +127,12 @@ export default function EditItem(props: Props): ReactElement {
     setValidateResp(undefined);
   }, [item]);
 
-  const { mutateAsync: validateSql } = useMutation(checkSqlQuery);
-  const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
+  const { mutateAsync: validateSql } = useMutation(
+    ConnectionService.method.checkSqlQuery
+  );
+  const { mutateAsync: getRowCountByTable } = useMutation(
+    ConnectionDataService.method.getTableRowCount
+  );
 
   async function onValidate(): Promise<void> {
     if (connectionType === 'pgConfig' || connectionType === 'mysqlConfig') {
@@ -137,7 +147,7 @@ export default function EditItem(props: Props): ReactElement {
         setValidateResp(resp);
       } catch (err) {
         setValidateResp(
-          new CheckSqlQueryResponse({
+          create(CheckSqlQueryResponseSchema, {
             isValid: false,
             erorrMessage: getErrorMessage(err),
           })
@@ -241,7 +251,7 @@ export default function EditItem(props: Props): ReactElement {
                   <TooltipTrigger asChild>
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="outline"
                       disabled={!item?.where}
                       onClick={() => onGetRowCount()}
                     >
@@ -277,7 +287,7 @@ export default function EditItem(props: Props): ReactElement {
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="outline"
                     disabled={!item}
                     onClick={() => onValidate()}
                   >
@@ -293,37 +303,6 @@ export default function EditItem(props: Props): ReactElement {
               </Tooltip>
             </TooltipProvider>
           )}
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onCancelClick()}
-          >
-            <ButtonText text="Cancel" />
-          </Button>
-          <TooltipProvider>
-            <Tooltip delayDuration={200}>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  disabled={!item}
-                  onClick={() => {
-                    const editor = editorRef.current;
-                    editor?.setValue('');
-                    onSaveClick();
-                  }}
-                >
-                  <ButtonText text="Apply" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Applies changes to table only, click Save below to fully
-                  submit changes
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
       <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -341,6 +320,39 @@ export default function EditItem(props: Props): ReactElement {
         validateResp={validateResp}
         rowCountError={rowCountError}
       />
+      <div className="flex justify-between gap-4">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!item}
+          onClick={() => onCancelClick()}
+        >
+          <ButtonText text="Cancel" />
+        </Button>
+        <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                disabled={!item}
+                onClick={() => {
+                  const editor = editorRef.current;
+                  editor?.setValue('');
+                  onSaveClick();
+                }}
+              >
+                <ButtonText text="Apply" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                Applies changes to table only, click Save below to fully submit
+                changes
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   );
 }

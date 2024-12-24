@@ -4,16 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateFloat64 } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateFloat64, GenerateFloat64Schema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateFloat64,
-    PlainMessage<GenerateFloat64>
-  > {}
+interface Props extends TransformerConfigProps<GenerateFloat64> {}
 
 export default function GenerateFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -34,7 +30,10 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
               checked={value.randomizeSign}
               onCheckedChange={(checked) =>
                 setValue(
-                  new GenerateFloat64({ ...value, randomizeSign: checked })
+                  create(GenerateFloat64Schema, {
+                    ...value,
+                    randomizeSign: checked,
+                  })
                 )
               }
               disabled={isDisabled}
@@ -59,7 +58,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateFloat64({
+                      create(GenerateFloat64Schema, {
                         ...value,
                         min: e.target.valueAsNumber,
                       })
@@ -89,7 +88,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateFloat64({
+                      create(GenerateFloat64Schema, {
                         ...value,
                         max: e.target.valueAsNumber,
                       })
@@ -123,7 +122,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateFloat64({
+                      create(GenerateFloat64Schema, {
                         ...value,
                         precision: BigInt(e.target.valueAsNumber),
                       })

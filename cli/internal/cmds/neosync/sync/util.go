@@ -25,25 +25,6 @@ func parseDriverString(str string) (DriverType, bool) {
 	return p, ok
 }
 
-func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
-	if connection.ConnectionConfig.GetAwsS3Config() != nil {
-		return awsS3Connection, nil
-	}
-	if connection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
-		return gcpCloudStorageConnection, nil
-	}
-	if connection.ConnectionConfig.GetMysqlConfig() != nil {
-		return mysqlConnection, nil
-	}
-	if connection.ConnectionConfig.GetPgConfig() != nil {
-		return postgresConnection, nil
-	}
-	if connection.ConnectionConfig.GetDynamodbConfig() != nil {
-		return awsDynamoDBConnection, nil
-	}
-	return "", errors.New("unsupported connection type")
-}
-
 func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[string][]string) bool {
 	for _, dep := range config.DependsOn {
 		if cols, ok := queuedMap[dep.Table]; ok {
@@ -138,15 +119,15 @@ func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]s
 	return dependencyMap
 }
 
-func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {
+func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver *DriverType) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if destinationDriver != postgresDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", destinationDriver)
+		if destinationDriver != nil && *destinationDriver != postgresDriver {
+			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if destinationDriver != mysqlDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
+		if destinationDriver != nil && *destinationDriver != mysqlDriver {
+			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 	default:

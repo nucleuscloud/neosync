@@ -7,7 +7,7 @@ import {
   onJobRunsPaused,
 } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
-import { getJobRuns, getJobs } from '@neosync/sdk/connectquery';
+import { JobService } from '@neosync/sdk';
 import { ArrowTopRightIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
 import { GoStack } from 'react-icons/go';
@@ -35,7 +35,7 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     refetch: mutate,
     isFetching: isValidating,
   } = useQuery(
-    getJobRuns,
+    JobService.method.getJobRuns,
     { id: { case: 'accountId', value: account?.id ?? '' } },
     {
       enabled() {
@@ -52,7 +52,11 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     refetch: jobsMutate,
     isLoading: isJobsLoading,
     isFetching: isJobsValidating,
-  } = useQuery(getJobs, { accountId: account?.id }, { enabled: !!account?.id });
+  } = useQuery(
+    JobService.method.getJobs,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
 
   const jobs = jobsData?.jobs ?? [];
 

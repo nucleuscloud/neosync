@@ -7,9 +7,13 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { ConnectionConfig, GetConnectionResponse } from '@neosync/sdk';
-import { getConnection } from '@neosync/sdk/connectquery';
+import {
+  ConnectionConfigSchema,
+  ConnectionService,
+  GetConnectionResponseSchema,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { toast } from 'sonner';
@@ -21,7 +25,7 @@ export default function ConnectionPage({ params }: PageProps) {
   const { account } = useAccount();
 
   const { data, isLoading } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id: id },
     { enabled: !!id }
   );
@@ -42,10 +46,14 @@ export default function ConnectionPage({ params }: PageProps) {
   const connectionComponent = getConnectionComponentDetails({
     connection: data?.connection!,
     onSaved: (resp) => {
-      const key = createConnectQueryKey(getConnection, { id });
+      const key = createConnectQueryKey({
+        schema: ConnectionService.method.getConnection,
+        input: { id },
+        cardinality: undefined,
+      });
       queryclient.setQueryData(
         key,
-        new GetConnectionResponse({ connection: resp.connection })
+        create(GetConnectionResponseSchema, { connection: resp.connection })
       );
       toast.success('Successfully updated connection!');
     },
@@ -59,7 +67,8 @@ export default function ConnectionPage({ params }: PageProps) {
           data?.connection?.id && (
             <CloneConnectionButton
               connectionConfig={
-                data?.connection?.connectionConfig ?? new ConnectionConfig()
+                data?.connection?.connectionConfig ??
+                create(ConnectionConfigSchema, {})
               }
               id={data?.connection?.id ?? ''}
             />

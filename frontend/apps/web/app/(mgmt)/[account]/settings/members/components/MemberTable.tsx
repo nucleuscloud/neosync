@@ -1,21 +1,7 @@
 'use client';
 
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import * as React from 'react';
-
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -34,108 +20,173 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getErrorMessage } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
+import { getAccountRoleString, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { AccountUser } from '@neosync/sdk';
-import {
-  getTeamAccountMembers,
-  removeTeamAccountMember,
-} from '@neosync/sdk/connectquery';
+import { AccountRole, AccountUser, UserAccountService } from '@neosync/sdk';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  RowData,
+  SortingState,
+  VisibilityState,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ReactElement, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import UpdateMemberRoleDialog from './UpdateMemberRoleDialog';
 
-interface ColumnProps {
-  onDeleted(id: string): void;
-  accountId: string;
+interface MemberRow {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: AccountRole;
 }
 
-function getColumns(
-  props: ColumnProps
-): ColumnDef<PlainMessage<AccountUser>>[] {
-  const { onDeleted, accountId } = props;
-  return [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex flex-row items-center gap-4">
-          <Avatar className="mr-2 h-12 w-12">
-            <AvatarImage
-              src={
-                row.original.image ||
-                `https://avatar.vercel.sh/${row.getValue('name')}.png`
-              }
-              alt={row.getValue('name')}
-            />
-          </Avatar>
-          <span className=" truncate font-medium">{row.getValue('name')}</span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => (
-        <span className=" truncate font-medium">{row.getValue('email')}</span>
-      ),
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getColumns(isRbacEnabled: boolean): ColumnDef<MemberRow, any>[] {
+  const columnHelper = createColumnHelper<MemberRow>();
+  const nameColumn = columnHelper.accessor('name', {
+    header: 'Name',
+    cell: ({ row, getValue }) => (
+      <div className="flex flex-row items-center gap-4">
+        <Avatar className="mr-2 h-12 w-12">
+          <AvatarImage
+            src={
+              row.original.image || `https://avatar.vercel.sh/${getValue()}.png`
+            }
+            alt={getValue()}
+          />
+        </Avatar>
+        <span className="truncate font-medium">{getValue()}</span>
+      </div>
+    ),
+  });
+
+  const emailColumn = columnHelper.accessor('email', {
+    header: 'Email',
+    cell: ({ getValue }) => (
+      <span className="truncate font-medium">{getValue()}</span>
+    ),
+  });
+
+  const roleColumn = columnHelper.accessor('role', {
+    header: 'Role',
+    cell: ({ getValue }) => (
+      <span className="truncate font-medium">
+        {getAccountRoleString(getValue())}
+      </span>
+    ),
+  });
+
+  const actionsColumn = columnHelper.display({
+    id: 'actions',
+    cell: ({ row, table }) => {
+      return (
         <DataTableRowActions
-          accountId={accountId}
-          row={row}
-          onDeleted={() => onDeleted(row.id)}
+          member={{
+            id: row.original.id,
+            name: row.original.name,
+            role: row.original.role,
+            email: row.original.email,
+          }}
+          onDeleted={() =>
+            table.options.meta?.membersTable?.onDeleted(row.original.id)
+          }
+          onUpdated={() =>
+            table.options.meta?.membersTable?.onUpdated(row.original.id)
+          }
         />
-      ),
+      );
     },
-  ];
+  });
+
+  if (isRbacEnabled) {
+    return [nameColumn, emailColumn, roleColumn, actionsColumn];
+  }
+
+  return [nameColumn, emailColumn, actionsColumn];
 }
 
 interface Props {
   accountId: string;
 }
 
-export default function MembersTable(props: Props) {
+export default function MembersTable(props: Props): ReactElement {
   const { accountId } = props;
-  const { data, isLoading, refetch } = useQuery(
-    getTeamAccountMembers,
+  const { data, isLoading, refetch, isFetching } = useQuery(
+    UserAccountService.method.getTeamAccountMembers,
     { accountId: accountId },
     { enabled: !!accountId }
   );
+
+  const users = data?.users ?? [];
+  const members = useMemo(() => {
+    return users.map((d): MemberRow => {
+      return {
+        name: d.name,
+        email: d.email,
+        image: d.image,
+        id: d.id,
+        role: d.role,
+      };
+    });
+  }, [isFetching, users]);
+
+  const columns = useGetColumns();
+
   if (isLoading) {
     return <SkeletonTable />;
   }
   return (
     <DataTable
-      data={data?.users || []}
-      accountId={accountId}
+      data={members}
+      columns={columns}
       onDeleted={() => refetch()}
+      onUpdated={() => refetch()}
     />
   );
 }
 
+function useGetColumns(): ColumnDef<MemberRow>[] {
+  const { data: config } = useGetSystemAppConfig();
+  const isRbacEnabled = config?.isRbacEnabled ?? false;
+  return useMemo(() => {
+    return getColumns(isRbacEnabled);
+  }, [isRbacEnabled]);
+}
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface TableMeta<TData extends RowData> {
+    membersTable?: {
+      onDeleted(userId: string): void;
+      onUpdated(userId: string): void;
+    };
+  }
+}
+
 interface DataTableProps {
-  data: AccountUser[];
-  accountId: string;
-  onDeleted(id: string): void;
+  data: MemberRow[];
+  columns: ColumnDef<MemberRow>[];
+  onDeleted(userId: string): void;
+  onUpdated(userId: string): void;
 }
 
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, accountId, onDeleted } = props;
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const columns = React.useMemo(
-    () => getColumns({ accountId, onDeleted }),
-    [accountId]
-  );
+  const { data, columns, onDeleted, onUpdated } = props;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
@@ -153,6 +204,12 @@ function DataTable(props: DataTableProps): React.ReactElement {
       columnFilters,
       columnVisibility,
       rowSelection,
+    },
+    meta: {
+      membersTable: {
+        onDeleted,
+        onUpdated,
+      },
     },
   });
 
@@ -219,10 +276,6 @@ function DataTable(props: DataTableProps): React.ReactElement {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        {/* <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
         <div className="space-x-2">
           <Button
             variant="outline"
@@ -246,23 +299,29 @@ function DataTable(props: DataTableProps): React.ReactElement {
   );
 }
 
-interface DataTableRowActionsProps<TData> {
-  row: Row<TData>;
+interface DataTableRowActionsProps {
+  member: Pick<AccountUser, 'id' | 'name' | 'role' | 'email'>;
   onDeleted(): void;
-  accountId: string;
+  onUpdated(): void;
 }
 
-function DataTableRowActions<TData>({
-  row,
+function DataTableRowActions({
+  member,
   onDeleted,
-  accountId,
-}: DataTableRowActionsProps<TData>) {
-  const user = row.original as AccountUser;
-  const { mutateAsync } = useMutation(removeTeamAccountMember);
+  onUpdated,
+}: DataTableRowActionsProps) {
+  const { account } = useAccount();
+
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.removeTeamAccountMember
+  );
 
   async function onRemove(): Promise<void> {
+    if (!account?.id) {
+      return;
+    }
     try {
-      await mutateAsync({ accountId: accountId, userId: user.id });
+      await mutateAsync({ accountId: account.id, userId: member.id });
       toast.success('User removed from account!');
       onDeleted();
     } catch (err) {
@@ -281,6 +340,18 @@ function DataTableRowActions<TData>({
         <DotsHorizontalIcon className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <UpdateMemberRoleDialog
+          member={member}
+          onUpdated={() => onUpdated()}
+          dialogButton={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}
+            >
+              Update Role
+            </DropdownMenuItem>
+          }
+        />
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem

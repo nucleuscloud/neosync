@@ -1,9 +1,6 @@
 import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-handler';
 import { useQuery } from '@connectrpc/connect-query';
-import {
-  getSystemTransformers,
-  getUserDefinedTransformers,
-} from '@neosync/sdk/connectquery';
+import { TransformersService } from '@neosync/sdk';
 import { useMemo } from 'react';
 
 export function useGetTransformersHandler(accountId: string): {
@@ -15,13 +12,13 @@ export function useGetTransformersHandler(accountId: string): {
     data: systemTransformersData,
     isLoading: isLoadingSystemTransformers,
     isFetching: isSystemValidating,
-  } = useQuery(getSystemTransformers);
+  } = useQuery(TransformersService.method.getSystemTransformers);
   const {
     data: customTransformersData,
     isLoading: isLoadingCustomTransformers,
     isFetching: isCustomValidating,
   } = useQuery(
-    getUserDefinedTransformers,
+    TransformersService.method.getUserDefinedTransformers,
     { accountId: accountId },
     { enabled: !!accountId }
   );

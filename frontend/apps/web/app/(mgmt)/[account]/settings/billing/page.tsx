@@ -14,12 +14,7 @@ import { getErrorMessage, toTitleCase } from '@/util/util';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UserAccount, UserAccountType } from '@neosync/sdk';
-import {
-  getAccountBillingCheckoutSession,
-  getAccountBillingPortalSession,
-  isAccountStatusValid,
-} from '@neosync/sdk/connectquery';
+import { UserAccount, UserAccountService, UserAccountType } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
@@ -132,16 +127,16 @@ function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
   const { account } = props;
 
   const { data: isAccountStatusValidResp, isLoading } = useQuery(
-    isAccountStatusValid,
+    UserAccountService.method.isAccountStatusValid,
     { accountId: account.id },
     { enabled: !!account.id }
   );
 
   const { mutateAsync: getAccountBillingPortalSessionAsync } = useMutation(
-    getAccountBillingPortalSession
+    UserAccountService.method.getAccountBillingPortalSession
   );
   const { mutateAsync: getAccountBillingCheckoutSessionAsync } = useMutation(
-    getAccountBillingCheckoutSession
+    UserAccountService.method.getAccountBillingCheckoutSession
   );
   const router = useRouter();
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);

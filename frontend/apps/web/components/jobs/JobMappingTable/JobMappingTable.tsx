@@ -60,19 +60,21 @@ interface Props<TData, TValue> {
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData extends RowData> {
-    onTransformerUpdate(
-      rowIndex: number,
-      transformer: JobMappingTransformerForm
-    ): void;
-    getAvailableTransformers(rowIndex: number): TransformerResult;
-    getTransformerFromField(index: number): Transformer;
+    jmTable?: {
+      onTransformerUpdate(
+        rowIndex: number,
+        transformer: JobMappingTransformerForm
+      ): void;
+      getAvailableTransformers(rowIndex: number): TransformerResult;
+      getTransformerFromField(index: number): Transformer;
 
-    onDuplicateRow(rowIndex: number): void;
-    onDeleteRow(rowIndex: number): void;
-    canRenameColumn(rowIndex: number, newColumn: string): boolean;
-    onRowUpdate(rowIndex: number, newValue: TData): void;
-    // Returns the available schema.table list
-    getAvailableCollectionsByRow(rowIndex: number): string[];
+      onDuplicateRow(rowIndex: number): void;
+      onDeleteRow(rowIndex: number): void;
+      canRenameColumn(rowIndex: number, newColumn: string): boolean;
+      onRowUpdate(rowIndex: number, newValue: TData): void;
+      // Returns the available schema.table list
+      getAvailableCollectionsByRow(rowIndex: number): string[];
+    };
   }
 }
 
@@ -106,14 +108,16 @@ export default function JobMappingTable<TData, TValue>(
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     meta: {
-      onTransformerUpdate: onTransformerUpdate,
-      getAvailableTransformers: getAvailableTransformers,
-      getTransformerFromField: getTransformerFromField,
-      onDeleteRow,
-      onDuplicateRow,
-      canRenameColumn,
-      onRowUpdate,
-      getAvailableCollectionsByRow,
+      jmTable: {
+        onTransformerUpdate,
+        getAvailableTransformers,
+        getTransformerFromField,
+        onDeleteRow,
+        onDuplicateRow,
+        canRenameColumn,
+        onRowUpdate,
+        getAvailableCollectionsByRow,
+      },
     },
   });
 

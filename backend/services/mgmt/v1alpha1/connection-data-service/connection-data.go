@@ -1,8 +1,10 @@
 package v1alpha1_connectiondataservice
 
 import (
+	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,11 +32,19 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
+	myutil "github.com/nucleuscloud/neosync/internal/mysql"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+func init() {
+	neosyncgob.RegisterGobTypes()
+}
 
 type DatabaseSchema struct {
 	TableSchema string `db:"table_schema,omitempty"`
@@ -61,6 +71,9 @@ func (ds *DateScanner) Scan(input any) error {
 	}
 }
 
+// GetConnectionDataStream streams data from a connection source (e.g. MySQL, Postgres, S3, etc)
+// The data is first converted from its native format into Go types, then encoded using gob encoding
+// before being streamed back to the client.
 func (s *Service) GetConnectionDataStream(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest],
@@ -75,10 +88,6 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 	connection := connResp.Msg.Connection
-	_, err = s.verifyUserInAccount(ctx, connection.AccountId)
-	if err != nil {
-		return err
-	}
 
 	connectionTimeout := uint32(5)
 
@@ -89,7 +98,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout), sqlconnect.WithMysqlParseTimeDisabled())
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout))
 		if err != nil {
 			return err
 		}
@@ -101,7 +110,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 0)
 		if err != nil {
 			return err
 		}
@@ -125,21 +134,16 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
+			r, err := myutil.MysqlSqlRowToMap(rows)
+			if err != nil {
+				return fmt.Errorf("unable to convert mysql row to map: %w", err)
 			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
-				return err
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(r); err != nil {
+				return fmt.Errorf("unable to encode mysql row: %w", err)
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
-			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
 			}
 		}
@@ -162,7 +166,7 @@ func (s *Service) GetConnectionDataStream(
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 1)
+		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 0)
 		if err != nil {
 			return err
 		}
@@ -187,23 +191,17 @@ func (s *Service) GetConnectionDataStream(
 		}
 		defer rows.Close()
 
-		// todo: this is probably way fucking broken now
 		for rows.Next() {
-			values := make([][]byte, len(columnNames))
-			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
+			r, err := pgutil.SqlRowToPgTypesMap(rows)
+			if err != nil {
+				return fmt.Errorf("unable to convert postgres row to map: %w", err)
 			}
-			if err := rows.Scan(valuesWrapped...); err != nil {
-				return err
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(r); err != nil {
+				return fmt.Errorf("unable to encode postgres row using gob: %w", err)
 			}
-			row := map[string][]byte{}
-			for i, v := range values {
-				col := columnNames[i]
-				row[col] = v
-			}
-
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
 			}
 		}
@@ -286,10 +284,9 @@ func (s *Service) GetConnectionDataStream(
 
 				decoder := json.NewDecoder(gzr)
 				for {
-					var data map[string]any
-
+					var rowData map[string]any
 					// Decode the next JSON object
-					err = decoder.Decode(&data)
+					err = decoder.Decode(&rowData)
 					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
@@ -297,29 +294,25 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-					rowMap := make(map[string][]byte)
-					for key, value := range data {
-						var byteValue []byte
-						switch v := value.(type) {
-						case string:
-							// try converting string directly to []byte
-							// prevents quoted strings
-							byteValue = []byte(v)
-						default:
-							// if not a string use JSON encoding
-							byteValue, err = json.Marshal(v)
-							if err != nil {
-								result.Body.Close()
-								gzr.Close()
-								return err
-							}
-							if string(byteValue) == "null" {
-								byteValue = nil
-							}
+
+					for k, v := range rowData {
+						newVal, err := s.neosynctyperegistry.Unmarshal(v)
+						if err != nil {
+							return fmt.Errorf("unable to unmarshal row value using neosync type registry: %w", err)
 						}
-						rowMap[key] = byteValue
+						rowData[k] = newVal
 					}
-					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: rowMap}); err != nil {
+
+					// Encode the row data using gob
+					var rowbytes bytes.Buffer
+					enc := gob.NewEncoder(&rowbytes)
+					if err := enc.Encode(rowData); err != nil {
+						result.Body.Close()
+						gzr.Close()
+						return fmt.Errorf("unable to encode S3 row data using gob: %w", err)
+					}
+
+					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
@@ -361,7 +354,12 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		onRecord := func(record map[string][]byte) error {
-			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: record})
+			var rowbytes bytes.Buffer
+			enc := gob.NewEncoder(&rowbytes)
+			if err := enc.Encode(record); err != nil {
+				return fmt.Errorf("unable to encode gcp record using gob: %w", err)
+			}
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()})
 		}
 		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
 		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
@@ -382,14 +380,17 @@ func (s *Service) GetConnectionDataStream(
 			}
 
 			for _, item := range output.Items {
-				row := make(map[string][]byte)
-
-				itemBits, err := neosync_dynamodb.ConvertMapToJSONBytes(item)
+				itemBits, err := neosync_dynamodb.ConvertDynamoItemToGoMap(item)
 				if err != nil {
 					return err
 				}
-				row["item"] = itemBits
-				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+
+				var itemBytes bytes.Buffer
+				enc := gob.NewEncoder(&itemBytes)
+				if err := enc.Encode(itemBits); err != nil {
+					return fmt.Errorf("unable to encode dynamodb item using gob: %w", err)
+				}
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBytes.Bytes()}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
 				}
 			}
@@ -483,10 +484,6 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 	connection := connResp.Msg.Connection
-	_, err = s.verifyUserInAccount(ctx, connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
@@ -741,123 +738,6 @@ func (s *Service) GetConnectionSchema(
 	}
 }
 
-func (s *Service) GetConnectionForeignConstraints(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest],
-) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
-	if err != nil {
-		return nil, err
-	}
-
-	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp {
-		schemaMap[s.Schema] = struct{}{}
-	}
-	schemas := []string{}
-	for s := range schemaMap {
-		schemas = append(schemas, s)
-	}
-
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db().Close()
-	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for tableName, d := range constraints.ForeignKeyConstraints {
-		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
-			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
-		}
-		for _, constraint := range d {
-			for idx, col := range constraint.Columns {
-				tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-					Column: col, IsNullable: !constraint.NotNullable[idx], ForeignKey: &mgmtv1alpha1.ForeignKey{
-						Table:  constraint.ForeignKey.Table,
-						Column: constraint.ForeignKey.Columns[idx],
-					},
-				})
-			}
-		}
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
-		TableConstraints: tableConstraints,
-	}), nil
-}
-
-func (s *Service) GetConnectionPrimaryConstraints(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest],
-) (*connect.Response[mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
-	if err != nil {
-		return nil, err
-	}
-
-	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp {
-		schemaMap[s.Schema] = struct{}{}
-	}
-	schemas := []string{}
-	for s := range schemaMap {
-		schemas = append(schemas, s)
-	}
-
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db().Close()
-
-	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for tableName, cols := range constraints.PrimaryKeyConstraints {
-		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
-			Columns: cols,
-		}
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
-		TableConstraints: tableConstraints,
-	}), nil
-}
-
 func (s *Service) GetConnectionInitStatements(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest],
@@ -866,11 +746,6 @@ func (s *Service) GetConnectionInitStatements(
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -1201,65 +1076,6 @@ func isValidSchema(schema string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
 	return false
 }
 
-func (s *Service) GetConnectionUniqueConstraints(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetConnectionUniqueConstraintsRequest],
-) (*connect.Response[mgmtv1alpha1.GetConnectionUniqueConstraintsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
-	if err != nil {
-		return nil, err
-	}
-
-	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp {
-		schemaMap[s.Schema] = struct{}{}
-	}
-	schemas := []string{}
-	for s := range schemaMap {
-		schemas = append(schemas, s)
-	}
-
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db().Close()
-
-	constraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	tableConstraints := map[string]*mgmtv1alpha1.UniqueConstraint{}
-	for tableName, uc := range constraints.UniqueConstraints {
-		columns := []string{}
-		for _, c := range uc {
-			columns = append(columns, c...)
-		}
-		tableConstraints[tableName] = &mgmtv1alpha1.UniqueConstraint{
-			// TODO: this doesn't fully represent unique constraints
-			Columns: columns,
-		}
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
-		TableConstraints: tableConstraints,
-	}), nil
-}
-
 type completionResponse struct {
 	Data []map[string]any `json:"data"`
 }
@@ -1277,10 +1093,6 @@ func (s *Service) GetAiGeneratedData(
 		return nil, err
 	}
 	aiconnection := aiconnectionResp.Msg.GetConnection()
-	_, err = s.verifyUserInAccount(ctx, aiconnection.GetAccountId())
-	if err != nil {
-		return nil, err
-	}
 
 	dbconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.GetDataConnectionId(),
@@ -1372,11 +1184,6 @@ func (s *Service) GetConnectionTableConstraints(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
@@ -1454,11 +1261,6 @@ func (s *Service) GetTableRowCount(
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -20,18 +21,21 @@ import {
 import { Input } from '@/components/ui/input';
 import { getErrorMessage } from '@/util/util';
 import {
-  AWSFormValues,
-  AWS_FORM_SCHEMA,
+  AwsFormValues,
   CreateConnectionFormContext,
 } from '@/yup-validations/connections';
-import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
 import {
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  ConnectionService,
+  GetConnectionResponseSchema,
+  UserAccountService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -47,10 +51,10 @@ export default function AwsS3Form() {
   const [isLoading, setIsLoading] = useState<boolean>();
   const queryclient = useQueryClient();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
-  const form = useForm<AWSFormValues, CreateConnectionFormContext>({
-    resolver: yupResolver(AWS_FORM_SCHEMA),
+  const form = useForm<AwsFormValues, CreateConnectionFormContext>({
+    resolver: yupResolver(AwsFormValues),
     defaultValues: {
       connectionName: '',
       s3: {
@@ -63,10 +67,17 @@ export default function AwsS3Form() {
     },
   });
   const router = useRouter();
-  const { mutateAsync: createAwsS3Connection } = useMutation(createConnection);
-  const { mutateAsync: getAwsS3Connection } = useMutation(getConnection);
+  const { mutateAsync: createAwsS3Connection } = useMutation(
+    ConnectionService.method.createConnection
+  );
+  const { mutateAsync: getAwsS3Connection } = useMutation(
+    ConnectionService.method.getConnection
+  );
+  const { data: systemInfo, isLoading: isSystemInfoLoading } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
 
-  async function onSubmit(values: AWSFormValues) {
+  async function onSubmit(values: AwsFormValues) {
     if (!account) {
       return;
     }
@@ -82,10 +93,12 @@ export default function AwsS3Form() {
         router.push(returnTo);
       } else if (connection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: connection.connection.id,
+          createConnectQueryKey({
+            schema: ConnectionService.method.getConnection,
+            input: { id: connection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: connection.connection,
           })
         );
@@ -153,8 +166,11 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
     fetchData();
   }, [account?.id]);
 
-  if (isLoading || !account?.id) {
+  if (isLoading || !account?.id || isSystemInfoLoading) {
     return <SkeletonForm />;
+  }
+  if (!systemInfo?.license?.isValid) {
+    return <SystemLicenseAlert />;
   }
 
   return (

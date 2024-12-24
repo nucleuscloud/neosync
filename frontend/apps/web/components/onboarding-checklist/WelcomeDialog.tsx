@@ -6,16 +6,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
   useQuery,
 } from '@connectrpc/connect-query';
-import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
 import {
-  getAccountOnboardingConfig,
-  setAccountOnboardingConfig,
-} from '@neosync/sdk/connectquery';
+  GetAccountOnboardingConfigResponseSchema,
+  UserAccountService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -47,13 +47,13 @@ export default function WelcomeDialog(): ReactElement {
     isFetching: isValidating,
     error,
   } = useQuery(
-    getAccountOnboardingConfig,
+    UserAccountService.method.getAccountOnboardingConfig,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );
   const queryclient = useQueryClient();
   const { mutateAsync: setOnboardingConfigAsync } = useMutation(
-    setAccountOnboardingConfig
+    UserAccountService.method.setAccountOnboardingConfig
   );
 
   const [currentStep, setCurrentStep] = useState<FormStepName>('welcome');
@@ -156,10 +156,14 @@ export default function WelcomeDialog(): ReactElement {
         },
       });
       queryclient.setQueryData(
-        createConnectQueryKey(getAccountOnboardingConfig, {
-          accountId: account.id,
+        createConnectQueryKey({
+          schema: UserAccountService.method.getAccountOnboardingConfig,
+          input: {
+            accountId: account.id,
+          },
+          cardinality: undefined,
         }),
-        new GetAccountOnboardingConfigResponse({
+        create(GetAccountOnboardingConfigResponseSchema, {
           config: resp.config,
         })
       );

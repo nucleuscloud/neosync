@@ -3,16 +3,12 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateCardNumber } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateCardNumber, GenerateCardNumberSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateCardNumber,
-    PlainMessage<GenerateCardNumber>
-  > {}
+interface Props extends TransformerConfigProps<GenerateCardNumber> {}
 
 export default function GenerateCardNumberForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -31,7 +27,10 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
             checked={value.validLuhn}
             onCheckedChange={(checked) => {
               setValue(
-                new GenerateCardNumber({ ...value, validLuhn: checked })
+                create(GenerateCardNumberSchema, {
+                  ...value,
+                  validLuhn: checked,
+                })
               );
             }}
             disabled={isDisabled}

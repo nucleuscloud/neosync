@@ -26,29 +26,25 @@ import {
   SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  ConnectionDataService,
+  ConnectionSchema,
+  ConnectionService,
   DatabaseColumn,
   ForeignConstraintTables,
   GetConnectionSchemaMapRequest,
-  GetConnectionSchemaMapsResponse,
+  GetConnectionSchemaMapRequestSchema,
+  GetConnectionSchemaMapsResponseSchema,
+  JobService,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
-  VirtualForeignConstraint,
-  VirtualForeignKey,
+  VirtualForeignConstraintSchema,
+  VirtualForeignKeySchema,
 } from '@neosync/sdk';
-import {
-  createJob,
-  getConnection,
-  getConnections,
-  getConnectionSchemaMap,
-  getConnectionSchemaMaps,
-  getConnectionTableConstraints,
-  validateJobMappings,
-} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
@@ -126,7 +122,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { data: connectionData, isLoading: isConnectionLoading } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id: connectFormValues.sourceId },
     { enabled: !!connectFormValues.sourceId }
   );
@@ -136,12 +132,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isLoading: isSchemaMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: connectFormValues.sourceId },
     { enabled: !!connectFormValues.sourceId }
   );
   const { data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -156,18 +152,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: connectFormValues.sourceId },
       { enabled: !!connectFormValues.sourceId }
     );
 
   const { data: destinationConnectionSchemaMapsResp } = useQuery(
-    getConnectionSchemaMaps,
+    ConnectionDataService.method.getConnectionSchemaMaps,
     {
       requests: connectFormValues.destinations.map(
-        (dest): PartialMessage<GetConnectionSchemaMapRequest> => ({
-          connectionId: dest.connectionId,
-        })
+        (dest): GetConnectionSchemaMapRequest =>
+          create(GetConnectionSchemaMapRequestSchema, {
+            connectionId: dest.connectionId,
+          })
       ),
     },
     {
@@ -178,7 +175,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+  const { mutateAsync: createNewSyncJob } = useMutation(
+    JobService.method.createJob
+  );
 
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SchemaFormValues),
@@ -186,8 +185,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     context: { accountId: account?.id },
   });
 
-  const { mutateAsync: validateJobMappingsAsync } =
-    useMutation(validateJobMappings);
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
 
   async function onSubmit(values: SchemaFormValues) {
     if (!account || !source) {
@@ -280,11 +280,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const schemaConstraintHandler = useMemo(() => {
     const virtualForeignKeys = formVirtualForeignKeys?.map((v) => {
-      return new VirtualForeignConstraint({
+      return create(VirtualForeignConstraintSchema, {
         schema: v.schema,
         table: v.table,
         columns: v.columns,
-        foreignKey: new VirtualForeignKey({
+        foreignKey: create(VirtualForeignKeySchema, {
           schema: v.foreignKey.schema,
           table: v.foreignKey.table,
           columns: v.foreignKey.columns,
@@ -509,7 +509,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <JobsProgressSteps
                 steps={getJobProgressSteps(
                   'data-sync',
-                  isConnectionSubsettable(source ?? new Connection())
+                  isConnectionSubsettable(
+                    source ?? create(ConnectionSchema, {})
+                  )
                 )}
                 stepName={'schema'}
               />
@@ -522,7 +524,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {isNosqlSource(source ?? new Connection({})) && (
+          {isNosqlSource(source ?? create(ConnectionSchema, {})) && (
             <NosqlTable
               data={formMappings}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -657,11 +659,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 dynamoDbDestinations,
                 connectionsRecord,
                 destinationConnectionSchemaMapsResp ??
-                  new GetConnectionSchemaMapsResponse()
+                  create(GetConnectionSchemaMapsResponseSchema, {})
               )}
               onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
               showDestinationTableMappings={shouldShowDestinationTableMappings(
-                source ?? new Connection(),
+                source ?? create(ConnectionSchema, {}),
                 dynamoDbDestinationConnections.length > 0
               )}
               destinationOptions={form.watch('destinationOptions')}
@@ -688,7 +690,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             />
           )}
 
-          {!isNosqlSource(source ?? new Connection({})) && (
+          {!isNosqlSource(source ?? create(ConnectionSchema, {})) && (
             <SchemaTable
               data={formMappings}
               jobType="sync"
@@ -737,7 +739,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               Back
             </Button>
             <Button key="submit" type="submit">
-              {isConnectionSubsettable(source ?? new Connection())
+              {isConnectionSubsettable(source ?? create(ConnectionSchema, {}))
                 ? 'Next'
                 : 'Submit'}
             </Button>

@@ -1590,12 +1590,6 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	require.NoError(s.T(), err)
 }
 
-type fakeEELicense struct{}
-
-func (f *fakeEELicense) IsValid() bool {
-	return true
-}
-
 func executeWorkflow(
 	t testing.TB,
 	srv *httptest.Server,
@@ -1653,11 +1647,13 @@ func executeWorkflow(
 	)
 	var activityMeter metric.Meter
 
+	fakeEELicense := testutil.NewFakeEELicense(testutil.WithIsValid())
+
 	syncActivity := sync_activity.New(connclient, jobclient, sqlconnmanager, mongoconnmanager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, fakeEELicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
-	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, &fakeEELicense{})
+	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, fakeEELicense)
 	posttableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 

@@ -26,6 +26,7 @@ import {
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { getErrorMessage } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -33,16 +34,13 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  ConnectionConfig,
-  GetJobResponse,
+  ConnectionConfigSchema,
+  ConnectionDataService,
+  ConnectionService,
+  GetJobResponseSchema,
+  JobService,
   JobSourceOptions,
 } from '@neosync/sdk';
-import {
-  getConnection,
-  getConnectionTableConstraints,
-  getJob,
-  setJobSourceSqlConnectionSubsets,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
@@ -61,7 +59,7 @@ export default function SubsetCard(props: Props): ReactElement {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data, isLoading: isJobLoading } = useQuery(
-    getJob,
+    JobService.method.getJob,
     { id: jobId },
     { enabled: !!jobId }
   );
@@ -69,15 +67,15 @@ export default function SubsetCard(props: Props): ReactElement {
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: sourceConnectionId },
       { enabled: !!sourceConnectionId }
     );
   const { mutateAsync: setJobSubsets } = useMutation(
-    setJobSourceSqlConnectionSubsets
+    JobService.method.setJobSourceSqlConnectionSubsets
   );
   const { data: sourceConnectionData } = useQuery(
-    getConnection,
+    ConnectionService.method.getConnection,
     { id: sourceConnectionId },
     { enabled: !!sourceConnectionId }
   );
@@ -125,7 +123,8 @@ export default function SubsetCard(props: Props): ReactElement {
   }
 
   const connectionType = getConnectionType(
-    sourceConnectionData?.connection?.connectionConfig ?? new ConnectionConfig()
+    sourceConnectionData?.connection?.connectionConfig ??
+      create(ConnectionConfigSchema)
   );
 
   if (!isValidSubsetType(connectionType)) {
@@ -155,8 +154,12 @@ export default function SubsetCard(props: Props): ReactElement {
       });
       toast.success('Successfully updated database subsets');
       queryclient.setQueryData(
-        createConnectQueryKey(getJob, { id: updatedJobRes.job?.id }),
-        new GetJobResponse({ job: updatedJobRes.job })
+        createConnectQueryKey({
+          schema: JobService.method.getJob,
+          input: { id: updatedJobRes.job?.id },
+          cardinality: undefined,
+        }),
+        create(GetJobResponseSchema, { job: updatedJobRes.job })
       );
     } catch (err) {
       console.error(err);

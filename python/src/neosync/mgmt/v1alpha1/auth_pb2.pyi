@@ -61,18 +61,6 @@ class GetAuthorizeUrlResponse(_message.Message):
     url: str
     def __init__(self, url: _Optional[str] = ...) -> None: ...
 
-class GetCliIssuerRequest(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class GetCliIssuerResponse(_message.Message):
-    __slots__ = ("issuer_url", "audience")
-    ISSUER_URL_FIELD_NUMBER: _ClassVar[int]
-    AUDIENCE_FIELD_NUMBER: _ClassVar[int]
-    issuer_url: str
-    audience: str
-    def __init__(self, issuer_url: _Optional[str] = ..., audience: _Optional[str] = ...) -> None: ...
-
 class RefreshCliRequest(_message.Message):
     __slots__ = ("refresh_token",)
     REFRESH_TOKEN_FIELD_NUMBER: _ClassVar[int]

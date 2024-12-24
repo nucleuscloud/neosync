@@ -19,8 +19,7 @@ import { Input } from '@/components/ui/input';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Job } from '@neosync/sdk';
-import { updateJobSchedule } from '@neosync/sdk/connectquery';
+import { Job, JobService } from '@neosync/sdk';
 import cron from 'cron-validate';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -63,8 +62,9 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
     values: { cronSchedule: job?.cronSchedule },
   });
-  const { mutateAsync: updateJobScheduleAsync } =
-    useMutation(updateJobSchedule);
+  const { mutateAsync: updateJobScheduleAsync } = useMutation(
+    JobService.method.updateJobSchedule
+  );
 
   async function onSubmit(values: ScheduleFormValues) {
     try {

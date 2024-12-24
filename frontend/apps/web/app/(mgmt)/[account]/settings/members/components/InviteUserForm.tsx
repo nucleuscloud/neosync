@@ -15,8 +15,10 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -25,12 +27,13 @@ import { getErrorMessage } from '@/util/util';
 import { InviteMembersForm } from '@/yup-validations/invite-members';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { inviteUserToTeamAccount } from '@neosync/sdk/connectquery';
+import { AccountRole, UserAccountService } from '@neosync/sdk';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import SelectAccountRole from './SelectAccountRole';
 
 interface Props {
   accountId: string;
@@ -38,6 +41,8 @@ interface Props {
 }
 export default function InviteUserForm(props: Props): ReactElement {
   const { accountId, onInvited } = props;
+  const { data: systemAppData } = useGetSystemAppConfig();
+  const isRbacEnabled = systemAppData?.isRbacEnabled ?? false;
   const [showNewInviteDialog, setShowNewinviteDialog] = useState(false);
   const [newInviteToken, setNewInviteToken] = useState('');
   const [openInviteCreated, setOpenInviteCreated] = useState(false);
@@ -46,15 +51,19 @@ export default function InviteUserForm(props: Props): ReactElement {
     resolver: yupResolver(InviteMembersForm),
     defaultValues: {
       email: '',
+      role: AccountRole.JOB_VIEWER,
     },
   });
-  const { mutateAsync } = useMutation(inviteUserToTeamAccount);
+  const { mutateAsync } = useMutation(
+    UserAccountService.method.inviteUserToTeamAccount
+  );
 
   async function onSubmit(values: InviteMembersForm): Promise<void> {
     try {
       const invite = await mutateAsync({
         accountId: accountId,
         email: values.email,
+        role: values.role,
       });
       setShowNewinviteDialog(false);
       if (invite?.invite?.token) {
@@ -89,16 +98,20 @@ export default function InviteUserForm(props: Props): ReactElement {
           <DialogHeader>
             <DialogTitle>Add new member</DialogTitle>
             <DialogDescription>
-              Invite members with their email.
+              Invite a new member to your account.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormDescription>
+                      The email of the user that will be invited.
+                    </FormDescription>
                     <FormControl>
                       <Input
                         autoCapitalize="off"
@@ -113,6 +126,27 @@ export default function InviteUserForm(props: Props): ReactElement {
                   </FormItem>
                 )}
               />
+              {isRbacEnabled && (
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <FormDescription>
+                        The role of the user that will be invited.
+                      </FormDescription>
+                      <FormControl>
+                        <SelectAccountRole
+                          role={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <DialogFooter>
                 <Button

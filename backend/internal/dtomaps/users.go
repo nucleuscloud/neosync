@@ -32,9 +32,16 @@ func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1
 		CreatedAt:    timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:    timestamppb.New(input.UpdatedAt.Time),
 		ExpiresAt:    timestamppb.New(input.ExpiresAt.Time),
+		Role:         toRoleDto(input.Role),
 	}
 }
 
+func toRoleDto(role pgtype.Int4) mgmtv1alpha1.AccountRole {
+	if !role.Valid {
+		return mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED
+	}
+	return mgmtv1alpha1.AccountRole(role.Int32)
+}
 func ToUserAccount(input *db_queries.NeosyncApiAccount) *mgmtv1alpha1.UserAccount {
 	return &mgmtv1alpha1.UserAccount{
 		Id:                  neosyncdb.UUIDString(input.ID),

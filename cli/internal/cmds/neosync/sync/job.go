@@ -21,6 +21,10 @@ func toJob(
 	if cmd.Source.ConnectionOpts != nil && cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
 		jobId = *cmd.Source.ConnectionOpts.JobId
 	}
+	tables := map[string]string{}
+	for _, m := range sourceSchema {
+		tables[m.Table] = m.Table
+	}
 	return &mgmtv1alpha1.Job{
 		Id:        jobId,
 		Name:      "cli-sync",
@@ -28,16 +32,16 @@ func toJob(
 		Source: &mgmtv1alpha1.JobSource{
 			Options: sourceConnOpts,
 		},
-		Destinations: []*mgmtv1alpha1.JobDestination{toJobDestination(cmd, destinationConnection)},
+		Destinations: []*mgmtv1alpha1.JobDestination{toJobDestination(cmd, destinationConnection, tables)},
 		Mappings:     toJobMappings(sourceSchema),
 	}, nil
 }
 
-func toJobDestination(cmd *cmdConfig, destinationConnection *mgmtv1alpha1.Connection) *mgmtv1alpha1.JobDestination {
+func toJobDestination(cmd *cmdConfig, destinationConnection *mgmtv1alpha1.Connection, tables map[string]string) *mgmtv1alpha1.JobDestination {
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: destinationConnection.Id,
 		Id:           uuid.NewString(),
-		Options:      cmdConfigToDestinationConnectionOptions(cmd),
+		Options:      cmdConfigToDestinationConnectionOptions(cmd, tables),
 	}
 }
 
@@ -63,6 +67,14 @@ func toJobSourceOption(sourceConnection *mgmtv1alpha1.Connection) (*mgmtv1alpha1
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_AwsS3{
 				AwsS3: &mgmtv1alpha1.AwsS3SourceConnectionOptions{
+					ConnectionId: sourceConnection.Id,
+				},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
+				Dynamodb: &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
 					ConnectionId: sourceConnection.Id,
 				},
 			},

@@ -11,6 +11,7 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
@@ -62,8 +63,10 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 			token,
 		)
 		apiKey, err := c.q.GetAccountApiKeyByKeyValue(ctx, c.db, hashedKeyValue)
-		if err != nil {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, err
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nil, InvalidApiKeyErr
 		}
 
 		if time.Now().After(apiKey.ExpiresAt.Time) {

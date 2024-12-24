@@ -35,12 +35,21 @@ func (s *Service) AnonymizeMany(
 		)
 	}
 
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceAccountAccess(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountUuid)
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +61,7 @@ func (s *Service) AnonymizeMany(
 
 	requestedCount := uint64(len(req.Msg.InputData))
 	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId:            neosyncdb.UUIDString(*accountUuid),
+		AccountId:            req.Msg.GetAccountId(),
 		RequestedRecordCount: &requestedCount,
 	}))
 	if err != nil {
@@ -76,7 +85,7 @@ func (s *Service) AnonymizeMany(
 	var outputErrorCounter, outputCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
-		labels = getMetricLabels(ctx, "anonymizeMany", neosyncdb.UUIDString(*accountUuid))
+		labels = getMetricLabels(ctx, "anonymizeMany", req.Msg.GetAccountId())
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {
 			return nil, err
@@ -126,12 +135,21 @@ func (s *Service) AnonymizeSingle(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeSingleResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = user.EnforceAccountAccess(ctx, req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountUuid)
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +169,7 @@ func (s *Service) AnonymizeSingle(
 
 	requestedCount := uint64(len(req.Msg.InputData))
 	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId:            neosyncdb.UUIDString(*accountUuid),
+		AccountId:            req.Msg.GetAccountId(),
 		RequestedRecordCount: &requestedCount,
 	}))
 	if err != nil {
@@ -174,7 +192,7 @@ func (s *Service) AnonymizeSingle(
 	var outputCounter, outputErrorCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
-		labels = getMetricLabels(ctx, "anonymizeSingle", neosyncdb.UUIDString(*accountUuid))
+		labels = getMetricLabels(ctx, "anonymizeSingle", req.Msg.GetAccountId())
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {
 			return nil, err

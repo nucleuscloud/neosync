@@ -3,16 +3,12 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateString } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateString, GenerateStringSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    GenerateString,
-    PlainMessage<GenerateString>
-  > {}
+interface Props extends TransformerConfigProps<GenerateString> {}
 
 export default function GenerateStringForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -35,7 +31,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateString({
+                      create(GenerateStringSchema, {
                         ...value,
                         min: BigInt(e.target.valueAsNumber),
                       })
@@ -65,7 +61,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateString({
+                      create(GenerateStringSchema, {
                         ...value,
                         max: BigInt(e.target.valueAsNumber),
                       })

@@ -48,18 +48,9 @@ const (
 	// ConnectionDataServiceGetConnectionTableConstraintsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionTableConstraints RPC.
 	ConnectionDataServiceGetConnectionTableConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints"
-	// ConnectionDataServiceGetConnectionForeignConstraintsProcedure is the fully-qualified name of the
-	// ConnectionDataService's GetConnectionForeignConstraints RPC.
-	ConnectionDataServiceGetConnectionForeignConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints"
-	// ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure is the fully-qualified name of the
-	// ConnectionDataService's GetConnectionPrimaryConstraints RPC.
-	ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints"
 	// ConnectionDataServiceGetConnectionInitStatementsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionInitStatements RPC.
 	ConnectionDataServiceGetConnectionInitStatementsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements"
-	// ConnectionDataServiceGetConnectionUniqueConstraintsProcedure is the fully-qualified name of the
-	// ConnectionDataService's GetConnectionUniqueConstraints RPC.
-	ConnectionDataServiceGetConnectionUniqueConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints"
 	// ConnectionDataServiceGetAiGeneratedDataProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetAiGeneratedData RPC.
 	ConnectionDataServiceGetAiGeneratedDataProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData"
@@ -70,18 +61,15 @@ const (
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	connectionDataServiceServiceDescriptor                               = v1alpha1.File_mgmt_v1alpha1_connection_data_proto.Services().ByName("ConnectionDataService")
-	connectionDataServiceGetConnectionDataStreamMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionDataStream")
-	connectionDataServiceGetConnectionSchemaMethodDescriptor             = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchema")
-	connectionDataServiceGetConnectionSchemaMapMethodDescriptor          = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMap")
-	connectionDataServiceGetConnectionSchemaMapsMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMaps")
-	connectionDataServiceGetConnectionTableConstraintsMethodDescriptor   = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionTableConstraints")
-	connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionForeignConstraints")
-	connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionPrimaryConstraints")
-	connectionDataServiceGetConnectionInitStatementsMethodDescriptor     = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
-	connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor  = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionUniqueConstraints")
-	connectionDataServiceGetAiGeneratedDataMethodDescriptor              = connectionDataServiceServiceDescriptor.Methods().ByName("GetAiGeneratedData")
-	connectionDataServiceGetTableRowCountMethodDescriptor                = connectionDataServiceServiceDescriptor.Methods().ByName("GetTableRowCount")
+	connectionDataServiceServiceDescriptor                             = v1alpha1.File_mgmt_v1alpha1_connection_data_proto.Services().ByName("ConnectionDataService")
+	connectionDataServiceGetConnectionDataStreamMethodDescriptor       = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionDataStream")
+	connectionDataServiceGetConnectionSchemaMethodDescriptor           = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchema")
+	connectionDataServiceGetConnectionSchemaMapMethodDescriptor        = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMap")
+	connectionDataServiceGetConnectionSchemaMapsMethodDescriptor       = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMaps")
+	connectionDataServiceGetConnectionTableConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionTableConstraints")
+	connectionDataServiceGetConnectionInitStatementsMethodDescriptor   = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
+	connectionDataServiceGetAiGeneratedDataMethodDescriptor            = connectionDataServiceServiceDescriptor.Methods().ByName("GetAiGeneratedData")
+	connectionDataServiceGetTableRowCountMethodDescriptor              = connectionDataServiceServiceDescriptor.Methods().ByName("GetTableRowCount")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -97,17 +85,9 @@ type ConnectionDataServiceClient interface {
 	GetConnectionSchemaMaps(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error)
 	// For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
 	GetConnectionTableConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionTableConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionTableConstraintsResponse], error)
-	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-	// Used primarily by the CLI sync command to determine stream order.
-	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
-	// For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-	// Used primarily by the CLI sync command to determine stream order.
-	GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error)
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
-	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
-	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 	// Query an AI connection by providing the necessary values. Typically used for generating preview data
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 	// Query table with subset to get row count
@@ -154,28 +134,10 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithSchema(connectionDataServiceGetConnectionTableConstraintsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		getConnectionForeignConstraints: connect.NewClient[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse](
-			httpClient,
-			baseURL+ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			connect.WithSchema(connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor),
-			connect.WithClientOptions(opts...),
-		),
-		getConnectionPrimaryConstraints: connect.NewClient[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse](
-			httpClient,
-			baseURL+ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
-			connect.WithSchema(connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor),
-			connect.WithClientOptions(opts...),
-		),
 		getConnectionInitStatements: connect.NewClient[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
-			connect.WithClientOptions(opts...),
-		),
-		getConnectionUniqueConstraints: connect.NewClient[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse](
-			httpClient,
-			baseURL+ConnectionDataServiceGetConnectionUniqueConstraintsProcedure,
-			connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		getAiGeneratedData: connect.NewClient[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse](
@@ -195,17 +157,14 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 
 // connectionDataServiceClient implements ConnectionDataServiceClient.
 type connectionDataServiceClient struct {
-	getConnectionDataStream         *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
-	getConnectionSchema             *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
-	getConnectionSchemaMap          *connect.Client[v1alpha1.GetConnectionSchemaMapRequest, v1alpha1.GetConnectionSchemaMapResponse]
-	getConnectionSchemaMaps         *connect.Client[v1alpha1.GetConnectionSchemaMapsRequest, v1alpha1.GetConnectionSchemaMapsResponse]
-	getConnectionTableConstraints   *connect.Client[v1alpha1.GetConnectionTableConstraintsRequest, v1alpha1.GetConnectionTableConstraintsResponse]
-	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
-	getConnectionPrimaryConstraints *connect.Client[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse]
-	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
-	getConnectionUniqueConstraints  *connect.Client[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse]
-	getAiGeneratedData              *connect.Client[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse]
-	getTableRowCount                *connect.Client[v1alpha1.GetTableRowCountRequest, v1alpha1.GetTableRowCountResponse]
+	getConnectionDataStream       *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
+	getConnectionSchema           *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
+	getConnectionSchemaMap        *connect.Client[v1alpha1.GetConnectionSchemaMapRequest, v1alpha1.GetConnectionSchemaMapResponse]
+	getConnectionSchemaMaps       *connect.Client[v1alpha1.GetConnectionSchemaMapsRequest, v1alpha1.GetConnectionSchemaMapsResponse]
+	getConnectionTableConstraints *connect.Client[v1alpha1.GetConnectionTableConstraintsRequest, v1alpha1.GetConnectionTableConstraintsResponse]
+	getConnectionInitStatements   *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
+	getAiGeneratedData            *connect.Client[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse]
+	getTableRowCount              *connect.Client[v1alpha1.GetTableRowCountRequest, v1alpha1.GetTableRowCountResponse]
 }
 
 // GetConnectionDataStream calls mgmt.v1alpha1.ConnectionDataService.GetConnectionDataStream.
@@ -234,28 +193,10 @@ func (c *connectionDataServiceClient) GetConnectionTableConstraints(ctx context.
 	return c.getConnectionTableConstraints.CallUnary(ctx, req)
 }
 
-// GetConnectionForeignConstraints calls
-// mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints.
-func (c *connectionDataServiceClient) GetConnectionForeignConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
-	return c.getConnectionForeignConstraints.CallUnary(ctx, req)
-}
-
-// GetConnectionPrimaryConstraints calls
-// mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints.
-func (c *connectionDataServiceClient) GetConnectionPrimaryConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
-	return c.getConnectionPrimaryConstraints.CallUnary(ctx, req)
-}
-
 // GetConnectionInitStatements calls
 // mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements.
 func (c *connectionDataServiceClient) GetConnectionInitStatements(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
 	return c.getConnectionInitStatements.CallUnary(ctx, req)
-}
-
-// GetConnectionUniqueConstraints calls
-// mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints.
-func (c *connectionDataServiceClient) GetConnectionUniqueConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error) {
-	return c.getConnectionUniqueConstraints.CallUnary(ctx, req)
 }
 
 // GetAiGeneratedData calls mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData.
@@ -282,17 +223,9 @@ type ConnectionDataServiceHandler interface {
 	GetConnectionSchemaMaps(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error)
 	// For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
 	GetConnectionTableConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionTableConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionTableConstraintsResponse], error)
-	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-	// Used primarily by the CLI sync command to determine stream order.
-	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
-	// For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
-	// Used primarily by the CLI sync command to determine stream order.
-	GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error)
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
-	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
-	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 	// Query an AI connection by providing the necessary values. Typically used for generating preview data
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 	// Query table with subset to get row count
@@ -335,28 +268,10 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		connect.WithSchema(connectionDataServiceGetConnectionTableConstraintsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	connectionDataServiceGetConnectionForeignConstraintsHandler := connect.NewUnaryHandler(
-		ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-		svc.GetConnectionForeignConstraints,
-		connect.WithSchema(connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor),
-		connect.WithHandlerOptions(opts...),
-	)
-	connectionDataServiceGetConnectionPrimaryConstraintsHandler := connect.NewUnaryHandler(
-		ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
-		svc.GetConnectionPrimaryConstraints,
-		connect.WithSchema(connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor),
-		connect.WithHandlerOptions(opts...),
-	)
 	connectionDataServiceGetConnectionInitStatementsHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionInitStatementsProcedure,
 		svc.GetConnectionInitStatements,
 		connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
-		connect.WithHandlerOptions(opts...),
-	)
-	connectionDataServiceGetConnectionUniqueConstraintsHandler := connect.NewUnaryHandler(
-		ConnectionDataServiceGetConnectionUniqueConstraintsProcedure,
-		svc.GetConnectionUniqueConstraints,
-		connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetAiGeneratedDataHandler := connect.NewUnaryHandler(
@@ -383,14 +298,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionSchemaMapsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionTableConstraintsProcedure:
 			connectionDataServiceGetConnectionTableConstraintsHandler.ServeHTTP(w, r)
-		case ConnectionDataServiceGetConnectionForeignConstraintsProcedure:
-			connectionDataServiceGetConnectionForeignConstraintsHandler.ServeHTTP(w, r)
-		case ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure:
-			connectionDataServiceGetConnectionPrimaryConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionInitStatementsProcedure:
 			connectionDataServiceGetConnectionInitStatementsHandler.ServeHTTP(w, r)
-		case ConnectionDataServiceGetConnectionUniqueConstraintsProcedure:
-			connectionDataServiceGetConnectionUniqueConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetAiGeneratedDataProcedure:
 			connectionDataServiceGetAiGeneratedDataHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetTableRowCountProcedure:
@@ -424,20 +333,8 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionTableConstraints(c
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionTableConstraints is not implemented"))
 }
 
-func (UnimplementedConnectionDataServiceHandler) GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints is not implemented"))
-}
-
-func (UnimplementedConnectionDataServiceHandler) GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints is not implemented"))
-}
-
 func (UnimplementedConnectionDataServiceHandler) GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements is not implemented"))
-}
-
-func (UnimplementedConnectionDataServiceHandler) GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints is not implemented"))
 }
 
 func (UnimplementedConnectionDataServiceHandler) GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error) {

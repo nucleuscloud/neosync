@@ -7,7 +7,7 @@ import NextLink from 'next/link';
 import TruncatedText from '@/components/TruncatedText';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { AccountApiKey } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -17,9 +17,7 @@ interface GetColumnsProps {
   accountName: string;
 }
 
-export function getColumns(
-  props: GetColumnsProps
-): ColumnDef<PlainMessage<AccountApiKey>>[] {
+export function getColumns(props: GetColumnsProps): ColumnDef<AccountApiKey>[] {
   const { onDeleted, accountName } = props;
   return [
     {
@@ -61,11 +59,11 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        const expiresAt = row
-          .getValue<Timestamp>('expiresAt')
-          ?.toDate()
-          .getTime();
-        const text = expiresAt > Date.now() ? 'active' : 'expired';
+        const expiresAt = row.getValue<Timestamp>('expiresAt')
+          ? timestampDate(row.getValue<Timestamp>('expiresAt')).getTime()
+          : undefined;
+        const text =
+          !!expiresAt && expiresAt > Date.now() ? 'active' : 'expired';
         const badgeVariant: BadgeProps['variant'] =
           text === 'active' ? 'success' : 'destructive';
 
@@ -84,10 +82,13 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Expires At" />
       ),
       cell: ({ row }) => {
+        const expiresAt = row.getValue<Timestamp>('expiresAt');
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('expiresAt')?.toDate())}
+              {formatDateTime(
+                expiresAt ? timestampDate(expiresAt) : new Date()
+              )}
             </span>
           </div>
         );
@@ -102,10 +103,13 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Created At" />
       ),
       cell: ({ row }) => {
+        const createdAt = row.getValue<Timestamp>('createdAt');
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
+              {formatDateTime(
+                createdAt ? timestampDate(createdAt) : new Date()
+              )}
             </span>
           </div>
         );
@@ -120,10 +124,13 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Updated At" />
       ),
       cell: ({ row }) => {
+        const updatedAt = row.getValue<Timestamp>('updatedAt');
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt')?.toDate())}
+              {formatDateTime(
+                updatedAt ? timestampDate(updatedAt) : new Date()
+              )}
             </span>
           </div>
         );

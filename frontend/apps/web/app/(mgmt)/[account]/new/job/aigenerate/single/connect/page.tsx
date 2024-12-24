@@ -27,10 +27,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfig } from '@neosync/sdk';
-import { getConnections } from '@neosync/sdk/connectquery';
+import { ConnectionConfigSchema, ConnectionService } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
@@ -76,7 +76,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
@@ -233,7 +233,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               const connType = getConnectionType(
                                 connection?.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               if (connType) {
                                 urlParams.append('connectionType', connType);
@@ -263,7 +263,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               const destConnType = getConnectionType(
                                 destConnection?.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               const newOpts =
                                 getDefaultDestinationFormValueOptionsFromConnectionCase(
@@ -344,7 +344,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               const connType = getConnectionType(
                                 connection?.connectionConfig ??
-                                  new ConnectionConfig()
+                                  create(ConnectionConfigSchema, {})
                               );
                               if (connType) {
                                 urlParams.append('connectionType', connType);
@@ -369,7 +369,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             );
                             const destConnType = getConnectionType(
                               destConnection?.connectionConfig ??
-                                new ConnectionConfig()
+                                create(ConnectionConfigSchema, {})
                             );
                             const newOpts =
                               getDefaultDestinationFormValueOptionsFromConnectionCase(

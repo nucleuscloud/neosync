@@ -32,19 +32,18 @@ import {
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
-  GetConnectionSchemaMapsResponse,
-  JobDestination,
+  ConnectionDataService,
+  ConnectionSchema,
+  ConnectionService,
+  CreateJobDestinationSchema,
+  GetConnectionSchemaMapsResponseSchema,
+  JobService,
 } from '@neosync/sdk';
-import {
-  createJobDestinationConnections,
-  getConnections,
-  getConnectionSchemaMaps,
-  getJob,
-} from '@neosync/sdk/connectquery';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -64,14 +63,18 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
   const router = useRouter();
-  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data, isLoading } = useQuery(
+    JobService.method.getJob,
+    { id },
+    { enabled: !!id }
+  );
   const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
-    getConnections,
+    ConnectionService.method.getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
   const { mutateAsync: createJobConnections } = useMutation(
-    createJobDestinationConnections
+    JobService.method.createJobDestinationConnections
   );
 
   const connections = connectionsData?.connections ?? [];
@@ -88,7 +91,7 @@ export default function Page({ params }: PageProps): ReactElement {
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const sourceConnection = sourceConnectionId
     ? connRecord[sourceConnectionId]
-    : new Connection();
+    : create(ConnectionSchema, {});
 
   const form = useForm({
     resolver: yupResolver<FormValues>(FormValues),
@@ -117,7 +120,7 @@ export default function Page({ params }: PageProps): ReactElement {
     .filter((conn) => !!conn && isDynamoDBConnection(conn));
 
   const { data: destinationConnectionSchemaMapsResp } = useQuery(
-    getConnectionSchemaMaps,
+    ConnectionDataService.method.getConnectionSchemaMaps,
     {
       requests: newDynamoDestConnections.map((conn) => ({
         connectionId: conn.id,
@@ -132,7 +135,7 @@ export default function Page({ params }: PageProps): ReactElement {
       const job = await createJobConnections({
         jobId: id,
         destinations: values.destinations.map((d) => {
-          return new JobDestination({
+          return create(CreateJobDestinationSchema, {
             connectionId: d.connectionId,
             options: toJobDestinationOptions(d, connMap.get(d.connectionId)),
           });
@@ -269,7 +272,7 @@ export default function Page({ params }: PageProps): ReactElement {
                       }}
                       hideDynamoDbTableMappings={
                         !isDynamoDBConnection(
-                          destConnection ?? new Connection()
+                          destConnection ?? create(ConnectionSchema, {})
                         )
                       }
                       destinationDetailsRecord={getDestinationDetailsRecord(
@@ -279,7 +282,7 @@ export default function Page({ params }: PageProps): ReactElement {
                         })),
                         connRecord,
                         destinationConnectionSchemaMapsResp ??
-                          new GetConnectionSchemaMapsResponse()
+                          create(GetConnectionSchemaMapsResponseSchema, {})
                       )}
                       errors={destinationsErrors[index]?.destinationOptions}
                     />

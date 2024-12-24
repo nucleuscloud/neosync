@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -129,53 +128,44 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 		return goqu.Default(), nil
 	}
 
-	switch v := value.(type) {
-	case nil:
-		return v, nil
-	case []byte:
-		value, err := handleMysqlByteSlice(v, datatype)
-		if err != nil {
-			return nil, fmt.Errorf("unable to handle byte slice: %w", err)
-		}
+	if value == nil {
+		return nil, nil
+	}
+
+	value, isNeosyncValue, err := getMysqlNeosyncValue(value)
+	if err != nil {
+		return nil, err
+	}
+	if isNeosyncValue {
 		return value, nil
-	default:
-		if mysqlutil.IsJsonDataType(datatype) {
-			bits, err := json.Marshal(value)
+	}
+
+	switch datatype {
+	case "json":
+		if v, ok := value.([]byte); ok {
+			validJson, err := getValidJson(v)
 			if err != nil {
-				return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+				return nil, fmt.Errorf("unable to get valid json: %w", err)
 			}
-			return bits, nil
+			return validJson, nil
 		}
-		return v, nil
+		bits, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal mysql json to bits: %w", err)
+		}
+		return bits, nil
+	default:
+		return value, nil
 	}
 }
 
-func handleMysqlByteSlice(v []byte, datatype string) (any, error) {
-	switch datatype {
-	case "bit":
-		bit, err := convertStringToBit(string(v))
+func getMysqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+	if valuer, ok := root.(neosynctypes.NeosyncMysqlValuer); ok {
+		value, err := valuer.ValueMysql()
 		if err != nil {
-			return nil, fmt.Errorf("unable to convert bit string to SQL bit []byte: %w", err)
+			return nil, false, fmt.Errorf("unable to get MYSQL value from NeosyncMysqlValuer: %w", err)
 		}
-		return bit, nil
-	case "json":
-		validJson, err := getValidJson(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get valid json: %w", err)
-		}
-		return validJson, nil
-	case "date":
-		t, err := convertBitsToTime(v)
-		if err != nil {
-			return string(v), nil
-		}
-		return t.Format(time.DateOnly), nil
-	case "timestamp", "datetime":
-		t, err := convertBitsToTime(v)
-		if err != nil {
-			return string(v), nil
-		}
-		return t.Format(time.DateTime), nil
+		return value, true, nil
 	}
-	return v, nil
+	return root, false, nil
 }

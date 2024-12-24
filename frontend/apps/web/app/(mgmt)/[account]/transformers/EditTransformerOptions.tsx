@@ -27,10 +27,15 @@ import {
   convertTransformerConfigToForm,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerConfig, TransformerSource } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
+import {
+  TransformerConfig,
+  TransformerConfigSchema,
+  TransformerSource,
+  TransformersService,
+} from '@neosync/sdk';
 import {
   EyeOpenIcon,
   MixerHorizontalIcon,
@@ -116,7 +121,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   ? convertTransformerConfigSchemaToTransformerConfig(
                       value.config
                     )
-                  : (transformer.config ?? new TransformerConfig())
+                  : (transformer.config ?? create(TransformerConfigSchema))
               }
               onSubmit={(newval) => {
                 onSubmit({
@@ -149,7 +154,7 @@ function EditTransformerConfig(
 
   const { account } = useAccount();
   const { mutateAsync: isJavascriptCodeValid } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
 
   const form = useForm<

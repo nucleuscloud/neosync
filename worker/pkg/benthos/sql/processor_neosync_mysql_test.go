@@ -39,7 +39,7 @@ func Test_transformNeosyncToMysql(t *testing.T) {
 		require.Equal(t, 1, result["id"])
 		require.Equal(t, "test", result["name"])
 		require.Equal(t, []byte(`{"foo":"bar"}`), result["data"])
-		require.Equal(t, []byte{1}, result["bits"])
+		require.Equal(t, []byte("1"), result["bits"])
 		require.Equal(t, goqu.Default(), result["default_col"])
 	})
 
@@ -98,28 +98,13 @@ func Test_getMysqlValue(t *testing.T) {
 	t.Run("handles bit datatype", func(t *testing.T) {
 		result, err := getMysqlValue([]byte("1"), nil, "bit")
 		require.NoError(t, err)
-		require.Equal(t, []byte{1}, result)
+		require.Equal(t, []byte("1"), result)
 	})
 
 	t.Run("returns original value for non-special cases", func(t *testing.T) {
 		result, err := getMysqlValue("test", nil, "varchar")
 		require.NoError(t, err)
 		require.Equal(t, "test", result)
-	})
-}
-
-func Test_handleMysqlByteSlice(t *testing.T) {
-	t.Run("converts bit string to bytes", func(t *testing.T) {
-		result, err := handleMysqlByteSlice([]byte("1"), "bit")
-		require.NoError(t, err)
-		require.Equal(t, []byte{1}, result)
-	})
-
-	t.Run("returns original bytes for non-bit type", func(t *testing.T) {
-		input := []byte("test")
-		result, err := handleMysqlByteSlice(input, "varchar")
-		require.NoError(t, err)
-		require.Equal(t, input, result)
 	})
 }
 

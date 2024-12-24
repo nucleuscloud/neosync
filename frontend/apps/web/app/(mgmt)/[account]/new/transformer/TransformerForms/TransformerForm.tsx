@@ -1,5 +1,5 @@
-import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformerConfig } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { TransformerConfig, TransformerConfigSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import GenerateCardNumberForm from './GenerateCardNumber';
@@ -34,7 +34,7 @@ interface Props {
   setValue(newValue: TransformerConfig): void;
   disabled?: boolean;
 
-  errors?: FieldErrors<PlainMessage<TransformerConfig>>;
+  errors?: FieldErrors<TransformerConfig>;
 
   NoConfigComponent?: ReactElement;
 }
@@ -50,7 +50,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -65,7 +65,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -80,7 +80,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -95,7 +95,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -110,7 +110,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -125,7 +125,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -140,7 +140,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -155,7 +155,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -170,7 +170,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -185,7 +185,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -200,7 +200,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -215,7 +215,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -230,7 +230,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -245,7 +245,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -260,7 +260,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -275,7 +275,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -290,7 +290,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -305,7 +305,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -320,7 +320,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -335,7 +335,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -350,7 +350,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -365,7 +365,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -380,7 +380,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -395,7 +395,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -410,7 +410,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )
@@ -425,7 +425,7 @@ export default function TransformerForm(props: Props): ReactElement {
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
-              new TransformerConfig({
+              create(TransformerConfigSchema, {
                 config: { case: valConfig.case, value: newVal },
               })
             )

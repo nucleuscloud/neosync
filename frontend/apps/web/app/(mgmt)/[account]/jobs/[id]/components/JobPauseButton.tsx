@@ -4,8 +4,7 @@ import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { JobStatus } from '@neosync/sdk';
-import { pauseJob } from '@neosync/sdk/connectquery';
+import { JobService, JobStatus } from '@neosync/sdk';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -21,7 +20,7 @@ export default function JobPauseButton({
   onNewStatus,
   jobId,
 }: Props): ReactElement {
-  const { mutateAsync: setJobPaused } = useMutation(pauseJob);
+  const { mutateAsync: setJobPaused } = useMutation(JobService.method.pauseJob);
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
   );

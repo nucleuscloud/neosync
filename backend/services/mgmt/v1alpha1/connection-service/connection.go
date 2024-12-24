@@ -16,8 +16,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
@@ -237,13 +239,20 @@ func (s *Service) IsConnectionNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceConnection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
 
 	count, err := s.db.Q.IsConnectionNameAvailable(ctx, s.db.Db, db_queries.IsConnectionNameAvailableParams{
-		AccountId:      *accountUuid,
+		AccountId:      accountUuid,
 		ConnectionName: req.Msg.ConnectionName,
 	})
 	if err != nil {
@@ -259,12 +268,19 @@ func (s *Service) GetConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceConnection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_View); err != nil {
+		return nil, err
+	}
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	connections, err := s.db.Q.GetConnectionsByAccount(ctx, s.db.Db, *accountUuid)
+	connections, err := s.db.Q.GetConnectionsByAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -300,12 +316,20 @@ func (s *Service) GetConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
+	dto, err := dtomaps.ToConnectionDto(&connection)
 	if err != nil {
 		return nil, err
 	}
-	dto, err := dtomaps.ToConnectionDto(&connection)
+
+	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_View); err != nil {
+		return nil, err
+	}
+
+	if err := user.EnforceConnection(ctx, dto, rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
@@ -318,26 +342,36 @@ func (s *Service) CreateConnection(
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	cc := &pg_models.ConnectionConfig{}
-	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
+	if err := cc.FromDto(req.Msg.GetConnectionConfig()); err != nil {
 		return nil, err
 	}
 
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userUuid, err := s.getUserUuid(ctx)
+	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		if err := user.EnforceLicense(ctx, req.Msg.GetAccountId()); err != nil {
+			return nil, err
+		}
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceConnection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_Create); err != nil {
 		return nil, err
 	}
 
 	connection, err := s.db.Q.CreateConnection(ctx, s.db.Db, db_queries.CreateConnectionParams{
-		AccountID:        *accountUuid,
-		Name:             req.Msg.Name,
+		AccountID:        accountUuid,
+		Name:             req.Msg.GetName(),
 		ConnectionConfig: cc,
-		CreatedByID:      *userUuid,
-		UpdatedByID:      *userUuid,
+		CreatedByID:      user.PgId(),
+		UpdatedByID:      user.PgId(),
 	})
 	if err != nil {
 		return nil, err
@@ -366,13 +400,18 @@ func (s *Service) UpdateConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
+	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
+	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		if err := user.EnforceLicense(ctx, neosyncdb.UUIDString(connection.AccountID)); err != nil {
+			return nil, err
+		}
+	}
 
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
+	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_Edit); err != nil {
 		return nil, err
 	}
 
@@ -384,7 +423,7 @@ func (s *Service) UpdateConnection(
 	connection, err = s.db.Q.UpdateConnection(ctx, s.db.Db, db_queries.UpdateConnectionParams{
 		ID:               connection.ID,
 		ConnectionConfig: cc,
-		UpdatedByID:      *userUuid,
+		UpdatedByID:      user.PgId(),
 		Name:             req.Msg.Name,
 	})
 	if err != nil {
@@ -415,8 +454,12 @@ func (s *Service) DeleteConnection(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
+	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_Delete); err != nil {
 		return nil, err
 	}
 
@@ -432,13 +475,13 @@ func (s *Service) CheckSqlQuery(
 	req *connect.Request[mgmtv1alpha1.CheckSqlQueryRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("connectionId", req.Msg.Id)
-	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.Id}))
+	logger = logger.With("connectionId", req.Msg.GetId())
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(10))
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.GetConnection().GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(10))
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +501,7 @@ func (s *Service) CheckSqlQuery(
 	}
 	defer neosyncdb.HandleSqlRollback(tx, logger)
 
-	_, err = tx.PrepareContext(ctx, req.Msg.Query)
+	_, err = tx.PrepareContext(ctx, req.Msg.GetQuery())
 	var errorMsg *string
 	if err != nil {
 		msg := err.Error()

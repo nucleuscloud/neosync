@@ -39,9 +39,6 @@ const (
 	AuthServiceRefreshCliProcedure = "/mgmt.v1alpha1.AuthService/RefreshCli"
 	// AuthServiceCheckTokenProcedure is the fully-qualified name of the AuthService's CheckToken RPC.
 	AuthServiceCheckTokenProcedure = "/mgmt.v1alpha1.AuthService/CheckToken"
-	// AuthServiceGetCliIssuerProcedure is the fully-qualified name of the AuthService's GetCliIssuer
-	// RPC.
-	AuthServiceGetCliIssuerProcedure = "/mgmt.v1alpha1.AuthService/GetCliIssuer"
 	// AuthServiceGetAuthorizeUrlProcedure is the fully-qualified name of the AuthService's
 	// GetAuthorizeUrl RPC.
 	AuthServiceGetAuthorizeUrlProcedure = "/mgmt.v1alpha1.AuthService/GetAuthorizeUrl"
@@ -56,7 +53,6 @@ var (
 	authServiceLoginCliMethodDescriptor        = authServiceServiceDescriptor.Methods().ByName("LoginCli")
 	authServiceRefreshCliMethodDescriptor      = authServiceServiceDescriptor.Methods().ByName("RefreshCli")
 	authServiceCheckTokenMethodDescriptor      = authServiceServiceDescriptor.Methods().ByName("CheckToken")
-	authServiceGetCliIssuerMethodDescriptor    = authServiceServiceDescriptor.Methods().ByName("GetCliIssuer")
 	authServiceGetAuthorizeUrlMethodDescriptor = authServiceServiceDescriptor.Methods().ByName("GetAuthorizeUrl")
 	authServiceGetAuthStatusMethodDescriptor   = authServiceServiceDescriptor.Methods().ByName("GetAuthStatus")
 )
@@ -70,9 +66,6 @@ type AuthServiceClient interface {
 	RefreshCli(context.Context, *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error)
 	// Empty endpoint to simply check if the provided access token is valid
 	CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error)
-	// Used by the CLI to retrieve Auth Issuer information
-	// @deprecated
-	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	// Returns the auth status of the API server. Whether or not the backend has authentication enabled.
@@ -108,12 +101,6 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceCheckTokenMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		getCliIssuer: connect.NewClient[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse](
-			httpClient,
-			baseURL+AuthServiceGetCliIssuerProcedure,
-			connect.WithSchema(authServiceGetCliIssuerMethodDescriptor),
-			connect.WithClientOptions(opts...),
-		),
 		getAuthorizeUrl: connect.NewClient[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse](
 			httpClient,
 			baseURL+AuthServiceGetAuthorizeUrlProcedure,
@@ -134,7 +121,6 @@ type authServiceClient struct {
 	loginCli        *connect.Client[v1alpha1.LoginCliRequest, v1alpha1.LoginCliResponse]
 	refreshCli      *connect.Client[v1alpha1.RefreshCliRequest, v1alpha1.RefreshCliResponse]
 	checkToken      *connect.Client[v1alpha1.CheckTokenRequest, v1alpha1.CheckTokenResponse]
-	getCliIssuer    *connect.Client[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse]
 	getAuthorizeUrl *connect.Client[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse]
 	getAuthStatus   *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
 }
@@ -152,11 +138,6 @@ func (c *authServiceClient) RefreshCli(ctx context.Context, req *connect.Request
 // CheckToken calls mgmt.v1alpha1.AuthService.CheckToken.
 func (c *authServiceClient) CheckToken(ctx context.Context, req *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error) {
 	return c.checkToken.CallUnary(ctx, req)
-}
-
-// GetCliIssuer calls mgmt.v1alpha1.AuthService.GetCliIssuer.
-func (c *authServiceClient) GetCliIssuer(ctx context.Context, req *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error) {
-	return c.getCliIssuer.CallUnary(ctx, req)
 }
 
 // GetAuthorizeUrl calls mgmt.v1alpha1.AuthService.GetAuthorizeUrl.
@@ -178,9 +159,6 @@ type AuthServiceHandler interface {
 	RefreshCli(context.Context, *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error)
 	// Empty endpoint to simply check if the provided access token is valid
 	CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error)
-	// Used by the CLI to retrieve Auth Issuer information
-	// @deprecated
-	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	// Returns the auth status of the API server. Whether or not the backend has authentication enabled.
@@ -212,12 +190,6 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceCheckTokenMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	authServiceGetCliIssuerHandler := connect.NewUnaryHandler(
-		AuthServiceGetCliIssuerProcedure,
-		svc.GetCliIssuer,
-		connect.WithSchema(authServiceGetCliIssuerMethodDescriptor),
-		connect.WithHandlerOptions(opts...),
-	)
 	authServiceGetAuthorizeUrlHandler := connect.NewUnaryHandler(
 		AuthServiceGetAuthorizeUrlProcedure,
 		svc.GetAuthorizeUrl,
@@ -238,8 +210,6 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceRefreshCliHandler.ServeHTTP(w, r)
 		case AuthServiceCheckTokenProcedure:
 			authServiceCheckTokenHandler.ServeHTTP(w, r)
-		case AuthServiceGetCliIssuerProcedure:
-			authServiceGetCliIssuerHandler.ServeHTTP(w, r)
 		case AuthServiceGetAuthorizeUrlProcedure:
 			authServiceGetAuthorizeUrlHandler.ServeHTTP(w, r)
 		case AuthServiceGetAuthStatusProcedure:
@@ -263,10 +233,6 @@ func (UnimplementedAuthServiceHandler) RefreshCli(context.Context, *connect.Requ
 
 func (UnimplementedAuthServiceHandler) CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.CheckToken is not implemented"))
-}
-
-func (UnimplementedAuthServiceHandler) GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetCliIssuer is not implemented"))
 }
 
 func (UnimplementedAuthServiceHandler) GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error) {

@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { formatDateTime } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { JobRun } from '@neosync/sdk';
 import NextLink from 'next/link';
 import JobRunStatus from '../JobRunStatus';
@@ -16,9 +16,7 @@ interface GetColumnsProps {
   jobNameMap: Record<string, string>;
 }
 
-export function getColumns(
-  props: GetColumnsProps
-): ColumnDef<PlainMessage<JobRun>>[] {
+export function getColumns(props: GetColumnsProps): ColumnDef<JobRun>[] {
   const { onDeleted, accountName, jobNameMap } = props;
   return [
     {
@@ -100,7 +98,7 @@ export function getColumns(
         return (
           <div>
             <span className="font-medium">
-              {formatDateTime(row.getValue<Timestamp>('startedAt')?.toDate())}
+              {formatDateTime(timestampDate(row.getValue('startedAt')))}
             </span>
           </div>
         );
@@ -116,7 +114,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         const completedAt = row.getValue('completedAt')
-          ? formatDateTime(row.getValue<Timestamp>('completedAt')?.toDate())
+          ? formatDateTime(timestampDate(row.getValue('completedAt')))
           : undefined;
         return (
           <div>

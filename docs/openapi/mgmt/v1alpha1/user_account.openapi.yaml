@@ -851,15 +851,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventResponse'
+  /mgmt.v1alpha1.UserAccountService/SetUserRole:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetUserRole
+      description: Sets the users role
+      operationId: mgmt.v1alpha1.UserAccountService.SetUserRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleResponse'
 components:
   schemas:
+    mgmt.v1alpha1.AccountRole:
+      type: string
+      title: AccountRole
+      enum:
+        - ACCOUNT_ROLE_UNSPECIFIED
+        - ACCOUNT_ROLE_ADMIN
+        - ACCOUNT_ROLE_JOB_DEVELOPER
+        - ACCOUNT_ROLE_JOB_VIEWER
+        - ACCOUNT_ROLE_JOB_EXECUTOR
     mgmt.v1alpha1.AccountStatus:
       type: string
       title: AccountStatus
       enum:
         - ACCOUNT_STATUS_REASON_UNSPECIFIED
-        - ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT
-        - ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT
         - ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
         - ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
         - ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
@@ -1024,27 +1067,16 @@ components:
           allOf:
             - title: expires_at
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountInvite
       additionalProperties: false
     mgmt.v1alpha1.AccountOnboardingConfig:
       type: object
       properties:
-        hasCreatedSourceConnection:
-          type: boolean
-          title: has_created_source_connection
-          description: '@deprecated - use has_completed_onboarding'
-        hasCreatedDestinationConnection:
-          type: boolean
-          title: has_created_destination_connection
-          description: '@deprecated - use has_completed_onboarding'
-        hasCreatedJob:
-          type: boolean
-          title: has_created_job
-          description: '@deprecated - use has_completed_onboarding'
-        hasInvitedMembers:
-          type: boolean
-          title: has_invited_members
-          description: '@deprecated - use has_completed_onboarding'
         hasCompletedOnboarding:
           type: boolean
           title: has_completed_onboarding
@@ -1082,6 +1114,11 @@ components:
         email:
           type: string
           title: email
+        role:
+          allOf:
+            - title: role
+              description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: AccountUser
       additionalProperties: false
     mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:
@@ -1352,7 +1389,13 @@ components:
         buildDate:
           allOf:
             - title: build_date
+              description: The time when the build was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        license:
+          allOf:
+            - title: license
+              description: The license information for the system
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SystemLicense'
       title: GetSystemInformationResponse
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountInvitesRequest:
@@ -1421,15 +1464,37 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - role
+            - not:
+                anyOf:
+                  - required:
+                      - role
+      anyOf:
+        - required:
+            - role
+        - not:
+            anyOf:
+              - required:
+                  - role
       properties:
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The account id to invite the user to
         email:
           type: string
           title: email
           minLength: 1
+          description: The email of the user to invite
+        role:
+          allOf:
+            - title: role
+              description: The role of the user to invite. Only used if RBAC is enabled.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: InviteUserToTeamAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountResponse:
@@ -1476,13 +1541,6 @@ components:
       allOf:
         - anyOf:
             - required:
-                - allowedRecordCount
-            - not:
-                anyOf:
-                  - required:
-                      - allowedRecordCount
-        - anyOf:
-            - required:
                 - reason
             - not:
                 anyOf:
@@ -1507,23 +1565,6 @@ components:
           type: boolean
           title: should_poll
           description: Whether or not the process should decide to continue polling for validitiy updates
-        usedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: used_record_count
-          description: |-
-            A count of the currently used records for the current billing period.
-             This may go over the allowed record count depending on when the record count is polled by the metric system.
-             @deprecated
-        allowedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: allowed_record_count
-          description: |-
-            The allowed record count. It will be null if there is no limit.
-             @deprecated
         accountStatus:
           allOf:
             - title: account_status
@@ -1700,6 +1741,48 @@ components:
           type: string
           title: user_id
       title: SetUserResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account id to apply this role to
+        userId:
+          type: string
+          title: user_id
+          format: uuid
+          description: The user that this will be applied to
+        role:
+          allOf:
+            - title: role
+              description: The role that this user will obtain
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+      title: SetUserRoleRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleResponse:
+      type: object
+      title: SetUserRoleResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SystemLicense:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          title: is_valid
+          description: Whether or not a valid license was found
+        expiresAt:
+          allOf:
+            - title: expires_at
+              description: The time when the license expires
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+        isNeosyncCloud:
+          type: boolean
+          title: is_neosync_cloud
+          description: Whether or not the license is for NeosyncCloud
+      title: SystemLicense
       additionalProperties: false
     mgmt.v1alpha1.UserAccount:
       type: object

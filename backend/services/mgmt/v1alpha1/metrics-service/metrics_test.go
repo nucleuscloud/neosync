@@ -2,12 +2,14 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +52,7 @@ var (
 func Test_GetMetricCount_Empty_Matrix(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -89,7 +91,7 @@ func Test_GetMetricCount_InvalidIdentifier(t *testing.T) {
 func Test_GetMetricCount_AccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -283,39 +285,45 @@ func Test_GetMetricCount_No_Metric(t *testing.T) {
 }
 
 type serviceMocks struct {
-	Service                *Service
-	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
-	JobServiceMock         *mgmtv1alpha1connect.MockJobServiceHandler
-	PromApiMock            *promapiv1mock.MockAPI
+	Service         *Service
+	UserServiceMock *userdata.MockInterface
+	JobServiceMock  *mgmtv1alpha1connect.MockJobServiceHandler
+	PromApiMock     *promapiv1mock.MockAPI
 }
 
 func createServiceMock(t testing.TB, config *Config) *serviceMocks {
 	t.Helper()
 
-	mockUserAccService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockUserService := userdata.NewMockInterface(t)
 	mockJobService := mgmtv1alpha1connect.NewMockJobServiceHandler(t)
 	mockPromApi := promapiv1mock.NewMockAPI(t)
 
-	service := New(config, mockUserAccService, mockJobService, mockPromApi)
+	service := New(config, mockUserService, mockJobService, mockPromApi)
 	return &serviceMocks{
-		Service:                service,
-		UserAccountServiceMock: mockUserAccService,
-		JobServiceMock:         mockJobService,
-		PromApiMock:            mockPromApi,
+		Service:         service,
+		UserServiceMock: mockUserService,
+		JobServiceMock:  mockJobService,
+		PromApiMock:     mockPromApi,
 	}
 }
 
 //nolint:unparam
-func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
-	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
-		Ok: isInAccount,
-	}), nil)
+func mockIsUserInAccount(t testing.TB, userServiceMock *userdata.MockInterface, isInAccount bool) {
+	mockEntityEnforcer := userdata.NewMockEntityEnforcer(t)
+	if isInAccount {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(nil)
+	} else {
+		mockEntityEnforcer.On("EnforceAccount", mock.Anything, mock.Anything, mock.Anything).Once().Return(errors.New("test: not in account"))
+	}
+	userServiceMock.On("GetUser", mock.Anything).Once().Return(&userdata.User{
+		EntityEnforcer: mockEntityEnforcer,
+	}, nil)
 }
 
 func Test_GetDailyMetricCount_Empty_Matrix(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -356,7 +364,7 @@ func Test_GetDailyMetricCount_InvalidIdentifier(t *testing.T) {
 func Test_GetDailyMetricCount_AccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -448,7 +456,7 @@ func Test_GetDailyMetricCount_RunId(t *testing.T) {
 func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 
@@ -486,7 +494,7 @@ func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
 	m := createServiceMock(t, &Config{})
 
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(t, m.UserServiceMock, true)
 
 	ctx := context.Background()
 

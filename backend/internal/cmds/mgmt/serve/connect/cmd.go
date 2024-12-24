@@ -17,6 +17,8 @@ import (
 	"connectrpc.com/otelconnect"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
+	"github.com/jackc/pgx/v5/stdlib"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
@@ -43,9 +45,12 @@ import (
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
+	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac/enforcer"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager"
+	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -66,6 +71,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -122,6 +128,11 @@ func serve(ctx context.Context) error {
 	}
 	slogger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
 
+	cascadelicense := license.NewCascadeLicense(
+		ncloudlicense,
+		eelicense,
+	)
+
 	mux := http.NewServeMux()
 
 	services := []string{
@@ -133,6 +144,10 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.ApiKeyServiceName,
 		mgmtv1alpha1connect.ConnectionDataServiceName,
 		mgmtv1alpha1connect.AnonymizationServiceName,
+	}
+
+	if shouldEnableMetricsService() && !cascadelicense.IsValid() {
+		return errors.New("metrics service is enabled but no license is present")
 	}
 
 	if shouldEnableMetricsService() {
@@ -159,15 +174,18 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	db, err := neosyncdb.NewFromConfig(dbconfig)
+	pool, err := neosyncdb.NewPool(dbconfig)
 	if err != nil {
 		return err
 	}
 
+	querier := db_queries.New()
+	db := neosyncdb.New(pool, querier)
+
 	if viper.GetBool("DB_AUTO_MIGRATE") {
 		schemaDir := viper.GetString("DB_SCHEMA_DIR")
 		if schemaDir == "" {
-			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")
+			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrationssss")
 		}
 		dbMigConfig, err := getDbMigrationConfig()
 		if err != nil {
@@ -180,8 +198,34 @@ func serve(ctx context.Context) error {
 			schemaDir,
 			slogger,
 		); err != nil {
-			return fmt.Errorf("unable to complete database migrations: %w", err)
+			return fmt.Errorf("unable to complete database migrationss: %w", err)
 		}
+	}
+
+	var rbacclient rbac.Interface
+	if cascadelicense.IsValid() {
+		slogger.Debug("rbac is enabled")
+		stddb := stdlib.OpenDBFromPool(pool)
+
+		rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stddb, "neosync_api.casbin_rule")
+		if err != nil {
+			return err
+		}
+		rbacenforcer.EnableAutoSave(true)
+		err = rbacenforcer.LoadPolicy()
+		if err != nil {
+			return fmt.Errorf("unable to load rbac policies: %w", err)
+		}
+		rbacdb := rbac.NewRbacDb(querier, db.Db)
+		enforcedClient := rbac.New(rbacenforcer)
+		err = enforcedClient.InitPolicies(ctx, rbacdb, slogger)
+		if err != nil {
+			return fmt.Errorf("unable to initialize rbac policies: %w", err)
+		}
+		rbacclient = enforcedClient
+	} else {
+		slogger.Debug("rbac is disabled")
+		rbacclient = rbac.NewAllowAllClient()
 	}
 
 	stdInterceptors := []connect.Interceptor{}
@@ -296,6 +340,10 @@ func serve(ctx context.Context) error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
+		slogger.Debug("auth is enabled")
+		if !cascadelicense.IsValid() {
+			return errors.New("auth is enabled but no license is present")
+		}
 		jwtcfg, err := getJwtClientConfig()
 		if err != nil {
 			return err
@@ -311,8 +359,6 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
 			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
 			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
@@ -345,7 +391,6 @@ func serve(ctx context.Context) error {
 				[]string{
 					mgmtv1alpha1connect.AuthServiceGetAuthStatusProcedure,
 					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
-					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
 					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
 					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},
@@ -436,7 +481,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, temporalConfigProvider, authclient, authadminclient, billingClient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -446,10 +491,11 @@ func serve(ctx context.Context) error {
 			connect.WithRecover(recoverHandler),
 		),
 	)
+	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-	}, db, useraccountService)
+	}, db, userdataclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewApiKeyServiceHandler(
 			apiKeyService,
@@ -473,10 +519,11 @@ func serve(ctx context.Context) error {
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 	mongoconnector := mongoconnect.NewConnector()
+
 	connectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		db,
-		useraccountService,
+		userdataclient,
 		mongoconnector,
 		awsManager,
 		sqlmanager,
@@ -493,19 +540,22 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if ncloudlicense.IsValid() || eelicense.IsValid() {
+	if cascadelicense.IsValid() {
 		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
 	}
 
 	jobhookService := jobhooks.New(
 		db,
-		useraccountService,
+		userdataclient,
 		jobhookOpts...,
 	)
 
 	runLogConfig, err := getRunLogConfig()
 	if err != nil {
 		return err
+	}
+	if runLogConfig != nil && runLogConfig.IsEnabled && !cascadelicense.IsValid() {
+		return errors.New("run logs are enabled but no license is present")
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
@@ -518,9 +568,9 @@ func serve(ctx context.Context) error {
 		db,
 		tfwfmgr,
 		connectionService,
-		useraccountService,
 		sqlmanager,
 		jobhookService,
+		userdataclient,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -558,7 +608,7 @@ func serve(ctx context.Context) error {
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
 		IsPresidioEnabled: ncloudlicense.IsValid(),
 		IsNeosyncCloud:    ncloudlicense.IsValid(),
-	}, db, useraccountService, presEntityClient)
+	}, db, presEntityClient, userdataclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
@@ -574,7 +624,7 @@ func serve(ctx context.Context) error {
 		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
 		IsAuthEnabled:           isAuthEnabled,
 		IsNeosyncCloud:          ncloudlicense.IsValid(),
-	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
+	}, anonymizerMeter, userdataclient, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
@@ -585,10 +635,10 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
 	gcpmanager := neosync_gcp.NewManager()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
-		useraccountService,
 		connectionService,
 		jobService,
 		awsManager,
@@ -598,6 +648,7 @@ func serve(ctx context.Context) error {
 		mongoconnector,
 		sqlmanager,
 		gcpmanager,
+		neosynctyperegistry,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
@@ -612,7 +663,7 @@ func serve(ctx context.Context) error {
 	if shouldEnableMetricsService() {
 		metricsService := v1alpha1_metricsservice.New(
 			&v1alpha1_metricsservice.Config{},
-			useraccountService,
+			userdataclient,
 			jobService,
 			promv1.NewAPI(promclient),
 		)

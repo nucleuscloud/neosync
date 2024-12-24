@@ -204,8 +204,8 @@ kubernetes:
 
 # If runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
 runLogs:
-  # -- Independently set so that configuration can exist but logs can still be independently disabled. Defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes
-  enabled: true
+  # -- Enable this if planning to surface logs within Neosync API and UI (requires a valid license).
+  enabled: false
   # -- Possible values: k8s-pods, loki
   type: k8s-pods
 

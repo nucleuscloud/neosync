@@ -4,13 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateInt64 } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateInt64, GenerateInt64Schema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<GenerateInt64, PlainMessage<GenerateInt64>> {}
+interface Props extends TransformerConfigProps<GenerateInt64> {}
 
 export default function GenerateInt64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -31,7 +30,10 @@ export default function GenerateInt64Form(props: Props): ReactElement {
               checked={value.randomizeSign}
               onCheckedChange={(checked) =>
                 setValue(
-                  new GenerateInt64({ ...value, randomizeSign: checked })
+                  create(GenerateInt64Schema, {
+                    ...value,
+                    randomizeSign: checked,
+                  })
                 )
               }
               disabled={isDisabled}
@@ -56,7 +58,7 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateInt64({
+                      create(GenerateInt64Schema, {
                         ...value,
                         min: BigInt(e.target.valueAsNumber),
                       })
@@ -86,7 +88,7 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new GenerateInt64({
+                      create(GenerateInt64Schema, {
                         ...value,
                         max: BigInt(e.target.valueAsNumber),
                       })
