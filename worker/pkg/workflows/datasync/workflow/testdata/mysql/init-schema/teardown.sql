@@ -1,0 +1,3 @@
+DROP DATABASE IF EXISTS init_schema;
+DROP DATABASE IF EXISTS init_schema2;
+DROP DATABASE IF EXISTS init_schema3;

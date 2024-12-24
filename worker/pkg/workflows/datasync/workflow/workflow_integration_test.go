@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -32,16 +34,27 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
+	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 	mssql_datatypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/data-types"
 	mssql_simple "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/simple"
 
+	mysql_alltypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/all-types"
+	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
+	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
+	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
+	testdata_pgtypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/all-types"
+	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
+	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
+	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
+	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
+	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	testdata_skipfkviolations "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/skip-fk-violations"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
-	// tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/activity"
@@ -51,7 +64,238 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-const neosyncDbMigrationsPath = "../../../../../backend/sql/postgresql/schema"
+func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+	drTests := testdata_doublereference.GetSyncTests()
+	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
+	cdTests := testdata_circulardependencies.GetSyncTests()
+	javascriptTests := testdata_javascripttransformers.GetSyncTests()
+	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	subsettingTests := testdata_subsetting.GetSyncTests()
+	pgTypesTests := testdata_pgtypes.GetSyncTests()
+	skipFkViolationTests := testdata_skipfkviolations.GetSyncTests()
+
+	allTests["Double_References"] = drTests
+	allTests["Virtual_Foreign_Keys"] = vfkTests
+	allTests["Circular_Dependencies"] = cdTests
+	allTests["Javascript_Transformers"] = javascriptTests
+	allTests["Primary_Key_Transformers"] = pkTransformationTests
+	allTests["Subsetting"] = subsettingTests
+	allTests["PG_Types"] = pgTypesTests
+	allTests["Skip_ForeignKey_Violations"] = skipFkViolationTests
+	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
+	tests := getAllPostgresSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			t.Parallel()
+			for _, tt := range group {
+
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					err := s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					require.NoError(t, err)
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					require.NoError(t, err)
+
+					schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
+					subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
+					for table, where := range tt.SubsetMap {
+						schema, table := sqlmanager_shared.SplitTableKey(table)
+						if _, exists := subsetMap[schema]; !exists {
+							subsetMap[schema] = &mgmtv1alpha1.PostgresSourceSchemaOption{
+								Schema: schema,
+								Tables: []*mgmtv1alpha1.PostgresSourceTableOption{},
+							}
+						}
+						w := where
+						subsetMap[schema].Tables = append(subsetMap[schema].Tables, &mgmtv1alpha1.PostgresSourceTableOption{
+							Table:       table,
+							WhereClause: &w,
+						})
+					}
+
+					for _, s := range subsetMap {
+						schemas = append(schemas, s)
+					}
+
+					var subsetByForeignKeyConstraints bool
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+							PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+						},
+					}
+					if tt.JobOptions != nil {
+						if tt.JobOptions.SubsetByForeignKeyConstraints {
+							subsetByForeignKeyConstraints = true
+						}
+						destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+									InitTableSchema: tt.JobOptions.InitSchema,
+									TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+										TruncateBeforeInsert: tt.JobOptions.Truncate,
+									},
+									SkipForeignKeyViolations: tt.JobOptions.SkipForeignKeyViolations,
+								},
+							},
+						}
+					}
+
+					jobId := uuid.New().String()
+					srcConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+												Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+													ConnectionId:                  srcConnId,
+													Schemas:                       schemas,
+													SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: destConnId,
+											Options:      destinationOptions,
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == srcConnId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   srcConnId,
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+														Url: s.postgres.Source.URL,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == destConnId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   destConnId,
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+														Url: s.postgres.Target.URL,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test connection id"))
+						},
+					))
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[mgmtv1alpha1.GetActiveJobHooksByTimingResponse], error) {
+							if r.Msg.GetJobId() != jobId {
+								return nil, connect.NewError(connect.CodeInternal, errors.New("invalid test job id"))
+							}
+							hooks := []*mgmtv1alpha1.JobHook{}
+							if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-presync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: srcConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							} else if r.Msg.Timing == mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC {
+								hooks = append(hooks, &mgmtv1alpha1.JobHook{
+									Id:       uuid.NewString(),
+									Name:     "test-postsync-hook-1",
+									JobId:    jobId,
+									Enabled:  true,
+									Priority: 0,
+									Config: &mgmtv1alpha1.JobHookConfig{Config: &mgmtv1alpha1.JobHookConfig_Sql{Sql: &mgmtv1alpha1.JobHookConfig_JobSqlHook{
+										Query:        "select 1",
+										ConnectionId: destConnId,
+										Timing:       &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{}},
+									}}},
+								})
+							}
+							return connect.NewResponse(&mgmtv1alpha1.GetActiveJobHooksByTimingResponse{Hooks: hooks}), nil
+						},
+					))
+
+					addRunContextProcedureMux(mux)
+					srv := startHTTPServer(t, mux)
+					env := executeWorkflow(t, srv, &s.redis.url, jobId, tt.ExpectError)
+					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
+					err = env.GetWorkflowError()
+					if tt.ExpectError {
+						require.Error(t, err, "Did not receive Temporal Workflow Error %s", tt.Name)
+						return
+					}
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
+
+					for table, expected := range tt.Expected {
+						rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
+						require.NoError(t, err)
+						count := 0
+						for rows.Next() {
+							count++
+						}
+						require.Equalf(t, expected.RowCount, count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					err = s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
+}
 
 func getAllMssqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
@@ -285,6 +529,346 @@ func addRunContextProcedureMux(mux *http.ServeMux) {
 
 func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
 	return fmt.Sprintf("%s.%s.%s", id.GetJobRunId(), id.GetExternalId(), id.GetAccountId())
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
+	testFolder := "testdata/postgres/virtual-foreign-keys"
+	// setup
+	err := s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"source-setup.sql"})
+	require.NoError(s.T(), err)
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"target-setup.sql"})
+	require.NoError(s.T(), err)
+
+	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
+	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
+
+	for _, m := range jobmappings {
+		if m.Table == "countries" && m.Column == "country_id" {
+			m.Transformer = &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `if (value == 'US') { return 'SU'; } return value;`},
+					},
+				},
+			}
+		}
+	}
+	// neosync api mocks
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetJobProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+				Job: &mgmtv1alpha1.Job{
+					Id:        "fd4d8660-31a0-48b2-9adf-10f11b94898f",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+					Source: &mgmtv1alpha1.JobSource{
+						Options: &mgmtv1alpha1.JobSourceOptions{
+							Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+								Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+									ConnectionId: "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+								},
+							},
+						},
+					},
+					Mappings:           jobmappings,
+					VirtualForeignKeys: virtualForeignKeys,
+					Destinations: []*mgmtv1alpha1.JobDestination{
+						{
+							ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+							Options: &mgmtv1alpha1.JobDestinationOptions{
+								Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+									PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{},
+								},
+							},
+						},
+					},
+				},
+			}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+						Name: "source",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: s.postgres.Source.URL,
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+						Name: "target",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: s.postgres.Target.URL,
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, nil
+		},
+	))
+
+	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
+	srv := startHTTPServer(s.T(), mux)
+	testName := "Virtual Foreign Key primary key transform"
+	env := executeWorkflow(s.T(), srv, &s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f", false)
+	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
+	err = env.GetWorkflowError()
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
+
+	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
+	for _, t := range tables {
+		rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
+		require.NoError(s.T(), err)
+		count := 0
+		for rows.Next() {
+			count++
+		}
+		require.Greater(s.T(), count, 0)
+		require.NoError(s.T(), err)
+	}
+
+	rows := s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	var rowCount int
+	err = rows.Scan(&rowCount)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), 1, rowCount)
+
+	rows = s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
+	err = rows.Scan(&rowCount)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), 3, rowCount)
+
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	err = rows.Scan(&rowCount)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), 0, rowCount)
+
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
+	err = rows.Scan(&rowCount)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), 1, rowCount)
+
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
+	err = rows.Scan(&rowCount)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), 3, rowCount)
+
+	// tear down
+	err = s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
+}
+
+func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+	mdTests := mysql_multipledbs.GetSyncTests()
+	initTests := mysql_initschema.GetSyncTests()
+	compositeTests := mysql_compositekeys.GetSyncTests()
+	dataTypesTests := mysql_alltypes.GetSyncTests()
+	allTests["Multiple_Dbs"] = mdTests
+	allTests["Composite_Keys"] = compositeTests
+	allTests["Init_Schema"] = initTests
+	allTests["DataTypes"] = dataTypesTests
+	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
+	tests := getAllMysqlSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			t.Parallel()
+			for _, tt := range group {
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					err := s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					require.NoError(t, err)
+
+					schemas := []*mgmtv1alpha1.MysqlSourceSchemaOption{}
+					subsetMap := map[string]*mgmtv1alpha1.MysqlSourceSchemaOption{}
+					for table, where := range tt.SubsetMap {
+						schema, table := sqlmanager_shared.SplitTableKey(table)
+						if _, exists := subsetMap[schema]; !exists {
+							subsetMap[schema] = &mgmtv1alpha1.MysqlSourceSchemaOption{
+								Schema: schema,
+								Tables: []*mgmtv1alpha1.MysqlSourceTableOption{},
+							}
+						}
+						w := where
+						subsetMap[schema].Tables = append(subsetMap[schema].Tables, &mgmtv1alpha1.MysqlSourceTableOption{
+							Table:       table,
+							WhereClause: &w,
+						})
+					}
+
+					for _, s := range subsetMap {
+						schemas = append(schemas, s)
+					}
+
+					var subsetByForeignKeyConstraints bool
+					destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+						Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+							MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{},
+						},
+					}
+					if tt.JobOptions != nil {
+						if tt.JobOptions.SubsetByForeignKeyConstraints {
+							subsetByForeignKeyConstraints = true
+						}
+						destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+								MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+									InitTableSchema: tt.JobOptions.InitSchema,
+									TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
+										TruncateBeforeInsert: tt.JobOptions.Truncate,
+									},
+									SkipForeignKeyViolations: tt.JobOptions.SkipForeignKeyViolations,
+								},
+							},
+						}
+					}
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+												Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+													ConnectionId:                  "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+													Schemas:                       schemas,
+													SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+											Options:      destinationOptions,
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+														Url: s.mysql.Source.URL,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+														Url: s.mysql.Target.URL,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, nil
+						},
+					))
+					addRunContextProcedureMux(mux)
+					addEmptyJobHooksProcedureMux(mux)
+					srv := startHTTPServer(t, mux)
+					env := executeWorkflow(t, srv, &s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.ExpectError)
+					require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", tt.Name))
+					err = env.GetWorkflowError()
+					if tt.ExpectError {
+						require.Error(t, err, "Did not received Temporal Workflow Error %s", tt.Name)
+						return
+					}
+					require.NoError(t, err, "Received Temporal Workflow Error %s", tt.Name)
+
+					for table, expected := range tt.Expected {
+						rows, err := s.mysql.Target.DB.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
+						require.NoError(t, err)
+						count := 0
+						for rows.Next() {
+							count++
+						}
+						require.Equalf(t, expected.RowCount, count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					err = s.mysql.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+					err = s.mysql.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
@@ -888,6 +1472,122 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 		},
 	}
 	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Generate() {
+	// setup
+	testName := "Generate Job"
+	folder := "testdata/generate-job"
+	err := s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"setup.sql"})
+	require.NoError(s.T(), err)
+
+	connectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+	schema := "generate_job"
+	table := "regions"
+
+	destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+		Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+			PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+				InitTableSchema: false,
+				TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: false,
+				},
+				SkipForeignKeyViolations: false,
+			},
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetJobProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+				Job: &mgmtv1alpha1.Job{
+					Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+					Source: &mgmtv1alpha1.JobSource{
+						Options: &mgmtv1alpha1.JobSourceOptions{
+							Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+								Generate: &mgmtv1alpha1.GenerateSourceOptions{
+									Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{{Schema: schema, Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+										{Table: table, RowCount: 10},
+									}}},
+									FkSourceConnectionId: &connectionId,
+								},
+							},
+						},
+					},
+					Destinations: []*mgmtv1alpha1.JobDestination{
+						{
+							ConnectionId: connectionId,
+							Options:      destinationOptions,
+						},
+					},
+					Mappings: []*mgmtv1alpha1.JobMapping{
+						{Schema: schema, Table: table, Column: "region_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{}},
+						}},
+						{Schema: schema, Table: table, Column: "region_name", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+									GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+								},
+							},
+						}},
+					},
+				}}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+						Name: "target",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: s.postgres.Target.URL,
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, nil
+		},
+	))
+
+	addRunContextProcedureMux(mux)
+	addEmptyJobHooksProcedureMux(mux)
+	srv := startHTTPServer(s.T(), mux)
+	env := executeWorkflow(s.T(), srv, &s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", false)
+	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
+	err = env.GetWorkflowError()
+	require.NoError(s.T(), err, "Received Temporal Workflow Error %s", testName)
+
+	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
+	require.NoError(s.T(), err)
+	count := 0
+	for rows.Next() {
+		count++
+	}
+	require.Equalf(s.T(), 10, count, fmt.Sprintf("Test: %s Table: %s", testName, table))
+
+	// tear down
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &folder, []string{"teardown.sql"})
+	require.NoError(s.T(), err)
 }
 
 type fakeEELicense struct{}
