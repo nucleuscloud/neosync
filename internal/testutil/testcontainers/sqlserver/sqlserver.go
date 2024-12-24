@@ -265,12 +265,10 @@ func (m *MssqlTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder 
 		createSchema := fmt.Sprintf("CREATE SCHEMA [%s];", schema)
 		_, err = m.DB.ExecContext(ctx, createSchema)
 		if err != nil {
-			fmt.Println("createSchema error", err)
 			return fmt.Errorf("unable to exec SQL when running MsSQL create schema: %w", err)
 		}
 		_, err = m.DB.ExecContext(ctx, strings.ReplaceAll(string(sqlStr), "neo_schema", schema))
 		if err != nil {
-			fmt.Println("useDB error", err)
 			return fmt.Errorf("unable to exec SQL when running MsSQL SQL files: %w", err)
 		}
 	}

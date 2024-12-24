@@ -110,7 +110,7 @@ func test_mysql_types(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	alltypesSchema := "alltypes"
 	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func test_mysql_edgecases(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "mysqledgecases"
 	schema2 := "mysqledgecases2"
 	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"edgecases/create-tables.sql"}, schema)

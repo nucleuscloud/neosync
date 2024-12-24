@@ -3,6 +3,7 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -12,6 +13,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
+	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/integration_tests/testdata"
 	"github.com/stretchr/testify/require"
@@ -108,7 +110,7 @@ func test_mssql_types(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "alltypes"
 	err := mssql.Source.RunCreateStmtsInSchema(ctx, mssqlTestdataFolder, []string{"alltypes/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -142,7 +144,7 @@ func test_mssql_types(
 		table    string
 		rowCount int
 	}{
-		{schema: schema, table: "all_data_types", rowCount: 2},
+		{schema: schema, table: "alldatatypes", rowCount: 1},
 	}
 
 	for _, expected := range expectedResults {
@@ -151,9 +153,254 @@ func test_mssql_types(
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_all_types Table: %s", expected.table))
 	}
 
-	// tear down
-	err = mssql.Source.DropSchemas(ctx, []string{schema})
+	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
+	// err = mssql.Source.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+	// err = mssql.Target.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+}
+
+func test_mssql_cross_schema_foreign_keys(
+	t *testing.T,
+	ctx context.Context,
+	mssql *tcmssql.MssqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	testdataFolder := mssqlTestdataFolder + "/commerce"
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	err := mssql.Source.CreateSchemas(ctx, []string{"sales", "production"})
 	require.NoError(t, err)
-	err = mssql.Target.DropSchemas(ctx, []string{schema})
+	err = mssql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
 	require.NoError(t, err)
+	err = mssql.Target.CreateSchemas(ctx, []string{"sales", "production"})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
+
+	mappings := mssql_commerce.GetDefaultSyncJobMappings()
+
+	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mssql_cross_schema_foreign_keys",
+		JobMappings: mappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:   true,
+			InitSchema: true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_cross_schema_foreign_keys")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mssql_cross_schema_foreign_keys")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: "production", table: "categories", rowCount: 7},
+		{schema: "production", table: "brands", rowCount: 9},
+		{schema: "production", table: "products", rowCount: 18},
+		{schema: "production", table: "stocks", rowCount: 32},
+		{schema: "production", table: "identities", rowCount: 5},
+		{schema: "sales", table: "customers", rowCount: 15},
+		{schema: "sales", table: "stores", rowCount: 3},
+		{schema: "sales", table: "staffs", rowCount: 10},
+		{schema: "sales", table: "orders", rowCount: 13},
+		{schema: "sales", table: "order_items", rowCount: 26},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mssql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_cross_schema_foreign_keys Table: %s", expected.table))
+	}
+
+	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
+	// err = mssql.Source.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+	// err = mssql.Target.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+}
+
+func test_mssql_subset(
+	t *testing.T,
+	ctx context.Context,
+	mssql *tcmssql.MssqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	testdataFolder := mssqlTestdataFolder + "/commerce"
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	err := mssql.Source.CreateSchemas(ctx, []string{"sales", "production"})
+	require.NoError(t, err)
+	err = mssql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+	require.NoError(t, err)
+	err = mssql.Target.CreateSchemas(ctx, []string{"sales", "production"})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
+
+	mappings := mssql_commerce.GetDefaultSyncJobMappings()
+
+	subsetMappings := map[string]string{
+		"production.products": "product_id in (1, 4, 8, 6)",
+		"sales.customers":     "customer_id in (1, 4, 8, 6)",
+	}
+
+	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mssql_subset",
+		JobMappings: mappings,
+		SubsetMap:   subsetMappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:                      true,
+			InitSchema:                    true,
+			SubsetByForeignKeyConstraints: true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_subset")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mssql_subset")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: "production", table: "categories", rowCount: 7},
+		{schema: "production", table: "brands", rowCount: 9},
+		{schema: "production", table: "products", rowCount: 4},
+		{schema: "production", table: "stocks", rowCount: 10},
+		{schema: "production", table: "identities", rowCount: 5},
+		{schema: "sales", table: "customers", rowCount: 4},
+		{schema: "sales", table: "stores", rowCount: 3},
+		{schema: "sales", table: "staffs", rowCount: 10},
+		{schema: "sales", table: "orders", rowCount: 4},
+		{schema: "sales", table: "order_items", rowCount: 2},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mssql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_subset Table: %s", expected.table))
+	}
+
+	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
+	// err = mssql.Source.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+	// err = mssql.Target.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+}
+
+func test_mssql_identity_columns(
+	t *testing.T,
+	ctx context.Context,
+	mssql *tcmssql.MssqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	testdataFolder := mssqlTestdataFolder + "/commerce"
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	err := mssql.Source.CreateSchemas(ctx, []string{"sales", "production"})
+	require.NoError(t, err)
+	err = mssql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+	require.NoError(t, err)
+	err = mssql.Target.CreateSchemas(ctx, []string{"sales", "production"})
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
+
+	mappings := mssql_commerce.GetDefaultSyncJobMappings()
+	tableColTypeMap := mssql_commerce.GetTableColumnTypeMap()
+	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
+	for _, jm := range mappings {
+		colTypeMap, ok := tableColTypeMap[fmt.Sprintf("%s.%s", jm.Schema, jm.Table)]
+		if ok {
+			t, ok := colTypeMap[jm.Column]
+			if ok && strings.HasPrefix(t, "INTIDENTITY") {
+				updatedJobmappings = append(updatedJobmappings, &mgmtv1alpha1.JobMapping{
+					Schema:      jm.Schema,
+					Table:       jm.Table,
+					Column:      jm.Column,
+					Transformer: getDefaultTransformerConfig(),
+				})
+				continue
+			}
+		}
+		updatedJobmappings = append(updatedJobmappings, jm)
+	}
+
+	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mssql_identity_columns",
+		JobMappings: updatedJobmappings,
+		JobOptions: &workflow_testdata.TestJobOptions{
+			Truncate:   true,
+			InitSchema: true,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_identity_columns")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mssql_identity_columns")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: "production", table: "categories", rowCount: 7},
+		{schema: "production", table: "brands", rowCount: 9},
+		{schema: "production", table: "products", rowCount: 18},
+		{schema: "production", table: "stocks", rowCount: 32},
+		{schema: "production", table: "identities", rowCount: 5},
+		{schema: "sales", table: "customers", rowCount: 15},
+		{schema: "sales", table: "stores", rowCount: 3},
+		{schema: "sales", table: "staffs", rowCount: 10},
+		{schema: "sales", table: "orders", rowCount: 13},
+		{schema: "sales", table: "order_items", rowCount: 26},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mssql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_identity_columns Table: %s", expected.table))
+	}
+
+	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
+	// err = mssql.Source.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+	// err = mssql.Target.DropSchemas(ctx, []string{schema})
+	// require.NoError(t, err)
+}
+
+func getDefaultTransformerConfig() *mgmtv1alpha1.JobMappingTransformer {
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+				GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+			},
+		},
+	}
 }

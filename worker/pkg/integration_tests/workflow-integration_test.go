@@ -29,8 +29,8 @@ func Test_Workflow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	connclient := neosyncApi.UnauthdClients.Connections
-	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
+	connclient := neosyncApi.OSSUnauthenticatedLicensedClients.Connections()
+	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Users())
 	dbManagers := tcworkflow.NewTestDatabaseManagers(t)
 
 	t.Run("postgres", func(t *testing.T) {
@@ -147,6 +147,21 @@ func Test_Workflow(t *testing.T) {
 		t.Run("all_types", func(t *testing.T) {
 			t.Parallel()
 			test_mssql_types(t, ctx, mssql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("cross_schema_foreign_keys", func(t *testing.T) {
+			t.Parallel()
+			test_mssql_cross_schema_foreign_keys(t, ctx, mssql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("subset", func(t *testing.T) {
+			t.Parallel()
+			test_mssql_subset(t, ctx, mssql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("identity_columns", func(t *testing.T) {
+			t.Parallel()
+			test_mssql_identity_columns(t, ctx, mssql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
 		t.Cleanup(func() {

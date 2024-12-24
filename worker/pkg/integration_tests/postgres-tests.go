@@ -128,7 +128,7 @@ func test_postgres_types(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	alltypesSchema := "alltypes"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func test_postgres_primary_key_transformations(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "primary_$key"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"uuids/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -214,7 +214,6 @@ func test_postgres_primary_key_transformations(
 				Table:  jm.Table,
 				Column: jm.Column,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 					Config: &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 							GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -307,7 +306,7 @@ func test_postgres_edgecases(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "CaPiTaL"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"edgecases/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -375,7 +374,7 @@ func test_postgres_virtual_foreign_keys(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "vfk_hr"
 	subsetSchema := "vfk_hr_subset"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, schema)
@@ -462,7 +461,7 @@ func test_postgres_javascript_transformers(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	transformersSchema := "transformers"
 	generatorsSchema := "generators"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"transformers/create-tables.sql"}, transformersSchema)
@@ -609,7 +608,7 @@ func test_postgres_skip_foreign_keys_violations(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "fk_violations"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -676,7 +675,7 @@ func test_postgres_foreign_keys_violations_error(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "fk_violations_error"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -722,7 +721,7 @@ func test_postgres_subsetting(
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "subsetting"
 	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"subsetting/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -814,7 +813,7 @@ func test_postgres_generate_workflow(
 	accountId string,
 	destConn *mgmtv1alpha1.Connection,
 ) {
-	jobclient := neosyncApi.UnauthdClients.Jobs
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "generate"
 	err := postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, schema)
 	require.NoError(t, err)

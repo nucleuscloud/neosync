@@ -15,7 +15,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "mssql/simple",
 			SourceFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
 			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql"},
-			JobMappings:     GetDefaultSyncJobMappings(),
+			JobMappings:     GetDefaultSyncJobMappings("other"),
 			JobOptions:      &workflow_testdata.TestJobOptions{},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"production.categories": &workflow_testdata.ExpectedOutput{RowCount: 7},
@@ -57,7 +57,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "mssql/simple",
 			SourceFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
 			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql"},
-			JobMappings:     GetDefaultSyncJobMappings(),
+			JobMappings:     GetDefaultSyncJobMappings("other"),
 			JobOptions: &workflow_testdata.TestJobOptions{
 				SubsetByForeignKeyConstraints: true,
 			},
@@ -83,7 +83,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 
 func getJobmappings() []*mgmtv1alpha1.JobMapping {
 	tableColTypeMap := GetTableColumnTypeMap()
-	jobmappings := GetDefaultSyncJobMappings()
+	jobmappings := GetDefaultSyncJobMappings("other")
 	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
 	for _, jm := range jobmappings {
 		colTypeMap, ok := tableColTypeMap[fmt.Sprintf("%s.%s", jm.Schema, jm.Table)]
