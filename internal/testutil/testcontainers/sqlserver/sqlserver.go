@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
@@ -249,4 +250,59 @@ func (m *MssqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, fi
 		}
 	}
 	return nil
+}
+
+func (m *MssqlTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder string, files []string, schema string) error {
+	for _, file := range files {
+		filePath := file
+		if folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", folder, file)
+		}
+		sqlStr, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+		createSchema := fmt.Sprintf("CREATE SCHEMA [%s];", schema)
+		_, err = m.DB.ExecContext(ctx, createSchema)
+		if err != nil {
+			fmt.Println("createSchema error", err)
+			return fmt.Errorf("unable to exec SQL when running MsSQL create schema: %w", err)
+		}
+		_, err = m.DB.ExecContext(ctx, strings.ReplaceAll(string(sqlStr), "neo_schema", schema))
+		if err != nil {
+			fmt.Println("useDB error", err)
+			return fmt.Errorf("unable to exec SQL when running MsSQL SQL files: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *MssqlTestContainer) CreateSchemas(ctx context.Context, schemas []string) error {
+	for _, schema := range schemas {
+		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("CREATE SCHEMA [%s];", schema))
+		if err != nil {
+			return fmt.Errorf("unable to create mssql schema: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *MssqlTestContainer) DropSchemas(ctx context.Context, schemas []string) error {
+	for _, schema := range schemas {
+		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("DROP SCHEMA [%s];", schema))
+		if err != nil {
+			return fmt.Errorf("unable to drop mssql schema: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *MssqlTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
+	rows := m.DB.QueryRowContext(ctx, fmt.Sprintf("SELECT COUNT(*) FROM [%s].[%s];", schema, table))
+	var count int
+	err := rows.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

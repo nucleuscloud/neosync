@@ -275,7 +275,7 @@ func main() {
 		} else if input.Driver == "mysql" {
 			t := parseSQLStatements(sqlContent)
 			tables = t
-		} else if input.Driver == "sqlserver" {
+		} else if input.Driver == "sqlserver" || input.Driver == "mssql" {
 			t := parseTsql(sqlContent)
 			tables = t
 		}

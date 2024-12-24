@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     set_as_array SET('value1', 'value2', 'value3', 'value4', 'value5')
 );
 
-CREATE TABLE json_data (
+CREATE TABLE IF NOT EXISTS json_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     data JSON
 );

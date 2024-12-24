@@ -76,6 +76,34 @@ func CreateMysqlConnection(
 	return resp.Msg.GetConnection()
 }
 
+func CreateMssqlConnection(
+	ctx context.Context,
+	t *testing.T,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	accountId string,
+	name string,
+	mssqlurl string,
+) *mgmtv1alpha1.Connection {
+	resp, err := connclient.CreateConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
+			AccountId: accountId,
+			Name:      name,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+					MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+							Url: mssqlurl,
+						},
+					},
+				},
+			},
+		}),
+	)
+	RequireNoErrResp(t, resp, err)
+	return resp.Msg.GetConnection()
+}
+
 func CreateS3Connection(
 	ctx context.Context,
 	t *testing.T,

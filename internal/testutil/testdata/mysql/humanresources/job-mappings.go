@@ -12,6 +12,123 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
+			Table:  "countries",
+			Column: "country_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "countries",
+			Column: "country_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "countries",
+			Column: "region_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "location_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "street_address",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "postal_code",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "city",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "state_province",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "locations",
+			Column: "country_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "jobs",
 			Column: "job_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -391,123 +508,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Schema: schema,
 			Table:  "regions",
 			Column: "region_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "countries",
-			Column: "country_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "countries",
-			Column: "country_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "countries",
-			Column: "region_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "location_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "street_address",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "postal_code",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "city",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "state_province",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "locations",
-			Column: "country_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
