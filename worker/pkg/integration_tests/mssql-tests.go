@@ -2,7 +2,6 @@ package integration_tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -357,9 +356,6 @@ func test_mssql_identity_columns(
 		updatedJobmappings = append(updatedJobmappings, jm)
 	}
 
-	jsonF, _ := json.MarshalIndent(updatedJobmappings, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-
 	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
@@ -432,7 +428,6 @@ func createCommerceTables(ctx context.Context, mssql *tcmssql.MssqlTestContainer
 
 		updatedSql := strings.ReplaceAll(string(sqlStr), "sales.", fmt.Sprintf("sales_%s.", schemaSuffix))
 		updatedSql = strings.ReplaceAll(updatedSql, "production.", fmt.Sprintf("production_%s.", schemaSuffix))
-		fmt.Println(updatedSql)
 		_, err = mssql.DB.ExecContext(ctx, updatedSql)
 		if err != nil {
 			return fmt.Errorf("unable to exec SQL when running MsSQL SQL files: %w", err)

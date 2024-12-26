@@ -12,7 +12,7 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
-			Table:  "parent1",
+			Table:  "container_status",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
@@ -25,46 +25,7 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t5",
-			Column: "x",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "t5",
-			Column: "y",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "t5",
-			Column: "z",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "container",
+			Table:  "unique_emails",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
@@ -77,8 +38,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "container",
-			Column: "code",
+			Table:  "unique_emails",
+			Column: "email",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -90,8 +51,21 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "container",
-			Column: "container_status_id",
+			Table:  "t1",
+			Column: "a",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "t1",
+			Column: "b",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -142,59 +116,7 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "order_details",
-			Column: "detail_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_details",
-			Column: "order_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_details",
-			Column: "product_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_details",
-			Column: "quantity",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employee_log",
+			Table:  "container",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
@@ -207,8 +129,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "employee_log",
-			Column: "employee_id",
+			Table:  "container",
+			Column: "code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -220,60 +142,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "employee_log",
-			Column: "action",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "employee_log",
-			Column: "change_time",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "tablewithcount",
-			Column: "id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "child1",
-			Column: "id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "child1",
-			Column: "parent_id",
+			Table:  "container",
+			Column: "container_status_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -329,8 +199,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+							GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
 						},
 					},
 			},
@@ -363,8 +233,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "unique_emails",
-			Column: "id",
+			Table:  "t2",
+			Column: "a",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -376,8 +246,47 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "unique_emails",
-			Column: "email",
+			Table:  "t2",
+			Column: "b",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "t3",
+			Column: "a",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "t3",
+			Column: "b",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "parent1",
+			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -428,8 +337,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t1",
-			Column: "a",
+			Table:  "child1",
+			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -441,8 +350,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t1",
-			Column: "b",
+			Table:  "child1",
+			Column: "parent_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -454,8 +363,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t2",
-			Column: "a",
+			Table:  "employee_log",
+			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -467,8 +376,34 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t2",
-			Column: "b",
+			Table:  "employee_log",
+			Column: "employee_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employee_log",
+			Column: "action",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "employee_log",
+			Column: "change_time",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -545,7 +480,7 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "container_status",
+			Table:  "tablewithcount",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
@@ -558,8 +493,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t3",
-			Column: "a",
+			Table:  "t5",
+			Column: "x",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -571,8 +506,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "t3",
-			Column: "b",
+			Table:  "t5",
+			Column: "y",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -584,151 +519,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "orders",
-			Column: "order_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "orders",
-			Column: "product_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "orders",
-			Column: "order_date",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_shipping",
-			Column: "shipping_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_shipping",
-			Column: "order_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_shipping",
-			Column: "product_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "order_shipping",
-			Column: "shipping_date",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "shipping_status",
-			Column: "status_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "shipping_status",
-			Column: "order_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "shipping_status",
-			Column: "product_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "shipping_status",
-			Column: "status",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "shipping_status",
-			Column: "status_date",
+			Table:  "t5",
+			Column: "z",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{

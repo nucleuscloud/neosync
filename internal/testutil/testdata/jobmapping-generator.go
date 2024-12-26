@@ -91,7 +91,7 @@ func parsePostegresStatements(sql string) ([]*Table, error) {
 // todo fix very brittle
 func parseSQLStatements(sql string) []*Table {
 	lines := strings.Split(sql, "\n")
-	tableColumnsMap := make(map[string][]string)
+	tableColumnsMap := make(map[string][]*Column)
 	var currentTable string
 
 	reCreateTable := regexp.MustCompile(`CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)\s*\.\s*(\w+)\s*\(`)
@@ -110,7 +110,14 @@ func parseSQLStatements(sql string) []*Table {
 				if slices.Contains([]string{"primary key", "constraint", "key", "unique", "primary", "alter"}, strings.ToLower(matches[1])) {
 					continue
 				}
-				tableColumnsMap[currentTable] = append(tableColumnsMap[currentTable], columnName)
+				isGenerated := false
+				if strings.Contains(line, "GENERATED ALWAYS AS") {
+					isGenerated = true
+				}
+				tableColumnsMap[currentTable] = append(tableColumnsMap[currentTable], &Column{
+					Name:        columnName,
+					IsGenerated: isGenerated,
+				})
 			} else if strings.HasPrefix(line, "PRIMARY KEY") || strings.HasPrefix(line, "CONSTRAINT") || strings.HasPrefix(line, "UNIQUE") || strings.HasPrefix(line, "KEY") || strings.HasPrefix(line, "ENGINE") || strings.HasPrefix(line, ")") {
 				// Ignore key constraints and end of table definition
 				if strings.HasPrefix(line, ")") {
@@ -121,15 +128,9 @@ func parseSQLStatements(sql string) []*Table {
 	}
 	res := []*Table{}
 	for table, cols := range tableColumnsMap {
-		tableCols := []*Column{}
-		for _, c := range cols {
-			tableCols = append(tableCols, &Column{
-				Name: c,
-			})
-		}
 		res = append(res, &Table{
 			Name:    table,
-			Columns: tableCols,
+			Columns: cols,
 		})
 	}
 

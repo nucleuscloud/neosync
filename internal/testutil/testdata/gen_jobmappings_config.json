@@ -45,6 +45,11 @@
 		"driver": "mysql"
 	},
 	{
+		"folder": "mysql/composite-keys",
+		"sql_file": "create-tables.sql",
+		"driver": "mysql"
+	},
+	{
 		"folder": "mysql/edgecases",
 		"sql_file": "create-tables.sql",
 		"driver": "mysql"

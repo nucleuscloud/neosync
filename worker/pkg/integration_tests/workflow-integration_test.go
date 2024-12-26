@@ -128,6 +128,11 @@ func Test_Workflow(t *testing.T) {
 			test_mysql_edgecases(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("composite_keys", func(t *testing.T) {
+			t.Parallel()
+			test_mysql_composite_keys(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
 			if err != nil {

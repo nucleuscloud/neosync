@@ -13,6 +13,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	mysql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
+	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
@@ -232,10 +233,6 @@ func test_mysql_edgecases(
 		{table: "employee_log", rowCount: 5},
 		{table: "custom_table", rowCount: 5},
 		{table: "tablewithcount", rowCount: 5},
-		{table: "order_details", rowCount: 10},
-		{table: "orders", rowCount: 10},
-		{table: "order_shipping", rowCount: 10},
-		{table: "shipping_status", rowCount: 10},
 	}
 
 	// check schema1
@@ -254,6 +251,72 @@ func test_mysql_edgecases(
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema, schema2})
+	require.NoError(t, err)
+}
+
+func test_mysql_composite_keys(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *tcworkflow.TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := "mysqlcompositekeys"
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return mysql.Source.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"composite-keys/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return mysql.Target.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"composite-keys/create-tables.sql"}, schema)
+	})
+	err := errgrp.Wait()
+	require.NoError(t, err)
+
+	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
+
+	mappings := mysql_composite_keys.GetDefaultSyncJobMappings(schema)
+
+	job := createMysqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mysql_composite_keys",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:   true,
+			InitSchema: false,
+		},
+	})
+
+	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_composite_keys")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql_composite_keys")
+
+	expectedResults := []struct {
+		table    string
+		rowCount int
+	}{
+		{table: "order_details", rowCount: 10},
+		{table: "orders", rowCount: 10},
+		{table: "order_shipping", rowCount: 10},
+		{table: "shipping_status", rowCount: 10},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mysql.Target.GetTableRowCount(ctx, schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_composite_keys schema: %s Table: %s", schema, expected.table))
+	}
+
+	// tear down
+	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
 	require.NoError(t, err)
 }
 
