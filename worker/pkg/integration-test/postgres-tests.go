@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -21,7 +21,6 @@ import (
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -124,7 +123,7 @@ func test_postgres_types(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -154,7 +153,7 @@ func test_postgres_types(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: all_types")
@@ -190,7 +189,7 @@ func test_postgres_primary_key_transformations(
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	redis *tcredis.RedisTestContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -257,7 +256,7 @@ func test_postgres_primary_key_transformations(
 		VirtualForeignKeys: pg_humanresources.GetVirtualForeignKeys(schema),
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithRedis(redis.URL))
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithRedis(redis.URL))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: primary_key_transformations")
@@ -304,7 +303,7 @@ func test_postgres_edgecases(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -336,7 +335,7 @@ func test_postgres_edgecases(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: edgecases")
@@ -375,7 +374,7 @@ func test_postgres_virtual_foreign_keys(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -423,7 +422,7 @@ func test_postgres_virtual_foreign_keys(
 		VirtualForeignKeys: slices.Concat(virtualForeignKeys, subsetVirtualForeignKeys),
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: virtual-foreign-keys")
@@ -467,7 +466,7 @@ func test_postgres_javascript_transformers(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -504,7 +503,7 @@ func test_postgres_javascript_transformers(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: javascript-transformers")
@@ -618,7 +617,7 @@ func test_postgres_skip_foreign_keys_violations(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -651,7 +650,7 @@ func test_postgres_skip_foreign_keys_violations(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
@@ -688,7 +687,7 @@ func test_postgres_foreign_keys_violations_error(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -721,7 +720,7 @@ func test_postgres_foreign_keys_violations_error(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: foreign-keys-violations-error")
 	err = testworkflow.TestEnv.GetWorkflowError()
@@ -737,7 +736,7 @@ func test_postgres_subsetting(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -780,7 +779,7 @@ func test_postgres_subsetting(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
@@ -832,7 +831,7 @@ func test_postgres_generate_workflow(
 	ctx context.Context,
 	postgres *tcpostgres.PostgresTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	destConn *mgmtv1alpha1.Connection,
 ) {
@@ -897,7 +896,7 @@ func test_postgres_generate_workflow(
 	}))
 	require.NoError(t, err)
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.Msg.GetJob().GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: generate")

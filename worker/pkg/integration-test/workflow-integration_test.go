@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +32,7 @@ func Test_Workflow(t *testing.T) {
 
 	connclient := neosyncApi.OSSUnauthenticatedLicensedClients.Connections()
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.OSSUnauthenticatedLicensedClients.Users())
-	dbManagers := tcworkflow.NewTestDatabaseManagers(t)
+	dbManagers := NewTestDatabaseManagers(t)
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Log("Starting postgres tests")
@@ -46,7 +45,7 @@ func Test_Workflow(t *testing.T) {
 		destConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-dest", postgres.Target.URL)
 
 		// Sync workflow tests
-		t.Run("all_types", func(t *testing.T) {
+		t.Run("types", func(t *testing.T) {
 			t.Parallel()
 			test_postgres_types(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
@@ -118,7 +117,7 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateMysqlConnection(ctx, t, connclient, accountId, "mysql-source", mysql.Source.URL)
 		destConn := tcneosyncapi.CreateMysqlConnection(ctx, t, connclient, accountId, "mysql-dest", mysql.Target.URL)
 
-		t.Run("all_types", func(t *testing.T) {
+		t.Run("types", func(t *testing.T) {
 			t.Parallel()
 			test_mysql_types(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
@@ -151,7 +150,7 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateMssqlConnection(ctx, t, connclient, accountId, "mssql-source", mssql.Source.URL)
 		destConn := tcneosyncapi.CreateMssqlConnection(ctx, t, connclient, accountId, "mssql-dest", mssql.Target.URL)
 
-		t.Run("all_types", func(t *testing.T) {
+		t.Run("types", func(t *testing.T) {
 			t.Parallel()
 			test_mssql_types(t, ctx, mssql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
@@ -189,7 +188,7 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, connclient, accountId, "dynamo-source", dynamo.Source.URL, dynamo.Source.Credentials)
 		destConn := tcneosyncapi.CreateDynamoDBConnection(ctx, t, connclient, accountId, "dynamo-dest", dynamo.Target.URL, dynamo.Target.Credentials)
 
-		t.Run("all_types", func(t *testing.T) {
+		t.Run("types", func(t *testing.T) {
 			t.Parallel()
 			test_dynamodb_alltypes(t, ctx, dynamo, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
@@ -223,7 +222,7 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreateMongodbConnection(ctx, t, connclient, accountId, "mongodb-source", mongodb.Source.URL)
 		destConn := tcneosyncapi.CreateMongodbConnection(ctx, t, connclient, accountId, "mongodb-dest", mongodb.Target.URL)
 
-		t.Run("all_types", func(t *testing.T) {
+		t.Run("types", func(t *testing.T) {
 			t.Parallel()
 			test_mongodb_alltypes(t, ctx, mongodb, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})

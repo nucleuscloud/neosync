@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 	mysql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
 	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -107,7 +106,7 @@ func test_mysql_types(
 	ctx context.Context,
 	mysql *tcmysql.MysqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -138,7 +137,7 @@ func test_mysql_types(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_all_types")
@@ -170,7 +169,7 @@ func test_mysql_edgecases(
 	ctx context.Context,
 	mysql *tcmysql.MysqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -206,7 +205,7 @@ func test_mysql_edgecases(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_edgecases")
@@ -259,7 +258,7 @@ func test_mysql_composite_keys(
 	ctx context.Context,
 	mysql *tcmysql.MysqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -292,7 +291,7 @@ func test_mysql_composite_keys(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_composite_keys")

@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	tcdynamodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/dynamodb"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -72,7 +71,7 @@ func test_dynamodb_alltypes(
 	ctx context.Context,
 	dynamo *tcdynamodb.DynamoDBTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -124,7 +123,7 @@ func test_dynamodb_alltypes(
 		JobMappings: mappings,
 	}, tableName, tableName)
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: all_types")
@@ -146,7 +145,7 @@ func test_dynamodb_subset(
 	ctx context.Context,
 	dynamo *tcdynamodb.DynamoDBTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -202,7 +201,7 @@ func test_dynamodb_subset(
 		JobMappings: mappings,
 	}, tableName, tableName)
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: subset")
@@ -224,7 +223,7 @@ func test_dynamodb_default_transformers(
 	ctx context.Context,
 	dynamo *tcdynamodb.DynamoDBTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -304,7 +303,7 @@ func test_dynamodb_default_transformers(
 		JobMappings: mappings,
 	}, tableName, tableName)
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: default_transformers")
@@ -329,7 +328,7 @@ func cleanupDynamodbTables(ctx context.Context, dynamo *tcdynamodb.DynamoDBTestS
 	return errgrp.Wait()
 }
 
-func createDynamodbTables(ctx context.Context, dynamo *tcdynamodb.DynamoDBTestSyncContainer, tableName string, primaryKey string) error {
+func createDynamodbTables(ctx context.Context, dynamo *tcdynamodb.DynamoDBTestSyncContainer, tableName, primaryKey string) error {
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error { return dynamo.Source.SetupDynamoDbTable(errctx, tableName, primaryKey) })
 	errgrp.Go(func() error { return dynamo.Target.SetupDynamoDbTable(errctx, tableName, primaryKey) })

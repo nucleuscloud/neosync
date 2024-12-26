@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
 	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -106,7 +105,7 @@ func test_mssql_types(
 	ctx context.Context,
 	mssql *tcmssql.MssqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -132,7 +131,7 @@ func test_mssql_types(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithValidEELicense())
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_all_types")
@@ -165,7 +164,7 @@ func test_mssql_cross_schema_foreign_keys(
 	ctx context.Context,
 	mssql *tcmssql.MssqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -193,7 +192,7 @@ func test_mssql_cross_schema_foreign_keys(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithValidEELicense())
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_cross_schema_foreign_keys")
@@ -235,7 +234,7 @@ func test_mssql_subset(
 	ctx context.Context,
 	mssql *tcmssql.MssqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -279,7 +278,7 @@ func test_mssql_subset(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithValidEELicense())
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_subset")
@@ -321,7 +320,7 @@ func test_mssql_identity_columns(
 	ctx context.Context,
 	mssql *tcmssql.MssqlTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -368,7 +367,7 @@ func test_mssql_identity_columns(
 		},
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, tcworkflow.WithValidEELicense())
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithValidEELicense())
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mssql_identity_columns")

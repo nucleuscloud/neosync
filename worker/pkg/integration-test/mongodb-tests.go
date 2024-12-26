@@ -1,4 +1,4 @@
-package integration_tests
+package integrationtest
 
 import (
 	"context"
@@ -17,7 +17,6 @@ import (
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	tcmongodb "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mongodb"
-	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 )
 
 func createMongodbSyncJob(
@@ -62,7 +61,7 @@ func test_mongodb_alltypes(
 	ctx context.Context,
 	mongo *tcmongodb.MongoDBTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -107,7 +106,7 @@ func test_mongodb_alltypes(
 		JobMappings: mappings,
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mongo_all_types")
@@ -135,7 +134,7 @@ func test_mongodb_transform(
 	ctx context.Context,
 	mongo *tcmongodb.MongoDBTestSyncContainer,
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
-	dbManagers *tcworkflow.TestDatabaseManagers,
+	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
@@ -228,7 +227,7 @@ func test_mongodb_transform(
 		JobMappings: mappings,
 	})
 
-	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mongo_transform")
