@@ -12,6 +12,45 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
+			Table:  "countries",
+			Column: "country_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "countries",
+			Column: "country_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "countries",
+			Column: "region_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "departments",
 			Column: "department_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -40,6 +79,71 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 			Schema: schema,
 			Table:  "departments",
 			Column: "location_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "dependents",
+			Column: "dependent_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "dependents",
+			Column: "first_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "dependents",
+			Column: "last_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "dependents",
+			Column: "relationship",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "dependents",
+			Column: "employee_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -181,71 +285,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "dependents",
-			Column: "dependent_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "dependents",
-			Column: "first_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "dependents",
-			Column: "last_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "dependents",
-			Column: "relationship",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "dependents",
-			Column: "employee_id",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
 			Table:  "generated_table",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -324,8 +363,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "regions",
-			Column: "region_id",
+			Table:  "jobs",
+			Column: "job_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -337,8 +376,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "regions",
-			Column: "region_name",
+			Table:  "jobs",
+			Column: "job_title",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -350,8 +389,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "countries",
-			Column: "country_id",
+			Table:  "jobs",
+			Column: "min_salary",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -363,21 +402,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "countries",
-			Column: "country_name",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "countries",
-			Column: "region_id",
+			Table:  "jobs",
+			Column: "max_salary",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -467,8 +493,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "jobs",
-			Column: "job_id",
+			Table:  "regions",
+			Column: "region_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{
@@ -480,34 +506,8 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
-			Table:  "jobs",
-			Column: "job_title",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "jobs",
-			Column: "min_salary",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config:
-					&mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					},
-			},
-		},
-		{
-			Schema: schema,
-			Table:  "jobs",
-			Column: "max_salary",
+			Table:  "regions",
+			Column: "region_name",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config:
 					&mgmtv1alpha1.TransformerConfig{

@@ -134,6 +134,11 @@ func parseSQLStatements(sql string) []*Table {
 		})
 	}
 
+	// Sort tables by name
+	slices.SortFunc(res, func(a, b *Table) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+
 	return res
 }
 
