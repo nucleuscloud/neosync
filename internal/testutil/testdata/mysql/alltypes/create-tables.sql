@@ -92,7 +92,7 @@ INSERT INTO all_data_types (
 INSERT INTO all_data_types (id) VALUES (DEFAULT);
 
 
-CREATE TABLE json_data (
+CREATE TABLE IF NOT EXISTS json_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     data JSON
 );

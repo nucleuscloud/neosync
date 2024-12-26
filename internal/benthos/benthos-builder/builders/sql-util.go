@@ -1,6 +1,7 @@
 package benthosbuilder_builders
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -56,6 +57,10 @@ func areMappingsSubsetOfSchemas(
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
+	jsonF, _ := json.MarshalIndent(tableColMappings, "", " ")
+	fmt.Printf("\n\n tableColMappings; %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(groupedSchemas, "", " ")
+	fmt.Printf("\n\n groupedSchemas: %s \n\n", string(jsonF))
 
 	for key := range groupedSchemas {
 		// For this method, we only care about the schemas+tables that we currently have mappings for

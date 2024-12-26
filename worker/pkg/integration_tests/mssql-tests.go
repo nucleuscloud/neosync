@@ -2,7 +2,9 @@ package integration_tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -240,19 +242,28 @@ func test_mssql_subset(
 ) {
 	testdataFolder := mssqlTestdataFolder + "/commerce"
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
-	err := mssql.Source.CreateSchemas(ctx, []string{"sales", "production"})
+	err := mssql.Source.CreateSchemas(ctx, []string{"sales_subset", "production_subset"})
 	require.NoError(t, err)
-	err = mssql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+	err = createCommerceTables(ctx, mssql.Source, &testdataFolder, []string{"create-tables.sql"}, "subset")
 	require.NoError(t, err)
-	err = mssql.Target.CreateSchemas(ctx, []string{"sales", "production"})
+	err = mssql.Target.CreateSchemas(ctx, []string{"sales_subset", "production_subset"})
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
 
 	mappings := mssql_commerce.GetDefaultSyncJobMappings()
+	updatedMappings := []*mgmtv1alpha1.JobMapping{}
+	for _, jm := range mappings {
+		updatedMappings = append(updatedMappings, &mgmtv1alpha1.JobMapping{
+			Schema:      fmt.Sprintf("%s_subset", jm.Schema),
+			Table:       jm.Table,
+			Column:      jm.Column,
+			Transformer: jm.Transformer,
+		})
+	}
 
 	subsetMappings := map[string]string{
-		"production.products": "product_id in (1, 4, 8, 6)",
-		"sales.customers":     "customer_id in (1, 4, 8, 6)",
+		"production_subset.products": "product_id in (1, 4, 8, 6)",
+		"sales_subset.customers":     "customer_id in (1, 4, 8, 6)",
 	}
 
 	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
@@ -260,7 +271,7 @@ func test_mssql_subset(
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
 		JobName:     "mssql_subset",
-		JobMappings: mappings,
+		JobMappings: updatedMappings,
 		SubsetMap:   subsetMappings,
 		JobOptions: &TestJobOptions{
 			Truncate:                      true,
@@ -281,16 +292,16 @@ func test_mssql_subset(
 		table    string
 		rowCount int
 	}{
-		{schema: "production", table: "categories", rowCount: 7},
-		{schema: "production", table: "brands", rowCount: 9},
-		{schema: "production", table: "products", rowCount: 4},
-		{schema: "production", table: "stocks", rowCount: 10},
-		{schema: "production", table: "identities", rowCount: 5},
-		{schema: "sales", table: "customers", rowCount: 4},
-		{schema: "sales", table: "stores", rowCount: 3},
-		{schema: "sales", table: "staffs", rowCount: 10},
-		{schema: "sales", table: "orders", rowCount: 4},
-		{schema: "sales", table: "order_items", rowCount: 2},
+		{schema: "production_subset", table: "categories", rowCount: 7},
+		{schema: "production_subset", table: "brands", rowCount: 9},
+		{schema: "production_subset", table: "products", rowCount: 4},
+		{schema: "production_subset", table: "stocks", rowCount: 10},
+		{schema: "production_subset", table: "identities", rowCount: 5},
+		{schema: "sales_subset", table: "customers", rowCount: 4},
+		{schema: "sales_subset", table: "stores", rowCount: 3},
+		{schema: "sales_subset", table: "staffs", rowCount: 10},
+		{schema: "sales_subset", table: "orders", rowCount: 4},
+		{schema: "sales_subset", table: "order_items", rowCount: 2},
 	}
 
 	for _, expected := range expectedResults {
@@ -317,11 +328,11 @@ func test_mssql_identity_columns(
 ) {
 	testdataFolder := mssqlTestdataFolder + "/commerce"
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
-	err := mssql.Source.CreateSchemas(ctx, []string{"sales", "production"})
+	err := mssql.Source.CreateSchemas(ctx, []string{"sales_identity", "production_identity"})
 	require.NoError(t, err)
-	err = mssql.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
+	err = createCommerceTables(ctx, mssql.Source, &testdataFolder, []string{"create-tables.sql"}, "identity")
 	require.NoError(t, err)
-	err = mssql.Target.CreateSchemas(ctx, []string{"sales", "production"})
+	err = mssql.Target.CreateSchemas(ctx, []string{"sales_identity", "production_identity"})
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
 
@@ -334,7 +345,7 @@ func test_mssql_identity_columns(
 			t, ok := colTypeMap[jm.Column]
 			if ok && strings.HasPrefix(t, "INTIDENTITY") {
 				updatedJobmappings = append(updatedJobmappings, &mgmtv1alpha1.JobMapping{
-					Schema:      jm.Schema,
+					Schema:      fmt.Sprintf("%s_identity", jm.Schema),
 					Table:       jm.Table,
 					Column:      jm.Column,
 					Transformer: getDefaultTransformerConfig(),
@@ -342,8 +353,12 @@ func test_mssql_identity_columns(
 				continue
 			}
 		}
+		jm.Schema = fmt.Sprintf("%s_identity", jm.Schema)
 		updatedJobmappings = append(updatedJobmappings, jm)
 	}
+
+	jsonF, _ := json.MarshalIndent(updatedJobmappings, "", " ")
+	fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
 		AccountId:   accountId,
@@ -352,7 +367,7 @@ func test_mssql_identity_columns(
 		JobName:     "mssql_identity_columns",
 		JobMappings: updatedJobmappings,
 		JobOptions: &TestJobOptions{
-			Truncate:   true,
+			// Truncate:   true,
 			InitSchema: true,
 		},
 	})
@@ -369,16 +384,16 @@ func test_mssql_identity_columns(
 		table    string
 		rowCount int
 	}{
-		{schema: "production", table: "categories", rowCount: 7},
-		{schema: "production", table: "brands", rowCount: 9},
-		{schema: "production", table: "products", rowCount: 18},
-		{schema: "production", table: "stocks", rowCount: 32},
-		{schema: "production", table: "identities", rowCount: 5},
-		{schema: "sales", table: "customers", rowCount: 15},
-		{schema: "sales", table: "stores", rowCount: 3},
-		{schema: "sales", table: "staffs", rowCount: 10},
-		{schema: "sales", table: "orders", rowCount: 13},
-		{schema: "sales", table: "order_items", rowCount: 26},
+		{schema: "production_identity", table: "categories", rowCount: 7},
+		{schema: "production_identity", table: "brands", rowCount: 9},
+		{schema: "production_identity", table: "products", rowCount: 18},
+		{schema: "production_identity", table: "stocks", rowCount: 32},
+		{schema: "production_identity", table: "identities", rowCount: 5},
+		{schema: "sales_identity", table: "customers", rowCount: 15},
+		{schema: "sales_identity", table: "stores", rowCount: 3},
+		{schema: "sales_identity", table: "staffs", rowCount: 10},
+		{schema: "sales_identity", table: "orders", rowCount: 13},
+		{schema: "sales_identity", table: "order_items", rowCount: 26},
 	}
 
 	for _, expected := range expectedResults {
@@ -402,4 +417,26 @@ func getDefaultTransformerConfig() *mgmtv1alpha1.JobMappingTransformer {
 			},
 		},
 	}
+}
+
+func createCommerceTables(ctx context.Context, mssql *tcmssql.MssqlTestContainer, folder *string, files []string, schemaSuffix string) error {
+	for _, file := range files {
+		filePath := file
+		if folder != nil && *folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", *folder, file)
+		}
+		sqlStr, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+
+		updatedSql := strings.ReplaceAll(string(sqlStr), "sales.", fmt.Sprintf("sales_%s.", schemaSuffix))
+		updatedSql = strings.ReplaceAll(updatedSql, "production.", fmt.Sprintf("production_%s.", schemaSuffix))
+		fmt.Println(updatedSql)
+		_, err = mssql.DB.ExecContext(ctx, updatedSql)
+		if err != nil {
+			return fmt.Errorf("unable to exec SQL when running MsSQL SQL files: %w", err)
+		}
+	}
+	return nil
 }

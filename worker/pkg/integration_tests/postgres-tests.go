@@ -23,6 +23,7 @@ import (
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -129,9 +130,12 @@ func test_postgres_types(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	alltypesSchema := "alltypes"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{alltypesSchema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+	})
+	errgrp.Go(func() error { return postgres.Target.CreateSchemas(errctx, []string{alltypesSchema}) })
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -176,9 +180,7 @@ func test_postgres_types(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{alltypesSchema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{alltypesSchema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
 	require.NoError(t, err)
 }
 
@@ -193,12 +195,15 @@ func test_postgres_primary_key_transformations(
 	sourceConn, destConn *mgmtv1alpha1.Connection,
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
-	schema := "primary_$key"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"uuids/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
+	schema := "primary_$key_sdef"
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"uuids/create-tables.sql", "humanresources/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -290,9 +295,7 @@ func test_postgres_primary_key_transformations(
 	require.Emptyf(t, keys, "Redis keys should be empty")
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -307,9 +310,14 @@ func test_postgres_edgecases(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "CaPiTaL"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"edgecases/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"edgecases/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.CreateSchemas(errctx, []string{schema})
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -358,9 +366,7 @@ func test_postgres_edgecases(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -376,14 +382,21 @@ func test_postgres_virtual_foreign_keys(
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "vfk_hr"
 	subsetSchema := "vfk_hr_subset"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql"}, subsetSchema)
-	require.NoError(t, err)
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"humanresources/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"humanresources/create-tables.sql"}, subsetSchema)
+	})
 	// only create foreign key constraints in target to test that virtual foreign keys are correct
-	err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, subsetSchema)
+	errgrp.Go(func() error {
+		return postgres.Target.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, subsetSchema)
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -445,9 +458,7 @@ func test_postgres_virtual_foreign_keys(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -463,11 +474,17 @@ func test_postgres_javascript_transformers(
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	transformersSchema := "transformers"
 	generatorsSchema := "generators"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"transformers/create-tables.sql"}, transformersSchema)
-	require.NoError(t, err)
-	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"transformers/create-tables.sql"}, generatorsSchema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{transformersSchema, generatorsSchema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"transformers/create-tables.sql"}, transformersSchema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"transformers/create-tables.sql"}, generatorsSchema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.CreateSchemas(errctx, []string{transformersSchema, generatorsSchema})
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -510,9 +527,7 @@ func test_postgres_javascript_transformers(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{transformersSchema, generatorsSchema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{transformersSchema, generatorsSchema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{transformersSchema, generatorsSchema})
 	require.NoError(t, err)
 }
 
@@ -609,9 +624,14 @@ func test_postgres_skip_foreign_keys_violations(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "fk_violations"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.CreateSchemas(errctx, []string{schema})
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -659,9 +679,7 @@ func test_postgres_skip_foreign_keys_violations(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -676,9 +694,14 @@ func test_postgres_foreign_keys_violations_error(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "fk_violations_error"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"foreignkey-violations/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.CreateSchemas(errctx, []string{schema})
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -705,9 +728,7 @@ func test_postgres_foreign_keys_violations_error(
 	require.Error(t, err, "Received Temporal Workflow Error: foreign-keys-violations-error")
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -722,9 +743,14 @@ func test_postgres_subsetting(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "subsetting"
-	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"subsetting/create-tables.sql"}, schema)
-	require.NoError(t, err)
-	err = postgres.Target.CreateSchemas(ctx, []string{schema})
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"subsetting/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return postgres.Target.CreateSchemas(errctx, []string{schema})
+	})
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -797,9 +823,7 @@ func test_postgres_subsetting(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }
 
@@ -895,8 +919,13 @@ func test_postgres_generate_workflow(
 	}
 
 	// tear down
-	err = postgres.Source.DropSchemas(ctx, []string{schema})
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
-	err = postgres.Target.DropSchemas(ctx, []string{schema})
-	require.NoError(t, err)
+}
+
+func cleanupPostgresSchemas(ctx context.Context, postgres *tcpostgres.PostgresTestSyncContainer, schemas []string) error {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error { return postgres.Source.DropSchemas(errctx, schemas) })
+	errgrp.Go(func() error { return postgres.Target.DropSchemas(errctx, schemas) })
+	return errgrp.Wait()
 }

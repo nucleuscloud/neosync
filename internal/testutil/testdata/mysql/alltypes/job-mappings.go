@@ -12,6 +12,32 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
 			Schema: schema,
+			Table:  "json_data",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "json_data",
+			Column: "data",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "all_data_types",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{

@@ -16,6 +16,7 @@ import (
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	tcworkflow "github.com/nucleuscloud/neosync/worker/pkg/integration-test"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -111,10 +112,15 @@ func test_mysql_types(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	alltypesSchema := "alltypes"
-	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return mysql.Source.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+	})
+	errgrp.Go(func() error { return mysql.Target.CreateDatabases(errctx, []string{alltypesSchema}) })
+	err := errgrp.Wait()
 	require.NoError(t, err)
-	err = mysql.Target.CreateDatabases(ctx, []string{alltypesSchema})
-	require.NoError(t, err)
+
 	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
 
 	alltypesMappings := mysql_alltypes.GetDefaultSyncJobMappings(alltypesSchema)
@@ -154,9 +160,7 @@ func test_mysql_types(
 	}
 
 	// tear down
-	err = mysql.Source.DropDatabases(ctx, []string{alltypesSchema})
-	require.NoError(t, err)
-	err = mysql.Target.DropDatabases(ctx, []string{alltypesSchema})
+	err = cleanupMysqlDatabases(ctx, mysql, []string{alltypesSchema})
 	require.NoError(t, err)
 }
 
@@ -171,13 +175,19 @@ func test_mysql_edgecases(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "mysqledgecases"
-	schema2 := "mysqledgecases2"
-	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"edgecases/create-tables.sql"}, schema)
+	schema2 := "mysqledgecasesother"
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return mysql.Source.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"edgecases/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return mysql.Source.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"edgecases/create-tables.sql"}, schema2)
+	})
+	errgrp.Go(func() error { return mysql.Target.CreateDatabases(errctx, []string{schema, schema2}) })
+	err := errgrp.Wait()
 	require.NoError(t, err)
-	err = mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"edgecases/create-tables.sql"}, schema2)
-	require.NoError(t, err)
-	err = mysql.Target.CreateDatabases(ctx, []string{schema, schema2})
-	require.NoError(t, err)
+
 	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
 
 	mappings := mysql_edgecases.GetDefaultSyncJobMappings(schema)
@@ -187,7 +197,7 @@ func test_mysql_edgecases(
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
-		JobName:     "mysql_all_types",
+		JobName:     "mysql_edgecases",
 		JobMappings: slices.Concat(mappings, mappings2),
 		JobOptions: &TestJobOptions{
 			Truncate:   true,
@@ -198,9 +208,9 @@ func test_mysql_edgecases(
 	testworkflow := tcworkflow.NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
-	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_all_types")
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_edgecases")
 	err = testworkflow.TestEnv.GetWorkflowError()
-	require.NoError(t, err, "Received Temporal Workflow Error: mysql_all_types")
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql_edgecases")
 
 	expectedResults := []struct {
 		table    string
@@ -243,8 +253,13 @@ func test_mysql_edgecases(
 	}
 
 	// tear down
-	err = mysql.Source.DropDatabases(ctx, []string{schema, schema2})
+	err = cleanupMysqlDatabases(ctx, mysql, []string{schema, schema2})
 	require.NoError(t, err)
-	err = mysql.Target.DropDatabases(ctx, []string{schema, schema2})
-	require.NoError(t, err)
+}
+
+func cleanupMysqlDatabases(ctx context.Context, mysql *tcmysql.MysqlTestSyncContainer, databases []string) error {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error { return mysql.Source.DropDatabases(errctx, databases) })
+	errgrp.Go(func() error { return mysql.Target.DropDatabases(errctx, databases) })
+	return errgrp.Wait()
 }
