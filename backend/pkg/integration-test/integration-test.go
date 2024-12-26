@@ -160,17 +160,20 @@ func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
 		On(
 			"DoesAccountHaveNamespace", mock.Anything, mock.Anything, mock.Anything,
 		).
-		Return(true, nil)
+		Return(true, nil).
+		Once()
 	s.Mocks.TemporalClientManager.
 		On(
 			"GetSyncJobTaskQueue", mock.Anything, mock.Anything, mock.Anything,
 		).
-		Return("sync-job", nil)
+		Return("sync-job", nil).
+		Once()
 	s.Mocks.TemporalClientManager.
 		On(
 			"CreateSchedule", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		).
-		Return(returnId, nil)
+		Return(returnId, nil).
+		Once()
 }
 
 func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
