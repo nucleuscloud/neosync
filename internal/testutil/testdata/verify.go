@@ -101,9 +101,13 @@ func VerifySQLTableColumnValues(
 	// Fetch rows from both databases
 	sourceRows, err := fetchSQLRows(ctx, source, schema, table, driver, idCol)
 	require.NoErrorf(t, err, "Error fetching source rows from table %s", table)
+	jsonF, _ := json.MarshalIndent(sourceRows, "", " ")
+	fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 	targetRows, err := fetchSQLRows(ctx, target, schema, table, driver, idCol)
 	require.NoErrorf(t, err, "Error fetching target rows from table %s", table)
+	jsonF, _ = json.MarshalIndent(targetRows, "", " ")
+	fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Limit(0)
 	sql, _, err := query.ToSQL()

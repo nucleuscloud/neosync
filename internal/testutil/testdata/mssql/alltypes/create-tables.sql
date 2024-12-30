@@ -1,4 +1,5 @@
 CREATE TABLE neo_schema.alldatatypes (
+    id INT IDENTITY (1, 1) PRIMARY KEY,
     -- Exact numerics
     col_bigint BIGINT,
     col_numeric NUMERIC(18,0),
@@ -32,10 +33,10 @@ CREATE TABLE neo_schema.alldatatypes (
     col_nvarchar NVARCHAR(50),
     col_ntext NTEXT,
 
-    -- Binary strings BROKEN
-    -- col_binary BINARY(10),
-    -- col_varbinary VARBINARY(50),
-    -- col_image IMAGE,
+    -- Binary strings 
+    col_binary BINARY(10),
+    col_varbinary VARBINARY(50),
+    -- col_image IMAGE, BROKEN
 
     -- Other data types 
     col_uniqueidentifier UNIQUEIDENTIFIER,
@@ -62,7 +63,8 @@ INSERT INTO neo_schema.alldatatypes (
     -- Unicode character strings
     col_nchar, col_nvarchar, col_ntext,
     -- -- Binary strings
-    -- col_binary, col_varbinary, col_image,
+    col_binary, col_varbinary, 
+    -- col_image,
     -- Other data types
     col_uniqueidentifier,
     col_xml
@@ -105,12 +107,12 @@ VALUES (
     N'This is an NTEXT column', -- NTEXT
     
     -- -- Binary strings
-    -- 0x0123456789, -- BINARY(10)
-    -- 0x0123456789ABCDEF, -- VARBINARY(50)
+    CAST('NEOSYNC' AS binary(10)), -- BINARY(10)
+    CAST('NEOSYNC' AS varbinary(50)), -- VARBINARY(50)
     -- 0x0123456789ABCDEF0123456789ABCDEF, -- IMAGE
     
     -- Other data types
-   '123e4567-e89b-12d3-a456-426614174000', -- UNIQUEIDENTIFIER
+   '707f085c-254e-4237-a9fc-5bf05d4298b8', -- UNIQUEIDENTIFIER
     '<root><element>XML Data</element></root>' -- XML
     -- geography::Point(47.65100, -122.34900, 4326), -- GEOGRAPHY
     -- geometry::STGeomFromText('POINT (3 4)', 0), -- GEOMETRY

@@ -103,6 +103,18 @@ func NewBitsFromMysql(value any, opts ...NeosyncTypeOption) (*Bits, error) {
 	return bits, nil
 }
 
+func NewBitsFromMssql(value any, opts ...NeosyncTypeOption) (*Bits, error) {
+	bits, err := NewBits(opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = bits.ScanMssql(value)
+	if err != nil {
+		return nil, err
+	}
+	return bits, nil
+}
+
 func NewBits(opts ...NeosyncTypeOption) (*Bits, error) {
 	bits := &Bits{}
 	bits.Neosync.TypeId = NeosyncBitsId

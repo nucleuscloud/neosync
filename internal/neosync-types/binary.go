@@ -1,5 +1,7 @@
 package neosynctypes
 
+import "fmt"
+
 type Binary struct {
 	BaseType    `json:",inline"`
 	JsonScanner `json:"-"`
@@ -41,7 +43,11 @@ func (b *Binary) ScanMssql(value any) error {
 }
 
 func (b *Binary) ValueMssql() (any, error) {
-	return b.ValueMysql()
+	if b == nil || b.Bytes == nil {
+		return nil, nil
+	}
+	fmt.Println("BINARY ValueMssql", b.Bytes, len(b.Bytes))
+	return b.Bytes, nil
 }
 
 func (b *Binary) ScanJson(value any) error {
@@ -89,6 +95,18 @@ func NewBinaryFromMysql(value any, opts ...NeosyncTypeOption) (*Binary, error) {
 		return nil, err
 	}
 	err = binary.ScanMysql(value)
+	if err != nil {
+		return nil, err
+	}
+	return binary, nil
+}
+
+func NewBinaryFromMssql(value any, opts ...NeosyncTypeOption) (*Binary, error) {
+	binary, err := NewBinary(opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = binary.ScanMssql(value)
 	if err != nil {
 		return nil, err
 	}

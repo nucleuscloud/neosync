@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
@@ -110,6 +111,7 @@ func transformNeosyncToMssql(
 		if !isColumnInList(col, columns) {
 			continue
 		}
+		fmt.Println("col", col, "val", val, reflect.TypeOf(val))
 
 		colDefaults := columnDefaultProperties[col]
 		// sqlserver doesn't support default values. must be removed
@@ -133,6 +135,7 @@ func getMssqlValue(value any) (any, error) {
 		return nil, err
 	}
 	if isNeosyncValue {
+		fmt.Println("isNeosyncValue", value)
 		return value, nil
 	}
 	if gotypeutil.IsMap(value) {
