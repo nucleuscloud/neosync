@@ -235,11 +235,64 @@ func (dt *NeosyncDateTime) ValueMysql() (any, error) {
 }
 
 func (dt *NeosyncDateTime) ScanMssql(value any) error {
-	return dt.ScanMysql(value)
+	if value == nil {
+		return nil
+	}
+
+	switch v := value.(type) {
+	case time.Time:
+		dt.Year = v.Year()
+		dt.Month = int(v.Month())
+		dt.Day = v.Day()
+		dt.Hour = v.Hour()
+		dt.Minute = v.Minute()
+		dt.Second = v.Second()
+		dt.Nano = v.Nanosecond()
+		dt.TimeZone = v.Format("-07:00")
+		return nil
+	default:
+		return fmt.Errorf("unsupported type for DateTime: %T", value)
+	}
 }
 
 func (dt *NeosyncDateTime) ValueMssql() (any, error) {
-	return dt.ValueMysql()
+	year := dt.Year
+
+	loc := time.UTC
+	if dt.TimeZone != "" {
+		// Handle timezone offset format like "+02:00"
+		offset, err := time.Parse("-07:00", dt.TimeZone)
+		if err == nil {
+			// Convert the parsed time's UTC offset into seconds
+			_, offsetSeconds := offset.Zone()
+			loc = time.FixedZone("", offsetSeconds)
+		} else {
+			// Try loading as named timezone if not an offset
+			var tzErr error
+			loc, tzErr = time.LoadLocation(dt.TimeZone)
+			if tzErr != nil {
+				return nil, fmt.Errorf("invalid timezone: %w", tzErr)
+			}
+		}
+	}
+
+	t := time.Date(
+		year,
+		time.Month(dt.Month),
+		dt.Day,
+		dt.Hour,
+		dt.Minute,
+		dt.Second,
+		dt.Nano,
+		loc,
+	)
+
+	// For dates with only year/month/day, return as DATE
+	if dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0 && dt.Nano == 0 {
+		return t.Format(time.DateOnly), nil
+	}
+
+	return t, nil
 }
 
 func NewDateTimeFromMysql(value any, opts ...NeosyncTypeOption) (*NeosyncDateTime, error) {

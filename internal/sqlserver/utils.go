@@ -2,7 +2,6 @@ package sqlserver
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -81,9 +80,6 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
-
-	jsonF, _ := json.MarshalIndent(jObj, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 	return jObj, nil
 }

@@ -1,7 +1,5 @@
 package neosynctypes
 
-import "fmt"
-
 type Binary struct {
 	BaseType    `json:",inline"`
 	JsonScanner `json:"-"`
@@ -46,7 +44,6 @@ func (b *Binary) ValueMssql() (any, error) {
 	if b == nil || b.Bytes == nil {
 		return nil, nil
 	}
-	fmt.Println("BINARY ValueMssql", b.Bytes, len(b.Bytes))
 	return b.Bytes, nil
 }
 
