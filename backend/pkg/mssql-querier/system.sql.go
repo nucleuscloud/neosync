@@ -29,7 +29,15 @@ SELECT
     CASE
         WHEN c.is_computed = 1 THEN cc.definition
         ELSE NULL
-    END AS generation_expression
+    END AS generation_expression,
+     CASE 
+        WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
+        ELSE NULL 
+    END AS identity_seed,
+    CASE 
+        WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
+        ELSE NULL 
+    END AS identity_increment
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -58,6 +66,8 @@ type GetDatabaseSchemaRow struct {
 	IsIdentity             bool
 	IsComputed             bool
 	GenerationExpression   sql.NullString
+	IdentitySeed           sql.NullInt32
+	IdentityIncrement      sql.NullInt32
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -83,6 +93,8 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) 
 			&i.IsIdentity,
 			&i.IsComputed,
 			&i.GenerationExpression,
+			&i.IdentitySeed,
+			&i.IdentityIncrement,
 		); err != nil {
 			return nil, err
 		}
@@ -108,6 +120,7 @@ SELECT
     tp.name AS data_type,
     CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
          WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
+         WHEN tp.name IN ('binary', 'varbinary') AND c.max_length != -1 THEN c.max_length
          ELSE NULL
     END AS character_maximum_length,
     c.precision AS numeric_precision,

@@ -3,9 +3,7 @@ package sqlmanager_mssql
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -64,6 +62,18 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			generatedType = &row.GenerationExpression.String
 		}
 
+		var identitySeed *int
+		if row.IdentitySeed.Valid {
+			seed := int(row.IdentitySeed.Int32)
+			identitySeed = &seed
+		}
+
+		var identityIncrement *int
+		if row.IdentityIncrement.Valid {
+			increment := int(row.IdentityIncrement.Int32)
+			identityIncrement = &increment
+		}
+
 		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -77,6 +87,8 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			NumericPrecision:       numericPrecision,
 			NumericScale:           numericScale,
 			IdentityGeneration:     identityGeneration,
+			IdentitySeed:           identitySeed,
+			IdentityIncrement:      identityIncrement,
 		})
 	}
 
@@ -290,19 +302,10 @@ func BuildMssqlDeleteStatement(
 
 // Resets current identity value back to the initial count
 func BuildMssqlIdentityColumnResetStatement(
-	schema, table, identityGeneration string,
+	schema, table string, identitySeed, identityIncrement *int,
 ) string {
-	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
-	match := re.FindStringSubmatch(identityGeneration)
-	if len(match) > 1 {
-		StartValue, err := strconv.Atoi(match[1])
-		if err != nil {
-			StartValue = 0
-		}
-		if StartValue > 0 {
-			StartValue--
-		}
-		return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
+	if identitySeed != nil && identityIncrement != nil {
+		return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, *identitySeed)
 	}
 	return BuildMssqlIdentityColumnResetCurrent(schema, table)
 }

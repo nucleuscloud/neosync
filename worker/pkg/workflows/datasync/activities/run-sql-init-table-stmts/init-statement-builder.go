@@ -376,7 +376,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					for _, c := range cols {
 						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
 							schema, table := sqlmanager_shared.SplitTableKey(table)
-							identityResetStatement := sqlmanager_mssql.BuildMssqlIdentityColumnResetStatement(schema, table, *c.IdentityGeneration)
+							identityResetStatement := sqlmanager_mssql.BuildMssqlIdentityColumnResetStatement(schema, table, c.IdentitySeed, c.IdentityIncrement)
 							identityStmts = append(identityStmts, identityResetStatement)
 						}
 					}
