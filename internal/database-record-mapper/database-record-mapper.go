@@ -3,6 +3,7 @@ package databaserecordmapper
 import (
 	"fmt"
 
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
@@ -39,11 +40,11 @@ func (b *Builder[T]) MapRecordWithKeyType(record any) (map[string]any, map[strin
 
 func GetDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
 	switch dbType {
-	case "postgres":
+	case sqlmanager_shared.PostgresDriver:
 		return NewPostgresBuilder(), nil
-	case "mysql":
+	case sqlmanager_shared.MysqlDriver:
 		return NewMySQLBuilder(), nil
-	case "mssql":
+	case sqlmanager_shared.MssqlDriver:
 		return NewMSSQLBuilder(), nil
 	case "dynamodb":
 		return NewDynamoBuilder(), nil

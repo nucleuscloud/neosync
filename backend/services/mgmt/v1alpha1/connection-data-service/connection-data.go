@@ -31,10 +31,10 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 	myutil "github.com/nucleuscloud/neosync/internal/mysql"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -164,6 +164,11 @@ func (s *Service) GetConnectionDataStream(
 		}
 		defer conn.Close()
 
+		mapper, err := database_record_mapper.GetDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)
+		if err != nil {
+			return err
+		}
+
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
 		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 0)
@@ -192,7 +197,7 @@ func (s *Service) GetConnectionDataStream(
 		defer rows.Close()
 
 		for rows.Next() {
-			r, err := pgutil.SqlRowToPgTypesMap(rows)
+			r, err := mapper.MapRecord(rows)
 			if err != nil {
 				return fmt.Errorf("unable to convert postgres row to map: %w", err)
 			}

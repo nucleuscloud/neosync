@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -146,13 +146,13 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 	}
 
 	switch {
-	case pgutil.IsJsonPgDataType(datatype):
+	case strings.EqualFold(datatype, "json") || strings.EqualFold(datatype, "jsonb"):
 		bits, err := json.Marshal(value)
 		if err != nil {
 			return nil, fmt.Errorf("unable to marshal postgres json to bits: %w", err)
 		}
 		return bits, nil
-	case pgutil.IsPgArrayColumnDataType(datatype):
+	case strings.HasSuffix(datatype, "[]"):
 		if byteSlice, ok := value.([]byte); ok {
 			// this handles the case where the array is in the form {1,2,3}
 			if strings.HasPrefix(string(byteSlice), "{") {
@@ -164,7 +164,7 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 			}
 			return pgarray, nil
 		} else if gotypeutil.IsMultiDimensionalSlice(value) || gotypeutil.IsSliceOfMaps(value) {
-			return goqu.Literal(pgutil.FormatPgArrayLiteral(value, datatype)), nil
+			return goqu.Literal(formatPgArrayLiteral(value, datatype)), nil
 		} else if gotypeutil.IsSlice(value) {
 			return pq.Array(value), nil
 		}
@@ -260,4 +260,48 @@ func getColumnDefaultProperties(columnDefaultPropertiesConfig map[string]*servic
 		columnDefaultProperties[key] = &colDefaults
 	}
 	return columnDefaultProperties, nil
+}
+
+// returns string in this form ARRAY[[a,b],[c,d]]
+func formatPgArrayLiteral(arr any, castType string) string {
+	arrayLiteral := "ARRAY" + formatArrayLiteral(arr)
+	if castType == "" {
+		return arrayLiteral
+	}
+
+	return arrayLiteral + "::" + castType
+}
+
+func formatArrayLiteral(arr any) string {
+	v := reflect.ValueOf(arr)
+
+	if v.Kind() == reflect.Slice {
+		result := "["
+		for i := 0; i < v.Len(); i++ {
+			if i > 0 {
+				result += ","
+			}
+			result += formatArrayLiteral(v.Index(i).Interface())
+		}
+		result += "]"
+		return result
+	}
+
+	switch val := arr.(type) {
+	case map[string]any:
+		return formatMapLiteral(val)
+	case string:
+		return fmt.Sprintf("'%s'", strings.ReplaceAll(val, "'", "''"))
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
+func formatMapLiteral(m map[string]any) string {
+	jsonBytes, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Sprintf("%v", m)
+	}
+
+	return fmt.Sprintf("'%s'", string(jsonBytes))
 }
