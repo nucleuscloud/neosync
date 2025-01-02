@@ -272,18 +272,18 @@ func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, fi
 }
 
 // Creates schema and sets USE to schema before running SQL files
-func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folder *string, files []string, database string) error {
+func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folder string, files []string, database string) error {
 	for _, file := range files {
 		filePath := file
-		if folder != nil && *folder != "" {
-			filePath = fmt.Sprintf("./%s/%s", *folder, file)
+		if folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", folder, file)
 		}
 		sqlStr, err := os.ReadFile(filePath)
 		if err != nil {
 			return err
 		}
 
-		setSchemaSql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s; \n USE %s; \n", database, database)
+		setSchemaSql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`; \n USE `%s`; \n", database, database)
 		_, err = m.DB.ExecContext(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
 			return fmt.Errorf("unable to exec sql when running postgres sql files: %w", err)
@@ -292,11 +292,21 @@ func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folde
 	return nil
 }
 
-func (m *MysqlTestContainer) CreateDatabases(ctx context.Context, schemas []string) error {
-	for _, schema := range schemas {
-		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s;", schema))
+func (m *MysqlTestContainer) CreateDatabases(ctx context.Context, databases []string) error {
+	for _, database := range databases {
+		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", database))
 		if err != nil {
-			return fmt.Errorf("unable to create schema %s: %w", schema, err)
+			return fmt.Errorf("unable to create database %s: %w", database, err)
+		}
+	}
+	return nil
+}
+
+func (m *MysqlTestContainer) DropDatabases(ctx context.Context, databases []string) error {
+	for _, database := range databases {
+		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS `%s`;", database))
+		if err != nil {
+			return fmt.Errorf("unable to drop database %s: %w", database, err)
 		}
 	}
 	return nil

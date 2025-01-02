@@ -1,4 +1,4 @@
-package dynamodb
+package testcontainers_dynamodb
 
 import (
 	"context"

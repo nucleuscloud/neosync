@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS regions  (
+CREATE TABLE IF NOT EXISTS regions (
 	region_id SERIAL PRIMARY KEY,
 	region_name CHARACTER VARYING (25)
 );
@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS regions  (
 CREATE TABLE IF NOT EXISTS countries (
 	country_id CHARACTER (2) PRIMARY KEY,
 	country_name CHARACTER VARYING (40),
-	region_id INTEGER NOT NULL
+	region_id INTEGER NOT NULL,
+	FOREIGN KEY (region_id) REFERENCES regions (region_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS locations (
@@ -15,13 +16,15 @@ CREATE TABLE IF NOT EXISTS locations (
 	postal_code CHARACTER VARYING (12),
 	city CHARACTER VARYING (30) NOT NULL,
 	state_province CHARACTER VARYING (25),
-	country_id CHARACTER (2) NOT NULL
+	country_id CHARACTER (2) NOT NULL,
+	FOREIGN KEY (country_id) REFERENCES countries (country_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS departments (
 	department_id SERIAL PRIMARY KEY,
 	department_name CHARACTER VARYING (30) NOT NULL,
-	location_id INTEGER
+	location_id INTEGER,
+	FOREIGN KEY (location_id) REFERENCES locations (location_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -41,7 +44,10 @@ CREATE TABLE IF NOT EXISTS employees (
 	job_id INTEGER NOT NULL,
 	salary NUMERIC (8, 2) NOT NULL,
 	manager_id INTEGER,
-	department_id INTEGER
+	department_id INTEGER,
+	FOREIGN KEY (job_id) REFERENCES jobs (job_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (department_id) REFERENCES departments (department_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (manager_id) REFERENCES employees (employee_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS dependents (
@@ -49,8 +55,10 @@ CREATE TABLE IF NOT EXISTS dependents (
 	first_name CHARACTER VARYING (50) NOT NULL,
 	last_name CHARACTER VARYING (50) NOT NULL,
 	relationship CHARACTER VARYING (25) NOT NULL,
-	employee_id INTEGER NOT NULL
+	employee_id INTEGER NOT NULL,
+	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 
 INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
@@ -212,4 +220,20 @@ INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_i
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (29,'Alec','Partners','Child',146);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (30,'Sandra','Taylor','Child',176);
 
+-- break foreign key constraints
+ALTER TABLE countries 
+DISABLE TRIGGER ALL;
 
+UPDATE countries SET region_id = 6 WHERE country_id IN ('US');
+
+ALTER TABLE countries 
+ENABLE TRIGGER ALL;
+
+
+ALTER TABLE dependents 
+DISABLE TRIGGER ALL;
+
+UPDATE dependents SET employee_id = 1000 WHERE last_name IN ('King', 'Colmenares');
+
+ALTER TABLE dependents 
+ENABLE TRIGGER ALL;

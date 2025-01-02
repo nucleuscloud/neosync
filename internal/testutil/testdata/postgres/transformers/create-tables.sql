@@ -1,0 +1,51 @@
+CREATE TABLE transformers (
+    id SERIAL PRIMARY KEY,
+    e164_phone_number VARCHAR(20),
+    email VARCHAR(255),
+    measurement FLOAT,
+    int64 BIGINT,
+    int64_phone_number BIGINT,
+    string_phone_number VARCHAR(20),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    full_name VARCHAR(255),
+    str VARCHAR (255),
+    character_scramble VARCHAR (255),
+    bool BOOLEAN,
+    card_number BIGINT,
+    categorical VARCHAR(255),
+    city VARCHAR(255),
+    full_address VARCHAR(255),
+    gender VARCHAR(255),
+    international_phone VARCHAR(255),
+    sha256 VARCHAR(255),
+    ssn VARCHAR(255),
+    state VARCHAR(255),
+    street_address VARCHAR(255),
+    unix_time BIGINT,
+    username VARCHAR(255),
+    utc_timestamp TIMESTAMPTZ,
+    uuid VARCHAR(255),
+    zipcode BIGINT
+);
+
+
+INSERT INTO transformers (
+    e164_phone_number, email, measurement, int64, int64_phone_number, string_phone_number,
+    first_name, last_name, full_name, str, character_scramble, bool, card_number, categorical,
+    city, full_address, gender, international_phone, sha256, ssn, state, street_address,
+    unix_time, username, utc_timestamp, uuid, zipcode
+) VALUES
+    ('+12345678901', 'user1@example.com', 1.1, 1000001, 12345678901, '123-456-7890', 'John', 'Doe', 'John Doe', 'Sample string 1', 'abcd1234', true, '1234567812345678', 'Category1', 'City1', '123 Main St, City1', 'Male', '+12345678901', 'sha256_1', '123-45-6789', 'State1', '123 Main St', 1617281823, 'user1', '2024-05-15T13:51:01.657574Z', 'uuid_1', 12345),
+    ('+12345678902', 'user2@example.com', 2.2, 1000002, 12345678902, '123-456-7891', 'Jane', 'Smith', 'Jane Smith', 'Sample string 2', 'abcd1235', false, '1234567812345679', 'Category2', 'City2', '456 Main St, City2', 'Female', '+12345678902', 'sha256_2', '123-45-6790', 'State2', '456 Main St', 1617281824, 'user2', '2024-05-15T13:51:01.657574Z', 'uuid_2', 12346),
+    ('+12345678903', 'user3@example.com', 3.3, 1000003, 12345678903, '123-456-7892', 'Alice', 'Johnson', 'Alice Johnson', 'Sample string 3', 'abcd1236', true, '1234567812345680', 'Category3', 'City3', '789 Main St, City3', 'Female', '+12345678903', 'sha256_3', '123-45-6791', 'State3', '789 Main St', 1617281825, 'user3', '2024-05-15T13:51:01.657574Z', 'uuid_3', 12347),
+    ('+12345678904', 'user4@example.com', 4.4, 1000004, 12345678904, '123-456-7893', 'Bob', 'Brown', 'Bob Brown', 'Sample string 4', 'abcd1237', false, '1234567812345681', 'Category4', 'City4', '101 Main St, City4', 'Male', '+12345678904', 'sha256_4', '123-45-6792', 'State4', '101 Main St', 1617281826, 'user4', '2024-05-15T13:51:01.657574Z', 'uuid_4', 12348),
+    ('+12345678905', 'user5@example.com', 5.5, 1000005, 12345678905, '123-456-7894', 'Charlie', 'Davis', 'Charlie Davis', 'Sample string 5', 'abcd1238', true, '1234567812345682', 'Category5', 'City5', '202 Main St, City5', 'Male', '+12345678905', 'sha256_5', '123-45-6793', 'State5', '202 Main St', 1617281827, 'user5', '2024-05-15T13:51:01.657574Z', 'uuid_5', 12349),
+    ('+12345678906', 'user6@example.com', 6.6, 1000006, 12345678906, '123-456-7895', 'David', 'Wilson', 'David Wilson', 'Sample string 6', 'abcd1239', false, '1234567812345683', 'Category6', 'City6', '303 Main St, City6', 'Male', '+12345678906', 'sha256_6', '123-45-6794', 'State6', '303 Main St', 1617281828, 'user6', '2024-05-15T13:51:01.657574Z', 'uuid_6', 12350),
+    ('+12345678907', 'user7@example.com', 7.7, 1000007, 12345678907, '123-456-7896', 'Eve', 'Martinez', 'Eve Martinez', 'Sample string 7', 'abcd1240', true, '1234567812345684', 'Category7', 'City7', '404 Main St, City7', 'Female', '+12345678907', 'sha256_7', '123-45-6795', 'State7', '404 Main St', 1617281829, 'user7', '2024-05-15T13:51:01.657574Z', 'uuid_7', 12351),
+    ('+12345678908', 'user8@example.com', 8.8, 1000008, 12345678908, '123-456-7897', 'Frank', 'Lopez', 'Frank Lopez', 'Sample string 8', 'abcd1241', false, '1234567812345685', 'Category8', 'City8', '505 Main St, City8', 'Male', '+12345678908', 'sha256_8', '123-45-6796', 'State8', '505 Main St', 1617281830, 'user8', '2024-05-15T13:51:01.657574Z', 'uuid_8', 12352),
+    ('+12345678909', 'user9@example.com', 9.9, 1000009, 12345678909, '123-456-7898', 'Grace', 'Garcia', 'Grace Garcia', 'Sample string 9', 'abcd1242', true, '1234567812345686', 'Category9', 'City9', '606 Main St, City9', 'Female', '+12345678909', 'sha256_9', '123-45-6797', 'State9', '606 Main St', 1617281831, 'user9', '2024-05-15T13:51:01.657574Z', 'uuid_9', 12353),
+    ('+12345678910', 'user10@example.com', 10.0, 1000010, 12345678910, '123-456-7899', 'Hank', 'Moore', 'Hank Moore', 'Sample string 10', 'abcd1243', false, '1234567812345687', 'Category10', 'City10', '707 Main St, City10', 'Male', '+12345678910', 'sha256_10', '123-45-6798', 'State10', '707 Main St', 1617281832, 'user10', '2024-05-15T13:51:01.657574Z', 'uuid_10', 12354),
+    ('+12345678911', 'user11@example.com', 11.1, 1000011, 12345678911, '123-456-7800', 'Ivy', 'Taylor', 'Ivy Taylor', 'Sample string 11', 'abcd1244', true, '1234567812345688', 'Category11', 'City11', '808 Main St, City11', 'Female', '+12345678911', 'sha256_11', '123-45-6799', 'State11', '808 Main St', 1617281833, 'user11', '2024-05-15T13:51:01.657574Z', 'uuid_11', 12355),
+    ('+12345678912', 'user12@example.com', 12.2, 1000012, 12345678912, '123-456-7801', 'Jack', 'Anderson', 'Jack Anderson', 'Sample string 12', 'abcd1245', false, '1234567812345689', 'Category12', 'City12', '909 Main St, City12', 'Male', '+12345678912', 'sha256_12', '123-45-6800', 'State12', '909 Main St', 1617281834, 'user12', '2024-05-15T13:51:01.657574Z', 'uuid_12', 12356),
+    ('+12345678913', 'user13@example.com', 13.3, 1000013, 12345678913, '123-456-7802', 'Kate', 'Thomas', 'Kate Thomas', 'Sample string 13', 'abcd1246', true, '1234567812345690', 'Category13', 'City13', '1010 Main St, City13', 'Female', '+12345678913', 'sha256_13', '123-45-6801', 'State13', '1010 Main St', 1617281835, 'user13', '2024-05-15T13:51:01.657574Z', 'uuid_13', 12357);

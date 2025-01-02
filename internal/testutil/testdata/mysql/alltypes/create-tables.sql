@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
 );
 
 
-
 INSERT INTO all_data_types (
     tinyint_col, smallint_col, mediumint_col, int_col, bigint_col,
     decimal_col, float_col, double_col, 
@@ -93,7 +92,7 @@ INSERT INTO all_data_types (
 INSERT INTO all_data_types (id) VALUES (DEFAULT);
 
 
-CREATE TABLE json_data (
+CREATE TABLE IF NOT EXISTS json_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     data JSON
 );

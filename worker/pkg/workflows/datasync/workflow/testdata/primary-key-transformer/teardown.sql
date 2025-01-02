@@ -1,1 +1,0 @@
-DROP SCHEMA IF EXISTS "primary_$key" CASCADE;
