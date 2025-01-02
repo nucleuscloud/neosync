@@ -8,7 +8,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 )
 
 func GetInsertBuilder(
@@ -144,7 +143,7 @@ type MssqlDriver struct {
 
 func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
 	if len(rows) == 0 || areAllRowsEmpty(rows) {
-		return sqlserverutil.GeSqlServerDefaultValuesInsertSql(d.schema, d.table, len(rows)), []any{}, nil
+		return getSqlServerDefaultValuesInsertSql(d.schema, d.table, len(rows)), []any{}, nil
 	}
 
 	goquRows := toGoquRecords(rows)
@@ -187,4 +186,12 @@ func toGoquRecords(rows []map[string]any) []goqu.Record {
 		records = append(records, goqu.Record(row))
 	}
 	return records
+}
+
+func getSqlServerDefaultValuesInsertSql(schema, table string, rowCount int) string {
+	var sqlStr string
+	for i := 0; i < rowCount; i++ {
+		sqlStr += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
+	}
+	return sqlStr
 }

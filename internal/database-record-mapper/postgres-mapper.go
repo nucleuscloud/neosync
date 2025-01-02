@@ -78,8 +78,6 @@ func (m *PostgresMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 	}
 
 	jObj := parsePgRowValues(values, columnNames, columnTypes)
-	jsonF, _ := json.MarshalIndent(jObj, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
 	return jObj, nil
 }
 

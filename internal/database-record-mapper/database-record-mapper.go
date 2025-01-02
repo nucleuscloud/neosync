@@ -3,6 +3,7 @@ package databaserecordmapper
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
@@ -52,5 +53,22 @@ func GetDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
 		return NewMongoBuilder(), nil
 	default:
 		return nil, fmt.Errorf("database type %s not supported", dbType)
+	}
+}
+
+func GetDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (DatabaseRecordMapper[any], error) {
+	switch connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return GetDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return GetDatabaseRecordMapper(sqlmanager_shared.MysqlDriver)
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return GetDatabaseRecordMapper(sqlmanager_shared.MssqlDriver)
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return GetDatabaseRecordMapper("mongodb")
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return GetDatabaseRecordMapper("dynamodb")
+	default:
+		return nil, fmt.Errorf("unsupported connection type: %T for database record mapper", connection.GetConnectionConfig().GetConfig())
 	}
 }

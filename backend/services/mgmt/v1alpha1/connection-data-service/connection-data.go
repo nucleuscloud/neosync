@@ -91,7 +91,7 @@ func (s *Service) GetConnectionDataStream(
 	connectionTimeout := uint32(5)
 
 	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		err := s.areSchemaAndTableValid(ctx, connection, req.Msg.Schema, req.Msg.Table)
 		if err != nil {
 			return err
@@ -107,114 +107,55 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		mapper, err := database_record_mapper.GetDatabaseRecordMapper(sqlmanager_shared.MysqlDriver)
+		mapper, err := database_record_mapper.GetDatabaseRecordMapperFromConnection(connection)
+		if err != nil {
+			return err
+		}
+
+		goquDriver, err := querybuilder.GetGoquDriverFromConnection(connection)
 		if err != nil {
 			return err
 		}
 
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 0)
+		query, err := querybuilder.BuildSelectLimitQuery(goquDriver, table, 0)
 		if err != nil {
 			return err
 		}
 		r, err := db.QueryContext(ctx, query)
 		if err != nil && !neosyncdb.IsNoRows(err) {
-			return err
+			return fmt.Errorf("error querying table %s with database type %s: %w", table, goquDriver, err)
 		}
 
 		columnNames, err := r.Columns()
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to get column names from table %s with database type %s: %w", table, goquDriver, err)
 		}
 
-		selectQuery, err := querybuilder.BuildSelectQuery("mysql", table, columnNames, nil)
+		selectQuery, err := querybuilder.BuildSelectQuery(goquDriver, table, columnNames, nil)
 		if err != nil {
 			return err
 		}
 		rows, err := db.QueryContext(ctx, selectQuery)
 		if err != nil && !neosyncdb.IsNoRows(err) {
-			return err
+			return fmt.Errorf("error querying table %s with goqu driver %s: %w", table, goquDriver, err)
 		}
 
 		for rows.Next() {
 			r, err := mapper.MapRecord(rows)
 			if err != nil {
-				return fmt.Errorf("unable to convert mysql row to map: %w", err)
+				return fmt.Errorf("unable to convert row to map for table %s with database type %s: %w", table, goquDriver, err)
 			}
 			var rowbytes bytes.Buffer
 			enc := gob.NewEncoder(&rowbytes)
 			if err := enc.Encode(r); err != nil {
-				return fmt.Errorf("unable to encode mysql row: %w", err)
+				return fmt.Errorf("unable to encode row for table %s with database type %s: %w", table, goquDriver, err)
 			}
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 				return err
 			}
 		}
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		err := s.areSchemaAndTableValid(ctx, connection, req.Msg.Schema, req.Msg.Table)
-		if err != nil {
-			return err
-		}
-
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(connectionTimeout))
-		if err != nil {
-			return err
-		}
-		db, err := conn.Open()
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-
-		mapper, err := database_record_mapper.GetDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)
-		if err != nil {
-			return err
-		}
-
-		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
-		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery(sqlmanager_shared.GoquPostgresDriver, table, 0)
-		if err != nil {
-			return err
-		}
-		r, err := db.QueryContext(ctx, query)
-		if err != nil && !neosyncdb.IsNoRows(err) {
-			return err
-		}
-		defer r.Close()
-
-		columnNames, err := r.Columns()
-		if err != nil {
-			return err
-		}
-
-		selectQuery, err := querybuilder.BuildSelectQuery(sqlmanager_shared.GoquPostgresDriver, table, columnNames, nil)
-		if err != nil {
-			return err
-		}
-		rows, err := db.QueryContext(ctx, selectQuery)
-		if err != nil && !neosyncdb.IsNoRows(err) {
-			return err
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			r, err := mapper.MapRecord(rows)
-			if err != nil {
-				return fmt.Errorf("unable to convert postgres row to map: %w", err)
-			}
-			var rowbytes bytes.Buffer
-			enc := gob.NewEncoder(&rowbytes)
-			if err := enc.Encode(r); err != nil {
-				return fmt.Errorf("unable to encode postgres row using gob: %w", err)
-			}
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
-				return err
-			}
-		}
-		return nil
 
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		awsS3StreamCfg := req.Msg.StreamConfig.GetAwsS3Config()
