@@ -13,6 +13,7 @@ import (
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
+	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
 	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
 	"github.com/stretchr/testify/require"
@@ -151,6 +152,8 @@ func test_mssql_types(
 		require.NoError(t, err)
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_all_types Table: %s", expected.table))
 	}
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mssql.Source.DB, mssql.Target.DB, schema, "alldatatypes", sqlmanager_shared.MssqlDriver, "id")
 
 	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
 	// err = mssql.Source.DropSchemas(ctx, []string{schema})

@@ -22,6 +22,8 @@ type DatabaseSchemaRow struct {
 	OrdinalPosition        int
 	GeneratedType          *string
 	IdentityGeneration     *string
+	IdentitySeed           *int
+	IdentityIncrement      *int
 }
 
 func (d *DatabaseSchemaRow) NullableString() string {
