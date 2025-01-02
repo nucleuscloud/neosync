@@ -91,17 +91,13 @@ func transformUuid(randomizer rng.Rand, value string) *string {
 		return &value
 	}
 
-	// Generate a deterministic byte slice based on the input UUID and the randomizer
-	seedBytes := make([]byte, 16)
-
-	// Use the first 8 bytes from the input UUID
-	copy(seedBytes, inputUuid[:8])
-
 	randomInt := randomizer.Float64()
-	binary.LittleEndian.PutUint64(seedBytes[8:], uint64(randomInt))
 
-	// Create a new UUID using SHA1 namespace
-	output := uuid.NewSHA1(uuid.Nil, seedBytes).String()
+	bytes := make([]byte, 16)
+	binary.LittleEndian.PutUint64(bytes, uint64(randomInt))
+
+	// Create a new UUID using SHA1 namespace of the original UUID
+	output := uuid.NewSHA1(inputUuid, bytes).String()
 
 	return &output
 }

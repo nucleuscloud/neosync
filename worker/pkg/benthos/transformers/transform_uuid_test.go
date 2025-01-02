@@ -36,8 +36,6 @@ func Test_TransformUuidSeeded(t *testing.T) {
 		checkVars = append(checkVars, *res)
 	}
 
-	fmt.Println("test", checkVars)
-
 	val := transformer_utils.ToSet(checkVars)
 	assert.Len(t, val, 1, "The set should only contain one value")
 }
