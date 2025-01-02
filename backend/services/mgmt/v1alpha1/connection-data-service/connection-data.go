@@ -34,7 +34,6 @@ import (
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
-	myutil "github.com/nucleuscloud/neosync/internal/mysql"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -108,6 +107,11 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
+		mapper, err := database_record_mapper.GetDatabaseRecordMapper(sqlmanager_shared.MysqlDriver)
+		if err != nil {
+			return err
+		}
+
 		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		// used to get column names
 		query, err := querybuilder.BuildSelectLimitQuery("mysql", table, 0)
@@ -134,7 +138,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		for rows.Next() {
-			r, err := myutil.MysqlSqlRowToMap(rows)
+			r, err := mapper.MapRecord(rows)
 			if err != nil {
 				return fmt.Errorf("unable to convert mysql row to map: %w", err)
 			}

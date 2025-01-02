@@ -1,4 +1,4 @@
-package mysql
+package databaserecordmapper
 
 import (
 	"testing"
