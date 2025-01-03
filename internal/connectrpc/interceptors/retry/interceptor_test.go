@@ -168,3 +168,65 @@ func TestInterceptor_WrapStreamingClient(t *testing.T) {
 		assert.Equal(t, 1, mock.receiveCallCount) // Only initial call
 	})
 }
+
+func TestInterceptor_WrapStreamingHandler(t *testing.T) {
+	t.Run("should retry on retryable error", func(t *testing.T) {
+		callCount := 0
+		handlerErr := connect.NewError(connect.CodeUnavailable, errors.New("unavailable"))
+
+		interceptor := New(WithRetryOptions(
+			backoff.WithMaxTries(3),
+			backoff.WithMaxElapsedTime(30*time.Second),
+		))
+
+		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+			callCount++
+			if callCount < 3 {
+				return handlerErr
+			}
+			return nil
+		})
+
+		err := handler(context.Background(), nil)
+		assert.NoError(t, err)
+		assert.Equal(t, 3, callCount) // Initial + 2 retries
+	})
+
+	t.Run("should not retry on non-retryable error", func(t *testing.T) {
+		callCount := 0
+		handlerErr := connect.NewError(connect.CodeInvalidArgument, errors.New("invalid argument"))
+
+		interceptor := New(WithRetryOptions(
+			backoff.WithMaxTries(3),
+			backoff.WithMaxElapsedTime(30*time.Second),
+		))
+
+		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+			callCount++
+			return handlerErr
+		})
+
+		err := handler(context.Background(), nil)
+		assert.Error(t, err)
+		assert.Equal(t, handlerErr, err)
+		assert.Equal(t, 1, callCount) // Only initial call
+	})
+
+	t.Run("should not retry on success", func(t *testing.T) {
+		callCount := 0
+
+		interceptor := New(WithRetryOptions(
+			backoff.WithMaxTries(3),
+			backoff.WithMaxElapsedTime(30*time.Second),
+		))
+
+		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+			callCount++
+			return nil
+		})
+
+		err := handler(context.Background(), nil)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, callCount) // Only initial call
+	})
+}
