@@ -1,10 +1,8 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
-	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,22 +17,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
-	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
-	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
@@ -88,272 +82,15 @@ func (s *Service) GetConnectionDataStream(
 	}
 	connection := connResp.Msg.Connection
 
-	connectionTimeout := uint32(5)
-
-	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		err := s.areSchemaAndTableValid(ctx, connection, req.Msg.Schema, req.Msg.Table)
-		if err != nil {
-			return err
-		}
-
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, logger, sqlconnect.WithConnectionTimeout(connectionTimeout))
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return err
-		}
-
-		mapper, err := database_record_mapper.GetDatabaseRecordMapperFromConnection(connection)
-		if err != nil {
-			return err
-		}
-
-		goquDriver, err := querybuilder.GetGoquDriverFromConnection(connection)
-		if err != nil {
-			return err
-		}
-
-		table := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
-		// used to get column names
-		query, err := querybuilder.BuildSelectLimitQuery(goquDriver, table, 0)
-		if err != nil {
-			return err
-		}
-		r, err := db.QueryContext(ctx, query)
-		if err != nil && !neosyncdb.IsNoRows(err) {
-			return fmt.Errorf("error querying table %s with database type %s: %w", table, goquDriver, err)
-		}
-
-		columnNames, err := r.Columns()
-		if err != nil {
-			return fmt.Errorf("unable to get column names from table %s with database type %s: %w", table, goquDriver, err)
-		}
-
-		selectQuery, err := querybuilder.BuildSelectQuery(goquDriver, table, columnNames, nil)
-		if err != nil {
-			return err
-		}
-		rows, err := db.QueryContext(ctx, selectQuery)
-		if err != nil && !neosyncdb.IsNoRows(err) {
-			return fmt.Errorf("error querying table %s with goqu driver %s: %w", table, goquDriver, err)
-		}
-
-		for rows.Next() {
-			r, err := mapper.MapRecord(rows)
-			if err != nil {
-				return fmt.Errorf("unable to convert row to map for table %s with database type %s: %w", table, goquDriver, err)
-			}
-			var rowbytes bytes.Buffer
-			enc := gob.NewEncoder(&rowbytes)
-			if err := enc.Encode(r); err != nil {
-				return fmt.Errorf("unable to encode row for table %s with database type %s: %w", table, goquDriver, err)
-			}
-			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
-				return err
-			}
-		}
-
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		awsS3StreamCfg := req.Msg.StreamConfig.GetAwsS3Config()
-		if awsS3StreamCfg == nil {
-			return nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
-		}
-
-		awsS3Config := config.AwsS3Config
-		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
-		if err != nil {
-			return fmt.Errorf("unable to create AWS S3 client: %w", err)
-		}
-		logger.Debug("created AWS S3 client")
-
-		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
-		s3pathpieces := []string{}
-		if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
-			s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
-		}
-
-		var jobRunId string
-		switch id := awsS3StreamCfg.Id.(type) {
-		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
-			logger = logger.With("jobId", id.JobId)
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
-			if err != nil {
-				return err
-			}
-			logger.Debug(fmt.Sprintf("found run id for job in s3: %s", runId))
-			jobRunId = runId
-		default:
-			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
-		}
-		logger = logger.With("runId", jobRunId)
-
-		tableName := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
-		s3pathpieces = append(
-			s3pathpieces,
-			"workflows",
-			jobRunId,
-			"activities",
-			tableName,
-			"data",
-		)
-		path := strings.Join(s3pathpieces, "/")
-		var pageToken *string
-		for {
-			output, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
-				Bucket:            aws.String(awsS3Config.Bucket),
-				Prefix:            aws.String(path),
-				ContinuationToken: pageToken,
-			})
-			if err != nil {
-				return err
-			}
-			if output == nil {
-				logger.Debug(fmt.Sprintf("0 files found for path: %s", path))
-				break
-			}
-			for _, item := range output.Contents {
-				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
-					Bucket: aws.String(awsS3Config.Bucket),
-					Key:    aws.String(*item.Key),
-				})
-				if err != nil {
-					return err
-				}
-
-				gzr, err := gzip.NewReader(result.Body)
-				if err != nil {
-					result.Body.Close()
-					return fmt.Errorf("error creating gzip reader: %w", err)
-				}
-
-				decoder := json.NewDecoder(gzr)
-				for {
-					var rowData map[string]any
-					// Decode the next JSON object
-					err = decoder.Decode(&rowData)
-					if err != nil && err == io.EOF {
-						break // End of file, stop the loop
-					} else if err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return err
-					}
-
-					for k, v := range rowData {
-						newVal, err := s.neosynctyperegistry.Unmarshal(v)
-						if err != nil {
-							return fmt.Errorf("unable to unmarshal row value using neosync type registry: %w", err)
-						}
-						rowData[k] = newVal
-					}
-
-					// Encode the row data using gob
-					var rowbytes bytes.Buffer
-					enc := gob.NewEncoder(&rowbytes)
-					if err := enc.Encode(rowData); err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return fmt.Errorf("unable to encode S3 row data using gob: %w", err)
-					}
-
-					if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return err
-					}
-				}
-				result.Body.Close()
-				gzr.Close()
-			}
-			if *output.IsTruncated {
-				pageToken = output.NextContinuationToken
-				continue
-			}
-			break
-		}
-
-	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		gcpStreamCfg := req.Msg.GetStreamConfig().GetGcpCloudstorageConfig()
-		if gcpStreamCfg == nil {
-			return nucleuserrors.NewBadRequest("must provide non-nil gcp cloud storage config in request")
-		}
-		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
-		if err != nil {
-			return fmt.Errorf("unable to init gcp storage client: %w", err)
-		}
-		gcpConfig := config.GcpCloudstorageConfig
-
-		var jobRunId string
-		switch id := gcpStreamCfg.Id.(type) {
-		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobId:
-			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
-			if err != nil {
-				return err
-			}
-			jobRunId = runId
-		default:
-			return nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
-		}
-
-		onRecord := func(record map[string][]byte) error {
-			var rowbytes bytes.Buffer
-			enc := gob.NewEncoder(&rowbytes)
-			if err := enc.Encode(record); err != nil {
-				return fmt.Errorf("unable to encode gcp record using gob: %w", err)
-			}
-			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()})
-		}
-		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
-		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
-		if err != nil {
-			return fmt.Errorf("unable to finish sending record stream: %w", err)
-		}
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		dynamoclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
-		if err != nil {
-			return fmt.Errorf("unable to create dynamodb client from connection: %w", err)
-		}
-		var lastEvaluatedKey map[string]dynamotypes.AttributeValue
-
-		for {
-			output, err := dynamoclient.ScanTable(ctx, req.Msg.Table, lastEvaluatedKey)
-			if err != nil {
-				return fmt.Errorf("failed to scan table %s: %w", req.Msg.Table, err)
-			}
-
-			for _, item := range output.Items {
-				itemBits, err := neosync_dynamodb.ConvertDynamoItemToGoMap(item)
-				if err != nil {
-					return err
-				}
-
-				var itemBytes bytes.Buffer
-				enc := gob.NewEncoder(&itemBytes)
-				if err := enc.Encode(itemBits); err != nil {
-					return fmt.Errorf("unable to encode dynamodb item using gob: %w", err)
-				}
-				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: itemBytes.Bytes()}); err != nil {
-					return fmt.Errorf("failed to send stream response: %w", err)
-				}
-			}
-
-			lastEvaluatedKey = output.LastEvaluatedKey
-			if lastEvaluatedKey == nil {
-				break
-			}
-		}
-
-	default:
-		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection)
+	if err != nil {
+		return err
 	}
+	err = connectiondatabuilder.StreamData(ctx, stream, req.Msg.StreamConfig, req.Msg.Schema, req.Msg.Table)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -437,34 +174,13 @@ func (s *Service) GetConnectionSchema(
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection, logger)
+		connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Db().Close()
-
-		dbschema, err := db.Db().GetDatabaseSchema(ctx)
+		schemas, err := connectiondatabuilder.GetSchema(ctx, &connectiondata.SchemaOpts{})
 		if err != nil {
 			return nil, err
-		}
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschema {
-			col := col
-			var defaultColumn *string
-			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
-			}
-
-			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:             col.TableSchema,
-				Table:              col.TableName,
-				Column:             col.ColumnName,
-				DataType:           col.DataType,
-				IsNullable:         col.NullableString(),
-				ColumnDefault:      defaultColumn,
-				GeneratedType:      col.GeneratedType,
-				IdentityGeneration: col.IdentityGeneration,
-			})
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
@@ -994,36 +710,6 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	}
 	logger.Debug(fmt.Sprintf("found %d run ids for job in s3", len(runIDs)))
 	return runIDs[0], nil
-}
-
-func (s *Service) areSchemaAndTableValid(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string) error {
-	schemas, err := s.getConnectionSchema(ctx, connection, &schemaOpts{})
-	if err != nil {
-		return err
-	}
-
-	if !isValidSchema(schema, schemas) || !isValidTable(table, schemas) {
-		return nucleuserrors.NewBadRequest("must provide valid schema and table")
-	}
-	return nil
-}
-
-func isValidTable(table string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
-	for _, c := range columns {
-		if c.Table == table {
-			return true
-		}
-	}
-	return false
-}
-
-func isValidSchema(schema string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
-	for _, c := range columns {
-		if c.Schema == schema {
-			return true
-		}
-	}
-	return false
 }
 
 type completionResponse struct {

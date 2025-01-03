@@ -17,6 +17,7 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac/enforcer"
@@ -215,18 +216,38 @@ func (s *NeosyncApiTestClient) setupMux(
 		neosyncDb,
 	)
 
+	awsManager := awsmanager.New()
+	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+	mongoconnector := mongoconnect.NewConnector()
+	sqlmanager := sqlmanagerclient
+	gcpmanager := neosync_gcp.NewManager()
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(logger)
+
+	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
+		sqlConnector,
+		sqlmanager,
+		pgquerier,
+		mysqlquerier,
+		awsManager,
+		gcpmanager,
+		mongoconnector,
+		neosynctyperegistry,
+	)
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
 		jobService,
-		awsmanager.New(),
-		&sqlconnect.SqlOpenConnector{},
-		pg_queries.New(),
-		mysql_queries.New(),
-		mongoconnect.NewConnector(),
-		sqlmanagerclient,
-		neosync_gcp.NewManager(),
-		neosynctypes.NewTypeRegistry(logger),
+		awsManager,
+		sqlConnector,
+		pgquerier,
+		mysqlquerier,
+		mongoconnector,
+		sqlmanager,
+		gcpmanager,
+		neosynctyperegistry,
+		connectiondatabuilder,
 	)
 
 	mux := http.NewServeMux()

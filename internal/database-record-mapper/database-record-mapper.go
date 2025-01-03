@@ -39,7 +39,7 @@ func (b *Builder[T]) MapRecordWithKeyType(record any) (map[string]any, map[strin
 	return b.mapper.MapRecordWithKeyType(typedRecord)
 }
 
-func GetDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
+func NewDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
 	switch dbType {
 	case sqlmanager_shared.PostgresDriver:
 		return NewPostgresBuilder(), nil
@@ -56,18 +56,18 @@ func GetDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
 	}
 }
 
-func GetDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (DatabaseRecordMapper[any], error) {
+func NewDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (DatabaseRecordMapper[any], error) {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return GetDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)
+		return NewDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return GetDatabaseRecordMapper(sqlmanager_shared.MysqlDriver)
+		return NewDatabaseRecordMapper(sqlmanager_shared.MysqlDriver)
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return GetDatabaseRecordMapper(sqlmanager_shared.MssqlDriver)
+		return NewDatabaseRecordMapper(sqlmanager_shared.MssqlDriver)
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		return GetDatabaseRecordMapper("mongodb")
+		return NewDatabaseRecordMapper("mongodb")
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		return GetDatabaseRecordMapper("dynamodb")
+		return NewDatabaseRecordMapper("dynamodb")
 	default:
 		return nil, fmt.Errorf("unsupported connection type: %T for database record mapper", connection.GetConnectionConfig().GetConfig())
 	}

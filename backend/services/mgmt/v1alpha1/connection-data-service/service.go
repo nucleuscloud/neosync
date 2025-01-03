@@ -4,6 +4,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -28,6 +29,8 @@ type Service struct {
 	gcpmanager     neosync_gcp.ManagerInterface
 
 	neosynctyperegistry neosynctypes.NeosyncTypeRegistry
+
+	connectiondatabuilder connectiondata.ConnectionDataBuilder
 }
 
 type Config struct {
@@ -47,18 +50,20 @@ func New(
 	sqlmanager sql_manager.SqlManagerClient,
 	gcpmanager neosync_gcp.ManagerInterface,
 	neosynctyperegistry neosynctypes.NeosyncTypeRegistry,
+	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) *Service {
 	return &Service{
-		cfg:                 cfg,
-		connectionService:   connectionService,
-		jobService:          jobService,
-		awsManager:          awsManager,
-		sqlConnector:        sqlConnector,
-		pgquerier:           pgquerier,
-		mysqlquerier:        mysqlquerier,
-		sqlmanager:          sqlmanager,
-		mongoconnector:      mongoconnector,
-		gcpmanager:          gcpmanager,
-		neosynctyperegistry: neosynctyperegistry,
+		cfg:                   cfg,
+		connectionService:     connectionService,
+		jobService:            jobService,
+		awsManager:            awsManager,
+		sqlConnector:          sqlConnector,
+		pgquerier:             pgquerier,
+		mysqlquerier:          mysqlquerier,
+		sqlmanager:            sqlmanager,
+		mongoconnector:        mongoconnector,
+		gcpmanager:            gcpmanager,
+		neosynctyperegistry:   neosynctyperegistry,
+		connectiondatabuilder: connectiondatabuilder,
 	}
 }

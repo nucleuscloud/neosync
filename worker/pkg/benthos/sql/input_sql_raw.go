@@ -80,7 +80,7 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		return nil, err
 	}
 
-	mapper, err := database_record_mapper.GetDatabaseRecordMapper(driver)
+	mapper, err := database_record_mapper.NewDatabaseRecordMapper(driver)
 	if err != nil {
 		return nil, err
 	}

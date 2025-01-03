@@ -44,6 +44,7 @@ import (
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac/enforcer"
@@ -637,6 +638,17 @@ func serve(ctx context.Context) error {
 
 	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
 	gcpmanager := neosync_gcp.NewManager()
+	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
+		sqlConnector,
+		sqlmanager,
+		pgquerier,
+		mysqlquerier,
+		awsManager,
+		gcpmanager,
+		mongoconnector,
+		neosynctyperegistry,
+		jobService,
+	)
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
@@ -649,6 +661,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		gcpmanager,
 		neosynctyperegistry,
+		connectiondatabuilder,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
