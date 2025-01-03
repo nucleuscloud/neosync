@@ -653,14 +653,10 @@ func serve(ctx context.Context) error {
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
 		jobService,
-		awsManager,
 		sqlConnector,
 		pgquerier,
 		mysqlquerier,
-		mongoconnector,
 		sqlmanager,
-		gcpmanager,
-		neosynctyperegistry,
 		connectiondatabuilder,
 	)
 	api.Handle(

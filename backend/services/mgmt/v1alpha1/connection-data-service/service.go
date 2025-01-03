@@ -5,12 +5,8 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
-	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
 type Service struct {
@@ -18,17 +14,10 @@ type Service struct {
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient
 	jobService        mgmtv1alpha1connect.JobServiceHandler
 
-	awsManager awsmanager.NeosyncAwsManagerClient
-
 	sqlConnector sqlconnect.SqlConnector
 	pgquerier    pg_queries.Querier
 	mysqlquerier mysql_queries.Querier
 	sqlmanager   sql_manager.SqlManagerClient
-
-	mongoconnector mongoconnect.Interface
-	gcpmanager     neosync_gcp.ManagerInterface
-
-	neosynctyperegistry neosynctypes.NeosyncTypeRegistry
 
 	connectiondatabuilder connectiondata.ConnectionDataBuilder
 }
@@ -41,29 +30,21 @@ func New(
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	jobService mgmtv1alpha1connect.JobServiceHandler,
 
-	awsManager awsmanager.NeosyncAwsManagerClient,
-
 	sqlConnector sqlconnect.SqlConnector,
 	pgquerier pg_queries.Querier,
 	mysqlquerier mysql_queries.Querier,
-	mongoconnector mongoconnect.Interface,
 	sqlmanager sql_manager.SqlManagerClient,
-	gcpmanager neosync_gcp.ManagerInterface,
-	neosynctyperegistry neosynctypes.NeosyncTypeRegistry,
+
 	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) *Service {
 	return &Service{
 		cfg:                   cfg,
 		connectionService:     connectionService,
 		jobService:            jobService,
-		awsManager:            awsManager,
 		sqlConnector:          sqlConnector,
 		pgquerier:             pgquerier,
 		mysqlquerier:          mysqlquerier,
 		sqlmanager:            sqlmanager,
-		mongoconnector:        mongoconnector,
-		gcpmanager:            gcpmanager,
-		neosynctyperegistry:   neosynctyperegistry,
 		connectiondatabuilder: connectiondatabuilder,
 	}
 }

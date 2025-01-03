@@ -1,28 +1,19 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
-	"sort"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
@@ -30,38 +21,12 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func init() {
 	neosyncgob.RegisterGobTypes()
-}
-
-type DatabaseSchema struct {
-	TableSchema string `db:"table_schema,omitempty"`
-	TableName   string `db:"table_name,omitempty"`
-	ColumnName  string `db:"column_name,omitempty"`
-	DataType    string `db:"data_type,omitempty"`
-}
-
-type DateScanner struct {
-	val *time.Time
-}
-
-func (ds *DateScanner) Scan(input any) error {
-	if input == nil {
-		return nil
-	}
-
-	switch input := input.(type) {
-	case time.Time:
-		*ds.val = input
-		return nil
-	default:
-		return fmt.Errorf("unable to scan type %T into DateScanner", input)
-	}
 }
 
 // GetConnectionDataStream streams data from a connection source (e.g. MySQL, Postgres, S3, etc)
@@ -172,236 +137,18 @@ func (s *Service) GetConnectionSchema(
 	}
 	connection := connResp.Msg.Connection
 
-	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection)
-		if err != nil {
-			return nil, err
-		}
-		schemas, err := connectiondatabuilder.GetSchema(ctx, &connectiondata.SchemaOpts{})
-		if err != nil {
-			return nil, err
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-
-	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		db, err := s.mongoconnector.NewFromConnectionConfig(connection.GetConnectionConfig(), logger)
-		if err != nil {
-			return nil, err
-		}
-		mongoclient, err := db.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Close(ctx)
-		dbnames, err := mongoclient.ListDatabaseNames(ctx, bson.D{})
-		if err != nil {
-			return nil, err
-		}
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, dbname := range dbnames {
-			collectionNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
-			if err != nil {
-				return nil, err
-			}
-			for _, collectionName := range collectionNames {
-				schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-					Schema: dbname,
-					Table:  collectionName,
-				})
-			}
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		awsCfg := req.Msg.SchemaConfig.GetAwsS3Config()
-		if awsCfg == nil {
-			return nil, nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
-		}
-
-		awsS3Config := config.AwsS3Config
-		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
-		if err != nil {
-			return nil, err
-		}
-		logger.Debug("created S3 AWS session")
-
-		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
-		s3pathpieces := []string{}
-		if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
-			s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
-		}
-
-		var jobRunId string
-		switch id := awsCfg.Id.(type) {
-		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
-			if err != nil {
-				return nil, err
-			}
-			jobRunId = runId
-		default:
-			return nil, nucleuserrors.NewInternalError("unsupported AWS S3 config id")
-		}
-
-		s3pathpieces = append(
-			s3pathpieces,
-			"workflows",
-			jobRunId,
-			"activities/",
-		)
-		path := strings.Join(s3pathpieces, "/")
-
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		var pageToken *string
-		for {
-			output, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
-				Bucket:            aws.String(awsS3Config.Bucket),
-				Prefix:            aws.String(path),
-				Delimiter:         aws.String("/"),
-				ContinuationToken: pageToken,
-			})
-			if err != nil {
-				return nil, err
-			}
-			if output == nil {
-				break
-			}
-			for _, cp := range output.CommonPrefixes {
-				folders := strings.Split(*cp.Prefix, "activities")
-				tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
-				schemaTableList := strings.Split(tableFolder, ".")
-
-				filePath := fmt.Sprintf("%s%s/data", path, sqlmanager_shared.BuildTable(schemaTableList[0], schemaTableList[1]))
-				out, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
-					Bucket:  aws.String(awsS3Config.Bucket),
-					Prefix:  aws.String(filePath),
-					MaxKeys: aws.Int32(1),
-				})
-				if err != nil {
-					return nil, err
-				}
-				if out == nil {
-					logger.Warn(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
-					continue
-				}
-				item := out.Contents[0]
-				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
-					Bucket: aws.String(awsS3Config.Bucket),
-					Key:    aws.String(*item.Key),
-				})
-				if err != nil {
-					return nil, err
-				}
-				if result.ContentLength == nil || *result.ContentLength == 0 {
-					logger.Warn(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
-					continue
-				}
-
-				gzr, err := gzip.NewReader(result.Body)
-				if err != nil {
-					result.Body.Close()
-					return nil, fmt.Errorf("error creating gzip reader: %w", err)
-				}
-
-				decoder := json.NewDecoder(gzr)
-				for {
-					var data map[string]any
-					// Decode the next JSON object
-					err = decoder.Decode(&data)
-					if err != nil && err == io.EOF {
-						break // End of file, stop the loop
-					} else if err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return nil, err
-					}
-
-					for key := range data {
-						schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-							Schema: schemaTableList[0],
-							Table:  schemaTableList[1],
-							Column: key,
-						})
-					}
-					break // Only care about first record
-				}
-				result.Body.Close()
-				gzr.Close()
-			}
-			if *output.IsTruncated {
-				pageToken = output.NextContinuationToken
-				continue
-			}
-			break
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		gcpCfg := req.Msg.GetSchemaConfig().GetGcpCloudstorageConfig()
-		if gcpCfg == nil {
-			return nil, nucleuserrors.NewBadRequest("must provide gcp cloud storage config")
-		}
-
-		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
-		}
-		gcpConfig := config.GcpCloudstorageConfig
-
-		var jobRunId string
-		switch id := gcpCfg.Id.(type) {
-		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId:
-			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
-			if err != nil {
-				return nil, err
-			}
-			jobRunId = runId
-		default:
-			return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
-		}
-
-		schemas, err := gcpclient.GetDbSchemaFromPrefix(
-			ctx,
-			gcpConfig.GetBucket(), neosync_gcp.GetWorkflowActivityPrefix(jobRunId, gcpConfig.PathPrefix),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		dynclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create dynamodb client from connection: %w", err)
-		}
-		tableNames, err := dynclient.ListAllTables(ctx, &dynamodb.ListTablesInput{})
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve dynamodb tables: %w", err)
-		}
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, tableName := range tableNames {
-			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema: "dynamodb",
-				Table:  tableName,
-			})
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-	default:
-		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection)
+	if err != nil {
+		return nil, err
 	}
+	schemas, err := connectiondatabuilder.GetSchema(ctx, req.Msg.GetSchemaConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+		Schemas: schemas,
+	}), nil
 }
 
 func (s *Service) GetConnectionInitStatements(
@@ -416,13 +163,17 @@ func (s *Service) GetConnectionInitStatements(
 		return nil, err
 	}
 
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	if err != nil {
+		return nil, err
+	}
+	schemas, err := connectiondatabuilder.GetSchema(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	schemaTableMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
-	for _, s := range schemaResp {
+	for _, s := range schemas {
 		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
 	}
 
@@ -493,78 +244,6 @@ func (s *Service) GetConnectionInitStatements(
 	}), nil
 }
 
-type schemaOpts struct {
-	JobId    *string
-	JobRunId *string
-}
-
-func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, opts *schemaOpts) ([]*mgmtv1alpha1.DatabaseColumn, error) {
-	schemaReq := &mgmtv1alpha1.GetConnectionSchemaRequest{
-		ConnectionId: connection.Id,
-	}
-	switch connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
-			},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
-				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
-			},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
-		if opts.JobRunId != nil && *opts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *opts.JobRunId}}
-		} else if opts.JobId != nil && *opts.JobId != "" {
-			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *opts.JobId}}
-		}
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
-				AwsS3Config: cfg,
-			},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
-		if opts.JobRunId != nil && *opts.JobRunId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *opts.JobRunId}}
-		} else if opts.JobId != nil && *opts.JobId != "" {
-			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *opts.JobId}}
-		}
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
-				GcpCloudstorageConfig: cfg,
-			},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MongoConfig{
-				MongoConfig: &mgmtv1alpha1.MongoSchemaConfig{},
-			},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{},
-		}
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MssqlConfig{
-				MssqlConfig: &mgmtv1alpha1.MssqlSchemaConfig{},
-			},
-		}
-	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
-	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(schemaReq))
-	if err != nil {
-		return nil, err
-	}
-	return schemaResp.Msg.GetSchemas(), nil
-}
-
 func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string, logger *slog.Logger) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	conntimeout := uint32(5)
 	switch connection.GetConnectionConfig().Config.(type) {
@@ -625,91 +304,6 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 	default:
 		return nil, nucleuserrors.NewBadRequest("this connection config is not currently supported")
 	}
-}
-
-func (s *Service) getLatestJobRunFromGcs(
-	ctx context.Context,
-	client neosync_gcp.ClientInterface,
-	jobId string,
-	bucket string,
-	pathPrefix *string,
-) (string, error) {
-	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
-		JobId: jobId,
-	}))
-	if err != nil {
-		return "", err
-	}
-	jobRuns := jobRunsResp.Msg.GetRecentRuns()
-	for i := len(jobRuns) - 1; i >= 0; i-- {
-		runId := jobRuns[i].GetJobRunId()
-		prefix := neosync_gcp.GetWorkflowActivityPrefix(
-			runId,
-			pathPrefix,
-		)
-		ok, err := client.DoesPrefixContainTables(ctx, bucket, prefix)
-		if err != nil {
-			return "", fmt.Errorf("unable to check if prefix contains tables: %w", err)
-		}
-		if ok {
-			return runId, nil
-		}
-	}
-	return "", fmt.Errorf("unable to find latest job run for job: %s", jobId)
-}
-
-// returns the first job run id for a given job that is in S3
-func (s *Service) getLastestJobRunFromAwsS3(
-	ctx context.Context,
-	logger *slog.Logger,
-	s3Client *s3.Client,
-	jobId,
-	bucket string,
-	region *string,
-	s3pathpieces []string,
-) (string, error) {
-	pieces := []string{}
-	pieces = append(pieces, s3pathpieces...)
-	pieces = append(pieces, "workflows", jobId)
-	path := strings.Join(pieces, "/")
-
-	var continuationToken *string
-	done := false
-	commonPrefixes := []string{}
-	for !done {
-		output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
-			Bucket:            aws.String(bucket),
-			Prefix:            aws.String(path),
-			Delimiter:         aws.String("/"),
-			ContinuationToken: continuationToken,
-		})
-		if err != nil {
-			return "", fmt.Errorf("unable to list job run directories from s3: %w", err)
-		}
-		continuationToken = output.NextContinuationToken
-		done = !*output.IsTruncated
-		for _, cp := range output.CommonPrefixes {
-			commonPrefixes = append(commonPrefixes, *cp.Prefix)
-		}
-	}
-
-	logger.Debug(fmt.Sprintf("found %d common prefixes for job in s3", len(commonPrefixes)))
-
-	runIDs := make([]string, 0, len(commonPrefixes))
-	for _, prefix := range commonPrefixes {
-		parts := strings.Split(strings.TrimSuffix(prefix, "/"), "/")
-		if len(parts) >= 2 {
-			runID := parts[len(parts)-1]
-			runIDs = append(runIDs, runID)
-		}
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(runIDs)))
-
-	if len(runIDs) == 0 {
-		return "", nucleuserrors.NewNotFound(fmt.Sprintf("unable to find latest job run for job in s3 after processing common prefixes: %s", jobId))
-	}
-	logger.Debug(fmt.Sprintf("found %d run ids for job in s3", len(runIDs)))
-	return runIDs[0], nil
 }
 
 type completionResponse struct {
@@ -820,13 +414,17 @@ func (s *Service) GetConnectionTableConstraints(
 		return nil, err
 	}
 
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	if err != nil {
+		return nil, err
+	}
+	schemaDbCols, err := connectiondatabuilder.GetSchema(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	schemaMap := map[string]struct{}{}
-	for _, s := range schemaResp {
+	for _, s := range schemaDbCols {
 		schemaMap[s.Schema] = struct{}{}
 	}
 	schemas := []string{}

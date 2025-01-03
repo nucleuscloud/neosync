@@ -82,7 +82,8 @@ func (b *DefaultConnectionDataBuilder) NewDataConnection(
 		return NewGcpConnectionDataService(logger, b.gcpmanager, connection, b.jobservice), nil
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 		return NewAwsDynamodbConnectionDataService(logger, b.awsmanager, connection), nil
-
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return NewMongoDbConnectionDataService(logger, connection, b.mongoconnector), nil
 	default:
 		return nil, fmt.Errorf("connection config not supported for connection data service: %T", config)
 	}

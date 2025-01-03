@@ -234,19 +234,16 @@ func (s *NeosyncApiTestClient) setupMux(
 		gcpmanager,
 		mongoconnector,
 		neosynctyperegistry,
+		jobService,
 	)
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
 		jobService,
-		awsManager,
 		sqlConnector,
 		pgquerier,
 		mysqlquerier,
-		mongoconnector,
 		sqlmanager,
-		gcpmanager,
-		neosynctyperegistry,
 		connectiondatabuilder,
 	)
 

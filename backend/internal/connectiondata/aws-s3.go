@@ -63,10 +63,9 @@ func (s *AwsS3ConnectionDataService) StreamData(
 	logger := s.logger
 	logger.Debug("created AWS S3 client")
 
-	connAwsConfig := s.connection.ConnectionConfig.GetAwsS3Config()
 	s3pathpieces := []string{}
-	if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
-		s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
+	if s.connconfig != nil && s.connconfig.GetPathPrefix() != "" {
+		s3pathpieces = append(s3pathpieces, strings.Trim(s.connconfig.GetPathPrefix(), "/"))
 	}
 
 	var jobRunId string
@@ -188,10 +187,9 @@ func (s *AwsS3ConnectionDataService) GetSchema(
 	}
 	s.logger.Debug("created S3 AWS session")
 
-	connAwsConfig := s.connection.ConnectionConfig.GetAwsS3Config()
 	s3pathpieces := []string{}
-	if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
-		s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
+	if s.connconfig != nil && s.connconfig.GetPathPrefix() != "" {
+		s3pathpieces = append(s3pathpieces, strings.Trim(s.connconfig.GetPathPrefix(), "/"))
 	}
 
 	var jobRunId string
