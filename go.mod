@@ -28,6 +28,7 @@ require (
 	github.com/bufbuild/protovalidate-go v0.7.3
 	github.com/casbin/casbin/v2 v2.102.0
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/cenkalti/backoff/v5 v5.0.0
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
@@ -181,7 +182,6 @@ require (
 	github.com/bufbuild/protocompile v0.8.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/casbin/govaluate v1.2.0 // indirect
-	github.com/cenkalti/backoff/v5 v5.0.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
