@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -351,4 +352,25 @@ func (s *AwsS3ConnectionDataService) getLastestJobRunFromAwsS3(
 	}
 	s.logger.Debug(fmt.Sprintf("found %d run ids for job in s3", len(runIDs)))
 	return runIDs[0], nil
+}
+
+func (s *AwsS3ConnectionDataService) GetInitStatements(
+	ctx context.Context,
+	options *mgmtv1alpha1.InitStatementOptions,
+) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *AwsS3ConnectionDataService) GetTableConstraints(
+	ctx context.Context,
+) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *AwsS3ConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *AwsS3ConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+	return 0, errors.ErrUnsupported
 }

@@ -652,11 +652,6 @@ func serve(ctx context.Context) error {
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
-		jobService,
-		sqlConnector,
-		pgquerier,
-		mysqlquerier,
-		sqlmanager,
 		connectiondatabuilder,
 	)
 	api.Handle(

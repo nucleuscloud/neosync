@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -153,4 +154,25 @@ func (s *GcpConnectionDataService) getLatestJobRunFromGcs(
 		}
 	}
 	return "", fmt.Errorf("unable to find latest job run for job: %s", jobId)
+}
+
+func (s *GcpConnectionDataService) GetInitStatements(
+	ctx context.Context,
+	options *mgmtv1alpha1.InitStatementOptions,
+) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *GcpConnectionDataService) GetTableConstraints(
+	ctx context.Context,
+) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *GcpConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *GcpConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+	return 0, errors.ErrUnsupported
 }

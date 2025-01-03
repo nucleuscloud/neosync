@@ -26,6 +26,10 @@ type ConnectionDataService interface {
 		schema, table string,
 	) error
 	GetSchema(ctx context.Context, config *mgmtv1alpha1.ConnectionSchemaConfig) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	GetInitStatements(ctx context.Context, options *mgmtv1alpha1.InitStatementOptions) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error)
+	GetTableConstraints(ctx context.Context) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error)
+	GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
 }
 
 type ConnectionDataBuilder interface {

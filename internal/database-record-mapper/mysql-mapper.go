@@ -19,7 +19,7 @@ func NewMySQLBuilder() *Builder[*sql.Rows] {
 	}
 }
 
-func (m *MySQLMapper) MapRecordWithKeyType(rows *sql.Rows) (map[string]any, map[string]neosync_types.KeyType, error) {
+func (m *MySQLMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, errors.ErrUnsupported
 }
 

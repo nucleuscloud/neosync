@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -14,11 +13,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
-	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 
 	"golang.org/x/sync/errgroup"
@@ -167,143 +162,12 @@ func (s *Service) GetConnectionInitStatements(
 	if err != nil {
 		return nil, err
 	}
-	schemas, err := connectiondatabuilder.GetSchema(ctx, nil)
+	initStatementsResponse, err := connectiondatabuilder.GetInitStatements(ctx, req.Msg.GetOptions())
 	if err != nil {
 		return nil, err
 	}
 
-	schemaTableMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
-	for _, s := range schemas {
-		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
-	}
-
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db().Close()
-
-	createStmtsMap := map[string]string{}
-	truncateStmtsMap := map[string]string{}
-	initSchemaStmts := []*mgmtv1alpha1.SchemaInitStatements{}
-	if req.Msg.GetOptions().GetInitSchema() {
-		tables := []*sqlmanager_shared.SchemaTable{}
-		for k, v := range schemaTableMap {
-			stmt, err := db.Db().GetCreateTableStatement(ctx, v.Schema, v.Table)
-			if err != nil {
-				return nil, err
-			}
-			createStmtsMap[k] = stmt
-			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
-		}
-		initBlocks, err := db.Db().GetSchemaInitStatements(ctx, tables)
-		if err != nil {
-			return nil, err
-		}
-		for _, b := range initBlocks {
-			initSchemaStmts = append(initSchemaStmts, &mgmtv1alpha1.SchemaInitStatements{
-				Label:      b.Label,
-				Statements: b.Statements,
-			})
-		}
-	}
-
-	switch connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
-			for k, v := range schemaTableMap {
-				stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(v.Schema, v.Table)
-				if err != nil {
-					return nil, err
-				}
-				truncateStmtsMap[k] = stmt
-			}
-		}
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if req.Msg.GetOptions().GetTruncateCascade() {
-			for k, v := range schemaTableMap {
-				stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(v.Schema, v.Table)
-				if err != nil {
-					return nil, err
-				}
-				truncateStmtsMap[k] = stmt
-			}
-		} else if req.Msg.GetOptions().GetTruncateBeforeInsert() {
-			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
-		}
-
-	default:
-		return nil, errors.New("unsupported connection config")
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
-		TableInitStatements:     createStmtsMap,
-		TableTruncateStatements: truncateStmtsMap,
-		SchemaInitStatements:    initSchemaStmts,
-	}), nil
-}
-
-func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string, logger *slog.Logger) ([]*mgmtv1alpha1.DatabaseColumn, error) {
-	conntimeout := uint32(5)
-	switch connection.GetConnectionConfig().Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(conntimeout))
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-		schematable := sqlmanager_shared.SchemaTable{Schema: schema, Table: table}
-		dbschema, err := s.pgquerier.GetDatabaseTableSchemasBySchemasAndTables(ctx, db, []string{schematable.String()})
-		if err != nil {
-			return nil, err
-		}
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschema {
-			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.SchemaName,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
-			})
-		}
-		return schemas, nil
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(conntimeout))
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-		dbschema, err := s.mysqlquerier.GetDatabaseSchema(ctx, db)
-		if err != nil {
-			return nil, err
-		}
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschema {
-			if col.TableSchema != schema || col.TableName != table {
-				continue
-			}
-			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.TableSchema,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
-			})
-		}
-		return schemas, nil
-	default:
-		return nil, nucleuserrors.NewBadRequest("this connection config is not currently supported")
-	}
+	return connect.NewResponse(initStatementsResponse), nil
 }
 
 type completionResponse struct {
@@ -330,7 +194,12 @@ func (s *Service) GetAiGeneratedData(
 	if err != nil {
 		return nil, err
 	}
-	dbcols, err := s.getConnectionTableSchema(ctx, dbconnectionResp.Msg.GetConnection(), req.Msg.GetTable().GetSchema(), req.Msg.GetTable().GetTable(), logger)
+
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, dbconnectionResp.Msg.GetConnection())
+	if err != nil {
+		return nil, err
+	}
+	dbcols, err := connectiondatabuilder.GetTableSchema(ctx, req.Msg.GetTable().GetSchema(), req.Msg.GetTable().GetTable())
 	if err != nil {
 		return nil, err
 	}
@@ -418,73 +287,12 @@ func (s *Service) GetConnectionTableConstraints(
 	if err != nil {
 		return nil, err
 	}
-	schemaDbCols, err := connectiondatabuilder.GetSchema(ctx, nil)
+	tableConstraints, err := connectiondatabuilder.GetTableConstraints(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	schemaMap := map[string]struct{}{}
-	for _, s := range schemaDbCols {
-		schemaMap[s.Schema] = struct{}{}
-	}
-	schemas := []string{}
-	for s := range schemaMap {
-		schemas = append(schemas, s)
-	}
-
-	switch connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Db().Close()
-		tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, schemas)
-		if err != nil {
-			return nil, err
-		}
-
-		fkConstraintsMap := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-		for tableName, d := range tableConstraints.ForeignKeyConstraints {
-			fkConstraintsMap[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
-				Constraints: []*mgmtv1alpha1.ForeignConstraint{},
-			}
-			for _, constraint := range d {
-				fkConstraintsMap[tableName].Constraints = append(fkConstraintsMap[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-					Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
-						Table:   constraint.ForeignKey.Table,
-						Columns: constraint.ForeignKey.Columns,
-					},
-				})
-			}
-		}
-
-		pkConstraintsMap := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-		for table, pks := range tableConstraints.PrimaryKeyConstraints {
-			pkConstraintsMap[table] = &mgmtv1alpha1.PrimaryConstraint{
-				Columns: pks,
-			}
-		}
-
-		uniqueConstraintsMap := map[string]*mgmtv1alpha1.UniqueConstraints{}
-		for table, uniqueConstraints := range tableConstraints.UniqueConstraints {
-			uniqueConstraintsMap[table] = &mgmtv1alpha1.UniqueConstraints{
-				Constraints: []*mgmtv1alpha1.UniqueConstraint{},
-			}
-			for _, uc := range uniqueConstraints {
-				uniqueConstraintsMap[table].Constraints = append(uniqueConstraintsMap[table].Constraints, &mgmtv1alpha1.UniqueConstraint{
-					Columns: uc,
-				})
-			}
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{
-			ForeignKeyConstraints: fkConstraintsMap,
-			PrimaryKeyConstraints: pkConstraintsMap,
-			UniqueConstraints:     uniqueConstraintsMap,
-		}), nil
-	}
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{}), nil
+	return connect.NewResponse(tableConstraints), nil
 }
 
 func (s *Service) GetTableRowCount(
@@ -498,24 +306,16 @@ func (s *Service) GetTableRowCount(
 	if err != nil {
 		return nil, err
 	}
-
-	switch connection.Msg.GetConnection().GetConnectionConfig().Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), connection.Msg.GetConnection(), logger)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Db().Close()
-
-		count, err := db.Db().GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
-		if err != nil {
-			return nil, err
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.GetTableRowCountResponse{
-			Count: count,
-		}), nil
-	default:
-		return nil, fmt.Errorf("unsupported connection type when retrieving table row count %T", connection.Msg.GetConnection().GetConnectionConfig().Config)
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	if err != nil {
+		return nil, err
 	}
+	count, err := connectiondatabuilder.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetTableRowCountResponse{
+		Count: count,
+	}), nil
 }

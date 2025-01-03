@@ -228,12 +228,12 @@ SELECT
    c.COLUMN_TYPE AS data_type,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
-   IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
-   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
+   CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED INTEGER) AS character_maximum_length,
+   CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
      IF(c.DATA_TYPE = 'smallint', 16, 
         IF(c.DATA_TYPE = 'int', 32, 
-           IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
-   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
+           IF(c.DATA_TYPE = 'bigint', 64, -1))))AS SIGNED) AS numeric_precision,
+   CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0)AS SIGNED) AS numeric_scale,
    c.ORDINAL_POSITION AS ordinal_position,
    c.EXTRA AS identity_generation,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.GENERATION_EXPRESSION, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS generation_exp, -- hack to fix this bug https://bugs.mysql.com/
@@ -260,9 +260,9 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	DataType                string
 	ColumnDefault           interface{}
 	IsNullable              int32
-	CharacterMaximumLength  interface{}
-	NumericPrecision        interface{}
-	NumericScale            interface{}
+	CharacterMaximumLength  int64
+	NumericPrecision        int64
+	NumericScale            int64
 	OrdinalPosition         int64
 	IdentityGeneration      sql.NullString
 	GenerationExp           interface{}

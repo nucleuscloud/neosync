@@ -19,6 +19,6 @@ func (m *DynamoDBMapper) MapRecord(item map[string]types.AttributeValue) (map[st
 	return nil, errors.ErrUnsupported
 }
 
-func (m *DynamoDBMapper) MapRecordWithKeyType(item map[string]types.AttributeValue) (map[string]any, map[string]neosync_types.KeyType, error) {
+func (m *DynamoDBMapper) MapRecordWithKeyType(item map[string]types.AttributeValue) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, nil
 }

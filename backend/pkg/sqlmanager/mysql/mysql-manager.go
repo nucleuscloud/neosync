@@ -97,6 +97,93 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 	return result, nil
 }
 
+func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
+	}
+
+	schemaset := map[string][]string{}
+	for _, table := range tables {
+		schemaset[table.Schema] = append(schemaset[table.Schema], table.Table)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	dbSchemas := map[string][]*mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	var colDefMapMu sync.Mutex
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.pool, &mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return err
+			}
+			colDefMapMu.Lock()
+			defer colDefMapMu.Unlock()
+			for _, columnDefinition := range columnDefs {
+				key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+				dbSchemas[key.String()] = append(dbSchemas[key.String()], columnDefinition)
+			}
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	result := []*sqlmanager_shared.DatabaseSchemaRow{}
+	for _, rows := range dbSchemas {
+		for _, row := range rows {
+			var generatedType *string
+			if row.IdentityGeneration.Valid && strings.Contains(row.IdentityGeneration.String, "GENERATED") && !strings.Contains(row.IdentityGeneration.String, "DEFAULT_GENERATED") {
+				generatedTypeCopy := row.IdentityGeneration.String
+				generatedType = &generatedTypeCopy
+			}
+
+			columnDefaultStr, err := convertUInt8ToString(row.ColumnDefault)
+			if err != nil {
+				return nil, err
+			}
+
+			var columnDefaultType *string
+			if row.IdentityGeneration.Valid && columnDefaultStr != "" && row.IdentityGeneration.String == "" {
+				val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
+				columnDefaultType = &val
+			} else if row.IdentityGeneration.Valid && columnDefaultStr != "" && row.IdentityGeneration.String != "" {
+				val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
+				columnDefaultType = &val
+			}
+
+			// Note: there is a slight mismatch here between how we bring this data in to be surfaced vs how we utilize it when building the init table statements.
+			// They seem to be disconnected however
+			var identityGeneration *string
+			if row.IdentityGeneration.Valid && row.IdentityGeneration.String == "auto_increment" {
+				val := row.IdentityGeneration.String
+				identityGeneration = &val
+			}
+			result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
+				TableSchema:            row.SchemaName,
+				TableName:              row.TableName,
+				ColumnName:             row.ColumnName,
+				DataType:               row.DataType,
+				ColumnDefault:          columnDefaultStr,
+				ColumnDefaultType:      columnDefaultType,
+				IsNullable:             row.IsNullable == 1,
+				GeneratedType:          generatedType,
+				CharacterMaximumLength: int(row.CharacterMaximumLength),
+				NumericPrecision:       int(row.NumericPrecision),
+				NumericScale:           int(row.NumericScale),
+				OrdinalPosition:        int(row.OrdinalPosition),
+				IdentityGeneration:     identityGeneration,
+			})
+		}
+	}
+	return result, nil
+}
+
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)

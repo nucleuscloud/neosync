@@ -239,11 +239,6 @@ func (s *NeosyncApiTestClient) setupMux(
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
-		jobService,
-		sqlConnector,
-		pgquerier,
-		mysqlquerier,
-		sqlmanager,
 		connectiondatabuilder,
 	)
 

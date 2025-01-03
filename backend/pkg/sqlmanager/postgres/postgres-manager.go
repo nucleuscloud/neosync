@@ -63,6 +63,45 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 	return result, nil
 }
 
+func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+	schemaTables := make([]string, 0, len(tables))
+	for _, t := range tables {
+		schemaTables = append(schemaTables, t.String())
+	}
+	rows, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(ctx, p.db, schemaTables)
+	if err != nil {
+		return nil, err
+	}
+	result := []*sqlmanager_shared.DatabaseSchemaRow{}
+	for _, row := range rows {
+		var generatedType *string
+		if row.GeneratedType != "" {
+			generatedTypeCopy := row.GeneratedType
+			generatedType = &generatedTypeCopy
+		}
+		var identityGeneration *string
+		if row.IdentityGeneration != "" {
+			val := row.IdentityGeneration
+			identityGeneration = &val
+		}
+		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
+			TableSchema:            row.SchemaName,
+			TableName:              row.TableName,
+			ColumnName:             row.ColumnName,
+			DataType:               row.DataType,
+			ColumnDefault:          row.ColumnDefault,
+			IsNullable:             row.IsNullable != "NO",
+			CharacterMaximumLength: int(row.CharacterMaximumLength),
+			NumericPrecision:       int(row.NumericPrecision),
+			NumericScale:           int(row.NumericScale),
+			OrdinalPosition:        int(row.OrdinalPosition),
+			GeneratedType:          generatedType,
+			IdentityGeneration:     identityGeneration,
+		})
+	}
+	return result, nil
+}
+
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := p.GetDatabaseSchema(ctx)
