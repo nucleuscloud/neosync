@@ -15,7 +15,6 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
-	"github.com/cenkalti/backoff/v5"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
@@ -218,16 +217,7 @@ func serve(ctx context.Context) error {
 	}
 
 	// Ensure that the retry interceptor comes after the otel interceptor
-	connectInterceptors = append(connectInterceptors, retry_interceptor.New(
-		retry_interceptor.WithRetryOptions(
-			backoff.WithBackOff(backoff.NewExponentialBackOff()),
-			backoff.WithMaxTries(10),
-			backoff.WithMaxElapsedTime(1*time.Minute),
-			backoff.WithNotify(func(err error, d time.Duration) {
-				logger.Warn(fmt.Sprintf("error with retry: %s, retrying in %s", err.Error(), d.String()))
-			}),
-		),
-	))
+	connectInterceptors = append(connectInterceptors, retry_interceptor.DefaultRetryInterceptor(logger))
 
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {

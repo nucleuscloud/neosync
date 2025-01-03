@@ -2,7 +2,10 @@ package retry_interceptor
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/cenkalti/backoff/v5"
@@ -19,6 +22,19 @@ type config struct {
 }
 
 type Option func(*config)
+
+func DefaultRetryInterceptor(logger *slog.Logger) *Interceptor {
+	return New(
+		WithRetryOptions(
+			backoff.WithBackOff(backoff.NewExponentialBackOff()),
+			backoff.WithMaxTries(10),
+			backoff.WithMaxElapsedTime(1*time.Minute),
+			backoff.WithNotify(func(err error, d time.Duration) {
+				logger.Warn(fmt.Sprintf("error with retry: %s, retrying in %s", err.Error(), d.String()))
+			}),
+		),
+	)
+}
 
 func New(opts ...Option) *Interceptor {
 	cfg := &config{}
