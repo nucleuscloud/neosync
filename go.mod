@@ -181,6 +181,7 @@ require (
 	github.com/bufbuild/protocompile v0.8.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/casbin/govaluate v1.2.0 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
