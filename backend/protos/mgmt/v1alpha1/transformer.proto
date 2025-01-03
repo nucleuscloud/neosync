@@ -39,8 +39,7 @@ message CreateUserDefinedTransformerRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   string description = 3;
-  // @deprecated
-  string type = 4;
+  reserved 4; // Was: string type = 4;
   TransformerSource source = 5;
   TransformerConfig transformer_config = 6;
 }
@@ -474,8 +473,7 @@ message UserDefinedTransformerConfig {
 }
 
 message ValidateUserJavascriptCodeRequest {
-  // @deprecated - an account isn't required to validate js code
-  string account_id = 1;
+  reserved 1; // Was: string account_id = 1;
   string code = 2 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -497,8 +495,7 @@ message GenerateJavascript {
 }
 
 message ValidateUserRegexCodeRequest {
-  // @deprecated - an account isn't required to validate js code
-  string account_id = 1;
+  reserved 1; // Was: string account_id = 1;
   string user_provided_regex = 2;
 }
 

@@ -26,8 +26,6 @@ class BillingStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 class AccountStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     ACCOUNT_STATUS_REASON_UNSPECIFIED: _ClassVar[AccountStatus]
-    ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT: _ClassVar[AccountStatus]
-    ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: _ClassVar[AccountStatus]
     ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: _ClassVar[AccountStatus]
@@ -49,8 +47,6 @@ BILLING_STATUS_EXPIRED: BillingStatus
 BILLING_STATUS_TRIAL_ACTIVE: BillingStatus
 BILLING_STATUS_TRIAL_EXPIRED: BillingStatus
 ACCOUNT_STATUS_REASON_UNSPECIFIED: AccountStatus
-ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT: AccountStatus
-ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE: AccountStatus
 ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED: AccountStatus
@@ -309,18 +305,30 @@ class GetSystemInformationRequest(_message.Message):
     def __init__(self) -> None: ...
 
 class GetSystemInformationResponse(_message.Message):
-    __slots__ = ("version", "commit", "compiler", "platform", "build_date")
+    __slots__ = ("version", "commit", "compiler", "platform", "build_date", "license")
     VERSION_FIELD_NUMBER: _ClassVar[int]
     COMMIT_FIELD_NUMBER: _ClassVar[int]
     COMPILER_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_FIELD_NUMBER: _ClassVar[int]
     BUILD_DATE_FIELD_NUMBER: _ClassVar[int]
+    LICENSE_FIELD_NUMBER: _ClassVar[int]
     version: str
     commit: str
     compiler: str
     platform: str
     build_date: _timestamp_pb2.Timestamp
-    def __init__(self, version: _Optional[str] = ..., commit: _Optional[str] = ..., compiler: _Optional[str] = ..., platform: _Optional[str] = ..., build_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    license: SystemLicense
+    def __init__(self, version: _Optional[str] = ..., commit: _Optional[str] = ..., compiler: _Optional[str] = ..., platform: _Optional[str] = ..., build_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., license: _Optional[_Union[SystemLicense, _Mapping]] = ...) -> None: ...
+
+class SystemLicense(_message.Message):
+    __slots__ = ("is_valid", "expires_at", "is_neosync_cloud")
+    IS_VALID_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    IS_NEOSYNC_CLOUD_FIELD_NUMBER: _ClassVar[int]
+    is_valid: bool
+    expires_at: _timestamp_pb2.Timestamp
+    is_neosync_cloud: bool
+    def __init__(self, is_valid: bool = ..., expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., is_neosync_cloud: bool = ...) -> None: ...
 
 class GetAccountOnboardingConfigRequest(_message.Message):
     __slots__ = ("account_id",)
@@ -349,18 +357,10 @@ class SetAccountOnboardingConfigResponse(_message.Message):
     def __init__(self, config: _Optional[_Union[AccountOnboardingConfig, _Mapping]] = ...) -> None: ...
 
 class AccountOnboardingConfig(_message.Message):
-    __slots__ = ("has_created_source_connection", "has_created_destination_connection", "has_created_job", "has_invited_members", "has_completed_onboarding")
-    HAS_CREATED_SOURCE_CONNECTION_FIELD_NUMBER: _ClassVar[int]
-    HAS_CREATED_DESTINATION_CONNECTION_FIELD_NUMBER: _ClassVar[int]
-    HAS_CREATED_JOB_FIELD_NUMBER: _ClassVar[int]
-    HAS_INVITED_MEMBERS_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("has_completed_onboarding",)
     HAS_COMPLETED_ONBOARDING_FIELD_NUMBER: _ClassVar[int]
-    has_created_source_connection: bool
-    has_created_destination_connection: bool
-    has_created_job: bool
-    has_invited_members: bool
     has_completed_onboarding: bool
-    def __init__(self, has_created_source_connection: bool = ..., has_created_destination_connection: bool = ..., has_created_job: bool = ..., has_invited_members: bool = ..., has_completed_onboarding: bool = ...) -> None: ...
+    def __init__(self, has_completed_onboarding: bool = ...) -> None: ...
 
 class GetAccountStatusRequest(_message.Message):
     __slots__ = ("account_id",)
@@ -387,22 +387,18 @@ class IsAccountStatusValidRequest(_message.Message):
     def __init__(self, account_id: _Optional[str] = ..., requested_record_count: _Optional[int] = ...) -> None: ...
 
 class IsAccountStatusValidResponse(_message.Message):
-    __slots__ = ("is_valid", "reason", "should_poll", "used_record_count", "allowed_record_count", "account_status", "trial_expires_at")
+    __slots__ = ("is_valid", "reason", "should_poll", "account_status", "trial_expires_at")
     IS_VALID_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
     SHOULD_POLL_FIELD_NUMBER: _ClassVar[int]
-    USED_RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
-    ALLOWED_RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_STATUS_FIELD_NUMBER: _ClassVar[int]
     TRIAL_EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
     is_valid: bool
     reason: str
     should_poll: bool
-    used_record_count: int
-    allowed_record_count: int
     account_status: AccountStatus
     trial_expires_at: _timestamp_pb2.Timestamp
-    def __init__(self, is_valid: bool = ..., reason: _Optional[str] = ..., should_poll: bool = ..., used_record_count: _Optional[int] = ..., allowed_record_count: _Optional[int] = ..., account_status: _Optional[_Union[AccountStatus, str]] = ..., trial_expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, is_valid: bool = ..., reason: _Optional[str] = ..., should_poll: bool = ..., account_status: _Optional[_Union[AccountStatus, str]] = ..., trial_expires_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetAccountBillingCheckoutSessionRequest(_message.Message):
     __slots__ = ("account_id",)

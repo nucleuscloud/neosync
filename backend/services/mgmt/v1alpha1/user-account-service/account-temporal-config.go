@@ -20,7 +20,7 @@ func (s *Service) GetAccountTemporalConfig(
 	if s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
 	}
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (s *Service) SetAccountTemporalConfig(
 	if s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
 	}
-	userdataclient := userdata.NewClient(s, s.rbacClient)
+	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err

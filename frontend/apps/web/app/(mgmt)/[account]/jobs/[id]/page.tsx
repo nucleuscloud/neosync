@@ -8,9 +8,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { GetJobResponse } from '@neosync/sdk';
-import { getJob, getJobStatus } from '@neosync/sdk/connectquery';
+import { GetJobResponseSchema, JobService } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import ActivitySyncOptionsCard from './components/ActivitySyncOptionsCard';
@@ -22,8 +22,16 @@ import JobIdSkeletonForm from './JobIdSkeletonForm';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
-  const { data: jobStatus } = useQuery(getJobStatus, { jobId: id });
+  const { data, isLoading } = useQuery(
+    JobService.method.getJob,
+    { id },
+    { enabled: !!id }
+  );
+  const { data: jobStatus } = useQuery(
+    JobService.method.getJobStatus,
+    { jobId: id },
+    { enabled: !!id }
+  );
   const queryclient = useQueryClient();
 
   if (isLoading) {
@@ -53,8 +61,12 @@ export default function Page({ params }: PageProps): ReactElement {
               job={data.job}
               mutate={(newjob) => {
                 queryclient.setQueryData(
-                  createConnectQueryKey(getJob, { id }),
-                  new GetJobResponse({ job: newjob })
+                  createConnectQueryKey({
+                    schema: JobService.method.getJob,
+                    input: { id },
+                    cardinality: undefined,
+                  }),
+                  create(GetJobResponseSchema, { job: newjob })
                 );
               }}
             />
@@ -78,8 +90,12 @@ export default function Page({ params }: PageProps): ReactElement {
                     job={data.job}
                     mutate={(newjob) => {
                       queryclient.setQueryData(
-                        createConnectQueryKey(getJob, { id }),
-                        new GetJobResponse({ job: newjob })
+                        createConnectQueryKey({
+                          schema: JobService.method.getJob,
+                          input: { id },
+                          cardinality: undefined,
+                        }),
+                        create(GetJobResponseSchema, { job: newjob })
                       );
                     }}
                   />
@@ -89,8 +105,12 @@ export default function Page({ params }: PageProps): ReactElement {
                     job={data.job}
                     mutate={(newjob) => {
                       queryclient.setQueryData(
-                        createConnectQueryKey(getJob, { id }),
-                        new GetJobResponse({ job: newjob })
+                        createConnectQueryKey({
+                          schema: JobService.method.getJob,
+                          input: { id },
+                          cardinality: undefined,
+                        }),
+                        create(GetJobResponseSchema, { job: newjob })
                       );
                     }}
                   />

@@ -28,20 +28,19 @@ import {
   convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import { PartialMessage } from '@bufbuild/protobuf';
+import { create, MessageInitShape } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ConnectError,
-  JobMappingTransformer,
-  Passthrough,
-  SystemTransformer,
-  TransformerConfig,
-  TransformerSource,
-  ValidateUserJavascriptCodeRequest,
+  JobMappingTransformerSchema,
+  PassthroughSchema,
+  SystemTransformerSchema,
+  TransformerConfigSchema,
+  TransformersService,
+  ValidateUserJavascriptCodeRequestSchema,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
-import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -99,7 +98,7 @@ interface AddNewNosqlRecordFormContext {
   isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
-    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    MessageInitShape<typeof ValidateUserJavascriptCodeRequestSchema>,
     unknown
   >;
   isDuplicateKey: (value: string, schema: string, table: string) => boolean;
@@ -110,7 +109,7 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
+    TransformersService.method.validateUserJavascriptCode
   );
   const form = useForm<
     AddNewNosqlRecordFormValues,
@@ -122,12 +121,11 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
       collection: '',
       key: '',
       transformer: convertJobMappingTransformerToForm(
-        new JobMappingTransformer({
-          source: TransformerSource.PASSTHROUGH,
-          config: new TransformerConfig({
+        create(JobMappingTransformerSchema, {
+          config: create(TransformerConfigSchema, {
             config: {
               case: 'passthroughConfig',
-              value: new Passthrough(),
+              value: create(PassthroughSchema),
             },
           }),
         })
@@ -239,7 +237,9 @@ export default function AddNewNosqlRecord(props: Props): ReactElement {
                       />
                     </div>
                     <EditTransformerOptions
-                      transformer={transformer ?? new SystemTransformer()}
+                      transformer={
+                        transformer ?? create(SystemTransformerSchema)
+                      }
                       value={fv}
                       onSubmit={(newvalue) => {
                         field.onChange(newvalue);

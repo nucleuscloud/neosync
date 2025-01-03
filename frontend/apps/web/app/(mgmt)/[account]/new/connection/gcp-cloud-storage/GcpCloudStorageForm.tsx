@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -22,14 +23,18 @@ import {
   CreateConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
-import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
 import {
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  ConnectionService,
+  GetConnectionResponseSchema,
+  UserAccountService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -48,7 +53,7 @@ export default function GcpCloudStorageForm(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
@@ -68,10 +73,12 @@ export default function GcpCloudStorageForm(): ReactElement {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const posthog = usePostHog();
-  const { mutateAsync: createGcpCloudStorageConnection } =
-    useMutation(createConnection);
-  const { mutateAsync: getGcpCloudStorageConnection } =
-    useMutation(getConnection);
+  const { mutateAsync: createGcpCloudStorageConnection } = useMutation(
+    ConnectionService.method.createConnection
+  );
+  const { mutateAsync: getGcpCloudStorageConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
   const queryclient = useQueryClient();
 
   async function onSubmit(values: GcpCloudStorageFormValues) {
@@ -92,10 +99,12 @@ export default function GcpCloudStorageForm(): ReactElement {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: newConnection.connection.id,
+          createConnectQueryKey({
+            schema: ConnectionService.method.getConnection,
+            input: { id: newConnection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: newConnection.connection,
           })
         );
@@ -153,11 +162,23 @@ export default function GcpCloudStorageForm(): ReactElement {
     fetchData();
   }, [account?.id]);
 
-  if (isLoading || !account?.id || isSystemAppConfigLoading) {
+  const { data: systemInfo, isLoading: isSystemInfoLoading } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
+
+  if (
+    isLoading ||
+    !account?.id ||
+    isSystemAppConfigLoading ||
+    isSystemInfoLoading
+  ) {
     return <SkeletonForm />;
   }
   if (!systemAppConfig?.isGcpCloudStorageConnectionsEnabled) {
     return <Error statusCode={404} />;
+  }
+  if (!systemInfo?.license?.isValid) {
+    return <SystemLicenseAlert />;
   }
 
   return (

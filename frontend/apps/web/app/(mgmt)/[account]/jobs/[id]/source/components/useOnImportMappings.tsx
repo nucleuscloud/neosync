@@ -4,7 +4,8 @@ import {
   JobMappingFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import { JobMapping, JobMappingTransformer } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { JobMapping, JobMappingTransformerSchema } from '@neosync/sdk';
 import { toast } from 'sonner';
 
 interface Props {
@@ -47,7 +48,7 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
               table: jm.table,
               column: jm.column,
               transformer: convertJobMappingTransformerToForm(
-                jm.transformer ?? new JobMappingTransformer()
+                jm.transformer ?? create(JobMappingTransformerSchema)
               ),
             };
           }
@@ -81,7 +82,7 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
               setTransformer(
                 existingIdx,
                 convertJobMappingTransformerToForm(
-                  jm.transformer ?? new JobMappingTransformer()
+                  jm.transformer ?? create(JobMappingTransformerSchema)
                 )
               );
             }
@@ -91,7 +92,7 @@ export function useOnImportMappings(props: Props): UseOnImportMappingsResponse {
               table: jm.table,
               column: jm.column,
               transformer: convertJobMappingTransformerToForm(
-                jm.transformer ?? new JobMappingTransformer()
+                jm.transformer ?? create(JobMappingTransformerSchema)
               ),
             });
           }

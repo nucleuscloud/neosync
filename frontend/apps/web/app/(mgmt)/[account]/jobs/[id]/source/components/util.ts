@@ -23,12 +23,13 @@ import {
   JobMappingFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
   Connection,
   GetConnectionSchemaMapsResponse,
   GetConnectionSchemaResponse,
   JobDestination,
-  JobMappingTransformer,
+  JobMappingTransformerSchema,
   JobSource,
   SystemTransformer,
   UserDefinedTransformer,
@@ -119,7 +120,7 @@ export function getOnSelectedTableToggle(
           table: dbcol.table,
           column: dbcol.column,
           transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer()
+            create(JobMappingTransformerSchema)
           ),
         });
       });

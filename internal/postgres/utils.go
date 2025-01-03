@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
@@ -168,6 +169,12 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case strings.EqualFold(dbTypeName, "_interval"):
 			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bytea") || strings.EqualFold(dbTypeName, "_varbit"):
+			values[i] = &PgxArray[[]byte]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bit"):
+			values[i] = &PgxArray[*pgtype.Bits]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
 		case strings.EqualFold(dbTypeName, "interval"):
 			values[i] = &pgtype.Interval{}
 			scanTargets = append(scanTargets, values[i])
@@ -182,17 +189,30 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
-	jObj := parsePgRowValues(values, columnNames)
+	columnTypes := make([]string, len(cTypes))
+	for i, ct := range cTypes {
+		columnTypes[i] = ct.DatabaseTypeName()
+	}
+
+	jObj := parsePgRowValues(values, columnNames, columnTypes)
 	return jObj, nil
 }
 
-func parsePgRowValues(values []any, columnNames []string) map[string]any {
+func parsePgRowValues(values []any, columnNames, columnTypes []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
+		colType := columnTypes[i]
 		switch t := v.(type) {
 		case nil:
 			jObj[col] = t
+		case time.Time:
+			dt, err := neosynctypes.NewDateTimeFromPgx(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = dt
 		case *sql.NullString:
 			var val any = nil
 			if t.Valid {
@@ -212,6 +232,20 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 				continue
 			}
 			jObj[col] = ia
+		case *PgxArray[[]byte]:
+			ba, err := toBinaryArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
+		case *PgxArray[*pgtype.Bits]:
+			ba, err := toBitsArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
 		case *pgtype.Interval:
@@ -226,7 +260,24 @@ func parsePgRowValues(values []any, columnNames []string) map[string]any {
 			}
 			jObj[col] = neoInterval
 		default:
-			jObj[col] = t
+			switch {
+			case strings.EqualFold(colType, "bit"), strings.EqualFold(colType, "varbit"):
+				bits, err := neosynctypes.NewBitsFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = bits
+			case strings.EqualFold(colType, "bytea"):
+				binary, err := neosynctypes.NewBinaryFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = binary
+			default:
+				jObj[col] = t
+			}
 		}
 	}
 	return jObj
@@ -247,7 +298,41 @@ func IsPgArrayColumnDataType(colDataType string) bool {
 	return strings.HasSuffix(colDataType, "[]")
 }
 
-func toIntervalArray(array *PgxArray[*pgtype.Interval]) (any, error) {
+func toBinaryArray(array *PgxArray[[]byte]) (*neosynctypes.NeosyncArray, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	binaryArray, err := neosynctypes.NewBinaryArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return binaryArray, nil
+}
+
+func toBitsArray(array *PgxArray[*pgtype.Bits]) (*neosynctypes.NeosyncArray, error) {
+	if array.Elements == nil {
+		return nil, nil
+	}
+
+	dim := array.Dimensions()
+	if len(dim) > 1 {
+		return nil, errors.ErrUnsupported
+	}
+
+	bitsArray, err := neosynctypes.NewBitsArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	if err != nil {
+		return nil, err
+	}
+	return bitsArray, nil
+}
+
+func toIntervalArray(array *PgxArray[*pgtype.Interval]) (*neosynctypes.NeosyncArray, error) {
 	if array.Elements == nil {
 		return nil, nil
 	}

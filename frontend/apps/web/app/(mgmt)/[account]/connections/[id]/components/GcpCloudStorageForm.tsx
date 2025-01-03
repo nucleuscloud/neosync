@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -20,11 +21,7 @@ import {
 } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UpdateConnectionResponse } from '@neosync/sdk';
-import {
-  isConnectionNameAvailable,
-  updateConnection,
-} from '@neosync/sdk/connectquery';
+import { ConnectionService, UpdateConnectionResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { buildConnectionConfigGcpCloudStorage } from '../../util';
@@ -40,7 +37,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<GcpCloudStorageFormValues, EditConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
@@ -52,7 +49,9 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync } = useMutation(
+    ConnectionService.method.updateConnection
+  );
 
   async function onSubmit(values: GcpCloudStorageFormValues): Promise<void> {
     if (!account) {
@@ -75,6 +74,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <SystemLicenseAlert />
         <FormField
           control={form.control}
           name="connectionName"

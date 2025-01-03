@@ -21,9 +21,9 @@ We split out the Temporal compose file to make it easier to include in other pla
 
 To run this you can run one of the two following commands:
 
-```sh
-$ make compose/up
-$ docker compose up -d
+```console
+make compose/up
+docker compose up -d
 ```
 
 ## Deploying Neosync with Compose
@@ -37,11 +37,13 @@ Once all of the containers come online, the app is now routable via [http://loca
 
 ## Deploy with Docker Compose and Authentication
 
+> **NB:** This requires a valid Neosync Enterprise license for OSS deployments. If you would like to try this out, please contact us.
+
 Neosync provides an auth friendly compose file that will stand up Neosync in auth-mode with Keycloak.
 
-```sh
-$ make compose/auth/up
-$ docker compose -f compose.yml -f compose.auth.yml up -d
+```console
+make compose/auth/up
+docker compose -f compose.yml -f compose.auth.yml up -d
 ```
 
 Keycloak comes default with two clients that allow the app and cli to login successfully.

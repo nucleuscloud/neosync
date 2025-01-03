@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -127,13 +128,31 @@ func transformNeosyncToMssql(
 }
 
 func getMssqlValue(value any) (any, error) {
+	value, isNeosyncValue, err := getMssqlNeosyncValue(value)
+	if err != nil {
+		return nil, err
+	}
+	if isNeosyncValue {
+		return value, nil
+	}
 	if gotypeutil.IsMap(value) {
 		bits, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("unable to marshal JSON: %w", err)
+			return nil, fmt.Errorf("unable to marshal go map to json bits: %w", err)
 		}
 		return bits, nil
 	}
 
 	return value, nil
+}
+
+func getMssqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
+	if valuer, ok := root.(neosynctypes.NeosyncMssqlValuer); ok {
+		value, err := valuer.ValueMssql()
+		if err != nil {
+			return nil, false, fmt.Errorf("unable to get MSSQL value from NeosyncMssqlValuer: %w", err)
+		}
+		return value, true, nil
+	}
+	return root, false, nil
 }

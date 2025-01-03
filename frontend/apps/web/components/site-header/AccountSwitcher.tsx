@@ -12,12 +12,7 @@ import { getErrorMessage } from '@/util/util';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UserAccount, UserAccountType } from '@neosync/sdk';
-import {
-  convertPersonalToTeamAccount,
-  createTeamAccount,
-  getUserAccounts,
-} from '@neosync/sdk/connectquery';
+import { UserAccount, UserAccountService, UserAccountType } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -43,7 +38,9 @@ interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement | null {
   const { account, setAccount } = useAccount();
-  const { data, isLoading } = useQuery(getUserAccounts);
+  const { data, isLoading } = useQuery(
+    UserAccountService.method.getUserAccounts
+  );
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
   const accounts = data?.accounts ?? [];
@@ -253,12 +250,15 @@ export function useGetOnCreateTeamSubmit(
 
   const { account, setAccount } = useAccount();
 
-  const { mutateAsync: createTeamAccountAsync } =
-    useMutation(createTeamAccount);
-  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
-    convertPersonalToTeamAccount
+  const { mutateAsync: createTeamAccountAsync } = useMutation(
+    UserAccountService.method.createTeamAccount
   );
-  const { refetch: refreshUserAccountsAsync } = useQuery(getUserAccounts);
+  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
+    UserAccountService.method.convertPersonalToTeamAccount
+  );
+  const { refetch: refreshUserAccountsAsync } = useQuery(
+    UserAccountService.method.getUserAccounts
+  );
   const router = useRouter();
 
   return async (values) => {

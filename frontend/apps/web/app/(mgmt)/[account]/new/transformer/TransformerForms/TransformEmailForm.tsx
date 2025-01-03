@@ -14,20 +14,17 @@ import {
   getGenerateEmailTypeString,
   getInvalidEmailActionString,
 } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import {
   GenerateEmailType,
   InvalidEmailAction,
   TransformEmail,
+  TransformEmailSchema,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformEmail,
-    PlainMessage<TransformEmail>
-  > {}
+interface Props extends TransformerConfigProps<TransformEmail> {}
 
 export default function TransformEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -44,7 +41,12 @@ export default function TransformEmailForm(props: Props): ReactElement {
         <Switch
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
-            setValue(new TransformEmail({ ...value, preserveLength: checked }))
+            setValue(
+              create(TransformEmailSchema, {
+                ...value,
+                preserveLength: checked,
+              })
+            )
           }
           disabled={isDisabled}
         />
@@ -62,7 +64,12 @@ export default function TransformEmailForm(props: Props): ReactElement {
         <Switch
           checked={value.preserveDomain}
           onCheckedChange={(checked) =>
-            setValue(new TransformEmail({ ...value, preserveDomain: checked }))
+            setValue(
+              create(TransformEmailSchema, {
+                ...value,
+                preserveDomain: checked,
+              })
+            )
           }
           disabled={isDisabled}
         />
@@ -83,7 +90,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             value={value.excludedDomains.map((d) => d.trim()).join(',')}
             onChange={(e) =>
               setValue(
-                new TransformEmail({
+                create(TransformEmailSchema, {
                   ...value,
                   excludedDomains: e.target.value.split(',').filter((d) => !!d),
                 })
@@ -105,7 +112,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
           disabled={isDisabled}
           onValueChange={(newVal) => {
             setValue(
-              new TransformEmail({
+              create(TransformEmailSchema, {
                 ...value,
                 // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                 emailType: parseInt(newVal, 10),
@@ -149,7 +156,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
               disabled={isDisabled}
               onValueChange={(newValue) => {
                 setValue(
-                  new TransformEmail({
+                  create(TransformEmailSchema, {
                     ...value,
                     // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                     invalidEmailAction: parseInt(newValue, 10),

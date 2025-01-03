@@ -1389,59 +1389,6 @@ components:
         - HASH_TYPE_MD5
         - HASH_TYPE_SHA256
         - HASH_TYPE_SHA512
-    mgmt.v1alpha1.TransformerSource:
-      type: string
-      title: TransformerSource
-      enum:
-        - TRANSFORMER_SOURCE_UNSPECIFIED
-        - TRANSFORMER_SOURCE_PASSTHROUGH
-        - TRANSFORMER_SOURCE_GENERATE_DEFAULT
-        - TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-        - TRANSFORMER_SOURCE_GENERATE_EMAIL
-        - TRANSFORMER_SOURCE_TRANSFORM_EMAIL
-        - TRANSFORMER_SOURCE_GENERATE_BOOL
-        - TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_CITY
-        - TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_FIRST_NAME
-        - TRANSFORMER_SOURCE_GENERATE_FLOAT64
-        - TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS
-        - TRANSFORMER_SOURCE_GENERATE_FULL_NAME
-        - TRANSFORMER_SOURCE_GENERATE_GENDER
-        - TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_INT64
-        - TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64
-        - TRANSFORMER_SOURCE_GENERATE_LAST_NAME
-        - TRANSFORMER_SOURCE_GENERATE_SHA256HASH
-        - TRANSFORMER_SOURCE_GENERATE_SSN
-        - TRANSFORMER_SOURCE_GENERATE_STATE
-        - TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS
-        - TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_GENERATE_STRING
-        - TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING
-        - TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP
-        - TRANSFORMER_SOURCE_GENERATE_USERNAME
-        - TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP
-        - TRANSFORMER_SOURCE_GENERATE_UUID
-        - TRANSFORMER_SOURCE_GENERATE_ZIPCODE
-        - TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_FLOAT64
-        - TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_INT64
-        - TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME
-        - TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER
-        - TRANSFORMER_SOURCE_TRANSFORM_STRING
-        - TRANSFORMER_SOURCE_GENERATE_NULL
-        - TRANSFORMER_SOURCE_GENERATE_CATEGORICAL
-        - TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE
-        - TRANSFORMER_SOURCE_USER_DEFINED
-        - TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-        - TRANSFORMER_SOURCE_GENERATE_COUNTRY
-        - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
-        - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
-        - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -3428,11 +3375,6 @@ components:
     mgmt.v1alpha1.JobMappingTransformer:
       type: object
       properties:
-        source:
-          allOf:
-            - title: source
-              description: '@deprecated - This is no longer used in favor just providing the TransformerConfig'
-            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         config:
           allOf:
             - title: config
@@ -4417,26 +4359,7 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
-      allOf:
-        - anyOf:
-            - required:
-                - haltOnNewColumnAddition
-            - not:
-                anyOf:
-                  - required:
-                      - haltOnNewColumnAddition
-      anyOf:
-        - required:
-            - haltOnNewColumnAddition
-        - not:
-            anyOf:
-              - required:
-                  - haltOnNewColumnAddition
       properties:
-        haltOnNewColumnAddition:
-          type: boolean
-          title: halt_on_new_column_addition
-          description: '@deprecated - Use new_column_addition_strategy instead'
         schemas:
           type: array
           items:
@@ -4485,7 +4408,7 @@ components:
         haltJob:
           allOf:
             - title: halt_job
-              description: halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
+              description: halt job if a new column is detected.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob'
         autoMap:
           allOf:

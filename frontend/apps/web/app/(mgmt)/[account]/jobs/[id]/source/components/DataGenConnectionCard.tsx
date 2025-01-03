@@ -34,6 +34,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -41,22 +42,16 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ConnectionDataService,
+  ConnectionService,
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
   Job,
-  JobMapping,
-  JobMappingTransformer,
+  JobMappingSchema,
+  JobMappingTransformerSchema,
+  JobService,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
-import {
-  getConnection,
-  getConnectionSchemaMap,
-  getConnectionTableConstraints,
-  getConnections,
-  getJob,
-  updateJobSourceConnection,
-  validateJobMappings,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -93,10 +88,10 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     data,
     refetch: mutate,
     isLoading: isJobLoading,
-  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
+  } = useQuery(JobService.method.getJob, { id: jobId }, { enabled: !!jobId });
   const { data: connectionsData, isFetching: isConnectionsValidating } =
     useQuery(
-      getConnections,
+      ConnectionService.method.getConnections,
       { accountId: account?.id },
       { enabled: !!account?.id }
     );
@@ -116,24 +111,26 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isSchemaDataMapLoading,
     isFetching: isSchemaMapValidating,
   } = useQuery(
-    getConnectionSchemaMap,
+    ConnectionDataService.method.getConnectionSchemaMap,
     { connectionId: fkSourceConnectionId },
     { enabled: !!fkSourceConnectionId }
   );
   const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
-    getConnectionSchemaMap
+    ConnectionDataService.method.getConnectionSchemaMap
   );
 
   const queryclient = useQueryClient();
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
-      getConnectionTableConstraints,
+      ConnectionDataService.method.getConnectionTableConstraints,
       { connectionId: fkSourceConnectionId },
       { enabled: !!fkSourceConnectionId }
     );
 
-  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
+  const { mutateAsync: getConnectionAsync } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   const schemaConstraintHandler = useMemo(
     () =>
@@ -195,7 +192,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             table: dbcol.table,
             column: dbcol.column,
             transformer: convertJobMappingTransformerToForm(
-              new JobMappingTransformer()
+              create(JobMappingTransformerSchema)
             ),
           });
         }
@@ -213,7 +210,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 
   const { mutateAsync: updateJobSrcConnection } = useMutation(
-    updateJobSourceConnection
+    JobService.method.updateJobSourceConnection
   );
 
   useEffect(() => {
@@ -226,8 +223,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     validateJobMappings();
   }, [selectedTables, fkSourceConnectionId, account?.id]);
 
-  const { mutateAsync: validateJobMappingsAsync } =
-    useMutation(validateJobMappings);
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
 
   const { handler, isLoading: isGetTransformersLoading } =
     useGetTransformersHandler(account?.id ?? '');
@@ -333,7 +331,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       await updateJobSrcConnection({
         id: job.id,
         mappings: values.mappings.map((m) => {
-          return new JobMapping({
+          return create(JobMappingSchema, {
             schema: m.schema,
             table: m.table,
             column: m.column,
@@ -393,7 +391,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionAsync({ id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnection, { id }),
+            createConnectQueryKey({
+              schema: ConnectionService.method.getConnection,
+              input: { id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -401,7 +403,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         async (id) => {
           const resp = await getConnectionSchemaMapAsync({ connectionId: id });
           queryclient.setQueryData(
-            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            createConnectQueryKey({
+              schema: ConnectionDataService.method.getConnectionSchemaMap,
+              input: { connectionId: id },
+              cardinality: undefined,
+            }),
             resp
           );
           return resp;
@@ -606,7 +612,9 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
       column: mapping.column,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+        : convertJobMappingTransformerToForm(
+            create(JobMappingTransformerSchema)
+          ),
     };
   });
 

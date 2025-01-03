@@ -62,17 +62,10 @@ class GetConnectionDataStreamRequest(_message.Message):
     def __init__(self, connection_id: _Optional[str] = ..., stream_config: _Optional[_Union[ConnectionStreamConfig, _Mapping]] = ..., schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
 
 class GetConnectionDataStreamResponse(_message.Message):
-    __slots__ = ("row",)
-    class RowEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: bytes
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
-    ROW_FIELD_NUMBER: _ClassVar[int]
-    row: _containers.ScalarMap[str, bytes]
-    def __init__(self, row: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
+    __slots__ = ("row_bytes",)
+    ROW_BYTES_FIELD_NUMBER: _ClassVar[int]
+    row_bytes: bytes
+    def __init__(self, row_bytes: _Optional[bytes] = ...) -> None: ...
 
 class PostgresSchemaConfig(_message.Message):
     __slots__ = ()
@@ -197,54 +190,29 @@ class GetConnectionSchemaMapsResponse(_message.Message):
     connection_ids: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, responses: _Optional[_Iterable[_Union[GetConnectionSchemaMapResponse, _Mapping]]] = ..., connection_ids: _Optional[_Iterable[str]] = ...) -> None: ...
 
-class GetConnectionForeignConstraintsRequest(_message.Message):
-    __slots__ = ("connection_id",)
-    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
-    connection_id: str
-    def __init__(self, connection_id: _Optional[str] = ...) -> None: ...
-
 class ForeignKey(_message.Message):
-    __slots__ = ("table", "column", "columns")
+    __slots__ = ("table", "columns")
     TABLE_FIELD_NUMBER: _ClassVar[int]
-    COLUMN_FIELD_NUMBER: _ClassVar[int]
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
     table: str
-    column: str
     columns: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, table: _Optional[str] = ..., column: _Optional[str] = ..., columns: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, table: _Optional[str] = ..., columns: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ForeignConstraint(_message.Message):
-    __slots__ = ("column", "is_nullable", "foreign_key", "columns", "not_nullable")
-    COLUMN_FIELD_NUMBER: _ClassVar[int]
-    IS_NULLABLE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("foreign_key", "columns", "not_nullable")
     FOREIGN_KEY_FIELD_NUMBER: _ClassVar[int]
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
     NOT_NULLABLE_FIELD_NUMBER: _ClassVar[int]
-    column: str
-    is_nullable: bool
     foreign_key: ForeignKey
     columns: _containers.RepeatedScalarFieldContainer[str]
     not_nullable: _containers.RepeatedScalarFieldContainer[bool]
-    def __init__(self, column: _Optional[str] = ..., is_nullable: bool = ..., foreign_key: _Optional[_Union[ForeignKey, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ..., not_nullable: _Optional[_Iterable[bool]] = ...) -> None: ...
+    def __init__(self, foreign_key: _Optional[_Union[ForeignKey, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ..., not_nullable: _Optional[_Iterable[bool]] = ...) -> None: ...
 
 class ForeignConstraintTables(_message.Message):
     __slots__ = ("constraints",)
     CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     constraints: _containers.RepeatedCompositeFieldContainer[ForeignConstraint]
     def __init__(self, constraints: _Optional[_Iterable[_Union[ForeignConstraint, _Mapping]]] = ...) -> None: ...
-
-class GetConnectionForeignConstraintsResponse(_message.Message):
-    __slots__ = ("table_constraints",)
-    class TableConstraintsEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: ForeignConstraintTables
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ForeignConstraintTables, _Mapping]] = ...) -> None: ...
-    TABLE_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
-    table_constraints: _containers.MessageMap[str, ForeignConstraintTables]
-    def __init__(self, table_constraints: _Optional[_Mapping[str, ForeignConstraintTables]] = ...) -> None: ...
 
 class InitStatementOptions(_message.Message):
     __slots__ = ("init_schema", "truncate_before_insert", "truncate_cascade")
@@ -301,44 +269,6 @@ class PrimaryConstraint(_message.Message):
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
     columns: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, columns: _Optional[_Iterable[str]] = ...) -> None: ...
-
-class GetConnectionPrimaryConstraintsRequest(_message.Message):
-    __slots__ = ("connection_id",)
-    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
-    connection_id: str
-    def __init__(self, connection_id: _Optional[str] = ...) -> None: ...
-
-class GetConnectionPrimaryConstraintsResponse(_message.Message):
-    __slots__ = ("table_constraints",)
-    class TableConstraintsEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: PrimaryConstraint
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[PrimaryConstraint, _Mapping]] = ...) -> None: ...
-    TABLE_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
-    table_constraints: _containers.MessageMap[str, PrimaryConstraint]
-    def __init__(self, table_constraints: _Optional[_Mapping[str, PrimaryConstraint]] = ...) -> None: ...
-
-class GetConnectionUniqueConstraintsRequest(_message.Message):
-    __slots__ = ("connection_id",)
-    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
-    connection_id: str
-    def __init__(self, connection_id: _Optional[str] = ...) -> None: ...
-
-class GetConnectionUniqueConstraintsResponse(_message.Message):
-    __slots__ = ("table_constraints",)
-    class TableConstraintsEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: UniqueConstraint
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[UniqueConstraint, _Mapping]] = ...) -> None: ...
-    TABLE_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
-    table_constraints: _containers.MessageMap[str, UniqueConstraint]
-    def __init__(self, table_constraints: _Optional[_Mapping[str, UniqueConstraint]] = ...) -> None: ...
 
 class UniqueConstraint(_message.Message):
     __slots__ = ("columns",)

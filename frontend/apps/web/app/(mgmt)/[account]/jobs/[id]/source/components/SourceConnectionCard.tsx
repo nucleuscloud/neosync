@@ -1,6 +1,6 @@
 'use client';
 import { useQuery } from '@connectrpc/connect-query';
-import { getJob } from '@neosync/sdk/connectquery';
+import { JobService } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { isAiDataGenJob, isDataGenJob } from '../../util';
 import AiDataGenConnectionCard from './AiDataGenConnectionCard';
@@ -14,7 +14,7 @@ interface Props {
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { data, isLoading } = useQuery(
-    getJob,
+    JobService.method.getJob,
     { id: jobId },
     { enabled: !!jobId }
   );

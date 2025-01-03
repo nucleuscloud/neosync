@@ -8,10 +8,7 @@ import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@connectrpc/connect-query';
-import {
-  getSystemTransformers,
-  getUserDefinedTransformers,
-} from '@neosync/sdk/connectquery';
+import { TransformersService } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
@@ -60,7 +57,7 @@ interface TransformersTableProps {
 function TransformersTable(props: TransformersTableProps): ReactElement {
   const { defaultTab } = props;
   const { data, isLoading: isSystemTransformersLoading } = useQuery(
-    getSystemTransformers
+    TransformersService.method.getSystemTransformers
   );
   const { account } = useAccount();
   const {
@@ -68,7 +65,7 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
     isLoading: userDefinedTransformersLoading,
     refetch: userDefinedTransformerRefetch,
   } = useQuery(
-    getUserDefinedTransformers,
+    TransformersService.method.getUserDefinedTransformers,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );

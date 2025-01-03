@@ -11,6 +11,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	"github.com/spf13/viper"
 )
@@ -236,30 +237,16 @@ func GetJobSourceConnection(
 	return sourceConnection, nil
 }
 
+// Returns the connection type as a string
+// Should only be used for logging
 func GetConnectionType(connection *mgmtv1alpha1.Connection) string {
-	switch connection.GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return "postgres"
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return "mysql"
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return "sqlserver"
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		return "aws-s3"
-	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		return "gcp-cloud-storage"
-	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		return "mongodb"
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		return "aws-dynamodb"
-	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
-		return "local-directory"
-	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
-		return "openai"
-	default:
+	connectiontype, err := benthosbuilder_shared.GetConnectionType(connection)
+	if err != nil {
 		return "unknown"
 	}
+	return string(connectiontype)
 }
+
 func GetConnectionById(
 	ctx context.Context,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,

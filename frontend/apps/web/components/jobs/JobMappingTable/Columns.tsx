@@ -6,7 +6,8 @@ import {
   isInvalidTransformer,
 } from '@/util/util';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
-import { SystemTransformer } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { SystemTransformerSchema } from '@neosync/sdk';
 import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
 import { DataTableRowActions } from '../NosqlTable/data-table-row-actions';
 import EditCollection from '../NosqlTable/EditCollection';
@@ -190,7 +191,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
       cell({ table, row }) {
         const transformer =
           table.options.meta?.jmTable?.getTransformerFromField(row.index) ??
-          new SystemTransformer();
+          create(SystemTransformerSchema);
         const transformerForm = row.original.transformer;
         return (
           <div className="flex flex-row gap-2">
@@ -249,6 +250,16 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
   ];
 }
 
+function transformerFilterFn(
+  row: Row<JobMappingRow>,
+  columnId: string,
+  fitlerValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean;
+function transformerFilterFn(
+  row: Row<NosqlJobMappingRow>,
+  columnId: string,
+  fitlerValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean;
 function transformerFilterFn(
   row: Row<JobMappingRow | NosqlJobMappingRow>,
   columnId: string,
@@ -370,7 +381,7 @@ function getNosqlJobMappingColumns(): ColumnDef<NosqlJobMappingRow, any>[] {
       cell({ table, row }) {
         const transformer =
           table.options.meta?.jmTable?.getTransformerFromField(row.index) ??
-          new SystemTransformer();
+          create(SystemTransformerSchema);
         const transformerForm = row.original.transformer;
         return (
           <div className="flex flex-row gap-2">

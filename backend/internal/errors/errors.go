@@ -37,17 +37,17 @@ func NewAlreadyExists(message string) error {
 	return connect.NewError(connect.CodeAlreadyExists, errors.New(message))
 }
 
+// Identical to NewUnauthorized
 func NewForbidden(message string) error {
-	return connect.NewError(connect.CodePermissionDenied, errors.New(message))
+	return NewUnauthorized(message)
 }
 
 func NewUnauthenticated(message string) error {
 	return connect.NewError(connect.CodeUnauthenticated, errors.New(message))
 }
 
-// Identical to NewUnauthenticated
 func NewUnauthorized(message string) error {
-	return NewUnauthenticated(message)
+	return connect.NewError(connect.CodePermissionDenied, errors.New(message))
 }
 
 func NewNotImplemented(message string) error {

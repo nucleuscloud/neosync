@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Job } from '@neosync/sdk';
+import { Job, JobService } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 
@@ -15,7 +15,6 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { deleteJob } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
@@ -34,7 +33,7 @@ export function DataTableRowActions<TData>({
   const job = row.original as Job;
   const router = useRouter();
   const { account } = useAccount();
-  const { mutateAsync: removeJob } = useMutation(deleteJob);
+  const { mutateAsync: removeJob } = useMutation(JobService.method.deleteJob);
 
   async function onDelete(): Promise<void> {
     try {

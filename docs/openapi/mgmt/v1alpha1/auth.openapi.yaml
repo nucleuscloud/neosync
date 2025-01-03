@@ -113,44 +113,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenResponse'
-  /mgmt.v1alpha1.AuthService/GetCliIssuer:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: GetCliIssuer
-      description: |-
-        Used by the CLI to retrieve Auth Issuer information
-         @deprecated
-      operationId: mgmt.v1alpha1.AuthService.GetCliIssuer
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetCliIssuerResponse'
   /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
     post:
       tags:
@@ -327,23 +289,6 @@ components:
           title: url
           description: The generated url that is the client will be redirected to during the Oauth flow
       title: GetAuthorizeUrlResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetCliIssuerRequest:
-      type: object
-      title: GetCliIssuerRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetCliIssuerResponse:
-      type: object
-      properties:
-        issuerUrl:
-          type: string
-          title: issuer_url
-          description: The backing authentication issuer url
-        audience:
-          type: string
-          title: audience
-          description: The audience that will be used in the access token. This corresponds to the "aud" claim
-      title: GetCliIssuerResponse
       additionalProperties: false
     mgmt.v1alpha1.LoginCliRequest:
       type: object

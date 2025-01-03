@@ -8,10 +8,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { getErrorMessage } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { Connection, JobHook } from '@neosync/sdk';
-import { updateJobHook } from '@neosync/sdk/connectquery';
+import { Connection, JobHook, JobService } from '@neosync/sdk';
 import { Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,14 +23,21 @@ interface Props {
 
 export default function EditHookButton(props: Props): ReactElement {
   const { hook, onEdited, jobConnections } = props;
-  const { mutateAsync: updateHook } = useMutation(updateJobHook);
+  const { mutateAsync: updateHook } = useMutation(
+    JobService.method.updateJobHook
+  );
   const [open, setOpen] = useState(false);
 
-  async function onUpdate(
-    values: Partial<PlainMessage<JobHook>>
-  ): Promise<void> {
+  async function onUpdate(values: Partial<JobHook>): Promise<void> {
     try {
-      await updateHook({ id: hook.id, ...values });
+      await updateHook({
+        id: hook.id,
+        config: values.config,
+        description: values.description,
+        enabled: values.enabled,
+        name: values.name,
+        priority: values.priority,
+      });
       toast.success('Successfully updated job hook!');
       onEdited();
       setOpen(false);

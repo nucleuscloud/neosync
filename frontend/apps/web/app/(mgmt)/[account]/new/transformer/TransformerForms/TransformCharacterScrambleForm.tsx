@@ -1,7 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -10,18 +9,17 @@ import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { Button } from '@/components/ui/button';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { TransformCharacterScramble } from '@neosync/sdk';
-import { validateUserRegexCode } from '@neosync/sdk/connectquery';
+import {
+  TransformCharacterScramble,
+  TransformCharacterScrambleSchema,
+  TransformersService,
+} from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<
-    TransformCharacterScramble,
-    PlainMessage<TransformCharacterScramble>
-  > {}
+interface Props extends TransformerConfigProps<TransformCharacterScramble> {}
 
 type ValidRegex = 'valid' | 'invalid' | 'null';
 
@@ -33,20 +31,15 @@ export default function TransformCharacterScrambleForm(
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
   const [isRegexValid, setIsRegexValid] = useState<ValidRegex>('null');
 
-  const { account } = useAccount();
   const { mutateAsync: validateUserRegexCodeAsync } = useMutation(
-    validateUserRegexCode
+    TransformersService.method.validateUserRegexCode
   );
 
   async function handleValidateCode(): Promise<void> {
-    if (!account) {
-      return;
-    }
     setIsValidatingRegex(true);
 
     try {
       const res = await validateUserRegexCodeAsync({
-        accountId: account.id,
         userProvidedRegex: value.userProvidedRegex,
       });
       setIsValidatingRegex(false);
@@ -105,7 +98,7 @@ export default function TransformCharacterScrambleForm(
               value={value.userProvidedRegex}
               onChange={(e) => {
                 setValue(
-                  new TransformCharacterScramble({
+                  create(TransformCharacterScrambleSchema, {
                     ...value,
                     userProvidedRegex: e.target.value,
                   })

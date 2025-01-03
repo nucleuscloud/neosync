@@ -3,13 +3,12 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { GenerateState } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import { GenerateState, GenerateStateSchema } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props
-  extends TransformerConfigProps<GenerateState, PlainMessage<GenerateState>> {}
+interface Props extends TransformerConfigProps<GenerateState> {}
 
 export default function GenerateStateForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -29,7 +28,10 @@ export default function GenerateStateForm(props: Props): ReactElement {
             checked={value.generateFullName}
             onCheckedChange={(checked) =>
               setValue(
-                new GenerateState({ ...value, generateFullName: checked })
+                create(GenerateStateSchema, {
+                  ...value,
+                  generateFullName: checked,
+                })
               )
             }
             disabled={isDisabled}

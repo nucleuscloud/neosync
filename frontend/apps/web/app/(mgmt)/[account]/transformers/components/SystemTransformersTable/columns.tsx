@@ -6,7 +6,6 @@ import {
   getTransformerJobTypesString,
   getTransformerSourceString,
 } from '@/util/util';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
@@ -19,7 +18,7 @@ interface GetSystemTransformercolumnsProps {
 
 export function getSystemTransformerColumns(
   props: GetSystemTransformercolumnsProps
-): ColumnDef<PlainMessage<SystemTransformer>>[] {
+): ColumnDef<SystemTransformer>[] {
   const { accountName } = props;
   return [
     {

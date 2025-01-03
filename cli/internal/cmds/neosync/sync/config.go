@@ -9,6 +9,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -213,23 +214,23 @@ func newCobraCmdConfig(
 	return config, nil
 }
 
-func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1alpha1.Connection, sourceConnectionType ConnectionType) error {
-	if sourceConnectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1alpha1.Connection, sourceConnectionType benthosbuilder_shared.ConnectionType) error {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("S3 source connection type requires job-id or job-run-id.")
 	}
-	if sourceConnectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
-	if (sourceConnectionType == awsS3Connection || sourceConnectionType == gcpCloudStorageConnection) && cmd.Destination.InitSchema {
+	if (sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 || sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP) && cmd.Destination.InitSchema {
 		return errors.New("init schema is only supported when source is a SQL Database")
 	}
 
-	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
+	if cmd.Destination != nil && cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
-	if sourceConnectionType == mysqlConnection || sourceConnectionType == postgresConnection {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeMysql || sourceConnectionType == benthosbuilder_shared.ConnectionTypePostgres {
 		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")
 		}
@@ -242,7 +243,7 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		}
 	}
 
-	if sourceConnectionType == awsDynamoDBConnection {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeDynamodb {
 		if cmd.AwsDynamoDbDestination == nil {
 			return fmt.Errorf("must provide destination aws credentials")
 		}
@@ -256,8 +257,12 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		return fmt.Errorf("Connection not found. AccountId: %s", *cmd.AccountId)
 	}
 
+	var destinationDriver *DriverType
+	if cmd.Destination != nil {
+		destinationDriver = &cmd.Destination.Driver
+	}
 	logger.Debug("Checking if source and destination are compatible")
-	err := areSourceAndDestCompatible(sourceConnection, cmd.Destination.Driver)
+	err := areSourceAndDestCompatible(sourceConnection, destinationDriver)
 	if err != nil {
 		return err
 	}

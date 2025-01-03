@@ -1,13 +1,19 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { SetPersonalAccountRequest, SetUserRequest } from '@neosync/sdk';
+import { create } from '@bufbuild/protobuf';
+import {
+  SetPersonalAccountRequestSchema,
+  SetUserRequestSchema,
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    const setUserResp = await ctx.client.users.setUser(new SetUserRequest({}));
+    const setUserResp = await ctx.client.users.setUser(
+      create(SetUserRequestSchema, {})
+    );
 
     await ctx.client.users.setPersonalAccount(
-      new SetPersonalAccountRequest({})
+      create(SetPersonalAccountRequestSchema, {})
     );
     return setUserResp;
   })(req);

@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/gofrs/uuid"
+	mssql "github.com/microsoft/go-mssqldb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -21,10 +23,21 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
+	columnDbTypes := []string{}
+	for _, c := range cTypes {
+		columnDbTypes = append(columnDbTypes, c.DatabaseTypeName())
+	}
+
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
 	for i := range values {
-		valuesWrapped = append(valuesWrapped, &values[i])
+		colType := columnDbTypes[i]
+		if strings.EqualFold(colType, "uniqueidentifier") {
+			values[i] = &mssql.UniqueIdentifier{}
+			valuesWrapped = append(valuesWrapped, values[i])
+		} else {
+			valuesWrapped = append(valuesWrapped, &values[i])
+		}
 	}
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
@@ -33,43 +46,42 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		colType := cTypes[i]
+		colType := columnDbTypes[i]
 		switch t := v.(type) {
-		case string:
-			jObj[col] = t
+		case time.Time:
+			dt, err := neosynctypes.NewDateTimeFromMssql(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = dt
+		case *mssql.UniqueIdentifier:
+			jObj[col] = t.String()
 		case []byte:
-			if IsUuidDataType(colType.DatabaseTypeName()) {
-				uuidStr, err := BitsToUuidString(t)
-				if err == nil {
-					jObj[col] = uuidStr
+			switch {
+			case strings.EqualFold(colType, "binary"):
+				binary, err := neosynctypes.NewBinaryFromMssql(t)
+				if err != nil {
+					jObj[col] = t
 					continue
 				}
+				jObj[col] = binary
+			case strings.EqualFold(colType, "varbinary"):
+				bits, err := neosynctypes.NewBitsFromMssql(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = bits
+			default:
+				jObj[col] = string(t)
 			}
-			jObj[col] = string(t)
-		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			jObj[col] = t
-		case float32, float64:
-			jObj[col] = t
-		case bool:
-			jObj[col] = t
 		default:
 			jObj[col] = t
 		}
 	}
 
 	return jObj, nil
-}
-
-func IsUuidDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "uniqueidentifier")
-}
-
-func BitsToUuidString(bits []byte) (string, error) {
-	u, err := uuid.FromBytes(bits)
-	if err != nil {
-		return "", err
-	}
-	return u.String(), nil
 }
 
 func GeSqlServerDefaultValuesInsertSql(schema, table string, rowCount int) string {

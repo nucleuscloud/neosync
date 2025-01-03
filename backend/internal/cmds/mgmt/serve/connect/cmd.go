@@ -71,6 +71,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -143,6 +144,10 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.ApiKeyServiceName,
 		mgmtv1alpha1connect.ConnectionDataServiceName,
 		mgmtv1alpha1connect.AnonymizationServiceName,
+	}
+
+	if shouldEnableMetricsService() && !cascadelicense.IsValid() {
+		return errors.New("metrics service is enabled but no license is present")
 	}
 
 	if shouldEnableMetricsService() {
@@ -335,6 +340,10 @@ func serve(ctx context.Context) error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
+		slogger.Debug("auth is enabled")
+		if !cascadelicense.IsValid() {
+			return errors.New("auth is enabled but no license is present")
+		}
 		jwtcfg, err := getJwtClientConfig()
 		if err != nil {
 			return err
@@ -350,8 +359,6 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
 			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
 			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
@@ -384,7 +391,6 @@ func serve(ctx context.Context) error {
 				[]string{
 					mgmtv1alpha1connect.AuthServiceGetAuthStatusProcedure,
 					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
-					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
 					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
 					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},
@@ -475,7 +481,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           ncloudlicense.IsValid(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient)
+	}, db, temporalConfigProvider, authclient, authadminclient, billingClient, rbacclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -485,7 +491,7 @@ func serve(ctx context.Context) error {
 			connect.WithRecover(recoverHandler),
 		),
 	)
-	userdataclient := userdata.NewClient(useraccountService, rbacclient)
+	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,
@@ -534,7 +540,7 @@ func serve(ctx context.Context) error {
 	)
 
 	jobhookOpts := []jobhooks.Option{}
-	if ncloudlicense.IsValid() || eelicense.IsValid() {
+	if cascadelicense.IsValid() {
 		jobhookOpts = append(jobhookOpts, jobhooks.WithEnabled())
 	}
 
@@ -547,6 +553,9 @@ func serve(ctx context.Context) error {
 	runLogConfig, err := getRunLogConfig()
 	if err != nil {
 		return err
+	}
+	if runLogConfig != nil && runLogConfig.IsEnabled && !cascadelicense.IsValid() {
+		return errors.New("run logs are enabled but no license is present")
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
@@ -626,6 +635,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
 	gcpmanager := neosync_gcp.NewManager()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
@@ -638,6 +648,7 @@ func serve(ctx context.Context) error {
 		mongoconnector,
 		sqlmanager,
 		gcpmanager,
+		neosynctyperegistry,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(

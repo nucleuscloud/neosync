@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { GetJobRunLogsStreamResponse } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -10,7 +10,7 @@ interface GetColumnsProps {}
 
 export function getColumns(
   props: GetColumnsProps
-): ColumnDef<PlainMessage<GetJobRunLogsStreamResponse>>[] {
+): ColumnDef<GetJobRunLogsStreamResponse>[] {
   const {} = props;
   return [
     {
@@ -20,8 +20,8 @@ export function getColumns(
       ),
       size: 210,
       cell: ({ getValue, cell }) => {
-        const date = getValue<Timestamp | undefined>()?.toDate();
-        const text = date ? date.toISOString() : '-';
+        const date = getValue<Timestamp | undefined>();
+        const text = date ? timestampDate(date).toISOString() : '-';
         return (
           <div
             className="flex space-x-2"

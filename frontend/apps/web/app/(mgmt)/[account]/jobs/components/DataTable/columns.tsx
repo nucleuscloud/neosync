@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import TruncatedText from '@/components/TruncatedText';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
-import { Timestamp } from '@bufbuild/protobuf';
+import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { JobStatus } from '@neosync/sdk';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -129,10 +129,14 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
         <DataTableColumnHeader column={column} title="Created At" />
       ),
       cell: ({ row }) => {
+        const ts = row.getValue<Timestamp>('createdAt') ?? {
+          nanos: 0,
+          seconds: 0,
+        };
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt')?.toDate())}
+              {formatDateTime(timestampDate(ts))}
             </span>
           </div>
         );
@@ -147,10 +151,15 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
         <DataTableColumnHeader column={column} title="Updated At" />
       ),
       cell: ({ row }) => {
+        const ts = row.getValue<Timestamp>('updatedAt') ?? {
+          nanos: 0,
+          seconds: 0,
+        };
+
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt')?.toDate())}
+              {formatDateTime(timestampDate(ts))}
             </span>
           </div>
         );

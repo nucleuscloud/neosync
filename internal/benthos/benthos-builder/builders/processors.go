@@ -253,9 +253,9 @@ func isJavascriptTransformer(jmt *mgmtv1alpha1.JobMappingTransformer) bool {
 	if jmt == nil {
 		return false
 	}
-	isSource := jmt.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT || jmt.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+
 	isConfig := jmt.GetConfig().GetTransformJavascriptConfig() != nil || jmt.GetConfig().GetGenerateJavascriptConfig() != nil
-	return isSource || isConfig
+	return isConfig
 }
 
 func buildMutationConfigs(
@@ -475,7 +475,6 @@ func convertUserDefinedFunctionConfig(
 	transformer := transformerResp.Msg.GetTransformer()
 
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: transformer.GetSource(),
 		Config: transformer.GetConfig(),
 	}, nil
 }

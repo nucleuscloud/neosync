@@ -2,8 +2,7 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { JobHook } from '@neosync/sdk';
-import { deleteJobHook } from '@neosync/sdk/connectquery';
+import { JobHook, JobService } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { toast } from 'sonner';
@@ -14,7 +13,9 @@ interface Props {
 }
 export default function RemoveHookButton(props: Props): ReactElement {
   const { hook, onDeleted } = props;
-  const { mutateAsync: removeHook } = useMutation(deleteJobHook);
+  const { mutateAsync: removeHook } = useMutation(
+    JobService.method.deleteJobHook
+  );
 
   async function onDelete(): Promise<void> {
     try {

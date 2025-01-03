@@ -12,8 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { UserDefinedTransformer } from '@neosync/sdk';
-import { deleteUserDefinedTransformer } from '@neosync/sdk/connectquery';
+import { TransformersService, UserDefinedTransformer } from '@neosync/sdk';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
@@ -32,7 +31,7 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const { account } = useAccount();
   const { mutateAsync: removeTransformer } = useMutation(
-    deleteUserDefinedTransformer
+    TransformersService.method.deleteUserDefinedTransformer
   );
 
   async function onDelete(): Promise<void> {

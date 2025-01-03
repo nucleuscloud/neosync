@@ -1,6 +1,5 @@
 import { useQuery } from '@connectrpc/connect-query';
-import { RangedMetricName } from '@neosync/sdk';
-import { getMetricCount } from '@neosync/sdk/connectquery';
+import { MetricsService, RangedMetricName } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useAccount } from '../providers/account-provider';
 import {
@@ -30,7 +29,7 @@ export default function MetricCount(props: Props): ReactElement {
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);
   const { data: metricCountData, isLoading } = useQuery(
-    getMetricCount,
+    MetricsService.method.getMetricCount,
     {
       metric,
       startDay: dateToNeoDate(start),

@@ -130,8 +130,7 @@ message DynamoDBSourceTableOption {
 }
 
 message PostgresSourceConnectionOptions {
-  // @deprecated - Use new_column_addition_strategy instead
-  optional bool halt_on_new_column_addition = 1;
+  reserved 1; // Was: optional bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
@@ -140,7 +139,7 @@ message PostgresSourceConnectionOptions {
 
   message NewColumnAdditionStrategy {
     oneof strategy {
-      // halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition
+      // halt job if a new column is detected.
       HaltJob halt_job = 1;
       // automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
@@ -385,8 +384,8 @@ message CreateJobResponse {
 }
 
 message JobMappingTransformer {
-  // @deprecated - This is no longer used in favor just providing the TransformerConfig
-  TransformerSource source = 1;
+  reserved 1; // Was: TransformerSource source = 1;
+
   TransformerConfig config = 3;
 }
 

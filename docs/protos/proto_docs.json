@@ -525,18 +525,6 @@
               "defaultValue": ""
             },
             {
-              "name": "type",
-              "description": "@deprecated",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "source",
               "description": "",
               "label": "",
@@ -3096,18 +3084,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "account_id",
-              "description": "@deprecated - an account isn't required to validate js code",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "code",
               "description": "",
               "label": "",
@@ -3155,18 +3131,6 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": [
-            {
-              "name": "account_id",
-              "description": "@deprecated - an account isn't required to validate js code",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
             {
               "name": "user_provided_regex",
               "description": "",
@@ -4414,53 +4378,6 @@
           ]
         },
         {
-          "name": "GetCliIssuerRequest",
-          "longName": "GetCliIssuerRequest",
-          "fullName": "mgmt.v1alpha1.GetCliIssuerRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "GetCliIssuerResponse",
-          "longName": "GetCliIssuerResponse",
-          "fullName": "mgmt.v1alpha1.GetCliIssuerResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "issuer_url",
-              "description": "The backing authentication issuer url",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "audience",
-              "description": "The audience that will be used in the access token. This corresponds to the \"aud\" claim",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "LoginCliRequest",
           "longName": "LoginCliRequest",
           "fullName": "mgmt.v1alpha1.LoginCliRequest",
@@ -4613,18 +4530,6 @@
               "responseStreaming": false
             },
             {
-              "name": "GetCliIssuer",
-              "description": "Used by the CLI to retrieve Auth Issuer information\n@deprecated",
-              "requestType": "GetCliIssuerRequest",
-              "requestLongType": "GetCliIssuerRequest",
-              "requestFullType": "mgmt.v1alpha1.GetCliIssuerRequest",
-              "requestStreaming": false,
-              "responseType": "GetCliIssuerResponse",
-              "responseLongType": "GetCliIssuerResponse",
-              "responseFullType": "mgmt.v1alpha1.GetCliIssuerResponse",
-              "responseStreaming": false
-            },
-            {
               "name": "GetAuthorizeUrl",
               "description": "Used by the CLI to retrieve an Authorize URL for use with OAuth login.",
               "requestType": "GetAuthorizeUrlRequest",
@@ -4673,21 +4578,6 @@
           "hasOneofs": true,
           "extensions": [],
           "fields": [
-            {
-              "name": "bucket_arn",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
-            },
             {
               "name": "path_prefix",
               "description": "",
@@ -7097,30 +6987,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "column",
-              "description": "@deprecated - use columns",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "is_nullable",
-              "description": "@deprecated - use not_nullable",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "foreign_key",
               "description": "",
               "label": "",
@@ -7195,18 +7061,6 @@
             {
               "name": "table",
               "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "column",
-              "description": "@deprecated - use columns",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7481,132 +7335,12 @@
           "extensions": [],
           "fields": [
             {
-              "name": "row",
-              "description": "A map of column name to the bytes value of the data that was found for that column and row",
-              "label": "repeated",
-              "type": "RowEntry",
-              "longType": "GetConnectionDataStreamResponse.RowEntry",
-              "fullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "RowEntry",
-          "longName": "GetConnectionDataStreamResponse.RowEntry",
-          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
+              "name": "row_bytes",
+              "description": "A map of column name to column value, where the value is serialized as bytes. The value represents a map[string]any structure.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
               "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionForeignConstraintsRequest",
-          "longName": "GetConnectionForeignConstraintsRequest",
-          "fullName": "mgmt.v1alpha1.GetConnectionForeignConstraintsRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "connection_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionForeignConstraintsResponse",
-          "longName": "GetConnectionForeignConstraintsResponse",
-          "fullName": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse",
-          "description": "Dependency constraints for a specific table",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "table_constraints",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and the list of tables that it depends on, also `\u003cschema\u003e.\u003ctable\u003e` format.",
-              "label": "repeated",
-              "type": "TableConstraintsEntry",
-              "longType": "GetConnectionForeignConstraintsResponse.TableConstraintsEntry",
-              "fullType": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "TableConstraintsEntry",
-          "longName": "GetConnectionForeignConstraintsResponse.TableConstraintsEntry",
-          "fullName": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "ForeignConstraintTables",
-              "longType": "ForeignConstraintTables",
-              "fullType": "mgmt.v1alpha1.ForeignConstraintTables",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -7763,90 +7497,6 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionPrimaryConstraintsRequest",
-          "longName": "GetConnectionPrimaryConstraintsRequest",
-          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest",
-          "description": "Primary constraints for a specific table",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "connection_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionPrimaryConstraintsResponse",
-          "longName": "GetConnectionPrimaryConstraintsResponse",
-          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "table_constraints",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the primary constraint",
-              "label": "repeated",
-              "type": "TableConstraintsEntry",
-              "longType": "GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
-              "fullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "TableConstraintsEntry",
-          "longName": "GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
-          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "PrimaryConstraint",
-              "longType": "PrimaryConstraint",
-              "fullType": "mgmt.v1alpha1.PrimaryConstraint",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -8251,90 +7901,6 @@
           ]
         },
         {
-          "name": "GetConnectionUniqueConstraintsRequest",
-          "longName": "GetConnectionUniqueConstraintsRequest",
-          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
-          "description": "Unique constraints for a specific table",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "connection_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionUniqueConstraintsResponse",
-          "longName": "GetConnectionUniqueConstraintsResponse",
-          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "table_constraints",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique constraint",
-              "label": "repeated",
-              "type": "TableConstraintsEntry",
-              "longType": "GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
-              "fullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "TableConstraintsEntry",
-          "longName": "GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
-          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "UniqueConstraint",
-              "longType": "UniqueConstraint",
-              "fullType": "mgmt.v1alpha1.UniqueConstraint",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "GetTableRowCountRequest",
           "longName": "GetTableRowCountRequest",
           "fullName": "mgmt.v1alpha1.GetTableRowCountRequest",
@@ -8709,30 +8275,6 @@
               "responseStreaming": false
             },
             {
-              "name": "GetConnectionForeignConstraints",
-              "description": "For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.",
-              "requestType": "GetConnectionForeignConstraintsRequest",
-              "requestLongType": "GetConnectionForeignConstraintsRequest",
-              "requestFullType": "mgmt.v1alpha1.GetConnectionForeignConstraintsRequest",
-              "requestStreaming": false,
-              "responseType": "GetConnectionForeignConstraintsResponse",
-              "responseLongType": "GetConnectionForeignConstraintsResponse",
-              "responseFullType": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "GetConnectionPrimaryConstraints",
-              "description": "For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.",
-              "requestType": "GetConnectionPrimaryConstraintsRequest",
-              "requestLongType": "GetConnectionPrimaryConstraintsRequest",
-              "requestFullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest",
-              "requestStreaming": false,
-              "responseType": "GetConnectionPrimaryConstraintsResponse",
-              "responseLongType": "GetConnectionPrimaryConstraintsResponse",
-              "responseFullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse",
-              "responseStreaming": false
-            },
-            {
               "name": "GetConnectionInitStatements",
               "description": "For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to create table schema init statement.",
               "requestType": "GetConnectionInitStatementsRequest",
@@ -8742,18 +8284,6 @@
               "responseType": "GetConnectionInitStatementsResponse",
               "responseLongType": "GetConnectionInitStatementsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "GetConnectionUniqueConstraints",
-              "description": "For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.",
-              "requestType": "GetConnectionUniqueConstraintsRequest",
-              "requestLongType": "GetConnectionUniqueConstraintsRequest",
-              "requestFullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
-              "requestStreaming": false,
-              "responseType": "GetConnectionUniqueConstraintsResponse",
-              "responseLongType": "GetConnectionUniqueConstraintsResponse",
-              "responseFullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse",
               "responseStreaming": false
             },
             {
@@ -11972,18 +11502,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "source",
-              "description": "@deprecated - This is no longer used in favor just providing the TransformerConfig",
-              "label": "",
-              "type": "TransformerSource",
-              "longType": "TransformerSource",
-              "fullType": "mgmt.v1alpha1.TransformerSource",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "config",
               "description": "",
               "label": "",
@@ -13539,21 +13057,9 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": true,
+          "hasOneofs": false,
           "extensions": [],
           "fields": [
-            {
-              "name": "halt_on_new_column_addition",
-              "description": "@deprecated - Use new_column_addition_strategy instead",
-              "label": "optional",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_halt_on_new_column_addition",
-              "defaultValue": ""
-            },
             {
               "name": "schemas",
               "description": "",
@@ -13616,7 +13122,7 @@
           "fields": [
             {
               "name": "halt_job",
-              "description": "halt job if a new column is detected. This is equiavlent to the deprecated halt_on_new_column_addition",
+              "description": "halt job if a new column is detected.",
               "label": "",
               "type": "HaltJob",
               "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
@@ -15524,30 +15030,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "start",
-              "description": "@deprecated - use start_day",
-              "label": "",
-              "type": "Timestamp",
-              "longType": "google.protobuf.Timestamp",
-              "fullType": "google.protobuf.Timestamp",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "end",
-              "description": "@deprecated - use end_day",
-              "label": "",
-              "type": "Timestamp",
-              "longType": "google.protobuf.Timestamp",
-              "fullType": "google.protobuf.Timestamp",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "metric",
               "description": "The metric to return",
               "label": "",
@@ -15733,16 +15215,6 @@
               "name": "ACCOUNT_STATUS_REASON_UNSPECIFIED",
               "number": "0",
               "description": "Default value, should be used when no reason is specified"
-            },
-            {
-              "name": "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT",
-              "number": "1",
-              "description": "@deprecated - Current usage exceeds allowed limit"
-            },
-            {
-              "name": "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT",
-              "number": "2",
-              "description": "@deprecated - Adding requested records exceeds the allowed limit"
             },
             {
               "name": "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE",
@@ -16015,54 +15487,6 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": [
-            {
-              "name": "has_created_source_connection",
-              "description": "@deprecated - use has_completed_onboarding",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_created_destination_connection",
-              "description": "@deprecated - use has_completed_onboarding",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_created_job",
-              "description": "@deprecated - use has_completed_onboarding",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_invited_members",
-              "description": "@deprecated - use has_completed_onboarding",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
             {
               "name": "has_completed_onboarding",
               "description": "",
@@ -16724,11 +16148,23 @@
             },
             {
               "name": "build_date",
-              "description": "",
+              "description": "The time when the build was created",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
               "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "license",
+              "description": "The license information for the system",
+              "label": "",
+              "type": "SystemLicense",
+              "longType": "SystemLicense",
+              "fullType": "mgmt.v1alpha1.SystemLicense",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -17054,30 +16490,6 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "used_record_count",
-              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.\n@deprecated",
-              "label": "",
-              "type": "uint64",
-              "longType": "uint64",
-              "fullType": "uint64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "allowed_record_count",
-              "description": "The allowed record count. It will be null if there is no limit.\n@deprecated",
-              "label": "optional",
-              "type": "uint64",
-              "longType": "uint64",
-              "fullType": "uint64",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_allowed_record_count",
               "defaultValue": ""
             },
             {
@@ -17567,6 +16979,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "SystemLicense",
+          "longName": "SystemLicense",
+          "fullName": "mgmt.v1alpha1.SystemLicense",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_valid",
+              "description": "Whether or not a valid license was found",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "expires_at",
+              "description": "The time when the license expires",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "is_neosync_cloud",
+              "description": "Whether or not the license is for NeosyncCloud",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "UserAccount",

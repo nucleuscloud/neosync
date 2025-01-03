@@ -53,10 +53,6 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     set_as_array SET('value1', 'value2', 'value3', 'value4', 'value5')
 );
 
-CREATE TABLE json_data (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    data JSON
-);
 
 INSERT INTO all_data_types (
     tinyint_col, smallint_col, mediumint_col, int_col, bigint_col,
@@ -73,7 +69,7 @@ INSERT INTO all_data_types (
     json_col,
     set_as_array
 ) VALUES (
-    127, 32767, 8388607, 2147483647, 922337203685477580,
+    127, 32767, 8388607, 2147483647, 922337203685477632,
     1234.56, 3.1415, 3.14159265359, 
     b'10101010',
     '2023-09-12', '14:30:00', '2023-09-12 14:30:00', 2023,
@@ -96,12 +92,17 @@ INSERT INTO all_data_types (
 INSERT INTO all_data_types (id) VALUES (DEFAULT);
 
 
+CREATE TABLE IF NOT EXISTS json_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data JSON
+);
+
 INSERT INTO json_data (data) VALUES ('"Hello, world!"');
 INSERT INTO json_data (data) VALUES ('42');
 INSERT INTO json_data (data) VALUES ('3.14');
 INSERT INTO json_data (data) VALUES ('true');
 INSERT INTO json_data (data) VALUES ('false');
-INSERT INTO json_data (data) VALUES ('null');
+INSERT INTO json_data (data) VALUES (NULL);
 
 INSERT INTO json_data (data) VALUES ('{"name": "John", "age": 30}');
 INSERT INTO json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');

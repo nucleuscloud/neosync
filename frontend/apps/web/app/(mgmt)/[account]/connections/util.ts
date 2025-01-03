@@ -1,6 +1,7 @@
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import {
   AwsCredentialsFormValues,
-  AWSFormValues,
+  AwsFormValues,
   ClientTlsFormValues,
   DynamoDbFormValues,
   GcpCloudStorageFormValues,
@@ -12,27 +13,37 @@ import {
   SqlOptionsFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import {
-  AwsS3ConnectionConfig,
+  AwsS3ConnectionConfigSchema,
   AwsS3Credentials,
+  AwsS3CredentialsSchema,
   ClientTlsConfig,
+  ClientTlsConfigSchema,
   Connection,
   ConnectionConfig,
-  DynamoDBConnectionConfig,
+  ConnectionConfigSchema,
+  DynamoDBConnectionConfigSchema,
   GcpCloudStorageConnectionConfig,
+  GcpCloudStorageConnectionConfigSchema,
   MongoConnectionConfig,
+  MongoConnectionConfigSchema,
   MssqlConnectionConfig,
-  MysqlConnection,
+  MssqlConnectionConfigSchema,
   MysqlConnectionConfig,
-  OpenAiConnectionConfig,
-  PostgresConnection,
+  MysqlConnectionConfigSchema,
+  MysqlConnectionSchema,
+  OpenAiConnectionConfigSchema,
   PostgresConnectionConfig,
+  PostgresConnectionConfigSchema,
+  PostgresConnectionSchema,
   SqlConnectionOptions,
-  SSHAuthentication,
-  SSHPassphrase,
-  SSHPrivateKey,
+  SqlConnectionOptionsSchema,
+  SSHAuthenticationSchema,
+  SSHPassphraseSchema,
+  SSHPrivateKeySchema,
   SSHTunnel,
+  SSHTunnelSchema,
 } from '@neosync/sdk';
 
 export interface ConnectionMeta {
@@ -42,6 +53,7 @@ export interface ConnectionMeta {
   connectionType: ConnectionConfigCase;
   connectionTypeVariant?: ConnectionTypeVariant;
   isExperimental?: boolean;
+  isLicenseOnly?: boolean;
 }
 
 const CONNECTIONS_METADATA: ConnectionMeta[] = [
@@ -65,6 +77,7 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Amazon Simple Storage Service (Amazon S3) is an object storage service used to store and retrieve any data.',
     connectionType: 'awsS3Config',
+    isLicenseOnly: true,
   },
   {
     urlSlug: 'gcp-cloud-storage',
@@ -72,6 +85,7 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'GCP Cloud Storage is an object storage service used to store and retrieve any data.',
     connectionType: 'gcpCloudstorageConfig',
+    isLicenseOnly: true,
   },
   {
     urlSlug: 'neon',
@@ -102,7 +116,6 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'MongoDB is a source-available, cross-platform, document-oriented database program.',
     connectionType: 'mongoConfig',
-    isExperimental: true,
   },
   {
     urlSlug: 'dynamodb',
@@ -110,7 +123,6 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Amazon DynamoDB is a fully managed proprietary NoSQL database offered by Amazon.com as part of the Amazon Web Services portfolio',
     connectionType: 'dynamodbConfig',
-    isExperimental: true,
   },
   {
     urlSlug: 'mssql',
@@ -118,15 +130,23 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     description:
       'Microsoft SQL Server is a proprietary relational database management system developed by Microsoft.',
     connectionType: 'mssqlConfig',
-    isExperimental: true,
   },
 ];
 
-export function getConnectionsMetadata(
+export function useGetConnectionsMetadata(
+  allowedConnectionTypes: Set<string>
+): ConnectionMeta[] {
+  const { data: systemAppConfigData } = useGetSystemAppConfig();
+
+  return getConnectionsMetadata(
+    allowedConnectionTypes,
+    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
+  );
+}
+
+function getConnectionsMetadata(
   connectionTypes: Set<string>,
-  isGcpCloudStorageConnectionsEnabled: boolean,
-  isDynamoDbConnectionsEnabled: boolean,
-  isMssqlConnectionsEnabled: boolean
+  isGcpCloudStorageConnectionsEnabled: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS_METADATA;
   if (!isGcpCloudStorageConnectionsEnabled) {
@@ -134,14 +154,7 @@ export function getConnectionsMetadata(
       (c) => c.connectionType !== 'gcpCloudstorageConfig'
     );
   }
-  if (!isDynamoDbConnectionsEnabled) {
-    connections = connections.filter(
-      (c) => c.connectionType !== 'dynamodbConfig'
-    );
-  }
-  if (!isMssqlConnectionsEnabled) {
-    connections = connections.filter((c) => c.connectionType !== 'mssqlConfig');
-  }
+
   if (connectionTypes.size > 0) {
     connections = connections.filter((c) =>
       connectionTypes.has(c.connectionType)
@@ -270,13 +283,13 @@ const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionConfigCase>([
 ]);
 
 export function getConnectionType(
-  connectionConfig: PlainMessage<ConnectionConfig>
+  connectionConfig: ConnectionConfig
 ): ConnectionConfigCase | null {
   return connectionConfig.config.case ?? null;
 }
 
 export function getConnectionUrlSlugName(
-  connectionConfig: PlainMessage<ConnectionConfig>
+  connectionConfig: ConnectionConfig
 ): string {
   const connType = getConnectionType(connectionConfig);
   if (!connType) {
@@ -301,7 +314,7 @@ const CONNECTION_CATEGORY_MAP: Record<ConnectionConfigCase, string> = {
 };
 
 // Used for the connections data table
-export function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
+export function getCategory(cc?: ConnectionConfig): string {
   if (!cc || !cc.config.case) {
     return '-';
   }
@@ -312,10 +325,10 @@ export function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
 export function buildConnectionConfigDynamoDB(
   values: DynamoDbFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'dynamodbConfig',
-      value: new DynamoDBConnectionConfig({
+      value: create(DynamoDBConnectionConfigSchema, {
         endpoint: values.db.endpoint,
         region: values.db.region,
         credentials: values.db.credentials
@@ -327,12 +340,12 @@ export function buildConnectionConfigDynamoDB(
 }
 
 export function buildConnectionConfigAwsS3(
-  values: AWSFormValues
+  values: AwsFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'awsS3Config',
-      value: new AwsS3ConnectionConfig({
+      value: create(AwsS3ConnectionConfigSchema, {
         bucket: values.s3.bucket,
         pathPrefix: values.s3.pathPrefix,
         region: values.s3.region,
@@ -348,7 +361,7 @@ export function buildConnectionConfigAwsS3(
 function buildAwsCredentials(
   values: AwsCredentialsFormValues
 ): AwsS3Credentials {
-  return new AwsS3Credentials({
+  return create(AwsS3CredentialsSchema, {
     profile: values.profile,
     accessKeyId: values.accessKeyId,
     secretAccessKey: values.secretAccessKey,
@@ -362,7 +375,7 @@ function buildAwsCredentials(
 export function buildConnectionConfigGcpCloudStorage(
   values: GcpCloudStorageFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'gcpCloudstorageConfig',
       value: buildGcpCloudStorageConnectionConfig(values),
@@ -373,7 +386,7 @@ export function buildConnectionConfigGcpCloudStorage(
 export function buildConnectionConfigPostgres(
   values: PostgresFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'pgConfig',
       value: buildPostgresConnectionConfig(values),
@@ -384,10 +397,10 @@ export function buildConnectionConfigPostgres(
 export function buildConnectionConfigOpenAi(
   values: OpenAiFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'openaiConfig',
-      value: new OpenAiConnectionConfig({
+      value: create(OpenAiConnectionConfigSchema, {
         apiUrl: values.sdk.url,
         apiKey: values.sdk.apiKey,
       }),
@@ -398,7 +411,7 @@ export function buildConnectionConfigOpenAi(
 export function buildConnectionConfigMysql(
   values: MysqlFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'mysqlConfig',
       value: buildMysqlConnectionConfig(values),
@@ -409,7 +422,7 @@ export function buildConnectionConfigMysql(
 export function buildConnectionConfigMssql(
   values: MssqlFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'mssqlConfig',
       value: buildMssqlConnectionConfig(values),
@@ -420,12 +433,12 @@ export function buildConnectionConfigMssql(
 function buildMssqlConnectionConfig(
   values: MssqlFormValues
 ): MssqlConnectionConfig {
-  return new MssqlConnectionConfig({
+  return create(MssqlConnectionConfigSchema, {
     connectionConfig: {
       case: 'url',
       value: values.db.url,
     },
-    connectionOptions: new SqlConnectionOptions({
+    connectionOptions: create(SqlConnectionOptionsSchema, {
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
@@ -436,7 +449,7 @@ function buildMssqlConnectionConfig(
 function buildGcpCloudStorageConnectionConfig(
   values: GcpCloudStorageFormValues
 ): GcpCloudStorageConnectionConfig {
-  return new GcpCloudStorageConnectionConfig({
+  return create(GcpCloudStorageConnectionConfigSchema, {
     bucket: values.gcp.bucket,
     pathPrefix: values.gcp.pathPrefix,
   });
@@ -445,8 +458,8 @@ function buildGcpCloudStorageConnectionConfig(
 function buildMysqlConnectionConfig(
   values: MysqlFormValues
 ): MysqlConnectionConfig {
-  const mysqlconfig = new MysqlConnectionConfig({
-    connectionOptions: new SqlConnectionOptions({
+  const mysqlconfig = create(MysqlConnectionConfigSchema, {
+    connectionOptions: create(SqlConnectionOptionsSchema, {
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
@@ -461,7 +474,7 @@ function buildMysqlConnectionConfig(
   } else {
     mysqlconfig.connectionConfig = {
       case: 'connection',
-      value: new MysqlConnection({
+      value: create(MysqlConnectionSchema, {
         host: values.db.host,
         name: values.db.name,
         pass: values.db.pass,
@@ -477,7 +490,7 @@ function buildMysqlConnectionConfig(
 function getSqlConnectionOptions(
   values: SqlOptionsFormValues
 ): SqlConnectionOptions {
-  return new SqlConnectionOptions({
+  return create(SqlConnectionOptionsSchema, {
     maxConnectionLimit:
       values.maxConnectionLimit != null && values.maxConnectionLimit >= 0
         ? values.maxConnectionLimit
@@ -498,7 +511,7 @@ function getSqlConnectionOptions(
 function buildPostgresConnectionConfig(
   values: PostgresFormValues
 ): PostgresConnectionConfig {
-  const pgconfig = new PostgresConnectionConfig({
+  const pgconfig = create(PostgresConnectionConfigSchema, {
     clientTls: getClientTlsConfig(values.clientTls),
     tunnel: getTunnelConfig(values.tunnel),
     connectionOptions: getSqlConnectionOptions(values.options),
@@ -512,7 +525,7 @@ function buildPostgresConnectionConfig(
   } else {
     pgconfig.connectionConfig = {
       case: 'connection',
-      value: new PostgresConnection({
+      value: create(PostgresConnectionSchema, {
         host: values.db.host,
         port: values.db.port,
         name: values.db.name,
@@ -537,7 +550,7 @@ function getClientTlsConfig(
   ) {
     return undefined;
   }
-  return new ClientTlsConfig({
+  return create(ClientTlsConfigSchema, {
     rootCert: values.rootCert ? values.rootCert : undefined,
     clientKey: values.clientKey ? values.clientKey : undefined,
     clientCert: values.clientCert ? values.clientCert : undefined,
@@ -549,7 +562,7 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
   if (!values || !values.host) {
     return undefined;
   }
-  const tunnel = new SSHTunnel({
+  const tunnel = create(SSHTunnelSchema, {
     host: values.host,
     port: values.port,
     user: values.user,
@@ -559,20 +572,20 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
   });
 
   if (values.privateKey) {
-    tunnel.authentication = new SSHAuthentication({
+    tunnel.authentication = create(SSHAuthenticationSchema, {
       authConfig: {
         case: 'privateKey',
-        value: new SSHPrivateKey({
+        value: create(SSHPrivateKeySchema, {
           value: values.privateKey,
           passphrase: values.passphrase,
         }),
       },
     });
   } else if (values.passphrase) {
-    tunnel.authentication = new SSHAuthentication({
+    tunnel.authentication = create(SSHAuthenticationSchema, {
       authConfig: {
         case: 'passphrase',
-        value: new SSHPassphrase({
+        value: create(SSHPassphraseSchema, {
           value: values.passphrase,
         }),
       },
@@ -584,7 +597,7 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
 export function buildConnectionConfigMongo(
   values: MongoDbFormValues
 ): ConnectionConfig {
-  return new ConnectionConfig({
+  return create(ConnectionConfigSchema, {
     config: {
       case: 'mongoConfig',
       value: buildMongoConnectionConfig(values),
@@ -595,7 +608,7 @@ export function buildConnectionConfigMongo(
 function buildMongoConnectionConfig(
   values: MongoDbFormValues
 ): MongoConnectionConfig {
-  const mongoconfig = new MongoConnectionConfig({
+  const mongoconfig = create(MongoConnectionConfigSchema, {
     connectionConfig: {
       case: 'url',
       value: values.url,

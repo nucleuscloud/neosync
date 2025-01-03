@@ -31,18 +31,15 @@ import {
   CreateConnectionFormContext,
   DynamoDbFormValues,
 } from '@/yup-validations/connections';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  GetConnectionResponse,
+  CheckConnectionConfigResponseSchema,
+  ConnectionService,
+  GetConnectionResponseSchema,
 } from '@neosync/sdk';
-import {
-  checkConnectionConfig,
-  createConnection,
-  getConnection,
-  isConnectionNameAvailable,
-} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -60,7 +57,7 @@ export default function NewDynamoDBForm(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>();
   const queryclient = useQueryClient();
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    isConnectionNameAvailable
+    ConnectionService.method.isConnectionNameAvailable
   );
   const form = useForm<DynamoDbFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(DynamoDbFormValues),
@@ -97,9 +94,15 @@ export default function NewDynamoDBForm(): ReactElement {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
-  const { mutateAsync: createDbConnection } = useMutation(createConnection);
-  const { mutateAsync: checkDbConnection } = useMutation(checkConnectionConfig);
-  const { mutateAsync: getDbConnection } = useMutation(getConnection);
+  const { mutateAsync: createDbConnection } = useMutation(
+    ConnectionService.method.createConnection
+  );
+  const { mutateAsync: checkDbConnection } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+  const { mutateAsync: getDbConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,10 +170,12 @@ export default function NewDynamoDBForm(): ReactElement {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
         queryclient.setQueryData(
-          createConnectQueryKey(getConnection, {
-            id: newConnection.connection.id,
+          createConnectQueryKey({
+            schema: ConnectionService.method.getConnection,
+            input: { id: newConnection.connection.id },
+            cardinality: undefined,
           }),
-          new GetConnectionResponse({
+          create(GetConnectionResponseSchema, {
             connection: newConnection.connection,
           })
         );
@@ -202,7 +207,7 @@ export default function NewDynamoDBForm(): ReactElement {
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
-        new CheckConnectionConfigResponse({
+        create(CheckConnectionConfigResponseSchema, {
           isConnected: false,
           connectionError: err instanceof Error ? err.message : 'unknown error',
         })
@@ -419,7 +424,8 @@ export default function NewDynamoDBForm(): ReactElement {
         </Accordion>
         <PermissionsDialog
           checkResponse={
-            validationResponse ?? new CheckConnectionConfigResponse({})
+            validationResponse ??
+            create(CheckConnectionConfigResponseSchema, {})
           }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}

@@ -229,7 +229,7 @@ class DynamoDBSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class PostgresSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
+    __slots__ = ("schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
     class NewColumnAdditionStrategy(_message.Message):
         __slots__ = ("halt_job", "auto_map")
         class HaltJob(_message.Message):
@@ -243,17 +243,15 @@ class PostgresSourceConnectionOptions(_message.Message):
         halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
         def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
-    HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
-    halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[PostgresSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
     new_column_addition_strategy: PostgresSourceConnectionOptions.NewColumnAdditionStrategy
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
+    def __init__(self, schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
 
 class PostgresSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -550,12 +548,10 @@ class CreateJobResponse(_message.Message):
     def __init__(self, job: _Optional[_Union[Job, _Mapping]] = ...) -> None: ...
 
 class JobMappingTransformer(_message.Message):
-    __slots__ = ("source", "config")
-    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("config",)
     CONFIG_FIELD_NUMBER: _ClassVar[int]
-    source: _transformer_pb2.TransformerSource
     config: _transformer_pb2.TransformerConfig
-    def __init__(self, source: _Optional[_Union[_transformer_pb2.TransformerSource, str]] = ..., config: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, config: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
 
 class JobMapping(_message.Message):
     __slots__ = ("schema", "table", "column", "transformer")

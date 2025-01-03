@@ -1,14 +1,19 @@
-import { PlainMessage } from '@bufbuild/protobuf';
+import { create } from '@bufbuild/protobuf';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
+  ForeignConstraintTablesSchema,
   ForeignKey,
+  ForeignKeySchema,
   GetConnectionSchemaResponse,
   PrimaryConstraint,
+  PrimaryConstraintSchema,
   TransformerDataType,
   UniqueConstraints,
+  UniqueConstraintsSchema,
   VirtualForeignConstraint,
   VirtualForeignKey,
+  VirtualForeignKeySchema,
 } from '@neosync/sdk';
 
 export type JobType = 'sync' | 'generate';
@@ -229,13 +234,14 @@ function buildColDetailsMap(
   const colmap: Record<string, ColDetails> = {};
   //<schema.table: dbCols>
   Object.entries(schema).forEach(([key, schemaResp]) => {
-    const tablePkeys = primaryConstraints[key] ?? new PrimaryConstraint();
+    const tablePkeys =
+      primaryConstraints[key] ?? create(PrimaryConstraintSchema);
     const primaryCols = new Set(tablePkeys.columns);
     const foreignFkeys =
-      foreignConstraints[key] ?? new ForeignConstraintTables();
+      foreignConstraints[key] ?? create(ForeignConstraintTablesSchema);
     const virtualForeignKeys = virtualForeignConstraints[key] ?? [];
     const tableUniqueConstraints =
-      uniqueConstraints[key] ?? new UniqueConstraints({});
+      uniqueConstraints[key] ?? create(UniqueConstraintsSchema);
     const uniqueConstraintCols = tableUniqueConstraints.constraints.reduce(
       (prev, curr) => {
         curr.columns.forEach((c) => prev.add(c));
@@ -248,12 +254,12 @@ function buildColDetailsMap(
     fkConstraints.forEach((constraint) => {
       constraint.columns.forEach((col, idx) => {
         if (constraint.foreignKey) {
-          fkconstraintsMap[col] = new ForeignKey({
+          fkconstraintsMap[col] = create(ForeignKeySchema, {
             table: constraint.foreignKey?.table,
             columns: [constraint.foreignKey?.columns[idx]],
           });
         } else {
-          fkconstraintsMap[col] = new ForeignKey();
+          fkconstraintsMap[col] = create(ForeignKeySchema);
         }
       });
     });
@@ -262,13 +268,13 @@ function buildColDetailsMap(
     virtualForeignKeys.forEach((vfk) => {
       vfk.columns.forEach((col, idx) => {
         if (vfk.foreignKey) {
-          virtualFkMap[col] = new VirtualForeignKey({
+          virtualFkMap[col] = create(VirtualForeignKeySchema, {
             schema: vfk.foreignKey.schema,
             table: vfk.foreignKey?.table,
             columns: [vfk.foreignKey?.columns[idx]],
           });
         } else {
-          virtualFkMap[col] = new VirtualForeignKey();
+          virtualFkMap[col] = create(VirtualForeignKeySchema);
         }
       });
     });
@@ -306,6 +312,6 @@ function buildColDetailsMap(
 function fromColKey(key: ColumnKey): string {
   return `${key.schema}.${key.table}.${key.column}`;
 }
-function fromDbCol(dbcol: PlainMessage<DatabaseColumn>): string {
+function fromDbCol(dbcol: DatabaseColumn): string {
   return `${dbcol.schema}.${dbcol.table}.${dbcol.column}`;
 }

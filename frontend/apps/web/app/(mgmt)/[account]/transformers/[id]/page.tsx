@@ -4,9 +4,12 @@ import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { getTransformerDataTypesString } from '@/util/util';
+import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
-import { getUserDefinedTransformerById } from '@neosync/sdk/connectquery';
+import {
+  GetUserDefinedTransformerByIdResponseSchema,
+  TransformersService,
+} from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateTransformerForm from './components/UpdateTransformerForm';
@@ -17,7 +20,7 @@ export default function UpdateUserDefinedTransformerPage({
   const id = params?.id ?? '';
 
   const { data, isLoading } = useQuery(
-    getUserDefinedTransformerById,
+    TransformersService.method.getUserDefinedTransformerById,
     { transformerId: id },
     { enabled: !!id }
   );
@@ -56,13 +59,16 @@ export default function UpdateUserDefinedTransformerPage({
                 <UpdateTransformerForm
                   currentTransformer={data.transformer}
                   onUpdated={(updatedTransformer) => {
-                    const key = createConnectQueryKey(
-                      getUserDefinedTransformerById,
-                      { transformerId: id }
-                    );
+                    const key = createConnectQueryKey({
+                      schema:
+                        TransformersService.method
+                          .getUserDefinedTransformerById,
+                      input: { transformerId: id },
+                      cardinality: undefined,
+                    });
                     queryclient.setQueryData(
                       key,
-                      new GetUserDefinedTransformerByIdResponse({
+                      create(GetUserDefinedTransformerByIdResponseSchema, {
                         transformer: updatedTransformer,
                       })
                     );
