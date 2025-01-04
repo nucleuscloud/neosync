@@ -1,4 +1,4 @@
-package databaserecordmapper
+package postgres
 
 import (
 	"database/sql"
@@ -11,15 +11,16 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
 type PostgresMapper struct{}
 
-func NewPostgresBuilder() *Builder[*sql.Rows] {
-	return &Builder[*sql.Rows]{
-		mapper: &PostgresMapper{},
+func NewPostgresBuilder() *builder.Builder[*sql.Rows] {
+	return &builder.Builder[*sql.Rows]{
+		Mapper: &PostgresMapper{},
 	}
 }
 

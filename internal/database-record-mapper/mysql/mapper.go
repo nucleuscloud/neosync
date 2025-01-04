@@ -1,4 +1,4 @@
-package databaserecordmapper
+package mysql
 
 import (
 	"database/sql"
@@ -7,15 +7,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
 type MySQLMapper struct{}
 
-func NewMySQLBuilder() *Builder[*sql.Rows] {
-	return &Builder[*sql.Rows]{
-		mapper: &MySQLMapper{},
+func NewMySQLBuilder() *builder.Builder[*sql.Rows] {
+	return &builder.Builder[*sql.Rows]{
+		Mapper: &MySQLMapper{},
 	}
 }
 

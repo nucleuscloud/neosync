@@ -13,7 +13,6 @@ import (
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	aws_manager "github.com/nucleuscloud/neosync/internal/aws"
-	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 )
 
 type AwsDynamodbConnectionDataService struct {
@@ -55,7 +54,7 @@ func (s *AwsDynamodbConnectionDataService) StreamData(
 		}
 
 		for _, item := range output.Items {
-			itemBits, err := neosync_dynamodb.ConvertDynamoItemToGoMap(item)
+			itemBits, err := convertDynamoItemToGoMap(item)
 			if err != nil {
 				return err
 			}
@@ -119,4 +118,61 @@ func (s *AwsDynamodbConnectionDataService) GetTableSchema(ctx context.Context, s
 
 func (s *AwsDynamodbConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
 	return 0, errors.ErrUnsupported
+}
+
+func convertAttributeValueToGoMap(av dynamotypes.AttributeValue) (map[string]any, error) {
+	switch v := av.(type) {
+	case *dynamotypes.AttributeValueMemberS:
+		return map[string]any{"S": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberB:
+		return map[string]any{"B": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberN:
+		return map[string]any{"N": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBOOL:
+		return map[string]any{"BOOL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNULL:
+		return map[string]any{"NULL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberM:
+		m := make(map[string]any)
+		for k, val := range v.Value {
+			var err error
+			m[k], err = convertAttributeValueToGoMap(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"M": m}, nil
+	case *dynamotypes.AttributeValueMemberL:
+		l := make([]any, len(v.Value))
+		for i, val := range v.Value {
+			var err error
+			l[i], err = convertAttributeValueToGoMap(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"L": l}, nil
+	case *dynamotypes.AttributeValueMemberSS:
+		return map[string]any{"SS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNS:
+		return map[string]any{"NS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBS:
+		return map[string]any{"BS": v.Value}, nil
+	default:
+		return nil, fmt.Errorf("unsupported AttributeValue type")
+	}
+}
+
+func convertDynamoItemToGoMap(input map[string]dynamotypes.AttributeValue) (map[string]any, error) {
+	result := make(map[string]any)
+
+	for key, av := range input {
+		dynamoDBJSON, err := convertAttributeValueToGoMap(av)
+		if err != nil {
+			return nil, fmt.Errorf("error converting key %s: %w", key, err)
+		}
+		result[key] = dynamoDBJSON
+	}
+
+	return result, nil
 }

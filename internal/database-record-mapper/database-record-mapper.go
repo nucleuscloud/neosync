@@ -5,58 +5,32 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	neosync_types "github.com/nucleuscloud/neosync/internal/types"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/dynamodb"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/mongodb"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/mssql"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/mysql"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/postgres"
 )
 
-type DatabaseRecordMapper[T any] interface {
-	// MapRecord returns a map where:
-	// - Keys are column/field names from the database record
-	// - Values are either Go native types (string, int, etc.) or Neosync custom types
-	MapRecord(record T) (map[string]any, error)
-
-	// Deprecated: use MapRecord instead with neosync types
-	MapRecordWithKeyType(record T) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error)
-}
-
-type Builder[T any] struct {
-	mapper DatabaseRecordMapper[T]
-}
-
-func (b *Builder[T]) MapRecord(record any) (map[string]any, error) {
-	typedRecord, ok := record.(T)
-	if !ok {
-		return nil, fmt.Errorf("invalid record type: expected %T, got %T", *new(T), record)
-	}
-	return b.mapper.MapRecord(typedRecord)
-}
-
-// Deprecated: use MapRecord instead with neosync types
-func (b *Builder[T]) MapRecordWithKeyType(record any) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
-	typedRecord, ok := record.(T)
-	if !ok {
-		return nil, nil, fmt.Errorf("invalid record type: expected %T, got %T", *new(T), record)
-	}
-	return b.mapper.MapRecordWithKeyType(typedRecord)
-}
-
-func NewDatabaseRecordMapper(dbType string) (DatabaseRecordMapper[any], error) {
+func NewDatabaseRecordMapper(dbType string) (builder.DatabaseRecordMapper[any], error) {
 	switch dbType {
 	case sqlmanager_shared.PostgresDriver:
-		return NewPostgresBuilder(), nil
+		return postgres.NewPostgresBuilder(), nil
 	case sqlmanager_shared.MysqlDriver:
-		return NewMySQLBuilder(), nil
+		return mysql.NewMySQLBuilder(), nil
 	case sqlmanager_shared.MssqlDriver:
-		return NewMSSQLBuilder(), nil
+		return mssql.NewMSSQLBuilder(), nil
 	case "dynamodb":
-		return NewDynamoBuilder(), nil
+		return dynamodb.NewDynamoBuilder(), nil
 	case "mongodb":
-		return NewMongoBuilder(), nil
+		return mongodb.NewMongoBuilder(), nil
 	default:
 		return nil, fmt.Errorf("database type %s not supported", dbType)
 	}
 }
 
-func NewDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (DatabaseRecordMapper[any], error) {
+func NewDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (builder.DatabaseRecordMapper[any], error) {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return NewDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)

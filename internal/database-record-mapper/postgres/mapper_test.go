@@ -1,4 +1,4 @@
-package databaserecordmapper
+package postgres
 
 import (
 	"database/sql"

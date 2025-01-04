@@ -1,16 +1,17 @@
-package databaserecordmapper
+package mongodb
 
 import (
 	"errors"
 
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
 type MongoDBMapper struct{}
 
-func NewMongoBuilder() *Builder[map[string]any] {
-	return &Builder[map[string]any]{
-		mapper: &MongoDBMapper{},
+func NewMongoBuilder() *builder.Builder[map[string]any] {
+	return &builder.Builder[map[string]any]{
+		Mapper: &MongoDBMapper{},
 	}
 }
 

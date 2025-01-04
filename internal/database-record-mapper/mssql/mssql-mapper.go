@@ -1,4 +1,4 @@
-package databaserecordmapper
+package mssql
 
 import (
 	"database/sql"
@@ -7,15 +7,16 @@ import (
 	"time"
 
 	mssql "github.com/microsoft/go-mssqldb"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
 type MSSQLMapper struct{}
 
-func NewMSSQLBuilder() *Builder[*sql.Rows] {
-	return &Builder[*sql.Rows]{
-		mapper: &MSSQLMapper{},
+func NewMSSQLBuilder() *builder.Builder[*sql.Rows] {
+	return &builder.Builder[*sql.Rows]{
+		Mapper: &MSSQLMapper{},
 	}
 }
 
