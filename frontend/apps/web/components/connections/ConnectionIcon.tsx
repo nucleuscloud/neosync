@@ -8,9 +8,9 @@ import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/Sup
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
-import { DiMongodb, DiMysql, DiPostgresql } from 'react-icons/di';
+import { DiMongodb, DiMsqlServer, DiMysql, DiPostgresql } from 'react-icons/di';
 import { FaAws } from 'react-icons/fa';
-import { SiGooglecloud, SiMicrosoftsqlserver } from 'react-icons/si';
+import { SiGooglecloud } from 'react-icons/si';
 
 interface Props {
   connectionType: ConnectionConfigCase;
@@ -91,7 +91,7 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
     case 'mssqlConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
-          <SiMicrosoftsqlserver />
+          <DiMsqlServer />
         </IconContext.Provider>
       );
     }
