@@ -11,9 +11,9 @@ import {
 } from '@/components/jobs/subsets/SubsetTable/Columns';
 import SubsetTable from '@/components/jobs/subsets/SubsetTable/SubsetTable';
 import {
-  GetColumnsForSqlAutocomplete,
   buildRowKey,
   buildTableRowData,
+  getColumnsForSqlAutocomplete,
   isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
 import LearnMoreLink from '@/components/labels/LearnMoreLink';
@@ -182,6 +182,14 @@ export default function SubsetCard(props: Props): ReactElement {
     }
   }
 
+  const sqlAutocompleteColumns = useMemo(() => {
+    return getColumnsForSqlAutocomplete(
+      data?.job?.mappings ?? [],
+      itemToEdit?.schema ?? '',
+      itemToEdit?.table ?? ''
+    );
+  }, [data?.job?.mappings, itemToEdit?.schema, itemToEdit?.table]);
+
   function hasLocalChange(
     _rowIdx: number,
     schema: string,
@@ -286,10 +294,7 @@ export default function SubsetCard(props: Props): ReactElement {
                         setItemToEdit(undefined);
                         setIsDialogOpen(false);
                       }}
-                      columns={GetColumnsForSqlAutocomplete(
-                        data?.job?.mappings ?? [],
-                        itemToEdit
-                      )}
+                      columns={sqlAutocompleteColumns}
                       onSave={() => {
                         if (!itemToEdit) {
                           return;

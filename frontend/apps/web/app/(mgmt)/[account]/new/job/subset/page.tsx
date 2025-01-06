@@ -13,7 +13,7 @@ import SubsetTable from '@/components/jobs/subsets/SubsetTable/SubsetTable';
 import {
   buildRowKey,
   buildTableRowData,
-  GetColumnsForSqlAutocomplete,
+  getColumnsForSqlAutocomplete,
   isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
 import LearnMoreLink from '@/components/labels/LearnMoreLink';
@@ -40,7 +40,6 @@ import {
   ConnectionConfigSchema,
   ConnectionDataService,
   ConnectionService,
-  JobMappingSchema,
   JobService,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -216,6 +215,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [schemaFormValues.mappings, rootTables, formSubsets]);
 
+  const sqlAutocompleteColumns = useMemo(() => {
+    console.log('re-rendering auto complete columns');
+    return getColumnsForSqlAutocomplete(
+      schemaFormValues?.mappings ?? [],
+      itemToEdit?.schema ?? '',
+      itemToEdit?.table ?? ''
+    );
+  }, [schemaFormValues?.mappings, itemToEdit?.schema, itemToEdit?.table]);
+
   function hasLocalChange(
     _rowIdx: number,
     schema: string,
@@ -255,7 +263,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       form.trigger();
     }
   }
-
+  console.log('re-rendering subset table');
   return (
     <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-5">
       <FormPersist formKey={formKey} form={form} />
@@ -358,16 +366,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             setItemToEdit(undefined);
                             setIsDialogOpen(false);
                           }}
-                          columns={GetColumnsForSqlAutocomplete(
-                            schemaFormValues?.mappings.map((row) => {
-                              return create(JobMappingSchema, {
-                                schema: row.schema,
-                                table: row.table,
-                                column: row.column,
-                              });
-                            }),
-                            itemToEdit
-                          )}
+                          columns={sqlAutocompleteColumns}
                           onSave={() => {
                             if (!itemToEdit) {
                               return;

@@ -44,18 +44,17 @@ export function buildRowKey(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
 
-export function GetColumnsForSqlAutocomplete(
-  mappings: JobMapping[],
-  itemToEdit: SubsetTableRow | undefined
+export function getColumnsForSqlAutocomplete(
+  mappings: Pick<JobMapping, 'schema' | 'table' | 'column'>[],
+  schema: string,
+  table: string
 ): string[] {
-  let cols: string[] = [];
-  mappings.map((row) => {
-    if (row.schema == itemToEdit?.schema && row.table == itemToEdit.table) {
-      cols.push(row.column);
-    }
-  });
-
-  return cols;
+  if (!mappings) {
+    return [];
+  }
+  return mappings
+    .filter((row) => row.schema === schema && row.table === table)
+    .map((row) => row.column);
 }
 
 export function isJobSubsettable(job: Job): boolean {

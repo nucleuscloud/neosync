@@ -71,7 +71,7 @@ export default function SubsetTable<TData, TValue>(
           </Button>
         </div>
       </div>
-      <FastTable table={table} estimateRowSize={() => 33} rowOverscan={5} />
+      <FastTable table={table} estimateRowSize={() => 33} rowOverscan={50} />
     </div>
   );
 }
