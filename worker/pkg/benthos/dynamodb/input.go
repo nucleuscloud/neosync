@@ -10,7 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
-	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
+	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
+	dynamodbmapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/dynamodb"
 	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -74,16 +75,11 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 		return nil, err
 	}
 
-	mapper, err := database_record_mapper.NewDatabaseRecordMapper("dynamodb")
-	if err != nil {
-		return nil, err
-	}
-
 	return &dynamodbInput{
 		awsConfig: *sess,
 		logger:    logger,
 
-		recordMapper: mapper,
+		recordMapper: dynamodbmapper.NewDynamoBuilder(),
 
 		table:          table,
 		where:          whereClause,

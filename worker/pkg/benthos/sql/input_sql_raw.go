@@ -10,6 +10,7 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
+	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -49,7 +50,7 @@ type pooledInput struct {
 	dbMut sync.Mutex
 	rows  *sql.Rows
 
-	recordMapper database_record_mapper.DatabaseRecordMapper[any]
+	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
 
 	shutSig *shutdown.Signaller
 
