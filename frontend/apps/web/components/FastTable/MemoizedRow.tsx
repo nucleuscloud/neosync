@@ -66,10 +66,20 @@ const MemoizedRow = memo(
     }
 
     for (let i = 0; i < prevCells.length; i++) {
-      if (
-        prevCells[i].id !== nextCells[i].id ||
-        prevCells[i].getValue() !== nextCells[i].getValue()
-      ) {
+      const prevCell = prevCells[i];
+      const nextCell = nextCells[i];
+
+      if (prevCell.id !== nextCell.id) {
+        return false;
+      }
+      // forces re-render of an actions column (update this here for any DISPLAY columns)
+      // The MemoizedCell will also need to be updated
+      if (prevCell.column.columnDef.id === 'actions') {
+        return false;
+      }
+
+      // For accessor columns, compare values
+      if (prevCell.getValue() !== nextCell.getValue()) {
         return false;
       }
     }

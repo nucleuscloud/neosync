@@ -1,16 +1,20 @@
 import TruncatedText from '@/components/TruncatedText';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { SchemaColumnHeader } from '../../SchemaTable/SchemaColumnHeader';
+import ActionsCell from './ActionsCell';
+import RootTableCell from './RootTableCell';
 
-interface SubsetTableRow {
+export interface SubsetTableRow {
   schema: string;
   table: string;
   where?: string;
-  isRootTable?: boolean;
+  isRootTable: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getColumns(): ColumnDef<SubsetTableRow, any>[] {
+type ColumnTValue = any;
+
+function getColumns(): ColumnDef<SubsetTableRow, ColumnTValue>[] {
   const columnHelper = createColumnHelper<SubsetTableRow>();
 
   const schemaColumn = columnHelper.accessor('schema', {
@@ -36,8 +40,7 @@ function getColumns(): ColumnDef<SubsetTableRow, any>[] {
       return <SchemaColumnHeader column={column} title="Root Table" />;
     },
     cell({ getValue }) {
-      // todo
-      return <div>{getValue() ? 'Yes' : 'No'}</div>;
+      return <RootTableCell isRootTable={getValue()} />;
     },
   });
 
@@ -46,15 +49,18 @@ function getColumns(): ColumnDef<SubsetTableRow, any>[] {
       return <SchemaColumnHeader column={column} title="Subset Filters" />;
     },
     cell({ getValue }) {
-      <div className="flex justify-center">
-        <span className="truncate font-medium max-w-[200px] inline-block">
-          {getValue<boolean>() && (
-            <pre className="bg-gray-100 rounded border border-gray-300 text-xs px-2 dark:bg-transparent dark:border dark:border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100%]">
-              {getValue<boolean>()}
-            </pre>
-          )}
-        </span>
-      </div>;
+      const whereValue = getValue();
+      return (
+        <div className="flex justify-center">
+          <span className="truncate font-medium max-w-[200px] inline-block">
+            {!!whereValue && (
+              <pre className="bg-gray-100 rounded border border-gray-300 text-xs px-2 dark:bg-transparent dark:border dark:border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100%]">
+                {whereValue}
+              </pre>
+            )}
+          </span>
+        </div>
+      );
     },
     size: 250,
   });
@@ -66,17 +72,32 @@ function getColumns(): ColumnDef<SubsetTableRow, any>[] {
     header: ({ column }) => (
       <SchemaColumnHeader column={column} title="Actions" />
     ),
-    cell: ({}) => {
-      return <div>Actions</div>;
-      // return (
-      //   <div className="flex gap-2">
-      //     <EditAction onClick={() => onEdit(schema, table)} />
-      //     <ResetAction
-      //       onClick={() => onReset(schema, table)}
-      //       isDisabled={!hasLocalChange(schema, table)}
-      //     />
-      //   </div>
-      // );
+    cell: ({ row, table }) => {
+      const isResetDisabled = !table.options.meta?.subsetTable?.hasLocalChange(
+        row.index,
+        row.original.schema,
+        row.original.table
+      );
+
+      return (
+        <ActionsCell
+          onEdit={() =>
+            table.options.meta?.subsetTable?.onEdit(
+              row.index,
+              row.original.schema,
+              row.original.table
+            )
+          }
+          onReset={() =>
+            table.options.meta?.subsetTable?.onReset(
+              row.index,
+              row.original.schema,
+              row.original.table
+            )
+          }
+          isResetDisabled={isResetDisabled}
+        />
+      );
     },
   });
 

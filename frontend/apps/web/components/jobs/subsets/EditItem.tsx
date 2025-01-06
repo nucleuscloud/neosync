@@ -25,8 +25,8 @@ import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryErrorAlert from './SubsetErrorAlert';
+import { SubsetTableRow } from './SubsetTable/Columns';
 import ValidateQueryBadge from './ValidateQueryBadge';
-import { TableRow } from './subset-table/column';
 import {
   isSubsetRowCountSupported,
   isSubsetValidationSupported,
@@ -34,8 +34,8 @@ import {
 } from './utils';
 
 interface Props {
-  item?: TableRow;
-  onItem(item?: TableRow): void;
+  item?: SubsetTableRow;
+  onItem(item?: SubsetTableRow): void;
   onSave(): void;
   onCancel(): void;
   connectionId: string;

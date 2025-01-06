@@ -5,8 +5,11 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
-import { TableRow } from '@/components/jobs/subsets/subset-table/column';
-import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
+import {
+  SUBSET_TABLE_COLUMNS,
+  SubsetTableRow,
+} from '@/components/jobs/subsets/SubsetTable/Columns';
+import SubsetTable from '@/components/jobs/subsets/SubsetTable/SubsetTable';
 import {
   buildRowKey,
   buildTableRowData,
@@ -149,7 +152,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues: subsetFormValues,
   });
 
-  const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
+  const [itemToEdit, setItemToEdit] = useState<SubsetTableRow | undefined>();
 
   const connection = connections.find(
     (item) => item.id == connectFormValues.sourceId
@@ -203,7 +206,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     form.watch().subsets
   );
 
-  function hasLocalChange(schema: string, table: string): boolean {
+  function hasLocalChange(
+    _rowIndex: number,
+    schema: string,
+    table: string
+  ): boolean {
     const key = buildRowKey(schema, table);
     const trData = tableRowData[key];
     const svrData = subsetFormValues.subsets.find(
@@ -226,12 +233,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const svrData = subsetFormValues.subsets.find(
         (ss) => buildRowKey(ss.schema, ss.table) === key
       );
-
       form.setValue(`subsets.${idx}`, {
         schema: schema,
         table: table,
         whereClause: svrData?.whereClause ?? undefined,
       });
+      form.trigger();
     }
   }
 
@@ -282,18 +289,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <div>
                   <SubsetTable
                     data={Object.values(tableRowData)}
-                    onEdit={(schema, table) => {
-                      setIsDialogOpen(true);
+                    columns={SUBSET_TABLE_COLUMNS}
+                    onEdit={(_rowIdx, schema, table) => {
                       const key = buildRowKey(schema, table);
-                      if (tableRowData[key]) {
-                        // make copy so as to not edit in place
-                        setItemToEdit({
-                          ...tableRowData[key],
-                        });
+                      const trData = tableRowData[key];
+                      if (trData) {
+                        setItemToEdit({ ...trData });
                       }
+                      setIsDialogOpen(true);
+                    }}
+                    onReset={(_rowIdx, schema, table) => {
+                      onLocalRowReset(schema, table);
                     }}
                     hasLocalChange={hasLocalChange}
-                    onReset={onLocalRowReset}
                   />
                 </div>
                 <div

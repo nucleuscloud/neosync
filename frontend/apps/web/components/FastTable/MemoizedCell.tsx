@@ -8,7 +8,10 @@ const MemoizedCell = memo(
     const prevValue = prev.cell.getValue();
     const nextValue = next.cell.getValue();
 
-    if (prev.cell.column.id === 'isSelected') {
+    if (
+      prev.cell.column.id === 'isSelected' ||
+      prev.cell.column.id === 'actions'
+    ) {
       // Always re-render checkbox cells as getIsSelected() is always the same for both
       return false;
     }
