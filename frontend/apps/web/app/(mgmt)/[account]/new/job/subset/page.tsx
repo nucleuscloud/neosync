@@ -46,8 +46,8 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { getConnectionType } from '../../../connections/util';
@@ -137,13 +137,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [rootTables, setRootTables] = useState<Set<string>>(new Set());
   useEffect(() => {
     if (!isTableConstraintsValidating && fkConstraints) {
+      const newRootTables = new Set(rootTables);
       schemaFormValues.mappings.forEach((m) => {
         const tn = `${m.schema}.${m.table}`;
         if (!fkConstraints[tn]) {
-          rootTables.add(tn);
-          setRootTables(rootTables);
+          newRootTables.add(tn);
         }
       });
+      setRootTables(newRootTables);
     }
   }, [fkConstraints, isTableConstraintsValidating]);
 
@@ -200,11 +201,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const tableRowData = buildTableRowData(
-    schemaFormValues.mappings,
-    rootTables,
-    form.watch().subsets
-  );
+  const formSubsets = form.watch().subsets; // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
+  const { update: updateSubsetsFormValues, append: addSubsetsFormValues } =
+    useFieldArray({
+      control: form.control,
+      name: 'subsets',
+    });
+
+  const tableRowData = useMemo(() => {
+    return buildTableRowData(
+      schemaFormValues.mappings,
+      rootTables,
+      formSubsets
+    );
+  }, [schemaFormValues.mappings, rootTables, formSubsets]);
 
   function hasLocalChange(
     _rowIdx: number,
@@ -237,7 +247,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const svrData = subsetFormValues.subsets.find(
         (ss) => buildRowKey(ss.schema, ss.table) === key
       );
-      form.setValue(`subsets.${idx}`, {
+      updateSubsetsFormValues(idx, {
         schema: schema,
         table: table,
         whereClause: svrData?.whereClause ?? undefined,
@@ -373,20 +383,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   buildRowKey(item.schema, item.table) === key
                               );
                             if (idx >= 0) {
-                              form.setValue(`subsets.${idx}`, {
+                              updateSubsetsFormValues(idx, {
                                 schema: itemToEdit.schema,
                                 table: itemToEdit.table,
                                 whereClause: itemToEdit.where,
                               });
                             } else {
-                              form.setValue(
-                                `subsets`,
-                                form.getValues().subsets.concat({
-                                  schema: itemToEdit.schema,
-                                  table: itemToEdit.table,
-                                  whereClause: itemToEdit.where,
-                                })
-                              );
+                              addSubsetsFormValues({
+                                schema: itemToEdit.schema,
+                                table: itemToEdit.table,
+                                whereClause: itemToEdit.where,
+                              });
                             }
                             setItemToEdit(undefined);
                             setIsDialogOpen(false);
