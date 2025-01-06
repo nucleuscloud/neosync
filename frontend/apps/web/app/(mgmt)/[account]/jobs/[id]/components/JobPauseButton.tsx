@@ -24,7 +24,7 @@ export default function JobPauseButton({
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
   );
-  const [buttonIcon, setButtonIcon] = useState<JSX.Element>(
+  const [buttonIcon, setButtonIcon] = useState<ReactElement>(
     status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />
   );
   const [isTrying, setIsTrying] = useState<boolean>(false);

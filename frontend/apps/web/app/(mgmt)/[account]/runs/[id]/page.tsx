@@ -471,7 +471,7 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
 
 interface StatCardProps {
   header: string;
-  content?: JSX.Element | string;
+  content?: ReactElement | string;
 }
 
 function StatCard(props: StatCardProps): ReactElement {

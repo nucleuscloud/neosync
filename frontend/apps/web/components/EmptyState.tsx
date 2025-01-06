@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 interface Props {
   title: string;
   description: string;
-  icon: JSX.Element;
+  icon: ReactElement;
 
   extra?: ReactNode;
 }

@@ -36,7 +36,7 @@ export type FormStepName =
 
 export interface FormStep {
   name: FormStepName;
-  component: JSX.Element;
+  component: ReactElement;
 }
 
 export default function WelcomeDialog(): ReactElement {

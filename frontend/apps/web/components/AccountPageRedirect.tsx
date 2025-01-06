@@ -2,7 +2,7 @@
 
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { ReactElement, ReactNode, useEffect } from 'react';
 import { useAccount } from './providers/account-provider';
 import { Skeleton } from './ui/skeleton';
 
@@ -10,7 +10,7 @@ interface Props {
   children: ReactNode;
 }
 
-export default function AccountPageRedirect(props: Props): JSX.Element {
+export default function AccountPageRedirect(props: Props): ReactElement {
   const { children } = props;
 
   const router = useRouter();

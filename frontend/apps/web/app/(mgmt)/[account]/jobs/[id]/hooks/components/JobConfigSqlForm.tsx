@@ -14,8 +14,10 @@ import { Editor } from '@monaco-editor/react';
 import { Connection } from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
-import { useResizeDetector } from 'react-resize-detector';
-import { OnRefChangeType } from 'react-resize-detector/build/types/types';
+import {
+  useResizeDetector,
+  UseResizeDetectorReturn,
+} from 'react-resize-detector';
 import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
@@ -131,7 +133,7 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
 const WIDTH_OFFSET = 10;
 
 function useMonacoResizer(): {
-  ref: OnRefChangeType<HTMLDivElement>;
+  ref: UseResizeDetectorReturn<HTMLDivElement>['ref'];
   width: string;
 } {
   const { ref, width } = useResizeDetector<HTMLDivElement>({

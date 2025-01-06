@@ -1,5 +1,5 @@
 import { cn } from '@/libs/utils';
-import { ReactNode } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 
@@ -8,7 +8,7 @@ interface Props {
   leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
-  progressSteps?: JSX.Element;
+  progressSteps?: ReactElement;
   pageHeaderContainerClassName?: string;
   subHeadings?: ReactNode | ReactNode[];
 }

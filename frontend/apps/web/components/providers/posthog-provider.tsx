@@ -9,7 +9,7 @@ import { ReactElement, ReactNode, useEffect } from 'react';
 import { useAccount } from './account-provider';
 
 // Enables posthog, as well as turns on pageview tracking.
-export function PostHogPageview(): JSX.Element {
+export function PostHogPageview(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const pathname = usePathname();
