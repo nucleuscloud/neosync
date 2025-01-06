@@ -27,7 +27,7 @@ export function buildTableRowData(
       schema: mapping.schema,
       table: mapping.table,
       isRootTable: rootTables.has(key),
-      where: '',
+      where: undefined,
     };
   });
   existingSubsets.forEach((subset) => {
