@@ -9,6 +9,7 @@
     "static/sync-dark-mode.js",
     "src/**",
     "src/theme/**",
+    "docs/**"
   ],
   "ignoreDependencies": [
     "@docusaurus/preset-classic",
