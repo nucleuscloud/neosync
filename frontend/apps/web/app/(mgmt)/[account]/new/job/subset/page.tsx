@@ -207,7 +207,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   function hasLocalChange(
-    _rowIndex: number,
+    _rowIdx: number,
     schema: string,
     table: string
   ): boolean {
@@ -222,7 +222,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     return trData.where !== svrData?.whereClause;
   }
 
-  function onLocalRowReset(schema: string, table: string): void {
+  function onLocalRowReset(
+    _rowIdx: number,
+    schema: string,
+    table: string
+  ): void {
     const key = buildRowKey(schema, table);
     const idx = form
       .getValues()
@@ -291,17 +295,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     data={Object.values(tableRowData)}
                     columns={SUBSET_TABLE_COLUMNS}
                     onEdit={(_rowIdx, schema, table) => {
-                      const key = buildRowKey(schema, table);
-                      const trData = tableRowData[key];
-                      if (trData) {
-                        setItemToEdit({ ...trData });
-                      }
                       setIsDialogOpen(true);
-                    }}
-                    onReset={(_rowIdx, schema, table) => {
-                      onLocalRowReset(schema, table);
+                      const key = buildRowKey(schema, table);
+                      if (tableRowData[key]) {
+                        setItemToEdit({
+                          ...tableRowData[key],
+                        });
+                      }
                     }}
                     hasLocalChange={hasLocalChange}
+                    onReset={onLocalRowReset}
                   />
                 </div>
                 <div

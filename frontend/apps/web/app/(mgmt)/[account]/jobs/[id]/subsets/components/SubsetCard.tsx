@@ -5,8 +5,11 @@ import {
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
-import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
-import { TableRow } from '@/components/jobs/subsets/subset-table/column';
+import {
+  SUBSET_TABLE_COLUMNS,
+  SubsetTableRow,
+} from '@/components/jobs/subsets/SubsetTable/Columns';
+import SubsetTable from '@/components/jobs/subsets/SubsetTable/SubsetTable';
 import {
   GetColumnsForSqlAutocomplete,
   buildRowKey,
@@ -108,7 +111,7 @@ export default function SubsetCard(props: Props): ReactElement {
     rootTables,
     form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
-  const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
+  const [itemToEdit, setItemToEdit] = useState<SubsetTableRow | undefined>();
 
   const formValuesMap = new Map(
     formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
@@ -169,7 +172,11 @@ export default function SubsetCard(props: Props): ReactElement {
     }
   }
 
-  function hasLocalChange(schema: string, table: string): boolean {
+  function hasLocalChange(
+    _rowIdx: number,
+    schema: string,
+    table: string
+  ): boolean {
     const key = buildRowKey(schema, table);
     const trData = tableRowData[key];
 
@@ -182,7 +189,11 @@ export default function SubsetCard(props: Props): ReactElement {
     return trData.where !== svrData?.whereClause;
   }
 
-  function onLocalRowReset(schema: string, table: string): void {
+  function onLocalRowReset(
+    _rowIdx: number,
+    schema: string,
+    table: string
+  ): void {
     const key = buildRowKey(schema, table);
     const idx = form
       .getValues()
@@ -210,7 +221,8 @@ export default function SubsetCard(props: Props): ReactElement {
             <div>
               <SubsetTable
                 data={Object.values(tableRowData)}
-                onEdit={(schema, table) => {
+                columns={SUBSET_TABLE_COLUMNS}
+                onEdit={(_rowIdx, schema, table) => {
                   setIsDialogOpen(true);
                   const key = buildRowKey(schema, table);
                   if (tableRowData[key]) {
