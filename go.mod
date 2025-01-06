@@ -1,6 +1,9 @@
 module github.com/nucleuscloud/neosync
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.4
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.1-20241127180247-a33202765966.1
 	cloud.google.com/go/storage v1.49.0
