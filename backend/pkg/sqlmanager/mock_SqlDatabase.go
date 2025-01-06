@@ -71,7 +71,7 @@ func (_c *MockSqlDatabase_BatchExec_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *MockSqlDatabase) Close() {
 	_m.Called()
 }
@@ -99,7 +99,7 @@ func (_c *MockSqlDatabase_Close_Call) Return() *MockSqlDatabase_Close_Call {
 }
 
 func (_c *MockSqlDatabase_Close_Call) RunAndReturn(run func()) *MockSqlDatabase_Close_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -262,6 +262,65 @@ func (_c *MockSqlDatabase_GetDatabaseSchema_Call) Return(_a0 []*sqlmanager_share
 }
 
 func (_c *MockSqlDatabase_GetDatabaseSchema_Call) RunAndReturn(run func(context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)) *MockSqlDatabase_GetDatabaseSchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDatabaseTableSchemasBySchemasAndTables provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDatabaseTableSchemasBySchemasAndTables")
+	}
+
+	var r0 []*sqlmanager_shared.DatabaseSchemaRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) []*sqlmanager_shared.DatabaseSchemaRow); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.DatabaseSchemaRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDatabaseTableSchemasBySchemasAndTables'
+type MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call struct {
+	*mock.Call
+}
+
+// GetDatabaseTableSchemasBySchemasAndTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*sqlmanager_shared.SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetDatabaseTableSchemasBySchemasAndTables(ctx interface{}, tables interface{}) *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call {
+	return &MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call{Call: _e.mock.On("GetDatabaseTableSchemasBySchemasAndTables", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call) Return(_a0 []*sqlmanager_shared.DatabaseSchemaRow, _a1 error) *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)) *MockSqlDatabase_GetDatabaseTableSchemasBySchemasAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }

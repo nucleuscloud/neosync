@@ -55,6 +55,10 @@ func (m *MSSQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
+	return parseRowValues(values, columnNames, columnDbTypes), nil
+}
+
+func parseRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
@@ -92,6 +96,5 @@ func (m *MSSQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
-
-	return jObj, nil
+	return jObj
 }

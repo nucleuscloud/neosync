@@ -29,7 +29,7 @@ args_mapping: 'root = [this.id]'
 type fakeConnectionProvider struct{}
 
 func (f *fakeConnectionProvider) GetDriver(connectionId string) (string, error) {
-	return "postgres", nil
+	return "pgx", nil
 }
 func (f *fakeConnectionProvider) GetDb(ctx context.Context, connectionId string) (SqlDbtx, error) {
 	return nil, fmt.Errorf("this is a test so if you need this, fix it or generate a mock")

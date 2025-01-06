@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	dynamodbmapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/dynamodb"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -57,7 +58,7 @@ func Test_dynamoDbBatchInput_ReadBatch_EndOfInput(t *testing.T) {
 
 func Test_dynamoDbBatchInput_ReadBatch_SinglePage(t *testing.T) {
 	mockClient := NewMockdynamoDBAPIV2(t)
-	input := &dynamodbInput{client: mockClient, table: "foo"}
+	input := &dynamodbInput{client: mockClient, table: "foo", recordMapper: dynamodbmapper.NewDynamoBuilder()}
 
 	mockClient.On("ExecuteStatement", mock.Anything, mock.Anything).Return(&dynamodb.ExecuteStatementOutput{
 		Items: []map[string]types.AttributeValue{
@@ -75,7 +76,7 @@ func Test_dynamoDbBatchInput_ReadBatch_SinglePage(t *testing.T) {
 
 func Test_dynamoDbBatchInput_ReadBatch_MultiPage(t *testing.T) {
 	mockClient := NewMockdynamoDBAPIV2(t)
-	input := &dynamodbInput{client: mockClient, table: "foo"}
+	input := &dynamodbInput{client: mockClient, table: "foo", recordMapper: dynamodbmapper.NewDynamoBuilder()}
 
 	mockClient.On("ExecuteStatement", mock.Anything, mock.Anything).Return(&dynamodb.ExecuteStatementOutput{
 		Items: []map[string]types.AttributeValue{

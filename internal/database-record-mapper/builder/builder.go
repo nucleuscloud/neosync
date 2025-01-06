@@ -12,7 +12,7 @@ type DatabaseRecordMapper[T any] interface {
 	// - Values are either Go native types (string, int, etc.) or Neosync custom types
 	MapRecord(record T) (map[string]any, error)
 
-	// Deprecated: use MapRecord instead with neosync types
+	// deprecated - use MapRecord instead with neosync types
 	MapRecordWithKeyType(record T) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error)
 }
 
@@ -28,7 +28,7 @@ func (b *Builder[T]) MapRecord(record any) (map[string]any, error) {
 	return b.Mapper.MapRecord(typedRecord)
 }
 
-// Deprecated: use MapRecord instead with neosync types
+// deprecated - use MapRecord instead with neosync types
 func (b *Builder[T]) MapRecordWithKeyType(record any) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	typedRecord, ok := record.(T)
 	if !ok {

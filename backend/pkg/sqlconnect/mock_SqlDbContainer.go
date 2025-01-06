@@ -17,7 +17,7 @@ func (_m *MockSqlDbContainer) EXPECT() *MockSqlDbContainer_Expecter {
 	return &MockSqlDbContainer_Expecter{mock: &_m.Mock}
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *MockSqlDbContainer) Close() error {
 	ret := _m.Called()
 
@@ -62,7 +62,7 @@ func (_c *MockSqlDbContainer_Close_Call) RunAndReturn(run func() error) *MockSql
 	return _c
 }
 
-// Open provides a mock function with given fields:
+// Open provides a mock function with no fields
 func (_m *MockSqlDbContainer) Open() (SqlDBTX, error) {
 	ret := _m.Called()
 

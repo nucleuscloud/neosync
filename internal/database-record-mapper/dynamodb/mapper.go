@@ -30,7 +30,6 @@ func (m *DynamoDBMapper) MapRecordWithKeyType(item map[string]types.AttributeVal
 		standardJSON[k] = val
 	}
 	return standardJSON, ktm, nil
-
 }
 
 // ParseAttributeValue converts a DynamoDB AttributeValue to a standard value
