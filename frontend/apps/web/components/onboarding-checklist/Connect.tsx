@@ -4,13 +4,8 @@ import { NeonGrayScale } from '@/public/icons/NeonGrayScale';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
-import { DiMongodb } from 'react-icons/di';
-import {
-  SiGooglecloudstorage,
-  SiMicrosoftsqlserver,
-  SiPostgresql,
-  SiSupabase,
-} from 'react-icons/si';
+import { DiMongodb, DiMsqlServer } from 'react-icons/di';
+import { SiGooglecloudstorage, SiPostgresql, SiSupabase } from 'react-icons/si';
 import { MysqlIcon } from '../../public/icons/Mysql';
 import { Button } from '../ui/button';
 
@@ -29,7 +24,7 @@ export default function Connect(props: Props): ReactElement {
     { name: 'Mysql', icon: <MysqlIcon theme={theme.resolvedTheme} /> },
     { name: 'Mongo DB', icon: <DiMongodb className="w-8 h-8" /> },
     { name: 'Dynamo DB', icon: <DynamoDBIcon theme={theme.resolvedTheme} /> },
-    { name: 'SQL Server', icon: <SiMicrosoftsqlserver className="w-8 h-8" /> },
+    { name: 'SQL Server', icon: <DiMsqlServer className="w-8 h-8" /> },
     { name: 'AWS S3', icon: <AwsS3Icon theme={theme.resolvedTheme} /> },
     { name: 'GCS', icon: <SiGooglecloudstorage className="w-8 h-8" /> },
     { name: 'Supabase', icon: <SiSupabase className="w-8  h-8" /> },
