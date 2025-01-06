@@ -15,7 +15,7 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@auth/core": "^0.34.2",
+    "@auth/core": "^0.37.4",
     "@bufbuild/protobuf": "^2.2.3",
     "@connectrpc/connect-node": "^2.0.0",
     "@connectrpc/connect-query": "^2.0.1",
@@ -55,7 +55,7 @@
     "nanoid": "^5.0.9",
     "next": "^14.2.22",
     "next-auth": "^5.0.0-beta.25",
-    "next-themes": "^0.3.0",
+    "next-themes": "^0.4.4",
     "posthog-js": "^1.204.0",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
