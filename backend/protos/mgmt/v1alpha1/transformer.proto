@@ -139,6 +139,7 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
   TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
   TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
+  TRANSFORMER_SOURCE_TRANSFORM_UUID = 50;
 }
 
 enum TransformerDataType {
@@ -220,6 +221,7 @@ message TransformerConfig {
     TransformPiiText transform_pii_text_config = 44;
     GenerateBusinessName generate_business_name_config = 45;
     GenerateIpAddress generate_ip_address_config = 46;
+    TransformUuid transform_uuid_config = 47;
   }
 }
 
@@ -543,6 +545,8 @@ enum GenerateIpAddressType {
 message GenerateIpAddress {
   optional GenerateIpAddressType ip_type = 1;
 }
+
+message TransformUuid {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

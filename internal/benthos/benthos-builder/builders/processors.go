@@ -764,6 +764,12 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(), nil
+	case *mgmtv1alpha1.TransformerConfig_TransformUuidConfig:
+		opts, err := transformers.NewTransformUuidOptsFromConfig(cfg.TransformUuidConfig)
+		if err != nil {
+			return "", err
+		}
+		return opts.BuildBloblangString(formattedColPath), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}

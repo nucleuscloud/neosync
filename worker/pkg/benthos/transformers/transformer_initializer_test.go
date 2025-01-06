@@ -1678,6 +1678,36 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("TransformUuidConfig_Empty", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{
+				TransformUuidConfig: &mgmtv1alpha1.TransformUuid{},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalValue := generateUuid(true)
+		result, err := executor.Mutate(originalValue, executor.Opts)
+		require.NoError(t, err)
+		require.NotEqual(t, originalValue, result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("TransformUuidConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalValue := generateUuid(true)
+		result, err := executor.Mutate(originalValue, executor.Opts)
+		require.NoError(t, err)
+		require.NotEqual(t, originalValue, result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("UnsupportedConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: nil,

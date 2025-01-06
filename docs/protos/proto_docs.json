@@ -472,6 +472,11 @@
               "name": "TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS",
               "number": "49",
               "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_UUID",
+              "number": "50",
+              "description": ""
             }
           ]
         }
@@ -2270,6 +2275,17 @@
           ]
         },
         {
+          "name": "TransformUuid",
+          "longName": "TransformUuid",
+          "fullName": "mgmt.v1alpha1.TransformUuid",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "TransformerConfig",
           "longName": "TransformerConfig",
           "fullName": "mgmt.v1alpha1.TransformerConfig",
@@ -2826,6 +2842,18 @@
               "type": "GenerateIpAddress",
               "longType": "GenerateIpAddress",
               "fullType": "mgmt.v1alpha1.GenerateIpAddress",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_uuid_config",
+              "description": "",
+              "label": "",
+              "type": "TransformUuid",
+              "longType": "TransformUuid",
+              "fullType": "mgmt.v1alpha1.TransformUuid",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

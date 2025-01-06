@@ -645,6 +645,19 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				return generate(opts)
 			},
 		}, nil
+	case *mgmtv1alpha1.TransformerConfig_TransformUuidConfig:
+		config := transformerConfig.GetTransformUuidConfig()
+		opts, err := NewTransformUuidOptsFromConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		transform := NewTransformUuid().Transform
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return transform(value, opts)
+			},
+		}, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
