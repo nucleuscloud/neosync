@@ -91,9 +91,9 @@ func transformUuid(randomizer rng.Rand, value string) *string {
 		return &value
 	}
 
-	a := randomizer.Int()
+	randomInt := randomizer.Int()
 
-	randomStringA := strconv.Itoa(a)
+	randomStringA := strconv.Itoa(randomInt)
 
 	output := uuid.NewSHA1(inputUuid, []byte(randomStringA)).String()
 
