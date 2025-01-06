@@ -39,6 +39,7 @@ import {
 } from 'react-icons/fa';
 import { GoDatabase, GoLightBulb, GoSync } from 'react-icons/go';
 
+import { DiMsqlServer } from 'react-icons/di';
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { HiOutlineDocumentSearch } from 'react-icons/hi';
@@ -60,7 +61,6 @@ import {
   SiGo,
   SiJavascript,
   SiKubernetes,
-  SiMicrosoftsqlserver,
   SiMongodb,
   SiTerraform,
   SiTypescript,
@@ -203,7 +203,7 @@ export function IconHandler(name: string): ReactElement {
     case 'Viewing Job Run Logs':
       return <HiOutlineDocumentSearch />;
     case 'Microsoft SQL Server':
-      return <SiMicrosoftsqlserver />;
+      return <DiMsqlServer />;
     case 'Python':
       return <FaPython />;
     default:
