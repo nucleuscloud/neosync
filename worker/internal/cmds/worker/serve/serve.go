@@ -23,6 +23,7 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	retry_interceptor "github.com/nucleuscloud/neosync/internal/connectrpc/interceptors/retry"
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -214,6 +215,9 @@ func serve(ctx context.Context) error {
 			}
 		}()
 	}
+
+	// Ensure that the retry interceptor comes after the otel interceptor
+	connectInterceptors = append(connectInterceptors, retry_interceptor.DefaultRetryInterceptor(logger))
 
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
