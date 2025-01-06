@@ -42,6 +42,13 @@ updates:
       interval: "weekly"
     labels:
       - dependencies
+    groups:
+      npm-all-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     reviewers:
       - nickzelei
 
