@@ -28,10 +28,9 @@ func Test_TransformUuidSeeded(t *testing.T) {
 
 	var checkVars []string
 
-	randomizer := rand.New(rand.NewSource(1))
-
-	//checks that the output uuid is the same everytime for given the same input since we're assigning it a specific seed value
+	//checks that the output UUID is the same everytime for given the same input since we're assigning it a specific seed value
 	for i := 0; i < 5; i++ {
+		randomizer := rand.New(rand.NewSource(1))
 		res := transformUuid(randomizer, randomUuid)
 		checkVars = append(checkVars, *res)
 	}

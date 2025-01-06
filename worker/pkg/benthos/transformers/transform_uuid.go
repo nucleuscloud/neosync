@@ -1,9 +1,9 @@
 package transformers
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -91,13 +91,11 @@ func transformUuid(randomizer rng.Rand, value string) *string {
 		return &value
 	}
 
-	randomInt := randomizer.Float64()
+	a := randomizer.Int()
 
-	bytes := make([]byte, 16)
-	binary.LittleEndian.PutUint64(bytes, uint64(randomInt))
+	randomStringA := strconv.Itoa(a)
 
-	// Create a new UUID using SHA1 namespace of the original UUID
-	output := uuid.NewSHA1(inputUuid, bytes).String()
+	output := uuid.NewSHA1(inputUuid, []byte(randomStringA)).String()
 
 	return &output
 }
