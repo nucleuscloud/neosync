@@ -24,7 +24,7 @@ function InnerRow<TData>(props: Props<TData>): ReactNode {
       {row.getVisibleCells().map((cell) => (
         <td
           key={cell.id}
-          className="py-2"
+          // className={cn(cell.column.columnDef.id != 'isSelected' ? 'px-2' : '')}
           style={{
             minWidth: cell.column.getSize(),
             width: cell.column.columnDef.id != 'isSelected' ? '187px' : '20px',

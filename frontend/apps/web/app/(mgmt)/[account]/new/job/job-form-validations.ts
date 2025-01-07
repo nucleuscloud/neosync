@@ -288,7 +288,7 @@ const SingleSubsetFormValue = Yup.object({
   table: Yup.string().trim().required('A table is required'),
   whereClause: Yup.string().trim().optional(),
 });
-type SingleSubsetFormValue = Yup.InferType<typeof SingleSubsetFormValue>;
+export type SingleSubsetFormValue = Yup.InferType<typeof SingleSubsetFormValue>;
 
 export const SingleTableConnectFormValues = Yup.object({
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),

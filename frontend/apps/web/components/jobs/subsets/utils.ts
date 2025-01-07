@@ -57,6 +57,25 @@ export function getColumnsForSqlAutocomplete(
     .map((row) => row.column);
 }
 
+export function getBulkColumnsForSqlAutocomplete(
+  mappings: Pick<JobMapping, 'schema' | 'table' | 'column'>[],
+  schemaTable: { schema: string; table: string }[]
+): string[] {
+  if (!mappings) {
+    return [];
+  }
+  const schemaTableSet = new Set(
+    schemaTable.map((st) => buildRowKey(st.schema, st.table))
+  );
+  return Array.from(
+    new Set(
+      mappings
+        .filter((row) => schemaTableSet.has(buildRowKey(row.schema, row.table)))
+        .map((row) => row.column)
+    )
+  );
+}
+
 export function isJobSubsettable(job: Job): boolean {
   switch (job.source?.options?.config.case) {
     case 'postgres':

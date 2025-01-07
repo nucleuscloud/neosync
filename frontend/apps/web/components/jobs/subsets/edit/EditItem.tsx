@@ -24,14 +24,14 @@ import {
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
-import ValidateQueryErrorAlert from './SubsetErrorAlert';
-import { SubsetTableRow } from './SubsetTable/Columns';
-import ValidateQueryBadge from './ValidateQueryBadge';
+import ValidateQueryErrorAlert from '../SubsetErrorAlert';
+import { SubsetTableRow } from '../SubsetTable/Columns';
+import ValidateQueryBadge from '../ValidateQueryBadge';
 import {
   isSubsetRowCountSupported,
   isSubsetValidationSupported,
   ValidSubsetConnectionType,
-} from './utils';
+} from '../utils';
 
 interface Props {
   item?: SubsetTableRow;
