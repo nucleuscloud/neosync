@@ -15,6 +15,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	SchemasLabel = "schemas"
+)
+
 type PostgresManager struct {
 	querier pg_queries.Querier
 	db      pg_queries.DBTX
@@ -575,7 +579,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: "schemas", Statements: schemaStmts},
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},

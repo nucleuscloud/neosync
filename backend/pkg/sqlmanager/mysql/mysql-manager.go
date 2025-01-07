@@ -18,6 +18,8 @@ import (
 const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
+
+	SchemasLabel = "schemas"
 )
 
 type MysqlManager struct {
@@ -681,7 +683,7 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: "schemas", Statements: schemaStmts},
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types"},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},

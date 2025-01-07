@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	SchemasLabel        = "schemas"
 	ViewsFunctionsLabel = "view and functions"
 	TableIndexLabel     = "table index"
 )
@@ -221,7 +222,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: "schemas", Statements: schemaStmts},
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: ViewsFunctionsLabel, Statements: viewAndFuncStmts},
