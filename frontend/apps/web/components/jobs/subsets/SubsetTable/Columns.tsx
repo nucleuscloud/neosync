@@ -22,7 +22,7 @@ function getColumns(): ColumnDef<SubsetTableRow, ColumnTValue>[] {
       return <SchemaColumnHeader column={column} title="Schema" />;
     },
     cell({ getValue }) {
-      return <TruncatedText text={getValue()} />;
+      return <TruncatedText text={getValue()} maxWidth={150} />;
     },
   });
 
@@ -35,16 +35,21 @@ function getColumns(): ColumnDef<SubsetTableRow, ColumnTValue>[] {
     },
   });
 
-  const isRootTableColumn = columnHelper.accessor('isRootTable', {
-    header({ column }) {
-      return <SchemaColumnHeader column={column} title="Root Table" />;
-    },
-    cell({ getValue }) {
-      return <RootTableCell isRootTable={getValue()} />;
-    },
-  });
+  const isRootTableColumn = columnHelper.accessor(
+    (row) => (row.isRootTable ? 'Root' : ''),
+    {
+      id: 'isRootTable',
+      header({ column }) {
+        return <SchemaColumnHeader column={column} title="Root Table" />;
+      },
+      cell({ getValue }) {
+        return <RootTableCell isRootTable={!!getValue()} />;
+      },
+    }
+  );
 
-  const whereColumn = columnHelper.accessor('where', {
+  const whereColumn = columnHelper.accessor((row) => row.where ?? '', {
+    id: 'where',
     header({ column }) {
       return <SchemaColumnHeader column={column} title="Subset Filters" />;
     },
