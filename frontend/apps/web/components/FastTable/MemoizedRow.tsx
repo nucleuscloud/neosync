@@ -30,6 +30,8 @@ function InnerRow<TData>(props: Props<TData>): ReactNode {
             width: cell.column.columnDef.id != 'isSelected' ? '187px' : '20px',
           }}
         >
+          {/* For some reason TS can't figure out how to type the incoming cell dynamically as Cell<TData, unknown>
+              so we have to cast it here */}
           <MemoizedCell cell={cell as Cell<unknown, unknown>} />
         </td>
       ))}
