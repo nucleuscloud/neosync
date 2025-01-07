@@ -4,8 +4,13 @@ import {
 } from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
-import EditItem from '@/components/jobs/subsets/EditItem';
-import EditItemDialog from '@/components/jobs/subsets/EditItemDialog';
+import EditItem from '@/components/jobs/subsets/edit/EditItem';
+import EditItemDialog from '@/components/jobs/subsets/edit/EditItemDialog';
+import EditItems from '@/components/jobs/subsets/edit/EditItems';
+import useOnBulkEditItemSave, {
+  BulkEditItem,
+} from '@/components/jobs/subsets/edit/useOnBulkEditItemSave';
+import useOnEditItemSave from '@/components/jobs/subsets/edit/useOnEditItemSave';
 import {
   SUBSET_TABLE_COLUMNS,
   SubsetTableRow,
@@ -14,6 +19,7 @@ import SubsetTable from '@/components/jobs/subsets/SubsetTable/SubsetTable';
 import {
   buildRowKey,
   buildTableRowData,
+  getBulkColumnsForSqlAutocomplete,
   getColumnsForSqlAutocomplete,
   isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
@@ -52,6 +58,7 @@ interface Props {
 export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
 
   const { data, isLoading: isJobLoading } = useQuery(
     JobService.method.getJob,
@@ -105,6 +112,8 @@ export default function SubsetCard(props: Props): ReactElement {
       control: form.control,
       name: 'subsets',
     });
+  const [itemToEdit, setItemToEdit] = useState<SubsetTableRow | undefined>();
+  const [bulkItemEdit, setBulkItemEdit] = useState<BulkEditItem | undefined>();
 
   const tableRowData = useMemo(() => {
     return buildTableRowData(
@@ -113,7 +122,39 @@ export default function SubsetCard(props: Props): ReactElement {
       formSubsets
     );
   }, [data?.job?.mappings, rootTables, formSubsets]);
-  const [itemToEdit, setItemToEdit] = useState<SubsetTableRow | undefined>();
+
+  const { onClick: onEditItemSave } = useOnEditItemSave({
+    item: itemToEdit,
+    getSubsets: () => formSubsets,
+    appendSubsets: addSubsetsFormValues,
+    triggerUpdate: () => {
+      form.trigger();
+      setIsDialogOpen(false);
+      setItemToEdit(undefined);
+    },
+    updateSubset: (idx, subset) => {
+      updateSubsetsFormValues(idx, subset);
+    },
+  });
+
+  const { onClick: onBulkEditItemSave } = useOnBulkEditItemSave({
+    bulkEditItem: bulkItemEdit,
+    getSubsets: () => formSubsets,
+    setSubsets: () => {
+      form.setValue('subsets', formSubsets, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      });
+    },
+    triggerUpdate: () => {
+      form.trigger();
+      setIsBulkEditDialogOpen(false);
+      setBulkItemEdit(undefined);
+    },
+    getTableRowData: (key) => tableRowData[key],
+    appendSubsets: addSubsetsFormValues,
+  });
 
   const formValuesMap = new Map(
     formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
@@ -126,6 +167,25 @@ export default function SubsetCard(props: Props): ReactElement {
       itemToEdit?.table ?? ''
     );
   }, [data?.job?.mappings, itemToEdit?.schema, itemToEdit?.table]);
+
+  const bulkSqlAutocompleteColumns = useMemo(() => {
+    if (!bulkItemEdit) {
+      return [];
+    }
+    return getBulkColumnsForSqlAutocomplete(
+      data?.job?.mappings ?? [],
+      bulkItemEdit.rowKeys.map((key) => {
+        const td = tableRowData[key];
+        if (!td) {
+          return { schema: '', table: '' };
+        }
+        return {
+          schema: td.schema,
+          table: td.table,
+        };
+      }) ?? []
+    );
+  }, [data?.job?.mappings, bulkItemEdit?.rowKeys, tableRowData]);
 
   if (isJobLoading) {
     return (
@@ -220,6 +280,39 @@ export default function SubsetCard(props: Props): ReactElement {
     }
   }
 
+  function onEdit(_rowIdx: number, schema: string, table: string): void {
+    setIsDialogOpen(true);
+    const key = buildRowKey(schema, table);
+    if (tableRowData[key]) {
+      setItemToEdit({
+        ...tableRowData[key],
+      });
+    }
+  }
+
+  function onBulkEdit(
+    data: SubsetTableRow[],
+    onClearSelection: () => void
+  ): void {
+    // todo: if only one item is selected, just go through the single item flow
+    if (data.length === 0) {
+      return;
+    }
+    if (data.length === 1) {
+      onEdit(0, data[0].schema, data[0].table);
+      return;
+    }
+    const firstWhereClauseIdx = data.findIndex((item) => !!item.where);
+    setBulkItemEdit({
+      rowKeys: data.map((item) => buildRowKey(item.schema, item.table)),
+      item: {
+        where: firstWhereClauseIdx >= 0 ? data[firstWhereClauseIdx].where : '',
+      },
+      onClearSelection,
+    });
+    setIsBulkEditDialogOpen(true);
+  }
+
   return (
     <div>
       <Form {...form}>
@@ -232,15 +325,8 @@ export default function SubsetCard(props: Props): ReactElement {
               <SubsetTable
                 data={Object.values(tableRowData)}
                 columns={SUBSET_TABLE_COLUMNS}
-                onEdit={(_rowIdx, schema, table) => {
-                  setIsDialogOpen(true);
-                  const key = buildRowKey(schema, table);
-                  if (tableRowData[key]) {
-                    setItemToEdit({
-                      ...tableRowData[key],
-                    });
-                  }
-                }}
+                onEdit={onEdit}
+                onBulkEdit={onBulkEdit}
                 hasLocalChange={hasLocalChange}
                 onReset={onLocalRowReset}
               />
@@ -259,36 +345,34 @@ export default function SubsetCard(props: Props): ReactElement {
                     setIsDialogOpen(false);
                   }}
                   columns={sqlAutocompleteColumns}
-                  onSave={() => {
-                    if (!itemToEdit) {
-                      return;
-                    }
-                    const key = buildRowKey(
-                      itemToEdit.schema,
-                      itemToEdit.table
-                    );
-                    const idx = form
-                      .getValues()
-                      .subsets.findIndex(
-                        (item) => buildRowKey(item.schema, item.table) === key
-                      );
-                    if (idx >= 0) {
-                      updateSubsetsFormValues(idx, {
-                        schema: itemToEdit.schema,
-                        table: itemToEdit.table,
-                        whereClause: itemToEdit.where,
-                      });
-                    } else {
-                      addSubsetsFormValues({
-                        schema: itemToEdit.schema,
-                        table: itemToEdit.table,
-                        whereClause: itemToEdit.where,
-                      });
-                    }
-                    setItemToEdit(undefined);
-                    setIsDialogOpen(false);
-                  }}
+                  onSave={onEditItemSave}
                   connectionType={connectionType}
+                />
+              }
+            />
+            <EditItemDialog
+              open={isBulkEditDialogOpen}
+              onOpenChange={setIsBulkEditDialogOpen}
+              body={
+                <EditItems
+                  item={bulkItemEdit?.item ?? { where: '' }}
+                  onItem={(item) => {
+                    setBulkItemEdit((prev) => {
+                      if (!prev) {
+                        return undefined;
+                      }
+                      return {
+                        ...prev,
+                        item,
+                      };
+                    });
+                  }}
+                  onCancel={() => {
+                    setBulkItemEdit(undefined);
+                    setIsBulkEditDialogOpen(false);
+                  }}
+                  columns={bulkSqlAutocompleteColumns}
+                  onSave={onBulkEditItemSave}
                 />
               }
             />

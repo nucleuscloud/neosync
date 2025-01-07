@@ -1,4 +1,4 @@
-import { ReactElement, useMemo } from 'react';
+import { ReactElement } from 'react';
 
 import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import FormErrorMessage from '@/components/FormErrorMessage';
@@ -9,13 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import useMonacoResizer from '@/libs/hooks/monaco/useMonacoResizer';
+import useMonacoTheme from '@/libs/hooks/monaco/useMonacoTheme';
 import { splitConnections } from '@/libs/utils';
 import { Editor } from '@monaco-editor/react';
 import { Connection } from '@neosync/sdk';
 import { editor } from 'monaco-editor';
-import { useTheme } from 'next-themes';
-import { useResizeDetector } from 'react-resize-detector';
-import { OnRefChangeType } from 'react-resize-detector/build/types/types';
 import FormHeader from './FormHeader';
 import { JobHookSqlFormValues, SqlTimingFormValue } from './validation';
 
@@ -97,11 +96,7 @@ const editorOptions: editor.IStandaloneEditorConstructionOptions = {
 function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
   const { query, setQuery } = props;
 
-  const { resolvedTheme } = useTheme();
-  const theme = useMemo(
-    () => (resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'),
-    [resolvedTheme]
-  );
+  const theme = useMonacoTheme();
   const { ref, width: editorWidth } = useMonacoResizer();
 
   return (
@@ -124,36 +119,6 @@ function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
       />
     </div>
   );
-}
-
-// Offset is important here as without it, things get pretty strange I believe due to the container
-// Lower offsets cause the resize to happen at a glacial pace, and without one, not at all.
-const WIDTH_OFFSET = 10;
-
-function useMonacoResizer(): {
-  ref: OnRefChangeType<HTMLDivElement>;
-  width: string;
-} {
-  const { ref, width } = useResizeDetector<HTMLDivElement>({
-    handleHeight: false,
-    handleWidth: true,
-    refreshMode: 'debounce',
-    refreshRate: 10,
-    skipOnMount: false,
-  });
-
-  const editorWidth = useMemo(
-    () =>
-      width != null && width > WIDTH_OFFSET
-        ? `${width - WIDTH_OFFSET}px`
-        : '100%',
-    [width]
-  );
-
-  return {
-    ref,
-    width: editorWidth,
-  };
 }
 
 interface SelectConnectionsProps {

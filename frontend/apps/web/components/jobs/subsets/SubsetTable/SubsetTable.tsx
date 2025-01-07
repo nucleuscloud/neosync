@@ -1,7 +1,4 @@
-import ButtonText from '@/components/ButtonText';
 import FastTable from '@/components/FastTable/FastTable';
-import { Button } from '@/components/ui/button';
-import { Cross2Icon } from '@radix-ui/react-icons';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -11,6 +8,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ReactElement } from 'react';
+import { SubsetTableToolbar } from './SubsetTableToolbar';
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -29,17 +27,18 @@ interface Props<TData, TValue> {
   onEdit(rowIndex: number, schema: string, table: string): void;
   onReset(rowIndex: number, schema: string, table: string): void;
   hasLocalChange(rowIndex: number, schema: string, table: string): boolean;
+  onBulkEdit(data: TData[], onClearSelection: () => void): void;
 }
 
 export default function SubsetTable<TData, TValue>(
   props: Props<TData, TValue>
 ): ReactElement {
-  const { data, columns, onEdit, onReset, hasLocalChange } = props;
+  const { data, columns, onEdit, onReset, hasLocalChange, onBulkEdit } = props;
 
   const table = useReactTable({
     data,
     columns,
-    enableRowSelection: false,
+    enableRowSelection: true,
     initialState: {},
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -55,22 +54,19 @@ export default function SubsetTable<TData, TValue>(
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row items-center gap-2 justify-end">
-        <div className="flex flex-row items-center gap-2">
-          <Button
-            disabled={table.getState().columnFilters.length === 0}
-            type="button"
-            variant="outline"
-            className="px-2 lg:px-3"
-            onClick={() => table.resetColumnFilters()}
-          >
-            <ButtonText
-              leftIcon={<Cross2Icon className="h-3 w-3" />}
-              text="Clear filters"
-            />
-          </Button>
-        </div>
-      </div>
+      <SubsetTableToolbar
+        isFilterButtonDisabled={table.getState().columnFilters.length === 0}
+        onClearFilters={() => table.resetColumnFilters()}
+        isBulkEditButtonDisabled={
+          Object.keys(table.getState().rowSelection).length <= 1
+        }
+        onBulkEditClick={() => {
+          const selectedRows = table
+            .getSelectedRowModel()
+            .rows.map((row) => row.original);
+          onBulkEdit(selectedRows, () => table.resetRowSelection());
+        }}
+      />
       <FastTable table={table} estimateRowSize={() => 33} rowOverscan={50} />
     </div>
   );
