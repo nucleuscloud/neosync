@@ -12,12 +12,34 @@ import {
 import MemoizedRow from './MemoizedRow';
 
 interface Props<TData> {
+  /**
+   * The table instance to render.
+   */
   table: Table<TData>;
-
+  /**
+   * This function is used to estimate the height of each row.
+   * It should be the height of your row including padding and any other styling.
+   * This is used to calculate the total height of the table and to smooth out scrolling.
+   * If this is not set, it will default to 53px which is the height of the default row.
+   */
   estimateRowSize?(): number;
+  /**
+   * This is the number of rows to render above and below the visible rows to help with smooth scrolling.
+   * This should be set to a value that is a multiple of your estimateRowSize.
+   * This is a trade off between performance and CPU.
+   */
   rowOverscan?: number;
 }
 
+/**
+ * This table uses memoized rows and cells to improve performance ontop of a scroll virtualizer for infinite scrolling of large datasets.
+ * Depending on your column makeup, the memoized cells may need updated to handle your specific display column.
+ * It's also very impportant to memoize the table dataset so that it is stable and only changes when needed.
+ * This will maximize performance of the table.
+ *
+ * It's also very important to set your estimateRowSize function to be the correct height of your row. Otherwise it is a guess and will have to be re-calculated, which hurts performance.
+ * Configuring the overscan helps smooth out scrolling, but will increase CPU. For fast systems this is very noticeable and helps with reducing white flashing during quick scrolls.
+ */
 export default function FastTable<TData>(props: Props<TData>): ReactElement {
   const { table, estimateRowSize = () => 53, rowOverscan = 50 } = props;
 
