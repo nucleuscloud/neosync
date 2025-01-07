@@ -119,6 +119,14 @@ export default function SubsetCard(props: Props): ReactElement {
     formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
   );
 
+  const sqlAutocompleteColumns = useMemo(() => {
+    return getColumnsForSqlAutocomplete(
+      data?.job?.mappings ?? [],
+      itemToEdit?.schema ?? '',
+      itemToEdit?.table ?? ''
+    );
+  }, [data?.job?.mappings, itemToEdit?.schema, itemToEdit?.table]);
+
   if (isJobLoading) {
     return (
       <div className="space-y-10">
@@ -173,14 +181,6 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
-
-  const sqlAutocompleteColumns = useMemo(() => {
-    return getColumnsForSqlAutocomplete(
-      data?.job?.mappings ?? [],
-      itemToEdit?.schema ?? '',
-      itemToEdit?.table ?? ''
-    );
-  }, [data?.job?.mappings, itemToEdit?.schema, itemToEdit?.table]);
 
   function hasLocalChange(
     _rowIdx: number,
