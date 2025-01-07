@@ -679,9 +679,9 @@ func (s *Service) SetRunContext(
 		return nil, err
 	}
 
-	// if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-	// 	return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
-	// }
+	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
 
 	accountUuid, err := neosyncdb.ToUuid(id.GetAccountId())
 	if err != nil {
@@ -718,9 +718,9 @@ func (s *Service) SetRunContexts(
 			return nil, err
 		}
 
-		// if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-		// 	return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
-		// }
+		if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
+			return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		}
 
 		accountUuid, err := neosyncdb.ToUuid(id.GetAccountId())
 		if err != nil {
