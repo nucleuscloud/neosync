@@ -1,8 +1,9 @@
+import useMonacoOnMount from '@/libs/hooks/monaco/useMonacoOnMount';
 import useMonacoResizer from '@/libs/hooks/monaco/useMonacoResizer';
 import useMonacoTheme from '@/libs/hooks/monaco/useMonacoTheme';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import { editor, IRange, languages } from 'monaco-editor';
-import { ReactElement, useEffect, useRef } from 'react';
+import { ReactElement, useEffect } from 'react';
 
 interface Props {
   whereClause: string;
@@ -23,17 +24,11 @@ const BASE_EDITOR_OPTS: editor.IStandaloneEditorConstructionOptions = {
 
 export default function WhereEditor(props: Props): ReactElement {
   const { whereClause, onWhereChange, columns } = props;
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   const theme = useMonacoTheme();
   const { ref, width: editorWidth } = useMonacoResizer();
-
+  const { onMount } = useMonacoOnMount();
   useAutocomplete(columns);
-
-  function onMount(editor: editor.IStandaloneCodeEditor): void {
-    editorRef.current = editor;
-    editor.focus();
-  }
 
   return (
     <div
