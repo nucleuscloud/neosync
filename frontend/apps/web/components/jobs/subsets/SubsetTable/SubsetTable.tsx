@@ -58,7 +58,7 @@ export default function SubsetTable<TData, TValue>(
         isFilterButtonDisabled={table.getState().columnFilters.length === 0}
         onClearFilters={() => table.resetColumnFilters()}
         isBulkEditButtonDisabled={
-          Object.keys(table.getState().rowSelection).length === 0
+          Object.keys(table.getState().rowSelection).length <= 1
         }
         onBulkEditClick={() => {
           const selectedRows = table

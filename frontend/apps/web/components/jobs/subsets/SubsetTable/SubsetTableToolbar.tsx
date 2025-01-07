@@ -28,7 +28,7 @@ export function SubsetTableToolbar(props: Props): ReactElement {
           className="px-2 lg:px-3"
           onClick={onBulkEditClick}
         >
-          <ButtonText text="Bulk Edit" />
+          <ButtonText text="Bulk Edit Subsets" />
         </Button>
         <Button
           disabled={isFilterButtonDisabled}
