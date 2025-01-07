@@ -43,7 +43,7 @@ import {
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
@@ -69,9 +69,9 @@ export default function NewTransformer(): ReactElement {
   );
   const transformers = data?.transformers ?? [];
 
-  const transformerQueryParam = useSearchParams().get('transformer');
+  const sourceIdToCloneQueryParam = useSearchParams().get('transformer');
   const transformerSource = getTransformerSource(
-    transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
+    sourceIdToCloneQueryParam ?? TransformerSource.GENERATE_BOOL.toString()
   );
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
     TransformersService.method.isTransformerNameAvailable
@@ -152,24 +152,33 @@ export default function NewTransformer(): ReactElement {
 
   const formSource = form.watch('source');
 
-  const base =
-    transformers.find((t) => t.source === formSource) ??
-    create(SystemTransformerSchema, {});
-
-  const configCase = form.watch('config.case');
+  const base = useMemo(
+    () =>
+      transformers.find((t) => t.source === formSource) ??
+      create(SystemTransformerSchema, {}),
+    [formSource, transformers]
+  );
 
   useEffect(() => {
     if (
       isLoading ||
       base.source === TransformerSource.UNSPECIFIED ||
-      configCase ||
-      !transformerQueryParam
+      !sourceIdToCloneQueryParam
     ) {
       return;
     }
 
-    form.setValue('config', convertTransformerConfigToForm(base.config));
-  }, [isLoading, base.source, configCase, transformerQueryParam]);
+    form.setValue('source', base.source, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false,
+    });
+    form.setValue('config', convertTransformerConfigToForm(base.config), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false,
+    });
+  }, [isLoading, sourceIdToCloneQueryParam]);
 
   return (
     <OverviewContainer
