@@ -208,7 +208,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [schemaFormValues.mappings, rootTables, formSubsets]);
 
   const sqlAutocompleteColumns = useMemo(() => {
-    console.log('re-rendering auto complete columns');
     return getColumnsForSqlAutocomplete(
       schemaFormValues?.mappings ?? [],
       itemToEdit?.schema ?? '',
@@ -255,7 +254,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       form.trigger();
     }
   }
-  console.log('re-rendering subset table');
   return (
     <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-5">
       <FormPersist formKey={formKey} form={form} />
