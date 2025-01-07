@@ -1,7 +1,7 @@
 import { ConnectionConfigCase } from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import { Job, JobMapping } from '@neosync/sdk';
-import { TableRow } from './subset-table/column';
+import { SubsetTableRow } from './SubsetTable/Columns';
 
 // Valid ConnectionConfigCase types. Using Extract here to ensure they stay consistent with what is available in ConnectionConfigCase
 export type ValidSubsetConnectionType = Extract<
@@ -18,8 +18,8 @@ export function buildTableRowData(
   dbCols: DbCol[],
   rootTables: Set<string>,
   existingSubsets: SubsetFormValues['subsets']
-): Record<string, TableRow> {
-  const tableMap: Record<string, TableRow> = {};
+): Record<string, SubsetTableRow> {
+  const tableMap: Record<string, SubsetTableRow> = {};
 
   dbCols.forEach((mapping) => {
     const key = buildRowKey(mapping.schema, mapping.table);
@@ -27,6 +27,7 @@ export function buildTableRowData(
       schema: mapping.schema,
       table: mapping.table,
       isRootTable: rootTables.has(key),
+      where: undefined,
     };
   });
   existingSubsets.forEach((subset) => {
@@ -43,18 +44,17 @@ export function buildRowKey(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
 
-export function GetColumnsForSqlAutocomplete(
-  mappings: JobMapping[],
-  itemToEdit: TableRow | undefined
+export function getColumnsForSqlAutocomplete(
+  mappings: Pick<JobMapping, 'schema' | 'table' | 'column'>[],
+  schema: string,
+  table: string
 ): string[] {
-  let cols: string[] = [];
-  mappings.map((row) => {
-    if (row.schema == itemToEdit?.schema && row.table == itemToEdit.table) {
-      cols.push(row.column);
-    }
-  });
-
-  return cols;
+  if (!mappings) {
+    return [];
+  }
+  return mappings
+    .filter((row) => row.schema === schema && row.table === table)
+    .map((row) => row.column);
 }
 
 export function isJobSubsettable(job: Job): boolean {

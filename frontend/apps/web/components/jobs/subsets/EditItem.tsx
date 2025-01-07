@@ -25,8 +25,8 @@ import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryErrorAlert from './SubsetErrorAlert';
+import { SubsetTableRow } from './SubsetTable/Columns';
 import ValidateQueryBadge from './ValidateQueryBadge';
-import { TableRow } from './subset-table/column';
 import {
   isSubsetRowCountSupported,
   isSubsetValidationSupported,
@@ -34,8 +34,8 @@ import {
 } from './utils';
 
 interface Props {
-  item?: TableRow;
-  onItem(item?: TableRow): void;
+  item?: SubsetTableRow;
+  onItem(item?: SubsetTableRow): void;
   onSave(): void;
   onCancel(): void;
   connectionId: string;
@@ -243,7 +243,36 @@ export default function EditItem(props: Props): ReactElement {
             <ValidateQueryBadge resp={validateResp} />
           </div>
         </div>
-        <div className="flex flex-row gap-4">
+      </div>
+      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+        <Editor
+          height="60px"
+          width="100%"
+          language="sql"
+          value={constructWhere(item?.where ?? '')}
+          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+          onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
+          options={editorOptions}
+          onMount={(editor) => {
+            editorRef.current = editor;
+            editor.focus();
+          }}
+        />
+      </div>
+      <ValidateQueryErrorAlert
+        validateResp={validateResp}
+        rowCountError={rowCountError}
+      />
+      <div className="flex justify-between gap-4">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!item}
+          onClick={() => onCancelClick()}
+        >
+          <ButtonText text="Cancel" />
+        </Button>
+        <div className="flex flex-row gap-2">
           {showRowCountButton && (
             <>
               <TooltipProvider>
@@ -303,55 +332,30 @@ export default function EditItem(props: Props): ReactElement {
               </Tooltip>
             </TooltipProvider>
           )}
+          <TooltipProvider>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  disabled={!item}
+                  onClick={() => {
+                    const editor = editorRef.current;
+                    editor?.setValue('');
+                    onSaveClick();
+                  }}
+                >
+                  <ButtonText text="Apply" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Applies changes to table only, click Save below to fully
+                  submit changes
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-      </div>
-      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-        <Editor
-          height="60px"
-          width="100%"
-          language="sql"
-          value={constructWhere(item?.where ?? '')}
-          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
-          onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
-          options={editorOptions}
-        />
-      </div>
-      <ValidateQueryErrorAlert
-        validateResp={validateResp}
-        rowCountError={rowCountError}
-      />
-      <div className="flex justify-between gap-4">
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={!item}
-          onClick={() => onCancelClick()}
-        >
-          <ButtonText text="Cancel" />
-        </Button>
-        <TooltipProvider>
-          <Tooltip delayDuration={200}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                disabled={!item}
-                onClick={() => {
-                  const editor = editorRef.current;
-                  editor?.setValue('');
-                  onSaveClick();
-                }}
-              >
-                <ButtonText text="Apply" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                Applies changes to table only, click Save below to fully submit
-                changes
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
     </div>
   );

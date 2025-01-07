@@ -283,11 +283,12 @@ function getErrorConnectionTypes(
   return '';
 }
 
-const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
+const SingleSubsetFormValue = Yup.object({
   schema: Yup.string().trim().required('A schema is required'),
   table: Yup.string().trim().required('A table is required'),
   whereClause: Yup.string().trim().optional(),
 });
+type SingleSubsetFormValue = Yup.InferType<typeof SingleSubsetFormValue>;
 
 export const SingleTableConnectFormValues = Yup.object({
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
@@ -411,7 +412,7 @@ export type SingleTableEditSourceFormValues = Yup.InferType<
 >;
 
 export const SubsetFormValues = Yup.object({
-  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required('Subset is required.'),
+  subsets: Yup.array(SingleSubsetFormValue).required('Subset is required.'),
   subsetOptions: Yup.object({
     subsetByForeignKeyConstraints: Yup.boolean().default(true),
   }),
