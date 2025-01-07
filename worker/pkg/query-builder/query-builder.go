@@ -142,11 +142,11 @@ func BuildTruncateQuery(
 func GetGoquDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error) {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return "postgres", nil
+		return sqlmanager_shared.GoquPostgresDriver, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return "mysql", nil
+		return sqlmanager_shared.MysqlDriver, nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		return "sqlserver", nil
+		return sqlmanager_shared.MssqlDriver, nil
 	default:
 		return "", fmt.Errorf("unsupported connection type: %T for goqu", connection.GetConnectionConfig().GetConfig())
 	}
