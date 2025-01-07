@@ -3,13 +3,28 @@ package mysql
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
-func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
+type MySQLMapper struct{}
+
+func NewMySQLBuilder() *builder.Builder[*sql.Rows] {
+	return &builder.Builder[*sql.Rows]{
+		Mapper: &MySQLMapper{},
+	}
+}
+
+func (m *MySQLMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+	return nil, nil, errors.ErrUnsupported
+}
+
+func (m *MySQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 	columnNames, err := rows.Columns()
 	if err != nil {
 		return nil, err
@@ -50,20 +65,20 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[
 			}
 			jObj[col] = dt
 		case []byte:
-			if IsJsonDataType(colDataType) {
+			if strings.EqualFold(colDataType, "json") {
 				var js any
 				if err := json.Unmarshal(t, &js); err == nil {
 					jObj[col] = js
 					continue
 				}
-			} else if isBinaryDataType(colDataType) {
+			} else if strings.EqualFold(colDataType, "binary") {
 				binary, err := neosynctypes.NewBinaryFromMysql(t)
 				if err != nil {
 					jObj[col] = t
 					continue
 				}
 				jObj[col] = binary
-			} else if isBitDataType(colDataType) || strings.EqualFold(colDataType, "varbit") {
+			} else if strings.EqualFold(colDataType, "bit") || strings.EqualFold(colDataType, "varbit") {
 				bits, err := neosynctypes.NewBitsFromMysql(t)
 				if err != nil {
 					jObj[col] = t
@@ -78,16 +93,4 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[
 		}
 	}
 	return jObj
-}
-
-func isBitDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "bit")
-}
-
-func isBinaryDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "binary")
-}
-
-func IsJsonDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "json")
 }

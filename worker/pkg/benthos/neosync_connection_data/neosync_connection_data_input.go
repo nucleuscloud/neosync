@@ -3,6 +3,7 @@ package neosync_benthos_connectiondata
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/gob"
 	"fmt"
 	"log/slog"
@@ -12,7 +13,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
@@ -204,7 +206,7 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 			return nil, nil, fmt.Errorf("error decoding data connection stream response with gob decoder: %w", err)
 		}
 
-		resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
+		resMap, keyTypeMap := unmarshalDynamoDBItem(dynamoDBItem)
 		msg := service.NewMessage(nil)
 		msg.MetaSetMut(neosync_metadata.MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
@@ -241,4 +243,126 @@ func (g *neosyncInput) Close(ctx context.Context) error {
 
 	g.neosyncConnectApi = nil // idk if this really matters
 	return nil
+}
+
+func unmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
+	result := make(map[string]any)
+	ktm := make(map[string]neosync_types.KeyType)
+	for key, value := range item {
+		result[key] = parseDynamoDBAttributeValue(key, value, ktm)
+	}
+
+	return result, ktm
+}
+
+func parseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]neosync_types.KeyType) any {
+	if m, ok := value.(map[string]any); ok {
+		for dynamoType, dynamoValue := range m {
+			switch dynamoType {
+			case "S":
+				return dynamoValue.(string)
+			case "B":
+				switch v := dynamoValue.(type) {
+				case string:
+					byteSlice, err := base64.StdEncoding.DecodeString(v)
+					if err != nil {
+						return dynamoValue
+					}
+					return byteSlice
+				case []byte:
+					return v
+				default:
+					return dynamoValue
+				}
+			case "N":
+				n, err := gotypeutil.ParseStringAsNumber(dynamoValue.(string))
+				if err != nil {
+					return dynamoValue
+				}
+				return n
+			case "BOOL":
+				return dynamoValue.(bool)
+			case "NULL":
+				return nil
+			case "L":
+				list := dynamoValue.([]any)
+				result := make([]any, len(list))
+				for i, item := range list {
+					result[i] = parseDynamoDBAttributeValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+				}
+				return result
+			case "M":
+				mAny := map[string]any{}
+				for k, v := range dynamoValue.(map[string]any) {
+					path := k
+					if key != "" {
+						path = fmt.Sprintf("%s.%s", key, k)
+					}
+					val := parseDynamoDBAttributeValue(path, v, keyTypeMap)
+					mAny[k] = val
+				}
+				return mAny
+			case "BS":
+				var result [][]byte
+				switch bytes := dynamoValue.(type) {
+				case []any:
+					result = make([][]byte, len(bytes))
+					for i, b := range bytes {
+						s := b.(string)
+						byteSlice, err := base64.StdEncoding.DecodeString(s)
+						if err != nil {
+							return dynamoValue
+						}
+						result[i] = byteSlice
+					}
+				case [][]byte:
+					return bytes
+				default:
+					return dynamoValue
+				}
+				return result
+			case "SS":
+				keyTypeMap[key] = neosync_types.StringSet
+				switch ss := dynamoValue.(type) {
+				case []any:
+					result := make([]string, len(ss))
+					for i, s := range ss {
+						result[i] = s.(string)
+					}
+					return result
+				case []string:
+					return ss
+				default:
+					return dynamoValue
+				}
+			case "NS":
+				keyTypeMap[key] = neosync_types.NumberSet
+				var result []any
+				switch ns := dynamoValue.(type) {
+				case []any:
+					result = make([]any, len(ns))
+					for i, num := range ns {
+						n, err := gotypeutil.ParseStringAsNumber(num.(string))
+						if err != nil {
+							result[i] = num
+						}
+						result[i] = n
+					}
+				case []string:
+					result = make([]any, len(ns))
+					for i, num := range ns {
+						n, err := gotypeutil.ParseStringAsNumber(num)
+						if err != nil {
+							result[i] = num
+						}
+						result[i] = n
+					}
+				default:
+					return dynamoValue
+				}
+				return result
+			}
+		}
+	}
+	return value
 }

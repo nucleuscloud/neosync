@@ -121,7 +121,7 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rowCount, err = postgres.Target.GetTableRowCount(ctx, "humanresources", "generated_table")
+			rowCount, err = postgres.Target.GetTableRowCount(ctx, "alltypes", "generated_table")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
@@ -145,6 +145,7 @@ func Test_Sync(t *testing.T) {
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", "id")
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {

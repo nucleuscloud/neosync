@@ -95,6 +95,86 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 	return output, nil
 }
 
+func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
+	}
+
+	schematables := []string{}
+	for _, table := range tables {
+		schematables = append(schematables, table.String())
+	}
+
+	dbSchemas, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(ctx, m.db, schematables)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
+	}
+
+	output := []*sqlmanager_shared.DatabaseSchemaRow{}
+	for _, row := range dbSchemas {
+		charMaxLength := -1
+		if row.CharacterMaximumLength.Valid {
+			charMaxLength = int(row.CharacterMaximumLength.Int32)
+		}
+		numericPrecision := -1
+		if row.NumericPrecision.Valid {
+			numericPrecision = int(row.NumericPrecision.Int16)
+		}
+		numericScale := -1
+		if row.NumericScale.Valid {
+			numericScale = int(row.NumericScale.Int16)
+		}
+
+		var identityGeneration *string
+		if row.IsIdentity {
+			syntax := defaultIdentity
+			identityGeneration = &syntax
+		}
+		var generatedType *string
+		if row.GenerationExpression.Valid {
+			generatedType = &row.GenerationExpression.String
+		}
+
+		var identitySeed *int
+		if row.IdentitySeed.Valid {
+			seed := int(row.IdentitySeed.Int32)
+			identitySeed = &seed
+		}
+
+		var identityIncrement *int
+		if row.IdentityIncrement.Valid {
+			increment := int(row.IdentityIncrement.Int32)
+			identityIncrement = &increment
+		}
+
+		var columnDefaultStr string
+		if row.ColumnDefault.Valid {
+			columnDefaultStr = row.ColumnDefault.String
+		}
+
+		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
+			TableSchema:            row.TableSchema,
+			TableName:              row.TableName,
+			ColumnName:             row.ColumnName,
+			DataType:               row.DataType,
+			ColumnDefault:          columnDefaultStr,
+			IsNullable:             row.IsNullable,
+			GeneratedType:          generatedType,
+			OrdinalPosition:        int(row.OrdinalPosition),
+			CharacterMaximumLength: charMaxLength,
+			NumericPrecision:       numericPrecision,
+			NumericScale:           numericScale,
+			IdentityGeneration:     identityGeneration,
+			IdentitySeed:           identitySeed,
+			IdentityIncrement:      identityIncrement,
+		})
+	}
+
+	return output, nil
+}
+
 func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {

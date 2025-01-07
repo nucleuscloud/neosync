@@ -2,18 +2,21 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cenkalti/backoff/v4"
 
-	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -247,7 +250,7 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				return err
 			}
 			for k, v := range d.conf.JSONMapColumns {
-				attr := neosync_dynamodb.MarshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
+				attr := marshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
 				if k == "" {
 					if mv, ok := attr.(*types.AttributeValueMemberM); ok {
 						for ak, av := range mv.Value {
@@ -439,4 +442,141 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 		return 0, nil
 	}
 	return pConf.FieldDuration(path...)
+}
+
+func marshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
+	if typeStr, ok := keyTypeMap[key]; ok {
+		switch typeStr {
+		case neosync_types.StringSet:
+			s, err := convertToStringSlice(root)
+			if err == nil {
+				return &types.AttributeValueMemberSS{
+					Value: s,
+				}
+			}
+		case neosync_types.NumberSet:
+			s, err := convertToStringSlice(root)
+			if err == nil {
+				return &types.AttributeValueMemberNS{
+					Value: s,
+				}
+			}
+		}
+	}
+	switch v := root.(type) {
+	case map[string]any:
+		m := make(map[string]types.AttributeValue, len(v))
+		for k, v2 := range v {
+			path := k
+			if key != "" {
+				path = fmt.Sprintf("%s.%s", key, k)
+			}
+			m[k] = marshalToAttributeValue(path, v2, keyTypeMap)
+		}
+		return &types.AttributeValueMemberM{
+			Value: m,
+		}
+	case []byte:
+		return &types.AttributeValueMemberB{
+			Value: v,
+		}
+	case [][]byte:
+		return &types.AttributeValueMemberBS{
+			Value: v,
+		}
+	case []any:
+		l := make([]types.AttributeValue, len(v))
+		for i, v2 := range v {
+			l[i] = marshalToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
+		}
+		return &types.AttributeValueMemberL{
+			Value: l,
+		}
+	case string:
+		return &types.AttributeValueMemberS{
+			Value: v,
+		}
+	case json.Number:
+		return &types.AttributeValueMemberS{
+			Value: v.String(),
+		}
+	case float64:
+		return &types.AttributeValueMemberN{
+			Value: formatFloat(v),
+		}
+	case int:
+		return &types.AttributeValueMemberN{
+			Value: strconv.Itoa(v),
+		}
+	case int64:
+		return &types.AttributeValueMemberN{
+			Value: strconv.Itoa(int(v)),
+		}
+	case bool:
+		return &types.AttributeValueMemberBOOL{
+			Value: v,
+		}
+	case nil:
+		return &types.AttributeValueMemberNULL{
+			Value: true,
+		}
+	}
+	return &types.AttributeValueMemberS{
+		Value: fmt.Sprintf("%v", root),
+	}
+}
+
+func formatFloat(f float64) string {
+	s := strconv.FormatFloat(f, 'f', 4, 64)
+	s = strings.TrimRight(s, "0")
+	if strings.HasSuffix(s, ".") {
+		s += "0"
+	}
+	return s
+}
+
+func marshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
+	gObj := gabs.Wrap(root)
+	if path != "" {
+		gObj = gObj.Path(path)
+	}
+	return marshalToAttributeValue(key, gObj.Data(), keyTypeMap)
+}
+
+func convertToStringSlice(slice any) ([]string, error) {
+	v := reflect.ValueOf(slice)
+	if v.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("input is not a slice")
+	}
+
+	result := make([]string, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i).Interface()
+		result[i] = anyToString(elem)
+	}
+
+	return result, nil
+}
+
+func anyToString(value any) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case fmt.Stringer:
+		return v.String()
+	case int, int8, int16, int32, int64:
+		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
+	case float32, float64:
+		return formatFloat(reflect.ValueOf(v).Float())
+	case bool:
+		return strconv.FormatBool(v)
+	case []byte:
+		return string(v)
+	case nil:
+		return "null"
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

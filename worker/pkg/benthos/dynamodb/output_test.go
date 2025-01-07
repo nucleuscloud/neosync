@@ -3,11 +3,13 @@ package neosync_benthos_dynamodb
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -495,4 +497,133 @@ string_columns:
 	}
 
 	assert.Equal(t, expected, requests)
+}
+
+func Test_MarshalToAttributeValue(t *testing.T) {
+	tests := []struct {
+		name       string
+		key        string
+		root       any
+		keyTypeMap map[string]neosync_types.KeyType
+		want       types.AttributeValue
+	}{
+		{
+			name:       "String",
+			key:        "StrKey",
+			root:       "value",
+			keyTypeMap: map[string]neosync_types.KeyType{},
+			want:       &types.AttributeValueMemberS{Value: "value"},
+		},
+		{
+			name:       "Number",
+			key:        "NumKey",
+			root:       123,
+			keyTypeMap: map[string]neosync_types.KeyType{},
+			want:       &types.AttributeValueMemberN{Value: "123"},
+		},
+		{
+			name:       "Boolean",
+			key:        "BoolKey",
+			root:       true,
+			keyTypeMap: map[string]neosync_types.KeyType{},
+			want:       &types.AttributeValueMemberBOOL{Value: true},
+		},
+		{
+			name:       "Null",
+			key:        "NullKey",
+			root:       nil,
+			keyTypeMap: map[string]neosync_types.KeyType{},
+			want:       &types.AttributeValueMemberNULL{Value: true},
+		},
+		{
+			name:       "StringSet",
+			key:        "SSKey",
+			root:       []string{"a", "b"},
+			keyTypeMap: map[string]neosync_types.KeyType{"SSKey": neosync_types.StringSet},
+			want:       &types.AttributeValueMemberSS{Value: []string{"a", "b"}},
+		},
+		{
+			name:       "NumberSet",
+			key:        "NSKey",
+			root:       []int{1, 2},
+			keyTypeMap: map[string]neosync_types.KeyType{"NSKey": neosync_types.NumberSet},
+			want:       &types.AttributeValueMemberNS{Value: []string{"1", "2"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := marshalToAttributeValue(tt.key, tt.root, tt.keyTypeMap)
+			require.Equalf(t, tt.want, got, fmt.Sprintf("MarshalToAttributeValue() = %v, want %v", got, tt.want))
+		})
+	}
+}
+
+func Test_FormatFloat(t *testing.T) {
+	tests := []struct {
+		name  string
+		input float64
+		want  string
+	}{
+		{"Integer", 123.0, "123.0"},
+		{"Decimal", 123.456, "123.456"},
+		{"Many decimal places", 123.4567890, "123.4568"},
+		{"Trailing zeros", 123.4000, "123.4"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := formatFloat(tt.input)
+			require.Equal(t, tt.want, got, fmt.Sprintf("formatFloat() = %v, want %v", got, tt.want))
+		})
+	}
+}
+
+func Test_ConvertToStringSlice(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   any
+		want    []string
+		wantErr bool
+	}{
+		{"String slice", []string{"a", "b", "c"}, []string{"a", "b", "c"}, false},
+		{"Int slice", []int{1, 2, 3}, []string{"1", "2", "3"}, false},
+		{"Float slice", []float64{1.12, 2.0, 3.43}, []string{"1.12", "2.0", "3.43"}, false},
+		{"Mixed slice", []any{"a", 1, true}, []string{"a", "1", "true"}, false},
+		{"Not a slice", "not a slice", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := convertToStringSlice(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equalf(t, tt.want, got, fmt.Sprintf("convertToStringSlice() = %v, want %v", got, tt.want))
+			}
+		})
+	}
+}
+
+func Test_AnyToString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input any
+		want  string
+	}{
+		{"String", "hello", "hello"},
+		{"Int", 123, "123"},
+		{"Float", 123.456, "123.456"},
+		{"Boolean", true, "true"},
+		{"Byte slice", []byte("hello"), "hello"},
+		{"Nil", nil, "null"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := anyToString(tt.input)
+			require.Equalf(t, tt.want, got, fmt.Sprintf("anyToString() = %v, want %v", got, tt.want))
+		})
+	}
 }

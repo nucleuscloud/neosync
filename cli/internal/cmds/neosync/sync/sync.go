@@ -863,8 +863,10 @@ func (c *clisync) getConnectionSchemaConfig() (*schemaConfig, error) {
 		return nil, err
 	}
 	switch conn := c.sourceConnection.GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		return c.getSourceConnectionSchemaConfig(c.sourceConnection, connSchemaCfg)
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return c.getSourceConnectionSqlSchemaConfig(c.sourceConnection, connSchemaCfg)
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return c.getSourceConnectionNonSqlSchemaConfig(c.sourceConnection, connSchemaCfg)
 	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		return c.getDestinationSchemaConfig(c.sourceConnection, connSchemaCfg)
 	default:
@@ -872,7 +874,24 @@ func (c *clisync) getConnectionSchemaConfig() (*schemaConfig, error) {
 	}
 }
 
-func (c *clisync) getSourceConnectionSchemaConfig(
+func (c *clisync) getSourceConnectionNonSqlSchemaConfig(
+	connection *mgmtv1alpha1.Connection,
+	sc *mgmtv1alpha1.ConnectionSchemaConfig,
+) (*schemaConfig, error) {
+	schemaResp, err := c.connectiondataclient.GetConnectionSchema(c.ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+		ConnectionId: connection.Id,
+		SchemaConfig: sc,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return &schemaConfig{
+		Schemas: schemaResp.Msg.GetSchemas(),
+	}, nil
+}
+
+func (c *clisync) getSourceConnectionSqlSchemaConfig(
 	connection *mgmtv1alpha1.Connection,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 ) (*schemaConfig, error) {

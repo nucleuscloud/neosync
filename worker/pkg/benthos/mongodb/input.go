@@ -10,7 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
-	neosync_mongodb "github.com/nucleuscloud/neosync/backend/pkg/mongomanager"
+	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
+	mongodbmapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/mongodb"
 	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -158,6 +159,7 @@ func newMongoInput(conf *service.ParsedConfig, clientProvider MongoPoolProvider,
 		limit:        int64(limit),
 		count:        0,
 		logger:       logger,
+		recordMapper: mongodbmapper.NewMongoBuilder(),
 	})
 }
 
@@ -174,6 +176,7 @@ type mongoInput struct {
 	limit        int64
 	count        int
 	logger       *service.Logger
+	recordMapper database_record_mapper.DatabaseRecordMapper[any]
 }
 
 func (m *mongoInput) Connect(ctx context.Context) error {
@@ -227,7 +230,11 @@ func (m *mongoInput) ReadBatch(ctx context.Context) (service.MessageBatch, servi
 		if err := m.cursor.Decode(&decoded); err != nil {
 			msg.SetError(err)
 		} else {
-			standardMap, keyTypeMap := neosync_mongodb.UnmarshalPrimitives(decoded)
+			standardMap, keyTypeMap, err := m.recordMapper.MapRecordWithKeyType(decoded)
+			if err != nil {
+				msg.SetError(err)
+				continue
+			}
 
 			// Add the key type map to the message metadata
 			keyTypeMapJSON, err := json.Marshal(keyTypeMap)

@@ -22,7 +22,7 @@ func (_m *MockAnalyzeInterface) EXPECT() *MockAnalyzeInterface_Expecter {
 }
 
 // PostAnalyzeWithResponse provides a mock function with given fields: ctx, body, reqEditors
-func (_m *MockAnalyzeInterface) PostAnalyzeWithResponse(ctx context.Context, body PostAnalyzeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostAnalyzeResponse, error) {
+func (_m *MockAnalyzeInterface) PostAnalyzeWithResponse(ctx context.Context, body AnalyzeRequest, reqEditors ...RequestEditorFn) (*PostAnalyzeResponse, error) {
 	_va := make([]interface{}, len(reqEditors))
 	for _i := range reqEditors {
 		_va[_i] = reqEditors[_i]
@@ -38,10 +38,10 @@ func (_m *MockAnalyzeInterface) PostAnalyzeWithResponse(ctx context.Context, bod
 
 	var r0 *PostAnalyzeResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, PostAnalyzeJSONRequestBody, ...RequestEditorFn) (*PostAnalyzeResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, AnalyzeRequest, ...RequestEditorFn) (*PostAnalyzeResponse, error)); ok {
 		return rf(ctx, body, reqEditors...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, PostAnalyzeJSONRequestBody, ...RequestEditorFn) *PostAnalyzeResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, AnalyzeRequest, ...RequestEditorFn) *PostAnalyzeResponse); ok {
 		r0 = rf(ctx, body, reqEditors...)
 	} else {
 		if ret.Get(0) != nil {
@@ -49,7 +49,7 @@ func (_m *MockAnalyzeInterface) PostAnalyzeWithResponse(ctx context.Context, bod
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, PostAnalyzeJSONRequestBody, ...RequestEditorFn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, AnalyzeRequest, ...RequestEditorFn) error); ok {
 		r1 = rf(ctx, body, reqEditors...)
 	} else {
 		r1 = ret.Error(1)
@@ -65,14 +65,14 @@ type MockAnalyzeInterface_PostAnalyzeWithResponse_Call struct {
 
 // PostAnalyzeWithResponse is a helper method to define mock.On call
 //   - ctx context.Context
-//   - body PostAnalyzeJSONRequestBody
+//   - body AnalyzeRequest
 //   - reqEditors ...RequestEditorFn
 func (_e *MockAnalyzeInterface_Expecter) PostAnalyzeWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockAnalyzeInterface_PostAnalyzeWithResponse_Call {
 	return &MockAnalyzeInterface_PostAnalyzeWithResponse_Call{Call: _e.mock.On("PostAnalyzeWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
 }
 
-func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) Run(run func(ctx context.Context, body PostAnalyzeJSONRequestBody, reqEditors ...RequestEditorFn)) *MockAnalyzeInterface_PostAnalyzeWithResponse_Call {
+func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) Run(run func(ctx context.Context, body AnalyzeRequest, reqEditors ...RequestEditorFn)) *MockAnalyzeInterface_PostAnalyzeWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]RequestEditorFn, len(args)-2)
 		for i, a := range args[2:] {
@@ -80,7 +80,7 @@ func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) Run(run func(ctx co
 				variadicArgs[i] = a.(RequestEditorFn)
 			}
 		}
-		run(args[0].(context.Context), args[1].(PostAnalyzeJSONRequestBody), variadicArgs...)
+		run(args[0].(context.Context), args[1].(AnalyzeRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -90,7 +90,7 @@ func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) Return(_a0 *PostAna
 	return _c
 }
 
-func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) RunAndReturn(run func(context.Context, PostAnalyzeJSONRequestBody, ...RequestEditorFn) (*PostAnalyzeResponse, error)) *MockAnalyzeInterface_PostAnalyzeWithResponse_Call {
+func (_c *MockAnalyzeInterface_PostAnalyzeWithResponse_Call) RunAndReturn(run func(context.Context, AnalyzeRequest, ...RequestEditorFn) (*PostAnalyzeResponse, error)) *MockAnalyzeInterface_PostAnalyzeWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

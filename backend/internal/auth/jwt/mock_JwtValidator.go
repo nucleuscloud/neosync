@@ -22,23 +22,23 @@ func (_m *MockJwtValidator) EXPECT() *MockJwtValidator_Expecter {
 }
 
 // ValidateToken provides a mock function with given fields: ctx, tokenString
-func (_m *MockJwtValidator) ValidateToken(ctx context.Context, tokenString string) (any, error) {
+func (_m *MockJwtValidator) ValidateToken(ctx context.Context, tokenString string) (interface{}, error) {
 	ret := _m.Called(ctx, tokenString)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidateToken")
 	}
 
-	var r0 any
+	var r0 interface{}
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (any, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (interface{}, error)); ok {
 		return rf(ctx, tokenString)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) any); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) interface{}); ok {
 		r0 = rf(ctx, tokenString)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(any)
+			r0 = ret.Get(0).(interface{})
 		}
 	}
 
@@ -70,12 +70,12 @@ func (_c *MockJwtValidator_ValidateToken_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockJwtValidator_ValidateToken_Call) Return(_a0 any, _a1 error) *MockJwtValidator_ValidateToken_Call {
+func (_c *MockJwtValidator_ValidateToken_Call) Return(_a0 interface{}, _a1 error) *MockJwtValidator_ValidateToken_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockJwtValidator_ValidateToken_Call) RunAndReturn(run func(context.Context, string) (any, error)) *MockJwtValidator_ValidateToken_Call {
+func (_c *MockJwtValidator_ValidateToken_Call) RunAndReturn(run func(context.Context, string) (interface{}, error)) *MockJwtValidator_ValidateToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

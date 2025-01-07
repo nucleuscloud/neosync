@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	// import the dialect
@@ -136,4 +137,17 @@ func BuildTruncateQuery(
 		return "", err
 	}
 	return query, nil
+}
+
+func GetGoquDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error) {
+	switch connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return sqlmanager_shared.GoquPostgresDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return sqlmanager_shared.MysqlDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return sqlmanager_shared.MssqlDriver, nil
+	default:
+		return "", fmt.Errorf("unsupported connection type: %T for goqu", connection.GetConnectionConfig().GetConfig())
+	}
 }

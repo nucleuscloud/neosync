@@ -22,7 +22,7 @@ func (_m *MockAnonymizeInterface) EXPECT() *MockAnonymizeInterface_Expecter {
 }
 
 // PostAnonymizeWithResponse provides a mock function with given fields: ctx, body, reqEditors
-func (_m *MockAnonymizeInterface) PostAnonymizeWithResponse(ctx context.Context, body PostAnonymizeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostAnonymizeResponse, error) {
+func (_m *MockAnonymizeInterface) PostAnonymizeWithResponse(ctx context.Context, body AnonymizeRequest, reqEditors ...RequestEditorFn) (*PostAnonymizeResponse, error) {
 	_va := make([]interface{}, len(reqEditors))
 	for _i := range reqEditors {
 		_va[_i] = reqEditors[_i]
@@ -38,10 +38,10 @@ func (_m *MockAnonymizeInterface) PostAnonymizeWithResponse(ctx context.Context,
 
 	var r0 *PostAnonymizeResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, PostAnonymizeJSONRequestBody, ...RequestEditorFn) (*PostAnonymizeResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, AnonymizeRequest, ...RequestEditorFn) (*PostAnonymizeResponse, error)); ok {
 		return rf(ctx, body, reqEditors...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, PostAnonymizeJSONRequestBody, ...RequestEditorFn) *PostAnonymizeResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, AnonymizeRequest, ...RequestEditorFn) *PostAnonymizeResponse); ok {
 		r0 = rf(ctx, body, reqEditors...)
 	} else {
 		if ret.Get(0) != nil {
@@ -49,7 +49,7 @@ func (_m *MockAnonymizeInterface) PostAnonymizeWithResponse(ctx context.Context,
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, PostAnonymizeJSONRequestBody, ...RequestEditorFn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, AnonymizeRequest, ...RequestEditorFn) error); ok {
 		r1 = rf(ctx, body, reqEditors...)
 	} else {
 		r1 = ret.Error(1)
@@ -65,14 +65,14 @@ type MockAnonymizeInterface_PostAnonymizeWithResponse_Call struct {
 
 // PostAnonymizeWithResponse is a helper method to define mock.On call
 //   - ctx context.Context
-//   - body PostAnonymizeJSONRequestBody
+//   - body AnonymizeRequest
 //   - reqEditors ...RequestEditorFn
 func (_e *MockAnonymizeInterface_Expecter) PostAnonymizeWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockAnonymizeInterface_PostAnonymizeWithResponse_Call {
 	return &MockAnonymizeInterface_PostAnonymizeWithResponse_Call{Call: _e.mock.On("PostAnonymizeWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
 }
 
-func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) Run(run func(ctx context.Context, body PostAnonymizeJSONRequestBody, reqEditors ...RequestEditorFn)) *MockAnonymizeInterface_PostAnonymizeWithResponse_Call {
+func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) Run(run func(ctx context.Context, body AnonymizeRequest, reqEditors ...RequestEditorFn)) *MockAnonymizeInterface_PostAnonymizeWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]RequestEditorFn, len(args)-2)
 		for i, a := range args[2:] {
@@ -80,7 +80,7 @@ func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) Run(run func(ct
 				variadicArgs[i] = a.(RequestEditorFn)
 			}
 		}
-		run(args[0].(context.Context), args[1].(PostAnonymizeJSONRequestBody), variadicArgs...)
+		run(args[0].(context.Context), args[1].(AnonymizeRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -90,7 +90,7 @@ func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) Return(_a0 *Pos
 	return _c
 }
 
-func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) RunAndReturn(run func(context.Context, PostAnonymizeJSONRequestBody, ...RequestEditorFn) (*PostAnonymizeResponse, error)) *MockAnonymizeInterface_PostAnonymizeWithResponse_Call {
+func (_c *MockAnonymizeInterface_PostAnonymizeWithResponse_Call) RunAndReturn(run func(context.Context, AnonymizeRequest, ...RequestEditorFn) (*PostAnonymizeResponse, error)) *MockAnonymizeInterface_PostAnonymizeWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

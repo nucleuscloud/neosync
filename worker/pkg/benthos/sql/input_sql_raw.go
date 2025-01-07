@@ -9,10 +9,8 @@ import (
 	"github.com/Jeffail/shutdown"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	myutil "github.com/nucleuscloud/neosync/internal/mysql"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
-	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
+	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
+	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -52,6 +50,8 @@ type pooledInput struct {
 	dbMut sync.Mutex
 	rows  *sql.Rows
 
+	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
+
 	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
@@ -81,6 +81,11 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		return nil, err
 	}
 
+	mapper, err := database_record_mapper.NewDatabaseRecordMapper(driver)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pooledInput{
 		logger:              mgr.Logger(),
 		shutSig:             shutdown.NewSignaller(),
@@ -90,6 +95,7 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		argsMapping:         argsMapping,
 		provider:            dbprovider,
 		stopActivityChannel: channel,
+		recordMapper:        mapper,
 	}, nil
 }
 
@@ -169,7 +175,7 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		return nil, nil, err
 	}
 
-	obj, err := sqlRowToMap(s.rows, s.driver)
+	obj, err := s.recordMapper.MapRecord(s.rows)
 	if err != nil {
 		_ = s.rows.Close()
 		s.rows = nil
@@ -201,15 +207,4 @@ func (s *pooledInput) Close(ctx context.Context) error {
 		return ctx.Err()
 	}
 	return nil
-}
-
-func sqlRowToMap(rows *sql.Rows, driver string) (map[string]any, error) {
-	switch driver {
-	case sqlmanager_shared.PostgresDriver:
-		return pgutil.SqlRowToPgTypesMap(rows)
-	case sqlmanager_shared.MssqlDriver:
-		return sqlserverutil.SqlRowToSqlServerTypesMap(rows)
-	default:
-		return myutil.MysqlSqlRowToMap(rows)
-	}
 }

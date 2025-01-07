@@ -11,8 +11,161 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
+
+type PostgresMapper struct{}
+
+func NewPostgresBuilder() *builder.Builder[*sql.Rows] {
+	return &builder.Builder[*sql.Rows]{
+		Mapper: &PostgresMapper{},
+	}
+}
+
+func (m *PostgresMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+	return nil, nil, errors.ErrUnsupported
+}
+
+func (m *PostgresMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	cTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	values := make([]any, len(columnNames))
+	scanTargets := make([]any, 0, len(columnNames))
+	for i := range values {
+		dbTypeName := cTypes[i].DatabaseTypeName()
+		switch {
+		case strings.EqualFold(dbTypeName, "xml"):
+			values[i] = &sql.NullString{}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "json") || strings.EqualFold(dbTypeName, "jsonb"):
+			values[i] = &NullableJSON{}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_interval"):
+			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bytea") || strings.EqualFold(dbTypeName, "_varbit"):
+			values[i] = &PgxArray[[]byte]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "_bit"):
+			values[i] = &PgxArray[*pgtype.Bits]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "interval"):
+			values[i] = &pgtype.Interval{}
+			scanTargets = append(scanTargets, values[i])
+		case strings.HasPrefix(dbTypeName, "_") || dbTypeName == "791":
+			values[i] = &PgxArray[any]{colDataType: dbTypeName}
+			scanTargets = append(scanTargets, values[i])
+		default:
+			scanTargets = append(scanTargets, &values[i])
+		}
+	}
+	if err := rows.Scan(scanTargets...); err != nil {
+		return nil, err
+	}
+
+	columnTypes := make([]string, len(cTypes))
+	for i, ct := range cTypes {
+		columnTypes[i] = ct.DatabaseTypeName()
+	}
+
+	jObj := parsePgRowValues(values, columnNames, columnTypes)
+	return jObj, nil
+}
+
+func parsePgRowValues(values []any, columnNames, columnTypes []string) map[string]any {
+	jObj := map[string]any{}
+	for i, v := range values {
+		col := columnNames[i]
+		colType := columnTypes[i]
+		switch t := v.(type) {
+		case nil:
+			jObj[col] = t
+		case time.Time:
+			dt, err := neosynctypes.NewDateTimeFromPgx(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = dt
+		case *sql.NullString:
+			var val any = nil
+			if t.Valid {
+				val = t.String
+			}
+			jObj[col] = val
+		case *NullableJSON:
+			js, err := t.Unmarshal()
+			if err != nil {
+				js = t
+			}
+			jObj[col] = js
+		case *PgxArray[*pgtype.Interval]:
+			ia, err := toIntervalArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ia
+		case *PgxArray[[]byte]:
+			ba, err := toBinaryArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
+		case *PgxArray[*pgtype.Bits]:
+			ba, err := toBitsArray(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = ba
+		case *PgxArray[any]:
+			jObj[col] = pgArrayToGoSlice(t)
+		case *pgtype.Interval:
+			if !t.Valid {
+				jObj[col] = nil
+				continue
+			}
+			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = neoInterval
+		default:
+			switch {
+			case strings.EqualFold(colType, "bit"), strings.EqualFold(colType, "varbit"):
+				bits, err := neosynctypes.NewBitsFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = bits
+			case strings.EqualFold(colType, "bytea"):
+				binary, err := neosynctypes.NewBinaryFromPgx(t)
+				if err != nil {
+					jObj[col] = t
+					continue
+				}
+				jObj[col] = binary
+			default:
+				jObj[col] = t
+			}
+		}
+	}
+	return jObj
+}
 
 type PgxArray[T any] struct {
 	pgtype.Array[T]
@@ -144,160 +297,6 @@ func (n *NullableJSON) Unmarshal() (any, error) {
 	return js, nil
 }
 
-func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
-	columnNames, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
-
-	cTypes, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-
-	values := make([]any, len(columnNames))
-	scanTargets := make([]any, 0, len(columnNames))
-	for i := range values {
-		dbTypeName := cTypes[i].DatabaseTypeName()
-		switch {
-		case isXmlDataType(dbTypeName):
-			values[i] = &sql.NullString{}
-			scanTargets = append(scanTargets, values[i])
-		case IsJsonPgDataType(dbTypeName):
-			values[i] = &NullableJSON{}
-			scanTargets = append(scanTargets, values[i])
-		case strings.EqualFold(dbTypeName, "_interval"):
-			values[i] = &PgxArray[*pgtype.Interval]{colDataType: dbTypeName}
-			scanTargets = append(scanTargets, values[i])
-		case strings.EqualFold(dbTypeName, "_bytea") || strings.EqualFold(dbTypeName, "_varbit"):
-			values[i] = &PgxArray[[]byte]{colDataType: dbTypeName}
-			scanTargets = append(scanTargets, values[i])
-		case strings.EqualFold(dbTypeName, "_bit"):
-			values[i] = &PgxArray[*pgtype.Bits]{colDataType: dbTypeName}
-			scanTargets = append(scanTargets, values[i])
-		case strings.EqualFold(dbTypeName, "interval"):
-			values[i] = &pgtype.Interval{}
-			scanTargets = append(scanTargets, values[i])
-		case isPgxPgArrayType(dbTypeName):
-			values[i] = &PgxArray[any]{colDataType: dbTypeName}
-			scanTargets = append(scanTargets, values[i])
-		default:
-			scanTargets = append(scanTargets, &values[i])
-		}
-	}
-	if err := rows.Scan(scanTargets...); err != nil {
-		return nil, err
-	}
-
-	columnTypes := make([]string, len(cTypes))
-	for i, ct := range cTypes {
-		columnTypes[i] = ct.DatabaseTypeName()
-	}
-
-	jObj := parsePgRowValues(values, columnNames, columnTypes)
-	return jObj, nil
-}
-
-func parsePgRowValues(values []any, columnNames, columnTypes []string) map[string]any {
-	jObj := map[string]any{}
-	for i, v := range values {
-		col := columnNames[i]
-		colType := columnTypes[i]
-		switch t := v.(type) {
-		case nil:
-			jObj[col] = t
-		case time.Time:
-			dt, err := neosynctypes.NewDateTimeFromPgx(t)
-			if err != nil {
-				jObj[col] = t
-				continue
-			}
-			jObj[col] = dt
-		case *sql.NullString:
-			var val any = nil
-			if t.Valid {
-				val = t.String
-			}
-			jObj[col] = val
-		case *NullableJSON:
-			js, err := t.Unmarshal()
-			if err != nil {
-				js = t
-			}
-			jObj[col] = js
-		case *PgxArray[*pgtype.Interval]:
-			ia, err := toIntervalArray(t)
-			if err != nil {
-				jObj[col] = t
-				continue
-			}
-			jObj[col] = ia
-		case *PgxArray[[]byte]:
-			ba, err := toBinaryArray(t)
-			if err != nil {
-				jObj[col] = t
-				continue
-			}
-			jObj[col] = ba
-		case *PgxArray[*pgtype.Bits]:
-			ba, err := toBitsArray(t)
-			if err != nil {
-				jObj[col] = t
-				continue
-			}
-			jObj[col] = ba
-		case *PgxArray[any]:
-			jObj[col] = pgArrayToGoSlice(t)
-		case *pgtype.Interval:
-			if !t.Valid {
-				jObj[col] = nil
-				continue
-			}
-			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
-			if err != nil {
-				jObj[col] = t
-				continue
-			}
-			jObj[col] = neoInterval
-		default:
-			switch {
-			case strings.EqualFold(colType, "bit"), strings.EqualFold(colType, "varbit"):
-				bits, err := neosynctypes.NewBitsFromPgx(t)
-				if err != nil {
-					jObj[col] = t
-					continue
-				}
-				jObj[col] = bits
-			case strings.EqualFold(colType, "bytea"):
-				binary, err := neosynctypes.NewBinaryFromPgx(t)
-				if err != nil {
-					jObj[col] = t
-					continue
-				}
-				jObj[col] = binary
-			default:
-				jObj[col] = t
-			}
-		}
-	}
-	return jObj
-}
-
-func isXmlDataType(colDataType string) bool {
-	return strings.EqualFold(colDataType, "xml")
-}
-
-func IsJsonPgDataType(dataType string) bool {
-	return strings.EqualFold(dataType, "json") || strings.EqualFold(dataType, "jsonb")
-}
-func isPgxPgArrayType(dbTypeName string) bool {
-	return strings.HasPrefix(dbTypeName, "_") || dbTypeName == "791"
-}
-
-func IsPgArrayColumnDataType(colDataType string) bool {
-	return strings.HasSuffix(colDataType, "[]")
-}
-
 func toBinaryArray(array *PgxArray[[]byte]) (*neosynctypes.NeosyncArray, error) {
 	if array.Elements == nil {
 		return nil, nil
@@ -360,14 +359,14 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		for _, d := range dim {
 			dims = append(dims, int(d.Length))
 		}
-		return CreateMultiDimSlice(dims, array.Elements)
+		return createMultiDimSlice(dims, array.Elements)
 	}
 
 	return array.Elements
 }
 
 // converts flat slice to multi-dimensional slice
-func CreateMultiDimSlice(dims []int, elements []any) any {
+func createMultiDimSlice(dims []int, elements []any) any {
 	if len(elements) == 0 {
 		return elements
 	}
@@ -393,53 +392,9 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 	for i := 0; i < firstDim; i++ {
 		start := i * subSize
 		end := start + subSize
-		subSlice := CreateMultiDimSlice(dims[1:], elements[start:end])
+		subSlice := createMultiDimSlice(dims[1:], elements[start:end])
 		slice.Index(i).Set(reflect.ValueOf(subSlice))
 	}
 
 	return slice.Interface()
-}
-
-// returns string in this form ARRAY[[a,b],[c,d]]
-func FormatPgArrayLiteral(arr any, castType string) string {
-	arrayLiteral := "ARRAY" + formatArrayLiteral(arr)
-	if castType == "" {
-		return arrayLiteral
-	}
-
-	return arrayLiteral + "::" + castType
-}
-
-func formatArrayLiteral(arr any) string {
-	v := reflect.ValueOf(arr)
-
-	if v.Kind() == reflect.Slice {
-		result := "["
-		for i := 0; i < v.Len(); i++ {
-			if i > 0 {
-				result += ","
-			}
-			result += formatArrayLiteral(v.Index(i).Interface())
-		}
-		result += "]"
-		return result
-	}
-
-	switch val := arr.(type) {
-	case map[string]any:
-		return formatMapLiteral(val)
-	case string:
-		return fmt.Sprintf("'%s'", strings.ReplaceAll(val, "'", "''"))
-	default:
-		return fmt.Sprintf("%v", val)
-	}
-}
-
-func formatMapLiteral(m map[string]any) string {
-	jsonBytes, err := json.Marshal(m)
-	if err != nil {
-		return fmt.Sprintf("%v", m)
-	}
-
-	return fmt.Sprintf("'%s'", string(jsonBytes))
 }
