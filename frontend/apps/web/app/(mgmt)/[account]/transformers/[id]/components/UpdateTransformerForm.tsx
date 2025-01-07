@@ -188,7 +188,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
             )}
           />
         </div>
-        <div className="flex flex-row justify-between">
+        <div className="flex flex-row justify-between py-4">
           <NextLink href={`/${account?.name}/transformers?tab=ud`}>
             <Button type="button">Back</Button>
           </NextLink>
