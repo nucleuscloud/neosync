@@ -1,7 +1,7 @@
 package rng
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"sync"
 )
 
@@ -21,20 +21,20 @@ type Randomizer struct {
 }
 
 func New(seed int64) *Randomizer {
-	rng := rand.New(rand.NewSource(seed)) //nolint:gosec
+	rng := rand.New(rand.NewPCG(uint64(seed), uint64(seed))) //nolint:gosec
 	return &Randomizer{rng: rng}
 }
 
 func (r *Randomizer) Int63n(n int64) int64 {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.rng.Int63n(n)
+	return r.rng.Int64N(n)
 }
 
 func (r *Randomizer) Intn(n int) int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.rng.Intn(n)
+	return r.rng.IntN(n)
 }
 
 func (r *Randomizer) Float64() float64 {
@@ -46,7 +46,7 @@ func (r *Randomizer) Float64() float64 {
 func (r *Randomizer) Int63() int64 {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.rng.Int63()
+	return r.rng.Int64()
 }
 
 func (r *Randomizer) Int() int {
