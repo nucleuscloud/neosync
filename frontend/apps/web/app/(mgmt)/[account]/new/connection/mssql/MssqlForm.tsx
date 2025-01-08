@@ -23,9 +23,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { getErrorMessage } from '@/util/util';
 import {
+  MssqlActiveConnectionTab,
   MssqlCreateConnectionFormContext,
   MssqlFormValues,
 } from '@/yup-validations/connections';
@@ -37,6 +40,7 @@ import {
   CheckConnectionConfigResponseSchema,
   ConnectionService,
   GetConnectionResponseSchema,
+  MssqlConnectionConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -49,6 +53,8 @@ import { buildConnectionConfigMssql } from '../../../connections/util';
 
 export default function MssqlForm() {
   const { account } = useAccount();
+  // used to know which tab - host or url that the user is on when we submit the form
+  const [activeTab, setActiveTab] = useState<MssqlActiveConnectionTab>('url');
   const searchParams = useSearchParams();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -60,9 +66,8 @@ export default function MssqlForm() {
     resolver: yupResolver(MssqlFormValues),
     defaultValues: {
       connectionName: '',
-      db: {
-        url: '',
-      },
+      url: '',
+      envVar: '',
       options: {
         maxConnectionLimit: 50,
         maxIdleDuration: '',
@@ -159,19 +164,20 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
       try {
         const connData = await getMssqlConnection({ id: sourceConnId });
-        if (
-          connData.connection?.connectionConfig?.config.case !== 'mssqlConfig'
-        ) {
+        const connectionConfig = connData.connection?.connectionConfig?.config;
+        if (!connectionConfig || connectionConfig.case !== 'mssqlConfig') {
           return;
         }
 
-        const config = connData.connection?.connectionConfig?.config.value;
-        const mssqlConfig = config.connectionConfig.value;
+        const { url, envVar } = getMssqlConnectionFormValues(
+          connectionConfig.value
+        );
 
         let passPhrase = '';
         let privateKey = '';
 
-        const authConfig = config.tunnel?.authentication?.authConfig;
+        const authConfig =
+          connectionConfig.value.tunnel?.authentication?.authConfig;
         switch (authConfig?.case) {
           case 'passphrase':
             passPhrase = authConfig.value.value;
@@ -187,31 +193,42 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         form.reset({
           ...form.getValues(),
           connectionName: connData.connection?.name + '-copy',
-          db: {
-            url: typeof mssqlConfig === 'string' ? mssqlConfig : '',
-          },
+          url,
+          envVar,
           options: {
             maxConnectionLimit:
-              config.connectionOptions?.maxConnectionLimit ?? 50,
-            maxIdleDuration: config.connectionOptions?.maxIdleDuration ?? '',
-            maxIdleLimit: config.connectionOptions?.maxIdleConnections ?? 2,
-            maxOpenDuration: config.connectionOptions?.maxOpenDuration ?? '',
+              connectionConfig.value.connectionOptions?.maxConnectionLimit ??
+              50,
+            maxIdleDuration:
+              connectionConfig.value.connectionOptions?.maxIdleDuration ?? '',
+            maxIdleLimit:
+              connectionConfig.value.connectionOptions?.maxIdleConnections ?? 2,
+            maxOpenDuration:
+              connectionConfig.value.connectionOptions?.maxOpenDuration ?? '',
           },
           tunnel: {
-            host: config.tunnel?.host ?? '',
-            port: config.tunnel?.port ?? 22,
-            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-            user: config.tunnel?.user ?? '',
+            host: connectionConfig.value.tunnel?.host ?? '',
+            port: connectionConfig.value.tunnel?.port ?? 22,
+            knownHostPublicKey:
+              connectionConfig.value.tunnel?.knownHostPublicKey ?? '',
+            user: connectionConfig.value.tunnel?.user ?? '',
             passphrase: passPhrase,
             privateKey: privateKey,
           },
           clientTls: {
-            clientCert: config.clientTls?.clientCert ?? '',
-            clientKey: config.clientTls?.clientKey ?? '',
-            rootCert: config.clientTls?.rootCert ?? '',
-            serverName: config.clientTls?.serverName ?? '',
+            clientCert: connectionConfig.value.clientTls?.clientCert ?? '',
+            clientKey: connectionConfig.value.clientTls?.clientKey ?? '',
+            rootCert: connectionConfig.value.clientTls?.rootCert ?? '',
+            serverName: connectionConfig.value.clientTls?.serverName ?? '',
           },
         });
+        if (connectionConfig.value.connectionConfig.case === 'url') {
+          setActiveTab('url');
+        } else if (
+          connectionConfig.value.connectionConfig.case === 'urlFromEnv'
+        ) {
+          setActiveTab('url-env');
+        }
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
         setIsLoading(false);
@@ -260,9 +277,52 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           )}
         />
 
+        <RadioGroup
+          defaultValue={activeTab}
+          onValueChange={(e) => setActiveTab(e as MssqlActiveConnectionTab)}
+          value={activeTab}
+        >
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="text-sm">Connect by:</div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url" id="r2" />
+              <Label htmlFor="r2">URL</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url-env" id="r3" />
+              <Label htmlFor="r3">Environment Variable</Label>
+            </div>
+          </div>
+        </RadioGroup>
+
+        {activeTab === 'url-env' && (
+          <FormField
+            control={form.control}
+            name="envVar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Environment Variable
+                </FormLabel>
+                <FormDescription>
+                  The environment variable that contains the connection URL.
+                  Must start with &quot;USER_DEFINED_&quot;. Must be present on
+                  both the backend and the worker processes for full
+                  functionality.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="USER_DEFINED_MSSQL_URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         <FormField
           control={form.control}
-          name="db.url"
+          name="url"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -707,4 +767,27 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
+}
+
+// extracts the connection config and returns the values for the form
+export function getMssqlConnectionFormValues(
+  connection: MssqlConnectionConfig
+): Pick<MssqlFormValues, 'url' | 'envVar'> {
+  switch (connection.connectionConfig.case) {
+    case 'url':
+      return {
+        url: connection.connectionConfig.value,
+        envVar: undefined,
+      };
+    case 'urlFromEnv':
+      return {
+        url: undefined,
+        envVar: connection.connectionConfig.value,
+      };
+    default:
+      return {
+        url: undefined,
+        envVar: undefined,
+      };
+  }
 }

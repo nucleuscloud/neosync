@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  ActiveConnectionTab,
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlEditConnectionFormContext,
   MysqlFormValues,
@@ -59,13 +60,22 @@ interface Props {
   onSaveFailed(err: unknown): void;
 }
 
-export default function MysqlForm(props: Props) {
+function getActiveTabFromValues(values: MysqlFormValues): ActiveConnectionTab {
+  if (values.url) {
+    return 'url';
+  }
+  if (values.envVar) {
+    return 'url-env';
+  }
+  return 'host';
+}
+
+export default function MysqlForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
-
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<'host' | 'url'>(
-    defaultValues.url ? 'url' : 'host'
+  const [activeTab, setActiveTab] = useState<ActiveConnectionTab>(
+    getActiveTabFromValues(defaultValues)
   );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
@@ -103,7 +113,8 @@ export default function MysqlForm(props: Props) {
         connectionConfig: buildConnectionConfigMysql({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
-          db: values.db,
+          db: activeTab === 'host' ? values.db : {},
+          envVar: activeTab === 'url-env' ? values.envVar : undefined,
         }),
       });
       onSaved(connection);
@@ -144,8 +155,8 @@ export default function MysqlForm(props: Props) {
         />
 
         <RadioGroup
-          defaultValue="url"
-          onValueChange={(e) => setActiveTab(e as 'host' | 'url')}
+          defaultValue={activeTab}
+          onValueChange={(e) => setActiveTab(e as ActiveConnectionTab)}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -158,8 +169,37 @@ export default function MysqlForm(props: Props) {
               <RadioGroupItem value="host" id="r1" />
               <Label htmlFor="r1">Host</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url-env" id="r3" />
+              <Label htmlFor="r3">Environment Variable</Label>
+            </div>
           </div>
         </RadioGroup>
+
+        {activeTab === 'url-env' && (
+          <FormField
+            control={form.control}
+            name="envVar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Environment Variable
+                </FormLabel>
+                <FormDescription>
+                  The environment variable that contains the connection URL.
+                  Must start with &quot;USER_DEFINED_&quot;. Must be present on
+                  both the backend and the worker processes for full
+                  functionality.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="USER_DEFINED_POSTGRES_URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {activeTab == 'url' && (
           <FormField

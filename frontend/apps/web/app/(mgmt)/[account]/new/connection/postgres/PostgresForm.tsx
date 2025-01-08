@@ -36,6 +36,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { getErrorMessage } from '@/util/util';
 import {
+  ActiveConnectionTab,
   PostgresCreateConnectionFormContext,
   PostgresFormValues,
   SSL_MODES,
@@ -47,6 +48,7 @@ import {
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
   ConnectionService,
+  PostgresConnectionConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -55,8 +57,6 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { buildConnectionConfigPostgres } from '../../../connections/util';
-
-type ActiveTab = 'host' | 'url';
 
 export default function PostgresForm() {
   const searchParams = useSearchParams();
@@ -68,7 +68,7 @@ export default function PostgresForm() {
   );
 
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<ActiveTab>('url');
+  const [activeTab, setActiveTab] = useState<ActiveConnectionTab>('url');
 
   const form = useForm<PostgresFormValues, PostgresCreateConnectionFormContext>(
     {
@@ -85,6 +85,7 @@ export default function PostgresForm() {
           sslMode: 'disable',
         },
         url: '',
+        envVar: '',
         options: {
           maxConnectionLimit: 50,
           maxIdleDuration: '',
@@ -145,7 +146,8 @@ export default function PostgresForm() {
         connectionConfig: buildConnectionConfigPostgres({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
-          db: values.db,
+          db: activeTab === 'host' ? values.db : {},
+          envVar: activeTab === 'url-env' ? values.envVar : undefined,
         }),
       });
       posthog.capture('New Connection Created', { type: 'postgres' });
@@ -179,34 +181,20 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       setIsLoading(true);
       try {
         const connData = await getPostgresConnection({ id: sourceConnId });
-        if (connData.connection?.connectionConfig?.config.case !== 'pgConfig') {
+        const connectionConfig = connData.connection?.connectionConfig?.config;
+        if (!connectionConfig || connectionConfig.case !== 'pgConfig') {
           return;
         }
 
-        const config = connData.connection?.connectionConfig?.config.value;
-        const pgConfig = config.connectionConfig.value;
-
-        const dbConfig = {
-          host: '',
-          name: '',
-          user: '',
-          pass: '',
-          port: 5432,
-          sslMode: 'disable',
-        };
-        if (typeof pgConfig !== 'string') {
-          dbConfig.host = pgConfig?.host ?? '';
-          dbConfig.name = pgConfig?.name ?? '';
-          dbConfig.user = pgConfig?.user ?? '';
-          dbConfig.pass = pgConfig?.pass ?? '';
-          dbConfig.port = pgConfig?.port ?? 5432;
-          dbConfig.sslMode = pgConfig?.sslMode ?? 'disable';
-        }
+        const { db, url, envVar } = getPgConnectionFormValues(
+          connectionConfig.value
+        );
 
         let passPhrase = '';
         let privateKey = '';
 
-        const authConfig = config.tunnel?.authentication?.authConfig;
+        const authConfig =
+          connectionConfig.value.tunnel?.authentication?.authConfig;
         switch (authConfig?.case) {
           case 'passphrase':
             passPhrase = authConfig.value.value;
@@ -222,34 +210,46 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         form.reset({
           ...form.getValues(),
           connectionName: connData.connection?.name + '-copy',
-          db: dbConfig,
-          url: typeof pgConfig === 'string' ? pgConfig : '',
+          db,
+          url,
+          envVar,
           options: {
             maxConnectionLimit:
-              config.connectionOptions?.maxConnectionLimit ?? 50,
-            maxIdleDuration: config.connectionOptions?.maxIdleDuration ?? '',
-            maxIdleLimit: config.connectionOptions?.maxIdleConnections ?? 2,
-            maxOpenDuration: config.connectionOptions?.maxOpenDuration ?? '',
+              connectionConfig.value.connectionOptions?.maxConnectionLimit ??
+              50,
+            maxIdleDuration:
+              connectionConfig.value.connectionOptions?.maxIdleDuration ?? '',
+            maxIdleLimit:
+              connectionConfig.value.connectionOptions?.maxIdleConnections ?? 2,
+            maxOpenDuration:
+              connectionConfig.value.connectionOptions?.maxOpenDuration ?? '',
           },
           tunnel: {
-            host: config.tunnel?.host ?? '',
-            port: config.tunnel?.port ?? 22,
-            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-            user: config.tunnel?.user ?? '',
+            host: connectionConfig.value.tunnel?.host ?? '',
+            port: connectionConfig.value.tunnel?.port ?? 22,
+            knownHostPublicKey:
+              connectionConfig.value.tunnel?.knownHostPublicKey ?? '',
+            user: connectionConfig.value.tunnel?.user ?? '',
             passphrase: passPhrase,
             privateKey: privateKey,
           },
           clientTls: {
-            clientCert: config.clientTls?.clientCert ?? '',
-            clientKey: config.clientTls?.clientKey ?? '',
-            rootCert: config.clientTls?.rootCert ?? '',
-            serverName: config.clientTls?.serverName ?? '',
+            clientCert: connectionConfig.value.clientTls?.clientCert ?? '',
+            clientKey: connectionConfig.value.clientTls?.clientKey ?? '',
+            rootCert: connectionConfig.value.clientTls?.rootCert ?? '',
+            serverName: connectionConfig.value.clientTls?.serverName ?? '',
           },
         });
-        if (config.connectionConfig.case === 'url') {
+        if (connectionConfig.value.connectionConfig.case === 'url') {
           setActiveTab('url');
-        } else if (config.connectionConfig.case === 'connection') {
+        } else if (
+          connectionConfig.value.connectionConfig.case === 'connection'
+        ) {
           setActiveTab('host');
+        } else if (
+          connectionConfig.value.connectionConfig.case === 'urlFromEnv'
+        ) {
+          setActiveTab('url-env');
         }
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
@@ -299,8 +299,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         />
 
         <RadioGroup
-          defaultValue="url"
-          onValueChange={(value) => setActiveTab(value as ActiveTab)}
+          defaultValue={activeTab}
+          onValueChange={(e) => setActiveTab(e as ActiveConnectionTab)}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -313,8 +313,38 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               <RadioGroupItem value="host" id="r1" />
               <Label htmlFor="r1">Host</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url-env" id="r3" />
+              <Label htmlFor="r3">Environment Variable</Label>
+            </div>
           </div>
         </RadioGroup>
+
+        {activeTab === 'url-env' && (
+          <FormField
+            control={form.control}
+            name="envVar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Environment Variable
+                </FormLabel>
+                <FormDescription>
+                  The environment variable that contains the connection URL.
+                  Must start with &quot;USER_DEFINED_&quot;. Must be present on
+                  both the backend and the worker processes for full
+                  functionality.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="USER_DEFINED_POSTGRES_URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         {activeTab == 'url' && (
           <FormField
             control={form.control}
@@ -896,4 +926,36 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
+}
+
+// extracts the connection config and returns the values for the form
+export function getPgConnectionFormValues(
+  connection: PostgresConnectionConfig
+): Pick<PostgresFormValues, 'db' | 'url' | 'envVar'> {
+  switch (connection.connectionConfig.case) {
+    case 'connection':
+      return {
+        db: connection.connectionConfig.value,
+        url: undefined,
+        envVar: undefined,
+      };
+    case 'url':
+      return {
+        db: {},
+        url: connection.connectionConfig.value,
+        envVar: undefined,
+      };
+    case 'urlFromEnv':
+      return {
+        db: {},
+        url: undefined,
+        envVar: connection.connectionConfig.value,
+      };
+    default:
+      return {
+        db: {},
+        url: undefined,
+        envVar: undefined,
+      };
+  }
 }

@@ -433,17 +433,26 @@ export function buildConnectionConfigMssql(
 function buildMssqlConnectionConfig(
   values: MssqlFormValues
 ): MssqlConnectionConfig {
-  return create(MssqlConnectionConfigSchema, {
-    connectionConfig: {
-      case: 'url',
-      value: values.db.url,
-    },
+  const mssqlconfig = create(MssqlConnectionConfigSchema, {
     connectionOptions: create(SqlConnectionOptionsSchema, {
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
     clientTls: getClientTlsConfig(values.clientTls),
   });
+
+  if (values.url) {
+    mssqlconfig.connectionConfig = {
+      case: 'url',
+      value: values.url,
+    };
+  } else if (values.envVar) {
+    mssqlconfig.connectionConfig = {
+      case: 'urlFromEnv',
+      value: values.envVar,
+    };
+  }
+  return mssqlconfig;
 }
 
 function buildGcpCloudStorageConnectionConfig(
@@ -471,7 +480,7 @@ function buildMysqlConnectionConfig(
       case: 'url',
       value: values.url,
     };
-  } else {
+  } else if (values.db) {
     mysqlconfig.connectionConfig = {
       case: 'connection',
       value: create(MysqlConnectionSchema, {
@@ -482,6 +491,11 @@ function buildMysqlConnectionConfig(
         protocol: values.db.protocol,
         user: values.db.user,
       }),
+    };
+  } else if (values.envVar) {
+    mysqlconfig.connectionConfig = {
+      case: 'urlFromEnv',
+      value: values.envVar,
     };
   }
   return mysqlconfig;
@@ -522,7 +536,7 @@ function buildPostgresConnectionConfig(
       case: 'url',
       value: values.url,
     };
-  } else {
+  } else if (values.db) {
     pgconfig.connectionConfig = {
       case: 'connection',
       value: create(PostgresConnectionSchema, {
@@ -533,6 +547,11 @@ function buildPostgresConnectionConfig(
         sslMode: values.db.sslMode,
         user: values.db.user,
       }),
+    };
+  } else if (values.envVar) {
+    pgconfig.connectionConfig = {
+      case: 'urlFromEnv',
+      value: values.envVar,
     };
   }
   return pgconfig;
