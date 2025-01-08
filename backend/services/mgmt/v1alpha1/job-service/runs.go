@@ -712,7 +712,7 @@ func (s *Service) SetRunContexts(
 		id := req.GetId()
 		user, err := s.userdataclient.GetUser(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get user: %w", err)
 		}
 		if err := user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(id.GetAccountId()), rbac.JobAction_Edit); err != nil {
 			return nil, err

@@ -45,7 +45,7 @@ export default function MssqlDBDestinationOptionsForm(
               });
             }}
             title="Init Table Schema"
-            description="Creates table(s) and their constraints. The database schema must already exist. "
+            description="Creates schemas, tables, and their constraints."
           />
           <FormErrorMessage message={errors?.initTableSchema?.message} />
         </FormItemContainer>

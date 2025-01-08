@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	SchemasLabel        = "schemas"
 	ViewsFunctionsLabel = "view and functions"
 	TableIndexLabel     = "table index"
 )
@@ -149,6 +150,15 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
+
+	schemaStmts := []string{}
+	errgrp.Go(func() error {
+		for schema := range schemasMap {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", schema))
+		}
+		return nil
+	})
+
 	dataTypeStmts := []string{}
 	errgrp.Go(func() error {
 		datatypeCfg, err := m.GetSchemaTableDataTypes(errctx, tables)
@@ -212,6 +222,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: ViewsFunctionsLabel, Statements: viewAndFuncStmts},

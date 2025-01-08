@@ -4,7 +4,7 @@ description: Postgres is one of the most commonly used databases in the world an
 id: postgres
 hide_title: false
 slug: /connections/postgres
-# cSpell:words myrole
+# cSpell:words myrole,mydatabase
 ---
 
 ## Introduction
@@ -63,7 +63,7 @@ The following TLS/SSL modes are available for Postgres via the `sslMode` query p
 
 > **NB:** if using the `URL` configuration, you will need to specify this directly in the query parameters. If using the host configuration, be sure to select the correct option in the dropdown that you intend to use.
 
-```
+```console
 disable    - No SSL at all, plain TCP
 allow      - First try non-SSL, if that fails, try SSL
 prefer     - First try SSL, if that fails, try non-SSL (default)
@@ -131,6 +131,12 @@ If you are planning to allow Neosync to truncate data prior to a job run, then t
 
 ```sql
 GRANT TRUNCATE on public.users TO myrole;
+```
+
+Neosync will attempt to create schemas that do not exist. If you plan on allowing Neosync to do this, you will need to grant the `CREATE` permission on the schema.
+
+```sql
+GRANT CREATE ON DATABASE mydatabase TO myrole;
 ```
 
 If you are planning to allow Neosync to initialize tables within a schema, you will need to grant more permissions in order to do so.

@@ -25,13 +25,13 @@ Each destination can have different destination options. For example, one destin
 
 Here is a matrix showing support for each destination option under the **Option** column and which destinations support it.
 
-| Option                      | Description                                                                     | Postgres | MySQL | SQL Server | DynamoDB | MongoDB | S3  |
-| --------------------------- | ------------------------------------------------------------------------------- | -------- | ----- | ---------- | -------- | ------- | --- |
-| Truncate Before Insert      | Truncates table before inserting data                                           | ✅       | ✅    | ✅         | ❌       | ❌      | ❌  |
-| Init Table Schema           | Creates table(s) and their constraints. The database schema must already exist. | ✅       | ✅    | ❌         | ❌       | ❌      | ❌  |
-| On Conflict Do Nothing      | If there is a conflict when inserting data do not insert                        | ✅       | ✅    | ❌         | ❌       | ❌      | ❌  |
-| Skip Foreign Key Violations | Insert all valid records, bypassing any that violate foreign key constraints.   | ✅       | ✅    | ✅         | ❌       | ❌      | ❌  |
-| Truncate CASCADE            | Truncate cascade all tables                                                     | ✅       | ❌    | ❌         | ❌       | ❌      | ❌  |
+| Option                      | Description                                                                   | Postgres | MySQL | SQL Server | DynamoDB | MongoDB | S3  |
+| --------------------------- | ----------------------------------------------------------------------------- | -------- | ----- | ---------- | -------- | ------- | --- |
+| Truncate Before Insert      | Truncates table before inserting data                                         | ✅       | ✅    | ✅         | ❌       | ❌      | ❌  |
+| Init Table Schema           | Creates schemas, tables, and their constraints.                               | ✅       | ✅    | ✅         | ❌       | ❌      | ❌  |
+| On Conflict Do Nothing      | If there is a conflict when inserting data do not insert                      | ✅       | ✅    | ❌         | ❌       | ❌      | ❌  |
+| Skip Foreign Key Violations | Insert all valid records, bypassing any that violate foreign key constraints. | ✅       | ✅    | ✅         | ❌       | ❌      | ❌  |
+| Truncate CASCADE            | Truncate cascade all tables                                                   | ✅       | ❌    | ❌         | ❌       | ❌      | ❌  |
 
 ## Full Refresh
 
@@ -70,6 +70,6 @@ The other way to do incremental data additions is to use Subsetting. Using subse
 
 This is generally more efficient and more flexible way to do incremental data refreshes. It's also, generally, a more powerful way to subset your data.
 
-# Conclusion
+## Conclusion
 
 Full refreshes and incremental data syncs are two ways to sync data using Neosync. There are plenty of valid use-cases for both and depending on your requirements, one may make more sense than the other. If you have other requirements or questions, please don't hesitate to submit a feature request or talk to us in Discord.

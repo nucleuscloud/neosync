@@ -15,6 +15,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	SchemasLabel = "schemas"
+)
+
 type PostgresManager struct {
 	querier pg_queries.Querier
 	db      pg_queries.DBTX
@@ -512,6 +516,19 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	tables []*sqlmanager_shared.SchemaTable,
 ) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	errgrp, errctx := errgroup.WithContext(ctx)
+
+	schemaStmts := []string{}
+	errgrp.Go(func() error {
+		uniqueSchemas := map[string]struct{}{}
+		for _, table := range tables {
+			uniqueSchemas[table.Schema] = struct{}{}
+		}
+		for schema := range uniqueSchemas {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", schema))
+		}
+		return nil
+	})
+
 	dataTypeStmts := []string{}
 	errgrp.Go(func() error {
 		datatypeCfg, err := p.GetSchemaTableDataTypes(errctx, tables)
@@ -562,6 +579,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},

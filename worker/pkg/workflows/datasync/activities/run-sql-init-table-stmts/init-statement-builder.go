@@ -165,6 +165,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 
+				initErrors := []*InitSchemaError{}
 				for _, block := range initblocks {
 					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
 					if len(block.Statements) == 0 {
@@ -172,9 +173,20 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 					err = destdb.Db().BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
-						return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
+						slogger.Error(fmt.Sprintf("unable to exec pg %s statements: %s", block.Label, err.Error()))
+						if block.Label != sqlmanager_postgres.SchemasLabel {
+							return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
+						}
+						initErrors = append(initErrors, &InitSchemaError{
+							Statement: strings.Join(block.Statements, "\n"),
+							Error:     err.Error(),
+						})
 					}
 				}
+				initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+					ConnectionId: destination.ConnectionId,
+					Errors:       initErrors,
+				})
 			}
 			// truncate statements
 			if sqlopts.TruncateCascade {
@@ -257,6 +269,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						return nil, err
 					}
 
+					initErrors := []*InitSchemaError{}
 					for _, block := range initblocks {
 						slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
 						if len(block.Statements) == 0 {
@@ -264,9 +277,20 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						}
 						err = destdb.Db().BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 						if err != nil {
-							return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
+							slogger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
+							if block.Label != sqlmanager_mysql.SchemasLabel {
+								return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
+							}
+							initErrors = append(initErrors, &InitSchemaError{
+								Statement: strings.Join(block.Statements, "\n"),
+								Error:     err.Error(),
+							})
 						}
 					}
+					initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+						ConnectionId: destination.ConnectionId,
+						Errors:       initErrors,
+					})
 				}
 			}
 			// truncate statements
@@ -316,14 +340,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					for _, stmt := range block.Statements {
 						err = destdb.Db().Exec(ctx, stmt)
 						if err != nil {
-							slogger.Error("unable to exec mssql %s statements: %w", block.Label, err)
+							slogger.Error(fmt.Sprintf("unable to exec mssql %s statements: %s", block.Label, err.Error()))
+							if block.Label != ee_sqlmanager_mssql.SchemasLabel && block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
+								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
+							}
 							initErrors = append(initErrors, &InitSchemaError{
 								Statement: stmt,
 								Error:     err.Error(),
 							})
-							if block.Label != ee_sqlmanager_mssql.ViewsFunctionsLabel && block.Label != ee_sqlmanager_mssql.TableIndexLabel {
-								return nil, fmt.Errorf("unable to exec mssql %s statements: %w", block.Label, err)
-							}
 						}
 					}
 				}

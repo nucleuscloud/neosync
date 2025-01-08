@@ -18,6 +18,8 @@ import (
 const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
+
+	SchemasLabel = "schemas"
 )
 
 type MysqlManager struct {
@@ -629,6 +631,18 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
 
+	schemaStmts := []string{}
+	errgrp.Go(func() error {
+		uniqueSchemas := map[string]struct{}{}
+		for _, table := range tables {
+			uniqueSchemas[table.Schema] = struct{}{}
+		}
+		for schema := range uniqueSchemas {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS `%s`;", schema))
+		}
+		return nil
+	})
+
 	tableTriggerStmts := []string{}
 	errgrp.Go(func() error {
 		tableTriggers, err := m.GetSchemaTableTriggers(errctx, tables)
@@ -669,6 +683,7 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types"},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
