@@ -5111,6 +5111,10 @@ components:
           title: preserve_length
       title: TransformString
       additionalProperties: false
+    mgmt.v1alpha1.TransformUuid:
+      type: object
+      title: TransformUuid
+      additionalProperties: false
     mgmt.v1alpha1.TransformerConfig:
       type: object
       allOf:
@@ -5206,6 +5210,8 @@ components:
             - required:
                 - transformStringConfig
             - required:
+                - transformUuidConfig
+            - required:
                 - userDefinedTransformerConfig
             - not:
                 anyOf:
@@ -5300,6 +5306,8 @@ components:
                   - required:
                       - transformStringConfig
                   - required:
+                      - transformUuidConfig
+                  - required:
                       - userDefinedTransformerConfig
       anyOf:
         - required:
@@ -5392,6 +5400,8 @@ components:
             - transformPiiTextConfig
         - required:
             - transformStringConfig
+        - required:
+            - transformUuidConfig
         - required:
             - userDefinedTransformerConfig
         - not:
@@ -5486,6 +5496,8 @@ components:
                   - transformPiiTextConfig
               - required:
                   - transformStringConfig
+              - required:
+                  - transformUuidConfig
               - required:
                   - userDefinedTransformerConfig
       properties:
@@ -5676,6 +5688,10 @@ components:
           allOf:
             - title: generate_ip_address_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
+        transformUuidConfig:
+          allOf:
+            - title: transform_uuid_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
       title: TransformerConfig
       additionalProperties: false
     mgmt.v1alpha1.TransformerMapping:
@@ -6938,22 +6954,37 @@ components:
         - anyOf:
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
           title: url
           description: The URL with sqlserver scheme.
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         connectionOptions:
           allOf:
             - title: connection_options
@@ -7005,23 +7036,31 @@ components:
                 - connection
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - connection
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - connection
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - connection
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
@@ -7030,6 +7069,13 @@ components:
           allOf:
             - title: connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
             - title: tunnel
@@ -7109,23 +7155,31 @@ components:
                 - connection
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - connection
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - connection
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - connection
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
@@ -7134,6 +7188,13 @@ components:
           allOf:
             - title: connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
             - title: tunnel
@@ -7972,31 +8033,16 @@ components:
     mgmt.v1alpha1.GetConnectionDataStreamResponse:
       type: object
       properties:
-        row:
-          type: object
-          title: row
-          additionalProperties:
-            type: string
-            title: value
-            format: byte
+        rowBytes:
+          type: string
+          title: row_bytes
+          format: byte
           description: >-
-            A map of column name to the bytes value of the data that was found
-            for that column and row
+            A map of column name to column value, where the value is serialized
+            as bytes. The value represents a map[string]any structure.
       title: GetConnectionDataStreamResponse
       additionalProperties: false
       description: Each stream response is a single row in the requested schema and table
-    mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-          format: byte
-      title: RowEntry
-      additionalProperties: false
     mgmt.v1alpha1.GetConnectionInitStatementsRequest:
       type: object
       properties:
@@ -11638,6 +11684,7 @@ components:
         - TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
+        - TRANSFORMER_SOURCE_TRANSFORM_UUID
     mgmt.v1alpha1.CreateUserDefinedTransformerRequest:
       type: object
       properties:

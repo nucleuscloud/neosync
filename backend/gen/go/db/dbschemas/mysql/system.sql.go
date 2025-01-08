@@ -228,7 +228,7 @@ SELECT
    c.COLUMN_TYPE AS data_type,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
-   CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED INTEGER) AS character_maximum_length,
+   CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED) AS character_maximum_length,
    CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
      IF(c.DATA_TYPE = 'smallint', 16, 
         IF(c.DATA_TYPE = 'int', 32, 

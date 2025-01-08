@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -51,8 +52,13 @@ func NewFromMysqlConnection(
 		cfg.ParseTime = parseTime
 
 		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
-	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		mysqlurl := cc.Url
+	case *mgmtv1alpha1.MysqlConnectionConfig_Url, *mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv:
+		var mysqlurl string
+		if config.MysqlConfig.GetUrl() != "" {
+			mysqlurl = config.MysqlConfig.GetUrl()
+		} else if config.MysqlConfig.GetUrlFromEnv() != "" {
+			mysqlurl = os.Getenv(fmt.Sprintf("USER_DEFINED_%s", config.MysqlConfig.GetUrlFromEnv()))
+		}
 
 		cfg, err := mysql.ParseDSN(mysqlurl)
 		if err != nil {
