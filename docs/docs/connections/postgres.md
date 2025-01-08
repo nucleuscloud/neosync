@@ -4,7 +4,7 @@ description: Postgres is one of the most commonly used databases in the world an
 id: postgres
 hide_title: false
 slug: /connections/postgres
-# cSpell:words myrole
+# cSpell:words myrole,mydatabase
 ---
 
 ## Introduction
