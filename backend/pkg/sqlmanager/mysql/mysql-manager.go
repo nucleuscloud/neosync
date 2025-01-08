@@ -2,6 +2,8 @@ package sqlmanager_mysql
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -347,7 +349,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		})
 	}
 
-	indexmap := map[string][]string{}
+	indexmap := map[string]map[string][]string{}
 	var indexMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
@@ -358,11 +360,19 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return err
 			}
+
 			indexMapMu.Lock()
 			defer indexMapMu.Unlock()
 			for _, record := range idxrecords {
 				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-				indexmap[key.String()] = append(indexmap[key.String()], wrapIdempotentIndex(record.SchemaName, record.TableName, record.IndexName, record.ColumnName))
+				if _, exists := indexmap[key.String()]; !exists {
+					indexmap[key.String()] = make(map[string][]string)
+				}
+				// Group columns by index name
+				indexmap[key.String()][record.IndexName] = append(
+					indexmap[key.String()][record.IndexName],
+					record.ColumnName,
+				)
 			}
 			return nil
 		})
@@ -421,7 +431,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		info := &sqlmanager_shared.TableInitStatement{
 			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s`.`%s` (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
 			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
-			IndexStatements:      indexmap[key],
+			IndexStatements:      []string{},
 		}
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
@@ -429,6 +439,14 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				return nil, err
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
+		}
+		if tableIndices, ok := indexmap[key]; ok {
+			for idxName, cols := range tableIndices {
+				info.IndexStatements = append(
+					info.IndexStatements,
+					wrapIdempotentIndex(schematable.Schema, schematable.Table, idxName, cols),
+				)
+			}
 		}
 		output = append(output, info)
 	}
@@ -733,53 +751,70 @@ func wrapIdempotentConstraint(
 	constraintname,
 	constraintStmt string,
 ) string {
+	procedureName := fmt.Sprintf("NeosyncAddConstraint_%s", hashInput(schema, table, constraintname))[:64]
 	stmt := fmt.Sprintf(`
-CREATE PROCEDURE NeosyncAddConstraintIfNotExists()
+CREATE PROCEDURE %[1]s()
 BEGIN
     DECLARE constraint_exists INT DEFAULT 0;
 
     SELECT COUNT(*) INTO constraint_exists
     FROM information_schema.TABLE_CONSTRAINTS
-    WHERE CONSTRAINT_SCHEMA = '%s'
-    AND TABLE_NAME = '%s'
-    AND CONSTRAINT_NAME = '%s';
+    WHERE CONSTRAINT_SCHEMA = '%[2]s'
+    AND TABLE_NAME = '%[3]s'
+    AND CONSTRAINT_NAME = '%[4]s';
 
     IF constraint_exists = 0 THEN
-        %s
+        %[5]s
     END IF;
 END;
 
-CALL NeosyncAddConstraintIfNotExists();
-DROP PROCEDURE NeosyncAddConstraintIfNotExists;
-`, schema, table, constraintname, constraintStmt)
+CALL %[1]s();
+DROP PROCEDURE %[1]s;
+`, procedureName, schema, table, constraintname, constraintStmt)
 	return strings.TrimSpace(stmt)
+}
+
+func hashInput(input ...string) string {
+	hasher := sha256.New()
+	for _, in := range input {
+		hasher.Write([]byte(in))
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func wrapIdempotentIndex(
 	schema,
 	table,
-	constraintname,
-	col string,
+	constraintname string,
+	cols []string,
 ) string {
+	hashParams := []string{schema, table, constraintname}
+	hashParams = append(hashParams, cols...)
+
+	columnInput := []string{}
+	for _, col := range cols {
+		columnInput = append(columnInput, EscapeMysqlColumn(col))
+	}
+	procedureName := fmt.Sprintf("NeosyncAddIndex_%s", hashInput(hashParams...))[:64]
 	stmt := fmt.Sprintf(`
-CREATE PROCEDURE NeosyncAddIndexIfNotExists()
+CREATE PROCEDURE %[1]s()
 BEGIN
     DECLARE index_exists INT DEFAULT 0;
 
     SELECT COUNT(*) INTO index_exists
     FROM information_schema.statistics
-    WHERE table_schema = '%s'
-    AND table_name = '%s'
-    AND index_name = '%s';
+    WHERE table_schema = '%[2]s'
+    AND table_name = '%[3]s'
+    AND index_name = '%[4]s';
 
     IF index_exists = 0 THEN
-        CREATE INDEX %s ON %s.%s(%s);
+        CREATE INDEX %[5]s ON %[6]s.%[7]s(%[8]s);
     END IF;
 END;
 
-CALL NeosyncAddIndexIfNotExists();
-DROP PROCEDURE NeosyncAddIndexIfNotExists;
-`, schema, table, constraintname, EscapeMysqlColumn(constraintname), EscapeMysqlColumn(schema), EscapeMysqlColumn(table), EscapeMysqlColumn(col))
+CALL %[1]s();
+DROP PROCEDURE %[1]s;
+`, procedureName, schema, table, constraintname, EscapeMysqlColumn(constraintname), EscapeMysqlColumn(schema), EscapeMysqlColumn(table), strings.Join(columnInput, ", "))
 	return strings.TrimSpace(stmt)
 }
 

@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS sqlmanagermysql;
 CREATE DATABASE IF NOT EXISTS sqlmanagermysql2;
 CREATE DATABASE IF NOT EXISTS sqlmanagermysql3;
+CREATE DATABASE IF NOT EXISTS sqlmanagermysql4;
 
 CREATE TABLE IF NOT EXISTS `sqlmanagermysql`.`container_status` (
 	`id` int NOT NULL AUTO_INCREMENT,
@@ -152,6 +153,36 @@ CREATE TABLE IF NOT EXISTS tablewithcount (
 );
 
 INSERT INTO tablewithcount(id) VALUES ('1'), ('2');
+
+-- Creates table that uses reserved MySQL words
+CREATE TABLE `order` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `select` VARCHAR(255) NOT NULL,
+  `from` DATE NOT NULL,
+  `where` VARCHAR(100),
+  `group` DECIMAL(10, 2),
+  `desc` TEXT
+);
+
+-- Creates an index that uses reserved MySQL words
+CREATE INDEX `order_index_on_reserved_words` ON `order` (`select`, `from`, `where`);
+
+-- sqlmanagermysql4
+
+USE sqlmanagermysql4;
+
+
+CREATE TABLE parent1 (
+    id CHAR(36) NOT NULL DEFAULT (UUID()),
+    CONSTRAINT pk_parent1_id PRIMARY KEY (id)
+);
+
+CREATE TABLE child1 (
+    id CHAR(36) NOT NULL DEFAULT (UUID()),
+    parent_id CHAR(36) NULL,
+    CONSTRAINT pk_child1_id PRIMARY KEY (id),
+    CONSTRAINT fk_child1_parent_id_parent1_id FOREIGN KEY (parent_id) REFERENCES parent1(id) ON DELETE CASCADE
+);
 
 -- Creates table that uses reserved MySQL words
 CREATE TABLE `order` (

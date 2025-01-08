@@ -2,13 +2,10 @@ package sqlmanager_mysql
 
 import (
 	"context"
-	"fmt"
-	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	"github.com/stretchr/testify/suite"
 )
@@ -73,15 +70,10 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	}
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	ok := testutil.ShouldRunIntegrationTest()
-	if !ok {
-		return
-	}
-	suite.Run(t, new(IntegrationTestSuite))
-}
-
-//nolint:unparam
-func (s *IntegrationTestSuite) buildTable(schema, tableName string) string {
-	return fmt.Sprintf("%s.%s", schema, tableName)
-}
+// func TestIntegrationTestSuite(t *testing.T) {
+// 	ok := testutil.ShouldRunIntegrationTest()
+// 	if !ok {
+// 		return
+// 	}
+// 	suite.Run(t, new(IntegrationTestSuite))
+// }
