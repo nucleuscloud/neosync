@@ -177,7 +177,7 @@ export default function MssqlForm(props: Props): ReactElement {
                   functionality.
                 </FormDescription>
                 <FormControl>
-                  <Input placeholder="USER_DEFINED_POSTGRES_URL" {...field} />
+                  <Input placeholder="USER_DEFINED_MSSQL_URL" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

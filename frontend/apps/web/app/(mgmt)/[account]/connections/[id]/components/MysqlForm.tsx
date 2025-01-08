@@ -193,7 +193,7 @@ export default function MysqlForm(props: Props): ReactElement {
                   functionality.
                 </FormDescription>
                 <FormControl>
-                  <Input placeholder="USER_DEFINED_POSTGRES_URL" {...field} />
+                  <Input placeholder="USER_DEFINED_MYSQL_URL" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
