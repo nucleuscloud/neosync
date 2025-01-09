@@ -80,6 +80,17 @@ sqlserver://sa:YourStrong@Passw0rd@test-prod-db-mssql:1433?database=master
 
 Due to MSSQL's design, it is possible to have two separate databases within the same physical database instance and sync between the two. They will simply need to be configured as two separate Neosync connections.
 
+### Environment Variable
+
+To connect using the environment variable, simply paste the environment variable in the **Environment Variable** input.
+
+The value of the environment variable must be in the `Connection URL` format.
+
+This is only available in the OSS version of Neosync. The environment variable must begin with `USER_DEFINED_`.
+This is for safety and is to limit the class of environment variables a user of Neosync may configure.
+
+For full support, the environment variable must live on both the `neosync-api` as well as `neosync-worker`.
+
 ### Max Open Connection Limit
 
 This is by default set to 50, but it's important to look into this and set this value to the appropriate size given the size of your database as it changes based on the machine type. 50 may be too high, or too low! Ultimately, this will affect how quickly Neosync is able to sync to or from your database as it takes advantage of parallelization where it can.
