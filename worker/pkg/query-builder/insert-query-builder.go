@@ -60,6 +60,7 @@ type InsertOption func(*InsertOptions)
 type InsertOptions struct {
 	shouldOverrideColumnDefault bool
 	onConflictDoNothing         bool
+	onConflictDoUpdate          bool
 	prefix, suffix              *string
 }
 
@@ -87,6 +88,15 @@ func WithSuffix(suffix *string) InsertOption {
 func WithOnConflictDoNothing() InsertOption {
 	return func(opts *InsertOptions) {
 		opts.onConflictDoNothing = true
+		opts.onConflictDoUpdate = false
+	}
+}
+
+// WithOnConflictDoUpdate adds on conflict do update to insert query
+func WithOnConflictDoUpdate() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.onConflictDoUpdate = true
+		opts.onConflictDoNothing = false
 	}
 }
 

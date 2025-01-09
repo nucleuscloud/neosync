@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -86,6 +87,28 @@ func BuildInsertQuery(
 	if *onConflictDoNothing {
 		insert = insert.OnConflict(goqu.DoNothing())
 	}
+
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return "", nil, err
+	}
+	return query, args, nil
+}
+
+func BuildInsertOnConflictDoUpdateQuery(
+	driver, schema, table string,
+	records []goqu.Record,
+	targetColumns, updateColumns []string,
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(driver)
+	sqltable := goqu.S(schema).Table(table)
+	insert := builder.Insert(sqltable).Prepared(true).Rows(records)
+	tcols := fmt.Sprintf("(%s)", strings.Join(targetColumns, ", "))
+	ucols := []goqu.Record{}
+	for _, col := range updateColumns {
+		ucols := append(ucols, goqu.Record{col: goqu.I()})
+	}
+	insert = insert.OnConflict(goqu.DoUpdate(tcols, ucols))
 
 	query, args, err := insert.ToSQL()
 	if err != nil {
