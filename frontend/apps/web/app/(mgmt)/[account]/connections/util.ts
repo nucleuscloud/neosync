@@ -480,6 +480,12 @@ function buildMysqlConnectionConfig(
       case: 'url',
       value: values.url,
     };
+  } else if (values.envVar) {
+    mysqlconfig.connectionConfig = {
+      case: 'urlFromEnv',
+      value: values.envVar,
+    };
+    // values.db needs to come last as it is usually an empty object
   } else if (values.db) {
     mysqlconfig.connectionConfig = {
       case: 'connection',
@@ -491,11 +497,6 @@ function buildMysqlConnectionConfig(
         protocol: values.db.protocol,
         user: values.db.user,
       }),
-    };
-  } else if (values.envVar) {
-    mysqlconfig.connectionConfig = {
-      case: 'urlFromEnv',
-      value: values.envVar,
     };
   }
   return mysqlconfig;
@@ -536,6 +537,11 @@ function buildPostgresConnectionConfig(
       case: 'url',
       value: values.url,
     };
+  } else if (values.envVar) {
+    pgconfig.connectionConfig = {
+      case: 'urlFromEnv',
+      value: values.envVar,
+    };
   } else if (values.db) {
     pgconfig.connectionConfig = {
       case: 'connection',
@@ -547,11 +553,6 @@ function buildPostgresConnectionConfig(
         sslMode: values.db.sslMode,
         user: values.db.user,
       }),
-    };
-  } else if (values.envVar) {
-    pgconfig.connectionConfig = {
-      case: 'urlFromEnv',
-      value: values.envVar,
     };
   }
   return pgconfig;
