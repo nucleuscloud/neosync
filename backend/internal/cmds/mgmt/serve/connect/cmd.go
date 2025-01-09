@@ -522,7 +522,7 @@ func serve(ctx context.Context) error {
 	mongoconnector := mongoconnect.NewConnector()
 
 	connectionService := v1alpha1_connectionservice.New(
-		&v1alpha1_connectionservice.Config{},
+		&v1alpha1_connectionservice.Config{IsNeosyncCloud: ncloudlicense.IsValid()},
 		db,
 		userdataclient,
 		mongoconnector,
