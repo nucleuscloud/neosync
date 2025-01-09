@@ -70,6 +70,7 @@ func (t *GenerateCity) Generate(opts any) (any, error) {
 }
 
 // Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength.
+// If not, it randomly generates a string that len(string) == maxLength
 func generateRandomCity(randomizer rng.Rand, maxLength int64) (string, error) {
 	output, err := transformer_utils.GenerateStringFromCorpus(
 		randomizer,
