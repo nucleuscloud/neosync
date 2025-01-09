@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -90,7 +88,7 @@ package {{.PackageName}}
 func GetNeosyncTransformers() []NeosyncTransformer {
 	return []NeosyncTransformer{
 	{{- range $index, $transformer := .Transformers }}
-		{{$transformer}}, 
+		{{$transformer}},
 	{{- end }}
 	}
 }
@@ -98,7 +96,7 @@ func GetNeosyncTransformers() []NeosyncTransformer {
 func GetNeosyncGenerators() []NeosyncGenerator {
 	return []NeosyncGenerator{
 		{{- range $index, $generator := .Generators }}
-			{{$generator}}, 
+			{{$generator}},
 		{{- end }}
 	}
 }

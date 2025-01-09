@@ -80,20 +80,20 @@ func NewTransformEmailOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),
 		emailType: emailType,
-		invalidEmailAction: invalidEmailAction,	
+		invalidEmailAction: invalidEmailAction,
 	}, nil
 }
 
 func (o *TransformEmailOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
-		"value:this.%s", 
-		"preserve_length:%v", 
-		"preserve_domain:%v", 
-		"excluded_domains:%v", 
-		"max_length:%v", 
-		"email_type:%q", 
+		"value:this.%s",
+		"preserve_length:%v",
+		"preserve_domain:%v",
+		"excluded_domains:%v",
+		"max_length:%v",
+		"email_type:%q",
 		"invalid_email_action:%q",
 	}
 

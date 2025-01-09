@@ -40,13 +40,13 @@ func NewGenerateCardNumberOpts(
 	
 	return &GenerateCardNumberOpts{
 		validLuhn: validLuhn,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateCardNumberOpts) BuildBloblangString(	
+func (o *GenerateCardNumberOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"valid_luhn:%v",
 	}
 

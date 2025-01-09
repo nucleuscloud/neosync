@@ -7,6 +7,8 @@ on:
       - internal/**.go
       - go.mod
       - go.sum
+      - tools/go.mod
+      - tools/go.sum
   push:
     branches:
       - main
@@ -54,6 +56,31 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+
+  # Ensures that go generate runs and has no working directory changes afterwards
+  generate:
+    name: Go Generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Generate
+        run: go generate ./...
+
+      - name: Check for git changes
+        run: |
+          if [ -n "$(git status --porcelain .)" ]; then
+            echo "Error: git has changes after running 'go generate'"
+            echo "Please run 'go generate ./...' and commit the changes."
+            exit 1
+          fi
 
   unit-test:
     name: Unit Tests
@@ -137,5 +164,32 @@ jobs:
           if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
             echo "Error: go.mod and/or go.sum have changes after running 'go mod tidy'"
             echo "Please run 'go mod tidy' and commit the changes."
+            exit 1
+          fi
+
+  tools-go-mod-tidy-check:
+    name: tools-go-mod-tidy-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/go.mod
+          cache-dependency-path: tools/go.sum
+
+      - name: Run go mod tidy
+        run: go mod tidy
+
+      - name: Check for changes in go.mod and go.sum
+        run: |
+          if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+            echo "Error: go.mod and/or go.sum have changes after running 'go mod tidy'"
+            echo "Please run 'go mod tidy' in the tools directory and commit the changes."
             exit 1
           fi

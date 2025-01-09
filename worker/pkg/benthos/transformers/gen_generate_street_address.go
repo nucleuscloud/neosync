@@ -40,13 +40,13 @@ func NewGenerateStreetAddressOpts(
 	
 	return &GenerateStreetAddressOpts{
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateStreetAddressOpts) BuildBloblangString(	
+func (o *GenerateStreetAddressOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"max_length:%v",
 	}
 

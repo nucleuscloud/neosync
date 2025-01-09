@@ -48,14 +48,14 @@ func NewGenerateGenderOpts(
 	return &GenerateGenderOpts{
 		abbreviate: abbreviate,
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateGenderOpts) BuildBloblangString(	
+func (o *GenerateGenderOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"abbreviate:%v", 
+	fnStr := []string{
+		"abbreviate:%v",
 		"max_length:%v",
 	}
 

@@ -32,11 +32,11 @@ func NewGenerateUnixTimestampOpts(
 	}
 	
 	return &GenerateUnixTimestampOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateUnixTimestampOpts) BuildBloblangString(	
+func (o *GenerateUnixTimestampOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

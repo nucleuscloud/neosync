@@ -28,13 +28,13 @@ func NewGenerateUUIDOpts(
 	}
 	
 	return &GenerateUUIDOpts{
-		includeHyphens: includeHyphens,	
+		includeHyphens: includeHyphens,
 	}, nil
 }
 
-func (o *GenerateUUIDOpts) BuildBloblangString(	
+func (o *GenerateUUIDOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"include_hyphens:%v",
 	}
 

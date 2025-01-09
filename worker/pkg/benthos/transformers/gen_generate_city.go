@@ -40,13 +40,13 @@ func NewGenerateCityOpts(
 	
 	return &GenerateCityOpts{
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateCityOpts) BuildBloblangString(	
+func (o *GenerateCityOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"max_length:%v",
 	}
 

@@ -48,14 +48,14 @@ func NewGenerateStringPhoneNumberOpts(
 	return &GenerateStringPhoneNumberOpts{
 		min: min,
 		max: max,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateStringPhoneNumberOpts) BuildBloblangString(	
+func (o *GenerateStringPhoneNumberOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"min:%v", 
+	fnStr := []string{
+		"min:%v",
 		"max:%v",
 	}
 

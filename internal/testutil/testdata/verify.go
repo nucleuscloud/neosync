@@ -45,12 +45,12 @@ func FormatTimeForComparison(t time.Time) string {
 
 func fetchSQLRows(ctx context.Context, db *sql.DB, schema, table, driver, idCol string) (map[string]map[string]any, error) {
 	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Order(goqu.C(idCol).Asc())
-	sql, _, err := query.ToSQL()
+	generatedSql, _, err := query.ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.QueryContext(ctx, sql)
+	rows, err := db.QueryContext(ctx, generatedSql)
 	if err != nil {
 		return nil, err
 	}
@@ -106,10 +106,10 @@ func VerifySQLTableColumnValues(
 	require.NoErrorf(t, err, "Error fetching target rows from table %s", table)
 
 	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Limit(0)
-	sql, _, err := query.ToSQL()
+	generatedSql, _, err := query.ToSQL()
 	require.NoErrorf(t, err, "Error building query for table %s", table)
 
-	rows, err := target.QueryContext(ctx, sql)
+	rows, err := target.QueryContext(ctx, generatedSql)
 	require.NoErrorf(t, err, "Error querying table %s", table)
 	columns, err := rows.Columns()
 	require.NoErrorf(t, err, "Error getting columns for table %s", table)

@@ -14,6 +14,19 @@ updates:
           - patch
     reviewers:
       - nickzelei
+  - package-ecosystem: "gomod"
+    schedule:
+      interval: "daily"
+    labels:
+      - dependencies
+    directory: "tools"
+    groups:
+      golang-minor:
+        update-types:
+          - minor
+          - patch
+    reviewers:
+      - nickzelei
 
   - package-ecosystem: "npm"
     directory: "frontend"

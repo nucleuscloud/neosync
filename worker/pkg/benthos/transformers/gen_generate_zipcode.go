@@ -32,11 +32,11 @@ func NewGenerateZipcodeOpts(
 	}
 	
 	return &GenerateZipcodeOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateZipcodeOpts) BuildBloblangString(	
+func (o *GenerateZipcodeOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

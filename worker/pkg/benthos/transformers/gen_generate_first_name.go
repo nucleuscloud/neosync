@@ -40,13 +40,13 @@ func NewGenerateFirstNameOpts(
 	
 	return &GenerateFirstNameOpts{
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateFirstNameOpts) BuildBloblangString(	
+func (o *GenerateFirstNameOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"max_length:%v",
 	}
 

@@ -35,8 +35,8 @@ source: transform_character_scramble.go
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -50,8 +50,8 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformCharacterScramble(value, { 
-	userProvidedRegex: "",  
+const newValue = neosync.transformCharacterScramble(value, {
+	userProvidedRegex: "", 
 	seed: 1, 
 });
 
@@ -69,8 +69,8 @@ Transforms an existing E164 formatted phone number.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -85,9 +85,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformE164PhoneNumber(value, { 
-	preserveLength: false, 
-	maxLength: 15, 
+const newValue = neosync.transformE164PhoneNumber(value, {
+	preserveLength: false,
+	maxLength: 15,
 	seed: 1, 
 });
 
@@ -105,8 +105,8 @@ Anonymizes and transforms an existing email address.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -125,13 +125,13 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformEmail(value, { 
-	preserveLength: false, 
-	preserveDomain: false, 
-	excludedDomains: [], 
-	maxLength: 100, 
-	seed: 1,  
-	emailType: 'uuidv4', 
+const newValue = neosync.transformEmail(value, {
+	preserveLength: false,
+	preserveDomain: false,
+	excludedDomains: [],
+	maxLength: 100,
+	seed: 1, 
+	emailType: 'uuidv4',
 	invalidEmailAction: 'reject',
 });
 
@@ -149,8 +149,8 @@ Transforms an existing first name
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -165,9 +165,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformFirstName(value, { 
-	maxLength: 100, 
-	preserveLength: false, 
+const newValue = neosync.transformFirstName(value, {
+	maxLength: 100,
+	preserveLength: false,
 	seed: 1, 
 });
 
@@ -185,8 +185,8 @@ Anonymizes and transforms an existing float value.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -203,11 +203,11 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformFloat64(value, { 
-	randomizationRangeMin: 1, 
-	randomizationRangeMax: 10000, 
-	precision: 1,  
-	scale: 1,  
+const newValue = neosync.transformFloat64(value, {
+	randomizationRangeMin: 1,
+	randomizationRangeMax: 10000,
+	precision: 1, 
+	scale: 1, 
 	seed: 1, 
 });
 
@@ -225,8 +225,8 @@ Transforms an existing full name.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -241,9 +241,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformFullName(value, { 
-	maxLength: 100, 
-	preserveLength: false, 
+const newValue = neosync.transformFullName(value, {
+	maxLength: 100,
+	preserveLength: false,
 	seed: 1, 
 });
 
@@ -261,8 +261,8 @@ Anonymizes and transforms an existing int64 value.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -277,9 +277,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformInt64(value, { 
-	randomizationRangeMin: 1, 
-	randomizationRangeMax: 10000, 
+const newValue = neosync.transformInt64(value, {
+	randomizationRangeMin: 1,
+	randomizationRangeMax: 10000,
 	seed: 1, 
 });
 
@@ -297,8 +297,8 @@ Anonymizes and transforms an existing int64 phone number.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -312,8 +312,8 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformInt64PhoneNumber(value, { 
-	preserveLength: false, 
+const newValue = neosync.transformInt64PhoneNumber(value, {
+	preserveLength: false,
 	seed: 1, 
 });
 
@@ -331,8 +331,8 @@ Anonymizes and transforms an existing last name.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -347,9 +347,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformLastName(value, { 
-	maxLength: 100, 
-	preserveLength: false, 
+const newValue = neosync.transformLastName(value, {
+	maxLength: 100,
+	preserveLength: false,
 	seed: 1, 
 });
 
@@ -367,8 +367,8 @@ Anonymizes and transforms an existing string value.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -384,10 +384,10 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformString(value, { 
-	preserveLength: false, 
-	minLength: 1, 
-	maxLength: 100, 
+const newValue = neosync.transformString(value, {
+	preserveLength: false,
+	minLength: 1,
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -405,8 +405,8 @@ Anonymizes and transforms an existing phone number that is typed as a string.
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -421,9 +421,9 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformStringPhoneNumber(value, { 
-	preserveLength: false, 
-	maxLength: 100, 
+const newValue = neosync.transformStringPhoneNumber(value, {
+	preserveLength: false,
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -441,8 +441,8 @@ Transforms an existing UUID to a UUID v5
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**
@@ -455,7 +455,7 @@ Description: Value that will be transformed
 
 ```javascript
 
-const newValue = neosync.transformUuid(value, { 
+const newValue = neosync.transformUuid(value, {
 	seed: 1, 
 });
 
@@ -493,7 +493,7 @@ Generates a random boolean value.
 
 ```javascript
 
-const newValue = neosync.generateBool({ 
+const newValue = neosync.generateBool({
 	seed: 1, 
 });
 
@@ -523,8 +523,8 @@ Generates a random business name between 2 and 35 characters long.
 
 ```javascript
 
-const newValue = neosync.generateBusinessName({ 
-	maxLength: 100, 
+const newValue = neosync.generateBusinessName({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -554,8 +554,8 @@ Generates a 16 digit card number that is valid by Luhn valid by default.
 
 ```javascript
 
-const newValue = neosync.generateCardNumber({ 
-	validLuhn: false, 
+const newValue = neosync.generateCardNumber({
+	validLuhn: false,
 	seed: 1, 
 });
 
@@ -585,8 +585,8 @@ Randomly selects a value from a defined set of categorical values.
 
 ```javascript
 
-const newValue = neosync.generateCategorical({ 
-	categories: "ultimo,proximo,semper", 
+const newValue = neosync.generateCategorical({
+	categories: "ultimo,proximo,semper",
 	seed: 1, 
 });
 
@@ -616,8 +616,8 @@ Randomly selects a city from a list of predefined US cities.
 
 ```javascript
 
-const newValue = neosync.generateCity({ 
-	maxLength: 100, 
+const newValue = neosync.generateCity({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -647,8 +647,8 @@ Randomly selects a country and by default, returns it as a 2-letter country code
 
 ```javascript
 
-const newValue = neosync.generateCountry({ 
-	generateFullName: false, 
+const newValue = neosync.generateCountry({
+	generateFullName: false,
 	seed: 1, 
 });
 
@@ -679,9 +679,9 @@ Generates a new randomized email address.
 
 ```javascript
 
-const newValue = neosync.generateEmail({ 
-	maxLength: 100000, 
-	emailType: 'uuidv4', 
+const newValue = neosync.generateEmail({
+	maxLength: 100000,
+	emailType: 'uuidv4',
 	seed: 1, 
 });
 
@@ -711,8 +711,8 @@ Generates a random first name between 2 and 12 characters long.
 
 ```javascript
 
-const newValue = neosync.generateFirstName({ 
-	maxLength: 100, 
+const newValue = neosync.generateFirstName({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -746,12 +746,12 @@ Generates a random floating point number with a max precision of 17. Go float64 
 
 ```javascript
 
-const newValue = neosync.generateFloat64({ 
-	randomizeSign: false, 
-	min: 1, 
-	max: 10000, 
-	precision: 1,  
-	scale: 1,  
+const newValue = neosync.generateFloat64({
+	randomizeSign: false,
+	min: 1,
+	max: 10000,
+	precision: 1, 
+	scale: 1, 
 	seed: 1, 
 });
 
@@ -781,8 +781,8 @@ Generates a randomly selected real full address that exists in the United States
 
 ```javascript
 
-const newValue = neosync.generateFullAddress({ 
-	maxLength: 100, 
+const newValue = neosync.generateFullAddress({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -812,8 +812,8 @@ Generates a new full name consisting of a first and last name.
 
 ```javascript
 
-const newValue = neosync.generateFullName({ 
-	maxLength: 100, 
+const newValue = neosync.generateFullName({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -844,9 +844,9 @@ Randomly generates one of the following genders: female (f), male (m), undefined
 
 ```javascript
 
-const newValue = neosync.generateGender({ 
-	abbreviate: false, 
-	maxLength: 100, 
+const newValue = neosync.generateGender({
+	abbreviate: false,
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -878,10 +878,10 @@ Generates a random int64 value with a default length of 4.
 
 ```javascript
 
-const newValue = neosync.generateInt64({ 
-	randomizeSign: false, 
-	min: 1, 
-	max: 10000, 
+const newValue = neosync.generateInt64({
+	randomizeSign: false,
+	min: 1,
+	max: 10000,
 	seed: 1, 
 });
 
@@ -910,7 +910,7 @@ Generates a new int64 phone number with a default length of 10.
 
 ```javascript
 
-const newValue = neosync.generateInt64PhoneNumber({ 
+const newValue = neosync.generateInt64PhoneNumber({
 	seed: 1, 
 });
 
@@ -941,9 +941,9 @@ Generates a new random international phone number including the + sign and no hy
 
 ```javascript
 
-const newValue = neosync.generateInternationalPhoneNumber({ 
-	min: 9, 
-	max: 15, 
+const newValue = neosync.generateInternationalPhoneNumber({
+	min: 9,
+	max: 15,
 	seed: 1, 
 });
 
@@ -974,9 +974,9 @@ Generates IPv4 or IPv6 addresses with support for different network classes.
 
 ```javascript
 
-const newValue = neosync.generateIpAddress({ 
-	maxLength: 100000, 
-	ipType: string(IpV4_Public), 
+const newValue = neosync.generateIpAddress({
+	maxLength: 100000,
+	ipType: string(IpV4_Public),
 	seed: 1, 
 });
 
@@ -1006,8 +1006,8 @@ Generates a random last name.
 
 ```javascript
 
-const newValue = neosync.generateLastName({ 
-	maxLength: 100, 
+const newValue = neosync.generateLastName({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -1038,9 +1038,9 @@ Generates a random string of alphanumeric characters..
 
 ```javascript
 
-const newValue = neosync.generateRandomString({ 
-	min: 1, 
-	max: 100, 
+const newValue = neosync.generateRandomString({
+	min: 1,
+	max: 100,
 	seed: 1, 
 });
 
@@ -1095,7 +1095,7 @@ Generates a random social security numbers including the hyphens in the format x
 
 ```javascript
 
-const newValue = neosync.generateSSN({ 
+const newValue = neosync.generateSSN({
 	seed: 1, 
 });
 
@@ -1125,8 +1125,8 @@ Randomly selects a US state and by default, returns it as a 2-letter state code.
 
 ```javascript
 
-const newValue = neosync.generateState({ 
-	generateFullName: false, 
+const newValue = neosync.generateState({
+	generateFullName: false,
 	seed: 1, 
 });
 
@@ -1156,8 +1156,8 @@ Randomly generates a street address.
 
 ```javascript
 
-const newValue = neosync.generateStreetAddress({ 
-	maxLength: 100, 
+const newValue = neosync.generateStreetAddress({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -1188,9 +1188,9 @@ Generates a random 10 digit phone number and returns it as a string with no hyph
 
 ```javascript
 
-const newValue = neosync.generateStringPhoneNumber({ 
-	min: 9, 
-	max: 15, 
+const newValue = neosync.generateStringPhoneNumber({
+	min: 9,
+	max: 15,
 	seed: 1, 
 });
 
@@ -1219,7 +1219,7 @@ Randomly generates a Unix timestamp that is in the past.
 
 ```javascript
 
-const newValue = neosync.generateUnixTimestamp({ 
+const newValue = neosync.generateUnixTimestamp({
 	seed: 1, 
 });
 
@@ -1249,8 +1249,8 @@ Randomly generates a username
 
 ```javascript
 
-const newValue = neosync.generateUsername({ 
-	maxLength: 100, 
+const newValue = neosync.generateUsername({
+	maxLength: 100,
 	seed: 1, 
 });
 
@@ -1279,7 +1279,7 @@ Randomly generates a UTC timestamp.
 
 ```javascript
 
-const newValue = neosync.generateUTCTimestamp({ 
+const newValue = neosync.generateUTCTimestamp({
 	seed: 1, 
 });
 
@@ -1308,7 +1308,7 @@ Generates a new UUIDv4 id.
 
 ```javascript
 
-const newValue = neosync.generateUUID({ 
+const newValue = neosync.generateUUID({
 	includeHyphens: true,
 });
 
@@ -1337,7 +1337,7 @@ Generates a randomly selected US zipcode.
 
 ```javascript
 
-const newValue = neosync.generateZipcode({ 
+const newValue = neosync.generateZipcode({
 	seed: 1, 
 });
 
