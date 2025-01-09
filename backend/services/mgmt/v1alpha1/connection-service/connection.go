@@ -351,9 +351,21 @@ func (s *Service) CreateConnection(
 		return nil, err
 	}
 
-	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	switch cfg := req.Msg.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 		if err := user.EnforceLicense(ctx, req.Msg.GetAccountId()); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		if err := checkUrlEnvVar(cfg.MssqlConfig, s.cfg.IsNeosyncCloud); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if err := checkUrlEnvVar(cfg.MysqlConfig, s.cfg.IsNeosyncCloud); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if err := checkUrlEnvVar(cfg.PgConfig, s.cfg.IsNeosyncCloud); err != nil {
 			return nil, err
 		}
 	}
@@ -404,9 +416,21 @@ func (s *Service) UpdateConnection(
 	if err != nil {
 		return nil, err
 	}
-	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	switch cfg := req.Msg.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 		if err := user.EnforceLicense(ctx, neosyncdb.UUIDString(connection.AccountID)); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		if err := checkUrlEnvVar(cfg.MssqlConfig, s.cfg.IsNeosyncCloud); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if err := checkUrlEnvVar(cfg.MysqlConfig, s.cfg.IsNeosyncCloud); err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if err := checkUrlEnvVar(cfg.PgConfig, s.cfg.IsNeosyncCloud); err != nil {
 			return nil, err
 		}
 	}
@@ -511,4 +535,15 @@ func (s *Service) CheckSqlQuery(
 		IsValid:      err == nil,
 		ErorrMessage: errorMsg,
 	}), nil
+}
+
+type urlEnvVarConfig interface {
+	GetUrlFromEnv() string
+}
+
+func checkUrlEnvVar(cfg urlEnvVarConfig, isNeosyncCloud bool) error {
+	if cfg.GetUrlFromEnv() != "" && isNeosyncCloud {
+		return nucleuserrors.NewBadRequest("url env var is not supported in neosync cloud")
+	}
+	return nil
 }
