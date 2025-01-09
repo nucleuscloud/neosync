@@ -56,15 +56,15 @@ func NewGenerateInt64Opts(
 		randomizeSign: randomizeSign,
 		min: min,
 		max: max,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateInt64Opts) BuildBloblangString(	
+func (o *GenerateInt64Opts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"randomize_sign:%v", 
-		"min:%v", 
+	fnStr := []string{
+		"randomize_sign:%v",
+		"min:%v",
 		"max:%v",
 	}
 

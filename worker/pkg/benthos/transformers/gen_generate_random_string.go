@@ -48,14 +48,14 @@ func NewGenerateRandomStringOpts(
 	return &GenerateRandomStringOpts{
 		min: min,
 		max: max,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateRandomStringOpts) BuildBloblangString(	
+func (o *GenerateRandomStringOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"min:%v", 
+	fnStr := []string{
+		"min:%v",
 		"max:%v",
 	}
 

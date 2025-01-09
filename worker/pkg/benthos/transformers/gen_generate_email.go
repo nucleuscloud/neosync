@@ -48,14 +48,14 @@ func NewGenerateEmailOpts(
 	return &GenerateEmailOpts{
 		maxLength: maxLength,
 		emailType: emailType,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateEmailOpts) BuildBloblangString(	
+func (o *GenerateEmailOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"max_length:%v", 
+	fnStr := []string{
+		"max_length:%v",
 		"email_type:%q",
 	}
 

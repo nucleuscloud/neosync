@@ -32,11 +32,11 @@ func NewGenerateBoolOpts(
 	}
 	
 	return &GenerateBoolOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateBoolOpts) BuildBloblangString(	
+func (o *GenerateBoolOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

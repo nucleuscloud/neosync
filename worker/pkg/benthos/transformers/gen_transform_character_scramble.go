@@ -35,12 +35,12 @@ func NewTransformCharacterScrambleOpts(
 	
 	return &TransformCharacterScrambleOpts{
 		userProvidedRegex: userProvidedRegex,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformCharacterScrambleOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
 		"value:this.%s",

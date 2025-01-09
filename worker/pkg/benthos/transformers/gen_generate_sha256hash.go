@@ -20,11 +20,11 @@ func NewGenerateSHA256Hash() *GenerateSHA256Hash {
 
 func NewGenerateSHA256HashOpts(
 ) (*GenerateSHA256HashOpts, error) {
-	return &GenerateSHA256HashOpts{	
+	return &GenerateSHA256HashOpts{
 	}, nil
 }
 
-func (o *GenerateSHA256HashOpts) BuildBloblangString(	
+func (o *GenerateSHA256HashOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

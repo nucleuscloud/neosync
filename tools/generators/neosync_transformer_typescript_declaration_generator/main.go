@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -23,14 +21,14 @@ func main() {
 	fileSet := token.NewFileSet()
 	transformerSpecs, err := transformers.ExtractBenthosSpec(fileSet)
 	if err != nil {
-		fmt.Println("Error finding transformer bloblang specs:", err)
+		fmt.Println("Error finding transformer bloblang specs:", err) //nolint:forbidigo
 		return
 	}
 
 	for _, tf := range transformerSpecs {
 		parsedSpec, err := transformers.ParseBloblangSpec(tf)
 		if err != nil {
-			fmt.Println("Error parsing bloblang params:", err)
+			fmt.Println("Error parsing bloblang params:", err) //nolint:forbidigo
 		}
 		tf.Params = parsedSpec.Params
 		tf.Description = parsedSpec.SpecDescription
@@ -40,7 +38,7 @@ func main() {
 	for _, tf := range transformerSpecs {
 		ts, err := toDeclarationSpec(tf)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Println(err.Error()) //nolint:forbidigo
 			return
 		}
 		tsDeclarationSpec = append(tsDeclarationSpec, ts)
@@ -48,23 +46,22 @@ func main() {
 
 	codeStr, err := generateTypescriptDeclaration(tsDeclarationSpec)
 	if err != nil {
-		fmt.Println("Error writing to output file:", err)
+		fmt.Println("Error writing to output file:", err) //nolint:forbidigo
 		return
 	}
 
 	outputFile, err := os.Create(docsPath)
 	if err != nil {
-		fmt.Println("Error creating output file:", err)
+		fmt.Println("Error creating output file:", err) //nolint:forbidigo
 		return
 	}
 
 	_, err = outputFile.WriteString(codeStr)
 	if err != nil {
-		fmt.Println("Error writing to output file:", err)
+		fmt.Println("Error writing to output file:", err) //nolint:forbidigo
 		return
 	}
 	outputFile.Close()
-
 }
 
 type tsDeclarationSpec struct {
@@ -155,7 +152,7 @@ declare namespace neosync {
 		{{$param.Name}}{{ if $param.IsOptional }}?{{ else if $param.HasDefault }}?{{end}}: {{$param.TsTypeStr}};
 	{{- end }}
 	}
- 
+
   /**
    * {{$spec.Description}}
    */
@@ -163,9 +160,9 @@ declare namespace neosync {
 
 	{{ end }}
 
-	
+
   /**
-	 * Generators 
+	 * Generators
    */
 	{{ range $i, $spec := .GeneratorSpecs }}
 	export interface {{$spec.InterfaceName}} {
@@ -180,7 +177,7 @@ declare namespace neosync {
    * {{$spec.Description}}
    */
 	declare function {{$spec.Name}}(options: {{$spec.InterfaceName}}): {{$spec.TsReturnTypeStr}};
-	
+
 	{{ end }}
 }`
 

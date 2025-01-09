@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -60,13 +58,13 @@ func main() {
 	for _, tf := range transformerFuncs {
 		parsedSpec, err := transformers.ParseBloblangSpec(tf)
 		if err != nil {
-			fmt.Println("Error parsing bloblang params:", err)
+			fmt.Println("Error parsing bloblang params:", err) //nolint:forbidigo
 		}
 		tf.Params = sanitizeParamDefaults(parsedSpec.Params)
 		tf.Description = parsedSpec.SpecDescription
 		exampleStr, err := generateExample(tf)
 		if err != nil {
-			fmt.Println("Error generating example:", err)
+			fmt.Println("Error generating example:", err) //nolint:forbidigo
 			return
 		}
 		tf.Example = exampleStr
@@ -74,19 +72,19 @@ func main() {
 
 	codeStr, err := generateCode(transformerFuncs)
 	if err != nil {
-		fmt.Println("Error writing to output file:", err)
+		fmt.Println("Error writing to output file:", err) //nolint:forbidigo
 		return
 	}
 
 	outputFile, err := os.Create(docsPath)
 	if err != nil {
-		fmt.Println("Error creating output file:", err)
+		fmt.Println("Error creating output file:", err) //nolint:forbidigo
 		return
 	}
 
 	_, err = outputFile.WriteString(codeStr)
 	if err != nil {
-		fmt.Println("Error writing to output file:", err)
+		fmt.Println("Error writing to output file:", err) //nolint:forbidigo
 		return
 	}
 	outputFile.Close()
@@ -128,13 +126,13 @@ const newValue = neosync.{{.BenthosSpec.Name}}(value, {});
 const newValue = neosync.{{.BenthosSpec.Name}}(value, {
 {{- range $i, $param := .BenthosSpec.Params -}}
 {{- if eq $param.Name "value" -}}{{ continue }}{{- end -}}
-	{{ if $param.HasDefault }} 
-	{{ if eq $param.Name "seed" -}} 
+	{{ if $param.HasDefault }}
+	{{ if eq $param.Name "seed" -}}
 	{{$param.Name}}: 1,
 	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
 	{{- end }}
-	{{- else }} 
+	{{- else }}
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
 	{{ if eq $param.TypeStr "float64"}}{{$param.Name}}: 1.12, {{ end -}}
@@ -150,13 +148,13 @@ const newValue = neosync.{{.BenthosSpec.Name}}({});
 {{- else }}
 const newValue = neosync.{{.BenthosSpec.Name}}({
 	{{- range $i, $param := .BenthosSpec.Params -}}
-	{{ if $param.HasDefault }} 
-	{{ if eq $param.Name "seed" -}} 
+	{{ if $param.HasDefault }}
+	{{ if eq $param.Name "seed" -}}
 	{{$param.Name}}: 1,
 	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
 	{{- end }}
-	{{- else }} 
+	{{- else }}
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
 	{{ if eq $param.TypeStr "float64"}}{{$param.Name}}: 1.12, {{ end -}}
@@ -226,8 +224,8 @@ source: {{$bs.SourceFile}}
 
 **Parameters**
 
-**Value**  
-Type: Any  
+**Value**
+Type: Any
 Description: Value that will be transformed
 
 **Config**

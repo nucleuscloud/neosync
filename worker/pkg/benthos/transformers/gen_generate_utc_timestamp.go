@@ -32,11 +32,11 @@ func NewGenerateUTCTimestampOpts(
 	}
 	
 	return &GenerateUTCTimestampOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateUTCTimestampOpts) BuildBloblangString(	
+func (o *GenerateUTCTimestampOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

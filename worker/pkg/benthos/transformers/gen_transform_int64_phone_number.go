@@ -40,15 +40,15 @@ func NewTransformInt64PhoneNumberOpts(
 	
 	return &TransformInt64PhoneNumberOpts{
 		preserveLength: preserveLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformInt64PhoneNumberOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
-		"value:this.%s", 
+		"value:this.%s",
 		"preserve_length:%v",
 	}
 

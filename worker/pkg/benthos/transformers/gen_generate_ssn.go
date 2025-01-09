@@ -32,11 +32,11 @@ func NewGenerateSSNOpts(
 	}
 	
 	return &GenerateSSNOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateSSNOpts) BuildBloblangString(	
+func (o *GenerateSSNOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

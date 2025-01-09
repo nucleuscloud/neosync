@@ -48,16 +48,16 @@ func NewTransformInt64Opts(
 	return &TransformInt64Opts{
 		randomizationRangeMin: randomizationRangeMin,
 		randomizationRangeMax: randomizationRangeMax,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformInt64Opts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
-		"value:this.%s", 
-		"randomization_range_min:%v", 
+		"value:this.%s",
+		"randomization_range_min:%v",
 		"randomization_range_max:%v",
 	}
 

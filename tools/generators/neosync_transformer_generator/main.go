@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -149,9 +147,9 @@ func New{{.StructName}}Opts(
 	}
 	{{ else if $param.HasDefault }}
 	{{- if eq $param.TypeStr "any" }}
-	var {{$param.Name}} any 
+	var {{$param.Name}} any
 	{{- else}}
-	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
+	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}})
 	{{- end }}
 	if {{$param.Name}}Arg != nil {
 		{{$param.Name}} = *{{$param.Name}}Arg
@@ -160,27 +158,27 @@ func New{{.StructName}}Opts(
 {{- end }}
 	return &{{.StructName}}Opts{
 {{- range $index, $param := .FunctInfo.Params }}
-    {{- if eq $param.Name "value" }}{{ continue }}{{ end }}	
+    {{- if eq $param.Name "value" }}{{ continue }}{{ end }}
 		{{- if eq $param.Name "seed" }}
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 		{{- else }}
 		{{$param.Name}}: {{$param.Name}},
     {{- end }}
-{{- end }}	
+{{- end }}
 	}, nil
 }
 
 func (o *{{.StructName}}Opts) BuildBloblangString(
 {{- if .IsTransformer }}
 	valuePath string,
-{{- end }}	
+{{- end }}
 ) string {
 	fnStr := []string{
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "value" }}
 		"value:this.%s",
-	{{- else if not $param.IsOptional }} 
+	{{- else if not $param.IsOptional }}
 		"{{$param.BloblangName}}:{{- if eq $param.TypeStr "string" }}%q{{else}}%v{{end}}",
 	{{- end }}
 	{{- end }}

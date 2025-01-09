@@ -48,16 +48,16 @@ func NewTransformFullNameOpts(
 	return &TransformFullNameOpts{
 		maxLength: maxLength,
 		preserveLength: preserveLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformFullNameOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"max_length:%v",
-		"value:this.%s", 
+		"value:this.%s",
 		"preserve_length:%v",
 	}
 
