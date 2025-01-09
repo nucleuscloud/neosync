@@ -1,11 +1,14 @@
 package dbconnectconfig
 
 import (
+	"fmt"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -204,6 +207,49 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 				actual.String(),
 			)
 			assert.Equal(t, "test-user", actual.GetUser())
+		})
+	})
+
+	t.Run("URL from Env", func(t *testing.T) {
+		t.Run("ok", func(t *testing.T) {
+			viper.Set(fmt.Sprintf("%s%s", userDefinedEnvPrefix, "MYSQL_URL"), "mysql://test-user:testpass@localhost:3309/mydb")
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv{
+							UrlFromEnv: "USER_DEFINED_MYSQL_URL",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				testutil.GetTestLogger(t),
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("error_no_prefix", func(t *testing.T) {
+			viper.Set("MYSQL_URL_NO_PREFIX", "mysql://test-user:testpass@localhost:3309/mydb")
+
+			_, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv{
+							UrlFromEnv: "MYSQL_URL_NO_PREFIX",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				testutil.GetTestLogger(t),
+				false,
+			)
+			require.Error(t, err)
 		})
 	})
 }

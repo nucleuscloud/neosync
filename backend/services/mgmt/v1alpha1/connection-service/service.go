@@ -20,6 +20,7 @@ type Service struct {
 }
 
 type Config struct {
+	IsNeosyncCloud bool
 }
 
 func New(

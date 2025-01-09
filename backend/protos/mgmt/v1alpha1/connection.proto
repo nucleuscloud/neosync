@@ -133,6 +133,10 @@ message MssqlConnectionConfig {
     option (buf.validate.oneof).required = true;
     // The URL with sqlserver scheme.
     string url = 1;
+    // Source a url from an environment variable.
+    // The value is expected to be in the same format as the "url" field above.
+    // The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+    string url_from_env = 5;
   }
 
   SqlConnectionOptions connection_options = 2;
@@ -189,6 +193,10 @@ message PostgresConnectionConfig {
 
     string url = 1;
     PostgresConnection connection = 2;
+    // Source a url from an environment variable.
+    // The value is expected to be in the same format as the "url" field above.
+    // The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+    string url_from_env = 6;
   }
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
@@ -300,6 +308,10 @@ message MysqlConnectionConfig {
 
     string url = 1;
     MysqlConnection connection = 2;
+    // Source a url from an environment variable.
+    // The value is expected to be in the same format as the "url" field above.
+    // The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+    string url_from_env = 6;
   }
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet

@@ -3,12 +3,14 @@ import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   Connection,
-  MysqlConnection,
-  PostgresConnection,
+  PostgresConnectionConfig,
   SSHAuthentication,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
+import { getMysqlConnectionFormValues } from '../../../new/connection/mysql/MysqlForm';
+import { getPgConnectionFormValues } from '../../../new/connection/postgres/PostgresForm';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
@@ -33,6 +35,27 @@ interface GetConnectionComponentDetailsProps {
   subHeading?: ReactElement;
 }
 
+function getPgHeaderType(
+  connection: PostgresConnectionConfig
+): 'generic' | 'neon' {
+  switch (connection.connectionConfig.case) {
+    case 'connection':
+      if (connection.connectionConfig.value.host.includes('neon')) {
+        return 'neon';
+      }
+      return 'generic';
+    case 'url':
+      if (connection.connectionConfig.value.includes('neon')) {
+        return 'neon';
+      }
+      return 'generic';
+    case 'urlFromEnv':
+      return 'generic';
+    default:
+      return 'generic';
+  }
+}
+
 export function getConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
@@ -40,51 +63,12 @@ export function getConnectionComponentDetails(
     props;
 
   switch (connection?.connectionConfig?.config?.case) {
-    case 'pgConfig':
+    case 'pgConfig': {
       const value = connection.connectionConfig.config.value;
-      let pgConfig: PostgresConnection | string | undefined;
-
-      let dbConfig = {
-        host: '',
-        name: '',
-        user: '',
-        pass: '',
-        port: 5432,
-        sslMode: 'disable',
-      };
-
-      // define header type for postgres, either generic postgres or neon
-      let headerType = 'generic';
-
-      switch (value.connectionConfig.case) {
-        case 'connection':
-          pgConfig = value.connectionConfig.value;
-          dbConfig = {
-            host: pgConfig.host ?? '',
-            name: pgConfig.name ?? '',
-            user: pgConfig.user ?? '',
-            pass: pgConfig.pass ?? '',
-            port: pgConfig.port ?? 5432,
-            sslMode: pgConfig.sslMode ?? 'disable',
-          };
-          if (pgConfig.host.includes('neon')) {
-            headerType = 'neon';
-          } else {
-            headerType = 'generic';
-          }
-          break;
-        case 'url':
-          pgConfig = value.connectionConfig.value;
-          if (pgConfig.includes('neon')) {
-            headerType = 'neon';
-          } else {
-            headerType = 'generic';
-          }
-          break;
-        default:
-          pgConfig = value.connectionConfig.value;
-          dbConfig = dbConfig;
-      }
+      const headerType = getPgHeaderType(value);
+      const { db, url, envVar } = getPgConnectionFormValues(
+        connection.connectionConfig.config.value
+      );
 
       return {
         name: connection.name,
@@ -115,8 +99,9 @@ export function getConnectionComponentDetails(
             connectionId={connection.id}
             defaultValues={{
               connectionName: connection.name,
-              db: dbConfig,
-              url: typeof pgConfig === 'string' ? pgConfig : '',
+              db,
+              url,
+              envVar,
               options: {
                 maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
                 maxIdleDuration: value.connectionOptions?.maxIdleDuration,
@@ -161,40 +146,13 @@ export function getConnectionComponentDetails(
           />
         ),
       };
+    }
 
-    case 'mysqlConfig':
+    case 'mysqlConfig': {
       const mysqlValue = connection.connectionConfig.config.value;
-
-      let mysqlConfig: MysqlConnection | string | undefined;
-
-      let mysqldbConfig = {
-        host: '',
-        name: '',
-        user: '',
-        pass: '',
-        port: 5432,
-        protocol: '',
-      };
-
-      switch (mysqlValue.connectionConfig.case) {
-        case 'connection':
-          mysqlConfig = mysqlValue.connectionConfig.value;
-          mysqldbConfig = {
-            host: mysqlConfig.host,
-            name: mysqlConfig.name,
-            user: mysqlConfig.user,
-            pass: mysqlConfig.pass,
-            port: mysqlConfig.port,
-            protocol: mysqlConfig.protocol,
-          };
-          break;
-        case 'url':
-          mysqlConfig = mysqlValue.connectionConfig.value;
-          break;
-        default:
-          mysqlConfig = mysqlValue.connectionConfig.value;
-          mysqldbConfig = mysqldbConfig;
-      }
+      const { db, url, envVar } = getMysqlConnectionFormValues(
+        connection.connectionConfig.config.value
+      );
 
       return {
         name: connection.name,
@@ -216,8 +174,9 @@ export function getConnectionComponentDetails(
             connectionId={connection.id}
             defaultValues={{
               connectionName: connection.name,
-              db: mysqldbConfig,
-              url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
+              db,
+              url,
+              envVar,
               options: {
                 maxConnectionLimit:
                   mysqlValue.connectionOptions?.maxConnectionLimit,
@@ -263,6 +222,7 @@ export function getConnectionComponentDetails(
           />
         ),
       };
+    }
 
     case 'awsS3Config':
       return {
@@ -509,16 +469,9 @@ export function getConnectionComponentDetails(
     }
     case 'mssqlConfig': {
       const mssqlValue = connection.connectionConfig.config.value;
-
-      let mssqlConfig: string | undefined;
-
-      switch (mssqlValue.connectionConfig.case) {
-        case 'url':
-          mssqlConfig = mssqlValue.connectionConfig.value;
-          break;
-        default:
-          mssqlConfig = mssqlValue.connectionConfig.value;
-      }
+      const { url, envVar } = getMssqlConnectionFormValues(
+        connection.connectionConfig.config.value
+      );
 
       return {
         name: connection.name,
@@ -540,9 +493,8 @@ export function getConnectionComponentDetails(
             connectionId={connection.id}
             defaultValues={{
               connectionName: connection.name,
-              db: {
-                url: typeof mssqlConfig === 'string' ? mssqlConfig : '',
-              },
+              url,
+              envVar,
               options: {
                 maxConnectionLimit:
                   mssqlValue.connectionOptions?.maxConnectionLimit,
