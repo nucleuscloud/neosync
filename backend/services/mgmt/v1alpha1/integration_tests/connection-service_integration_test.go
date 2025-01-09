@@ -223,6 +223,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 	t := s.T()
 
+	// todo: add tests for switching the connection type and enforcing what happens there.
+
 	t.Run("OSS Unauthenticated Licensed", func(t *testing.T) {
 		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 		client := s.OSSUnauthenticatedLicensedClients.Connections()
