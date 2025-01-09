@@ -155,7 +155,7 @@ func (r *Rbac) SetupNewAccount(
 		for _, policy := range accountRules {
 			err := setPolicy(r.e, policy)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to add policy for account %s: %w", accountId, err)
 			}
 		}
 	}
@@ -255,7 +255,10 @@ func (r *Rbac) SetAccountRole(
 	}
 
 	_, err = r.e.AddRoleForUserInDomain(user.String(), roleName, account.String())
-	return err
+	if err != nil && !neosyncdb.IsConflict(err) {
+		return fmt.Errorf("unable to add role for user in domain: %w", err)
+	}
+	return nil
 }
 
 // For the given user and account, removes the given role
@@ -396,7 +399,7 @@ func setPolicy(e casbin.IEnforcer, policy []string) error {
 	}
 	if !ok {
 		_, err = e.AddPolicy(policy) // always resolves to true even if it was not added, may be adapter dependent
-		if err != nil {
+		if err != nil && !neosyncdb.IsConflict(err) {
 			return fmt.Errorf("unable to add policy: %w", err)
 		}
 	}

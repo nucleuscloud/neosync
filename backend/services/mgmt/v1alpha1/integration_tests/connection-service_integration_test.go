@@ -63,6 +63,35 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CheckConnectionConfig() {
 func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 	t := s.T()
 
+	t.Run("Neosync Cloud Authenticated", func(t *testing.T) {
+		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		integrationtests_test.SetUser(s.ctx, t, userclient)
+		// doing a team account here as getting weird errors due to the OSS accuont being shared for some reason
+		// I think due to the unauthenticated client being used where rbac is not set up originally so the permissions are missing
+		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-account", "cus_P00000000000000000000000")
+		client := s.NeosyncCloudAuthenticatedLicensedClients.Connections(integrationtests_test.WithUserId(testAuthUserId))
+		t.Run("postgres-envvar-failure", func(t *testing.T) {
+			resp, err := client.CreateConnection(
+				s.ctx,
+				connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
+					AccountId: accountId,
+					Name:      uuid.NewString(),
+					ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+						Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+							PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+								ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv{
+									UrlFromEnv: "foo",
+								},
+							},
+						},
+					},
+				}),
+			)
+			requireErrResp(t, resp, err)
+			requireConnectError(t, err, connect.CodeInvalidArgument)
+		})
+	})
+
 	t.Run("OSS Unauthenticated Licensed", func(t *testing.T) {
 		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
 		client := s.OSSUnauthenticatedLicensedClients.Connections()
@@ -168,6 +197,25 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 			)
 			requireErrResp(t, resp, err)
 			requireConnectError(t, err, connect.CodePermissionDenied)
+		})
+		t.Run("pg-envvar-success", func(t *testing.T) {
+			resp, err := client.CreateConnection(
+				s.ctx,
+				connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
+					AccountId: accountId,
+					Name:      uuid.NewString(),
+					ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+						Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+							PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+								ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv{
+									UrlFromEnv: "foo",
+								},
+							},
+						},
+					},
+				}),
+			)
+			requireNoErrResp(t, resp, err)
 		})
 	})
 }
