@@ -69,19 +69,19 @@ func (t *GenerateCity) Generate(opts any) (any, error) {
 	return generateRandomCity(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 
-// Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength. If not, it randomly generates a string that len(string) == maxLength
+// Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength.
 func generateRandomCity(randomizer rng.Rand, maxLength int64) (string, error) {
-	var filteredCities []string
-	for _, address := range transformers_dataset.Addresses {
-		if len(address.City) <= int(maxLength) {
-			filteredCities = append(filteredCities, address.City)
-		}
+	output, err := transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.Address_Citys,
+		transformers_dataset.Address_CityMap,
+		transformers_dataset.Address_CityIndices,
+		nil,
+		maxLength,
+		nil,
+	)
+	if err != nil {
+		return transformer_utils.GenerateRandomStringWithInclusiveBounds(randomizer, 1, maxLength)
 	}
-
-	if len(filteredCities) == 0 {
-		return transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength)
-	}
-
-	randomIndex := randomizer.Intn(len(filteredCities))
-	return filteredCities[randomIndex], nil
+	return output, nil
 }

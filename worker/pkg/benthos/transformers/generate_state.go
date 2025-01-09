@@ -34,7 +34,11 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			return generateRandomState(randomizer, generateFullName), nil
+			val, err := generateRandomState(randomizer, generateFullName)
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_state: %w", err)
+			}
+			return val, nil
 		}, nil
 	})
 	if err != nil {
@@ -54,7 +58,7 @@ func (t *GenerateState) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-	return generateRandomState(parsedOpts.randomizer, parsedOpts.generateFullName), nil
+	return generateRandomState(parsedOpts.randomizer, parsedOpts.generateFullName)
 }
 
 /*
@@ -62,10 +66,25 @@ Generates a randomly selected state that exists in the United States.
 
 By default, it returns the 2-letter state code i.e. California will return CA. However, this is configurable using the Generate Full Name parameter which, when set to true, will return the full name of the state starting with a capitalized letter.
 */
-func generateRandomState(randomizer rng.Rand, generateFullName bool) string {
-	randomIndex := randomizer.Intn(len(transformers_dataset.States))
+func generateRandomState(randomizer rng.Rand, generateFullName bool) (string, error) {
 	if generateFullName {
-		return transformers_dataset.States[randomIndex].FullName
+		return transformer_utils.GenerateStringFromCorpus(
+			randomizer,
+			transformers_dataset.UsStates,
+			transformers_dataset.UsStateMap,
+			transformers_dataset.UsStateIndices,
+			nil,
+			10000,
+			nil,
+		)
 	}
-	return transformers_dataset.States[randomIndex].Code
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.UsStateCodes,
+		transformers_dataset.UsStateCodeMap,
+		transformers_dataset.UsStateCodeIndices,
+		nil,
+		10000,
+		nil,
+	)
 }
