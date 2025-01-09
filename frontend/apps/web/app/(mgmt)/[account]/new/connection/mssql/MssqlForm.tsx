@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import OSSOnlyGuard from '@/components/guards/OSSOnlyGuard';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
@@ -288,10 +289,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               <RadioGroupItem value="url" id="r2" />
               <Label htmlFor="r2">URL</Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="url-env" id="r3" />
-              <Label htmlFor="r3">Environment Variable</Label>
-            </div>
+            <OSSOnlyGuard>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="url-env" id="r3" />
+                <Label htmlFor="r3">Environment Variable</Label>
+              </div>
+            </OSSOnlyGuard>
           </div>
         </RadioGroup>
 
