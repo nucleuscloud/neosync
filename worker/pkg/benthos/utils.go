@@ -50,7 +50,6 @@ func IsCriticalError(errMsg string) bool {
 
 // checks if the error message is critical for the generate job
 func IsGenerateJobCriticalError(errMsg string) bool {
-	// list of known error messages for when max connections are reached
 	criticalErrors := []string{
 		"violates foreign key constraint",
 		"cannot add or update a child row",
