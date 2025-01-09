@@ -192,10 +192,22 @@ export type PostgresDbDestinationOptionsFormValues = Yup.InferType<
   typeof PostgresDbDestinationOptionsFormValues
 >;
 
+const MysqlDbDestinationConflictStrategy = Yup.object({
+  onConflictDoNothing: Yup.boolean().default(false),
+  onConflictDoUpdate: Yup.boolean().default(false),
+}).test(
+  'only-one-conflict-strategy',
+  'Only one conflict strategy can be enabled at a time',
+  (value) => {
+    if (!value) return true;
+    return !(value.onConflictDoNothing && value.onConflictDoUpdate);
+  }
+);
+
 const MysqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
-  onConflictDoNothing: Yup.boolean().optional().default(false),
+  conflictStrategy: MysqlDbDestinationConflictStrategy.optional(),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
   maxInFlight: Yup.number()
     .min(1, 'Must be greater than or equal to 1')
