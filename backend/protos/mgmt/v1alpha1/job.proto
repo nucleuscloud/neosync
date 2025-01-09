@@ -269,7 +269,39 @@ message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
 }
 message MysqlOnConflictConfig {
+  // @deprecated - Use strategy nothing instead
   bool do_nothing = 1;
+
+  oneof strategy {
+    option (buf.validate.oneof).required = true;
+    // Do nothing when a conflict occurs
+    MysqlOnConflictDoNothing nothing = 1;
+    // Update columns when a conflict occurs
+    MysqlOnConflictUpdate update = 2;
+  }
+
+  // Do nothing strategy
+  message MysqlOnConflictDoNothing {}
+
+  // Update strategy
+  message MysqlOnConflictUpdate {
+    // // List of table-specific update configurations
+    // repeated MysqlOnConflictSchemaUpdate schemas = 1;
+  }
+
+  // message MysqlOnConflictSchemaUpdate {
+  //   // The schema this configuration applies to
+  //   string schema = 1 [(buf.validate.field).string.min_len = 1];
+  //   // List of table-specific update configurations
+  //   repeated MysqlOnConflictTableUpdate tables = 2 [(buf.validate.field).repeated.min_items = 1];
+  // }
+
+  // message MysqlOnConflictTableUpdate {
+  //   // The table this configuration applies to
+  //   string table = 1 [(buf.validate.field).string.min_len = 1];
+  //   // The columns to update on conflict
+  //   repeated string columns = 2 [(buf.validate.field).repeated.min_items = 1];
+  // }
 }
 
 message MssqlDestinationConnectionOptions {
@@ -284,8 +316,7 @@ message MssqlDestinationConnectionOptions {
   BatchConfig batch = 5;
   // Determines the maximum number of parallel batched inserts.
   optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
-}
-message MssqlTruncateTableConfig {
+}message MssqlTruncateTableConfig {
   bool truncate_before_insert = 1;
 }
 message MssqlOnConflictConfig {
