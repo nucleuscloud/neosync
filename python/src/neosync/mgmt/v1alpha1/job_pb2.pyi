@@ -424,10 +424,20 @@ class MysqlTruncateTableConfig(_message.Message):
     def __init__(self, truncate_before_insert: bool = ...) -> None: ...
 
 class MysqlOnConflictConfig(_message.Message):
-    __slots__ = ("do_nothing",)
+    __slots__ = ("do_nothing", "nothing", "update")
+    class MysqlOnConflictDoNothing(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class MysqlOnConflictUpdate(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
     DO_NOTHING_FIELD_NUMBER: _ClassVar[int]
+    NOTHING_FIELD_NUMBER: _ClassVar[int]
+    UPDATE_FIELD_NUMBER: _ClassVar[int]
     do_nothing: bool
-    def __init__(self, do_nothing: bool = ...) -> None: ...
+    nothing: MysqlOnConflictConfig.MysqlOnConflictDoNothing
+    update: MysqlOnConflictConfig.MysqlOnConflictUpdate
+    def __init__(self, do_nothing: bool = ..., nothing: _Optional[_Union[MysqlOnConflictConfig.MysqlOnConflictDoNothing, _Mapping]] = ..., update: _Optional[_Union[MysqlOnConflictConfig.MysqlOnConflictUpdate, _Mapping]] = ...) -> None: ...
 
 class MssqlDestinationConnectionOptions(_message.Message):
     __slots__ = ("truncate_table", "init_table_schema", "on_conflict", "skip_foreign_key_violations", "batch", "max_in_flight")

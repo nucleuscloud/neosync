@@ -12581,12 +12581,12 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "do_nothing",
-              "description": "",
+              "description": "@deprecated - Use strategy nothing instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12595,8 +12595,54 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "nothing",
+              "description": "Do nothing when a conflict occurs",
+              "label": "",
+              "type": "MysqlOnConflictDoNothing",
+              "longType": "MysqlOnConflictConfig.MysqlOnConflictDoNothing",
+              "fullType": "mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "update",
+              "description": "Update columns when a conflict occurs",
+              "label": "",
+              "type": "MysqlOnConflictUpdate",
+              "longType": "MysqlOnConflictConfig.MysqlOnConflictUpdate",
+              "fullType": "mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictUpdate",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "MysqlOnConflictDoNothing",
+          "longName": "MysqlOnConflictConfig.MysqlOnConflictDoNothing",
+          "fullName": "mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing",
+          "description": "Do nothing strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MysqlOnConflictUpdate",
+          "longName": "MysqlOnConflictConfig.MysqlOnConflictUpdate",
+          "fullName": "mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictUpdate",
+          "description": "Update strategy\n\n// List of table-specific update configurations\nrepeated MysqlOnConflictSchemaUpdate schemas = 1;",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "MysqlSourceConnectionOptions",

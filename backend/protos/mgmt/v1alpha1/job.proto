@@ -275,9 +275,9 @@ message MysqlOnConflictConfig {
   oneof strategy {
     option (buf.validate.oneof).required = true;
     // Do nothing when a conflict occurs
-    MysqlOnConflictDoNothing nothing = 1;
+    MysqlOnConflictDoNothing nothing = 2;
     // Update columns when a conflict occurs
-    MysqlOnConflictUpdate update = 2;
+    MysqlOnConflictUpdate update = 3;
   }
 
   // Do nothing strategy
@@ -316,7 +316,8 @@ message MssqlDestinationConnectionOptions {
   BatchConfig batch = 5;
   // Determines the maximum number of parallel batched inserts.
   optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
-}message MssqlTruncateTableConfig {
+}
+message MssqlTruncateTableConfig {
   bool truncate_before_insert = 1;
 }
 message MssqlOnConflictConfig {

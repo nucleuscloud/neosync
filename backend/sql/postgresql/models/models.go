@@ -1651,17 +1651,48 @@ func (m *MysqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MysqlDestinationConn
 }
 
 type MysqlOnConflictConfig struct {
+	// @deprecated
 	DoNothing bool `json:"doNothing"`
+
+	OnConflictStrategy *MysqlOnConflictStrategy `json:"onConflictStrategy,omitempty"`
 }
 
+type MysqlOnConflictStrategy struct {
+	Nothing *MysqlDoNothingStrategy `json:"doNothing,omitempty"`
+	Update  *MysqlUpdateStrategy    `json:"update,omitempty"`
+}
+
+type MysqlDoNothingStrategy struct{}
+type MysqlUpdateStrategy struct{}
+
 func (t *MysqlOnConflictConfig) ToDto() *mgmtv1alpha1.MysqlOnConflictConfig {
+	if t.OnConflictStrategy != nil && t.OnConflictStrategy.Update != nil {
+		return &mgmtv1alpha1.MysqlOnConflictConfig{
+			Strategy: &mgmtv1alpha1.MysqlOnConflictConfig_Update{},
+		}
+	}
+	if (t.OnConflictStrategy != nil && t.OnConflictStrategy.Nothing != nil) || t.DoNothing {
+		return &mgmtv1alpha1.MysqlOnConflictConfig{
+			Strategy: &mgmtv1alpha1.MysqlOnConflictConfig_Nothing{},
+		}
+	}
 	return &mgmtv1alpha1.MysqlOnConflictConfig{
-		DoNothing: t.DoNothing,
+		Strategy: nil,
 	}
 }
 
 func (t *MysqlOnConflictConfig) FromDto(dto *mgmtv1alpha1.MysqlOnConflictConfig) {
-	t.DoNothing = dto.DoNothing
+	if dto.GetUpdate() != nil {
+		t.OnConflictStrategy = &MysqlOnConflictStrategy{
+			Update: &MysqlUpdateStrategy{},
+		}
+	} else if dto.GetNothing() != nil || t.DoNothing {
+		t.OnConflictStrategy = &MysqlOnConflictStrategy{
+			Nothing: &MysqlDoNothingStrategy{},
+		}
+	} else {
+		t.OnConflictStrategy = nil
+	}
 }
 
 type MysqlTruncateTableConfig struct {

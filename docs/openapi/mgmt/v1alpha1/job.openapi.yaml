@@ -3939,12 +3939,58 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.MysqlOnConflictConfig:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - nothing
+            - required:
+                - update
+            - not:
+                anyOf:
+                  - required:
+                      - nothing
+                  - required:
+                      - update
+      anyOf:
+        - required:
+            - nothing
+        - required:
+            - update
+        - not:
+            anyOf:
+              - required:
+                  - nothing
+              - required:
+                  - update
       properties:
         doNothing:
           type: boolean
           title: do_nothing
+          description: '@deprecated - Use strategy nothing instead'
+        nothing:
+          allOf:
+            - title: nothing
+              description: Do nothing when a conflict occurs
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing'
+        update:
+          allOf:
+            - title: update
+              description: Update columns when a conflict occurs
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictUpdate'
       title: MysqlOnConflictConfig
       additionalProperties: false
+    mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing:
+      type: object
+      title: MysqlOnConflictDoNothing
+      additionalProperties: false
+      description: Do nothing strategy
+    mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictUpdate:
+      type: object
+      title: MysqlOnConflictUpdate
+      additionalProperties: false
+      description: |-
+        Update strategy // List of table-specific update configurations
+         repeated MysqlOnConflictSchemaUpdate schemas = 1;
     mgmt.v1alpha1.MysqlSourceConnectionOptions:
       type: object
       properties:
