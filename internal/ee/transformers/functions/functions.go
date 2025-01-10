@@ -47,6 +47,7 @@ func TransformPiiText(
 	if err != nil {
 		return "", fmt.Errorf("unable to build default anonymizer: %w", err)
 	}
+	// The key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER)
 	anonymizers := map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
 	if ok {
 		anonymizers["DEFAULT"] = *defaultAnon

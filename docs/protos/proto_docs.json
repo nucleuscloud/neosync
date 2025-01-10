@@ -1686,7 +1686,7 @@
           "fields": [
             {
               "name": "value",
-              "description": "The value to replace. If not provided, a template token of the anonymizer is used.",
+              "description": "The value to replace. If not provided, a template token of the anonymizer is used (e.g. A PERSON entity is replaced with: \u003cPERSON\u003e)",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -2246,6 +2246,54 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_language",
+              "defaultValue": ""
+            },
+            {
+              "name": "entity_anonymizers",
+              "description": "A map of entity names to anonymizer configurations.\nThe key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) which can be found via the GetPiiTextEntities() RPC method.\nThe value in this map corresponds to the anonymizer configuration to use for that entity.\nIf not provided, the default_anonymizer will be used.",
+              "label": "repeated",
+              "type": "EntityAnonymizersEntry",
+              "longType": "TransformPiiText.EntityAnonymizersEntry",
+              "fullType": "mgmt.v1alpha1.TransformPiiText.EntityAnonymizersEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "EntityAnonymizersEntry",
+          "longName": "TransformPiiText.EntityAnonymizersEntry",
+          "fullName": "mgmt.v1alpha1.TransformPiiText.EntityAnonymizersEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "PiiAnonymizer",
+              "longType": "PiiAnonymizer",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
