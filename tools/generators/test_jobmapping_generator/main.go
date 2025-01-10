@@ -110,7 +110,7 @@ func parseSQLStatements(sql string) []*Table {
 					continue
 				}
 				isGenerated := false
-				if strings.Contains(line, "GENERATED ALWAYS AS") {
+				if strings.Contains(line, "GENERATED ALWAYS AS") || strings.Contains(line, "STORED") || strings.Contains(line, "VIRTUAL") {
 					isGenerated = true
 				}
 				tableColumnsMap[currentTable] = append(tableColumnsMap[currentTable], &Column{

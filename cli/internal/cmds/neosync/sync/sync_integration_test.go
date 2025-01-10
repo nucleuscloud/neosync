@@ -329,7 +329,7 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
-			rowCount, err = mysql.Target.GetTableRowCount(ctx, "humanresources", "generated_table")
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, alltypesSchema, "generated_table")
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
@@ -339,6 +339,7 @@ func Test_Sync(t *testing.T) {
 
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "json_data", "mysql", "id")
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "all_data_types", "mysql", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "generated_table", "mysql", "id")
 		})
 
 		t.Run("S3_end_to_end", func(t *testing.T) {
@@ -437,8 +438,13 @@ func Test_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.Greater(t, rowCount, 1)
 
+			rowCount, err = mysql.Target.GetTableRowCount(ctx, alltypesSchema, "generated_table")
+			require.NoError(t, err)
+			require.Greater(t, rowCount, 1)
+
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "json_data", "mysql", "id")
 			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "all_data_types", "mysql", "id")
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "generated_table", "mysql", "id")
 		})
 
 		t.Cleanup(func() {

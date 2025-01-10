@@ -132,3 +132,31 @@ INSERT INTO json_data (data) VALUES (
         }
     }'
 );
+
+-- table with generated columns
+CREATE TABLE IF NOT EXISTS generated_table (
+	  -- Auto Incremented column
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    discount_percent DECIMAL(5,2) DEFAULT 0,
+    
+    -- Virtual generated column 
+    total_value DECIMAL(12,2) AS (price * quantity) VIRTUAL,
+    
+    -- Stored generated column 
+    discounted_price DECIMAL(10,2) AS (price * (1 - discount_percent/100)) STORED
+);
+
+
+INSERT INTO generated_table (price, quantity, discount_percent) VALUES
+    (99.99, 5, 10.00),    
+    (499.99, 1, 0),       
+    (19.99, 20, 15.00),   
+    (299.99, 2, 25.00),   
+    (9.99, 100, 5.00),    
+    (149.99, 3, 12.50),   
+    (799.99, 1, 30.00),   
+    (49.99, 10, 8.00),    
+    (1299.99, 1, 20.00),  
+    (29.99, 15, 0); 

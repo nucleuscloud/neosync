@@ -130,6 +130,22 @@ type MysqlDriver struct {
 func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
 	goquRows := toGoquRecords(rows)
 
+	if d.options.onConflictDoUpdate {
+		if len(rows) == 0 {
+			return "", []any{}, nil
+		}
+
+		columns := []string{}
+		for col := range rows[0] {
+			columns = append(columns, col)
+		}
+		insertQuery, args, err := BuildMysqlInsertOnConflictDoUpdateQuery(d.schema, d.table, goquRows, columns)
+		if err != nil {
+			return "", nil, err
+		}
+		return insertQuery, args, nil
+	}
+
 	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &d.options.onConflictDoNothing)
 	if err != nil {
 		return "", nil, err

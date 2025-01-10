@@ -104,12 +104,12 @@ func BuildMysqlInsertOnConflictDoUpdateQuery(
 	sqltable := goqu.S(schema).Table(table)
 	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
 
-	ucols := []goqu.Record{}
+	updateRecord := goqu.Record{}
 	for _, col := range updateColumns {
-		ucols = append(ucols, goqu.Record{col: exp.NewIdentifierExpression("", "new", col)})
+		updateRecord[col] = exp.NewIdentifierExpression("", "new", col)
 	}
 	targetColumn := "" // mysql does not support target column
-	insert = insert.OnConflict(goqu.DoUpdate(targetColumn, ucols))
+	insert = insert.OnConflict(goqu.DoUpdate(targetColumn, updateRecord))
 
 	query, args, err := insert.ToSQL()
 	if err != nil {

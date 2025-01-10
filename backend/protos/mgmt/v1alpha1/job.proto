@@ -273,7 +273,7 @@ message MysqlOnConflictConfig {
   bool do_nothing = 1;
 
   oneof strategy {
-    option (buf.validate.oneof).required = true;
+    option (buf.validate.oneof).required = false;
     // Do nothing when a conflict occurs
     MysqlOnConflictDoNothing nothing = 2;
     // Update columns when a conflict occurs

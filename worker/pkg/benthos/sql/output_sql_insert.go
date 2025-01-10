@@ -22,6 +22,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
+		Field(service.NewBoolField("on_conflict_do_update").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewBoolField("should_override_column_default").Optional().Default(false)).
@@ -67,15 +68,12 @@ type pooledInsertOutput struct {
 	logger       *service.Logger
 	slogger      *slog.Logger
 
-	schema                      string
-	table                       string
-	columns                     []string
-	onConflictDoNothing         bool
-	skipForeignKeyViolations    bool
-	truncateOnRetry             bool
-	shouldOverrideColumnDefault bool
-	prefix                      *string
-	suffix                      *string
+	schema                   string
+	table                    string
+	onConflictDoNothing      bool
+	skipForeignKeyViolations bool
+	truncateOnRetry          bool
+	queryBuilder             querybuilder.InsertQueryBuilder
 
 	shutSig *shutdown.Signaller
 	isRetry bool
@@ -101,6 +99,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
+	if err != nil {
+		return nil, err
+	}
+
+	onConflictDoUpdate, err := conf.FieldBool("on_conflict_do_update")
 	if err != nil {
 		return nil, err
 	}
@@ -159,24 +162,47 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	options := []querybuilder.InsertOption{
+		querybuilder.WithPrefix(prefix),
+		querybuilder.WithSuffix(suffix),
+	}
+
+	if onConflictDoNothing {
+		options = append(options, querybuilder.WithOnConflictDoNothing())
+	}
+	if onConflictDoUpdate {
+		options = append(options, querybuilder.WithOnConflictDoUpdate())
+	}
+	if shouldOverrideColumnDefault {
+		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
+	}
+	builder, err := querybuilder.GetInsertBuilder(
+		logger,
+		driver,
+		schema,
+		table,
+		options...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	output := &pooledInsertOutput{
-		connectionId:                connectionId,
-		driver:                      driver,
-		logger:                      mgr.Logger(),
-		slogger:                     logger,
-		shutSig:                     shutdown.NewSignaller(),
-		provider:                    provider,
-		schema:                      schema,
-		table:                       table,
-		onConflictDoNothing:         onConflictDoNothing,
-		skipForeignKeyViolations:    skipForeignKeyViolations,
-		truncateOnRetry:             truncateOnRetry,
-		shouldOverrideColumnDefault: shouldOverrideColumnDefault,
-		prefix:                      prefix,
-		suffix:                      suffix,
-		isRetry:                     isRetry,
-		maxRetryAttempts:            retryAttempts,
-		retryDelay:                  retryDelay,
+		connectionId:             connectionId,
+		driver:                   driver,
+		logger:                   mgr.Logger(),
+		slogger:                  logger,
+		shutSig:                  shutdown.NewSignaller(),
+		provider:                 provider,
+		schema:                   schema,
+		table:                    table,
+		onConflictDoNothing:      onConflictDoNothing,
+		queryBuilder:             builder,
+		skipForeignKeyViolations: skipForeignKeyViolations,
+		truncateOnRetry:          truncateOnRetry,
+		isRetry:                  isRetry,
+		maxRetryAttempts:         retryAttempts,
+		retryDelay:               retryDelay,
 	}
 	return output, nil
 }
@@ -229,11 +255,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
-	columnMap := map[string]struct{}{}
-	for _, col := range s.columns {
-		columnMap[col] = struct{}{}
-	}
-
 	rows := []map[string]any{}
 	for _, msg := range batch {
 		m, _ := msg.AsStructured()
@@ -249,29 +270,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
-	options := []querybuilder.InsertOption{
-		querybuilder.WithPrefix(s.prefix),
-		querybuilder.WithSuffix(s.suffix),
-	}
-
-	if s.onConflictDoNothing {
-		options = append(options, querybuilder.WithOnConflictDoNothing())
-	}
-	if s.shouldOverrideColumnDefault {
-		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
-	}
-	builder, err := querybuilder.GetInsertBuilder(
-		s.slogger,
-		s.driver,
-		s.schema,
-		s.table,
-		options...,
-	)
-	if err != nil {
-		return err
-	}
-
-	insertQuery, args, err := builder.BuildInsertQuery(rows)
+	insertQuery, args, err := s.queryBuilder.BuildInsertQuery(rows)
 	if err != nil {
 		return err
 	}
@@ -282,7 +281,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return err
 		}
 
-		err = s.RetryInsertRowByRow(ctx, builder, rows)
+		err = s.RetryInsertRowByRow(ctx, s.queryBuilder, rows)
 		if err != nil {
 			return err
 		}
