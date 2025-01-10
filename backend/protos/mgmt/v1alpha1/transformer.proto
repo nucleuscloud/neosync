@@ -254,6 +254,12 @@ message TransformPiiText {
   // If not provided, will use a default language if specified on the server.
   // Depending on the server configuration, may attempt to autodetect from input.
   optional string language = 6;
+
+  // A map of entity names to anonymizer configurations.
+  // The key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) which can be found via the GetPiiTextEntities() RPC method.
+  // The value in this map corresponds to the anonymizer configuration to use for that entity.
+  // If not provided, the default_anonymizer will be used.
+  map<string, PiiAnonymizer> entity_anonymizers = 7;
 }
 
 message PiiDenyRecognizer {
@@ -280,7 +286,7 @@ message PiiAnonymizer {
   }
 
   message Replace {
-    // The value to replace. If not provided, a template token of the anonymizer is used.
+    // The value to replace. If not provided, a template token of the anonymizer is used (e.g. A PERSON entity is replaced with: <PERSON>)
     optional string value = 1;
   }
   message Redact {}

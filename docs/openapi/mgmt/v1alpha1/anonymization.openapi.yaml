@@ -873,7 +873,7 @@ components:
         value:
           type: string
           title: value
-          description: The value to replace. If not provided, a template token of the anonymizer is used.
+          description: 'The value to replace. If not provided, a template token of the anonymizer is used (e.g. A PERSON entity is replaced with: <PERSON>)'
       title: Replace
       additionalProperties: false
     mgmt.v1alpha1.PiiDenyRecognizer:
@@ -1237,9 +1237,33 @@ components:
             Two characters for the desired language in ISO_639-1 format.
              If not provided, will use a default language if specified on the server.
              Depending on the server configuration, may attempt to autodetect from input.
+        entityAnonymizers:
+          type: object
+          title: entity_anonymizers
+          additionalProperties:
+            allOf:
+              - title: value
+              - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+          description: |-
+            A map of entity names to anonymizer configurations.
+             The key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) which can be found via the GetPiiTextEntities() RPC method.
+             The value in this map corresponds to the anonymizer configuration to use for that entity.
+             If not provided, the default_anonymizer will be used.
       title: TransformPiiText
       additionalProperties: false
       description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+    mgmt.v1alpha1.TransformPiiText.EntityAnonymizersEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - title: value
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+      title: EntityAnonymizersEntry
+      additionalProperties: false
     mgmt.v1alpha1.TransformString:
       type: object
       allOf:
