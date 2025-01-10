@@ -29,13 +29,13 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | char             | string          | "A "                                                  |
 | varchar          | string          | "Example varchar"                                     |
 | text             | string          | "Example text"                                        |
-| bytea            | array           | [222,173,239,191,189,239,191,189]                     |
-| timestamp        | object          | Special Date object                                   |
-| timestamptz      | object          | Special Date object                                   |
-| date             | object          | Special Date object                                   |
+| bytea            | neosync.Binary  |[Binary type](/transformers/neosync-types#binary)    |
+| timestamp        | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                                   |
+| timestamptz      | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                                   |
+| date             | neosync.NeosyncDateTime          | [NeosyncDateTime ](/transformers/neosync-types#neosyncdatetime)                                   |
 | time             | string          | "12:34:56"                                            |
 | timetz           | string          | "12:34:56+00"                                         |
-| interval         | string          | "1 day"                                               |
+| interval         | neosync.Interval| [Interval type](/transformers/neosync-types#interval)                                      |
 | boolean          | boolean         | true                                                  |
 | point            | string          | "(1,2)"                                               |
 | line             | string          | "{1,1,0}"                                             |
@@ -47,7 +47,8 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | cidr             | string          | "192.168.1.0/24"                                      |
 | inet             | string          | "192.168.1.1"                                         |
 | macaddr          | string          | "08:00:2b:01:02:03"                                   |
-| bit              | string          | "10101010"                                            |
+| bit              | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
+| varbit           | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
 | tsvector         | string          | "'example' 'tsvector'"                                |
 | uuid             | string          | "123e4567-e89b-12d3-a456-426614174000"                |
 | xml              | string          | `<foo>bar</foo>`                                      |
@@ -74,11 +75,11 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | decimal    | string          | "1234.56"                              |
 | float      | number          | 3.1414999961853027                     |
 | double     | number          | 3.14159265                             |
-| bit        | string          | "10101010"                             |
+| bit        | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
 | char       | string          | "Fixed Char"                           |
 | varchar    | string          | "Variable Char"                        |
-| binary     | string          | "Bin"                                  |
-| varbinary  | string          | "VarBinary"                            |
+| binary     | neosync.Binary  | [Binary type](/transformers/neosync-types#binary)    |
+| varbinary  | neosync.Binary  | [Binary type](/transformers/neosync-types#binary)    |
 | tinyblob   | string          | "Tiny BLOB"                            |
 | blob       | string          | "Regular BLOB"                         |
 | mediumblob | string          | "Medium BLOB"                          |
@@ -90,17 +91,16 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | enum       | string          | "value2"                               |
 | set        | string          | "option1,option3"                      |
 | json       | object          | `{"key": "value", "array": [1, 2, 3]}` |
-| binary     | array           | [66 105 110]                           |
-| date       | object          | Special Date object                    |
-| time       | string          | "14:30:00"                             |
-| datetime   | object          | Special Date object                    |
-| timestamp  | object          | Special Date object                    |
+| date       | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| time       | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| datetime   | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| timestamp  | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
 | year       | number          | 2023                                   |
 
 ## SQL Server
 
-| SQL Type         | JavaScript Type | Example Value                              |
-| ---------------- | --------------- | ------------------------------------------ |
+| SQL Type         | JavaScript Type | Example Value |
+| ---------------- | --------------- | --------------- |
 | bit              | boolean         | true                                       |
 | tinyint          | number          | 255                                        |
 | smallint         | number          | 32767                                      |
@@ -112,12 +112,14 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | money            | string          | "1234.5678"                                |
 | float            | number          | 3.14159                                    |
 | real             | number          | 3.140000104904175                          |
-| date             | object          | Date object                                |
-| time             | object          | Date object                                |
-| datetime         | object          | Special Date object                        |
-| datetime2        | object          | Special Date object                        |
-| smalldatetime    | object          | Special Date object                        |
-| datetimeoffset   | object          | Special Date object                        |
+| date             | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| time             | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| datetime         | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| datetime2        | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| smalldatetime    | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| datetimeoffset   | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
+| binary         | neosync.Binary| [Binary type](/transformers/neosync-types#binary)                                      |
+| varbinary         | neosync.Bits| [Bits type](/transformers/neosync-types#bits)                                      |
 | char             | string          | "CHAR"                                     |
 | varchar          | string          | "VARCHAR"                                  |
 | varchar(max)     | string          | "VARCHAR(MAX)"                             |
