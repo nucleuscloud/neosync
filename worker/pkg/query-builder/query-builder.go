@@ -95,26 +95,27 @@ func BuildInsertQuery(
 	return query, args, nil
 }
 
-func BuildInsertOnConflictDoUpdateQuery(
-	driver, schema, table string,
+func BuildMysqlInsertOnConflictDoUpdateQuery(
+	schema, table string,
 	records []goqu.Record,
-	targetColumns, updateColumns []string,
+	updateColumns []string,
 ) (sql string, args []any, err error) {
-	builder := getGoquDialect(driver)
+	builder := getGoquDialect(sqlmanager_shared.MysqlDriver)
 	sqltable := goqu.S(schema).Table(table)
-	insert := builder.Insert(sqltable).Prepared(true).Rows(records)
-	tcols := fmt.Sprintf("(%s)", strings.Join(targetColumns, ", "))
+	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
+
 	ucols := []goqu.Record{}
 	for _, col := range updateColumns {
-		ucols := append(ucols, goqu.Record{col: goqu.I()})
+		ucols = append(ucols, goqu.Record{col: exp.NewIdentifierExpression("", "new", col)})
 	}
-	insert = insert.OnConflict(goqu.DoUpdate(tcols, ucols))
+	targetColumn := "" // mysql does not support target column
+	insert = insert.OnConflict(goqu.DoUpdate(targetColumn, ucols))
 
 	query, args, err := insert.ToSQL()
 	if err != nil {
 		return "", nil, err
 	}
-	return query, args, nil
+	return strings.Replace(query, "INSERT IGNORE INTO", "INSERT INTO", 1), args, nil
 }
 
 func BuildUpdateQuery(
