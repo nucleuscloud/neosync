@@ -268,6 +268,16 @@ func (msg *PiiAnonymizer_Hash) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
+func (msg *PiiAnonymizer_Transform) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *PiiAnonymizer_Transform) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
 func (msg *GenerateEmail) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }

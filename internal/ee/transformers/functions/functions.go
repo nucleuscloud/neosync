@@ -3,6 +3,7 @@ package ee_transformer_fns
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
@@ -43,6 +44,10 @@ func TransformPiiText(
 
 	analysisResults := removeAllowedPhrases(*analyzeResp.JSON200, value, config.GetAllowedPhrases())
 
+	analysisResults, hasNeosyncEntities := processAnalysisResultsForNeosyncTransformers(analysisResults, getNeosyncConfiguredEntities(config))
+
+	// if neosync analyzer is configured for a specific entity, do the replacement and pop the entity from the analysis results
+
 	anonymizers, err := buildAnonymizers(config)
 	if err != nil {
 		return "", fmt.Errorf("unable to build anonymizers: %w", err)
@@ -60,12 +65,37 @@ func TransformPiiText(
 	if err != nil {
 		return "", err
 	}
-	return *anonResp.JSON200.Text, nil
+	output := *anonResp.JSON200.Text
+
+	if hasNeosyncEntities {
+		// do another pass to anonymize the neosync entities
+		for _, item := range *anonResp.JSON200.Items {
+			if strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
+				// do the replacement
+				presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
+				_ = presidioEntity
+				// find transformer config from map
+				// call function to get transformed data
+				transformedSnippet := ""
+				output = strings.ReplaceAll(output, item.EntityType, transformedSnippet)
+			}
+		}
+	}
+
+	return output, nil
+}
+
+func getNeosyncConfiguredEntities(config *mgmtv1alpha1.TransformPiiText) []string {
+	entities := []string{}
+	for entity := range config.GetEntityAnonymizers() {
+		entities = append(entities, entity)
+	}
+	return entities
 }
 
 func buildAnonymizers(config *mgmtv1alpha1.TransformPiiText) (map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
 	output := map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
-	defaultAnon, ok, err := toPresidioAnonymizerConfig(config.GetDefaultAnonymizer())
+	defaultAnon, ok, err := toPresidioAnonymizerConfig("", config.GetDefaultAnonymizer())
 	if err != nil {
 		return nil, fmt.Errorf("unable to build default anonymizer: %w", err)
 	}
@@ -73,7 +103,7 @@ func buildAnonymizers(config *mgmtv1alpha1.TransformPiiText) (map[string]presidi
 		output["DEFAULT"] = *defaultAnon
 	}
 	for entity, anonymizer := range config.GetEntityAnonymizers() {
-		ap, ok, err := toPresidioAnonymizerConfig(anonymizer)
+		ap, ok, err := toPresidioAnonymizerConfig(entity, anonymizer)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build entity %s anonymizer: %w", entity, err)
 		}
@@ -107,6 +137,37 @@ func removeAllowedPhrases(
 	return output
 }
 
+// type neosyncAnalysisResult struct {
+// 	NeosyncAnalyzerResults  []presidioapi.RecognizerResultWithAnaysisExplanation
+// 	PresidioAnalyzerResults []presidioapi.RecognizerResultWithAnaysisExplanation
+// }
+
+const (
+	neosyncEntityPrefix = "NEOSYNC_"
+)
+
+func processAnalysisResultsForNeosyncTransformers(
+	inputResults []presidioapi.RecognizerResultWithAnaysisExplanation,
+	neosyncEnabledEntities []string,
+) ([]presidioapi.RecognizerResultWithAnaysisExplanation, bool) {
+	entitySet := map[string]struct{}{}
+	for _, entity := range neosyncEnabledEntities {
+		entitySet[entity] = struct{}{}
+	}
+
+	output := make([]presidioapi.RecognizerResultWithAnaysisExplanation, 0, len(inputResults))
+	hasNeosyncEntities := false
+	for _, result := range inputResults {
+		if _, ok := entitySet[result.EntityType]; ok {
+			result.EntityType = fmt.Sprintf("%s%s", neosyncEntityPrefix, result.EntityType)
+			hasNeosyncEntities = true
+		}
+		output = append(output, result)
+	}
+
+	return output, hasNeosyncEntities
+}
+
 func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi.PatternRecognizer {
 	output := []presidioapi.PatternRecognizer{}
 	for _, dto := range dtos {
@@ -122,7 +183,7 @@ func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi
 	return output
 }
 
-func toPresidioAnonymizerConfig(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
+func toPresidioAnonymizerConfig(entity string, dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
 	switch cfg := dto.GetConfig().(type) {
 	case *mgmtv1alpha1.PiiAnonymizer_Redact_:
 		ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
@@ -155,6 +216,13 @@ func toPresidioAnonymizerConfig(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.A
 			FromEnd:     &fromend,
 			MaskingChar: cfg.Mask.GetMaskingChar(),
 		})
+		if err != nil {
+			return nil, false, err
+		}
+		return ap, true, nil
+	case *mgmtv1alpha1.PiiAnonymizer_Transform_:
+		ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
+		err := ap.FromReplace(presidioapi.Replace{Type: "replace", NewValue: fmt.Sprintf("{{%s%s}}", neosyncEntityPrefix, entity)})
 		if err != nil {
 			return nil, false, err
 		}

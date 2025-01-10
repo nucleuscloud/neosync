@@ -732,6 +732,8 @@ components:
                 - redact
             - required:
                 - replace
+            - required:
+                - transform
             - not:
                 anyOf:
                   - required:
@@ -742,6 +744,8 @@ components:
                       - redact
                   - required:
                       - replace
+                  - required:
+                      - transform
       anyOf:
         - required:
             - hash
@@ -751,6 +755,8 @@ components:
             - redact
         - required:
             - replace
+        - required:
+            - transform
         - not:
             anyOf:
               - required:
@@ -761,6 +767,8 @@ components:
                   - redact
               - required:
                   - replace
+              - required:
+                  - transform
       properties:
         replace:
           allOf:
@@ -782,6 +790,11 @@ components:
             - title: hash
               description: Configures the anonymizer to hash the identified PII
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Hash'
+        transform:
+          allOf:
+            - title: transform
+              description: Configures the anonymizer to use a Neosync configured transformer
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Transform'
       title: PiiAnonymizer
       additionalProperties: false
     mgmt.v1alpha1.PiiAnonymizer.Hash:
@@ -875,6 +888,16 @@ components:
           title: value
           description: 'The value to replace. If not provided, a template token of the anonymizer is used (e.g. A PERSON entity is replaced with: <PERSON>)'
       title: Replace
+      additionalProperties: false
+    mgmt.v1alpha1.PiiAnonymizer.Transform:
+      type: object
+      properties:
+        config:
+          allOf:
+            - title: config
+              description: The transformer to use. If not provided, a transformer will automatically be selected.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+      title: Transform
       additionalProperties: false
     mgmt.v1alpha1.PiiDenyRecognizer:
       type: object

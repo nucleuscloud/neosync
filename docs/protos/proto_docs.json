@@ -1588,6 +1588,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "transform",
+              "description": "Configures the anonymizer to use a Neosync configured transformer",
+              "label": "",
+              "type": "Transform",
+              "longType": "PiiAnonymizer.Transform",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Transform",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1694,6 +1706,30 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_value",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Transform",
+          "longName": "PiiAnonymizer.Transform",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Transform",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "config",
+              "description": "The transformer to use. If not provided, a transformer will automatically be selected.",
+              "label": "",
+              "type": "TransformerConfig",
+              "longType": "TransformerConfig",
+              "fullType": "mgmt.v1alpha1.TransformerConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
