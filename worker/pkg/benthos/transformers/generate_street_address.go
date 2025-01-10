@@ -76,36 +76,17 @@ func (t *GenerateStreetAddress) Generate(opts any) (any, error) {
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
 func generateRandomStreetAddress(randomizer rng.Rand, maxLength int64) (string, error) {
-	var filteredAddresses []string
-	for _, address := range transformers_dataset.Addresses {
-		if len(address.Address1) <= int(maxLength) {
-			filteredAddresses = append(filteredAddresses, address.Address1)
-		}
+	output, err := transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.Address_Address1s,
+		transformers_dataset.Address_Address1Map,
+		transformers_dataset.Address_Address1Indices,
+		nil,
+		maxLength,
+		nil,
+	)
+	if err != nil {
+		return transformer_utils.GenerateRandomStringWithInclusiveBounds(randomizer, 1, maxLength)
 	}
-
-	if len(filteredAddresses) == 0 {
-		if maxLength > 3 {
-			hn, err := transformer_utils.GenerateRandomInt64InValueRange(randomizer, 1, 20)
-			if err != nil {
-				return "", err
-			}
-
-			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength-3)
-			if err != nil {
-				return "", err
-			}
-
-			return fmt.Sprintf("%d %s", hn, street), nil
-		} else {
-			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength)
-			if err != nil {
-				return "", err
-			}
-
-			return street, nil
-		}
-	}
-
-	randomIndex := randomizer.Intn(len(filteredAddresses))
-	return filteredAddresses[randomIndex], nil
+	return output, nil
 }

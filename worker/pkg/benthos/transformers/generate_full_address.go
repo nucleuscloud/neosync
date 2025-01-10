@@ -71,43 +71,44 @@ func (t *GenerateFullAddress) Generate(opts any) (any, error) {
 
 /* Generates a random full address from the US including street address, city, state and zipcode */
 func generateRandomFullAddress(randomizer rng.Rand, maxLength int64) (string, error) {
-	addresses := transformers_dataset.Addresses
-
-	var filteredAddresses []string
-
-	for _, address := range addresses {
-		addy := fmt.Sprintf(`%s %s %s, %s`, address.Address1, address.City, address.State, address.Zipcode)
-		if len(addy) <= int(maxLength) {
-			filteredAddresses = append(filteredAddresses, addy)
-		}
+	zipcode, err := generateRandomZipcode(randomizer)
+	if err != nil {
+		return "", err
+	}
+	state, err := generateRandomState(randomizer, false)
+	if err != nil {
+		return "", err
 	}
 
-	// we can't generate an address that is smaller than the max length, so attempt to generate the smallest address possible which is , if not, generate random text
-	if len(filteredAddresses) == 0 {
-		if maxLength < 17 {
-			str, err := transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength)
-			if err != nil {
-				return "", err
-			}
-			return str, nil
-		} else {
-			sa, err := generateRandomStreetAddress(randomizer, 5)
-			if err != nil {
-				return "", err
-			}
-			city, err := generateRandomCity(randomizer, 5)
-			if err != nil {
-				return "", err
-			}
-
-			state := generateRandomState(randomizer, false)
-
-			zip := generateRandomZipcode(randomizer)
-
-			return fmt.Sprintf(`%s %s %s, %s`, sa, city, state, zip), nil
-		}
+	// todo: we could further generate a cache for this to skip having to potentially re-calculate this every time for the given length
+	// we have a finite set of zipcodes and states so we basically know the max length for the city and street address for each generated permutation.
+	remainder := int64(int(maxLength) - len(state) - len(zipcode) - 4) // -4 for spaces and comma
+	if remainder <= 0 {
+		return "", fmt.Errorf("the state and zipcode combined are longer than the max length allowed")
 	}
 
-	randomIndex := randomizer.Intn(len(filteredAddresses))
-	return filteredAddresses[randomIndex], nil
+	maxCityIdx, maxAddr1Idx := transformer_utils.FindClosestPair(
+		transformers_dataset.Address_CityIndices,
+		transformers_dataset.Address_Address1Indices,
+		remainder,
+	)
+	if maxCityIdx == -1 || maxAddr1Idx == -1 {
+		randStr, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(randomizer, 1, remainder)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf(`%s %s, %s`, randStr, state, zipcode), nil
+	}
+
+	city, err := generateRandomCity(randomizer, transformers_dataset.Address_CityIndices[maxCityIdx])
+	if err != nil {
+		return "", err
+	}
+
+	street, err := generateRandomStreetAddress(randomizer, transformers_dataset.Address_Address1Indices[maxAddr1Idx])
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(`%s %s %s, %s`, street, city, state, zipcode), nil
 }

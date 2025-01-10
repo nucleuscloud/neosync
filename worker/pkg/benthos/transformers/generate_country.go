@@ -34,7 +34,11 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			return generateRandomCountry(randomizer, generateFullName), nil
+			val, err := generateRandomCountry(randomizer, generateFullName)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate_country: %w", err)
+			}
+			return val, nil
 		}, nil
 	})
 	if err != nil {
@@ -59,7 +63,7 @@ func (t *GenerateCountry) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-	return generateRandomCountry(parsedOpts.randomizer, parsedOpts.generateFullName), nil
+	return generateRandomCountry(parsedOpts.randomizer, parsedOpts.generateFullName)
 }
 
 /*
@@ -67,10 +71,25 @@ Generates a randomly selected country.
 
 By default, it returns the 2-letter country code i.e. Albania will return AL. However, this is configurable using the Generate Full Name parameter which, when set to true, will return the full name of the country starting with a capitalized letter.
 */
-func generateRandomCountry(randomizer rng.Rand, generateFullName bool) string {
-	randomIndex := randomizer.Intn(len(transformers_dataset.Countries))
+func generateRandomCountry(randomizer rng.Rand, generateFullName bool) (string, error) {
 	if generateFullName {
-		return transformers_dataset.Countries[randomIndex].FullName
+		return transformer_utils.GenerateStringFromCorpus(
+			randomizer,
+			transformers_dataset.Countrys,
+			transformers_dataset.CountryMap,
+			transformers_dataset.CountryIndices,
+			nil,
+			10000,
+			nil,
+		)
 	}
-	return transformers_dataset.Countries[randomIndex].Code
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.CountryCodes,
+		transformers_dataset.CountryCodeMap,
+		transformers_dataset.CountryCodeIndices,
+		nil,
+		10000,
+		nil,
+	)
 }
