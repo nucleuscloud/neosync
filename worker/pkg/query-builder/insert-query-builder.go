@@ -1,6 +1,7 @@
 package querybuilder
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -132,7 +133,7 @@ func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 
 	if d.options.onConflictDoUpdate {
 		if len(rows) == 0 {
-			return "", []any{}, nil
+			return "", []any{}, errors.New("no rows to insert")
 		}
 
 		columns := []string{}
