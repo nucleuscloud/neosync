@@ -30,7 +30,11 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			return generateRandomZipcode(randomizer), nil
+			val, err := generateRandomZipcode(randomizer)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate_zipcode: %w", err)
+			}
+			return val, nil
 		}, nil
 	})
 	if err != nil {
@@ -47,11 +51,18 @@ func (t *GenerateZipcode) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-	return generateRandomZipcode(parsedOpts.randomizer), nil
+	return generateRandomZipcode(parsedOpts.randomizer)
 }
 
 // Generates a randomly selected zip code that exists in the United States.
-func generateRandomZipcode(randomizer rng.Rand) string {
-	randomIndex := randomizer.Intn(len(transformers_dataset.Addresses))
-	return transformers_dataset.Addresses[randomIndex].Zipcode
+func generateRandomZipcode(randomizer rng.Rand) (string, error) {
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.Address_ZipCodes,
+		transformers_dataset.Address_ZipCodeMap,
+		transformers_dataset.Address_ZipCodeIndices,
+		nil,
+		10000,
+		nil,
+	)
 }

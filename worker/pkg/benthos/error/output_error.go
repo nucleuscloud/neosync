@@ -14,6 +14,7 @@ func errorOutputSpec() *service.ConfigSpec {
 		Summary(`Sends stop Activity signal`).
 		Field(service.NewStringField("error_msg")).
 		Field(service.NewIntField("max_in_flight").Default(64)).
+		Field(service.NewBoolField("is_generate_job").Default(false)).
 		Field(service.NewBatchPolicyField("batching"))
 }
 
@@ -44,10 +45,15 @@ func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel 
 	if err != nil {
 		return nil, err
 	}
+	isGenerateJob, err := conf.FieldBool("is_generate_job")
+	if err != nil {
+		return nil, err
+	}
 	return &errorOutput{
 		logger:              mgr.Logger(),
 		stopActivityChannel: channel,
 		errorMsg:            errMsg,
+		isGenerateJob:       isGenerateJob,
 	}, nil
 }
 
@@ -55,6 +61,7 @@ type errorOutput struct {
 	logger              *service.Logger
 	stopActivityChannel chan<- error
 	errorMsg            *service.InterpolatedString
+	isGenerateJob       bool
 }
 
 func (e *errorOutput) Connect(ctx context.Context) error {
@@ -67,7 +74,7 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}
-		if !neosync_benthos.IsCriticalError(errMsg) {
+		if !e.isCriticalError(errMsg) {
 			// throw error so that benthos retries
 			return errors.New(errMsg)
 		}
@@ -80,4 +87,11 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 
 func (e *errorOutput) Close(ctx context.Context) error {
 	return nil
+}
+
+func (e *errorOutput) isCriticalError(errMsg string) bool {
+	if e.isGenerateJob {
+		return neosync_benthos.IsGenerateJobCriticalError(errMsg)
+	}
+	return neosync_benthos.IsCriticalError(errMsg)
 }

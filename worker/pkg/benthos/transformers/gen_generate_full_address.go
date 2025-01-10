@@ -40,13 +40,13 @@ func NewGenerateFullAddressOpts(
 	
 	return &GenerateFullAddressOpts{
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateFullAddressOpts) BuildBloblangString(	
+func (o *GenerateFullAddressOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"max_length:%v",
 	}
 

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/spf13/viper"
 )
 
 const postgresScheme = "postgres"
@@ -60,8 +63,16 @@ func NewFromPostgresConnection(
 		pgurl.RawQuery = query.Encode()
 
 		return &pgConnectConfig{url: pgurl.String(), user: getUserFromInfo(pgurl.User)}, nil
-	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-		pgurl := cc.Url
+	case *mgmtv1alpha1.PostgresConnectionConfig_Url, *mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv:
+		var pgurl string
+		if config.PgConfig.GetUrl() != "" {
+			pgurl = config.PgConfig.GetUrl()
+		} else if config.PgConfig.GetUrlFromEnv() != "" {
+			if !strings.HasPrefix(config.PgConfig.GetUrlFromEnv(), userDefinedEnvPrefix) {
+				return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("to source a url from an environment variable, the variable must have a prefix of %s", userDefinedEnvPrefix))
+			}
+			pgurl = viper.GetString(config.PgConfig.GetUrlFromEnv())
+		}
 
 		uriconfig, err := url.Parse(pgurl)
 		if err != nil {

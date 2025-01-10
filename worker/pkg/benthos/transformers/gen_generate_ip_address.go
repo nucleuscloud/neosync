@@ -48,14 +48,14 @@ func NewGenerateIpAddressOpts(
 	return &GenerateIpAddressOpts{
 		maxLength: maxLength,
 		ipType: ipType,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateIpAddressOpts) BuildBloblangString(	
+func (o *GenerateIpAddressOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
-		"max_length:%v", 
+	fnStr := []string{
+		"max_length:%v",
 		"ip_type:%q",
 	}
 

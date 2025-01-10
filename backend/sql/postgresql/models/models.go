@@ -67,6 +67,19 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 					},
 				},
 			}, nil
+		} else if c.PgConfig.UrlEnv != nil {
+			return &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv{
+							UrlFromEnv: *c.PgConfig.UrlEnv,
+						},
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
+					},
+				},
+			}, nil
 		}
 	} else if c.MysqlConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
@@ -107,6 +120,19 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 							Url: *c.MysqlConfig.Url,
+						},
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
+					},
+				},
+			}, nil
+		} else if c.MysqlConfig.UrlEnv != nil {
+			return &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv{
+							UrlFromEnv: *c.MysqlConfig.UrlEnv,
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
@@ -205,6 +231,8 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			}
 		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 			c.PgConfig.Url = &pgcfg.Url
+		case *mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv:
+			c.PgConfig.UrlEnv = &pgcfg.UrlFromEnv
 		default:
 			return fmt.Errorf("invalid postgres format: %T", pgcfg)
 		}
@@ -234,6 +262,8 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			}
 		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 			c.MysqlConfig.Url = &mysqlcfg.Url
+		case *mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv:
+			c.MysqlConfig.UrlEnv = &mysqlcfg.UrlFromEnv
 		default:
 			return fmt.Errorf("invalid mysql format: %T", mysqlcfg)
 		}
@@ -351,15 +381,13 @@ func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnect
 
 type MssqlConfig struct {
 	Url               *string            `json:"url,omitempty"`
+	UrlEnv            *string            `json:"urlEnv,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
 	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
 	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
 func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
-	if d.Url == nil {
-		return nil, errors.New("mssql connection does not contain url")
-	}
 	var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 	if d.ConnectionOptions != nil {
 		connectionOptions = d.ConnectionOptions.ToDto()
@@ -372,14 +400,26 @@ func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	if d.ClientTls != nil {
 		clientTls = d.ClientTls.ToDto()
 	}
-	return &mgmtv1alpha1.MssqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
-			Url: *d.Url,
-		},
-		ConnectionOptions: connectionOptions,
-		Tunnel:            tunnel,
-		ClientTls:         clientTls,
-	}, nil
+	if d.Url != nil {
+		return &mgmtv1alpha1.MssqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+				Url: *d.Url,
+			},
+			ConnectionOptions: connectionOptions,
+			Tunnel:            tunnel,
+			ClientTls:         clientTls,
+		}, nil
+	} else if d.UrlEnv != nil {
+		return &mgmtv1alpha1.MssqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_UrlFromEnv{
+				UrlFromEnv: *d.UrlEnv,
+			},
+			ConnectionOptions: connectionOptions,
+			Tunnel:            tunnel,
+			ClientTls:         clientTls,
+		}, nil
+	}
+	return nil, errors.New("mssql connection config does not contain url or urlEnv")
 }
 
 func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
@@ -387,12 +427,14 @@ func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
 		dto = &mgmtv1alpha1.MssqlConnectionConfig{}
 	}
 
-	if dto.GetUrl() == "" {
-		return errors.New("mssql connection config dto url was empty")
+	switch cfg := dto.GetConnectionConfig().(type) {
+	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
+		d.Url = &cfg.Url
+	case *mgmtv1alpha1.MssqlConnectionConfig_UrlFromEnv:
+		d.UrlEnv = &cfg.UrlFromEnv
+	default:
+		return fmt.Errorf("invalid mssql format: %T", cfg)
 	}
-
-	url := dto.GetUrl()
-	d.Url = &url
 
 	if dto.GetConnectionConfig() != nil {
 		d.ConnectionOptions = &ConnectionOptions{}
@@ -442,6 +484,7 @@ func (d *DynamoDBConfig) FromDto(dto *mgmtv1alpha1.DynamoDBConnectionConfig) err
 type PostgresConnectionConfig struct {
 	Connection        *PostgresConnection `json:"connection,omitempty"`
 	Url               *string             `json:"url,omitempty"`
+	UrlEnv            *string             `json:"urlEnv,omitempty"`
 	SSHTunnel         *SSHTunnel          `json:"sshTunnel,omitempty"`
 	ConnectionOptions *ConnectionOptions  `json:"connectionOptions,omitempty"`
 	ClientTls         *ClientTls          `json:"clientTls,omitempty"`
@@ -595,6 +638,7 @@ func (c *ClientTls) FromDto(dto *mgmtv1alpha1.ClientTlsConfig) {
 type MysqlConnectionConfig struct {
 	Connection        *MysqlConnection   `json:"connection,omitempty"`
 	Url               *string            `json:"url,omitempty"`
+	UrlEnv            *string            `json:"urlEnv,omitempty"`
 	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
 	ClientTls         *ClientTls         `json:"clientTls,omitempty"`

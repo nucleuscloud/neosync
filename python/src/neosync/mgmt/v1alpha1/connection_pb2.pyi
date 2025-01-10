@@ -160,16 +160,18 @@ class ConnectionConfig(_message.Message):
     def __init__(self, pg_config: _Optional[_Union[PostgresConnectionConfig, _Mapping]] = ..., aws_s3_config: _Optional[_Union[AwsS3ConnectionConfig, _Mapping]] = ..., mysql_config: _Optional[_Union[MysqlConnectionConfig, _Mapping]] = ..., local_dir_config: _Optional[_Union[LocalDirectoryConnectionConfig, _Mapping]] = ..., openai_config: _Optional[_Union[OpenAiConnectionConfig, _Mapping]] = ..., mongo_config: _Optional[_Union[MongoConnectionConfig, _Mapping]] = ..., gcp_cloudstorage_config: _Optional[_Union[GcpCloudStorageConnectionConfig, _Mapping]] = ..., dynamodb_config: _Optional[_Union[DynamoDBConnectionConfig, _Mapping]] = ..., mssql_config: _Optional[_Union[MssqlConnectionConfig, _Mapping]] = ...) -> None: ...
 
 class MssqlConnectionConfig(_message.Message):
-    __slots__ = ("url", "connection_options", "tunnel", "client_tls")
+    __slots__ = ("url", "url_from_env", "connection_options", "tunnel", "client_tls")
     URL_FIELD_NUMBER: _ClassVar[int]
+    URL_FROM_ENV_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     TUNNEL_FIELD_NUMBER: _ClassVar[int]
     CLIENT_TLS_FIELD_NUMBER: _ClassVar[int]
     url: str
+    url_from_env: str
     connection_options: SqlConnectionOptions
     tunnel: SSHTunnel
     client_tls: ClientTlsConfig
-    def __init__(self, url: _Optional[str] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, url: _Optional[str] = ..., url_from_env: _Optional[str] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
 
 class DynamoDBConnectionConfig(_message.Message):
     __slots__ = ("credentials", "region", "endpoint")
@@ -206,18 +208,20 @@ class LocalDirectoryConnectionConfig(_message.Message):
     def __init__(self, path: _Optional[str] = ...) -> None: ...
 
 class PostgresConnectionConfig(_message.Message):
-    __slots__ = ("url", "connection", "tunnel", "connection_options", "client_tls")
+    __slots__ = ("url", "connection", "url_from_env", "tunnel", "connection_options", "client_tls")
     URL_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_FIELD_NUMBER: _ClassVar[int]
+    URL_FROM_ENV_FIELD_NUMBER: _ClassVar[int]
     TUNNEL_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     CLIENT_TLS_FIELD_NUMBER: _ClassVar[int]
     url: str
     connection: PostgresConnection
+    url_from_env: str
     tunnel: SSHTunnel
     connection_options: SqlConnectionOptions
     client_tls: ClientTlsConfig
-    def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[PostgresConnection, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[PostgresConnection, _Mapping]] = ..., url_from_env: _Optional[str] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
 
 class ClientTlsConfig(_message.Message):
     __slots__ = ("root_cert", "client_cert", "client_key", "server_name")
@@ -310,18 +314,20 @@ class MysqlConnection(_message.Message):
     def __init__(self, user: _Optional[str] = ..., protocol: _Optional[str] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., name: _Optional[str] = ..., **kwargs) -> None: ...
 
 class MysqlConnectionConfig(_message.Message):
-    __slots__ = ("url", "connection", "tunnel", "connection_options", "client_tls")
+    __slots__ = ("url", "connection", "url_from_env", "tunnel", "connection_options", "client_tls")
     URL_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_FIELD_NUMBER: _ClassVar[int]
+    URL_FROM_ENV_FIELD_NUMBER: _ClassVar[int]
     TUNNEL_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     CLIENT_TLS_FIELD_NUMBER: _ClassVar[int]
     url: str
     connection: MysqlConnection
+    url_from_env: str
     tunnel: SSHTunnel
     connection_options: SqlConnectionOptions
     client_tls: ClientTlsConfig
-    def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[MysqlConnection, _Mapping]] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, url: _Optional[str] = ..., connection: _Optional[_Union[MysqlConnection, _Mapping]] = ..., url_from_env: _Optional[str] = ..., tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ..., connection_options: _Optional[_Union[SqlConnectionOptions, _Mapping]] = ..., client_tls: _Optional[_Union[ClientTlsConfig, _Mapping]] = ...) -> None: ...
 
 class AwsS3ConnectionConfig(_message.Message):
     __slots__ = ("path_prefix", "credentials", "region", "endpoint", "bucket")

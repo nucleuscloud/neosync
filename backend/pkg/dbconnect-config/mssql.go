@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/spf13/viper"
 )
 
 type mssqlConnectConfig struct {
@@ -28,8 +30,18 @@ func NewFromMssqlConnection(
 	connectionTimeout *uint32,
 ) (DbConnectConfig, error) {
 	switch cc := config.MssqlConfig.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
-		uriconfig, err := url.Parse(cc.Url)
+	case *mgmtv1alpha1.MssqlConnectionConfig_Url, *mgmtv1alpha1.MssqlConnectionConfig_UrlFromEnv:
+		var mssqlurl string
+		if config.MssqlConfig.GetUrl() != "" {
+			mssqlurl = config.MssqlConfig.GetUrl()
+		} else if config.MssqlConfig.GetUrlFromEnv() != "" {
+			if !strings.HasPrefix(config.MssqlConfig.GetUrlFromEnv(), userDefinedEnvPrefix) {
+				return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("to source a url from an environment variable, the variable must have a prefix of %s", userDefinedEnvPrefix))
+			}
+			mssqlurl = viper.GetString(config.MssqlConfig.GetUrlFromEnv())
+		}
+
+		uriconfig, err := url.Parse(mssqlurl)
 		if err != nil {
 			var urlErr *url.Error
 			if errors.As(err, &urlErr) {

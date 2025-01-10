@@ -48,6 +48,28 @@ func IsCriticalError(errMsg string) bool {
 	return false
 }
 
+// checks if the error message is critical for the generate job
+func IsGenerateJobCriticalError(errMsg string) bool {
+	criticalErrors := []string{
+		"violates foreign key constraint",
+		"cannot add or update a child row",
+		"a foreign key constraint fails",
+		"could not identify an equality operator",
+		"violates not-null constraint",
+		"invalid input syntax",
+		"incorrect datetime value",
+		"incorrect date value",
+		"incorrect time value",
+	}
+
+	for _, errStr := range criticalErrors {
+		if containsIgnoreCase(errMsg, errStr) {
+			return true
+		}
+	}
+	return false
+}
+
 func containsIgnoreCase(s, substr string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

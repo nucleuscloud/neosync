@@ -1,11 +1,14 @@
 package dbconnectconfig
 
 import (
+	"fmt"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -212,6 +215,47 @@ func Test_NewFromPostgresConnection(t *testing.T) {
 				actual.String(),
 			)
 			assert.Equal(t, "test-user", actual.GetUser())
+		})
+	})
+
+	t.Run("URL from Env", func(t *testing.T) {
+		t.Run("ok", func(t *testing.T) {
+			viper.Set(fmt.Sprintf("%s%s", userDefinedEnvPrefix, "PG_URL"), "postgres://test-user:testpass@localhost:3309/mydb")
+			actual, err := NewFromPostgresConnection(
+				&mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv{
+							UrlFromEnv: "USER_DEFINED_PG_URL",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				testutil.GetTestLogger(t),
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"postgres://test-user:testpass@localhost:3309/mydb?connect_timeout=5",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
+		t.Run("error_no_prefix", func(t *testing.T) {
+			viper.Set("PG_URL_NO_PREFIX", "postgres://test-user:testpass@localhost:3309/mydb")
+
+			_, err := NewFromPostgresConnection(
+				&mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_UrlFromEnv{
+							UrlFromEnv: "PG_URL_NO_PREFIX",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				testutil.GetTestLogger(t),
+			)
+			require.Error(t, err)
 		})
 	})
 }

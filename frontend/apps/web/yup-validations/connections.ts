@@ -141,6 +141,24 @@ export const SSL_MODES = [
 
 export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 
+const UrlFormValue = Yup.string().when('$activeTab', {
+  is: 'url', // Only require if activeTab is 'url'
+  then: (schema) => schema.required('The Connection url is required'),
+  otherwise: (schema) => schema.notRequired(),
+});
+
+const UrlEnvVarFormValue = Yup.string().when('$activeTab', {
+  is: 'url-env',
+  then: (schema) =>
+    schema
+      .required('The environment variable is required')
+      .matches(
+        /^USER_DEFINED_/,
+        'Environment variable must start with USER_DEFINED_'
+      ),
+  otherwise: (schema) => schema.notRequired(),
+});
+
 export const MysqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
@@ -178,11 +196,8 @@ export const MysqlFormValues = Yup.object({
       otherwise: (schema) => schema.notRequired(),
     }),
   }).required('The database credentials are required.'),
-  url: Yup.string().when('$activeTab', {
-    is: 'url', // Only require if activeTab is 'url'
-    then: (schema) => schema.required('The Connection url is required'),
-    otherwise: (schema) => schema.notRequired(),
-  }),
+  url: UrlFormValue,
+  envVar: UrlEnvVarFormValue,
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
@@ -223,10 +238,8 @@ export const PostgresFormValues = Yup.object({
       }),
     sslMode: Yup.string().optional(),
   }),
-  url: Yup.string().when('$activeTab', {
-    is: 'url', // Only require if activeTab is 'url'
-    then: (schema) => schema.required('The connection url is required'),
-  }),
+  url: UrlFormValue,
+  envVar: UrlEnvVarFormValue,
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
@@ -273,9 +286,8 @@ export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
 
 export const MssqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
-  db: Yup.object({
-    url: Yup.string().required('Must provide a Mssql connection url'),
-  }).required('The SQL Server form fields are required.'),
+  url: UrlFormValue,
+  envVar: UrlEnvVarFormValue,
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
   clientTls: ClientTlsFormValues,
@@ -306,7 +318,8 @@ export interface CreateConnectionFormContext {
   >;
 }
 
-type ActiveConnectionTab = 'url' | 'host';
+export type ActiveConnectionTab = 'url' | 'host' | 'url-env';
+export type MssqlActiveConnectionTab = 'url' | 'url-env';
 
 export interface MysqlCreateConnectionFormContext
   extends CreateConnectionFormContext {
@@ -334,7 +347,10 @@ export interface MysqlEditConnectionFormContext
   activeTab: ActiveConnectionTab;
 }
 
-export type MssqlEditConnectionFormContext = EditConnectionFormContext;
+export interface MssqlEditConnectionFormContext
+  extends EditConnectionFormContext {
+  activeTab: MssqlActiveConnectionTab;
+}
 
 export const OpenAiFormValues = Yup.object({
   connectionName: connectionNameSchema,

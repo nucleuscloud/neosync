@@ -5782,6 +5782,18 @@
               "defaultValue": ""
             },
             {
+              "name": "url_from_env",
+              "description": "Source a url from an environment variable.\nThe value is expected to be in the same format as the \"url\" field above.\nThe key is the name of the environment variable to source. It must contain a prefix of \"USER_DEFINED_\"",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
               "name": "connection_options",
               "description": "",
               "label": "",
@@ -5932,6 +5944,18 @@
               "type": "MysqlConnection",
               "longType": "MysqlConnection",
               "fullType": "mgmt.v1alpha1.MysqlConnection",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "url_from_env",
+              "description": "Source a url from an environment variable.\nThe value is expected to be in the same format as the \"url\" field above.\nThe key is the name of the environment variable to source. It must contain a prefix of \"USER_DEFINED_\"",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "connection_config",
@@ -6124,6 +6148,18 @@
               "type": "PostgresConnection",
               "longType": "PostgresConnection",
               "fullType": "mgmt.v1alpha1.PostgresConnection",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "url_from_env",
+              "description": "Source a url from an environment variable.\nThe value is expected to be in the same format as the \"url\" field above.\nThe key is the name of the environment variable to source. It must contain a prefix of \"USER_DEFINED_\"",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "connection_config",

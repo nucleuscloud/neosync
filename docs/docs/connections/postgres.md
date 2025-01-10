@@ -27,11 +27,26 @@ You'll now be taken to the Postgres connection form.
 
 First, name your connection in the **Connection Name** field.
 
-Next, decide how you want to connect to your Postgres database. You can configure your connection by providing a connection URL or by entering in the different connection parameters.
+Next, decide how you want to connect to your Postgres database. You can configure your connection by providing a connection URL, environment variable (OSS only) or by entering in the different connection parameters.
+
+### Connection URL
 
 To connect using the connection URL, simply paste the connection url in the **Connection URL** input.
 
 ![Configure Postgres Connection By String](/img/pgstring.png)
+
+### Environment Variable
+
+To connect using the environment variable, simply paste the environment variable in the **Environment Variable** input.
+
+The value of the environment variable must be in the `Connection URL` format.
+
+This is only available in the OSS version of Neosync. The environment variable must begin with `USER_DEFINED_`.
+This is for safety and is to limit the class of environment variables a user of Neosync may configure.
+
+For full support, the environment variable must live on both the `neosync-api` as well as `neosync-worker`.
+
+### Discrete Host Parameters
 
 To connect using the host and connection parameters, click on the **Host** radio button. You'll see a form appear with the different components of the connection string broken out into individual input fields.
 

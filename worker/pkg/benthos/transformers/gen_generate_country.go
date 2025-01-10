@@ -40,13 +40,13 @@ func NewGenerateCountryOpts(
 	
 	return &GenerateCountryOpts{
 		generateFullName: generateFullName,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateCountryOpts) BuildBloblangString(	
+func (o *GenerateCountryOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"generate_full_name:%v",
 	}
 

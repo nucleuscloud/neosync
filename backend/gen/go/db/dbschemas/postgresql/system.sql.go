@@ -528,6 +528,7 @@ identity_columns AS (
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
     JOIN
         pg_catalog.pg_class seq ON seq.relname = c.relname || '_' || a.attname || '_seq'
+        AND seq.relnamespace = c.relnamespace
     JOIN
         pg_catalog.pg_sequence s ON seq.oid = s.seqrelid
     WHERE
@@ -725,6 +726,7 @@ identity_columns AS (
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
     JOIN
         pg_catalog.pg_class seq ON seq.relname = c.relname || '_' || a.attname || '_seq'
+        AND seq.relnamespace = c.relnamespace
     JOIN
         pg_catalog.pg_sequence s ON seq.oid = s.seqrelid
     WHERE

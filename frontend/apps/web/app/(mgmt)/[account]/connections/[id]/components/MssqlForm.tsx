@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import OSSOnlyGuard from '@/components/guards/OSSOnlyGuard';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
@@ -22,8 +23,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  MssqlActiveConnectionTab,
   MssqlEditConnectionFormContext,
   MssqlFormValues,
 } from '@/yup-validations/connections';
@@ -48,10 +52,25 @@ interface Props {
   onSaveFailed(err: unknown): void;
 }
 
+function getActiveTabFromValues(
+  values: MssqlFormValues
+): MssqlActiveConnectionTab {
+  if (values.url) {
+    return 'url';
+  }
+  if (values.envVar) {
+    return 'url-env';
+  }
+  return 'url';
+}
+
 export default function MssqlForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
-
+  // used to know which tab - host or url that the user is on when we submit the form
+  const [activeTab, setActiveTab] = useState<MssqlActiveConnectionTab>(
+    getActiveTabFromValues(defaultValues)
+  );
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
   );
@@ -64,6 +83,7 @@ export default function MssqlForm(props: Props): ReactElement {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
       isConnectionNameAvailable: isConnectionNameAvailableAsync,
+      activeTab: activeTab,
     },
   });
   const { mutateAsync: updateMssqlConnection } = useMutation(
@@ -123,26 +143,73 @@ export default function MssqlForm(props: Props): ReactElement {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="db.url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Connection URL
-              </FormLabel>
-              <FormDescription>Your connection URL</FormDescription>
-              <FormControl>
-                <Input
-                  placeholder="sqlserver://username:password@host:port/instance?param1=value&param2=value"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <RadioGroup
+          defaultValue={activeTab}
+          onValueChange={(e) => setActiveTab(e as MssqlActiveConnectionTab)}
+          value={activeTab}
+        >
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="text-sm">Connect by:</div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url" id="r2" />
+              <Label htmlFor="r2">URL</Label>
+            </div>
+            <OSSOnlyGuard>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="url-env" id="r3" />
+                <Label htmlFor="r3">Environment Variable</Label>
+              </div>
+            </OSSOnlyGuard>
+          </div>
+        </RadioGroup>
+
+        {activeTab === 'url-env' && (
+          <FormField
+            control={form.control}
+            name="envVar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Environment Variable
+                </FormLabel>
+                <FormDescription>
+                  The environment variable that contains the connection URL.
+                  Must start with &quot;USER_DEFINED_&quot;. Must be present on
+                  both the backend and the worker processes for full
+                  functionality.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="USER_DEFINED_MSSQL_URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {activeTab === 'url' && (
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Connection URL
+                </FormLabel>
+                <FormDescription>Your connection URL</FormDescription>
+                <FormControl>
+                  <Input
+                    placeholder="sqlserver://username:password@host:port/instance?param1=value&param2=value"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="flex flex-col gap-0">
           <FormField

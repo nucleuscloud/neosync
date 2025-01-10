@@ -2,6 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
+import OSSOnlyGuard from '@/components/guards/OSSOnlyGuard';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
@@ -36,6 +37,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { getErrorMessage } from '@/util/util';
 import {
+  ActiveConnectionTab,
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlCreateConnectionFormContext,
   MysqlFormValues,
@@ -48,6 +50,7 @@ import {
   CheckConnectionConfigResponseSchema,
   ConnectionService,
   GetConnectionResponseSchema,
+  MysqlConnectionConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -57,9 +60,6 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { buildConnectionConfigMysql } from '../../../connections/util';
-
-type ActiveTab = 'host' | 'url';
-
 export default function MysqlForm() {
   const { account } = useAccount();
   const searchParams = useSearchParams();
@@ -67,7 +67,7 @@ export default function MysqlForm() {
   const [isLoading, setIsLoading] = useState<boolean>();
 
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<ActiveTab>('url');
+  const [activeTab, setActiveTab] = useState<ActiveConnectionTab>('url');
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
   );
@@ -84,6 +84,7 @@ export default function MysqlForm() {
         protocol: 'tcp',
       },
       url: '',
+      envVar: '',
       options: {
         maxConnectionLimit: 50,
         maxIdleDuration: '',
@@ -141,7 +142,8 @@ export default function MysqlForm() {
         connectionConfig: buildConnectionConfigMysql({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
-          db: values.db,
+          db: activeTab === 'host' ? values.db : {},
+          envVar: activeTab === 'url-env' ? values.envVar : undefined,
         }),
       });
       posthog.capture('New Connection Created', { type: 'mysql' });
@@ -185,36 +187,20 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
       try {
         const connData = await getMysqlConnection({ id: sourceConnId });
-        if (
-          connData.connection?.connectionConfig?.config.case !== 'mysqlConfig'
-        ) {
+        const connectionConfig = connData.connection?.connectionConfig?.config;
+        if (!connectionConfig || connectionConfig.case !== 'mysqlConfig') {
           return;
         }
 
-        const config = connData.connection?.connectionConfig?.config.value;
-        const mysqlConfig = config.connectionConfig.value;
-
-        const dbConfig = {
-          host: '',
-          name: '',
-          user: '',
-          pass: '',
-          port: 3306,
-          protocol: 'tcp',
-        };
-        if (typeof mysqlConfig !== 'string') {
-          dbConfig.host = mysqlConfig?.host ?? '';
-          dbConfig.name = mysqlConfig?.name ?? '';
-          dbConfig.user = mysqlConfig?.user ?? '';
-          dbConfig.pass = mysqlConfig?.pass ?? '';
-          dbConfig.port = mysqlConfig?.port ?? 3306;
-          dbConfig.protocol = mysqlConfig?.protocol ?? 'tcp';
-        }
+        const { db, url, envVar } = getMysqlConnectionFormValues(
+          connectionConfig.value
+        );
 
         let passPhrase = '';
         let privateKey = '';
 
-        const authConfig = config.tunnel?.authentication?.authConfig;
+        const authConfig =
+          connectionConfig.value.tunnel?.authentication?.authConfig;
 
         switch (authConfig?.case) {
           case 'passphrase':
@@ -231,34 +217,46 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         form.reset({
           ...form.getValues(),
           connectionName: connData.connection?.name + '-copy',
-          db: dbConfig,
-          url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
+          db,
+          url,
+          envVar,
           options: {
             maxConnectionLimit:
-              config.connectionOptions?.maxConnectionLimit ?? 50,
-            maxIdleDuration: config.connectionOptions?.maxIdleDuration ?? '',
-            maxIdleLimit: config.connectionOptions?.maxIdleConnections ?? 2,
-            maxOpenDuration: config.connectionOptions?.maxOpenDuration ?? '',
+              connectionConfig.value.connectionOptions?.maxConnectionLimit ??
+              50,
+            maxIdleDuration:
+              connectionConfig.value.connectionOptions?.maxIdleDuration ?? '',
+            maxIdleLimit:
+              connectionConfig.value.connectionOptions?.maxIdleConnections ?? 2,
+            maxOpenDuration:
+              connectionConfig.value.connectionOptions?.maxOpenDuration ?? '',
           },
           tunnel: {
-            host: config.tunnel?.host ?? '',
-            port: config.tunnel?.port ?? 22,
-            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-            user: config.tunnel?.user ?? '',
+            host: connectionConfig.value.tunnel?.host ?? '',
+            port: connectionConfig.value.tunnel?.port ?? 22,
+            knownHostPublicKey:
+              connectionConfig.value.tunnel?.knownHostPublicKey ?? '',
+            user: connectionConfig.value.tunnel?.user ?? '',
             passphrase: passPhrase,
             privateKey: privateKey,
           },
           clientTls: {
-            clientCert: config.clientTls?.clientCert ?? '',
-            clientKey: config.clientTls?.clientKey ?? '',
-            rootCert: config.clientTls?.rootCert ?? '',
-            serverName: config.clientTls?.serverName ?? '',
+            clientCert: connectionConfig.value.clientTls?.clientCert ?? '',
+            clientKey: connectionConfig.value.clientTls?.clientKey ?? '',
+            rootCert: connectionConfig.value.clientTls?.rootCert ?? '',
+            serverName: connectionConfig.value.clientTls?.serverName ?? '',
           },
         });
-        if (config.connectionConfig.case === 'url') {
+        if (connectionConfig.value.connectionConfig.case === 'url') {
           setActiveTab('url');
-        } else if (config.connectionConfig.case === 'connection') {
+        } else if (
+          connectionConfig.value.connectionConfig.case === 'connection'
+        ) {
           setActiveTab('host');
+        } else if (
+          connectionConfig.value.connectionConfig.case === 'urlFromEnv'
+        ) {
+          setActiveTab('url-env');
         }
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
@@ -309,8 +307,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         />
 
         <RadioGroup
-          defaultValue="url"
-          onValueChange={(value) => setActiveTab(value as ActiveTab)}
+          defaultValue={activeTab}
+          onValueChange={(e) => setActiveTab(e as ActiveConnectionTab)}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -323,8 +321,39 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               <RadioGroupItem value="host" id="r1" />
               <Label htmlFor="r1">Host</Label>
             </div>
+            <OSSOnlyGuard>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="url-env" id="r3" />
+                <Label htmlFor="r3">Environment Variable</Label>
+              </div>
+            </OSSOnlyGuard>
           </div>
         </RadioGroup>
+
+        {activeTab === 'url-env' && (
+          <FormField
+            control={form.control}
+            name="envVar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Environment Variable
+                </FormLabel>
+                <FormDescription>
+                  The environment variable that contains the connection URL.
+                  Must start with &quot;USER_DEFINED_&quot;. Must be present on
+                  both the backend and the worker processes for full
+                  functionality.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="USER_DEFINED_MYSQL_URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         {activeTab == 'url' && (
           <FormField
             control={form.control}
@@ -909,4 +938,36 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
+}
+
+// extracts the connection config and returns the values for the form
+export function getMysqlConnectionFormValues(
+  connection: MysqlConnectionConfig
+): Pick<MysqlFormValues, 'db' | 'url' | 'envVar'> {
+  switch (connection.connectionConfig.case) {
+    case 'connection':
+      return {
+        db: connection.connectionConfig.value,
+        url: undefined,
+        envVar: undefined,
+      };
+    case 'url':
+      return {
+        db: {},
+        url: connection.connectionConfig.value,
+        envVar: undefined,
+      };
+    case 'urlFromEnv':
+      return {
+        db: {},
+        url: undefined,
+        envVar: connection.connectionConfig.value,
+      };
+    default:
+      return {
+        db: {},
+        url: undefined,
+        envVar: undefined,
+      };
+  }
 }

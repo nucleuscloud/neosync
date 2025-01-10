@@ -115,13 +115,24 @@ func ClampInts[T int | int32 | int64](input []T, minValue, maxValue *T) []T {
 	if minValue == nil && maxValue == nil {
 		return input
 	}
-	filtered := []T{}
+
+	// Pre-allocate slice with capacity of input to avoid reallocations
+	filtered := make([]T, 0, len(input))
+
+	// Avoid pointer dereferencing in loop
+	var minV, maxV T
+	if minValue != nil {
+		minV = *minValue
+	}
+	if maxValue != nil {
+		maxV = *maxValue
+	}
+
 	for _, num := range input {
-		if minValue != nil && num < *minValue {
+		if minValue != nil && num < minV {
 			continue
 		}
-
-		if maxValue != nil && num > *maxValue {
+		if maxValue != nil && num > maxV {
 			continue
 		}
 		filtered = append(filtered, num)

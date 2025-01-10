@@ -171,7 +171,7 @@ func (s *NeosyncApiTestClient) setupMux(
 	sqlmanagerclient := NewTestSqlManagerClient()
 
 	connectionService := v1alpha1_connectionservice.New(
-		&v1alpha1_connectionservice.Config{},
+		&v1alpha1_connectionservice.Config{IsNeosyncCloud: isNeosyncCloud},
 		neosyncDb,
 		userclient,
 		mongoconnect.NewConnector(),

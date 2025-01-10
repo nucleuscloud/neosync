@@ -148,6 +148,8 @@ func GetRandomCharacterString(randomizer rng.Rand, size int64) string {
 // See the pre-generated values in the data-sets folder
 // Eventually this will be abstracted into a Corpus struct for better readability.
 // The expectation is the values, lengthMap, and mapKeys are all in their optimal, sorted form.
+// TODO: there may be some optimizations we can do here to reduce the number of attempts to generate a string by currying away the maxLength and exclusions
+// If we know these ahead of time, we can pre-compute the actual candidates and then just randomly select from the candidates.
 func GenerateStringFromCorpus(
 	randomizer rng.Rand,
 	values []string,

@@ -32,12 +32,12 @@ func NewTransformUuidOpts(
 	}
 	
 	return &TransformUuidOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformUuidOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
 		"value:this.%s",

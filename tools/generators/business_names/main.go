@@ -1,11 +1,8 @@
-//go:build ignore
-
-// This file is used to generate the business_names.txt output file
 package main
 
+// This file is used to generate the business_names.txt output file
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"os"
 )
@@ -66,23 +63,25 @@ var suffixes = []string{
 }
 
 func main() {
-	outputFile := flag.String("output", "", "output file path")
-	flag.Parse()
+	args := os.Args
+	if len(args) < 2 {
+		panic("must provide necessary args")
+	}
 
-	if *outputFile == "" {
-		fmt.Println("Error: output file path is required")
-		return
+	outputFile := args[1]
+
+	if outputFile == "" {
+		panic("output file is required")
 	}
 
 	// Call your generation function
-	err := GenerateBusinessNames(industries, prefixes, baseWords, suffixes, *outputFile)
+	err := generateBusinessNames(industries, prefixes, baseWords, suffixes, outputFile)
 	if err != nil {
-		fmt.Printf("Error generating names: %v\n", err)
-		return
+		panic(err)
 	}
 }
 
-func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, fileName string) error {
+func generateBusinessNames(industries, prefixes, baseWords, suffixes []string, fileName string) error {
 	// create file to write to
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -95,75 +94,118 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	defer writer.Flush()
 
 	// helper func
-	addName := func(name string) {
+	addName := func(name string) error {
 		if name != "" {
-			writer.WriteString(name + "\n")
+			_, err := writer.WriteString(name + "\n")
+			if err != nil {
+				return fmt.Errorf("error writing to file: %v", err)
+			}
 		}
+		return nil
 	}
 
 	// 1-word names
 	for _, word := range baseWords {
-		addName(word)
+		err := addName(word)
+		if err != nil {
+			return err
+		}
 	}
 
 	// 2-word names
 	// word + suffix
 	for _, word := range industries {
 		for _, suffix := range suffixes {
-			addName(word + " " + suffix)
+			err := addName(word + " " + suffix)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	for _, word := range prefixes {
 		for _, suffix := range suffixes {
-			addName(word + " " + suffix)
+			err := addName(word + " " + suffix)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	for _, word := range baseWords {
 		for _, suffix := range suffixes {
-			addName(word + " " + suffix)
+			err := addName(word + " " + suffix)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	// word + word
 	for _, word1 := range industries {
 		for _, word2 := range prefixes {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range baseWords {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range industries {
 			if word1 != word2 {
-				addName(word1 + " " + word2)
+				err := addName(word1 + " " + word2)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	for _, word1 := range prefixes {
 		for _, word2 := range industries {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range baseWords {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range prefixes {
 			if word1 != word2 {
-				addName(word1 + " " + word2)
+				err := addName(word1 + " " + word2)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	for _, word1 := range baseWords {
 		for _, word2 := range industries {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range prefixes {
-			addName(word1 + " " + word2)
+			err := addName(word1 + " " + word2)
+			if err != nil {
+				return err
+			}
 		}
 		for _, word2 := range baseWords {
 			if word1 != word2 {
-				addName(word1 + " " + word2)
+				err := addName(word1 + " " + word2)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -173,18 +215,27 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range industries {
 		for _, word2 := range prefixes {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range baseWords {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range industries {
 			if word1 != word2 {
 				for _, suffix := range suffixes {
-					addName(word1 + " " + word2 + " " + suffix)
+					err := addName(word1 + " " + word2 + " " + suffix)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -193,18 +244,27 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range prefixes {
 		for _, word2 := range industries {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range baseWords {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range prefixes {
 			if word1 != word2 {
 				for _, suffix := range suffixes {
-					addName(word1 + " " + word2 + " " + suffix)
+					err := addName(word1 + " " + word2 + " " + suffix)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -213,18 +273,27 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range baseWords {
 		for _, word2 := range industries {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range prefixes {
 			for _, suffix := range suffixes {
-				addName(word1 + " " + word2 + " " + suffix)
+				err := addName(word1 + " " + word2 + " " + suffix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, word2 := range baseWords {
 			if word1 != word2 {
 				for _, suffix := range suffixes {
-					addName(word1 + " " + word2 + " " + suffix)
+					err := addName(word1 + " " + word2 + " " + suffix)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -234,7 +303,10 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range industries {
 		for _, word2 := range prefixes {
 			for _, word3 := range baseWords {
-				addName(word1 + " " + word2 + " " + word3)
+				err := addName(word1 + " " + word2 + " " + word3)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -242,7 +314,10 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range prefixes {
 		for _, word2 := range industries {
 			for _, word3 := range baseWords {
-				addName(word1 + " " + word2 + " " + word3)
+				err := addName(word1 + " " + word2 + " " + word3)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -250,7 +325,10 @@ func GenerateBusinessNames(industries, prefixes, baseWords, suffixes []string, f
 	for _, word1 := range baseWords {
 		for _, word2 := range industries {
 			for _, word3 := range prefixes {
-				addName(word1 + " " + word2 + " " + word3)
+				err := addName(word1 + " " + word2 + " " + word3)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

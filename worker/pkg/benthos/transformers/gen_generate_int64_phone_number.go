@@ -32,11 +32,11 @@ func NewGenerateInt64PhoneNumberOpts(
 	}
 	
 	return &GenerateInt64PhoneNumberOpts{
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateInt64PhoneNumberOpts) BuildBloblangString(	
+func (o *GenerateInt64PhoneNumberOpts) BuildBloblangString(
 ) string {
 	fnStr := []string{
 	}

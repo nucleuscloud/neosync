@@ -10,6 +10,12 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/spf13/viper"
+)
+
+const (
+	userDefinedEnvPrefix = "USER_DEFINED_"
 )
 
 type mysqlConnectConfig struct {
@@ -51,8 +57,16 @@ func NewFromMysqlConnection(
 		cfg.ParseTime = parseTime
 
 		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
-	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		mysqlurl := cc.Url
+	case *mgmtv1alpha1.MysqlConnectionConfig_Url, *mgmtv1alpha1.MysqlConnectionConfig_UrlFromEnv:
+		var mysqlurl string
+		if config.MysqlConfig.GetUrl() != "" {
+			mysqlurl = config.MysqlConfig.GetUrl()
+		} else if config.MysqlConfig.GetUrlFromEnv() != "" {
+			if !strings.HasPrefix(config.MysqlConfig.GetUrlFromEnv(), userDefinedEnvPrefix) {
+				return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("to source a url from an environment variable, the variable must have a prefix of %s", userDefinedEnvPrefix))
+			}
+			mysqlurl = viper.GetString(config.MysqlConfig.GetUrlFromEnv())
+		}
 
 		cfg, err := mysql.ParseDSN(mysqlurl)
 		if err != nil {

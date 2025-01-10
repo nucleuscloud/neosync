@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
@@ -117,7 +118,12 @@ func transformInt64PhoneNumber(randomizer rng.Rand, value any, preserveLength bo
 
 func generateIntPhoneNumberPreserveLength(randomizer rng.Rand, number int64) (int64, error) {
 	// get a random area code from the areacodes data set
-	randAreaCode, err := transformer_utils.GetRandomValueFromSlice[int64](randomizer, transformers_dataset.AreaCodes)
+	randAreaCodeStr, err := transformer_utils.GetRandomValueFromSlice(randomizer, transformers_dataset.UsAreaCodes)
+	if err != nil {
+		return 0, err
+	}
+
+	randAreaCode, err := strconv.ParseInt(randAreaCodeStr, 10, 64)
 	if err != nil {
 		return 0, err
 	}

@@ -289,8 +289,9 @@ type SwitchOutputCase struct {
 	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
 }
 type ErrorOutputConfig struct {
-	ErrorMsg string    `json:"error_msg" yaml:"error_msg"`
-	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	ErrorMsg      string    `json:"error_msg" yaml:"error_msg"`
+	IsGenerateJob bool      `json:"is_generate_job" yaml:"is_generate_job"`
+	Batching      *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type RedisHashOutputConfig struct {

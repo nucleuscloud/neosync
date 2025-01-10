@@ -48,16 +48,16 @@ func NewTransformE164PhoneNumberOpts(
 	return &TransformE164PhoneNumberOpts{
 		preserveLength: preserveLength,
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformE164PhoneNumberOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
-		"value:this.%s", 
-		"preserve_length:%v", 
+		"value:this.%s",
+		"preserve_length:%v",
 		"max_length:%v",
 	}
 

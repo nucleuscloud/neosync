@@ -1159,22 +1159,37 @@ components:
         - anyOf:
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
           title: url
           description: The URL with sqlserver scheme.
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         connectionOptions:
           allOf:
             - title: connection_options
@@ -1223,23 +1238,31 @@ components:
                 - connection
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - connection
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - connection
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - connection
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
@@ -1248,6 +1271,13 @@ components:
           allOf:
             - title: connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
             - title: tunnel
@@ -1324,23 +1354,31 @@ components:
                 - connection
             - required:
                 - url
+            - required:
+                - urlFromEnv
             - not:
                 anyOf:
                   - required:
                       - connection
                   - required:
                       - url
+                  - required:
+                      - urlFromEnv
       anyOf:
         - required:
             - connection
         - required:
             - url
+        - required:
+            - urlFromEnv
         - not:
             anyOf:
               - required:
                   - connection
               - required:
                   - url
+              - required:
+                  - urlFromEnv
       properties:
         url:
           type: string
@@ -1349,6 +1387,13 @@ components:
           allOf:
             - title: connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
             - title: tunnel

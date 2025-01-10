@@ -12,6 +12,23 @@ Neosync supports most Mysql-compatible databases natively using the Mysql connec
 
 ## MySQL Database Connection Configuration
 
+### Connection URL
+
+A connection url may be provided. DSN format is preferred, limited support for URI format.
+
+### Environment Variable
+
+To connect using the environment variable, simply paste the environment variable in the **Environment Variable** input.
+
+The value of the environment variable must be in the `Connection URL` format.
+
+This is only available in the OSS version of Neosync. The environment variable must begin with `USER_DEFINED_`.
+This is for safety and is to limit the class of environment variables a user of Neosync may configure.
+
+For full support, the environment variable must live on both the `neosync-api` as well as `neosync-worker`.
+
+### Discrete Host Parameters
+
 ![mysql](https://assets.nucleuscloud.com/neosync/docs/mysql.png)
 
 This guide will help you to configure your MySQL database connection properly.
@@ -49,7 +66,7 @@ The following TLS/SSL modes are available for Mysql via the `tls` query paramete
 
 > **NB:** if using the `URL` configuration, you will need to specify this directly in the query parameters. If using the host configuration, be sure to select the correct option in the dropdown that you intend to use.
 
-```
+```console
 true - Enabled TLS/SSL encryption to the server
 false - Disables TLS
 skip-verify - If you want to use a self-signed or invalid certificate on the server-side. Self-signed may be use if using mTLS.

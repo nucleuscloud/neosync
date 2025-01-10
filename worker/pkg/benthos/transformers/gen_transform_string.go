@@ -56,17 +56,17 @@ func NewTransformStringOpts(
 		preserveLength: preserveLength,
 		minLength: minLength,
 		maxLength: maxLength,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
 func (o *TransformStringOpts) BuildBloblangString(
-	valuePath string,	
+	valuePath string,
 ) string {
 	fnStr := []string{
-		"value:this.%s", 
-		"preserve_length:%v", 
-		"min_length:%v", 
+		"value:this.%s",
+		"preserve_length:%v",
+		"min_length:%v",
 		"max_length:%v",
 	}
 

@@ -40,13 +40,13 @@ func NewGenerateCategoricalOpts(
 	
 	return &GenerateCategoricalOpts{
 		categories: categories,
-		randomizer: rng.New(seed),	
+		randomizer: rng.New(seed),
 	}, nil
 }
 
-func (o *GenerateCategoricalOpts) BuildBloblangString(	
+func (o *GenerateCategoricalOpts) BuildBloblangString(
 ) string {
-	fnStr := []string{ 
+	fnStr := []string{
 		"categories:%q",
 	}
 
