@@ -90,3 +90,18 @@ func Test_RandomEmailTransformer_NoOptions(t *testing.T) {
 
 	require.NotEmptyf(t, resStr, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
 }
+
+func BenchmarkGenerateEmail(b *testing.B) {
+	generator := NewGenerateEmail()
+	opts, err := NewGenerateEmailOptsFromConfig(nil, nil)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := generator.Generate(opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}

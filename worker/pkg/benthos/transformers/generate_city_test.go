@@ -55,10 +55,14 @@ func Test_CityTransformer_NoOptions(t *testing.T) {
 }
 
 func BenchmarkGenerateCity(b *testing.B) {
-	randomizer := rng.New(time.Now().UnixMilli())
+	generator := NewGenerateCity()
+	opts, err := NewGenerateCityOptsFromConfig(nil, nil)
+	if err != nil {
+		b.Fatal(err)
+	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := generateRandomCity(randomizer, maxLength)
+		_, err := generator.Generate(opts)
 		if err != nil {
 			b.Fatal(err)
 		}
