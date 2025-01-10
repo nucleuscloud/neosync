@@ -14,123 +14,123 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 
 ## PostgreSQL
 
-| SQL Type         | JavaScript Type | Example Value                                         |
-| ---------------- | --------------- | ----------------------------------------------------- |
-| smallint         | number          | 32767                                                 |
-| integer          | number          | 2147483647                                            |
-| bigint           | number          | 9223372036854776000                                   |
-| decimal          | string          | "1234.56"                                             |
-| numeric          | string          | "99999999.99"                                         |
-| real             | number          | 12345.669921875                                       |
-| double precision | number          | 3.14159265                                            |
-| serial           | number          | 1                                                     |
-| bigserial        | number          | 1                                                     |
-| money            | string          | "$100.00"                                             |
-| char             | string          | "A "                                                  |
-| varchar          | string          | "Example varchar"                                     |
-| text             | string          | "Example text"                                        |
-| bytea            | neosync.Binary  |[Binary type](/transformers/neosync-types#binary)    |
-| timestamp        | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                                   |
-| timestamptz      | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                                   |
-| date             | neosync.NeosyncDateTime          | [NeosyncDateTime ](/transformers/neosync-types#neosyncdatetime)                                   |
-| time             | string          | "12:34:56"                                            |
-| timetz           | string          | "12:34:56+00"                                         |
-| interval         | neosync.Interval| [Interval type](/transformers/neosync-types#interval)                                      |
-| boolean          | boolean         | true                                                  |
-| point            | string          | "(1,2)"                                               |
-| line             | string          | "{1,1,0}"                                             |
-| lseg             | string          | "[(0,0),(1,1)]"                                       |
-| box              | string          | "(1,1),(0,0)"                                         |
-| path             | string          | "((0,0),(1,1),(2,2))"                                 |
-| polygon          | string          | "((0,0),(1,1),(1,0))"                                 |
-| circle           | string          | `<(1,1),1>`                                           |
-| cidr             | string          | "192.168.1.0/24"                                      |
-| inet             | string          | "192.168.1.1"                                         |
-| macaddr          | string          | "08:00:2b:01:02:03"                                   |
-| bit              | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
-| varbit           | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
-| tsvector         | string          | "'example' 'tsvector'"                                |
-| uuid             | string          | "123e4567-e89b-12d3-a456-426614174000"                |
-| xml              | string          | `<foo>bar</foo>`                                      |
-| json             | object          | `{"key": "value", "array": [1, 2, 3]}`                |
-| jsonb            | object          | `{"key": "value", "array": [1, 2, 3]}`                |
-| int4range        | string          | "[1,11)"                                              |
-| int8range        | string          | "[1,1001)"                                            |
-| numrange         | string          | "[1.0,10.0]"                                          |
-| tsrange          | string          | '["2024-01-01 12:00:00","2024-01-01 13:00:00"]'       |
-| tstzrange        | string          | '["2024-01-01 12:00:00+00","2024-01-01 13:00:00+00"]' |
-| daterange        | string          | "[2024-01-01,2024-01-03)"                             |
-| oid              | number          | 123456                                                |
-| text[]           | array           | ["cat","dog"]                                         |
+| SQL Type         | JavaScript Type         | Example Value                                                   |
+| ---------------- | ----------------------- | --------------------------------------------------------------- |
+| smallint         | number                  | 32767                                                           |
+| integer          | number                  | 2147483647                                                      |
+| bigint           | number                  | 9223372036854776000                                             |
+| decimal          | string                  | "1234.56"                                                       |
+| numeric          | string                  | "99999999.99"                                                   |
+| real             | number                  | 12345.669921875                                                 |
+| double precision | number                  | 3.14159265                                                      |
+| serial           | number                  | 1                                                               |
+| bigserial        | number                  | 1                                                               |
+| money            | string                  | "$100.00"                                                       |
+| char             | string                  | "A "                                                            |
+| varchar          | string                  | "Example varchar"                                               |
+| text             | string                  | "Example text"                                                  |
+| bytea            | neosync.Binary          | [Binary type](/transformers/neosync-types#binary)               |
+| timestamp        | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)  |
+| timestamptz      | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)  |
+| date             | neosync.NeosyncDateTime | [NeosyncDateTime ](/transformers/neosync-types#neosyncdatetime) |
+| time             | string                  | "12:34:56"                                                      |
+| timetz           | string                  | "12:34:56+00"                                                   |
+| interval         | neosync.Interval        | [Interval type](/transformers/neosync-types#interval)           |
+| boolean          | boolean                 | true                                                            |
+| point            | string                  | "(1,2)"                                                         |
+| line             | string                  | "{1,1,0}"                                                       |
+| lseg             | string                  | "[(0,0),(1,1)]"                                                 |
+| box              | string                  | "(1,1),(0,0)"                                                   |
+| path             | string                  | "((0,0),(1,1),(2,2))"                                           |
+| polygon          | string                  | "((0,0),(1,1),(1,0))"                                           |
+| circle           | string                  | `<(1,1),1>`                                                     |
+| cidr             | string                  | "192.168.1.0/24"                                                |
+| inet             | string                  | "192.168.1.1"                                                   |
+| macaddr          | string                  | "08:00:2b:01:02:03"                                             |
+| bit              | neosync.Bits            | [Bits type](/transformers/neosync-types#bits)                   |
+| varbit           | neosync.Bits            | [Bits type](/transformers/neosync-types#bits)                   |
+| tsvector         | string                  | "'example' 'tsvector'"                                          |
+| uuid             | string                  | "123e4567-e89b-12d3-a456-426614174000"                          |
+| xml              | string                  | `<foo>bar</foo>`                                                |
+| json             | object                  | `{"key": "value", "array": [1, 2, 3]}`                          |
+| jsonb            | object                  | `{"key": "value", "array": [1, 2, 3]}`                          |
+| int4range        | string                  | "[1,11)"                                                        |
+| int8range        | string                  | "[1,1001)"                                                      |
+| numrange         | string                  | "[1.0,10.0]"                                                    |
+| tsrange          | string                  | '["2024-01-01 12:00:00","2024-01-01 13:00:00"]'                 |
+| tstzrange        | string                  | '["2024-01-01 12:00:00+00","2024-01-01 13:00:00+00"]'           |
+| daterange        | string                  | "[2024-01-01,2024-01-03)"                                       |
+| oid              | number                  | 123456                                                          |
+| text[]           | array                   | ["cat","dog"]                                                   |
 
 ## MySQL
 
-| SQL Type   | JavaScript Type | Example Value                          |
-| ---------- | --------------- | -------------------------------------- |
-| tinyint    | number          | 127                                    |
-| smallint   | number          | 32767                                  |
-| mediumint  | number          | 8388607                                |
-| int        | number          | 2147483647                             |
-| bigint     | number          | 92233720368547710                      |
-| decimal    | string          | "1234.56"                              |
-| float      | number          | 3.1414999961853027                     |
-| double     | number          | 3.14159265                             |
-| bit        | neosync.Bits    | [Bits type](/transformers/neosync-types#bits)         |
-| char       | string          | "Fixed Char"                           |
-| varchar    | string          | "Variable Char"                        |
-| binary     | neosync.Binary  | [Binary type](/transformers/neosync-types#binary)    |
-| varbinary  | neosync.Binary  | [Binary type](/transformers/neosync-types#binary)    |
-| tinyblob   | string          | "Tiny BLOB"                            |
-| blob       | string          | "Regular BLOB"                         |
-| mediumblob | string          | "Medium BLOB"                          |
-| longblob   | string          | "Long BLOB"                            |
-| tinytext   | string          | "Tiny Text"                            |
-| text       | string          | "Regular Text"                         |
-| mediumtext | string          | "Medium Text"                          |
-| longtext   | string          | "Long Text"                            |
-| enum       | string          | "value2"                               |
-| set        | string          | "option1,option3"                      |
-| json       | object          | `{"key": "value", "array": [1, 2, 3]}` |
-| date       | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| time       | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| datetime   | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| timestamp  | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| year       | number          | 2023                                   |
+| SQL Type   | JavaScript Type         | Example Value                                                  |
+| ---------- | ----------------------- | -------------------------------------------------------------- |
+| tinyint    | number                  | 127                                                            |
+| smallint   | number                  | 32767                                                          |
+| mediumint  | number                  | 8388607                                                        |
+| int        | number                  | 2147483647                                                     |
+| bigint     | number                  | 92233720368547710                                              |
+| decimal    | string                  | "1234.56"                                                      |
+| float      | number                  | 3.1414999961853027                                             |
+| double     | number                  | 3.14159265                                                     |
+| bit        | neosync.Bits            | [Bits type](/transformers/neosync-types#bits)                  |
+| char       | string                  | "Fixed Char"                                                   |
+| varchar    | string                  | "Variable Char"                                                |
+| binary     | neosync.Binary          | [Binary type](/transformers/neosync-types#binary)              |
+| varbinary  | neosync.Binary          | [Binary type](/transformers/neosync-types#binary)              |
+| tinyblob   | string                  | "Tiny BLOB"                                                    |
+| blob       | string                  | "Regular BLOB"                                                 |
+| mediumblob | string                  | "Medium BLOB"                                                  |
+| longblob   | string                  | "Long BLOB"                                                    |
+| tinytext   | string                  | "Tiny Text"                                                    |
+| text       | string                  | "Regular Text"                                                 |
+| mediumtext | string                  | "Medium Text"                                                  |
+| longtext   | string                  | "Long Text"                                                    |
+| enum       | string                  | "value2"                                                       |
+| set        | string                  | "option1,option3"                                              |
+| json       | object                  | `{"key": "value", "array": [1, 2, 3]}`                         |
+| date       | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| time       | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| datetime   | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| timestamp  | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| year       | number                  | 2023                                                           |
 
 ## SQL Server
 
-| SQL Type         | JavaScript Type | Example Value |
-| ---------------- | --------------- | --------------- |
-| bit              | boolean         | true                                       |
-| tinyint          | number          | 255                                        |
-| smallint         | number          | 32767                                      |
-| int              | number          | 2147483647                                 |
-| bigint           | number          | 9223372036854776000                        |
-| decimal          | string          | "1234.56"                                  |
-| numeric          | string          | "1234.56"                                  |
-| smallmoney       | string          | "1234.5600"                                |
-| money            | string          | "1234.5678"                                |
-| float            | number          | 3.14159                                    |
-| real             | number          | 3.140000104904175                          |
-| date             | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| time             | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| datetime         | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| datetime2        | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| smalldatetime    | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| datetimeoffset   | neosync.NeosyncDateTime          | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime)                    |
-| binary         | neosync.Binary| [Binary type](/transformers/neosync-types#binary)                                      |
-| varbinary         | neosync.Bits| [Bits type](/transformers/neosync-types#bits)                                      |
-| char             | string          | "CHAR"                                     |
-| varchar          | string          | "VARCHAR"                                  |
-| varchar(max)     | string          | "VARCHAR(MAX)"                             |
-| text             | string          | "TEXT"                                     |
-| nchar            | string          | "NCHAR "                                   |
-| nvarchar         | string          | "NVARCHAR"                                 |
-| nvarchar(max)    | string          | "NVARCHAR(MAX)"                            |
-| ntext            | string          | "NTEXT"                                    |
-| xml              | string          | `<root><element>XML Data</element></root>` |
-| uniqueidentifier | string          | "2405c0f1-61fa-ce4f-b49f-df6414d3b502"     |
-| sql_variant      | string          | "SQL_VARIANT"                              |
+| SQL Type         | JavaScript Type         | Example Value                                                  |
+| ---------------- | ----------------------- | -------------------------------------------------------------- |
+| bit              | boolean                 | true                                                           |
+| tinyint          | number                  | 255                                                            |
+| smallint         | number                  | 32767                                                          |
+| int              | number                  | 2147483647                                                     |
+| bigint           | number                  | 9223372036854776000                                            |
+| decimal          | string                  | "1234.56"                                                      |
+| numeric          | string                  | "1234.56"                                                      |
+| smallmoney       | string                  | "1234.5600"                                                    |
+| money            | string                  | "1234.5678"                                                    |
+| float            | number                  | 3.14159                                                        |
+| real             | number                  | 3.140000104904175                                              |
+| date             | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| time             | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| datetime         | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| datetime2        | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| smalldatetime    | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| datetimeoffset   | neosync.NeosyncDateTime | [NeosyncDateTime](/transformers/neosync-types#neosyncdatetime) |
+| binary           | neosync.Binary          | [Binary type](/transformers/neosync-types#binary)              |
+| varbinary        | neosync.Bits            | [Bits type](/transformers/neosync-types#bits)                  |
+| char             | string                  | "CHAR"                                                         |
+| varchar          | string                  | "VARCHAR"                                                      |
+| varchar(max)     | string                  | "VARCHAR(MAX)"                                                 |
+| text             | string                  | "TEXT"                                                         |
+| nchar            | string                  | "NCHAR "                                                       |
+| nvarchar         | string                  | "NVARCHAR"                                                     |
+| nvarchar(max)    | string                  | "NVARCHAR(MAX)"                                                |
+| ntext            | string                  | "NTEXT"                                                        |
+| xml              | string                  | `<root><element>XML Data</element></root>`                     |
+| uniqueidentifier | string                  | "2405c0f1-61fa-ce4f-b49f-df6414d3b502"                         |
+| sql_variant      | string                  | "SQL_VARIANT"                                                  |
 
 <!-- cspell:enable -->
 

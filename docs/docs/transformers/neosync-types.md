@@ -20,7 +20,7 @@ type NeosyncArray struct {
 }
 ```
 
-### NeosyncDateTime 
+### NeosyncDateTime
 
 Handles date and time values with timezone support.
 
