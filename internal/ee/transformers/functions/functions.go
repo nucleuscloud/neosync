@@ -43,15 +43,11 @@ func TransformPiiText(
 
 	analysisResults := removeAllowedPhrases(*analyzeResp.JSON200, value, config.GetAllowedPhrases())
 
-	defaultAnon, ok, err := getDefaultAnonymizer(config.GetDefaultAnonymizer())
+	anonymizers, err := buildAnonymizers(config)
 	if err != nil {
-		return "", fmt.Errorf("unable to build default anonymizer: %w", err)
+		return "", fmt.Errorf("unable to build anonymizers: %w", err)
 	}
-	// The key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER)
-	anonymizers := map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
-	if ok {
-		anonymizers["DEFAULT"] = *defaultAnon
-	}
+
 	anonResp, err := anonymizeClient.PostAnonymizeWithResponse(ctx, presidioapi.AnonymizeRequest{
 		AnalyzerResults: presidioapi.ToAnonymizeRecognizerResults(analysisResults),
 		Text:            value,
@@ -65,6 +61,28 @@ func TransformPiiText(
 		return "", err
 	}
 	return *anonResp.JSON200.Text, nil
+}
+
+func buildAnonymizers(config *mgmtv1alpha1.TransformPiiText) (map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
+	output := map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
+	defaultAnon, ok, err := toPresidioAnonymizerConfig(config.GetDefaultAnonymizer())
+	if err != nil {
+		return nil, fmt.Errorf("unable to build default anonymizer: %w", err)
+	}
+	if ok {
+		output["DEFAULT"] = *defaultAnon
+	}
+	for entity, anonymizer := range config.GetEntityAnonymizers() {
+		ap, ok, err := toPresidioAnonymizerConfig(anonymizer)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build entity %s anonymizer: %w", entity, err)
+		}
+		if ok {
+			output[entity] = *ap
+		}
+	}
+
+	return output, nil
 }
 
 func removeAllowedPhrases(
@@ -104,7 +122,7 @@ func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi
 	return output
 }
 
-func getDefaultAnonymizer(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
+func toPresidioAnonymizerConfig(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
 	switch cfg := dto.GetConfig().(type) {
 	case *mgmtv1alpha1.PiiAnonymizer_Redact_:
 		ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
