@@ -15,10 +15,10 @@
     "knip:production": "knip --production --strict"
   },
   "devDependencies": {
-    "knip": "^5.41.1",
+    "knip": "^5.42.0",
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "workspaces": [
     "apps/*",
