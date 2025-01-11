@@ -27,6 +27,7 @@ neosync sync
 The following options can be passed using the `neosync sync` command:
 
 ### General Options
+
 - `--api-key` - Neosync API Key. Takes precedence over `$NEOSYNC_API_KEY`
 - `--config` - Path to yaml config. Defaults to `neosync.yaml` in current directory.
 - `--connection-id` - Neosync connection id for sync data source. Takes precedence over config.
@@ -36,6 +37,7 @@ The following options can be passed using the `neosync sync` command:
 - `--debug` - Sets the log level to debug and prints much more information. Works best with `--output plain`.
 
 ### SQL Destination Options
+
 - `--destination-connection-url` - Local destination connection url to sync data to. Takes precedence over config.
 - `--destination-driver` - Destination connection driver (postgres, mysql). Takes precedence over config.
 - `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
@@ -44,17 +46,20 @@ The following options can be passed using the `neosync sync` command:
 - `--on-conflict-do-nothing` - If there is a conflict when inserting data into SQL database do not insert.
 
 ### SQL Connection Pool Options
+
 - `--destination-idle-duration` - Maximum amount of time a connection may be idle (e.g. '5m')
 - `--destination-idle-limit` - Maximum number of idle connections
 - `--destination-open-duration` - Maximum amount of time a connection may be open (e.g. '30s')
 - `--destination-open-limit` - Maximum number of open connections
 
 ### Batch Processing Options
+
 - `--destination-max-in-flight` - Maximum allowed batched rows to sync. If not provided, uses server default of 64
 - `--destination-batch-count` - Batch size of rows that will be sent to the destination.
 - `--destination-batch-period` - Duration of time that a batch of rows will be sent.
 
 ### AWS DynamoDB Destination Options
+
 - `--aws-access-key-id` - AWS Access Key ID for DynamoDB
 - `--aws-secret-access-key` - AWS Secret Access Key for DynamoDB
 - `--aws-session-token` - AWS Session Token for DynamoDB
