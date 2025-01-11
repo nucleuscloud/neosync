@@ -26,26 +26,43 @@ neosync sync
 
 The following options can be passed using the `neosync sync` command:
 
+### General Options
 - `--api-key` - Neosync API Key. Takes precedence over `$NEOSYNC_API_KEY`
 - `--config` - Path to yaml config. Defaults to `neosync.yaml` in current directory.
 - `--connection-id` - Neosync connection id for sync data source. Takes precedence over config.
 - `--job-id` - Neosync job id for sync data source. For [AWS S3, GCP Cloud Storage] jobs only. Takes precedence over config.
 - `--job-run-id` - Neosync job run id for sync data source. For [AWS S3, GCP Cloud Storage] jobs only. Takes precedence over config.
+- `--output` - Sets output type (auto, plain, tty). (default `auto`).
+- `--debug` - Sets the log level to debug and prints much more information. Works best with `--output plain`.
+
+### SQL Destination Options
 - `--destination-connection-url` - Local destination connection url to sync data to. Takes precedence over config.
 - `--destination-driver` - Destination connection driver (postgres, mysql). Takes precedence over config.
 - `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
 - `--truncate-cascade` - Truncate cascades to all tables. Only supported for postgres.
 - `--init-schema` - Creates the table schema and its constraints.
 - `--on-conflict-do-nothing` - If there is a conflict when inserting data into SQL database do not insert.
-- `--output` - Sets output type (auto, plain, tty). (default `auto`).
-- `--debug` - Sets the log level to debug and prints much more information. Works best with `--output plain`.
+
+### SQL Connection Pool Options
 - `--destination-idle-duration` - Maximum amount of time a connection may be idle (e.g. '5m')
 - `--destination-idle-limit` - Maximum number of idle connections
 - `--destination-open-duration` - Maximum amount of time a connection may be open (e.g. '30s')
 - `--destination-open-limit` - Maximum number of open connections
+
+### Batch Processing Options
 - `--destination-max-in-flight` - Maximum allowed batched rows to sync. If not provided, uses server default of 64
 - `--destination-batch-count` - Batch size of rows that will be sent to the destination.
-- `--destination-batch-period` - Duration of tim e that a batch of rows will be sent.
+- `--destination-batch-period` - Duration of time that a batch of rows will be sent.
+
+### AWS DynamoDB Destination Options
+- `--aws-access-key-id` - AWS Access Key ID for DynamoDB
+- `--aws-secret-access-key` - AWS Secret Access Key for DynamoDB
+- `--aws-session-token` - AWS Session Token for DynamoDB
+- `--aws-role-arn` - AWS Role ARN for DynamoDB
+- `--aws-role-external-id` - AWS Role External ID for DynamoDB
+- `--aws-profile` - AWS Profile for DynamoDB
+- `--aws-endpoint` - Custom endpoint for DynamoDB
+- `--aws-region` - AWS Region for DynamoDB
 
 ## Yaml Config File
 
@@ -61,8 +78,11 @@ neosync sync --config ./path/to/config.yaml
 source:
   connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
   connection-opts:
+    # only used if source is AWS S3
     job-run-id: 43a4aac5-c4a8-4e4f-8554-03b7c5fffc04-2024-06-14T17:43:24Z
+
 destination:
+  # SQL destination configuration
   connection-url: user:pass@tcp(127.0.0.1:3306)/database
   driver: mysql
   truncate-before-insert: false
@@ -70,6 +90,8 @@ destination:
   init-schema: false
   on-conflict:
     do-nothing: false
+    do-update:
+      enabled: false
   connection-opts:
     open-limit: 25 # remove to unset and use system default (CLI falls back to default of 25 if not provided)
     idle-limit: 2 # remove to unset and use system default
@@ -79,6 +101,18 @@ destination:
   batch:
     count: 100
     period: 5s
+
+# AWS DynamoDB destination configuration
+aws-dynamodb-destination:
+  aws-cred-config:
+    region: us-west-2
+    access-key-id: your-access-key
+    secret-access-key: your-secret-key
+    session-token: your-session-token
+    role-arn: your-role-arn
+    role-external-id: your-external-id
+    endpoint: http://localhost:8000
+    profile: default
 ```
 
 ## Circular Dependencies
