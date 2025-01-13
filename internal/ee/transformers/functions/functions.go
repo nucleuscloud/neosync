@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/nucleuscloud/neosync/internal/queue"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
@@ -49,7 +50,7 @@ func TransformPiiText(
 
 	analysisResults := removeAllowedPhrases(*analyzeResp.JSON200, value, config.GetAllowedPhrases())
 
-	analysisResults, hasNeosyncEntities := processAnalysisResultsForNeosyncTransformers(analysisResults, getNeosyncConfiguredEntities(config))
+	analysisResults, neosyncEntityMap := processAnalysisResultsForNeosyncTransformers(analysisResults, getNeosyncConfiguredEntities(config), value)
 
 	// if neosync analyzer is configured for a specific entity, do the replacement and pop the entity from the analysis results
 
@@ -72,7 +73,7 @@ func TransformPiiText(
 	}
 	outputText := *anonResp.JSON200.Text
 
-	if hasNeosyncEntities {
+	if len(neosyncEntityMap) > 0 {
 		entityConfigMap := map[string]*mgmtv1alpha1.TransformerConfig{}
 		for entity, config := range config.GetEntityAnonymizers() {
 			transformConfig := config.GetTransform()
@@ -85,21 +86,33 @@ func TransformPiiText(
 		// do another pass to anonymize the neosync entities
 		for _, item := range *anonResp.JSON200.Items {
 			if !strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
+				// expected as not all items may contain neosync entities
 				continue
 			}
 			presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
 			transformerConfig, ok := entityConfigMap[presidioEntity]
 			if !ok {
+				// todo: log mismatch between presidio entity and neosync entity
 				continue
 			}
-			transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, *item.Text)
+
+			valueQueue, ok := neosyncEntityMap[item.EntityType]
+			if !ok {
+				// todo: log mismatch between presidio entity and neosync entity. Found neosync entity but no original values
+				continue
+			}
+			originalValue, err := valueQueue.Dequeue()
+			if err != nil {
+				// todo: log mismatch between presidio entity and neosync entity. Each json200.item should correlate to a unique neosync entity and original value
+				continue
+			}
+			transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, originalValue)
 			if err != nil {
 				return "", fmt.Errorf("unable to transform neosync entity %s: %w", presidioEntity, err)
 			}
-			outputText = strings.ReplaceAll(outputText, item.EntityType, transformedSnippet)
+			outputText = strings.Replace(outputText, *item.Text, transformedSnippet, 1)
 		}
 	}
-
 	return outputText, nil
 }
 
@@ -155,11 +168,6 @@ func removeAllowedPhrases(
 	return output
 }
 
-// type neosyncAnalysisResult struct {
-// 	NeosyncAnalyzerResults  []presidioapi.RecognizerResultWithAnaysisExplanation
-// 	PresidioAnalyzerResults []presidioapi.RecognizerResultWithAnaysisExplanation
-// }
-
 const (
 	neosyncEntityPrefix = "NEOSYNC_"
 )
@@ -167,23 +175,27 @@ const (
 func processAnalysisResultsForNeosyncTransformers(
 	inputResults []presidioapi.RecognizerResultWithAnaysisExplanation,
 	neosyncEnabledEntities []string,
-) ([]presidioapi.RecognizerResultWithAnaysisExplanation, bool) {
+	inputText string,
+) (analysisResults []presidioapi.RecognizerResultWithAnaysisExplanation, neosyncEntityMap map[string]*queue.Queue[string]) {
 	entitySet := map[string]struct{}{}
 	for _, entity := range neosyncEnabledEntities {
 		entitySet[entity] = struct{}{}
 	}
 
 	output := make([]presidioapi.RecognizerResultWithAnaysisExplanation, 0, len(inputResults))
-	hasNeosyncEntities := false
+	neosyncEntityMap = map[string]*queue.Queue[string]{} // entity -> list of original values
 	for _, result := range inputResults {
 		if _, ok := entitySet[result.EntityType]; ok {
 			result.EntityType = fmt.Sprintf("%s%s", neosyncEntityPrefix, result.EntityType)
-			hasNeosyncEntities = true
+			if _, ok := neosyncEntityMap[result.EntityType]; !ok {
+				neosyncEntityMap[result.EntityType] = queue.NewQueue[string]()
+			}
+			neosyncEntityMap[result.EntityType].Enqueue(inputText[result.Start:result.End])
 		}
 		output = append(output, result)
 	}
 
-	return output, hasNeosyncEntities
+	return output, neosyncEntityMap
 }
 
 func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi.PatternRecognizer {
@@ -240,13 +252,21 @@ func toPresidioAnonymizerConfig(entity string, dto *mgmtv1alpha1.PiiAnonymizer) 
 		return ap, true, nil
 	case *mgmtv1alpha1.PiiAnonymizer_Transform_:
 		ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
-		err := ap.FromReplace(presidioapi.Replace{Type: "replace", NewValue: fmt.Sprintf("{{%s%s}}", neosyncEntityPrefix, entity)})
+		err := ap.FromReplace(presidioapi.Replace{Type: "replace", NewValue: withNeosyncEntityBumpers(fmt.Sprintf("%s%s", neosyncEntityPrefix, entity))})
 		if err != nil {
 			return nil, false, err
 		}
 		return ap, true, nil
 	}
 	return nil, false, nil
+}
+
+func withNeosyncEntityBumpers(text string) string {
+	return fmt.Sprintf("{{%s%s}}", neosyncEntityPrefix, text)
+}
+
+func withoutNeosyncEntityBumpers(text string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(text, "{{"), "}}")
 }
 
 func toPresidioHashType(dto mgmtv1alpha1.PiiAnonymizer_Hash_HashType) presidioapi.HashHashType {

@@ -1,7 +1,6 @@
 package jsonanonymizer
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -345,29 +344,6 @@ func initTransformerExecutors(
 	}
 
 	return executors, nil
-}
-
-type neosyncOperatorApi struct {
-}
-
-func newNeosyncOperatorApi() *neosyncOperatorApi {
-	return &neosyncOperatorApi{}
-}
-
-func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error) {
-	executor, err := transformer.InitializeTransformerByConfigType(config)
-	if err != nil {
-		return "", err
-	}
-	result, err := executor.Mutate(value, executor.Opts)
-	if err != nil {
-		return "", err
-	}
-	// probably need to convert result to a string
-	if str, ok := result.(string); ok {
-		return str, nil
-	}
-	return "", fmt.Errorf("expected string result, got %T", result)
 }
 
 type DefaultExecutors struct {
