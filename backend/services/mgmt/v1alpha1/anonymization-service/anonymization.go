@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -29,6 +30,7 @@ func (s *Service) AnonymizeMany(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeManyRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeManyResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	if !s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented(
 			fmt.Sprintf("%s is not implemented in the OSS version of Neosync.", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
@@ -77,6 +79,7 @@ func (s *Service) AnonymizeMany(
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
 		jsonanonymizer.WithHaltOnFailure(req.Msg.HaltOnFailure),
 		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
+		jsonanonymizer.WithLogger(logger),
 	)
 	if err != nil {
 		return nil, err
@@ -135,6 +138,7 @@ func (s *Service) AnonymizeSingle(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeSingleResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
@@ -153,7 +157,6 @@ func (s *Service) AnonymizeSingle(
 	if err != nil {
 		return nil, err
 	}
-
 	if !s.cfg.IsNeosyncCloud || account.AccountType == int16(neosyncdb.AccountType_Personal) {
 		for _, mapping := range req.Msg.GetTransformerMappings() {
 			if mapping.GetTransformer().GetTransformPiiTextConfig() != nil {
@@ -185,6 +188,7 @@ func (s *Service) AnonymizeSingle(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
 		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
+		jsonanonymizer.WithLogger(logger),
 	)
 	if err != nil {
 		return nil, err

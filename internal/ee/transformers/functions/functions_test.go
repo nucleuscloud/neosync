@@ -6,6 +6,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +14,7 @@ import (
 func Test_TransformPiiText(t *testing.T) {
 	ctx := context.Background()
 	t.Run("empty", func(t *testing.T) {
-		actual, err := TransformPiiText(ctx, nil, nil, nil, nil, "")
+		actual, err := TransformPiiText(ctx, nil, nil, nil, nil, "", testutil.GetTestLogger(t))
 		require.NoError(t, err)
 		require.Equal(t, "", actual)
 	})
@@ -38,7 +39,7 @@ func Test_TransformPiiText(t *testing.T) {
 
 		config := &mgmtv1alpha1.TransformPiiText{}
 
-		actual, err := TransformPiiText(ctx, mockanalyze, mockanon, mockneosync, config, "foo")
+		actual, err := TransformPiiText(ctx, mockanalyze, mockanon, mockneosync, config, "foo", testutil.GetTestLogger(t))
 		require.NoError(t, err)
 		require.Equal(t, mockText, actual)
 	})

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
@@ -19,6 +20,7 @@ type TransformerExecutorOption func(c *TransformerExecutorConfig)
 
 type TransformerExecutorConfig struct {
 	transformPiiText *transformPiiTextConfig
+	logger           *slog.Logger
 }
 
 type transformPiiTextConfig struct {
@@ -41,12 +43,18 @@ func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize 
 	}
 }
 
+func WithLogger(logger *slog.Logger) TransformerExecutorOption {
+	return func(c *TransformerExecutorConfig) {
+		c.logger = logger
+	}
+}
+
 func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
 	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
 }
 
 func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
-	execCfg := &TransformerExecutorConfig{}
+	execCfg := &TransformerExecutorConfig{logger: slog.Default()}
 	for _, opt := range opts {
 		opt(execCfg)
 	}
@@ -617,6 +625,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
+					execCfg.logger,
 				)
 			},
 		}, nil
