@@ -306,6 +306,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'transformers/neosync-types',
+      label: 'Neosync Types',
+    },
+    {
+      type: 'doc',
       id: 'transformers/system',
       label: 'System',
     },
