@@ -6,6 +6,7 @@ import {
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { UnifyScriptProvider } from '@/components/providers/unify-provider';
 import { Metadata } from 'next';
+import Script from 'next/script';
 import { ReactElement, Suspense } from 'react';
 import BaseLayout from './BaseLayout';
 
@@ -24,6 +25,33 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className="min-h-screen bg-background font-sans antialiased overflow-scroll">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=G-JNE89GJ6WJ}`}
+          strategy="afterInteractive"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-JNE89GJ6WJ'}');
+            `,
+          }}
+        />
+        <Script
+          id="google-ads-conversion"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              gtag('event', 'conversion', {
+                'send_to': 'AW-11350558666/9_e_CKSV7uUYEMqPr6Qq'
+              });
+            `,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
