@@ -433,20 +433,29 @@ class TransformerConfig(_message.Message):
     def __init__(self, generate_email_config: _Optional[_Union[GenerateEmail, _Mapping]] = ..., transform_email_config: _Optional[_Union[TransformEmail, _Mapping]] = ..., generate_bool_config: _Optional[_Union[GenerateBool, _Mapping]] = ..., generate_card_number_config: _Optional[_Union[GenerateCardNumber, _Mapping]] = ..., generate_city_config: _Optional[_Union[GenerateCity, _Mapping]] = ..., generate_e164_phone_number_config: _Optional[_Union[GenerateE164PhoneNumber, _Mapping]] = ..., generate_first_name_config: _Optional[_Union[GenerateFirstName, _Mapping]] = ..., generate_float64_config: _Optional[_Union[GenerateFloat64, _Mapping]] = ..., generate_full_address_config: _Optional[_Union[GenerateFullAddress, _Mapping]] = ..., generate_full_name_config: _Optional[_Union[GenerateFullName, _Mapping]] = ..., generate_gender_config: _Optional[_Union[GenerateGender, _Mapping]] = ..., generate_int64_phone_number_config: _Optional[_Union[GenerateInt64PhoneNumber, _Mapping]] = ..., generate_int64_config: _Optional[_Union[GenerateInt64, _Mapping]] = ..., generate_last_name_config: _Optional[_Union[GenerateLastName, _Mapping]] = ..., generate_sha256hash_config: _Optional[_Union[GenerateSha256Hash, _Mapping]] = ..., generate_ssn_config: _Optional[_Union[GenerateSSN, _Mapping]] = ..., generate_state_config: _Optional[_Union[GenerateState, _Mapping]] = ..., generate_street_address_config: _Optional[_Union[GenerateStreetAddress, _Mapping]] = ..., generate_string_phone_number_config: _Optional[_Union[GenerateStringPhoneNumber, _Mapping]] = ..., generate_string_config: _Optional[_Union[GenerateString, _Mapping]] = ..., generate_unixtimestamp_config: _Optional[_Union[GenerateUnixTimestamp, _Mapping]] = ..., generate_username_config: _Optional[_Union[GenerateUsername, _Mapping]] = ..., generate_utctimestamp_config: _Optional[_Union[GenerateUtcTimestamp, _Mapping]] = ..., generate_uuid_config: _Optional[_Union[GenerateUuid, _Mapping]] = ..., generate_zipcode_config: _Optional[_Union[GenerateZipcode, _Mapping]] = ..., transform_e164_phone_number_config: _Optional[_Union[TransformE164PhoneNumber, _Mapping]] = ..., transform_first_name_config: _Optional[_Union[TransformFirstName, _Mapping]] = ..., transform_float64_config: _Optional[_Union[TransformFloat64, _Mapping]] = ..., transform_full_name_config: _Optional[_Union[TransformFullName, _Mapping]] = ..., transform_int64_phone_number_config: _Optional[_Union[TransformInt64PhoneNumber, _Mapping]] = ..., transform_int64_config: _Optional[_Union[TransformInt64, _Mapping]] = ..., transform_last_name_config: _Optional[_Union[TransformLastName, _Mapping]] = ..., transform_phone_number_config: _Optional[_Union[TransformPhoneNumber, _Mapping]] = ..., transform_string_config: _Optional[_Union[TransformString, _Mapping]] = ..., passthrough_config: _Optional[_Union[Passthrough, _Mapping]] = ..., nullconfig: _Optional[_Union[Null, _Mapping]] = ..., user_defined_transformer_config: _Optional[_Union[UserDefinedTransformerConfig, _Mapping]] = ..., generate_default_config: _Optional[_Union[GenerateDefault, _Mapping]] = ..., transform_javascript_config: _Optional[_Union[TransformJavascript, _Mapping]] = ..., generate_categorical_config: _Optional[_Union[GenerateCategorical, _Mapping]] = ..., transform_character_scramble_config: _Optional[_Union[TransformCharacterScramble, _Mapping]] = ..., generate_javascript_config: _Optional[_Union[GenerateJavascript, _Mapping]] = ..., generate_country_config: _Optional[_Union[GenerateCountry, _Mapping]] = ..., transform_pii_text_config: _Optional[_Union[TransformPiiText, _Mapping]] = ..., generate_business_name_config: _Optional[_Union[GenerateBusinessName, _Mapping]] = ..., generate_ip_address_config: _Optional[_Union[GenerateIpAddress, _Mapping]] = ..., transform_uuid_config: _Optional[_Union[TransformUuid, _Mapping]] = ...) -> None: ...
 
 class TransformPiiText(_message.Message):
-    __slots__ = ("score_threshold", "default_anonymizer", "deny_recognizers", "allowed_entities", "allowed_phrases", "language")
+    __slots__ = ("score_threshold", "default_anonymizer", "deny_recognizers", "allowed_entities", "allowed_phrases", "language", "entity_anonymizers")
+    class EntityAnonymizersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: PiiAnonymizer
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[PiiAnonymizer, _Mapping]] = ...) -> None: ...
     SCORE_THRESHOLD_FIELD_NUMBER: _ClassVar[int]
     DEFAULT_ANONYMIZER_FIELD_NUMBER: _ClassVar[int]
     DENY_RECOGNIZERS_FIELD_NUMBER: _ClassVar[int]
     ALLOWED_ENTITIES_FIELD_NUMBER: _ClassVar[int]
     ALLOWED_PHRASES_FIELD_NUMBER: _ClassVar[int]
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
+    ENTITY_ANONYMIZERS_FIELD_NUMBER: _ClassVar[int]
     score_threshold: float
     default_anonymizer: PiiAnonymizer
     deny_recognizers: _containers.RepeatedCompositeFieldContainer[PiiDenyRecognizer]
     allowed_entities: _containers.RepeatedScalarFieldContainer[str]
     allowed_phrases: _containers.RepeatedScalarFieldContainer[str]
     language: str
-    def __init__(self, score_threshold: _Optional[float] = ..., default_anonymizer: _Optional[_Union[PiiAnonymizer, _Mapping]] = ..., deny_recognizers: _Optional[_Iterable[_Union[PiiDenyRecognizer, _Mapping]]] = ..., allowed_entities: _Optional[_Iterable[str]] = ..., allowed_phrases: _Optional[_Iterable[str]] = ..., language: _Optional[str] = ...) -> None: ...
+    entity_anonymizers: _containers.MessageMap[str, PiiAnonymizer]
+    def __init__(self, score_threshold: _Optional[float] = ..., default_anonymizer: _Optional[_Union[PiiAnonymizer, _Mapping]] = ..., deny_recognizers: _Optional[_Iterable[_Union[PiiDenyRecognizer, _Mapping]]] = ..., allowed_entities: _Optional[_Iterable[str]] = ..., allowed_phrases: _Optional[_Iterable[str]] = ..., language: _Optional[str] = ..., entity_anonymizers: _Optional[_Mapping[str, PiiAnonymizer]] = ...) -> None: ...
 
 class PiiDenyRecognizer(_message.Message):
     __slots__ = ("name", "deny_words")
