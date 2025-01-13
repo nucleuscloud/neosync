@@ -576,6 +576,16 @@ func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) (*desti
 		if err != nil {
 			return nil, err
 		}
+		onConflictDoNothing := false
+		onConflictDoUpdate := false
+		if config.PostgresOptions.GetOnConflict().GetNothing() != nil {
+			onConflictDoNothing = true
+		} else if config.PostgresOptions.GetOnConflict().GetUpdate() != nil {
+			onConflictDoUpdate = true
+		}
+		if onConflictDoNothing && onConflictDoUpdate {
+			return nil, fmt.Errorf("cannot have both on conflict do nothing and on conflict do update")
+		}
 		return &destinationOptions{
 			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
 			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
