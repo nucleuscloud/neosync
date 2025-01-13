@@ -146,7 +146,15 @@ func getDefaultTransformerConfigByEntity(entity string) *mgmtv1alpha1.Transforme
 	// case "UK_NINO":
 	// case "IN_VOTER":
 	// case "IN_PAN":
-	// case "CREDIT_CARD":
+	case "CREDIT_CARD":
+		validLuhn := true
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+				GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
+					ValidLuhn: &validLuhn,
+				},
+			},
+		}
 	// case "NRP":
 	// case "IT_FISCAL_CODE":
 	case "PERSON":
