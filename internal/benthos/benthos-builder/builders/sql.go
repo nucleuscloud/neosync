@@ -401,6 +401,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 						Schema:                      benthosConfig.TableSchema,
 						Table:                       benthosConfig.TableName,
+						PrimaryKeyColumns:           benthosConfig.PrimaryKeys,
 						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
 						OnConflictDoUpdate:          destOpts.OnConflictDoUpdate,
 						SkipForeignKeyViolations:    skipForeignKeyViolations,

@@ -21,6 +21,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
+		Field(service.NewStringListField("primary_key_columns")).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("on_conflict_do_update").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -98,6 +99,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	primaryKeyColumns, err := conf.FieldStringList("primary_key_columns")
+	if err != nil {
+		return nil, err
+	}
+
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -171,7 +177,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		options = append(options, querybuilder.WithOnConflictDoNothing())
 	}
 	if onConflictDoUpdate {
-		options = append(options, querybuilder.WithOnConflictDoUpdate())
+		options = append(options, querybuilder.WithOnConflictDoUpdate(primaryKeyColumns))
 	}
 	if shouldOverrideColumnDefault {
 		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
