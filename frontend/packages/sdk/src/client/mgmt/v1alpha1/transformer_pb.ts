@@ -1012,7 +1012,7 @@ export const PiiAnonymizer_Hash_HashTypeSchema: GenEnum<PiiAnonymizer_Hash_HashT
  */
 export type PiiAnonymizer_Transform = Message<"mgmt.v1alpha1.PiiAnonymizer.Transform"> & {
   /**
-   * The transformer to use. If not provided, a transformer will automatically be selected.
+   * The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig config = 1;
    */

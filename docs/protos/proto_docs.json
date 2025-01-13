@@ -1722,7 +1722,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "The transformer to use. If not provided, a transformer will automatically be selected.",
+              "description": "The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",

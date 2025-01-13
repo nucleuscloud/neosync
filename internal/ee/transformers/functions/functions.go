@@ -52,8 +52,6 @@ func TransformPiiText(
 
 	analysisResults, neosyncEntityMap := processAnalysisResultsForNeosyncTransformers(analysisResults, getNeosyncConfiguredEntities(config), value)
 
-	// if neosync analyzer is configured for a specific entity, do the replacement and pop the entity from the analysis results
-
 	anonymizers, err := buildAnonymizers(config)
 	if err != nil {
 		return "", fmt.Errorf("unable to build anonymizers: %w", err)
@@ -71,51 +69,144 @@ func TransformPiiText(
 	if err != nil {
 		return "", err
 	}
-	outputText := *anonResp.JSON200.Text
-
-	if len(neosyncEntityMap) > 0 {
-		entityConfigMap := map[string]*mgmtv1alpha1.TransformerConfig{}
-		for entity, config := range config.GetEntityAnonymizers() {
-			transformConfig := config.GetTransform()
-			if transformConfig == nil {
-				continue
-			}
-			entityConfigMap[entity] = transformConfig.GetConfig()
-		}
-
-		// do another pass to anonymize the neosync entities
-		for _, item := range *anonResp.JSON200.Items {
-			if !strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
-				// expected as not all items may contain neosync entities
-				continue
-			}
-			presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
-			transformerConfig, ok := entityConfigMap[presidioEntity]
-			if !ok {
-				// todo: log mismatch between presidio entity and neosync entity
-				continue
-			}
-
-			valueQueue, ok := neosyncEntityMap[item.EntityType]
-			if !ok {
-				// todo: log mismatch between presidio entity and neosync entity. Found neosync entity but no original values
-				continue
-			}
-			originalValue, err := valueQueue.Dequeue()
-			if err != nil {
-				// todo: log mismatch between presidio entity and neosync entity. Each json200.item should correlate to a unique neosync entity and original value
-				continue
-			}
-			transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, originalValue)
-			if err != nil {
-				return "", fmt.Errorf("unable to transform neosync entity %s: %w", presidioEntity, err)
-			}
-			outputText = strings.Replace(outputText, *item.Text, transformedSnippet, 1)
-		}
+	if len(neosyncEntityMap) == 0 {
+		return *anonResp.JSON200.Text, nil
 	}
+
+	return handleNeosyncEntityAnonymization(
+		ctx,
+		anonResp.JSON200,
+		config.GetEntityAnonymizers(),
+		neosyncEntityMap,
+		neosyncOperatorApi,
+	)
+}
+
+func handleNeosyncEntityAnonymization(
+	ctx context.Context,
+	resp *presidioapi.AnonymizeResponse,
+	entityAnonymizerMap map[string]*mgmtv1alpha1.PiiAnonymizer,
+	neosyncEntityMap map[string]*queue.Queue[string],
+	neosyncOperatorApi NeosyncOperatorApi,
+) (string, error) {
+	outputText := *resp.Text
+
+	entityConfigMap := map[string]*mgmtv1alpha1.TransformerConfig{}
+	for entity, config := range entityAnonymizerMap {
+		transformConfig := config.GetTransform().GetConfig()
+		if transformConfig == nil {
+			transformConfig = getDefaultTransformerConfigByEntity(entity)
+		}
+		entityConfigMap[entity] = transformConfig
+	}
+
+	for _, item := range *resp.Items {
+		if !strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
+			// expected as not all items may contain neosync entities
+			continue
+		}
+
+		presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
+		transformerConfig, ok := entityConfigMap[presidioEntity]
+		if !ok {
+			// todo: log mismatch between presidio entity and neosync entity
+			continue
+		}
+
+		valueQueue, ok := neosyncEntityMap[item.EntityType]
+		if !ok {
+			// todo: log mismatch between presidio entity and neosync entity. Found neosync entity but no original values
+			continue
+		}
+		originalValue, err := valueQueue.Dequeue()
+		if err != nil {
+			// todo: log mismatch between presidio entity and neosync entity. Each json200.item should correlate to a unique neosync entity and original value
+			continue
+		}
+		transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, originalValue)
+		if err != nil {
+			return "", fmt.Errorf("unable to transform neosync entity %s: %w", presidioEntity, err)
+		}
+		outputText = strings.Replace(outputText, *item.Text, transformedSnippet, 1)
+	}
+
 	return outputText, nil
 }
 
+func getDefaultTransformerConfigByEntity(entity string) *mgmtv1alpha1.TransformerConfig {
+	switch entity {
+	// case "IN_PASSPORT":
+	// case "ES_NIF":
+	// case "AU_TFN":
+	// case "ES_NIE":
+	// case "MEDICAL_LICENSE":
+	// case "AU_MEDICARE":
+	// case "IN_AADHAAR":
+	// case "AU_ACN":
+	// case "UK_NINO":
+	// case "IN_VOTER":
+	// case "IN_PAN":
+	// case "CREDIT_CARD":
+	// case "NRP":
+	// case "IT_FISCAL_CODE":
+	case "PERSON":
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+			},
+		}
+	// case "US_DRIVER_LICENSE":
+	// case "SG_NRIC_FIN":
+	// case "IT_DRIVER_LICENSE":
+	// case "URL":
+	// case "LOCATION":
+	// case "US_PASSPORT":
+	// case "IN_VEHICLE_REGISTRATION":
+	case "PHONE_NUMBER":
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
+				GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{},
+			},
+		}
+	// case "DATE_TIME":
+	// case "CRYPTO":
+	case "US_SSN":
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+				GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
+			},
+		}
+	// case "US_BANK_NUMBER":
+	case "IP_ADDRESS":
+		ipType := mgmtv1alpha1.GenerateIpAddressType_GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
+				GenerateIpAddressConfig: &mgmtv1alpha1.GenerateIpAddress{IpType: &ipType},
+			},
+		}
+	// case "UK_NHS":
+	// case "IBAN_CODE":
+	// case "IT_VAT_CODE":
+	// case "IT_PASSPORT":
+	// case "IT_IDENTITY_CARD":
+	// case "AU_ABN":
+	// case "US_ITIN":
+	case "EMAIL_ADDRESS":
+		emailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
+		invalidEmailAction := mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{EmailType: &emailType, InvalidEmailAction: &invalidEmailAction},
+			},
+		}
+	default:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
+				GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
+			},
+		}
+	}
+}
 func getNeosyncConfiguredEntities(config *mgmtv1alpha1.TransformPiiText) []string {
 	entities := []string{}
 	for entity := range config.GetEntityAnonymizers() {
@@ -263,10 +354,6 @@ func toPresidioAnonymizerConfig(entity string, dto *mgmtv1alpha1.PiiAnonymizer) 
 
 func withNeosyncEntityBumpers(text string) string {
 	return fmt.Sprintf("{{%s%s}}", neosyncEntityPrefix, text)
-}
-
-func withoutNeosyncEntityBumpers(text string) string {
-	return strings.TrimSuffix(strings.TrimPrefix(text, "{{"), "}}")
 }
 
 func toPresidioHashType(dto mgmtv1alpha1.PiiAnonymizer_Hash_HashType) presidioapi.HashHashType {

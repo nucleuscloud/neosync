@@ -230,7 +230,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `PiiAnonymizer.Transform`
-<ProtoMessage key={53} message={{"name":"Transform","longName":"PiiAnonymizer.Transform","fullName":"mgmt.v1alpha1.PiiAnonymizer.Transform","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"config","description":"The transformer to use. If not provided, a transformer will automatically be selected.","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
+<ProtoMessage key={53} message={{"name":"Transform","longName":"PiiAnonymizer.Transform","fullName":"mgmt.v1alpha1.PiiAnonymizer.Transform","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"config","description":"The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
 
 
 ### `PiiDenyRecognizer`

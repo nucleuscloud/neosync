@@ -895,7 +895,7 @@ components:
         config:
           allOf:
             - title: config
-              description: The transformer to use. If not provided, a transformer will automatically be selected.
+              description: The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: Transform
       additionalProperties: false

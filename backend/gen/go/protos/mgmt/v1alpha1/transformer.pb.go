@@ -5039,7 +5039,7 @@ type PiiAnonymizer_Transform struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The transformer to use. If not provided, a transformer will automatically be selected.
+	// The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
 	Config *TransformerConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 }
 
