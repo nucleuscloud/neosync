@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -17,7 +18,9 @@ func GetInsertBuilder(
 	driver, schema, table string,
 	opts ...InsertOption,
 ) (InsertQueryBuilder, error) {
-	options := &InsertOptions{}
+	options := &InsertOptions{
+		conflictConfig: &conflictConfig{},
+	}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -158,11 +161,13 @@ func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(
 ) (sql string, args []any, err error) {
 	builder := getGoquDialect(sqlmanager_shared.GoquPostgresDriver)
 	sqltable := goqu.S(d.schema).Table(d.table)
-	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
+	insert := builder.Insert(sqltable).Prepared(true).Rows(records)
 
 	updateRecord := goqu.Record{}
 	for _, col := range updateColumns {
-		updateRecord[col] = exp.NewIdentifierExpression("", "EXCLUDED", col)
+		if !slices.Contains(conflictColumns, col) {
+			updateRecord[col] = goqu.L(fmt.Sprintf("EXCLUDED.%q", col))
+		}
 	}
 	targetColumns := strings.Join(conflictColumns, ", ")
 	insert = insert.OnConflict(goqu.DoUpdate(targetColumns, updateRecord))

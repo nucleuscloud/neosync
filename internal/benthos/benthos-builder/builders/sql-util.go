@@ -587,7 +587,8 @@ func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) (*desti
 			return nil, fmt.Errorf("cannot have both on conflict do nothing and on conflict do update")
 		}
 		return &destinationOptions{
-			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
+			OnConflictDoNothing:      onConflictDoNothing,
+			OnConflictDoUpdate:       onConflictDoUpdate,
 			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			TruncateCascade:          config.PostgresOptions.GetTruncateTable().GetCascade(),
 			SkipForeignKeyViolations: config.PostgresOptions.GetSkipForeignKeyViolations(),

@@ -447,7 +447,7 @@ export function toJobDestinationOptions(
           ),
         };
       } else if (
-        values.destinationOptions.mysql?.conflictStrategy?.onConflictDoUpdate
+        values.destinationOptions.postgres?.conflictStrategy?.onConflictDoUpdate
       ) {
         pgOnConflict.strategy = {
           case: 'update',
