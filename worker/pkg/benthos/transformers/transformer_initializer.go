@@ -25,15 +25,18 @@ type transformPiiTextConfig struct {
 	analyze   presidioapi.AnalyzeInterface
 	anonymize presidioapi.AnonymizeInterface
 
+	neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi
+
 	defaultLanguage *string
 }
 
-func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, defaultLanguage *string) TransformerExecutorOption {
+func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi, defaultLanguage *string) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.transformPiiText = &transformPiiTextConfig{
-			analyze:         analyze,
-			anonymize:       anonymize,
-			defaultLanguage: defaultLanguage,
+			analyze:            analyze,
+			anonymize:          anonymize,
+			neosyncOperatorApi: neosyncOperatorApi,
+			defaultLanguage:    defaultLanguage,
 		}
 	}
 }
@@ -611,7 +614,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				}
 				return ee_transformer_fns.TransformPiiText(
 					context.Background(),
-					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
+					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
 				)

@@ -13,7 +13,7 @@ import (
 func Test_TransformPiiText(t *testing.T) {
 	ctx := context.Background()
 	t.Run("empty", func(t *testing.T) {
-		actual, err := TransformPiiText(ctx, nil, nil, nil, "")
+		actual, err := TransformPiiText(ctx, nil, nil, nil, nil, "")
 		require.NoError(t, err)
 		require.Equal(t, "", actual)
 	})
@@ -21,6 +21,7 @@ func Test_TransformPiiText(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
 		mockanon := presidioapi.NewMockAnonymizeInterface(t)
+		mockneosync := NewMockNeosyncOperatorApi(t)
 
 		mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnalyzeResponse{
@@ -37,7 +38,7 @@ func Test_TransformPiiText(t *testing.T) {
 
 		config := &mgmtv1alpha1.TransformPiiText{}
 
-		actual, err := TransformPiiText(ctx, mockanalyze, mockanon, config, "foo")
+		actual, err := TransformPiiText(ctx, mockanalyze, mockanon, mockneosync, config, "foo")
 		require.NoError(t, err)
 		require.Equal(t, mockText, actual)
 	})
@@ -173,7 +174,7 @@ func Test_buildAnonymizers(t *testing.T) {
 
 func Test_toPresidioAnonymizerConfig(t *testing.T) {
 	t.Run("redact", func(t *testing.T) {
-		actual, ok, err := toPresidioAnonymizerConfig(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := toPresidioAnonymizerConfig("", &mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Redact_{
 				Redact: &mgmtv1alpha1.PiiAnonymizer_Redact{},
 			},
@@ -185,7 +186,7 @@ func Test_toPresidioAnonymizerConfig(t *testing.T) {
 
 	t.Run("replace", func(t *testing.T) {
 		newval := "newval"
-		actual, ok, err := toPresidioAnonymizerConfig(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := toPresidioAnonymizerConfig("", &mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Replace_{
 				Replace: &mgmtv1alpha1.PiiAnonymizer_Replace{
 					Value: &newval,
@@ -199,7 +200,7 @@ func Test_toPresidioAnonymizerConfig(t *testing.T) {
 
 	t.Run("hash", func(t *testing.T) {
 		sha256 := mgmtv1alpha1.PiiAnonymizer_Hash_HASH_TYPE_SHA512
-		actual, ok, err := toPresidioAnonymizerConfig(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := toPresidioAnonymizerConfig("", &mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Hash_{
 				Hash: &mgmtv1alpha1.PiiAnonymizer_Hash{
 					Algo: &sha256,
@@ -215,7 +216,7 @@ func Test_toPresidioAnonymizerConfig(t *testing.T) {
 		maskingChar := "*"
 		charsTomask := int32(5)
 		fromend := false
-		actual, ok, err := toPresidioAnonymizerConfig(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := toPresidioAnonymizerConfig("", &mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Mask_{
 				Mask: &mgmtv1alpha1.PiiAnonymizer_Mask{
 					MaskingChar: &maskingChar,
@@ -230,11 +231,13 @@ func Test_toPresidioAnonymizerConfig(t *testing.T) {
 	})
 
 	t.Run("default", func(t *testing.T) {
-		actual, ok, err := toPresidioAnonymizerConfig(nil)
+		actual, ok, err := toPresidioAnonymizerConfig("", nil)
 		require.NoError(t, err)
 		require.Nil(t, actual)
 		require.False(t, ok)
 	})
+
+	// todo: add test for neosync operator
 }
 
 func Test_toPresidioHashType(t *testing.T) {

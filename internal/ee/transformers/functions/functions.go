@@ -14,10 +14,15 @@ var (
 	supportedLanguage = "en"
 )
 
+type NeosyncOperatorApi interface {
+	Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error)
+}
+
 func TransformPiiText(
 	ctx context.Context,
 	analyzeClient presidioapi.AnalyzeInterface,
 	anonymizeClient presidioapi.AnonymizeInterface,
+	neosyncOperatorApi NeosyncOperatorApi,
 	config *mgmtv1alpha1.TransformPiiText,
 	value string,
 ) (string, error) {
@@ -65,24 +70,37 @@ func TransformPiiText(
 	if err != nil {
 		return "", err
 	}
-	output := *anonResp.JSON200.Text
+	outputText := *anonResp.JSON200.Text
 
 	if hasNeosyncEntities {
+		entityConfigMap := map[string]*mgmtv1alpha1.TransformerConfig{}
+		for entity, config := range config.GetEntityAnonymizers() {
+			transformConfig := config.GetTransform()
+			if transformConfig == nil {
+				continue
+			}
+			entityConfigMap[entity] = transformConfig.GetConfig()
+		}
+
 		// do another pass to anonymize the neosync entities
 		for _, item := range *anonResp.JSON200.Items {
-			if strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
-				// do the replacement
-				presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
-				_ = presidioEntity
-				// find transformer config from map
-				// call function to get transformed data
-				transformedSnippet := ""
-				output = strings.ReplaceAll(output, item.EntityType, transformedSnippet)
+			if !strings.HasPrefix(item.EntityType, neosyncEntityPrefix) {
+				continue
 			}
+			presidioEntity := strings.TrimPrefix(item.EntityType, neosyncEntityPrefix)
+			transformerConfig, ok := entityConfigMap[presidioEntity]
+			if !ok {
+				continue
+			}
+			transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, *item.Text)
+			if err != nil {
+				return "", fmt.Errorf("unable to transform neosync entity %s: %w", presidioEntity, err)
+			}
+			outputText = strings.ReplaceAll(outputText, item.EntityType, transformedSnippet)
 		}
 	}
 
-	return output, nil
+	return outputText, nil
 }
 
 func getNeosyncConfiguredEntities(config *mgmtv1alpha1.TransformPiiText) []string {

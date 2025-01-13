@@ -1,6 +1,7 @@
 package jsonanonymizer
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -332,7 +333,11 @@ func initTransformerExecutors(
 	executors := []*transformer.TransformerExecutor{}
 	execOpts := []transformer.TransformerExecutorOption{}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
+		// I find all of the transformer configs in the transform pii text configuration
+		// map of config oneof type to function: transformer.InitTransformerByconfigType(config, execOpts...)
+		// call executor.Mutate(value, exec.Opts)
+
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(), anonymizeConfig.defaultLanguage))
 	}
 
 	for _, mapping := range transformerMappings {
@@ -344,6 +349,29 @@ func initTransformerExecutors(
 	}
 
 	return executors, nil
+}
+
+type neosyncOperatorApi struct {
+}
+
+func newNeosyncOperatorApi() *neosyncOperatorApi {
+	return &neosyncOperatorApi{}
+}
+
+func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error) {
+	executor, err := transformer.InitializeTransformerByConfigType(config)
+	if err != nil {
+		return "", err
+	}
+	result, err := executor.Mutate(value, executor.Opts)
+	if err != nil {
+		return "", err
+	}
+	// probably need to convert result to a string
+	if str, ok := result.(string); ok {
+		return str, nil
+	}
+	return "", fmt.Errorf("expected string result, got %T", result)
 }
 
 type DefaultExecutors struct {
@@ -358,7 +386,7 @@ func initDefaultTransformerExecutors(
 ) (*DefaultExecutors, error) {
 	execOpts := []transformer.TransformerExecutorOption{}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(), anonymizeConfig.defaultLanguage))
 	}
 
 	var stringExecutor, numberExecutor, booleanExecutor *transformer.TransformerExecutor
