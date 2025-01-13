@@ -230,6 +230,10 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
+	if cmd.Destination.OnConflict.DoNothing && cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
+		return errors.New("on-conflict-do-nothing and on-conflict-do-update cannot be used together")
+	}
+
 	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeMysql || sourceConnectionType == benthosbuilder_shared.ConnectionTypePostgres {
 		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")

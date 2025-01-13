@@ -83,7 +83,12 @@ type connectionOpts struct {
 }
 
 type onConflictConfig struct {
-	DoNothing bool `yaml:"do-nothing"`
+	DoNothing bool                  `yaml:"do-nothing"`
+	DoUpdate  *UpdateConflictConfig `yaml:"do-update,omitempty"`
+}
+
+type UpdateConflictConfig struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 type dynamoDbDestinationConfig struct {
@@ -397,7 +402,7 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 	}
 	configs, err := bm.GenerateBenthosConfigs(c.ctx)
 	if err != nil {
-		c.logger.Error("unable to build benthos configs")
+		c.logger.Error("unable to build benthos configs", "error", err)
 		return nil, err
 	}
 
@@ -649,6 +654,16 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig, tables map[string]s
 				},
 			}
 		case mysqlDriver:
+			conflictConfig := &mgmtv1alpha1.MysqlOnConflictConfig{}
+			if cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
+				conflictConfig.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Update{
+					Update: &mgmtv1alpha1.MysqlOnConflictConfig_MysqlOnConflictUpdate{},
+				}
+			} else if cmd.Destination.OnConflict.DoNothing {
+				conflictConfig.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Nothing{
+					Nothing: &mgmtv1alpha1.MysqlOnConflictConfig_MysqlOnConflictDoNothing{},
+				}
+			}
 			return &mgmtv1alpha1.JobDestinationOptions{
 				Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
 					MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
@@ -656,11 +671,9 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig, tables map[string]s
 							TruncateBeforeInsert: cmd.Destination.TruncateBeforeInsert,
 						},
 						InitTableSchema: cmd.Destination.InitSchema,
-						OnConflict: &mgmtv1alpha1.MysqlOnConflictConfig{
-							DoNothing: cmd.Destination.OnConflict.DoNothing,
-						},
-						MaxInFlight: cmd.Destination.MaxInFlight,
-						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
+						OnConflict:      conflictConfig,
+						MaxInFlight:     cmd.Destination.MaxInFlight,
+						Batch:           cmdConfigSqlDestinationToBatch(cmd.Destination),
 					},
 				},
 			}
