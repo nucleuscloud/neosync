@@ -4397,12 +4397,58 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.PostgresOnConflictConfig:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - nothing
+            - required:
+                - update
+            - not:
+                anyOf:
+                  - required:
+                      - nothing
+                  - required:
+                      - update
+      anyOf:
+        - required:
+            - nothing
+        - required:
+            - update
+        - not:
+            anyOf:
+              - required:
+                  - nothing
+              - required:
+                  - update
       properties:
         doNothing:
           type: boolean
           title: do_nothing
+          description: '@deprecated - Use strategy nothing instead'
+        nothing:
+          allOf:
+            - title: nothing
+              description: Do nothing when a conflict occurs
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing'
+        update:
+          allOf:
+            - title: update
+              description: Update columns when a conflict occurs
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictUpdate'
       title: PostgresOnConflictConfig
       additionalProperties: false
+    mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing:
+      type: object
+      title: PostgresOnConflictDoNothing
+      additionalProperties: false
+      description: Do nothing strategy
+    mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictUpdate:
+      type: object
+      title: PostgresOnConflictUpdate
+      additionalProperties: false
+      description: |-
+        Update strategy // List of table-specific update configurations
+         repeated PostgresOnConflictSchemaUpdate schemas = 1;
     mgmt.v1alpha1.PostgresSourceConnectionOptions:
       type: object
       properties:

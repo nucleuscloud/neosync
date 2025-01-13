@@ -1613,17 +1613,48 @@ func (m *PostgresDestinationOptions) FromDto(dto *mgmtv1alpha1.PostgresDestinati
 }
 
 type PostgresOnConflictConfig struct {
+	// @deprecated
 	DoNothing bool `json:"doNothing"`
+
+	OnConflictStrategy *PostgresOnConflictStrategy `json:"onConflictStrategy,omitempty"`
+}
+
+type PostgresDoNothingStrategy struct{}
+type PostgresUpdateStrategy struct{}
+
+type PostgresOnConflictStrategy struct {
+	Nothing *PostgresDoNothingStrategy `json:"doNothing,omitempty"`
+	Update  *PostgresUpdateStrategy    `json:"update,omitempty"`
 }
 
 func (t *PostgresOnConflictConfig) ToDto() *mgmtv1alpha1.PostgresOnConflictConfig {
+	if t.OnConflictStrategy != nil && t.OnConflictStrategy.Update != nil {
+		return &mgmtv1alpha1.PostgresOnConflictConfig{
+			Strategy: &mgmtv1alpha1.PostgresOnConflictConfig_Update{},
+		}
+	}
+	if (t.OnConflictStrategy != nil && t.OnConflictStrategy.Nothing != nil) || t.DoNothing {
+		return &mgmtv1alpha1.PostgresOnConflictConfig{
+			Strategy: &mgmtv1alpha1.PostgresOnConflictConfig_Nothing{},
+		}
+	}
 	return &mgmtv1alpha1.PostgresOnConflictConfig{
-		DoNothing: t.DoNothing,
+		Strategy: nil,
 	}
 }
 
 func (t *PostgresOnConflictConfig) FromDto(dto *mgmtv1alpha1.PostgresOnConflictConfig) {
-	t.DoNothing = dto.DoNothing
+	if dto.GetUpdate() != nil {
+		t.OnConflictStrategy = &PostgresOnConflictStrategy{
+			Update: &PostgresUpdateStrategy{},
+		}
+	} else if dto.GetNothing() != nil || t.DoNothing {
+		t.OnConflictStrategy = &PostgresOnConflictStrategy{
+			Nothing: &PostgresDoNothingStrategy{},
+		}
+	} else {
+		t.OnConflictStrategy = nil
+	}
 }
 
 type PostgresTruncateTableConfig struct {

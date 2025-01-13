@@ -388,10 +388,20 @@ class PostgresDestinationConnectionOptions(_message.Message):
     def __init__(self, truncate_table: _Optional[_Union[PostgresTruncateTableConfig, _Mapping]] = ..., init_table_schema: bool = ..., on_conflict: _Optional[_Union[PostgresOnConflictConfig, _Mapping]] = ..., skip_foreign_key_violations: bool = ..., batch: _Optional[_Union[BatchConfig, _Mapping]] = ..., max_in_flight: _Optional[int] = ...) -> None: ...
 
 class PostgresOnConflictConfig(_message.Message):
-    __slots__ = ("do_nothing",)
+    __slots__ = ("do_nothing", "nothing", "update")
+    class PostgresOnConflictDoNothing(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class PostgresOnConflictUpdate(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
     DO_NOTHING_FIELD_NUMBER: _ClassVar[int]
+    NOTHING_FIELD_NUMBER: _ClassVar[int]
+    UPDATE_FIELD_NUMBER: _ClassVar[int]
     do_nothing: bool
-    def __init__(self, do_nothing: bool = ...) -> None: ...
+    nothing: PostgresOnConflictConfig.PostgresOnConflictDoNothing
+    update: PostgresOnConflictConfig.PostgresOnConflictUpdate
+    def __init__(self, do_nothing: bool = ..., nothing: _Optional[_Union[PostgresOnConflictConfig.PostgresOnConflictDoNothing, _Mapping]] = ..., update: _Optional[_Union[PostgresOnConflictConfig.PostgresOnConflictUpdate, _Mapping]] = ...) -> None: ...
 
 class PostgresTruncateTableConfig(_message.Message):
     __slots__ = ("truncate_before_insert", "cascade")
