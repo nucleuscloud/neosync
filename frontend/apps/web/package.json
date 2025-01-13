@@ -15,12 +15,12 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@auth/core": "^0.34.2",
+    "@auth/core": "^0.37.4",
     "@bufbuild/protobuf": "^2.2.3",
-    "@connectrpc/connect-node": "^2.0.0",
+    "@connectrpc/connect-node": "^2.0.1",
     "@connectrpc/connect-query": "^2.0.1",
-    "@connectrpc/connect-web": "^2.0.0",
-    "@hookform/resolvers": "^3.9.1",
+    "@connectrpc/connect-web": "^2.0.1",
+    "@hookform/resolvers": "^3.10.0",
     "@monaco-editor/react": "^4.6.0",
     "@neosync/sdk": "file:../../packages/sdk",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -41,7 +41,7 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
-    "@tanstack/react-query": "^5.62.15",
+    "@tanstack/react-query": "^5.64.1",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.11.2",
     "class-variance-authority": "^0.7.1",
@@ -55,8 +55,8 @@
     "nanoid": "^5.0.9",
     "next": "^14.2.22",
     "next-auth": "^5.0.0-beta.25",
-    "next-themes": "^0.3.0",
-    "posthog-js": "^1.204.0",
+    "next-themes": "^0.4.4",
+    "posthog-js": "^1.205.1",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "18.3.1",
@@ -71,7 +71,7 @@
     "usehooks-ts": "^3.1.0",
     "yaml": "^2.7.0",
     "yup": "^1.6.1",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
