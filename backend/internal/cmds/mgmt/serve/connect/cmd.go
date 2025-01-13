@@ -1018,27 +1018,6 @@ func getPromApiKey() *string {
 func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	isRunLogsEnabled := viper.GetBool("RUN_LOGS_ENABLED")
 	if !isRunLogsEnabled {
-		// look for fallback variables
-		isKubernetes := getIsKubernetes()
-		ksNs := getKubernetesNamespace()
-		ksWorkerAppName := getKubernetesWorkerAppName()
-		if isKubernetes {
-			if ksNs == "" {
-				ksNs = "neosync"
-			}
-			if ksWorkerAppName == "" {
-				ksWorkerAppName = "neosync-worker"
-			}
-			runlogtype := v1alpha1_jobservice.KubePodRunLogType
-			return &v1alpha1_jobservice.RunLogConfig{
-				IsEnabled:  true,
-				RunLogType: &runlogtype,
-				RunLogPodConfig: &v1alpha1_jobservice.KubePodRunLogConfig{
-					Namespace:     ksNs,
-					WorkerAppName: ksWorkerAppName,
-				},
-			}, nil
-		}
 		return &v1alpha1_jobservice.RunLogConfig{
 			IsEnabled: false,
 		}, nil
@@ -1105,6 +1084,10 @@ func getRunLogType() *v1alpha1_jobservice.RunLogType {
 		rt := v1alpha1_jobservice.LokiRunLogType
 		return &rt
 	default:
+		if getIsKubernetes() {
+			rt := v1alpha1_jobservice.KubePodRunLogType
+			return &rt
+		}
 		return nil
 	}
 }
