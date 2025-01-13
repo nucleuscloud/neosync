@@ -333,10 +333,6 @@ func initTransformerExecutors(
 	executors := []*transformer.TransformerExecutor{}
 	execOpts := []transformer.TransformerExecutorOption{}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		// I find all of the transformer configs in the transform pii text configuration
-		// map of config oneof type to function: transformer.InitTransformerByconfigType(config, execOpts...)
-		// call executor.Mutate(value, exec.Opts)
-
 		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(), anonymizeConfig.defaultLanguage))
 	}
 
