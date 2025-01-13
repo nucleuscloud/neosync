@@ -16,4 +16,6 @@ type TestJobOptions struct {
 	TruncateCascade               bool
 	DefaultTransformers           *DefaultTransformers
 	SkipForeignKeyViolations      bool
+	OnConflictDoNothing           bool
+	OnConflictDoUpdate            bool
 }

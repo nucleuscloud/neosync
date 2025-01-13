@@ -16,6 +16,7 @@ import (
 	mysql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
 	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
+	mysql_human_resources "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/humanresources"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -51,15 +52,15 @@ func createMysqlSyncJob(
 		schemas = append(schemas, s)
 	}
 
-	var subsetByForeignKeyConstraints bool
 	destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
 		Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
 			MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{},
 		},
 	}
 	if config.JobOptions != nil {
-		if config.JobOptions.SubsetByForeignKeyConstraints {
-			subsetByForeignKeyConstraints = true
+		onConflict := &mgmtv1alpha1.MysqlOnConflictConfig{}
+		if config.JobOptions.OnConflictDoUpdate {
+			onConflict.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Update{}
 		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
@@ -68,6 +69,7 @@ func createMysqlSyncJob(
 					TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
 						TruncateBeforeInsert: config.JobOptions.Truncate,
 					},
+					OnConflict:               onConflict,
 					SkipForeignKeyViolations: config.JobOptions.SkipForeignKeyViolations,
 				},
 			},
@@ -83,7 +85,7 @@ func createMysqlSyncJob(
 					Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
 						ConnectionId:                  config.SourceConn.Id,
 						Schemas:                       schemas,
-						SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+						SubsetByForeignKeyConstraints: config.JobOptions.SubsetByForeignKeyConstraints,
 					},
 				},
 			},
@@ -152,6 +154,7 @@ func test_mysql_types(
 	}{
 		{schema: alltypesSchema, table: "all_data_types", rowCount: 2},
 		{schema: alltypesSchema, table: "json_data", rowCount: 12},
+		{schema: alltypesSchema, table: "generated_table", rowCount: 10},
 	}
 
 	for _, expected := range expectedResults {
@@ -162,6 +165,7 @@ func test_mysql_types(
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "all_data_types", sqlmanager_shared.MysqlDriver, "id")
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "json_data", sqlmanager_shared.MysqlDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, alltypesSchema, "generated_table", sqlmanager_shared.MysqlDriver, "id")
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{alltypesSchema})
@@ -317,6 +321,92 @@ func test_mysql_composite_keys(
 		require.NoError(t, err)
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_composite_keys schema: %s Table: %s", schema, expected.table))
 	}
+
+	// tear down
+	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_mysql_on_conflict_do_update(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := "human_resources"
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return mysql.Source.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"humanresources/create-tables.sql"}, schema)
+	})
+	errgrp.Go(func() error {
+		return mysql.Target.RunCreateStmtsInDatabase(errctx, mysqlTestdataFolder, []string{"humanresources/create-tables.sql"}, schema)
+	})
+	err := errgrp.Wait()
+	require.NoError(t, err)
+
+	// update the source data to be different from target data
+	updateStmt := `
+	UPDATE human_resources.regions 
+	SET region_name = CASE region_id
+			WHEN 1 THEN 'Modified Europe'
+			WHEN 2 THEN 'Modified Americas'
+			WHEN 3 THEN 'Modified Asia'
+			WHEN 4 THEN 'Modified Africa'
+	END
+	WHERE region_id IN (1,2,3,4)`
+	_, err = mysql.Source.DB.ExecContext(ctx, updateStmt)
+	require.NoError(t, err)
+
+	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
+
+	mappings := mysql_human_resources.GetDefaultSyncJobMappings(schema)
+
+	job := createMysqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mysql_human_resources",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:           false,
+			InitSchema:         false,
+			OnConflictDoUpdate: true,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_human_resources")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql_human_resources")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_human_resources Table: %s", expected.table))
+	}
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, "region_id")
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})

@@ -380,6 +380,7 @@ type PooledSqlInsert struct {
 	Schema                      string    `json:"schema" yaml:"schema"`
 	Table                       string    `json:"table" yaml:"table"`
 	OnConflictDoNothing         bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
+	OnConflictDoUpdate          bool      `json:"on_conflict_do_update" yaml:"on_conflict_do_update"`
 	TruncateOnRetry             bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
 	SkipForeignKeyViolations    bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
 	ShouldOverrideColumnDefault bool      `json:"should_override_column_default" yaml:"should_override_column_default"`

@@ -74,6 +74,8 @@ import {
   MssqlSourceTableOptionSchema,
   MssqlTruncateTableConfigSchema,
   MysqlDestinationConnectionOptionsSchema,
+  MysqlOnConflictConfig_MysqlOnConflictDoNothingSchema,
+  MysqlOnConflictConfig_MysqlOnConflictUpdateSchema,
   MysqlOnConflictConfigSchema,
   MysqlSourceConnectionOptionsSchema,
   MysqlSourceSchemaOption,
@@ -459,6 +461,25 @@ export function toJobDestinationOptions(
       });
     }
     case 'mysqlConfig': {
+      var onConflict = create(MysqlOnConflictConfigSchema, {});
+      if (
+        values.destinationOptions.mysql?.conflictStrategy?.onConflictDoNothing
+      ) {
+        onConflict.strategy = {
+          case: 'nothing',
+          value: create(
+            MysqlOnConflictConfig_MysqlOnConflictDoNothingSchema,
+            {}
+          ),
+        };
+      } else if (
+        values.destinationOptions.mysql?.conflictStrategy?.onConflictDoUpdate
+      ) {
+        onConflict.strategy = {
+          case: 'update',
+          value: create(MysqlOnConflictConfig_MysqlOnConflictUpdateSchema, {}),
+        };
+      }
       return create(JobDestinationOptionsSchema, {
         config: {
           case: 'mysqlOptions',
@@ -467,10 +488,7 @@ export function toJobDestinationOptions(
               truncateBeforeInsert:
                 values.destinationOptions.mysql?.truncateBeforeInsert ?? false,
             }),
-            onConflict: create(MysqlOnConflictConfigSchema, {
-              doNothing:
-                values.destinationOptions.mysql?.onConflictDoNothing ?? false,
-            }),
+            onConflict: onConflict,
             initTableSchema: values.destinationOptions.mysql?.initTableSchema,
             skipForeignKeyViolations:
               values.destinationOptions.mysql?.skipForeignKeyViolations,
@@ -1419,7 +1437,10 @@ export function getDefaultDestinationFormValueOptionsFromConnectionCase(
       return {
         mysql: {
           initTableSchema: false,
-          onConflictDoNothing: false,
+          conflictStrategy: {
+            onConflictDoNothing: false,
+            onConflictDoUpdate: false,
+          },
           skipForeignKeyViolations: false,
           truncateBeforeInsert: false,
           batch: {
@@ -1524,8 +1545,16 @@ export function getDestinationFormValuesOrDefaultFromDestination(
               d.options.config.value.truncateTable?.truncateBeforeInsert ??
               false,
             initTableSchema: d.options.config.value.initTableSchema ?? false,
-            onConflictDoNothing:
-              d.options.config.value.onConflict?.doNothing ?? false,
+            conflictStrategy: {
+              onConflictDoNothing:
+                d.options.config.value.onConflict?.strategy.case === 'nothing'
+                  ? true
+                  : false,
+              onConflictDoUpdate:
+                d.options.config.value.onConflict?.strategy.case === 'update'
+                  ? true
+                  : false,
+            },
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
             maxInFlight: d.options.config.value.maxInFlight,

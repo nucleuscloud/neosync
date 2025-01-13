@@ -554,6 +554,7 @@ func getSqlJobSourceOpts(
 
 type destinationOptions struct {
 	OnConflictDoNothing      bool
+	OnConflictDoUpdate       bool
 	Truncate                 bool
 	TruncateCascade          bool
 	SkipForeignKeyViolations bool
@@ -592,8 +593,19 @@ func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) (*desti
 		if err != nil {
 			return nil, err
 		}
+		onConflictDoNothing := false
+		onConflictDoUpdate := false
+		if config.MysqlOptions.GetOnConflict().GetNothing() != nil {
+			onConflictDoNothing = true
+		} else if config.MysqlOptions.GetOnConflict().GetUpdate() != nil {
+			onConflictDoUpdate = true
+		}
+		if onConflictDoNothing && onConflictDoUpdate {
+			return nil, fmt.Errorf("cannot have both on conflict do nothing and on conflict do update")
+		}
 		return &destinationOptions{
-			OnConflictDoNothing:      config.MysqlOptions.GetOnConflict().GetDoNothing(),
+			OnConflictDoNothing:      onConflictDoNothing,
+			OnConflictDoUpdate:       onConflictDoUpdate,
 			Truncate:                 config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			SkipForeignKeyViolations: config.MysqlOptions.GetSkipForeignKeyViolations(),
 			MaxInFlight:              batchingConfig.MaxInFlight,

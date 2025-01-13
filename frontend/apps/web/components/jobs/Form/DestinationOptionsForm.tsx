@@ -67,7 +67,10 @@ export default function DestinationOptionsForm(
           value={
             value.mysql ?? {
               initTableSchema: false,
-              onConflictDoNothing: false,
+              conflictStrategy: {
+                onConflictDoNothing: false,
+                onConflictDoUpdate: false,
+              },
               skipForeignKeyViolations: false,
               truncateBeforeInsert: false,
             }

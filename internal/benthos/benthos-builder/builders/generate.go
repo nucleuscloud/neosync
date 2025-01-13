@@ -203,6 +203,7 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 								Schema:              benthosConfig.TableSchema,
 								Table:               benthosConfig.TableName,
 								OnConflictDoNothing: destOpts.OnConflictDoNothing,
+								OnConflictDoUpdate:  destOpts.OnConflictDoUpdate,
 								TruncateOnRetry:     destOpts.Truncate,
 
 								Batching: &neosync_benthos.Batching{

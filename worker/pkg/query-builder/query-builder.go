@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -92,6 +93,29 @@ func BuildInsertQuery(
 		return "", nil, err
 	}
 	return query, args, nil
+}
+
+func BuildMysqlInsertOnConflictDoUpdateQuery(
+	schema, table string,
+	records []goqu.Record,
+	updateColumns []string,
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(sqlmanager_shared.MysqlDriver)
+	sqltable := goqu.S(schema).Table(table)
+	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
+
+	updateRecord := goqu.Record{}
+	for _, col := range updateColumns {
+		updateRecord[col] = exp.NewIdentifierExpression("", "new", col)
+	}
+	targetColumn := "" // mysql does not support target column
+	insert = insert.OnConflict(goqu.DoUpdate(targetColumn, updateRecord))
+
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return "", nil, err
+	}
+	return strings.Replace(query, "INSERT IGNORE INTO", "INSERT INTO", 1), args, nil
 }
 
 func BuildUpdateQuery(

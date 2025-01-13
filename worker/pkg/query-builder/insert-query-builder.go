@@ -1,6 +1,7 @@
 package querybuilder
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -60,6 +61,7 @@ type InsertOption func(*InsertOptions)
 type InsertOptions struct {
 	shouldOverrideColumnDefault bool
 	onConflictDoNothing         bool
+	onConflictDoUpdate          bool
 	prefix, suffix              *string
 }
 
@@ -87,6 +89,15 @@ func WithSuffix(suffix *string) InsertOption {
 func WithOnConflictDoNothing() InsertOption {
 	return func(opts *InsertOptions) {
 		opts.onConflictDoNothing = true
+		opts.onConflictDoUpdate = false
+	}
+}
+
+// WithOnConflictDoUpdate adds on conflict do update to insert query
+func WithOnConflictDoUpdate() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.onConflictDoUpdate = true
+		opts.onConflictDoNothing = false
 	}
 }
 
@@ -119,6 +130,22 @@ type MysqlDriver struct {
 
 func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
 	goquRows := toGoquRecords(rows)
+
+	if d.options.onConflictDoUpdate {
+		if len(rows) == 0 {
+			return "", []any{}, errors.New("no rows to insert")
+		}
+
+		columns := []string{}
+		for col := range rows[0] {
+			columns = append(columns, col)
+		}
+		insertQuery, args, err := BuildMysqlInsertOnConflictDoUpdateQuery(d.schema, d.table, goquRows, columns)
+		if err != nil {
+			return "", nil, err
+		}
+		return insertQuery, args, nil
+	}
 
 	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &d.options.onConflictDoNothing)
 	if err != nil {

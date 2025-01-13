@@ -131,6 +131,10 @@ func Test_Workflow(t *testing.T) {
 			t.Parallel()
 			test_mysql_composite_keys(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
+		t.Run("on_conflict_do_update", func(t *testing.T) {
+			t.Parallel()
+			test_mysql_on_conflict_do_update(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
 
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
