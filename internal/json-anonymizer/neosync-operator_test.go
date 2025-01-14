@@ -31,5 +31,15 @@ func Test_NeosyncOperator(t *testing.T) {
 			require.NoError(t, err)
 			require.Empty(t, actual)
 		})
+		t.Run("default_number", func(t *testing.T) {
+			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
+			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{},
+				},
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, actual)
+		})
 	})
 }
