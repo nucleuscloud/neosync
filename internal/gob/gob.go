@@ -5,7 +5,7 @@ import (
 	"time"
 
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/jackc/pgx/v5/pgtype"
+	// "github.com/jackc/pgx/v5/pgtype"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
@@ -13,7 +13,7 @@ import (
 // because we use interfaces for the types
 func RegisterGobTypes() {
 	gob.Register(map[string]any{})
-	gob.Register(pgtype.Numeric{}) // TODO fix this
+	// gob.Register(pgtype.Numeric{}) // TODO fix this
 	gob.Register([]any{})
 	gob.Register(time.Time{})
 	gob.Register([][]uint8{})

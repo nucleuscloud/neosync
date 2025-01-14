@@ -337,3 +337,19 @@ func NewDateTime(opts ...NeosyncTypeOption) (*NeosyncDateTime, error) {
 	}
 	return dt, nil
 }
+
+func NewDateTimeArrayFromPgx(elements []time.Time, opts []NeosyncTypeOption, arrayOpts ...NeosyncTypeOption) (*NeosyncArray, error) {
+	neosyncAdapters := make([]NeosyncAdapter, len(elements))
+	for i, e := range elements {
+		newDateTime, err := NewDateTime(opts...)
+		if err != nil {
+			return nil, err
+		}
+		neosyncAdapters[i] = newDateTime
+		err = neosyncAdapters[i].ScanPgx(e)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return NewNeosyncArray(neosyncAdapters)
+}
