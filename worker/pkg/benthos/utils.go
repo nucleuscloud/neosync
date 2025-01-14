@@ -38,6 +38,7 @@ func IsCriticalError(errMsg string) bool {
 		"incorrect datetime value",
 		"incorrect date value",
 		"incorrect time value",
+		"does not exist",
 	}
 
 	for _, errStr := range criticalErrors {
@@ -60,6 +61,7 @@ func IsGenerateJobCriticalError(errMsg string) bool {
 		"incorrect datetime value",
 		"incorrect date value",
 		"incorrect time value",
+		"does not exist",
 	}
 
 	for _, errStr := range criticalErrors {
