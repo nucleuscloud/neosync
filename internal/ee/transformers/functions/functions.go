@@ -261,7 +261,11 @@ func buildAnonymizers(config *mgmtv1alpha1.TransformPiiText) (map[string]presidi
 			return nil, fmt.Errorf("unable to build entity %s anonymizer: %w", entity, err)
 		}
 		if ok {
-			output[fmt.Sprintf("%s%s", neosyncEntityPrefix, entity)] = *ap
+			if anonymizer.GetTransform() != nil {
+				output[fmt.Sprintf("%s%s", neosyncEntityPrefix, entity)] = *ap
+			} else {
+				output[entity] = *ap
+			}
 		}
 	}
 

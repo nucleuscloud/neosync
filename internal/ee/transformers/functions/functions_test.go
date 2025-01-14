@@ -34,7 +34,7 @@ func Test_TransformPiiText(t *testing.T) {
 		mockText := "bar"
 		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnonymizeResponse{
-				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText, Items: &[]presidioapi.OperatorResult{}},
 			}, nil)
 
 		config := &mgmtv1alpha1.TransformPiiText{}
@@ -238,7 +238,16 @@ func Test_toPresidioAnonymizerConfig(t *testing.T) {
 		require.False(t, ok)
 	})
 
-	// todo: add test for neosync operator
+	t.Run("transform", func(t *testing.T) {
+		actual, ok, err := toPresidioAnonymizerConfig("PERSON", &mgmtv1alpha1.PiiAnonymizer{
+			Config: &mgmtv1alpha1.PiiAnonymizer_Transform_{
+				Transform: &mgmtv1alpha1.PiiAnonymizer_Transform{},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, actual)
+		require.True(t, ok)
+	})
 }
 
 func Test_toPresidioHashType(t *testing.T) {

@@ -1602,7 +1602,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		mockText := "bar"
 		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnonymizeResponse{
-				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText, Items: &[]presidioapi.OperatorResult{}},
 			}, nil)
 		defaultLan := "en"
 		execOpts := []TransformerExecutorOption{
