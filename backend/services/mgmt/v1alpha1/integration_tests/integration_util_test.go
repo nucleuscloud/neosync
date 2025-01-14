@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
-func (s *IntegrationTestSuite) setAccountCreatedAt(
+func setAccountCreatedAt(
 	ctx context.Context,
+	querier db_queries.Querier,
+	dbconn *pgxpool.Pool,
 	accountId string,
 	createdAt time.Time,
 ) error {
@@ -20,7 +23,7 @@ func (s *IntegrationTestSuite) setAccountCreatedAt(
 	if err != nil {
 		return err
 	}
-	_, err = s.NeosyncQuerier.SetAccountCreatedAt(ctx, s.Pgcontainer.DB, db_queries.SetAccountCreatedAtParams{
+	_, err = querier.SetAccountCreatedAt(ctx, dbconn, db_queries.SetAccountCreatedAtParams{
 		CreatedAt: pgtype.Timestamp{Time: createdAt, Valid: true},
 		AccountId: accountUuid,
 	})

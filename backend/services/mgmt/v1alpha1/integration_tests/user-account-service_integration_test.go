@@ -432,7 +432,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("no_active_subscriptions", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team1", custId)
-		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		err := setAccountCreatedAt(s.ctx, s.NeosyncQuerier, s.Pgcontainer.DB, accountId, time.Now().UTC().Add(-30*24*time.Hour))
 		assert.NoError(s.T(), err)
 
 		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
@@ -499,7 +499,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	t.Run("no_active_subs", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test2", custId)
-		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		err := setAccountCreatedAt(s.ctx, s.NeosyncQuerier, s.Pgcontainer.DB, accountId, time.Now().UTC().Add(-30*24*time.Hour))
 		assert.NoError(t, err)
 		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
@@ -532,7 +532,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	t.Run("no_subs_expired_trial", func(t *testing.T) {
 		custId := "cust_id4"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test4", custId)
-		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		err := setAccountCreatedAt(s.ctx, s.NeosyncQuerier, s.Pgcontainer.DB, accountId, time.Now().UTC().Add(-30*24*time.Hour))
 		assert.NoError(t, err)
 		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{}}, nil)
 
