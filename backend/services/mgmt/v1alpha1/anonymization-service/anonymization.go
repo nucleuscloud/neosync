@@ -3,6 +3,7 @@ package v1alpha_anonymizationservice
 import (
 	"context"
 	"fmt"
+	"iter"
 	"strings"
 	"time"
 
@@ -59,6 +60,12 @@ func (s *Service) AnonymizeMany(
 		return nil, nucleuserrors.NewForbidden(
 			fmt.Sprintf("%s is not implemented for personal accounts", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
 		)
+	}
+
+	for cfg := range getTransformerConfigsToValidate(req.Msg) {
+		if err := validateTransformerConfig(cfg); err != nil {
+			return nil, err
+		}
 	}
 
 	requestedCount := uint64(len(req.Msg.InputData))
@@ -171,6 +178,12 @@ func (s *Service) AnonymizeSingle(
 		}
 	}
 
+	for cfg := range getTransformerConfigsToValidate(req.Msg) {
+		if err := validateTransformerConfig(cfg); err != nil {
+			return nil, err
+		}
+	}
+
 	requestedCount := uint64(len(req.Msg.InputData))
 	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 		AccountId:            req.Msg.GetAccountId(),
@@ -250,4 +263,64 @@ func getTraceID(ctx context.Context) string {
 		return traceID.String()
 	}
 	return ""
+}
+
+// ensures the transformer config is of a valid configuration
+// the main thing it does today is ensure that TransformPiiText is not being used recursively
+func validateTransformerConfig(cfg *mgmtv1alpha1.TransformerConfig) error {
+	if cfg == nil {
+		return fmt.Errorf("transformer config is nil")
+	}
+	root := cfg.GetTransformPiiTextConfig()
+	if root == nil {
+		return nil
+	}
+	defaultAnonymizer := root.GetDefaultAnonymizer()
+	if defaultAnonymizer != nil {
+		child := defaultAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
+		if child != nil {
+			return fmt.Errorf("found nested TransformPiiText config in default anonymizer. TransformPiiText may not be used deeply nested within itself.")
+		}
+	}
+	entityAnonymizers := root.GetEntityAnonymizers()
+	for entity, entityAnonymizer := range entityAnonymizers {
+		child := entityAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
+		if child != nil {
+			return fmt.Errorf("found nested TransformPiiText config in entity (%s) anonymizer. TransformPiiText may not be used deeply nested within itself.", entity)
+		}
+	}
+	return nil
+}
+
+type transformerMsgToValidate interface {
+	GetDefaultTransformers() *mgmtv1alpha1.DefaultTransformersConfig
+	GetTransformerMappings() []*mgmtv1alpha1.TransformerMapping
+}
+
+func getTransformerConfigsToValidate(msg transformerMsgToValidate) iter.Seq[*mgmtv1alpha1.TransformerConfig] {
+	return func(yield func(*mgmtv1alpha1.TransformerConfig) bool) {
+		if msg.GetDefaultTransformers().GetBoolean() != nil {
+			if !yield(msg.GetDefaultTransformers().GetBoolean()) {
+				return
+			}
+		}
+		if msg.GetDefaultTransformers().GetN() != nil {
+			if !yield(msg.GetDefaultTransformers().GetN()) {
+				return
+			}
+		}
+		if msg.GetDefaultTransformers().GetS() != nil {
+			if !yield(msg.GetDefaultTransformers().GetS()) {
+				return
+			}
+		}
+
+		for _, mapping := range msg.GetTransformerMappings() {
+			if mapping.GetTransformer() != nil {
+				if !yield(mapping.GetTransformer()) {
+					return
+				}
+			}
+		}
+	}
 }
