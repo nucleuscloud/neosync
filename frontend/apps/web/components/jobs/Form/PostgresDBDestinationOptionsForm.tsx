@@ -73,17 +73,41 @@ export default function PostgresDBDestinationOptionsForm(
       )}
       <FormItemContainer>
         <SwitchCard
-          isChecked={value.onConflictDoNothing ?? false}
+          isChecked={value.conflictStrategy?.onConflictDoNothing ?? false}
           onCheckedChange={(newVal) => {
             setValue({
               ...value,
-              onConflictDoNothing: newVal,
+              conflictStrategy: {
+                onConflictDoNothing: newVal,
+                onConflictDoUpdate: false,
+              },
             });
           }}
           title="On Conflict Do Nothing"
           description="If there is a conflict when inserting data do not insert"
         />
-        <FormErrorMessage message={errors?.onConflictDoNothing?.message} />
+        <FormErrorMessage
+          message={errors?.conflictStrategy?.onConflictDoNothing?.message}
+        />
+      </FormItemContainer>
+      <FormItemContainer>
+        <SwitchCard
+          isChecked={value.conflictStrategy?.onConflictDoUpdate ?? false}
+          onCheckedChange={(newVal) => {
+            setValue({
+              ...value,
+              conflictStrategy: {
+                onConflictDoNothing: false,
+                onConflictDoUpdate: newVal,
+              },
+            });
+          }}
+          title="On Conflict Do Update"
+          description="If there is a conflict when inserting data update the record"
+        />
+        <FormErrorMessage
+          message={errors?.conflictStrategy?.onConflictDoUpdate?.message}
+        />
       </FormItemContainer>
       <FormItemContainer>
         <SwitchCard

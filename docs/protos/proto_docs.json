@@ -13191,12 +13191,12 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "do_nothing",
-              "description": "",
+              "description": "@deprecated - Use strategy nothing instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13205,8 +13205,54 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "nothing",
+              "description": "Do nothing when a conflict occurs",
+              "label": "",
+              "type": "PostgresOnConflictDoNothing",
+              "longType": "PostgresOnConflictConfig.PostgresOnConflictDoNothing",
+              "fullType": "mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "update",
+              "description": "Update columns when a conflict occurs",
+              "label": "",
+              "type": "PostgresOnConflictUpdate",
+              "longType": "PostgresOnConflictConfig.PostgresOnConflictUpdate",
+              "fullType": "mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictUpdate",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "PostgresOnConflictDoNothing",
+          "longName": "PostgresOnConflictConfig.PostgresOnConflictDoNothing",
+          "fullName": "mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing",
+          "description": "Do nothing strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "PostgresOnConflictUpdate",
+          "longName": "PostgresOnConflictConfig.PostgresOnConflictUpdate",
+          "fullName": "mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictUpdate",
+          "description": "Update strategy\n\n// List of table-specific update configurations\nrepeated PostgresOnConflictSchemaUpdate schemas = 1;",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "PostgresSourceConnectionOptions",

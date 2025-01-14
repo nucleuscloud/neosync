@@ -246,7 +246,39 @@ message PostgresDestinationConnectionOptions {
 }
 
 message PostgresOnConflictConfig {
+  // @deprecated - Use strategy nothing instead
   bool do_nothing = 1;
+
+  oneof strategy {
+    option (buf.validate.oneof).required = false;
+    // Do nothing when a conflict occurs
+    PostgresOnConflictDoNothing nothing = 2;
+    // Update columns when a conflict occurs
+    PostgresOnConflictUpdate update = 3;
+  }
+
+  // Do nothing strategy
+  message PostgresOnConflictDoNothing {}
+
+  // Update strategy
+  message PostgresOnConflictUpdate {
+    // // List of table-specific update configurations
+    // repeated PostgresOnConflictSchemaUpdate schemas = 1;
+  }
+
+  // message PostgresOnConflictSchemaUpdate {
+  //   // The schema this configuration applies to
+  //   string schema = 1 [(buf.validate.field).string.min_len = 1];
+  //   // List of table-specific update configurations
+  //   repeated PostgresOnConflictTableUpdate tables = 2 [(buf.validate.field).repeated.min_items = 1];
+  // }
+
+  // message PostgresOnConflictTableUpdate {
+  //   // The table this configuration applies to
+  //   string table = 1 [(buf.validate.field).string.min_len = 1];
+  //   // The columns to update on conflict
+  //   repeated string columns = 2 [(buf.validate.field).repeated.min_items = 1];
+  // }
 }
 
 message PostgresTruncateTableConfig {

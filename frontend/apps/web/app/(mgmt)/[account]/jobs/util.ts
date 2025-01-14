@@ -85,6 +85,8 @@ import {
   MysqlTruncateTableConfigSchema,
   PassthroughSchema,
   PostgresDestinationConnectionOptionsSchema,
+  PostgresOnConflictConfig_PostgresOnConflictDoNothingSchema,
+  PostgresOnConflictConfig_PostgresOnConflictUpdateSchema,
   PostgresOnConflictConfigSchema,
   PostgresSourceConnectionOptionsSchema,
   PostgresSourceSchemaOption,
@@ -432,6 +434,29 @@ export function toJobDestinationOptions(
   }
   switch (connection.connectionConfig?.config.case) {
     case 'pgConfig': {
+      var pgOnConflict = create(PostgresOnConflictConfigSchema, {});
+      if (
+        values.destinationOptions.postgres?.conflictStrategy
+          ?.onConflictDoNothing
+      ) {
+        pgOnConflict.strategy = {
+          case: 'nothing',
+          value: create(
+            PostgresOnConflictConfig_PostgresOnConflictDoNothingSchema,
+            {}
+          ),
+        };
+      } else if (
+        values.destinationOptions.postgres?.conflictStrategy?.onConflictDoUpdate
+      ) {
+        pgOnConflict.strategy = {
+          case: 'update',
+          value: create(
+            PostgresOnConflictConfig_PostgresOnConflictUpdateSchema,
+            {}
+          ),
+        };
+      }
       return create(JobDestinationOptionsSchema, {
         config: {
           case: 'postgresOptions',
@@ -443,11 +468,7 @@ export function toJobDestinationOptions(
               cascade:
                 values.destinationOptions.postgres?.truncateCascade ?? false,
             }),
-            onConflict: create(PostgresOnConflictConfigSchema, {
-              doNothing:
-                values.destinationOptions.postgres?.onConflictDoNothing ??
-                false,
-            }),
+            onConflict: pgOnConflict,
             initTableSchema:
               values.destinationOptions.postgres?.initTableSchema,
             skipForeignKeyViolations:
@@ -1421,7 +1442,10 @@ export function getDefaultDestinationFormValueOptionsFromConnectionCase(
       return {
         postgres: {
           initTableSchema: false,
-          onConflictDoNothing: false,
+          conflictStrategy: {
+            onConflictDoNothing: false,
+            onConflictDoUpdate: false,
+          },
           skipForeignKeyViolations: false,
           truncateBeforeInsert: false,
           truncateCascade: false,
@@ -1523,8 +1547,16 @@ export function getDestinationFormValuesOrDefaultFromDestination(
             truncateCascade:
               d.options.config.value.truncateTable?.cascade ?? false,
             initTableSchema: d.options.config.value.initTableSchema ?? false,
-            onConflictDoNothing:
-              d.options.config.value.onConflict?.doNothing ?? false,
+            conflictStrategy: {
+              onConflictDoNothing:
+                d.options.config.value.onConflict?.strategy.case === 'nothing'
+                  ? true
+                  : false,
+              onConflictDoUpdate:
+                d.options.config.value.onConflict?.strategy.case === 'update'
+                  ? true
+                  : false,
+            },
             skipForeignKeyViolations:
               d.options.config.value.skipForeignKeyViolations ?? false,
             maxInFlight: d.options.config.value.maxInFlight,
