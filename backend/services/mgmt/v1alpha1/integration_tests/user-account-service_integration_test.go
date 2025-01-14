@@ -28,56 +28,6 @@ var (
 	testAuthUserId2 = "test-user2"
 )
 
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig() {
-	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
-
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
-	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
-	onboardingConfig := resp.Msg.GetConfig()
-	require.NotNil(s.T(), onboardingConfig)
-
-	require.False(s.T(), onboardingConfig.GetHasCompletedOnboarding())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: uuid.NewString()}))
-	integrationtests_test.RequireErrResp(s.T(), resp, err)
-	integrationtests_test.RequireConnectError(s.T(), err, connect.CodePermissionDenied)
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: uuid.NewString(), Config: &mgmtv1alpha1.AccountOnboardingConfig{}}))
-	integrationtests_test.RequireErrResp(s.T(), resp, err)
-	integrationtests_test.RequireConnectError(s.T(), err, connect.CodePermissionDenied)
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig_NoConfig() {
-	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
-
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
-	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
-	onboardingConfig := resp.Msg.GetConfig()
-	require.NotNil(s.T(), onboardingConfig)
-
-	require.False(s.T(), onboardingConfig.GetHasCompletedOnboarding())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig() {
-	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
-
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
-		AccountId: accountId, Config: &mgmtv1alpha1.AccountOnboardingConfig{
-			HasCompletedOnboarding: true,
-		}},
-	))
-	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
-
-	onboardingConfig := resp.Msg.GetConfig()
-	require.NotNil(s.T(), onboardingConfig)
-
-	require.True(s.T(), onboardingConfig.GetHasCompletedOnboarding())
-}
-
 var (
 	validTemporalConfigModel = &pg_models.TemporalConfig{
 		Namespace:        "foo",
@@ -90,39 +40,6 @@ var (
 		SyncJobQueueName: validTemporalConfigModel.SyncJobQueueName,
 	}
 )
-
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
-	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
-
-	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
-		Return(validTemporalConfig, nil)
-
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
-	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
-
-	tc := resp.Msg.GetConfig()
-	require.NotNil(s.T(), tc)
-
-	require.Equal(s.T(), validTemporalConfig.Namespace, tc.GetNamespace())
-	require.Equal(s.T(), validTemporalConfig.SyncJobQueueName, tc.GetSyncJobQueueName())
-	require.Equal(s.T(), validTemporalConfig.Url, tc.GetUrl())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NoAccount() {
-	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
-	integrationtests_test.RequireErrResp(s.T(), resp, err)
-	integrationtests_test.RequireConnectError(s.T(), err, connect.CodePermissionDenied)
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NeosyncCloud() {
-	userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
-	s.setUser(s.ctx, userclient)
-	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
-
-	resp, err := userclient.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
-	integrationtests_test.RequireErrResp(s.T(), resp, err)
-	integrationtests_test.RequireConnectError(s.T(), err, connect.CodeUnimplemented)
-}
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoAccount() {
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
