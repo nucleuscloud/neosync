@@ -14,7 +14,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
 		AccountId: accountId,
@@ -25,7 +25,7 @@ func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
 }
 
 func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 	srcconn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "source", "test")
 	destconn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "dest", "test2")
 
@@ -105,7 +105,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 	t.Run("Cloud", func(t *testing.T) {
 		client := s.NeosyncCloudAuthenticatedLicensedClients.Jobs(integrationtests_test.WithUserId(testAuthUserId))
 		s.setUser(ctx, s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId)))
-		accountId := s.createPersonalAccount(ctx, s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId)))
+		accountId := integrationtests_test.CreatePersonalAccount(ctx, t, s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId)))
 
 		srcconn := s.createPostgresConnection(s.NeosyncCloudAuthenticatedLicensedClients.Connections(integrationtests_test.WithUserId(testAuthUserId)), accountId, "source", "test")
 		destconn := s.createPostgresConnection(s.NeosyncCloudAuthenticatedLicensedClients.Connections(integrationtests_test.WithUserId(testAuthUserId)), accountId, "dest", "test2")

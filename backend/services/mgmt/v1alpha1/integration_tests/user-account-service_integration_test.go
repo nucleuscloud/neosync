@@ -29,7 +29,7 @@ var (
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
 	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
@@ -52,7 +52,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig_NoConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
 	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
@@ -63,7 +63,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountOnboardingConfig{
@@ -92,7 +92,7 @@ var (
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
 		Return(validTemporalConfig, nil)
@@ -117,7 +117,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NeosyncCloud() {
 	userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 	resp, err := userclient.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -133,7 +133,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NeosyncCloud() {
 	userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 	resp, err := userclient.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -141,7 +141,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
 		Return(validTemporalConfig, nil)
@@ -158,7 +158,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	// kind of a bad test since we are mocking this client wholesale, but it at least verifies we can write the config
 	s.Mocks.TemporalConfigProvider.On("GetConfig", mock.Anything, mock.Anything).
@@ -295,7 +295,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetPersonalAccount() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_NotEmpty() {
-	s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	accResp, err := s.OSSUnauthenticatedLicensedClients.Users().GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
 	integrationtests_test.RequireNoErrResp(s.T(), accResp, err)
@@ -306,7 +306,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_NotEmpty() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsUserInAccount() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
 		AccountId: accountId,
@@ -322,7 +322,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsUserInAccount() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NoAuth() {
-	s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -330,7 +330,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NoAuth(
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -338,7 +338,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_NoA
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountMember_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().RemoveTeamAccountMember(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: accountId, UserId: uuid.NewString()}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -346,7 +346,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountMember_N
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_InviteUserToTeamAccount_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().InviteUserToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: accountId, Email: "test@example.com"}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -354,7 +354,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_InviteUserToTeamAccount_N
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountInvites_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetTeamAccountInvites(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: accountId}))
 	integrationtests_test.RequireErrResp(s.T(), resp, err)
@@ -380,7 +380,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetSystemInformation() {
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal() {
 	userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 	resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
@@ -450,7 +450,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 
 	resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
@@ -463,7 +463,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Pers
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal() {
 	userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 	resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 		AccountId: accountId,
@@ -584,7 +584,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckout
 	})
 
 	t.Run("personal account - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, userclient)
+		personalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
 			AccountId: personalAccountId,
 		}))
@@ -592,7 +592,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckout
 	})
 
 	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		personalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
 			AccountId: personalAccountId,
 		}))
@@ -620,7 +620,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSe
 	})
 
 	t.Run("personal account - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, userclient)
+		personalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 		resp, err := userclient.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
 			AccountId: personalAccountId,
 		}))
@@ -628,7 +628,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSe
 	})
 
 	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		personalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 		resp, err := s.OSSUnauthenticatedLicensedClients.Users().GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
 			AccountId: personalAccountId,
 		}))
@@ -656,7 +656,7 @@ func (s *IntegrationTestSuite) Test_GetBillingAccounts() {
 
 	t := s.T()
 
-	au1PersonalAccountId := s.createPersonalAccount(s.ctx, userclient1)
+	au1PersonalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient1)
 	au1TeamAccountId1 := s.createBilledTeamAccount(s.ctx, userclient1, "test-team", "test-stripe-id")
 	au1TeamAccountId2 := s.createBilledTeamAccount(s.ctx, userclient1, "test-team2", "test-stripe-id2")
 
@@ -709,7 +709,7 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	t.Run("OSS auth success", func(t *testing.T) {
 		userclient := s.OSSAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 		s.setUser(s.ctx, userclient)
-		accountId := s.createPersonalAccount(s.ctx, userclient)
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
 			Name:      "newname",
@@ -722,7 +722,7 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	t.Run("cloud billing success", func(t *testing.T) {
 		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 		s.setUser(s.ctx, userclient)
-		accountId := s.createPersonalAccount(s.ctx, userclient)
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient)
 
 		stripeCustomerId := "foo"
 		s.Mocks.Billingclient.On("NewCustomer", mock.Anything).Once().
@@ -762,7 +762,7 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 
 	t := s.T()
 
-	au1PersonalAccountId := s.createPersonalAccount(s.ctx, userclient1)
+	au1PersonalAccountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), userclient1)
 	au1TeamAccountId1 := s.createBilledTeamAccount(s.ctx, userclient1, "test-team", "test-stripe-id")
 
 	t.Run("new event", func(t *testing.T) {

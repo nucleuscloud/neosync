@@ -20,7 +20,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	t.Run("OSS-fail", func(t *testing.T) {
 		userclient := s.OSSUnauthenticatedLicensedClients.Users()
 		s.setUser(s.ctx, userclient)
-		accountId := s.createPersonalAccount(s.ctx, userclient)
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, t, userclient)
 		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeMany(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
@@ -39,7 +39,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
 		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
 		s.setUser(s.ctx, userclient)
-		accountId := s.createPersonalAccount(s.ctx, userclient)
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, t, userclient)
 		resp, err := anonclient.AnonymizeMany(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
@@ -171,7 +171,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
   "sports": ["basketball", "golf", "swimming"]
 }`
 
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	accountId := integrationtests_test.CreatePersonalAccount(s.ctx, s.T(), s.OSSUnauthenticatedLicensedClients.Users())
 	resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
@@ -319,7 +319,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 	t := s.T()
 
 	t.Run("OSS", func(t *testing.T) {
-		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, t, s.OSSUnauthenticatedLicensedClients.Users())
 
 		t.Run("transformpiitext", func(t *testing.T) {
 			t.Run("mappings", func(t *testing.T) {
@@ -399,7 +399,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
 
 		s.setUser(s.ctx, userclient)
-		accountId := s.createPersonalAccount(s.ctx, userclient)
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, t, userclient)
 
 		t.Run("transformpiitext", func(t *testing.T) {
 			t.Run("mappings", func(t *testing.T) {

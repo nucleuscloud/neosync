@@ -48,7 +48,7 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetTransformPiiRecognize
 				JSON200: &allowed,
 			}, nil)
 
-		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		accountId := integrationtests_test.CreatePersonalAccount(s.ctx, t, s.OSSUnauthenticatedLicensedClients.Users())
 		resp, err := s.OSSUnauthenticatedLicensedClients.Transformers().GetTransformPiiEntities(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformPiiEntitiesRequest{
 			AccountId: accountId,
 		}))

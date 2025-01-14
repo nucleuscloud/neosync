@@ -8,18 +8,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 )
-
-func (s *IntegrationTestSuite) createPersonalAccount(
-	ctx context.Context,
-	userclient mgmtv1alpha1connect.UserAccountServiceClient,
-) string {
-	s.T().Helper()
-	return tcneosyncapi.CreatePersonalAccount(ctx, s.T(), userclient)
-}
 
 func (s *IntegrationTestSuite) setAccountCreatedAt(
 	ctx context.Context,
