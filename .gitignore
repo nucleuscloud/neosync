@@ -36,6 +36,7 @@ tmp
 venv/
 venv2/
 python/dist/
+__pycache__/
 
 neosync_ee_ca.key
 neosync_cloud_ca.key
