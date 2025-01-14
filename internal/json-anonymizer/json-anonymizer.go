@@ -3,6 +3,7 @@ package jsonanonymizer
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"regexp"
 	"strings"
@@ -27,6 +28,8 @@ type JsonAnonymizer struct {
 	haltOnFailure              bool
 	skipPaths                  map[string]struct{}
 	anonymizeConfig            *anonymizeConfig
+
+	logger *slog.Logger
 }
 
 type anonymizeConfig struct {
@@ -42,6 +45,7 @@ type Option func(*JsonAnonymizer)
 func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 	a := &JsonAnonymizer{
 		transformerMappings: make([]*mgmtv1alpha1.TransformerMapping, 0),
+		logger:              slog.Default(),
 	}
 	for _, opt := range opts {
 		opt(a)
@@ -53,14 +57,14 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 
 	// Initialize transformerExecutors
 	var err error
-	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig)
+	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig, a.logger)
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize defaultTransformerExecutor if needed
 	if a.defaultTransformers != nil {
-		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig)
+		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig, a.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -71,6 +75,12 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 		return nil, err
 	}
 	return a, nil
+}
+
+func WithLogger(logger *slog.Logger) Option {
+	return func(ja *JsonAnonymizer) {
+		ja.logger = logger
+	}
 }
 
 // WithAnonymizeConfig sets the analyze and anonymize clients for use by the presidio transformers only if isEnabled is true
@@ -138,7 +148,10 @@ func (a *JsonAnonymizer) initializeJq() error {
 	}
 
 	applyDefaultTransformersFunc := func(value any, args []any) gojq.Iter {
-		result := a.applyDefaultTransformers(value, "")
+		result, err := a.applyDefaultTransformers(value, "")
+		if err != nil {
+			return gojq.NewIter(err)
+		}
 		return gojq.NewIter(result)
 	}
 	compilerOpts = append(compilerOpts, gojq.WithIterFunction("applyDefaultTransformers", 0, 0, applyDefaultTransformersFunc))
@@ -186,7 +199,7 @@ func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions []st
 }
 
 // JQ function to apply all transformers to values that are unmapped in transformer mapping
-func (a *JsonAnonymizer) applyDefaultTransformers(value any, path string) any {
+func (a *JsonAnonymizer) applyDefaultTransformers(value any, path string) (any, error) {
 	switch v := value.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
@@ -195,10 +208,14 @@ func (a *JsonAnonymizer) applyDefaultTransformers(value any, path string) any {
 			if a.shouldSkipPath(newPath) {
 				newMap[key] = val
 			} else {
-				newMap[key] = a.applyDefaultTransformers(val, newPath)
+				newVal, err := a.applyDefaultTransformers(val, newPath)
+				if err != nil {
+					return nil, fmt.Errorf("unable to apply default transformers for object at path %s: %w", path, err)
+				}
+				newMap[key] = newVal
 			}
 		}
-		return newMap
+		return newMap, nil
 	case []any:
 		newArray := make([]any, len(v))
 		for i, elem := range v {
@@ -206,15 +223,19 @@ func (a *JsonAnonymizer) applyDefaultTransformers(value any, path string) any {
 			if a.shouldSkipPath(newPath) {
 				newArray[i] = elem
 			} else {
-				newArray[i] = a.applyDefaultTransformers(elem, newPath)
+				newVal, err := a.applyDefaultTransformers(elem, newPath)
+				if err != nil {
+					return nil, fmt.Errorf("unable to apply default transformers for array at path %s: %w", path, err)
+				}
+				newArray[i] = newVal
 			}
 		}
-		return newArray
+		return newArray, nil
 	default:
 		if a.shouldSkipPath(path) {
-			return value
+			return value, nil
 		} else {
-			return a.executeTransformation(value)
+			return a.executeDefaultTransformation(value)
 		}
 	}
 }
@@ -240,37 +261,37 @@ func (a *JsonAnonymizer) shouldSkipPath(path string) bool {
 }
 
 // Transforms value based on type
-func (a *JsonAnonymizer) executeTransformation(value any) any {
+func (a *JsonAnonymizer) executeDefaultTransformation(value any) (any, error) {
 	switch v := value.(type) {
 	case string:
 		if a.defaultTransformerExecutor != nil && a.defaultTransformerExecutor.S != nil {
 			result, err := a.defaultTransformerExecutor.S.Mutate(v, a.defaultTransformerExecutor.S.Opts)
 			if err != nil {
-				return v
+				return nil, fmt.Errorf("unable to apply default string transformers: %w", err)
 			}
-			return derefPointer(result)
+			return derefPointer(result), nil
 		}
-		return v
+		return v, nil
 	case float64, int, int64:
 		if a.defaultTransformerExecutor != nil && a.defaultTransformerExecutor.N != nil {
 			result, err := a.defaultTransformerExecutor.N.Mutate(v, a.defaultTransformerExecutor.N.Opts)
 			if err != nil {
-				return v
+				return nil, fmt.Errorf("unable to apply default number transformers: %w", err)
 			}
-			return derefPointer(result)
+			return derefPointer(result), nil
 		}
-		return v
+		return v, nil
 	case bool:
 		if a.defaultTransformerExecutor != nil && a.defaultTransformerExecutor.Boolean != nil {
 			result, err := a.defaultTransformerExecutor.Boolean.Mutate(v, a.defaultTransformerExecutor.Boolean.Opts)
 			if err != nil {
-				return v
+				return nil, fmt.Errorf("unable to apply default boolean transformers: %w", err)
 			}
-			return derefPointer(result)
+			return derefPointer(result), nil
 		}
-		return v
+		return v, nil
 	default:
-		return v
+		return v, nil
 	}
 }
 
@@ -328,11 +349,17 @@ func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 func initTransformerExecutors(
 	transformerMappings []*mgmtv1alpha1.TransformerMapping,
 	anonymizeConfig *anonymizeConfig,
+	logger *slog.Logger,
 ) ([]*transformer.TransformerExecutor, error) {
 	executors := []*transformer.TransformerExecutor{}
-	execOpts := []transformer.TransformerExecutorOption{}
+	execOpts := []transformer.TransformerExecutorOption{
+		transformer.WithLogger(logger),
+	}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
+		execOpts = append(
+			execOpts,
+			transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(logger), anonymizeConfig.defaultLanguage),
+		)
 	}
 
 	for _, mapping := range transformerMappings {
@@ -355,10 +382,13 @@ type DefaultExecutors struct {
 func initDefaultTransformerExecutors(
 	defaultTransformer *mgmtv1alpha1.DefaultTransformersConfig,
 	anonymizeConfig *anonymizeConfig,
+	logger *slog.Logger,
 ) (*DefaultExecutors, error) {
-	execOpts := []transformer.TransformerExecutorOption{}
+	execOpts := []transformer.TransformerExecutorOption{
+		transformer.WithLogger(logger),
+	}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, anonymizeConfig.defaultLanguage))
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(logger), anonymizeConfig.defaultLanguage))
 	}
 
 	var stringExecutor, numberExecutor, booleanExecutor *transformer.TransformerExecutor

@@ -225,6 +225,96 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 	}
 }
 
+func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_InvalidTransformerConfig() {
+	t := s.T()
+
+	t.Run("no-nested-transformpiitext", func(t *testing.T) {
+		userclient := s.NeosyncCloudAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		anonclient := s.NeosyncCloudAuthenticatedLicensedClients.Anonymize(integrationtests_test.WithUserId(testAuthUserId))
+
+		s.setUser(s.ctx, userclient)
+		accountId := s.createBilledTeamAccount(s.ctx, userclient, "team34", "foo34")
+
+		t.Run("default-boolean", func(t *testing.T) {
+			resp, err := anonclient.AnonymizeSingle(
+				s.ctx,
+				connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+					AccountId: accountId,
+					InputData: "foo",
+					DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+						Boolean: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+								TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{
+									DefaultAnonymizer: &mgmtv1alpha1.PiiAnonymizer{
+										Config: &mgmtv1alpha1.PiiAnonymizer_Transform_{Transform: &mgmtv1alpha1.PiiAnonymizer_Transform{
+											Config: &mgmtv1alpha1.TransformerConfig{
+												Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+											},
+										}},
+									},
+								},
+							},
+						},
+					},
+				}),
+			)
+			requireErrResp(t, resp, err)
+			requireConnectError(t, err, connect.CodeInvalidArgument)
+		})
+
+		t.Run("transformer-mappings", func(t *testing.T) {
+			resp, err := anonclient.AnonymizeSingle(
+				s.ctx,
+				connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+					AccountId: accountId,
+					InputData: "foo",
+					DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+						Boolean: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+								TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{
+									DefaultAnonymizer: &mgmtv1alpha1.PiiAnonymizer{
+										Config: &mgmtv1alpha1.PiiAnonymizer_Transform_{
+											Transform: &mgmtv1alpha1.PiiAnonymizer_Transform{
+												Config: &mgmtv1alpha1.TransformerConfig{
+													Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+						{
+							Expression: ".details.name",
+							Transformer: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+									TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{
+										EntityAnonymizers: map[string]*mgmtv1alpha1.PiiAnonymizer{
+											"PERSON": {
+												Config: &mgmtv1alpha1.PiiAnonymizer_Transform_{
+													Transform: &mgmtv1alpha1.PiiAnonymizer_Transform{
+														Config: &mgmtv1alpha1.TransformerConfig{
+															Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}),
+			)
+			requireErrResp(t, resp, err)
+			requireConnectError(t, err, connect.CodeInvalidArgument)
+		})
+	})
+}
+
 func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTransformers() {
 	t := s.T()
 

@@ -283,6 +283,8 @@ message PiiAnonymizer {
     Mask mask = 3;
     // Configures the anonymizer to hash the identified PII
     Hash hash = 4;
+    // Configures the anonymizer to use a Neosync configured transformer
+    Transform transform = 5;
   }
 
   message Replace {
@@ -312,6 +314,10 @@ message PiiAnonymizer {
       // The SHA512 Hash Algorithm
       HASH_TYPE_SHA512 = 3;
     }
+  }
+  message Transform {
+    // The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
+    TransformerConfig config = 1;
   }
 }
 

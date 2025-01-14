@@ -120,3 +120,6 @@ packages:
     interfaces:
       Interface:
       EntityEnforcer:
+  github.com/nucleuscloud/neosync/internal/ee/transformers/functions:
+    interfaces:
+      NeosyncOperatorApi:

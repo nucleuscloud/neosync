@@ -466,7 +466,7 @@ class PiiDenyRecognizer(_message.Message):
     def __init__(self, name: _Optional[str] = ..., deny_words: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class PiiAnonymizer(_message.Message):
-    __slots__ = ("replace", "redact", "mask", "hash")
+    __slots__ = ("replace", "redact", "mask", "hash", "transform")
     class Replace(_message.Message):
         __slots__ = ("value",)
         VALUE_FIELD_NUMBER: _ClassVar[int]
@@ -499,15 +499,22 @@ class PiiAnonymizer(_message.Message):
         ALGO_FIELD_NUMBER: _ClassVar[int]
         algo: PiiAnonymizer.Hash.HashType
         def __init__(self, algo: _Optional[_Union[PiiAnonymizer.Hash.HashType, str]] = ...) -> None: ...
+    class Transform(_message.Message):
+        __slots__ = ("config",)
+        CONFIG_FIELD_NUMBER: _ClassVar[int]
+        config: TransformerConfig
+        def __init__(self, config: _Optional[_Union[TransformerConfig, _Mapping]] = ...) -> None: ...
     REPLACE_FIELD_NUMBER: _ClassVar[int]
     REDACT_FIELD_NUMBER: _ClassVar[int]
     MASK_FIELD_NUMBER: _ClassVar[int]
     HASH_FIELD_NUMBER: _ClassVar[int]
+    TRANSFORM_FIELD_NUMBER: _ClassVar[int]
     replace: PiiAnonymizer.Replace
     redact: PiiAnonymizer.Redact
     mask: PiiAnonymizer.Mask
     hash: PiiAnonymizer.Hash
-    def __init__(self, replace: _Optional[_Union[PiiAnonymizer.Replace, _Mapping]] = ..., redact: _Optional[_Union[PiiAnonymizer.Redact, _Mapping]] = ..., mask: _Optional[_Union[PiiAnonymizer.Mask, _Mapping]] = ..., hash: _Optional[_Union[PiiAnonymizer.Hash, _Mapping]] = ...) -> None: ...
+    transform: PiiAnonymizer.Transform
+    def __init__(self, replace: _Optional[_Union[PiiAnonymizer.Replace, _Mapping]] = ..., redact: _Optional[_Union[PiiAnonymizer.Redact, _Mapping]] = ..., mask: _Optional[_Union[PiiAnonymizer.Mask, _Mapping]] = ..., hash: _Optional[_Union[PiiAnonymizer.Hash, _Mapping]] = ..., transform: _Optional[_Union[PiiAnonymizer.Transform, _Mapping]] = ...) -> None: ...
 
 class GenerateEmail(_message.Message):
     __slots__ = ("email_type",)
