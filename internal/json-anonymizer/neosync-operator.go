@@ -26,6 +26,7 @@ func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1
 	if err != nil {
 		return "", err
 	}
+
 	switch result := result.(type) {
 	case string:
 		return result, nil
