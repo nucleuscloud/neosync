@@ -154,10 +154,19 @@ func Test_buildAnonymizers(t *testing.T) {
 						},
 					},
 				},
+				"DATE_TIME": {
+					Config: &mgmtv1alpha1.PiiAnonymizer_Transform_{
+						Transform: &mgmtv1alpha1.PiiAnonymizer_Transform{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+							},
+						},
+					},
+				},
 			},
 		})
 		require.NoError(t, err)
-		require.Equal(t, 2, len(output))
+		require.Equal(t, 3, len(output))
 
 		defaultEntity, ok := output["DEFAULT"]
 		require.True(t, ok)
@@ -170,6 +179,12 @@ func Test_buildAnonymizers(t *testing.T) {
 		hash, err := person.AsHash()
 		require.NoError(t, err)
 		require.Equal(t, presidioapi.Sha256, *hash.HashType)
+
+		dateTime, ok := output["NEOSYNC_DATE_TIME"]
+		require.True(t, ok)
+		dtReplace, err := dateTime.AsReplace()
+		require.NoError(t, err)
+		require.Equal(t, "{{NEOSYNC_DATE_TIME}}", dtReplace.NewValue)
 	})
 }
 

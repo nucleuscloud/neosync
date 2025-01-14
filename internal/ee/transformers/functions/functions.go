@@ -16,6 +16,7 @@ var (
 	supportedLanguage = "en"
 )
 
+// Used when using the PII Anonymizer with Neosync Transformers
 type NeosyncOperatorApi interface {
 	Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error)
 }
