@@ -44,8 +44,8 @@ export default function ColumnRemovalStrategyOptionsForm(
           label="Halt - Stop the run if a column has been removed from the source"
         />
         <StrategyRadioItem
-          value="auto"
-          label="Auto - Continue syncing if a source column is removed, skipping it in the destination"
+          value="continue"
+          label="Continue - Continue syncing if a source column is removed, skipping it in the destination"
         />
       </RadioGroup>
     </div>

@@ -9,12 +9,13 @@ import { ReactElement } from 'react';
 interface Props {
   value: NewColumnAdditionStrategy;
   setValue(strategy: NewColumnAdditionStrategy): void;
+  disableAutoMap?: boolean;
 }
 
 export default function NewColumnAdditionStrategyOptionsForm(
   props: Props
 ): ReactElement {
-  const { value, setValue } = props;
+  const { value, setValue, disableAutoMap } = props;
 
   return (
     <div className="flex flex-col gap-2">
@@ -42,10 +43,12 @@ export default function NewColumnAdditionStrategyOptionsForm(
           value="halt"
           label="Halt - Stop the run if a new column is detected"
         />
-        <StrategyRadioItem
-          value="automap"
-          label="AutoMap - Automatically generate a new value"
-        />
+        {!disableAutoMap && (
+          <StrategyRadioItem
+            value="automap"
+            label="AutoMap - Automatically generate a new value"
+          />
+        )}
         <StrategyRadioItem
           value="continue"
           label="Continue - Ignores new columns; may fail if column doesn't have default"

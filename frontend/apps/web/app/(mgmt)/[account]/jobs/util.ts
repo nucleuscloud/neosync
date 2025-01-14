@@ -13,6 +13,8 @@ import {
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
   toColumnRemovalStrategy,
+  toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMysqlColumnRemovalStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
@@ -697,6 +699,9 @@ function toJobSourceOptions(
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
               false,
+            columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
+              values.connect.sourceOptions.mysql?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -741,6 +746,9 @@ function toJobSourceOptions(
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
               false,
+            columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
+              values.connect.sourceOptions.mssql?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -1183,6 +1191,9 @@ function setDefaultConnectFormValues(
           mysql: {
             haltOnNewColumnAddition:
               job.source.options.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>
@@ -1221,6 +1232,9 @@ function setDefaultConnectFormValues(
           mssql: {
             haltOnNewColumnAddition:
               job.source.options.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>

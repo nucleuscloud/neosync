@@ -158,14 +158,9 @@ message PostgresSourceConnectionOptions {
     oneof strategy {
       // halt job if a column is removed
       HaltJob halt_job = 1;
-
-      // ignores removed columns.
-      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
-    // Configuration for the Auto strategy
-    message Auto {}
   }
 }
 
@@ -191,14 +186,9 @@ message MysqlSourceConnectionOptions {
     oneof strategy {
       // halt job if a column is removed
       HaltJob halt_job = 1;
-
-      // ignores removed columns.
-      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
-    // Configuration for the AutoMap strategy
-    message Auto {}
   }
 }
 
@@ -223,14 +213,9 @@ message MssqlSourceConnectionOptions {
     oneof strategy {
       // halt job if a column is removed
       HaltJob halt_job = 1;
-
-      // ignores removed columns.
-      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
-    // Configuration for the Auto strategy
-    message Auto {}
   }
 }
 

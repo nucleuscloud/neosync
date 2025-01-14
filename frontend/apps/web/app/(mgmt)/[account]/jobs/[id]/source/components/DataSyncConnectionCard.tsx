@@ -42,6 +42,8 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
   toColumnRemovalStrategy,
+  toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMysqlColumnRemovalStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
@@ -917,6 +919,9 @@ function toJobSourceOptions(
             connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.mysql?.haltOnNewColumnAddition ?? false,
+            columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
+              values.sourceOptions.mysql?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -979,6 +984,9 @@ function toJobSourceOptions(
             connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.mssql?.haltOnNewColumnAddition ?? false,
+            columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
+              values.sourceOptions.mssql?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -1138,6 +1146,9 @@ function getJobSource(
           mysql: {
             haltOnNewColumnAddition:
               job?.source?.options?.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1183,6 +1194,9 @@ function getJobSource(
           mssql: {
             haltOnNewColumnAddition:
               job?.source?.options?.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1237,7 +1251,7 @@ async function getUpdatedValues(
         sourceOptions: {
           postgres: {
             newColumnAdditionStrategy: 'halt',
-            columnRemovalStrategy: 'auto',
+            columnRemovalStrategy: 'continue',
           },
         },
       };
@@ -1247,6 +1261,7 @@ async function getUpdatedValues(
         sourceOptions: {
           mysql: {
             haltOnNewColumnAddition: false,
+            columnRemovalStrategy: 'continue',
           },
         },
       };
@@ -1268,6 +1283,7 @@ async function getUpdatedValues(
         sourceOptions: {
           mssql: {
             haltOnNewColumnAddition: false,
+            columnRemovalStrategy: 'continue',
           },
         },
       };
