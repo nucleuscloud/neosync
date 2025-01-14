@@ -3833,8 +3833,61 @@ components:
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+        columnRemovalStrategy:
+          allOf:
+            - title: column_removal_strategy
+              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy'
       title: MssqlSourceConnectionOptions
       additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - title: halt_job
+              description: halt job if a column is removed
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: ignores removed columns.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap'
+      title: ColumnRemovalStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.MssqlSourceSchemaOption:
       type: object
       properties:
@@ -4009,8 +4062,61 @@ components:
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+        columnRemovalStrategy:
+          allOf:
+            - title: column_removal_strategy
+              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy'
       title: MysqlSourceConnectionOptions
       additionalProperties: false
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - title: halt_job
+              description: halt job if a column is removed
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: ignores removed columns.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap'
+      title: ColumnRemovalStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.MysqlSourceSchemaOption:
       type: object
       properties:
@@ -4469,8 +4575,61 @@ components:
             - title: new_column_addition_strategy
               description: Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy'
+        columnRemovalStrategy:
+          allOf:
+            - title: column_removal_strategy
+              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy'
       title: PostgresSourceConnectionOptions
       additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - title: halt_job
+              description: halt job if a column is removed
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        autoMap:
+          allOf:
+            - title: auto_map
+              description: ignores removed columns.
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap'
+      title: ColumnRemovalStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy:
       type: object
       allOf:

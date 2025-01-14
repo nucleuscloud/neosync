@@ -136,6 +136,8 @@ message PostgresSourceConnectionOptions {
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
   NewColumnAdditionStrategy new_column_addition_strategy = 5;
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 6;
 
   message NewColumnAdditionStrategy {
     oneof strategy {
@@ -144,6 +146,20 @@ message PostgresSourceConnectionOptions {
       // automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
       // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+      AutoMap auto_map = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the AutoMap strategy
+    message AutoMap {}
+  }
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // ignores removed columns.
       AutoMap auto_map = 2;
     }
     // Configuration for the HaltJob strategy
@@ -167,6 +183,23 @@ message MysqlSourceConnectionOptions {
   repeated MysqlSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
+
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 5;
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // ignores removed columns.
+      AutoMap auto_map = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the AutoMap strategy
+    message AutoMap {}
+  }
 }
 
 message MysqlSourceSchemaOption {
@@ -183,6 +216,22 @@ message MssqlSourceConnectionOptions {
   repeated MssqlSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 5;
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // ignores removed columns.
+      AutoMap auto_map = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the AutoMap strategy
+    message AutoMap {}
+  }
 }
 
 message MssqlSourceSchemaOption {
