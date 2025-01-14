@@ -279,14 +279,14 @@ func validateTransformerConfig(cfg *mgmtv1alpha1.TransformerConfig) error {
 	if defaultAnonymizer != nil {
 		child := defaultAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
 		if child != nil {
-			return fmt.Errorf("found nested TransformPiiText config in default anonymizer. TransformPiiText may not be used deeply nested within itself.")
+			return nucleuserrors.NewBadRequest("found nested TransformPiiText config in default anonymizer. TransformPiiText may not be used deeply nested within itself.")
 		}
 	}
 	entityAnonymizers := root.GetEntityAnonymizers()
 	for entity, entityAnonymizer := range entityAnonymizers {
 		child := entityAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
 		if child != nil {
-			return fmt.Errorf("found nested TransformPiiText config in entity (%s) anonymizer. TransformPiiText may not be used deeply nested within itself.", entity)
+			return nucleuserrors.NewBadRequest(fmt.Sprintf("found nested TransformPiiText config in entity (%s) anonymizer. TransformPiiText may not be used deeply nested within itself.", entity))
 		}
 	}
 	return nil
