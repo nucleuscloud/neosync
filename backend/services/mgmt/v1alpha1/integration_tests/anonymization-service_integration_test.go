@@ -31,8 +31,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 				TransformerMappings: []*mgmtv1alpha1.TransformerMapping{},
 			}),
 		)
-		requireErrResp(t, resp, err)
-		requireConnectError(t, err, connect.CodeUnimplemented)
+		integrationtests_test.RequireErrResp(t, resp, err)
+		integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 	})
 
 	t.Run("cloud-personal-fail", func(t *testing.T) {
@@ -50,8 +50,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 				TransformerMappings: []*mgmtv1alpha1.TransformerMapping{},
 			}),
 		)
-		requireErrResp(t, resp, err)
-		requireConnectError(t, err, connect.CodePermissionDenied)
+		integrationtests_test.RequireErrResp(t, resp, err)
+		integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 	})
 
 	t.Run("cloud-team-ok", func(t *testing.T) {
@@ -133,7 +133,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 				},
 			}),
 		)
-		requireNoErrResp(s.T(), resp, err)
+		integrationtests_test.RequireNoErrResp(t, resp, err)
 		require.NotEmpty(s.T(), resp.Msg.OutputData)
 
 		var inputObjects []map[string]any
@@ -207,7 +207,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 			},
 		}),
 	)
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	require.NotEmpty(s.T(), resp.Msg.OutputData)
 
 	var inputObject map[string]any
@@ -258,8 +258,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_InvalidTran
 					},
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeInvalidArgument)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeInvalidArgument)
 		})
 
 		t.Run("transformer-mappings", func(t *testing.T) {
@@ -309,8 +309,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_InvalidTran
 					},
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeInvalidArgument)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeInvalidArgument)
 		})
 	})
 }
@@ -337,8 +337,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 						},
 					}),
 				)
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodePermissionDenied)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 			})
 
 			t.Run("defaults", func(t *testing.T) {
@@ -355,8 +355,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("S", func(t *testing.T) {
 					resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
@@ -371,8 +371,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("N", func(t *testing.T) {
 					resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
@@ -387,8 +387,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 			})
 		})
@@ -417,8 +417,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 						},
 					}),
 				)
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodePermissionDenied)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 			})
 
 			t.Run("defaults", func(t *testing.T) {
@@ -435,8 +435,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("S", func(t *testing.T) {
 					resp, err := anonclient.AnonymizeSingle(
@@ -451,8 +451,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("N", func(t *testing.T) {
 					resp, err := anonclient.AnonymizeSingle(
@@ -467,8 +467,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 							},
 						}),
 					)
-					requireErrResp(t, resp, err)
-					requireConnectError(t, err, connect.CodePermissionDenied)
+					integrationtests_test.RequireErrResp(t, resp, err)
+					integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 				})
 			})
 		})

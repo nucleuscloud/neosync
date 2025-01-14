@@ -19,7 +19,7 @@ func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
 	resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
 		AccountId: accountId,
 	}))
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	jobs := resp.Msg.GetJobs()
 	require.Empty(s.T(), jobs)
 }
@@ -55,7 +55,7 @@ func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
 		},
 		InitiateJobRun: false,
 	}))
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	require.NotNil(s.T(), resp.Msg.GetJob())
 }
 
@@ -67,38 +67,38 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 		client := s.OSSUnauthenticatedUnlicensedClients.Jobs()
 		t.Run("GetJobHooks", func(t *testing.T) {
 			resp, err := client.GetJobHooks(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHooksRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("GetJobHook", func(t *testing.T) {
 			resp, err := client.GetJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHookRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("CreateJobHook", func(t *testing.T) {
 			resp, err := client.CreateJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobHookRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("DeleteJobHook", func(t *testing.T) {
 			resp, err := client.DeleteJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.DeleteJobHookRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("IsJobHookNameAvailable", func(t *testing.T) {
 			resp, err := client.IsJobHookNameAvailable(ctx, connect.NewRequest(&mgmtv1alpha1.IsJobHookNameAvailableRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("UpdateJobHook", func(t *testing.T) {
 			resp, err := client.UpdateJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.UpdateJobHookRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 		t.Run("SetJobHookEnabled", func(t *testing.T) {
 			resp, err := client.SetJobHookEnabled(ctx, connect.NewRequest(&mgmtv1alpha1.SetJobHookEnabledRequest{}))
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeUnimplemented)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeUnimplemented)
 		})
 	})
 
@@ -135,7 +135,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 				},
 			},
 		}))
-		requireNoErrResp(t, jobResp, err)
+		integrationtests_test.RequireNoErrResp(t, jobResp, err)
 
 		t.Run("GetJobHooks", func(t *testing.T) {
 			createdHook := s.createSqlJobHook(ctx, t, client, "getjobhooks-1", jobResp.Msg.GetJob().GetId(), srcconn.GetId(), true, &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing{
@@ -146,7 +146,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 				resp, err := client.GetJobHooks(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHooksRequest{
 					JobId: createdHook.GetJobId(),
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				hooks := resp.Msg.GetHooks()
 				require.NotEmpty(t, hooks)
 			})
@@ -161,7 +161,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 				resp, err := client.GetJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHookRequest{
 					Id: createdHook.GetId(),
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				hook := resp.Msg.GetHook()
 				require.NotNil(t, hook)
 				require.Equal(t, createdHook.GetId(), hook.GetId())
@@ -170,8 +170,8 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 				resp, err := client.GetJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHookRequest{
 					Id: uuid.NewString(),
 				}))
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodeNotFound)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodeNotFound)
 			})
 		})
 
@@ -195,7 +195,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 						},
 					},
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 			})
 
 			t.Run("job_not_found", func(t *testing.T) {
@@ -217,8 +217,8 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 						},
 					},
 				}))
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodeNotFound)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodeNotFound)
 			})
 			t.Run("connection_not_in_job", func(t *testing.T) {
 				resp, err := client.CreateJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobHookRequest{
@@ -239,8 +239,8 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 						},
 					},
 				}))
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodeInvalidArgument)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodeInvalidArgument)
 			})
 			t.Run("invalid_timing", func(t *testing.T) {
 				resp, err := client.CreateJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobHookRequest{
@@ -261,8 +261,8 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 						},
 					},
 				}))
-				requireErrResp(t, resp, err)
-				requireConnectError(t, err, connect.CodeUnknown)
+				integrationtests_test.RequireErrResp(t, resp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodeUnknown)
 			})
 		})
 
@@ -272,15 +272,15 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					Timing: &mgmtv1alpha1.JobHookConfig_JobSqlHook_Timing_PreSync{},
 				})
 				resp, err := client.DeleteJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.DeleteJobHookRequest{Id: createdHook.GetId()}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 
 				getResp, err := client.GetJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobHookRequest{Id: createdHook.GetId()}))
-				requireErrResp(t, getResp, err)
-				requireConnectError(t, err, connect.CodeNotFound)
+				integrationtests_test.RequireErrResp(t, getResp, err)
+				integrationtests_test.RequireConnectError(t, err, connect.CodeNotFound)
 			})
 			t.Run("non_existent", func(t *testing.T) {
 				resp, err := client.DeleteJobHook(ctx, connect.NewRequest(&mgmtv1alpha1.DeleteJobHookRequest{Id: uuid.NewString()}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 			})
 		})
 
@@ -290,7 +290,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					JobId: jobResp.Msg.GetJob().GetId(),
 					Name:  "isjobhooknameavailable-1",
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				require.True(t, resp.Msg.GetIsAvailable())
 			})
 			t.Run("no", func(t *testing.T) {
@@ -302,7 +302,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					JobId: jobResp.Msg.GetJob().GetId(),
 					Name:  createdHook.GetName(),
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				require.False(t, resp.Msg.GetIsAvailable())
 			})
 		})
@@ -316,13 +316,13 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 				Id:      createdHook.GetId(),
 				Enabled: false,
 			}))
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			require.False(t, resp.Msg.GetHook().GetEnabled())
 			resp, err = client.SetJobHookEnabled(ctx, connect.NewRequest(&mgmtv1alpha1.SetJobHookEnabledRequest{
 				Id:      createdHook.GetId(),
 				Enabled: true,
 			}))
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			require.True(t, resp.Msg.GetHook().GetEnabled())
 		})
 
@@ -348,7 +348,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					},
 				},
 			}))
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			updatedHook := resp.Msg.GetHook()
 			require.Equal(t, fmt.Sprintf("%s-updated", createdHook.GetName()), updatedHook.GetName())
 			require.Equal(t, fmt.Sprintf("%s-updated", createdHook.GetDescription()), updatedHook.GetDescription())
@@ -376,7 +376,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					JobId:  jobResp.Msg.GetJob().GetId(),
 					Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_UNSPECIFIED,
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				require.NotEmpty(t, resp.Msg.GetHooks())
 				hasDisabledHook := false
 				for _, hook := range resp.Msg.GetHooks() {
@@ -393,7 +393,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					JobId:  jobResp.Msg.GetJob().GetId(),
 					Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				require.NotEmpty(t, resp.Msg.GetHooks())
 				hasCreatedHook := false
 				for _, hook := range resp.Msg.GetHooks() {
@@ -410,7 +410,7 @@ func (s *IntegrationTestSuite) Test_JobService_JobHooks() {
 					JobId:  jobResp.Msg.GetJob().GetId(),
 					Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC,
 				}))
-				requireNoErrResp(t, resp, err)
+				integrationtests_test.RequireNoErrResp(t, resp, err)
 				require.NotEmpty(t, resp.Msg.GetHooks())
 				hasCreatedHook := false
 				for _, hook := range resp.Msg.GetHooks() {
@@ -453,7 +453,7 @@ func (s *IntegrationTestSuite) createSqlJobHook(
 			},
 		},
 	}))
-	requireNoErrResp(t, createResp, err)
+	integrationtests_test.RequireNoErrResp(t, createResp, err)
 	return createResp.Msg.GetHook()
 }
 
@@ -479,6 +479,6 @@ func (s *IntegrationTestSuite) createPostgresConnection(
 			},
 		}),
 	)
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	return resp.Msg.GetConnection()
 }

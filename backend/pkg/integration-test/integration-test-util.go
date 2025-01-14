@@ -2,6 +2,7 @@ package integrationtests_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -208,4 +209,11 @@ func RequireErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
 	t.Helper()
 	require.Error(t, err)
 	require.Nil(t, resp)
+}
+
+func RequireConnectError(t testing.TB, err error, expectedCode connect.Code) {
+	t.Helper()
+	connectErr, ok := err.(*connect.Error)
+	require.True(t, ok, fmt.Sprintf("error was not connect error %T", err))
+	require.Equal(t, expectedCode, connectErr.Code(), fmt.Sprintf("%d: %s", connectErr.Code(), connectErr.Message()))
 }

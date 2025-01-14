@@ -20,7 +20,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_
 			ConnectionName: "foo",
 		}),
 	)
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	require.True(s.T(), resp.Msg.GetIsAvailable())
 }
 
@@ -35,7 +35,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_
 			ConnectionName: "foo",
 		}),
 	)
-	requireNoErrResp(s.T(), resp, err)
+	integrationtests_test.RequireNoErrResp(s.T(), resp, err)
 	require.False(s.T(), resp.Msg.GetIsAvailable())
 }
 
@@ -54,7 +54,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CheckConnectionConfig() {
 				ConnectionConfig: conn.GetConnectionConfig(),
 			}),
 		)
-		requireNoErrResp(t, resp, err)
+		integrationtests_test.RequireNoErrResp(t, resp, err)
 		require.True(t, resp.Msg.GetIsConnected())
 		require.Empty(t, resp.Msg.GetConnectionError())
 	})
@@ -87,8 +87,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodeInvalidArgument)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodeInvalidArgument)
 		})
 	})
 
@@ -112,7 +112,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 		})
 	})
 	t.Run("OSS Authenticated Licensed", func(t *testing.T) {
@@ -137,7 +137,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 		})
 	})
 	t.Run("OSS Unauthenticated Unlicensed", func(t *testing.T) {
@@ -160,7 +160,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 		})
 		t.Run("aws-s3-failure", func(t *testing.T) {
 			resp, err := client.CreateConnection(
@@ -177,8 +177,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodePermissionDenied)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 		})
 		t.Run("gcp-cloudstorage-failure", func(t *testing.T) {
 			resp, err := client.CreateConnection(
@@ -195,8 +195,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodePermissionDenied)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 		})
 		t.Run("pg-envvar-success", func(t *testing.T) {
 			resp, err := client.CreateConnection(
@@ -215,7 +215,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CreateConnection() {
 					},
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 		})
 	})
 }
@@ -240,7 +240,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 					ConnectionConfig: conn.GetConnectionConfig(),
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			require.Equal(t, updatedName, resp.Msg.GetConnection().GetName())
 		})
 	})
@@ -262,7 +262,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 					ConnectionConfig: conn.GetConnectionConfig(),
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			require.Equal(t, updatedName, resp.Msg.GetConnection().GetName())
 		})
 	})
@@ -282,7 +282,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 					ConnectionConfig: conn.GetConnectionConfig(),
 				}),
 			)
-			requireNoErrResp(t, resp, err)
+			integrationtests_test.RequireNoErrResp(t, resp, err)
 			require.Equal(t, updatedName, resp.Msg.GetConnection().GetName())
 		})
 
@@ -304,8 +304,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 					ConnectionConfig: conn.GetConnectionConfig(),
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodePermissionDenied)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 		})
 
 		t.Run("aws-gcp-cloudstorage-failure", func(t *testing.T) {
@@ -326,8 +326,8 @@ func (s *IntegrationTestSuite) Test_ConnectionService_UpdateConnection() {
 					ConnectionConfig: conn.GetConnectionConfig(),
 				}),
 			)
-			requireErrResp(t, resp, err)
-			requireConnectError(t, err, connect.CodePermissionDenied)
+			integrationtests_test.RequireErrResp(t, resp, err)
+			integrationtests_test.RequireConnectError(t, err, connect.CodePermissionDenied)
 		})
 	})
 }
@@ -344,7 +344,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_GetConnection() {
 			Id: conn.GetId(),
 		}),
 	)
-	requireNoErrResp(t, resp, err)
+	integrationtests_test.RequireNoErrResp(t, resp, err)
 	require.NotNil(t, resp.Msg.GetConnection())
 }
 
@@ -360,7 +360,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_GetConnections() {
 			AccountId: accountId,
 		}),
 	)
-	requireNoErrResp(t, resp, err)
+	integrationtests_test.RequireNoErrResp(t, resp, err)
 	require.NotEmpty(t, resp.Msg.GetConnections())
 }
 
@@ -376,7 +376,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 			AccountId: accountId,
 		}),
 	)
-	requireNoErrResp(t, resp, err)
+	integrationtests_test.RequireNoErrResp(t, resp, err)
 	require.NotEmpty(t, resp.Msg.GetConnections())
 
 	resp2, err := s.OSSUnauthenticatedLicensedClients.Connections().DeleteConnection(
@@ -385,7 +385,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 			Id: conn.GetId(),
 		}),
 	)
-	requireNoErrResp(t, resp2, err)
+	integrationtests_test.RequireNoErrResp(t, resp2, err)
 
 	// again to test idempotency
 	resp2, err = s.OSSUnauthenticatedLicensedClients.Connections().DeleteConnection(
@@ -394,7 +394,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_DeleteConnection() {
 			Id: conn.GetId(),
 		}),
 	)
-	requireNoErrResp(t, resp2, err)
+	integrationtests_test.RequireNoErrResp(t, resp2, err)
 }
 
 func (s *IntegrationTestSuite) Test_ConnectionService_CheckSqlQuery() {
@@ -410,7 +410,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_CheckSqlQuery() {
 			Query: "SELECT 1",
 		}),
 	)
-	requireNoErrResp(t, resp, err)
+	integrationtests_test.RequireNoErrResp(t, resp, err)
 	require.True(t, resp.Msg.GetIsValid())
 	require.Empty(t, resp.Msg.GetErorrMessage())
 }
