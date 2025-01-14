@@ -20,8 +20,9 @@ func Test_NeosyncOperator(t *testing.T) {
 			}, "blah")
 			require.NoError(t, err)
 			require.NotEmpty(t, actual)
+			require.IsType(t, "", actual)
 		})
-		t.Run("default", func(t *testing.T) {
+		t.Run("default_empty_string", func(t *testing.T) {
 			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
@@ -30,6 +31,7 @@ func Test_NeosyncOperator(t *testing.T) {
 			}, "")
 			require.NoError(t, err)
 			require.Empty(t, actual)
+			require.IsType(t, "", actual)
 		})
 		t.Run("default_number", func(t *testing.T) {
 			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
@@ -39,7 +41,8 @@ func Test_NeosyncOperator(t *testing.T) {
 				},
 			}, "")
 			require.NoError(t, err)
-			require.Empty(t, actual)
+			require.NotEmpty(t, actual)
+			require.IsType(t, "", actual)
 		})
 	})
 }
