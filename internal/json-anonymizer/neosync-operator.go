@@ -32,6 +32,6 @@ func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1
 	case nil:
 		return "", nil
 	default:
-		return fmt.Sprintf("%v", result), nil
+		return fmt.Sprintf("%v", derefPointer(result)), nil
 	}
 }
