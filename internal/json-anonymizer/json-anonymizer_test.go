@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -226,7 +227,7 @@ func Test_InitTransformerExecutors(t *testing.T) {
 				},
 			},
 		}
-		executors, err := initTransformerExecutors(mappings, nil)
+		executors, err := initTransformerExecutors(mappings, nil, testutil.GetTestLogger(t))
 		require.NoError(t, err)
 		require.Len(t, executors, 1)
 	})
@@ -238,7 +239,7 @@ func Test_InitTransformerExecutors(t *testing.T) {
 				Transformer: nil,
 			},
 		}
-		_, err := initTransformerExecutors(mappings, nil)
+		_, err := initTransformerExecutors(mappings, nil, testutil.GetTestLogger(t))
 		require.Error(t, err)
 	})
 }
@@ -260,7 +261,7 @@ func Test_InitDefaultTransformerExecutors(t *testing.T) {
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 			},
 		}
-		executors, err := initDefaultTransformerExecutors(defaults, nil)
+		executors, err := initDefaultTransformerExecutors(defaults, nil, testutil.GetTestLogger(t))
 		require.NoError(t, err)
 		require.NotNil(t, executors.S)
 		require.NotNil(t, executors.N)
@@ -275,7 +276,7 @@ func Test_InitDefaultTransformerExecutors(t *testing.T) {
 				},
 			},
 		}
-		executors, err := initDefaultTransformerExecutors(defaults, nil)
+		executors, err := initDefaultTransformerExecutors(defaults, nil, testutil.GetTestLogger(t))
 		require.NoError(t, err)
 		require.NotNil(t, executors.S)
 		require.Nil(t, executors.N)
