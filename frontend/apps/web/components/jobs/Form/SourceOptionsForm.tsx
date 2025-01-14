@@ -31,7 +31,12 @@ export default function SourceOptionsForm(
     case 'pgConfig':
       return (
         <PostgresDBSourceOptionsForm
-          value={value.postgres ?? { newColumnAdditionStrategy: 'continue' }}
+          value={
+            value.postgres ?? {
+              newColumnAdditionStrategy: 'continue',
+              columnRemovalStrategy: 'auto',
+            }
+          }
           setValue={(newval) => {
             setValue({
               postgres: {

@@ -12,6 +12,8 @@ import {
   NewDestinationFormValues,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
+  toColumnRemovalStrategy,
+  toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
   VirtualForeignConstraintFormValues,
@@ -675,6 +677,9 @@ function toJobSourceOptions(
               toJobSourcePostgresNewColumnAdditionStrategy(
                 values.connect.sourceOptions.postgres?.newColumnAdditionStrategy
               ),
+            columnRemovalStrategy: toJobSourcePostgresColumnRemovalStrategy(
+              values.connect.sourceOptions.postgres?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -1195,6 +1200,9 @@ function setDefaultConnectFormValues(
           postgres: {
             newColumnAdditionStrategy: toNewColumnAdditionStrategy(
               job.source.options.config.value.newColumnAdditionStrategy
+            ),
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
             ),
           },
         },

@@ -160,12 +160,12 @@ message PostgresSourceConnectionOptions {
       HaltJob halt_job = 1;
 
       // ignores removed columns.
-      AutoMap auto_map = 2;
+      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
-    // Configuration for the AutoMap strategy
-    message AutoMap {}
+    // Configuration for the Auto strategy
+    message Auto {}
   }
 }
 
@@ -193,12 +193,12 @@ message MysqlSourceConnectionOptions {
       HaltJob halt_job = 1;
 
       // ignores removed columns.
-      AutoMap auto_map = 2;
+      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
     // Configuration for the AutoMap strategy
-    message AutoMap {}
+    message Auto {}
   }
 }
 
@@ -225,12 +225,12 @@ message MssqlSourceConnectionOptions {
       HaltJob halt_job = 1;
 
       // ignores removed columns.
-      AutoMap auto_map = 2;
+      Auto auto = 2;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
-    // Configuration for the AutoMap strategy
-    message AutoMap {}
+    // Configuration for the Auto strategy
+    message Auto {}
   }
 }
 

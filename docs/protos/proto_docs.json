@@ -12489,12 +12489,12 @@
               "defaultValue": ""
             },
             {
-              "name": "auto_map",
+              "name": "auto",
               "description": "ignores removed columns.",
               "label": "",
-              "type": "AutoMap",
-              "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
+              "type": "Auto",
+              "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "strategy",
@@ -12503,10 +12503,10 @@
           ]
         },
         {
-          "name": "AutoMap",
-          "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-          "description": "Configuration for the AutoMap strategy",
+          "name": "Auto",
+          "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+          "description": "Configuration for the Auto strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -12893,12 +12893,12 @@
               "defaultValue": ""
             },
             {
-              "name": "auto_map",
+              "name": "auto",
               "description": "ignores removed columns.",
               "label": "",
-              "type": "AutoMap",
-              "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
+              "type": "Auto",
+              "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "strategy",
@@ -12907,9 +12907,9 @@
           ]
         },
         {
-          "name": "AutoMap",
-          "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
+          "name": "Auto",
+          "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
           "description": "Configuration for the AutoMap strategy",
           "hasExtensions": false,
           "hasFields": false,
@@ -13489,12 +13489,12 @@
               "defaultValue": ""
             },
             {
-              "name": "auto_map",
+              "name": "auto",
               "description": "ignores removed columns.",
               "label": "",
-              "type": "AutoMap",
-              "longType": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
+              "type": "Auto",
+              "longType": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "strategy",
@@ -13503,10 +13503,10 @@
           ]
         },
         {
-          "name": "AutoMap",
-          "longName": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap",
-          "description": "Configuration for the AutoMap strategy",
+          "name": "Auto",
+          "longName": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
+          "description": "Configuration for the Auto strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,

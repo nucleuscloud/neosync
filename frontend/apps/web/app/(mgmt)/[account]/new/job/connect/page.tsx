@@ -255,6 +255,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   {
                                     postgres: {
                                       newColumnAdditionStrategy: 'halt',
+                                      columnRemovalStrategy: 'auto',
                                     },
                                   },
                                   {

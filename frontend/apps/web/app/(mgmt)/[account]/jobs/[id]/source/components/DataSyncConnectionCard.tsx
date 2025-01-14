@@ -41,6 +41,8 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toColumnRemovalStrategy,
+  toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
@@ -899,6 +901,9 @@ function toJobSourceOptions(
               toJobSourcePostgresNewColumnAdditionStrategy(
                 values.sourceOptions.postgres?.newColumnAdditionStrategy
               ),
+            columnRemovalStrategy: toJobSourcePostgresColumnRemovalStrategy(
+              values.sourceOptions.postgres?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -1119,6 +1124,9 @@ function getJobSource(
             newColumnAdditionStrategy: toNewColumnAdditionStrategy(
               job.source.options.config.value.newColumnAdditionStrategy
             ),
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1229,6 +1237,7 @@ async function getUpdatedValues(
         sourceOptions: {
           postgres: {
             newColumnAdditionStrategy: 'halt',
+            columnRemovalStrategy: 'auto',
           },
         },
       };

@@ -10486,24 +10486,24 @@ components:
       allOf:
         - anyOf:
             - required:
-                - autoMap
+                - auto
             - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - autoMap
+                      - auto
                   - required:
                       - haltJob
       anyOf:
         - required:
-            - autoMap
+            - auto
         - required:
             - haltJob
         - not:
             anyOf:
               - required:
-                  - autoMap
+                  - auto
               - required:
                   - haltJob
       properties:
@@ -10513,19 +10513,19 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        autoMap:
+        auto:
           allOf:
-            - title: auto_map
+            - title: auto
               description: ignores removed columns.
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto:
       type: object
-      title: AutoMap
+      title: Auto
       additionalProperties: false
-      description: Configuration for the AutoMap strategy
+      description: Configuration for the Auto strategy
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
@@ -10726,24 +10726,24 @@ components:
       allOf:
         - anyOf:
             - required:
-                - autoMap
+                - auto
             - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - autoMap
+                      - auto
                   - required:
                       - haltJob
       anyOf:
         - required:
-            - autoMap
+            - auto
         - required:
             - haltJob
         - not:
             anyOf:
               - required:
-                  - autoMap
+                  - auto
               - required:
                   - haltJob
       properties:
@@ -10753,17 +10753,17 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        autoMap:
+        auto:
           allOf:
-            - title: auto_map
+            - title: auto
               description: ignores removed columns.
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto:
       type: object
-      title: AutoMap
+      title: Auto
       additionalProperties: false
       description: Configuration for the AutoMap strategy
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
@@ -11073,24 +11073,24 @@ components:
       allOf:
         - anyOf:
             - required:
-                - autoMap
+                - auto
             - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - autoMap
+                      - auto
                   - required:
                       - haltJob
       anyOf:
         - required:
-            - autoMap
+            - auto
         - required:
             - haltJob
         - not:
             anyOf:
               - required:
-                  - autoMap
+                  - auto
               - required:
                   - haltJob
       properties:
@@ -11100,19 +11100,19 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        autoMap:
+        auto:
           allOf:
-            - title: auto_map
+            - title: auto
               description: ignores removed columns.
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.AutoMap:
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto:
       type: object
-      title: AutoMap
+      title: Auto
       additionalProperties: false
-      description: Configuration for the AutoMap strategy
+      description: Configuration for the Auto strategy
     mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob

@@ -3,6 +3,10 @@ import { create, fromJson, JsonObject, toJson } from '@bufbuild/protobuf';
 import {
   JobMappingTransformer,
   JobMappingTransformerSchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy_AutoSchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
@@ -93,12 +97,17 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
 >;
 
 export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+export type ColumnRemovalStrategy = 'halt' | 'auto';
 
 export const PostgresSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
     .oneOf(['continue', 'halt', 'automap'])
     .optional()
     .default('continue'),
+  columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
+    .oneOf(['halt', 'auto'])
+    .optional()
+    .default('auto'),
 });
 export type PostgresSourceOptionsFormValues = Yup.InferType<
   typeof PostgresSourceOptionsFormValues
@@ -410,6 +419,55 @@ export function toNewColumnAdditionStrategy(
     }
     default: {
       return 'continue';
+    }
+  }
+}
+
+export function toJobSourcePostgresColumnRemovalStrategy(
+  strategy?: ColumnRemovalStrategy
+): PostgresSourceConnectionOptions_ColumnRemovalStrategy | undefined {
+  switch (strategy) {
+    case 'auto': {
+      return create(
+        PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
+        {
+          strategy: {
+            case: 'auto',
+            value: create(
+              PostgresSourceConnectionOptions_ColumnRemovalStrategy_AutoSchema
+            ),
+          },
+        }
+      );
+    }
+    case 'halt': {
+      return create(
+        PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
+        {
+          strategy: {
+            case: 'haltJob',
+            value: create(
+              PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toColumnRemovalStrategy(
+  input: PostgresSourceConnectionOptions_ColumnRemovalStrategy | undefined
+): ColumnRemovalStrategy {
+  switch (input?.strategy.case) {
+    case 'haltJob': {
+      return 'halt';
+    }
+    default: {
+      return 'auto';
     }
   }
 }
