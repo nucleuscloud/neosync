@@ -72,7 +72,7 @@ func removeMappingsNotFoundInSource(
 func isSourceMissingColumns(
 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
-) (bool, []string) {
+) ([]string, bool) {
 	missingColumns := []string{}
 	tableColMappings := getUniqueColMappingsMap(mappings)
 
@@ -84,7 +84,7 @@ func isSourceMissingColumns(
 			}
 		}
 	}
-	return len(missingColumns) != 0, missingColumns
+	return missingColumns, len(missingColumns) != 0
 }
 
 // Builds a map of <schema.table>->column

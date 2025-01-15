@@ -204,7 +204,7 @@ func Test_getAdditionalMappings(t *testing.T) {
 
 func Test_isSourceMissingColumns(t *testing.T) {
 	t.Run("no missing columns", func(t *testing.T) {
-		ok, missing := isSourceMissingColumns(
+		missing, ok := isSourceMissingColumns(
 			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 				"public.users": {
 					"id":   {},
@@ -229,7 +229,7 @@ func Test_isSourceMissingColumns(t *testing.T) {
 	})
 
 	t.Run("missing table", func(t *testing.T) {
-		ok, missing := isSourceMissingColumns(
+		missing, ok := isSourceMissingColumns(
 			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 				"public.users": {
 					"id": {},
@@ -253,7 +253,7 @@ func Test_isSourceMissingColumns(t *testing.T) {
 	})
 
 	t.Run("missing column", func(t *testing.T) {
-		ok, missing := isSourceMissingColumns(
+		missing, ok := isSourceMissingColumns(
 			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 				"public.users": {
 					"id": {},

@@ -89,8 +89,8 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
-		ok, missing := isSourceMissingColumns(groupedColumnInfo, job.Mappings)
-		if ok {
+		missing, shouldHalt := isSourceMissingColumns(groupedColumnInfo, job.Mappings)
+		if shouldHalt {
 			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(missing, ", "))
 		}
 	}
