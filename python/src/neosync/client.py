@@ -1,13 +1,13 @@
 from grpc import (
-   Channel,
-   secure_channel,
-   insecure_channel,
-   ssl_channel_credentials,
-   intercept_channel,
-   UnaryUnaryClientInterceptor,
-   UnaryStreamClientInterceptor,
-   StreamUnaryClientInterceptor,
-   StreamStreamClientInterceptor
+    Channel,
+    secure_channel,
+    insecure_channel,
+    ssl_channel_credentials,
+    intercept_channel,
+    UnaryUnaryClientInterceptor,
+    UnaryStreamClientInterceptor,
+    StreamUnaryClientInterceptor,
+    StreamStreamClientInterceptor,
 )
 from typing import Callable, Optional, Union
 from neosync.mgmt.v1alpha1 import (
@@ -23,6 +23,7 @@ from neosync.mgmt.v1alpha1 import (
 
 # Function that returns the access token
 GetAccessTokenFn = Callable[[], Union[str, None]]
+
 
 class Neosync:
     """A client for interacting with the Neosync API.
@@ -56,6 +57,7 @@ class Neosync:
         >>> # Access various services
         >>> jobs = client.jobs.ListJobs(GetJobsRequest(account_id="your-account-id"))
     """
+
     def __init__(
         self,
         access_token: Optional[str] = None,
@@ -63,63 +65,75 @@ class Neosync:
         get_access_token: Optional[GetAccessTokenFn] = None,
         insecure: Optional[bool] = False,
     ):
-      config = _ClientConfig(access_token, api_url, get_access_token, insecure)
-      channel = _get_channel_from_config(config)
-      self.connectiondata = connection_data_pb2_grpc.ConnectionDataServiceStub(channel)
-      self.connections = connection_pb2_grpc.ConnectionServiceStub(channel)
-      self.jobs = job_pb2_grpc.JobServiceStub(channel)
-      self.metrics = metrics_pb2_grpc.MetricsServiceStub(channel)
-      self.transformers = transformer_pb2_grpc.TransformersServiceStub(channel)
-      self.users = user_account_pb2_grpc.UserAccountServiceStub(channel)
-      self.anonymization = anonymization_pb2_grpc.AnonymizationServiceStub(channel)
-      self.apikeys = api_key_pb2_grpc.ApiKeyServiceStub(channel)
+        config = _ClientConfig(access_token, api_url, get_access_token, insecure)
+        channel = _get_channel_from_config(config)
+        self.connectiondata = connection_data_pb2_grpc.ConnectionDataServiceStub(
+            channel
+        )
+        self.connections = connection_pb2_grpc.ConnectionServiceStub(channel)
+        self.jobs = job_pb2_grpc.JobServiceStub(channel)
+        self.metrics = metrics_pb2_grpc.MetricsServiceStub(channel)
+        self.transformers = transformer_pb2_grpc.TransformersServiceStub(channel)
+        self.users = user_account_pb2_grpc.UserAccountServiceStub(channel)
+        self.anonymization = anonymization_pb2_grpc.AnonymizationServiceStub(channel)
+        self.apikeys = api_key_pb2_grpc.ApiKeyServiceStub(channel)
+
 
 class _ClientConfig:
-  def __init__(
-      self,
-      access_token: Optional[str] = None,
-      api_url: Optional[str] = None,
-      get_access_token: Optional[GetAccessTokenFn] = None,
-      insecure: Optional[bool] = False,
-  ):
-    if access_token is not None:
-      self.get_access_token = lambda: access_token
-    elif get_access_token is not None:
-      self.get_access_token = get_access_token
-    else:
-      self.get_access_token = None
+    def __init__(
+        self,
+        access_token: Optional[str] = None,
+        api_url: Optional[str] = None,
+        get_access_token: Optional[GetAccessTokenFn] = None,
+        insecure: Optional[bool] = False,
+    ):
+        if access_token is not None:
+            self.get_access_token = lambda: access_token
+        elif get_access_token is not None:
+            self.get_access_token = get_access_token
+        else:
+            self.get_access_token = None
 
-    self.api_url = api_url
-    self.insecure = insecure
+        self.api_url = api_url
+        self.insecure = insecure
+
 
 def _get_auth_interceptor(get_access_token: Optional[GetAccessTokenFn] = None) -> any:
     def interceptor(
-          client_call_details,
-          request_iterator,
-          request_streaming,
-          response_streaming,
+        client_call_details,
+        request_iterator,
+        request_streaming,
+        response_streaming,
     ):
-       metadata = []
-       if client_call_details.metadata is not None:
-          metadata = list(client_call_details.metadata)
+        metadata = []
+        if client_call_details.metadata is not None:
+            metadata = list(client_call_details.metadata)
 
-       if get_access_token:
-          token = get_access_token()
-          if token:
-            metadata.append(('authorization', f'Bearer {token}'))
+        if get_access_token:
+            token = get_access_token()
+            if token:
+                metadata.append(("authorization", f"Bearer {token}"))
 
-       client_call_details = client_call_details._replace(metadata=metadata)
-       return client_call_details, request_iterator, None
+        client_call_details = client_call_details._replace(metadata=metadata)
+        return client_call_details, request_iterator, None
 
     return _GenericClientInterceptor(interceptor)
 
+
 def _get_channel_from_config(config: _ClientConfig) -> Channel:
-  """Returns a gRPC channel from the client configuration"""
-  interceptors = [_get_auth_interceptor(config.get_access_token)] if config.get_access_token else []
-  if config.insecure:
-    return intercept_channel(insecure_channel(config.api_url), *interceptors)
-  else:
-    return intercept_channel(secure_channel(config.api_url, ssl_channel_credentials()), *interceptors)
+    """Returns a gRPC channel from the client configuration"""
+    interceptors = (
+        [_get_auth_interceptor(config.get_access_token)]
+        if config.get_access_token
+        else []
+    )
+    if config.insecure:
+        return intercept_channel(insecure_channel(config.api_url), *interceptors)
+    else:
+        return intercept_channel(
+            secure_channel(config.api_url, ssl_channel_credentials()), *interceptors
+        )
+
 
 # Pulled from grpc examples: https://github.com/grpc/grpc/blob/master/examples/python/interceptors/headers/generic_client_interceptor.py
 class _GenericClientInterceptor(
@@ -138,9 +152,7 @@ class _GenericClientInterceptor(
         response = continuation(new_details, next(new_request_iterator))
         return postprocess(response) if postprocess else response
 
-    def intercept_unary_stream(
-        self, continuation, client_call_details, request
-    ):
+    def intercept_unary_stream(self, continuation, client_call_details, request):
         new_details, new_request_iterator, postprocess = self._fn(
             client_call_details, iter((request,)), False, True
         )
@@ -164,4 +176,3 @@ class _GenericClientInterceptor(
         )
         response_it = continuation(new_details, new_request_iterator)
         return postprocess(response_it) if postprocess else response_it
-
