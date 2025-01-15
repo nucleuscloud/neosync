@@ -7,3 +7,5 @@ This is the Python SDK for the Neosync API.
 ```bash
 pip install neosync
 ```
+
+For more details and examples, see the [docs](https://docs.neosync.dev/api/python).
