@@ -4,12 +4,15 @@ import {
   JobMappingTransformer,
   JobMappingTransformerSchema,
   MssqlSourceConnectionOptions_ColumnRemovalStrategy,
+  MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
   MssqlSourceConnectionOptions_ColumnRemovalStrategySchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy,
+  MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategySchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
@@ -448,7 +451,17 @@ export function toJobSourcePostgresColumnRemovalStrategy(
 ): PostgresSourceConnectionOptions_ColumnRemovalStrategy | undefined {
   switch (strategy) {
     case 'continue': {
-      return undefined;
+      return create(
+        PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
+        {
+          strategy: {
+            case: 'continueJob',
+            value: create(
+              PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+            ),
+          },
+        }
+      );
     }
     case 'halt': {
       return create(
@@ -474,7 +487,14 @@ export function toJobSourceMysqlColumnRemovalStrategy(
 ): MysqlSourceConnectionOptions_ColumnRemovalStrategy | undefined {
   switch (strategy) {
     case 'continue': {
-      return undefined;
+      return create(MysqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'continueJob',
+          value: create(
+            MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+          ),
+        },
+      });
     }
     case 'halt': {
       return create(MysqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
@@ -497,7 +517,14 @@ export function toJobSourceMssqlColumnRemovalStrategy(
 ): MssqlSourceConnectionOptions_ColumnRemovalStrategy | undefined {
   switch (strategy) {
     case 'continue': {
-      return undefined;
+      return create(MssqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'continueJob',
+          value: create(
+            MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+          ),
+        },
+      });
     }
     case 'halt': {
       return create(MssqlSourceConnectionOptions_ColumnRemovalStrategySchema, {

@@ -211,7 +211,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 }
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
-	ok := shouldHaltOnSchemaAddition(
+	newCols, ok := shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
 				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
@@ -224,15 +224,17 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	require.False(t, ok, "job mappings are valid set of database schemas")
+	require.Empty(t, newCols)
 
-	ok = shouldHaltOnSchemaAddition(
+	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
 				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
 				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 			"neosync_api.accounts": {
-				"id": &sqlmanager_shared.DatabaseSchemaRow{},
+				"id":   &sqlmanager_shared.DatabaseSchemaRow{},
+				"name": &sqlmanager_shared.DatabaseSchemaRow{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -241,8 +243,9 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	require.True(t, ok, "job mappings are missing database schema mappings")
+	require.Equal(t, []string{"neosync_api.accounts.id", "neosync_api.accounts.name"}, newCols)
 
-	ok = shouldHaltOnSchemaAddition(
+	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
 				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
@@ -254,8 +257,9 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	require.True(t, ok, "job mappings are missing table column")
+	require.Equal(t, []string{"public.users.created_by"}, newCols)
 
-	ok = shouldHaltOnSchemaAddition(
+	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 			"public.users": {
 				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
@@ -268,6 +272,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	require.True(t, ok, "job mappings have same column count, but missing specific column")
+	require.Equal(t, []string{"public.users.created_by"}, newCols)
 }
 
 func Test_buildProcessorConfigsMutation(t *testing.T) {

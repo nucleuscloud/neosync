@@ -3845,16 +3845,24 @@ components:
       allOf:
         - anyOf:
             - required:
+                - continueJob
+            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
+                      - continueJob
+                  - required:
                       - haltJob
       anyOf:
+        - required:
+            - continueJob
         - required:
             - haltJob
         - not:
             anyOf:
+              - required:
+                  - continueJob
               - required:
                   - haltJob
       properties:
@@ -3863,8 +3871,17 @@ components:
             - title: halt_job
               description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        continueJob:
+          allOf:
+            - title: continue_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
       title: ColumnRemovalStrategy
       additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
+      type: object
+      title: ContinueJob
+      additionalProperties: false
+      description: Configuration for the ContinueJob strategy
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
@@ -4056,16 +4073,24 @@ components:
       allOf:
         - anyOf:
             - required:
+                - continueJob
+            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
+                      - continueJob
+                  - required:
                       - haltJob
       anyOf:
+        - required:
+            - continueJob
         - required:
             - haltJob
         - not:
             anyOf:
+              - required:
+                  - continueJob
               - required:
                   - haltJob
       properties:
@@ -4074,8 +4099,17 @@ components:
             - title: halt_job
               description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        continueJob:
+          allOf:
+            - title: continue_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
       title: ColumnRemovalStrategy
       additionalProperties: false
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
+      type: object
+      title: ContinueJob
+      additionalProperties: false
+      description: Configuration for the ContinueJob strategy
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
@@ -4551,16 +4585,24 @@ components:
       allOf:
         - anyOf:
             - required:
+                - continueJob
+            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
+                      - continueJob
+                  - required:
                       - haltJob
       anyOf:
+        - required:
+            - continueJob
         - required:
             - haltJob
         - not:
             anyOf:
+              - required:
+                  - continueJob
               - required:
                   - haltJob
       properties:
@@ -4569,8 +4611,17 @@ components:
             - title: halt_job
               description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+        continueJob:
+          allOf:
+            - title: continue_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
       title: ColumnRemovalStrategy
       additionalProperties: false
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
+      type: object
+      title: ContinueJob
+      additionalProperties: false
+      description: Configuration for the ContinueJob strategy
     mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob

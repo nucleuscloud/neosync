@@ -852,7 +852,8 @@ type MssqlSourceOptions struct {
 }
 
 type MssqlColumnRemovalStrategy struct {
-	HaltJob *MssqlHaltJobColumnRemovalStrategy `json:"haltJob,omitempty"`
+	HaltJob     *MssqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *MssqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
 }
 
 func (p *MssqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy {
@@ -862,6 +863,12 @@ func (p *MssqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnection
 				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
 			},
 		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
 	}
 	return nil
 }
@@ -869,12 +876,16 @@ func (p *MssqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MssqlSourceConnec
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if dto.GetHaltJob() != nil {
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
 		p.HaltJob = &MssqlHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &MssqlContinueJobColumnRemovalStrategy{}
 	}
 }
 
 type MssqlHaltJobColumnRemovalStrategy struct{}
+type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
@@ -1113,7 +1124,8 @@ type MysqlSourceOptions struct {
 }
 
 type MysqlColumnRemovalStrategy struct {
-	HaltJob *MysqlHaltJobColumnRemovalStrategy `json:"haltJob,omitempty"`
+	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *MysqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
 }
 
 func (p *MysqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy {
@@ -1123,6 +1135,12 @@ func (p *MysqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnection
 				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
 			},
 		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
 	}
 	return nil
 }
@@ -1130,12 +1148,16 @@ func (p *MysqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnec
 	if dto == nil {
 		dto = &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if dto.GetHaltJob() != nil {
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
 		p.HaltJob = &MysqlHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &MysqlContinueJobColumnRemovalStrategy{}
 	}
 }
 
 type MysqlHaltJobColumnRemovalStrategy struct{}
+type MysqlContinueJobColumnRemovalStrategy struct{}
 
 type PostgresSourceOptions struct {
 	// @deprecated
@@ -1184,7 +1206,8 @@ type PostgresHaltJobStrategy struct{}
 type PostgresAutoMapStrategy struct{}
 
 type PostgresColumnRemovalStrategy struct {
-	HaltJob *PostgresHaltJobColumnRemovalStrategy `json:"haltJob,omitempty"`
+	HaltJob     *PostgresHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *PostgresContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
 }
 
 func (p *PostgresColumnRemovalStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy {
@@ -1194,6 +1217,12 @@ func (p *PostgresColumnRemovalStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConn
 				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
 			},
 		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
 	}
 	return nil
 }
@@ -1201,13 +1230,16 @@ func (p *PostgresColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.PostgresSource
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if dto.GetHaltJob() != nil {
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
 		p.HaltJob = &PostgresHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &PostgresContinueJobColumnRemovalStrategy{}
 	}
 }
 
 type PostgresHaltJobColumnRemovalStrategy struct{}
-
+type PostgresContinueJobColumnRemovalStrategy struct{}
 type GenerateSourceOptions struct {
 	Schemas              []*GenerateSourceSchemaOption `json:"schemas"`
 	FkSourceConnectionId *string                       `json:"fkSourceConnectionId,omitempty"`

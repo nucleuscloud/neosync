@@ -81,15 +81,18 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
+	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition {
+		newColumns, shouldHalt := shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings)
+		if shouldHalt {
+			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(newColumns, ", "))
+		}
+	}
+
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
 		ok, missing := isSourceMissingColumns(groupedColumnInfo, job.Mappings)
 		if ok {
-			return nil, fmt.Errorf("%s: [%s]", haltOnColumnRemovalErrMsg, strings.Join(missing, ", "))
+			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(missing, ", "))
 		}
-	}
-	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition &&
-		shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings) {
-		return nil, errors.New(haltOnSchemaAdditionErrMsg)
 	}
 
 	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)

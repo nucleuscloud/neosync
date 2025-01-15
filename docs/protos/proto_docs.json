@@ -12487,8 +12487,31 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "continue_job",
+              "description": "",
+              "label": "",
+              "type": "ContinueJob",
+              "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "ContinueJob",
+          "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "description": "Configuration for the ContinueJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "HaltJob",
@@ -12868,8 +12891,31 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "continue_job",
+              "description": "",
+              "label": "",
+              "type": "ContinueJob",
+              "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "ContinueJob",
+          "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "description": "Configuration for the ContinueJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "HaltJob",
@@ -13441,8 +13487,31 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "continue_job",
+              "description": "",
+              "label": "",
+              "type": "ContinueJob",
+              "longType": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "ContinueJob",
+          "longName": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
+          "description": "Configuration for the ContinueJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "HaltJob",

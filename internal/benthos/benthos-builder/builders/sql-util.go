@@ -77,15 +77,10 @@ func isSourceMissingColumns(
 	tableColMappings := getUniqueColMappingsMap(mappings)
 
 	for schemaTable, cols := range tableColMappings {
-		_, tableExists := groupedSchemas[schemaTable]
+		tableCols := groupedSchemas[schemaTable]
 		for col := range cols {
-			if !tableExists {
+			if _, ok := tableCols[col]; !ok {
 				missingColumns = append(missingColumns, fmt.Sprintf("%s.%s", schemaTable, col))
-			} else {
-				_, colExists := groupedSchemas[schemaTable][col]
-				if !colExists {
-					missingColumns = append(missingColumns, fmt.Sprintf("%s.%s", schemaTable, col))
-				}
 			}
 		}
 	}
@@ -115,29 +110,48 @@ func getUniqueColMappingsMap(
 func shouldHaltOnSchemaAddition(
 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
-) bool {
+) ([]string, bool) {
 	tableColMappings := getUniqueColMappingsMap(mappings)
-
-	if len(tableColMappings) != len(groupedSchemas) {
-		return true
-	}
-
+	newColumns := []string{}
 	for table, cols := range groupedSchemas {
-		mappingCols, ok := tableColMappings[table]
-		if !ok {
-			return true
-		}
-		if len(cols) > len(mappingCols) {
-			return true
-		}
+		mappingCols := tableColMappings[table]
 		for col := range cols {
-			if _, ok := mappingCols[col]; !ok {
-				return true
+			if _, exists := mappingCols[col]; !exists {
+				newColumns = append(newColumns, fmt.Sprintf("%s.%s", table, col))
 			}
 		}
 	}
-	return false
+	return newColumns, len(newColumns) != 0
 }
+
+// // Based on the source schema, we check each mapped table for newly added columns that are not present in the mappings,
+// // but are present in the source. If so, halt because this means PII may be leaked.
+// func shouldHaltOnSchemaAddition(
+// 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+// 	mappings []*mgmtv1alpha1.JobMapping,
+// ) bool {
+// 	tableColMappings := getUniqueColMappingsMap(mappings)
+
+// 	if len(tableColMappings) != len(groupedSchemas) {
+// 		return true
+// 	}
+
+// 	for table, cols := range groupedSchemas {
+// 		mappingCols, ok := tableColMappings[table]
+// 		if !ok {
+// 			return true
+// 		}
+// 		if len(cols) > len(mappingCols) {
+// 			return true
+// 		}
+// 		for col := range cols {
+// 			if _, ok := mappingCols[col]; !ok {
+// 				return true
+// 			}
+// 		}
+// 	}
+// 	return false
+// }
 
 func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	count := 0
