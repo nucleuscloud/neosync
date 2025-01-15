@@ -1502,6 +1502,8 @@ func (s *Service) ValidateJobMappings(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest],
 ) (*connect.Response[mgmtv1alpha1.ValidateJobMappingsResponse], error) {
+
+	// START SETUP
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.GetAccountId())
 
@@ -1561,14 +1563,16 @@ func (s *Service) ValidateJobMappings(
 	dbErrors := &mgmtv1alpha1.DatabaseError{
 		Errors: []string{},
 	}
+	// END SETUP
 
-	// verify job mapping tables
+	// VERIFY TABLES EXIST IN SOURCE BASED ON JOB MAPPINGS
 	for table := range tableColMappings {
 		if _, ok := colInfoMap[table]; !ok {
 			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Table does not exist [%s]", table))
 		}
 	}
 
+	// VALIDATES VIRTUAL FOREIGN KEYS
 	vfkErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
 	dbErrors.Errors = append(dbErrors.Errors, vfkErrs.DbErrors...)
 
@@ -1609,6 +1613,7 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	// VALIDATES CIRCULAR DEPENDENCIES WITH VIRTUAL FOREIGN KEYS
 	allForeignKeys := tableConstraints.ForeignKeyConstraints
 	for _, vfk := range req.Msg.GetVirtualForeignKeys() {
 		tableName := sqlmanager_shared.BuildTable(vfk.Schema, vfk.Table)
@@ -1659,6 +1664,7 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	// VALIDATES REQUIRED FOREIGN KEYS
 	// verify that all non nullable foreign key constraints are not missing from mapping
 	for table, fks := range tableConstraints.ForeignKeyConstraints {
 		_, ok := tableColMappings[table]
@@ -1692,6 +1698,7 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	// VALIDATES REQUIRED COLUMNS
 	// verify that no non nullable columns are missing for tables in mapping
 	for table, colMap := range colInfoMap {
 		cm, ok := tableColMappings[table]
