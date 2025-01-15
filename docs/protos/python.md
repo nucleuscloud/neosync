@@ -28,7 +28,7 @@ There are a few prerequisites that the SDK needs in order to be properly configu
 |----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
 | **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App.                                      |                                  |
 | **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |                                  |
-| **API URL**    | The instance of Neosync to point to.                                                                                                                                         | neosync-api.svcs.neosync.dev:443 |
+| **API URL**    | The instance of Neosync to point to.                                                                                                                                        | neosync-api.svcs.neosync.dev:443 |
 
 ## Authentication
 
