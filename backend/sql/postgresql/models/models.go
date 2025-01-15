@@ -869,7 +869,7 @@ func (p *MssqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MssqlSourceConnec
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if _, ok := dto.GetStrategy().(*mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_); ok {
+	if dto.GetHaltJob() != nil {
 		p.HaltJob = &MssqlHaltJobColumnRemovalStrategy{}
 	}
 }
@@ -1130,7 +1130,7 @@ func (p *MysqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnec
 	if dto == nil {
 		dto = &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if _, ok := dto.GetStrategy().(*mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_); ok {
+	if dto.GetHaltJob() != nil {
 		p.HaltJob = &MysqlHaltJobColumnRemovalStrategy{}
 	}
 }
@@ -1201,7 +1201,7 @@ func (p *PostgresColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.PostgresSource
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
-	if _, ok := dto.GetStrategy().(*mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_); ok {
+	if dto.GetHaltJob() != nil {
 		p.HaltJob = &PostgresHaltJobColumnRemovalStrategy{}
 	}
 }

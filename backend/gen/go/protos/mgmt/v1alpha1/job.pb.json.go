@@ -228,16 +228,6 @@ func (msg *PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob) Unmars
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *PostgresSourceConnectionOptions_ColumnRemovalStrategy_Auto) MarshalJSON() ([]byte, error) {
-	return protojson.MarshalOptions{}.Marshal(msg)
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (msg *PostgresSourceConnectionOptions_ColumnRemovalStrategy_Auto) UnmarshalJSON(b []byte) error {
-	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
-}
-
-// MarshalJSON implements json.Marshaler
 func (msg *PostgresSourceSchemaOption) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
@@ -288,16 +278,6 @@ func (msg *MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob) Unmarshal
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *MysqlSourceConnectionOptions_ColumnRemovalStrategy_Auto) MarshalJSON() ([]byte, error) {
-	return protojson.MarshalOptions{}.Marshal(msg)
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (msg *MysqlSourceConnectionOptions_ColumnRemovalStrategy_Auto) UnmarshalJSON(b []byte) error {
-	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
-}
-
-// MarshalJSON implements json.Marshaler
 func (msg *MysqlSourceSchemaOption) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
@@ -344,16 +324,6 @@ func (msg *MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob) MarshalJS
 
 // UnmarshalJSON implements json.Unmarshaler
 func (msg *MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob) UnmarshalJSON(b []byte) error {
-	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
-}
-
-// MarshalJSON implements json.Marshaler
-func (msg *MssqlSourceConnectionOptions_ColumnRemovalStrategy_Auto) MarshalJSON() ([]byte, error) {
-	return protojson.MarshalOptions{}.Marshal(msg)
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (msg *MssqlSourceConnectionOptions_ColumnRemovalStrategy_Auto) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 

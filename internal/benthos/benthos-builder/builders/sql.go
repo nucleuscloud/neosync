@@ -79,23 +79,29 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
+
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
-	if !areMappingsSubsetOfSchemas(groupedColumnInfo, job.Mappings) {
-		return nil, errors.New(jobmappingSubsetErrMsg)
+	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
+		ok, missing := isSourceMissingColumns(groupedColumnInfo, job.Mappings)
+		if ok {
+			return nil, fmt.Errorf("%s: [%s]", haltOnColumnRemovalErrMsg, strings.Join(missing, ", "))
+		}
 	}
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition &&
 		shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings) {
 		return nil, errors.New(haltOnSchemaAdditionErrMsg)
 	}
+
+	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
 	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
-		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, job.Mappings, splitKeyToTablePieces, logger)
+		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, existingSourceMappings, splitKeyToTablePieces, logger)
 		if err != nil {
 			return nil, err
 		}
 		logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
-		job.Mappings = append(job.Mappings, extraMappings...)
+		existingSourceMappings = append(existingSourceMappings, extraMappings...)
 	}
-	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
+	uniqueSchemas := shared.GetUniqueSchemasFromMappings(existingSourceMappings)
 
 	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
@@ -110,7 +116,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	logger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableConstraints.ForeignKeyConstraints)))
 	logger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(tableConstraints.PrimaryKeyConstraints)))
 
-	groupedMappings := groupMappingsByTable(job.Mappings)
+	groupedMappings := groupMappingsByTable(existingSourceMappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
 	b.colTransformerMap = colTransformerMap

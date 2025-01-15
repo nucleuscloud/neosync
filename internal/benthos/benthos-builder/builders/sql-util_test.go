@@ -201,3 +201,183 @@ func Test_getAdditionalMappings(t *testing.T) {
 		})
 	})
 }
+
+func Test_isSourceMissingColumns(t *testing.T) {
+	t.Run("no missing columns", func(t *testing.T) {
+		ok, missing := isSourceMissingColumns(
+			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+				"public.users": {
+					"id":   {},
+					"name": {},
+				},
+			},
+			[]*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "name",
+				},
+			},
+		)
+		require.True(t, ok)
+		require.Empty(t, missing)
+	})
+
+	t.Run("missing table", func(t *testing.T) {
+		ok, missing := isSourceMissingColumns(
+			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+				"public.users": {
+					"id": {},
+				},
+			},
+			[]*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "accounts", // non-existent table
+					Column: "id",
+				},
+				{
+					Schema: "public",
+					Table:  "accounts", // non-existent table
+					Column: "name",
+				},
+			},
+		)
+		require.False(t, ok)
+		require.ElementsMatch(t, []string{"public.accounts.id", "public.accounts.name"}, missing)
+	})
+
+	t.Run("missing column", func(t *testing.T) {
+		ok, missing := isSourceMissingColumns(
+			map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+				"public.users": {
+					"id": {},
+				},
+			},
+			[]*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "email", // non-existent column
+				},
+			},
+		)
+		require.False(t, ok)
+		require.Equal(t, []string{"public.users.email"}, missing)
+	})
+}
+
+func Test_removeMappingsNotFoundInSource(t *testing.T) {
+	t.Run("removes mappings for non-existent tables", func(t *testing.T) {
+		mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "id",
+			},
+			{
+				Schema: "public",
+				Table:  "accounts", // non-existent table
+				Column: "id",
+			},
+		}
+
+		groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.users": {
+				"id": {},
+			},
+		}
+
+		result := removeMappingsNotFoundInSource(mappings, groupedSchemas)
+
+		require.Len(t, result, 1)
+		require.Equal(t, "public", result[0].Schema)
+		require.Equal(t, "users", result[0].Table)
+		require.Equal(t, "id", result[0].Column)
+	})
+
+	t.Run("removes mappings for non-existent columns", func(t *testing.T) {
+		mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "id",
+			},
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "email", // non-existent column
+			},
+		}
+
+		groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.users": {
+				"id": {},
+			},
+		}
+
+		result := removeMappingsNotFoundInSource(mappings, groupedSchemas)
+
+		require.Len(t, result, 1)
+		require.Equal(t, "public", result[0].Schema)
+		require.Equal(t, "users", result[0].Table)
+		require.Equal(t, "id", result[0].Column)
+	})
+
+	t.Run("keeps all mappings when everything exists", func(t *testing.T) {
+		mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "id",
+			},
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "email",
+			},
+		}
+
+		groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.users": {
+				"id":    {},
+				"email": {},
+			},
+		}
+
+		result := removeMappingsNotFoundInSource(mappings, groupedSchemas)
+
+		require.Len(t, result, 2)
+		require.Equal(t, mappings, result)
+	})
+
+	t.Run("returns empty slice when no mappings exist in schema", func(t *testing.T) {
+		mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public",
+				Table:  "users",
+				Column: "id",
+			},
+		}
+
+		groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.accounts": {
+				"id": {},
+			},
+		}
+
+		result := removeMappingsNotFoundInSource(mappings, groupedSchemas)
+
+		require.Empty(t, result)
+	})
+}

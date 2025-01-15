@@ -12487,31 +12487,8 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
-            },
-            {
-              "name": "auto",
-              "description": "ignores removed columns.",
-              "label": "",
-              "type": "Auto",
-              "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "strategy",
-              "defaultValue": ""
             }
           ]
-        },
-        {
-          "name": "Auto",
-          "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "description": "Configuration for the Auto strategy",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
         },
         {
           "name": "HaltJob",
@@ -12891,31 +12868,8 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
-            },
-            {
-              "name": "auto",
-              "description": "ignores removed columns.",
-              "label": "",
-              "type": "Auto",
-              "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "strategy",
-              "defaultValue": ""
             }
           ]
-        },
-        {
-          "name": "Auto",
-          "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "description": "Configuration for the AutoMap strategy",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
         },
         {
           "name": "HaltJob",
@@ -13487,31 +13441,8 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
-            },
-            {
-              "name": "auto",
-              "description": "ignores removed columns.",
-              "label": "",
-              "type": "Auto",
-              "longType": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "strategy",
-              "defaultValue": ""
             }
           ]
-        },
-        {
-          "name": "Auto",
-          "longName": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto",
-          "description": "Configuration for the Auto strategy",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
         },
         {
           "name": "HaltJob",

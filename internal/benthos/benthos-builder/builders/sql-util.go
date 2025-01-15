@@ -20,11 +20,14 @@ import (
 const (
 	jobmappingSubsetErrMsg     = "unable to continue: job mappings contain schemas, tables, or columns that were not found in the source connection"
 	haltOnSchemaAdditionErrMsg = "unable to continue: HaltOnNewColumnAddition: job mappings are missing columns for the mapped tables found in the source connection"
+	haltOnColumnRemovalErrMsg  = "unable to continue: HaltOnColumnRemoval: source database is missing columns for the mapped tables found in the job mappings"
 )
 
 type sqlJobSourceOpts struct {
 	// Determines if the job should halt if a new column is detected that is not present in the job mappings
 	HaltOnNewColumnAddition bool
+	// Determines if the job should halt if a column is removed from the source database
+	HaltOnColumnRemoval bool
 	// Newly detected columns are automatically transformed
 	GenerateNewColumnTransformers bool
 	SubsetByForeignKeyConstraints bool
@@ -49,42 +52,44 @@ type tableMapping struct {
 	Mappings []*mgmtv1alpha1.JobMapping
 }
 
-// Based on the source schema and the provided job mappings, the job mappings must be at least a subset of the source schema
-// Otherwise, the sync is doomed for failure
-func areMappingsSubsetOfSchemas(
-	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+func removeMappingsNotFoundInSource(
 	mappings []*mgmtv1alpha1.JobMapping,
-) bool {
-	tableColMappings := getUniqueColMappingsMap(mappings)
-
-	for key := range groupedSchemas {
-		// For this method, we only care about the schemas+tables that we currently have mappings for
-		if _, ok := tableColMappings[key]; !ok {
-			delete(groupedSchemas, key)
-		}
-	}
-
-	if len(tableColMappings) != len(groupedSchemas) {
-		return false
-	}
-
-	// tests to make sure that every column in the col mappings is present in the db schema
-	for table, cols := range tableColMappings {
-		schemaCols, ok := groupedSchemas[table]
-		if !ok {
-			return false
-		}
-		// job mappings has more columns than the schema
-		if len(cols) > len(schemaCols) {
-			return false
-		}
-		for col := range cols {
-			if _, ok := schemaCols[col]; !ok {
-				return false
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+) []*mgmtv1alpha1.JobMapping {
+	newMappings := make([]*mgmtv1alpha1.JobMapping, 0, len(mappings))
+	for _, mapping := range mappings {
+		key := sqlmanager_shared.BuildTable(mapping.Schema, mapping.Table)
+		if _, ok := groupedSchemas[key]; ok {
+			if _, ok := groupedSchemas[key][mapping.Column]; ok {
+				newMappings = append(newMappings, mapping)
 			}
 		}
 	}
-	return true
+	return newMappings
+}
+
+// checks that the source database has all the columns that are mapped in the job mappings
+func isSourceMissingColumns(
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	mappings []*mgmtv1alpha1.JobMapping,
+) (bool, []string) {
+	missingColumns := []string{}
+	tableColMappings := getUniqueColMappingsMap(mappings)
+
+	for schemaTable, cols := range tableColMappings {
+		_, tableExists := groupedSchemas[schemaTable]
+		for col := range cols {
+			if !tableExists {
+				missingColumns = append(missingColumns, fmt.Sprintf("%s.%s", schemaTable, col))
+			} else {
+				_, colExists := groupedSchemas[schemaTable][col]
+				if !colExists {
+					missingColumns = append(missingColumns, fmt.Sprintf("%s.%s", schemaTable, col))
+				}
+			}
+		}
+	}
+	return len(missingColumns) != 0, missingColumns
 }
 
 // Builds a map of <schema.table>->column
@@ -495,8 +500,14 @@ func getSqlJobSourceOpts(
 			shouldGenerateNewColTransforms = true
 		}
 
+		shouldHaltOnColumnRemoval := false
+		if jobSourceConfig.Postgres.GetColumnRemovalStrategy().GetHaltJob() != nil {
+			shouldHaltOnColumnRemoval = true
+		}
+
 		return &sqlJobSourceOpts{
 			HaltOnNewColumnAddition:       shouldHalt,
+			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
 			GenerateNewColumnTransformers: shouldGenerateNewColTransforms,
 			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
@@ -519,8 +530,13 @@ func getSqlJobSourceOpts(
 				Tables: tableOpts,
 			})
 		}
+		shouldHaltOnColumnRemoval := false
+		if jobSourceConfig.Mysql.GetColumnRemovalStrategy().GetHaltJob() != nil {
+			shouldHaltOnColumnRemoval = true
+		}
 		return &sqlJobSourceOpts{
 			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
+			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
 			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil
@@ -542,8 +558,13 @@ func getSqlJobSourceOpts(
 				Tables: tableOpts,
 			})
 		}
+		shouldHaltOnColumnRemoval := false
+		if jobSourceConfig.Mssql.GetColumnRemovalStrategy().GetHaltJob() != nil {
+			shouldHaltOnColumnRemoval = true
+		}
 		return &sqlJobSourceOpts{
 			HaltOnNewColumnAddition:       jobSourceConfig.Mssql.HaltOnNewColumnAddition,
+			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
 			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil

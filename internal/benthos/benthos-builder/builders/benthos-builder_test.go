@@ -210,51 +210,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
-func TestAreMappingsSubsetOfSchemas(t *testing.T) {
-	ok := areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
-				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
-				"updated_by": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-			"neosync_api.accounts": {
-				"id": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-			{Schema: "public", Table: "users", Column: "created_by"},
-		},
-	)
-	require.True(t, ok, "job mappings are a subset of the present database schemas")
-
-	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id2"},
-		},
-	)
-	require.False(t, ok, "job mappings contain mapping that is not in the source schema")
-
-	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-			{Schema: "public", Table: "users", Column: "created_by"},
-		},
-	)
-	require.False(t, ok, "job mappings contain more mappings than are present in the source schema")
-}
-
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{

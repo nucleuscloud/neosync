@@ -10486,24 +10486,16 @@ components:
       allOf:
         - anyOf:
             - required:
-                - auto
-            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - auto
-                  - required:
                       - haltJob
       anyOf:
-        - required:
-            - auto
         - required:
             - haltJob
         - not:
             anyOf:
-              - required:
-                  - auto
               - required:
                   - haltJob
       properties:
@@ -10513,19 +10505,8 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        auto:
-          allOf:
-            - title: auto
-              description: ignores removed columns.
-            - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.Auto:
-      type: object
-      title: Auto
-      additionalProperties: false
-      description: Configuration for the Auto strategy
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
@@ -10726,24 +10707,16 @@ components:
       allOf:
         - anyOf:
             - required:
-                - auto
-            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - auto
-                  - required:
                       - haltJob
       anyOf:
-        - required:
-            - auto
         - required:
             - haltJob
         - not:
             anyOf:
-              - required:
-                  - auto
               - required:
                   - haltJob
       properties:
@@ -10753,19 +10726,8 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        auto:
-          allOf:
-            - title: auto
-              description: ignores removed columns.
-            - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.Auto:
-      type: object
-      title: Auto
-      additionalProperties: false
-      description: Configuration for the AutoMap strategy
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
@@ -11073,24 +11035,16 @@ components:
       allOf:
         - anyOf:
             - required:
-                - auto
-            - required:
                 - haltJob
             - not:
                 anyOf:
                   - required:
-                      - auto
-                  - required:
                       - haltJob
       anyOf:
-        - required:
-            - auto
         - required:
             - haltJob
         - not:
             anyOf:
-              - required:
-                  - auto
               - required:
                   - haltJob
       properties:
@@ -11100,19 +11054,8 @@ components:
               description: halt job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
-        auto:
-          allOf:
-            - title: auto
-              description: ignores removed columns.
-            - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto
       title: ColumnRemovalStrategy
       additionalProperties: false
-    mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.Auto:
-      type: object
-      title: Auto
-      additionalProperties: false
-      description: Configuration for the Auto strategy
     mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
       type: object
       title: HaltJob
