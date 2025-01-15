@@ -151,7 +151,7 @@ export function getSampleAiGeneratedRecordsRequest(
 ): GetAiGeneratedDataRequest {
   return create(GetAiGeneratedDataRequestSchema, {
     aiConnectionId: values.connect.sourceId,
-    count: BigInt(10),
+    count: BigInt(Math.min(10, values.schema.numRows)),
     modelName: values.schema.model,
     userPrompt: values.schema.userPrompt,
     dataConnectionId: values.connect.fkSourceConnectionId,
