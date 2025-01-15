@@ -98,43 +98,6 @@ class _ClientConfig:
         self.insecure = insecure
 
 
-def _get_auth_interceptor(get_access_token: Optional[GetAccessTokenFn] = None) -> any:
-    def interceptor(
-        client_call_details,
-        request_iterator,
-        request_streaming,
-        response_streaming,
-    ):
-        metadata = []
-        if client_call_details.metadata is not None:
-            metadata = list(client_call_details.metadata)
-
-        if get_access_token:
-            token = get_access_token()
-            if token:
-                metadata.append(("authorization", f"Bearer {token}"))
-
-        client_call_details = client_call_details._replace(metadata=metadata)
-        return client_call_details, request_iterator, None
-
-    return _GenericClientInterceptor(interceptor)
-
-
-def _get_channel_from_config(config: _ClientConfig) -> Channel:
-    """Returns a gRPC channel from the client configuration"""
-    interceptors = (
-        [_get_auth_interceptor(config.get_access_token)]
-        if config.get_access_token
-        else []
-    )
-    if config.insecure:
-        return intercept_channel(insecure_channel(config.api_url), *interceptors)
-    else:
-        return intercept_channel(
-            secure_channel(config.api_url, ssl_channel_credentials()), *interceptors
-        )
-
-
 # Pulled from grpc examples: https://github.com/grpc/grpc/blob/master/examples/python/interceptors/headers/generic_client_interceptor.py
 class _GenericClientInterceptor(
     UnaryUnaryClientInterceptor,
@@ -176,3 +139,42 @@ class _GenericClientInterceptor(
         )
         response_it = continuation(new_details, new_request_iterator)
         return postprocess(response_it) if postprocess else response_it
+
+
+def _get_auth_interceptor(
+    get_access_token: Optional[GetAccessTokenFn] = None,
+) -> _GenericClientInterceptor:
+    def interceptor(
+        client_call_details,
+        request_iterator,
+        request_streaming,
+        response_streaming,
+    ):
+        metadata = []
+        if client_call_details.metadata is not None:
+            metadata = list(client_call_details.metadata)
+
+        if get_access_token:
+            token = get_access_token()
+            if token:
+                metadata.append(("authorization", f"Bearer {token}"))
+
+        client_call_details = client_call_details._replace(metadata=metadata)
+        return client_call_details, request_iterator, None
+
+    return _GenericClientInterceptor(interceptor)
+
+
+def _get_channel_from_config(config: _ClientConfig) -> Channel:
+    """Returns a gRPC channel from the client configuration"""
+    interceptors = (
+        [_get_auth_interceptor(config.get_access_token)]
+        if config.get_access_token
+        else []
+    )
+    if config.insecure:
+        return intercept_channel(insecure_channel(config.api_url), *interceptors)
+    else:
+        return intercept_channel(
+            secure_channel(config.api_url, ssl_channel_credentials()), *interceptors
+        )
