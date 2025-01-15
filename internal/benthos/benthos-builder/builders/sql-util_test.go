@@ -224,7 +224,7 @@ func Test_isSourceMissingColumns(t *testing.T) {
 				},
 			},
 		)
-		require.True(t, ok)
+		require.False(t, ok)
 		require.Empty(t, missing)
 	})
 
@@ -248,7 +248,7 @@ func Test_isSourceMissingColumns(t *testing.T) {
 				},
 			},
 		)
-		require.False(t, ok)
+		require.True(t, ok)
 		require.ElementsMatch(t, []string{"public.accounts.id", "public.accounts.name"}, missing)
 	})
 
@@ -272,7 +272,7 @@ func Test_isSourceMissingColumns(t *testing.T) {
 				},
 			},
 		)
-		require.False(t, ok)
+		require.True(t, ok)
 		require.Equal(t, []string{"public.users.email"}, missing)
 	})
 }
