@@ -21,8 +21,8 @@ export default function ColumnRemovalStrategyOptionsForm(
       <FormLabel>Column Removal Strategy</FormLabel>
       <div className="flex flex-row gap-1">
         <FormDescription>
-          Choose how to handle situations when columns that were previously
-          mapped no longer exist in the source database schema.
+          Choose how to handle situations when columns that are currently mapped
+          no longer exist in the source database schema.
         </FormDescription>
         <Link
           href="https://docs.neosync.dev/guides/column-removal-strategies"
@@ -41,7 +41,7 @@ export default function ColumnRemovalStrategyOptionsForm(
       >
         <StrategyRadioItem
           value="halt"
-          label="Halt - Stop the job if a column in your mapping is missing from the source database"
+          label="Halt - Stop the job if a mapped column is missing from the source database"
         />
         <StrategyRadioItem
           value="continue"
