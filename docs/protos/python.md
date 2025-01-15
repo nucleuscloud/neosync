@@ -24,11 +24,11 @@ You can add the Neosync Python SDK using:
 
 There are a few prerequisites that the SDK needs in order to be properly configured.
 
-| **Properties** | **Details**                                                                                                                                                                 |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **API URL**    | Production (default): `https://neosync-api.svcs.neosync.dev`<br /> Local: `http://localhost:8080`                                                                           |
-| **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App                                       |
-| **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |
+| **Properties** | **Details**                                                                                                                                                                 | **Default**                      |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App.                                      |                                  |
+| **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |                                  |
+| **API URL**    | The instance of Neosync to point to.                                                                                                                                         | neosync-api.svcs.neosync.dev:443 |
 
 ## Authentication
 
@@ -153,7 +153,7 @@ def main():
             account_id=ACCOUNT_ID,
         ),
     )
-    print(response.output_data)
+    print(json.loads(response.output_data))
 
 
 if __name__ == "__main__":
@@ -239,7 +239,7 @@ def main():
             account_id=ACCOUNT_ID,
         ),
     )
-    print(response.output_data)
+    print(json.loads(response.output_data))
 
 
 if __name__ == "__main__":
@@ -341,7 +341,7 @@ def main():
                 account_id=ACCOUNT_ID,
             ),
         )
-        print(response.output_data)
+        print(json.loads(gresponse.output_data))
     except grpc.RpcError as e:
         if e.code() == grpc.StatusCode.UNAUTHENTICATED:
             print("Authentication failed - please check your access token")
@@ -354,6 +354,22 @@ if __name__ == "__main__":
     main()
 
 ```
+
+## Decoding Anonymization `output_data`
+
+When using the `TransformPiiText` transformer, you may notice that the output output of redacted text can sometimes be in an escaped format. So instead of `<PERSON>` you see `\u003cPERSON\u003e`. This is because the `output_data` is returned as a stringifed JSON object.
+
+There are a few ways to decode this properly:
+
+### Decoding as a JSON object
+
+The `output_data` is a stringified JSON object. You can use `json.loads()` to decode the string into a JSON object.
+
+### Decoding as a string
+
+You can use the `response.output_data.encode().decode("unicode-escape")` method.
+
+This will properly decode the escaped characters in the output data. This can be printed or passed into `json.loads()` to then extract your data as needed.
 
 ## Context Manager
 
