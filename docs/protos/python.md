@@ -355,6 +355,25 @@ if __name__ == "__main__":
 
 ```
 
+## Context Manager
+
+The Neosync Python SDK also supports context managers. This means that you can use the `with` statement to create a Neosync client and automatically close the gRPC channel when you're done.
+Otherwise, you'll need to call `client.close()` manually (only if it's desired to cleanly close the gRPC channel).
+
+Here's an example:
+
+```python
+from neosync import Neosync
+
+def main():
+    with Neosync() as client:
+        # Do something with the client
+        pass
+
+if __name__ == "__main__":
+    main()
+```
+
 ## Moving forward
 
 Now that you've seen how to anonymize data, generate synthetic data and create resources in Neosync, you can use the Neosync Python SDK to do much more! And if you have any questions, we're always available in Discord to help.

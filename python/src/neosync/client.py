@@ -24,6 +24,9 @@ from neosync.mgmt.v1alpha1 import (
 # Function that returns the access token
 GetAccessTokenFn = Callable[[], Union[str, None]]
 
+# Default gRPC URL for Neosync Cloud API
+_DEFAULT_NEOSYNC_CLOUD_API_URL = "neosync-api.svcs.neosync.dev:443"
+
 
 class Neosync:
     """A client for interacting with the Neosync API.
@@ -61,22 +64,38 @@ class Neosync:
     def __init__(
         self,
         access_token: Optional[str] = None,
-        api_url: Optional[str] = "neosync-api.svcs.neosync.dev:443",
+        api_url: Optional[str] = _DEFAULT_NEOSYNC_CLOUD_API_URL,
         get_access_token: Optional[GetAccessTokenFn] = None,
         insecure: Optional[bool] = False,
     ):
         config = _ClientConfig(access_token, api_url, get_access_token, insecure)
-        channel = _get_channel_from_config(config)
+        self.channel = _get_channel_from_config(config)
         self.connectiondata = connection_data_pb2_grpc.ConnectionDataServiceStub(
-            channel
+            self.channel
         )
-        self.connections = connection_pb2_grpc.ConnectionServiceStub(channel)
-        self.jobs = job_pb2_grpc.JobServiceStub(channel)
-        self.metrics = metrics_pb2_grpc.MetricsServiceStub(channel)
-        self.transformers = transformer_pb2_grpc.TransformersServiceStub(channel)
-        self.users = user_account_pb2_grpc.UserAccountServiceStub(channel)
-        self.anonymization = anonymization_pb2_grpc.AnonymizationServiceStub(channel)
-        self.apikeys = api_key_pb2_grpc.ApiKeyServiceStub(channel)
+        self.connections = connection_pb2_grpc.ConnectionServiceStub(self.channel)
+        self.jobs = job_pb2_grpc.JobServiceStub(self.channel)
+        self.metrics = metrics_pb2_grpc.MetricsServiceStub(self.channel)
+        self.transformers = transformer_pb2_grpc.TransformersServiceStub(self.channel)
+        self.users = user_account_pb2_grpc.UserAccountServiceStub(self.channel)
+        self.anonymization = anonymization_pb2_grpc.AnonymizationServiceStub(
+            self.channel
+        )
+        self.apikeys = api_key_pb2_grpc.ApiKeyServiceStub(self.channel)
+
+    def close(self):
+        """Closes the gRPC channel"""
+        if self.channel:
+            self.channel.close()
+            self.channel = None
+
+    def __enter__(self):
+        """Enters a context manager for the client"""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exits a context manager for the client"""
+        self.close()
 
 
 class _ClientConfig:
