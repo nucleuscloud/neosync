@@ -69,7 +69,7 @@ func removeMappingsNotFoundInSource(
 }
 
 // checks that the source database has all the columns that are mapped in the job mappings
-func isSourceMissingColumns(
+func isSourceMissingColumnsFoundInMappings(
 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) ([]string, bool) {
@@ -123,35 +123,6 @@ func shouldHaltOnSchemaAddition(
 	}
 	return newColumns, len(newColumns) != 0
 }
-
-// // Based on the source schema, we check each mapped table for newly added columns that are not present in the mappings,
-// // but are present in the source. If so, halt because this means PII may be leaked.
-// func shouldHaltOnSchemaAddition(
-// 	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-// 	mappings []*mgmtv1alpha1.JobMapping,
-// ) bool {
-// 	tableColMappings := getUniqueColMappingsMap(mappings)
-
-// 	if len(tableColMappings) != len(groupedSchemas) {
-// 		return true
-// 	}
-
-// 	for table, cols := range groupedSchemas {
-// 		mappingCols, ok := tableColMappings[table]
-// 		if !ok {
-// 			return true
-// 		}
-// 		if len(cols) > len(mappingCols) {
-// 			return true
-// 		}
-// 		for col := range cols {
-// 			if _, ok := mappingCols[col]; !ok {
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
 
 func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	count := 0

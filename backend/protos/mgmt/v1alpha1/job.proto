@@ -159,6 +159,7 @@ message PostgresSourceConnectionOptions {
       // halt job if a column is removed
       HaltJob halt_job = 1;
 
+      // continue job if a column is removed
       ContinueJob continue_job = 2;
     }
     // Configuration for the HaltJob strategy
@@ -192,6 +193,7 @@ message MysqlSourceConnectionOptions {
       // halt job if a column is removed
       HaltJob halt_job = 1;
 
+      // continue job if a column is removed
       ContinueJob continue_job = 2;
     }
     // Configuration for the HaltJob strategy
@@ -224,6 +226,7 @@ message MssqlSourceConnectionOptions {
       // halt job if a column is removed
       HaltJob halt_job = 1;
 
+      // continue job if a column is removed
       ContinueJob continue_job = 2;
     }
     // Configuration for the HaltJob strategy

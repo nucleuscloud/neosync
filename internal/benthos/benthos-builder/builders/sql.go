@@ -89,13 +89,15 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
-		missing, shouldHalt := isSourceMissingColumns(groupedColumnInfo, job.Mappings)
+		missing, shouldHalt := isSourceMissingColumnsFoundInMappings(groupedColumnInfo, job.Mappings)
 		if shouldHalt {
 			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(missing, ", "))
 		}
 	}
 
+	// remove mappings that are not found in the source
 	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
+
 	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
 		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, existingSourceMappings, splitKeyToTablePieces, logger)
 		if err != nil {
