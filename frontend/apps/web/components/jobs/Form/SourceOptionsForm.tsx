@@ -60,7 +60,7 @@ export default function SourceOptionsForm(
           setValue={(newval) => {
             setValue({
               mysql: {
-                ...(value.postgres ?? {}),
+                ...(value.mysql ?? {}),
                 ...newval,
               },
             });
@@ -99,15 +99,15 @@ export default function SourceOptionsForm(
       return (
         <MssqlDBSourceOptionsForm
           value={
-            value.mysql ?? {
+            value.mssql ?? {
               haltOnNewColumnAddition: false,
               columnRemovalStrategy: 'continue',
             }
           }
           setValue={(newval) => {
             setValue({
-              mysql: {
-                ...(value.postgres ?? {}),
+              mssql: {
+                ...(value.mssql ?? {}),
                 ...newval,
               },
             });
