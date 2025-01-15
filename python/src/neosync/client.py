@@ -21,7 +21,7 @@ from neosync.mgmt.v1alpha1 import (
     user_account_pb2_grpc,
 )
 
-#  Function that returns the access token
+# Function that returns the access token
 GetAccessTokenFn = Callable[[], Union[str, None]]
 
 class Neosync:
@@ -54,7 +54,7 @@ class Neosync:
     Example:
         >>> client = Neosync(access_token="your-token")
         >>> # Access various services
-        >>> jobs = client.jobs.ListJobs(...)
+        >>> jobs = client.jobs.ListJobs(GetJobsRequest(account_id="your-account-id"))
     """
     def __init__(
         self,
