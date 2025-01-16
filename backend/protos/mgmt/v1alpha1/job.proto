@@ -965,7 +965,7 @@ message JobRunEvent {
 
 message GetJobRunEventsRequest {
   // The unique identifier of the job run
-  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  string job_run_id = 1;
   // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
@@ -979,7 +979,7 @@ message GetJobRunEventsResponse {
 
 message DeleteJobRunRequest {
   // The unique identifier of the job run
-  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  string job_run_id = 1;
   // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
@@ -987,7 +987,7 @@ message DeleteJobRunResponse {}
 
 message TerminateJobRunRequest {
   // The unique identifier of the job run
-  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  string job_run_id = 1;
   // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
@@ -1008,7 +1008,7 @@ enum LogLevel {
 }
 message GetJobRunLogsStreamRequest {
   // The unique identifier of the job run
-  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  string job_run_id = 1;
   // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
   // The time window in which to retrieve the logs

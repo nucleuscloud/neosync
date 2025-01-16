@@ -1996,7 +1996,6 @@ components:
         jobRunId:
           type: string
           title: job_run_id
-          format: uuid
           description: The unique identifier of the job run
         accountId:
           type: string
@@ -2800,7 +2799,6 @@ components:
         jobRunId:
           type: string
           title: job_run_id
-          format: uuid
           description: The unique identifier of the job run
         accountId:
           type: string
@@ -2845,7 +2843,6 @@ components:
         jobRunId:
           type: string
           title: job_run_id
-          format: uuid
           description: The unique identifier of the job run
         accountId:
           type: string
@@ -5165,7 +5162,6 @@ components:
         jobRunId:
           type: string
           title: job_run_id
-          format: uuid
           description: The unique identifier of the job run
         accountId:
           type: string
