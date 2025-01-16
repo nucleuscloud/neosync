@@ -166,9 +166,9 @@ components:
       properties:
         account:
           allOf:
-            - title: account
-              description: The account that the user was invited to.
             - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
+          title: account
+          description: The account that the user was invited to.
       title: AcceptTeamAccountInviteResponse
       additionalProperties: false
     mgmt.v1alpha1.AccountInvite:
@@ -200,24 +200,24 @@ components:
           description: Whether or not the invite has been accepted.
         createdAt:
           allOf:
-            - title: created_at
-              description: The time when the invite was created.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The time when the invite was created.
         updatedAt:
           allOf:
-            - title: updated_at
-              description: The time when the invite was last updated.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The time when the invite was last updated.
         expiresAt:
           allOf:
-            - title: expires_at
-              description: The time when the invite expires.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: The time when the invite expires.
         role:
           allOf:
-            - title: role
-              description: The role of the user to invite. Only used if RBAC is enabled.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user to invite. Only used if RBAC is enabled.
       title: AccountInvite
       additionalProperties: false
     mgmt.v1alpha1.AccountOnboardingConfig:
@@ -270,9 +270,9 @@ components:
           description: The email of the user.
         role:
           allOf:
-            - title: role
-              description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
       title: AccountUser
       additionalProperties: false
     mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:
@@ -430,9 +430,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The onboarding config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config for the account.
       title: GetAccountOnboardingConfigResponse
       additionalProperties: false
     mgmt.v1alpha1.GetAccountStatusRequest:
@@ -464,24 +464,26 @@ components:
                   - allowedRecordCount
       properties:
         usedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: used_record_count
+          format: int64
           description: |-
             A count of the currently used records for the current billing period.
              This may go over the allowed record count depending on when the record count is polled by the metric system.
         allowedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: allowed_record_count
+          format: int64
           description: The allowed record count. It will be null if there is no limit.
         subscriptionStatus:
           allOf:
-            - title: subscription_status
-              description: The current subscription status determined by the billing system.
             - $ref: '#/components/schemas/mgmt.v1alpha1.BillingStatus'
+          title: subscription_status
+          description: The current subscription status determined by the billing system.
       title: GetAccountStatusResponse
       additionalProperties: false
     mgmt.v1alpha1.GetAccountTemporalConfigRequest:
@@ -499,9 +501,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The temporal config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config for the account.
       title: GetAccountTemporalConfigResponse
       additionalProperties: false
     mgmt.v1alpha1.GetBillingAccountsRequest:
@@ -551,14 +553,14 @@ components:
           description: The Go platform flag that was used to build this version of Neosync
         buildDate:
           allOf:
-            - title: build_date
-              description: The time when the build was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: build_date
+          description: The time when the build was created
         license:
           allOf:
-            - title: license
-              description: The license information for the system
             - $ref: '#/components/schemas/mgmt.v1alpha1.SystemLicense'
+          title: license
+          description: The license information for the system
       title: GetSystemInformationResponse
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountInvitesRequest:
@@ -660,9 +662,9 @@ components:
           description: The email of the user to invite.
         role:
           allOf:
-            - title: role
-              description: The role of the user to invite. Only used if RBAC is enabled.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user to invite. Only used if RBAC is enabled.
       title: InviteUserToTeamAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountResponse:
@@ -670,9 +672,9 @@ components:
       properties:
         invite:
           allOf:
-            - title: invite
-              description: The invite that was created.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
+          title: invite
+          description: The invite that was created.
       title: InviteUserToTeamAccountResponse
       additionalProperties: false
     mgmt.v1alpha1.IsAccountStatusValidRequest:
@@ -699,10 +701,11 @@ components:
           format: uuid
           description: The unique identifier of the account to get the status for.
         requestedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: requested_record_count
+          format: int64
           description: An optional count of records to be added to the current usage for validation.
       title: IsAccountStatusValidRequest
       additionalProperties: false
@@ -738,14 +741,14 @@ components:
           description: Whether or not the process should decide to continue polling for validitiy updates
         accountStatus:
           allOf:
-            - title: account_status
-              description: The current status of the account. Default is valid.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountStatus'
+          title: account_status
+          description: The current status of the account. Default is valid.
         trialExpiresAt:
           allOf:
-            - title: trial_expires_at
-              description: The time when the trial expires
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: trial_expires_at
+          description: The time when the trial expires
       title: IsAccountStatusValidResponse
       additionalProperties: false
     mgmt.v1alpha1.IsUserInAccountRequest:
@@ -810,9 +813,9 @@ components:
           description: The unique identifier of the account to set the onboarding config for.
         config:
           allOf:
-            - title: config
-              description: The onboarding config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config to set for the account.
       title: SetAccountOnboardingConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.SetAccountOnboardingConfigResponse:
@@ -820,9 +823,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The onboarding config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config that was set for the account.
       title: SetAccountOnboardingConfigResponse
       additionalProperties: false
     mgmt.v1alpha1.SetAccountTemporalConfigRequest:
@@ -835,9 +838,9 @@ components:
           description: The unique identifier of the account to set the temporal config for.
         config:
           allOf:
-            - title: config
-              description: The temporal config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config to set for the account.
       title: SetAccountTemporalConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.SetAccountTemporalConfigResponse:
@@ -845,9 +848,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The temporal config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config that was set for the account.
       title: SetAccountTemporalConfigResponse
       additionalProperties: false
     mgmt.v1alpha1.SetBillingMeterEventRequest:
@@ -889,10 +892,11 @@ components:
           minLength: 1
           description: The unique identifier of this metered event
         timestamp:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: timestamp
+          format: int64
           description: The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
       title: SetBillingMeterEventRequest
       additionalProperties: false
@@ -941,9 +945,9 @@ components:
           description: The unique identifier of the user that this will be applied to.
         role:
           allOf:
-            - title: role
-              description: The role that this user will obtain.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role that this user will obtain.
       title: SetUserRoleRequest
       additionalProperties: false
     mgmt.v1alpha1.SetUserRoleResponse:
@@ -959,9 +963,9 @@ components:
           description: Whether or not a valid license was found
         expiresAt:
           allOf:
-            - title: expires_at
-              description: The time when the license expires
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: The time when the license expires
         isNeosyncCloud:
           type: boolean
           title: is_neosync_cloud
@@ -981,9 +985,9 @@ components:
           description: The account slug
         type:
           allOf:
-            - title: type
-              description: The type of account
             - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccountType'
+          title: type
+          description: The type of account
         hasStripeCustomerId:
           type: boolean
           title: has_stripe_customer_id

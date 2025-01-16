@@ -153,18 +153,18 @@ components:
           description: The unique identifier of the user that created the API key
         createdAt:
           allOf:
-            - title: created_at
-              description: The timestamp of when the API key was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The timestamp of when the API key was created
         updatedById:
           type: string
           title: updated_by_id
           description: The unique identifier of the user that last updated the API key
         updatedAt:
           allOf:
-            - title: updated_at
-              description: The timestamp of when the API key was last updated
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The timestamp of when the API key was last updated
         keyValue:
           type: string
           title: key_value
@@ -175,9 +175,9 @@ components:
           description: The unique identifier of the user that the API key belongs to (Each API Key is associated with its own user record to identify what the API key does in the system)
         expiresAt:
           allOf:
-            - title: expires_at
-              description: The timestamp of what the API key expires and will not longer be usable.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: The timestamp of what the API key expires and will not longer be usable.
       title: AccountApiKey
       additionalProperties: false
     mgmt.v1alpha1.CreateAccountApiKeyRequest:
@@ -195,12 +195,11 @@ components:
           description: The friendly name of the API key
         expiresAt:
           allOf:
-            - title: expires_at
-              description: 'Validate between now and one year: now < x < 365 days'
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: 'Validate between now and one year: now < x < 365 days'
       title: CreateAccountApiKeyRequest
       required:
-        - expiresAt
         - expiresAt
       additionalProperties: false
     mgmt.v1alpha1.CreateAccountApiKeyResponse:
@@ -208,9 +207,9 @@ components:
       properties:
         apiKey:
           allOf:
-            - title: api_key
-              description: The created API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
+          title: api_key
+          description: The created API key
       title: CreateAccountApiKeyResponse
       additionalProperties: false
     mgmt.v1alpha1.DeleteAccountApiKeyRequest:
@@ -242,9 +241,9 @@ components:
       properties:
         apiKey:
           allOf:
-            - title: api_key
-              description: The API key that was retrieved.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
+          title: api_key
+          description: The API key that was retrieved.
       title: GetAccountApiKeyResponse
       additionalProperties: false
     mgmt.v1alpha1.GetAccountApiKeysRequest:
@@ -278,12 +277,11 @@ components:
           description: The unique identifier of the API key to regenerate.
         expiresAt:
           allOf:
-            - title: expires_at
-              description: 'Validate between now and one year: now < x < 365 days'
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: 'Validate between now and one year: now < x < 365 days'
       title: RegenerateAccountApiKeyRequest
       required:
-        - expiresAt
         - expiresAt
       additionalProperties: false
     mgmt.v1alpha1.RegenerateAccountApiKeyResponse:
@@ -291,9 +289,9 @@ components:
       properties:
         apiKey:
           allOf:
-            - title: api_key
-              description: The regenerated API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
+          title: api_key
+          description: The regenerated API key
       title: RegenerateAccountApiKeyResponse
       additionalProperties: false
     connect-protocol-version:

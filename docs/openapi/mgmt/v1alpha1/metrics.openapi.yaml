@@ -76,14 +76,15 @@ components:
       properties:
         date:
           allOf:
-            - title: date
-              description: The date of the result
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: date
+          description: The date of the result
         count:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: count
+          format: int64
           description: The count of the metric for the given date
       title: DayResult
       additionalProperties: false
@@ -123,19 +124,19 @@ components:
       properties:
         start:
           allOf:
-            - title: start
-              description: The start day
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: start
+          description: The start day
         end:
           allOf:
-            - title: end
-              description: The end day
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: end
+          description: The end day
         metric:
           allOf:
-            - title: metric
-              description: The metric to return
             - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+          title: metric
+          description: The metric to return
         accountId:
           type: string
           title: account_id
@@ -200,9 +201,9 @@ components:
       properties:
         metric:
           allOf:
-            - title: metric
-              description: The metric to return
             - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+          title: metric
+          description: The metric to return
         accountId:
           type: string
           title: account_id
@@ -220,22 +221,23 @@ components:
           description: The run identifier that will be used to filter by
         startDay:
           allOf:
-            - title: start_day
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: start_day
         endDay:
           allOf:
-            - title: end_day
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: end_day
       title: GetMetricCountRequest
       additionalProperties: false
     mgmt.v1alpha1.GetMetricCountResponse:
       type: object
       properties:
         count:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: count
+          format: int64
           description: The summed up count of the metric based on the input query and timerange specified
       title: GetMetricCountResponse
       additionalProperties: false

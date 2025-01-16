@@ -57,8 +57,8 @@ components:
           title: fields
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/google.protobuf.Value'
+            title: value
           description: Unordered map of dynamically typed values.
       title: Struct
       additionalProperties: false
@@ -79,8 +79,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/google.protobuf.Value'
+          title: value
       title: FieldsEntry
       additionalProperties: false
     google.protobuf.Value:
@@ -247,32 +247,32 @@ components:
       properties:
         pgConfig:
           allOf:
-            - title: pg_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSchemaConfig'
+          title: pg_config
         awsS3Config:
           allOf:
-            - title: aws_s3_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3SchemaConfig'
+          title: aws_s3_config
         mysqlConfig:
           allOf:
-            - title: mysql_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSchemaConfig'
+          title: mysql_config
         mongoConfig:
           allOf:
-            - title: mongo_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.MongoSchemaConfig'
+          title: mongo_config
         gcpCloudstorageConfig:
           allOf:
-            - title: gcp_cloudstorage_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageSchemaConfig'
+          title: gcp_cloudstorage_config
         dynamodbConfig:
           allOf:
-            - title: dynamodb_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSchemaConfig'
+          title: dynamodb_config
         mssqlConfig:
           allOf:
-            - title: mssql_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSchemaConfig'
+          title: mssql_config
       title: ConnectionSchemaConfig
       additionalProperties: false
     mgmt.v1alpha1.ConnectionStreamConfig:
@@ -327,24 +327,24 @@ components:
       properties:
         pgConfig:
           allOf:
-            - title: pg_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresStreamConfig'
+          title: pg_config
         awsS3Config:
           allOf:
-            - title: aws_s3_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3StreamConfig'
+          title: aws_s3_config
         mysqlConfig:
           allOf:
-            - title: mysql_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlStreamConfig'
+          title: mysql_config
         gcpCloudstorageConfig:
           allOf:
-            - title: gcp_cloudstorage_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageStreamConfig'
+          title: gcp_cloudstorage_config
         dynamodbConfig:
           allOf:
-            - title: dynamodb_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsDynamoDBStreamConfig'
+          title: dynamodb_config
       title: ConnectionStreamConfig
       additionalProperties: false
     mgmt.v1alpha1.DatabaseColumn:
@@ -432,9 +432,9 @@ components:
       properties:
         foreignKey:
           allOf:
-            - title: foreign_key
-              description: The foreign key that is associated with the constraint
             - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignKey'
+          title: foreign_key
+          description: The foreign key that is associated with the constraint
         columns:
           type: array
           items:
@@ -575,12 +575,13 @@ components:
           format: uuid
           description: The unique identifier of a connection, specifically one that is configured for LLM use.
         count:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: count
           maximum: 10
           minimum: 1
+          format: int64
           description: The number of records to generate
         modelName:
           type: string
@@ -598,9 +599,9 @@ components:
           description: The unique identifier of a connection that the AI generated data would be inserted into. This is used to generate and send schema information to the LLM to help shape the generated data.
         table:
           allOf:
-            - title: table
-              description: The table to generate data for.
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseTable'
+          title: table
+          description: The table to generate data for.
       title: GetAiGeneratedDataRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAiGeneratedDataResponse:
@@ -624,9 +625,9 @@ components:
           description: The unique identifier of the connection to get the data stream for.
         streamConfig:
           allOf:
-            - title: stream_config
-              description: The stream configuration to use for the data stream.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionStreamConfig'
+          title: stream_config
+          description: The stream configuration to use for the data stream.
         schema:
           type: string
           title: schema
@@ -658,9 +659,9 @@ components:
           description: The unique identifier of the connection to get the init statements for.
         options:
           allOf:
-            - title: options
-              description: The options to use for the init statements.
             - $ref: '#/components/schemas/mgmt.v1alpha1.InitStatementOptions'
+          title: options
+          description: The options to use for the init statements.
       title: GetConnectionInitStatementsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionInitStatementsResponse:
@@ -721,9 +722,9 @@ components:
           description: The unique identifier of the connection to get the schema map for.
         schemaConfig:
           allOf:
-            - title: schema_config
-              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
+          title: schema_config
+          description: The schema configuration to use for the schema map.
       title: GetConnectionSchemaMapRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionSchemaMapResponse:
@@ -734,8 +735,8 @@ components:
           title: schema_map
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+            title: value
           description: Returns the database columns separated by the fully qualified <schema>.<table>
       title: GetConnectionSchemaMapResponse
       additionalProperties: false
@@ -747,8 +748,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+          title: value
       title: SchemaMapEntry
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionSchemaMapsRequest:
@@ -789,9 +790,9 @@ components:
           description: The unique identifier of the connection to get the schema for.
         schemaConfig:
           allOf:
-            - title: schema_config
-              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
+          title: schema_config
+          description: The schema configuration to use for the schema map.
       title: GetConnectionSchemaRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionSchemaResponse:
@@ -823,24 +824,24 @@ components:
           title: foreign_key_constraints
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+            title: value
           description: the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
         primaryKeyConstraints:
           type: object
           title: primary_key_constraints
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+            title: value
           description: the key here is <schema>.<table> and value is the primary constraint
         uniqueConstraints:
           type: object
           title: unique_constraints
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
+            title: value
           description: the key here is <schema>.<table> and value is the unique constraint
       title: GetConnectionTableConstraintsResponse
       additionalProperties: false
@@ -852,8 +853,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraintTables'
+          title: value
       title: ForeignKeyConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry:
@@ -864,8 +865,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.PrimaryConstraint'
+          title: value
       title: PrimaryKeyConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry:
@@ -876,8 +877,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
+          title: value
       title: UniqueConstraintsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
@@ -923,10 +924,11 @@ components:
       type: object
       properties:
         count:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: count
+          format: int64
           description: The count of the rows in the table
       title: GetTableRowCountResponse
       additionalProperties: false

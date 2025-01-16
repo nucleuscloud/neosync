@@ -53,10 +53,11 @@ components:
             Token that can be used to retrieve a refreshed access token.
              Will not be provided if the offline_access scope is not provided in the initial login flow.
         expiresIn:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: expires_in
+          format: int64
           description: Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.
         scope:
           type: string
@@ -145,9 +146,9 @@ components:
       properties:
         accessToken:
           allOf:
-            - title: access_token
-              description: The access token that is returned on successful login
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccessToken'
+          title: access_token
+          description: The access token that is returned on successful login
       title: LoginCliResponse
       additionalProperties: false
     mgmt.v1alpha1.RefreshCliRequest:
@@ -165,9 +166,9 @@ components:
       properties:
         accessToken:
           allOf:
-            - title: access_token
-              description: The access token that is returned on successful refresh
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccessToken'
+          title: access_token
+          description: The access token that is returned on successful refresh
       title: RefreshCliResponse
       additionalProperties: false
     connect-protocol-version:

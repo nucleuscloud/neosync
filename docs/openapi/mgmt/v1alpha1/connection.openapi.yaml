@@ -155,9 +155,9 @@ components:
           description: The bucket path prefix that will be appended to each file
         credentials:
           allOf:
-            - title: credentials
-              description: The credentials to use for the S3 bucket
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
+          title: credentials
+          description: The credentials to use for the S3 bucket
         region:
           type: string
           title: region
@@ -308,9 +308,9 @@ components:
       properties:
         connectionConfig:
           allOf:
-            - title: connection_config
-              description: The connection configuration to validate
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to validate
       title: CheckConnectionConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.CheckConnectionConfigResponse:
@@ -455,27 +455,27 @@ components:
           description: The unique, friendly name of the connection
         connectionConfig:
           allOf:
-            - title: connection_config
-              description: Contains the connection configuration and connection type
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: Contains the connection configuration and connection type
         createdByUserId:
           type: string
           title: created_by_user_id
           description: The user id of the user that created the connection
         createdAt:
           allOf:
-            - title: created_at
-              description: When the connection was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: When the connection was created
         updatedByUserId:
           type: string
           title: updated_by_user_id
           description: Who last updated the connection
         updatedAt:
           allOf:
-            - title: updated_at
-              description: When the connection was last updated
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: When the connection was last updated
         accountId:
           type: string
           title: account_id
@@ -566,49 +566,49 @@ components:
       properties:
         pgConfig:
           allOf:
-            - title: pg_config
-              description: Configures a PostgreSQL connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnectionConfig'
+          title: pg_config
+          description: Configures a PostgreSQL connection
         awsS3Config:
           allOf:
-            - title: aws_s3_config
-              description: Configures an AWS S3 Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3ConnectionConfig'
+          title: aws_s3_config
+          description: Configures an AWS S3 Connection
         mysqlConfig:
           allOf:
-            - title: mysql_config
-              description: Configures a MySQL connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnectionConfig'
+          title: mysql_config
+          description: Configures a MySQL connection
         localDirConfig:
           allOf:
-            - title: local_dir_config
-              description: Configures a connection to a directory available on the local file system
             - $ref: '#/components/schemas/mgmt.v1alpha1.LocalDirectoryConnectionConfig'
+          title: local_dir_config
+          description: Configures a connection to a directory available on the local file system
         openaiConfig:
           allOf:
-            - title: openai_config
-              description: Connection config for an OpenAI (or compatible) Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.OpenAiConnectionConfig'
+          title: openai_config
+          description: Connection config for an OpenAI (or compatible) Connection
         mongoConfig:
           allOf:
-            - title: mongo_config
-              description: Configures a MongoDB Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.MongoConnectionConfig'
+          title: mongo_config
+          description: Configures a MongoDB Connection
         gcpCloudstorageConfig:
           allOf:
-            - title: gcp_cloudstorage_config
-              description: Configures a GCP Cloud Storage Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageConnectionConfig'
+          title: gcp_cloudstorage_config
+          description: Configures a GCP Cloud Storage Connection
         dynamodbConfig:
           allOf:
-            - title: dynamodb_config
-              description: Configures a DynamoDB Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBConnectionConfig'
+          title: dynamodb_config
+          description: Configures a DynamoDB Connection
         mssqlConfig:
           allOf:
-            - title: mssql_config
-              description: Configures a Microsoft SQL Server (mssql) Connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlConnectionConfig'
+          title: mssql_config
+          description: Configures a Microsoft SQL Server (mssql) Connection
       title: ConnectionConfig
       additionalProperties: false
       description: Configuration for all of the supported Neosync connection types
@@ -650,9 +650,9 @@ components:
           description: The friendly name of the connection
         connectionConfig:
           allOf:
-            - title: connection_config
-              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to use for the connection
       title: CreateConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateConnectionResponse:
@@ -660,9 +660,9 @@ components:
       properties:
         connection:
           allOf:
-            - title: connection
-              description: The created connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The created connection
       title: CreateConnectionResponse
       additionalProperties: false
     mgmt.v1alpha1.DeleteConnectionRequest:
@@ -706,11 +706,11 @@ components:
       properties:
         credentials:
           allOf:
-            - title: credentials
-              description: |-
-                Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
-                 If self-hosting, this may be provided by the environment in lieu of specifying these here
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
+          title: credentials
+          description: |-
+            Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
+             If self-hosting, this may be provided by the environment in lieu of specifying these here
         region:
           type: string
           title: region
@@ -771,9 +771,9 @@ components:
       properties:
         connection:
           allOf:
-            - title: connection
-              description: The connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The connection
       title: GetConnectionResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsRequest:
@@ -856,14 +856,14 @@ components:
           description: The full mongo connection url
         tunnel:
           allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
         clientTls:
           allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
             - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
       title: MongoConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.MssqlConnectionConfig:
@@ -905,19 +905,19 @@ components:
              The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         connectionOptions:
           allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
         tunnel:
           allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
         clientTls:
           allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
             - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
       title: MssqlConnectionConfig
       additionalProperties: false
       description: Configuration for a Mssql Connection
@@ -943,6 +943,7 @@ components:
         port:
           type: integer
           title: port
+          format: int32
           description: The port to use for the connection
         name:
           type: string
@@ -990,9 +991,9 @@ components:
           description: A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
         connection:
           allOf:
-            - title: connection
-              description: A structured representation of the connection that will be used to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
+          title: connection
+          description: A structured representation of the connection that will be used to construct the url
         urlFromEnv:
           type: string
           title: url_from_env
@@ -1002,19 +1003,19 @@ components:
              The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
         connectionOptions:
           allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
         clientTls:
           allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
             - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
       title: MysqlConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.OpenAiConnectionConfig:
@@ -1056,6 +1057,7 @@ components:
         port:
           type: integer
           title: port
+          format: int32
           description: The port to use for the connection
         name:
           type: string
@@ -1115,9 +1117,9 @@ components:
           description: A raw string url that will be used to construct the connection. Must be URI format.
         connection:
           allOf:
-            - title: connection
-              description: A structured representation of the connection that will be used to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
+          title: connection
+          description: A structured representation of the connection that will be used to construct the url
         urlFromEnv:
           type: string
           title: url_from_env
@@ -1127,19 +1129,19 @@ components:
              The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
         tunnel:
           allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
         connectionOptions:
           allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
         clientTls:
           allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
             - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
       title: PostgresConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.SSHAuthentication:
@@ -1170,14 +1172,14 @@ components:
       properties:
         passphrase:
           allOf:
-            - title: passphrase
-              description: Password authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPassphrase'
+          title: passphrase
+          description: Password authentication
         privateKey:
           allOf:
-            - title: private_key
-              description: Private key authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPrivateKey'
+          title: private_key
+          description: Private key authentication
       title: SSHAuthentication
       additionalProperties: false
       description: SSH Authentication
@@ -1248,6 +1250,7 @@ components:
         port:
           type: integer
           title: port
+          format: int32
           description: The port of the SSH server, typically 22
         user:
           type: string
@@ -1264,9 +1267,9 @@ components:
              This is not recommended for production use!
         authentication:
           allOf:
-            - title: authentication
-              description: Provide the authentication required to successfully connect to the SSH server for tunneling
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHAuthentication'
+          title: authentication
+          description: Provide the authentication required to successfully connect to the SSH server for tunneling
       title: SSHTunnel
       additionalProperties: false
     mgmt.v1alpha1.SqlConnectionOptions:
@@ -1304,6 +1307,7 @@ components:
         maxConnectionLimit:
           type: integer
           title: max_connection_limit
+          format: int32
           description: |-
             Sets the maximum number of open connections
              If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
@@ -1311,6 +1315,7 @@ components:
         maxIdleConnections:
           type: integer
           title: max_idle_connections
+          format: int32
           description: |-
             Sets the maximum number of connections in the idle connection pool.
              This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
@@ -1348,9 +1353,9 @@ components:
           description: The friendly name of the connection
         connectionConfig:
           allOf:
-            - title: connection_config
-              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to use for the connection
       title: UpdateConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateConnectionResponse:
@@ -1358,9 +1363,9 @@ components:
       properties:
         connection:
           allOf:
-            - title: connection
-              description: The updated connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The updated connection
       title: UpdateConnectionResponse
       additionalProperties: false
     connect-protocol-version:

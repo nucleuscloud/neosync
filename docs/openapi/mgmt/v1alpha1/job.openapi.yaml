@@ -250,20 +250,22 @@ components:
                       - startToCloseTimeout
       properties:
         scheduleToCloseTimeout:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: schedule_to_close_timeout
           minimum: 1
+          format: int64
           description: |-
             Total time that a workflow is willing to wait for an activity to complete, including retries.
              Measured in seconds
         startToCloseTimeout:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: start_to_close_timeout
           minimum: 1
+          format: int64
           description: |-
             Max time of a single Temporal Activity execution attempt.
              This timeout should be as short as the longest psosible execution of any activity (e.g. table sync).
@@ -271,11 +273,11 @@ components:
              Measured in seconds
         retryPolicy:
           allOf:
-            - title: retry_policy
-              description: |-
-                Optionally define a retry policy for the activity
-                 If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
             - $ref: '#/components/schemas/mgmt.v1alpha1.RetryPolicy'
+          title: retry_policy
+          description: |-
+            Optionally define a retry policy for the activity
+             If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
       title: ActivityOptions
       additionalProperties: false
       description: Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
@@ -331,12 +333,13 @@ components:
           title: user_prompt
           description: Optionally provide a user prompt to give more context to the schema
         generateBatchSize:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: generate_batch_size
           maximum: 100
           minimum: 1
+          format: int64
           description: The batch size that will be used to generate X number of records. This is global and will be applied to all tables configured.
       title: AiGenerateSourceOptions
       additionalProperties: false
@@ -366,12 +369,13 @@ components:
           minLength: 1
           description: The table that will be used to generate data for
         rowCount:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: row_count
           maximum: 1000
           minimum: 1
+          format: int64
           description: The total number of records to be generated.
       title: AiGenerateSourceTableOption
       additionalProperties: false
@@ -395,9 +399,9 @@ components:
       properties:
         storageClass:
           allOf:
-            - title: storage_class
-              description: The storage class that will be used when objects are written to S3
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass'
+          title: storage_class
+          description: The storage class that will be used when objects are written to S3
         maxInFlight:
           type: integer
           title: max_in_flight
@@ -409,9 +413,9 @@ components:
           description: The maximum period (duration string) to wait on an upload before abandoning it and reattempting.
         batch:
           allOf:
-            - title: batch
-              description: Configure batching options to more efficiently store records in S3
             - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+          title: batch
+          description: Configure batching options to more efficiently store records in S3
       title: AwsS3DestinationConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.AwsS3SourceConnectionOptions:
@@ -505,9 +509,9 @@ components:
           description: The connection id to use for the job destination
         options:
           allOf:
-            - title: options
-              description: The destination options to use for the job destination
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
+          title: options
+          description: The destination options to use for the job destination
       title: CreateJobDestination
       additionalProperties: false
     mgmt.v1alpha1.CreateJobDestinationConnectionsRequest:
@@ -531,9 +535,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was updated
       title: CreateJobDestinationConnectionsResponse
       additionalProperties: false
     mgmt.v1alpha1.CreateJobHookRequest:
@@ -545,9 +549,9 @@ components:
           description: The unique identifier of the job
         hook:
           allOf:
-            - title: hook
-              description: The new hook configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.NewJobHook'
+          title: hook
+          description: The new hook configuration
       title: CreateJobHookRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobHookResponse:
@@ -555,9 +559,9 @@ components:
       properties:
         hook:
           allOf:
-            - title: hook
-              description: The newly created hook
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hook
+          description: The newly created hook
       title: CreateJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.CreateJobRequest:
@@ -600,9 +604,9 @@ components:
           description: The list of mappings that will be used to transform the data
         source:
           allOf:
-            - title: source
-              description: The source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
+          title: source
+          description: The source connection configuration
         destinations:
           type: array
           items:
@@ -615,17 +619,17 @@ components:
           description: Initially trigger a run of this job regardless of its status or cron schedule
         workflowOptions:
           allOf:
-            - title: workflow_options
-              description: Specify timeouts and other workflow options for the underlying temporal workflow
             - $ref: '#/components/schemas/mgmt.v1alpha1.WorkflowOptions'
+          title: workflow_options
+          description: Specify timeouts and other workflow options for the underlying temporal workflow
         syncOptions:
           allOf:
-            - title: sync_options
-              description: |-
-                Specify timeout and retry options for data synchronization activities
-                 Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
-                 For the data sync and generate jobs, this will be applied per table
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityOptions'
+          title: sync_options
+          description: |-
+            Specify timeout and retry options for data synchronization activities
+             Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+             For the data sync and generate jobs, this will be applied per table
         virtualForeignKeys:
           type: array
           items:
@@ -639,9 +643,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was created
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was created
       title: CreateJobResponse
       additionalProperties: false
     mgmt.v1alpha1.CreateJobRunRequest:
@@ -773,9 +777,9 @@ components:
              Any table listed in this must also be present as a job mapping table to be applied.
         unmappedTransforms:
           allOf:
-            - title: unmapped_transforms
-              description: Default transformations for any unmapped keys
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig'
+          title: unmapped_transforms
+          description: Default transformations for any unmapped keys
         enableConsistentRead:
           type: boolean
           title: enable_consistent_read
@@ -833,24 +837,24 @@ components:
       properties:
         b:
           allOf:
-            - title: b
-              description: Byte
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
+          title: b
+          description: Byte
         boolean:
           allOf:
-            - title: boolean
-              description: Boolean
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
+          title: boolean
+          description: Boolean
         n:
           allOf:
-            - title: n
-              description: Number
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
+          title: n
+          description: Number
         s:
           allOf:
-            - title: s
-              description: String
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
+          title: s
+          description: String
       title: DynamoDBSourceUnmappedTransformConfig
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions:
@@ -965,16 +969,18 @@ components:
                       - min
       properties:
         min:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: min
+          format: int64
           description: The minimum length of the phone number to generate.
         max:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: max
+          format: int64
           description: The maximum length of the phone number to generate.
       title: GenerateE164PhoneNumber
       additionalProperties: false
@@ -998,9 +1004,9 @@ components:
       properties:
         emailType:
           allOf:
-            - title: email_type
-              description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmailType'
+          title: email_type
+          description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
       title: GenerateEmail
       additionalProperties: false
     mgmt.v1alpha1.GenerateFirstName:
@@ -1044,22 +1050,21 @@ components:
           title: randomize_sign
           description: Whether or not to randomize the sign of the float64.
         min:
-          oneOf:
-            - type: string
-            - type: number
+          type: number
           title: min
+          format: double
           description: The minimum value to randomize the float64 to.
         max:
-          oneOf:
-            - type: string
-            - type: number
+          type: number
           title: max
+          format: double
           description: The maximum value to randomize the float64 to.
         precision:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: precision
+          format: int64
           description: The precision of the float64 to generate.
       title: GenerateFloat64
       additionalProperties: false
@@ -1125,16 +1130,18 @@ components:
           title: randomize_sign
           description: Whether or not to randomize the sign of the int64.
         min:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: min
+          format: int64
           description: The minimum value to randomize the int64 to.
         max:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: max
+          format: int64
           description: The maximum value to randomize the int64 to.
       title: GenerateInt64
       additionalProperties: false
@@ -1162,9 +1169,9 @@ components:
       properties:
         ipType:
           allOf:
-            - title: ip_type
-              description: Optionally specify the type of ip address to generate.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
+          title: ip_type
+          description: Optionally specify the type of ip address to generate.
       title: GenerateIpAddress
       additionalProperties: false
     mgmt.v1alpha1.GenerateJavascript:
@@ -1246,11 +1253,12 @@ components:
           minLength: 1
           description: The table that will be used to generate data for.
         rowCount:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: row_count
           minimum: 1
+          format: int64
           description: The total number of records to be generated.
       title: GenerateSourceTableOption
       additionalProperties: false
@@ -1301,16 +1309,18 @@ components:
                       - min
       properties:
         min:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: min
+          format: int64
           description: The minimum length of the string to generate.
         max:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: max
+          format: int64
           description: The maximum length of the string to generate.
       title: GenerateString
       additionalProperties: false
@@ -1333,16 +1343,18 @@ components:
                       - min
       properties:
         min:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: min
+          format: int64
           description: The minimum length of the phone number to generate.
         max:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: max
+          format: int64
           description: The maximum length of the phone number to generate.
       title: GenerateStringPhoneNumber
       additionalProperties: false
@@ -1396,9 +1408,9 @@ components:
           description: The unique identifier of the job
         timing:
           allOf:
-            - title: timing
-              description: The timing desired.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing'
+          title: timing
+          description: The timing desired.
       title: GetActiveJobHooksByTimingRequest
       additionalProperties: false
     mgmt.v1alpha1.GetActiveJobHooksByTimingResponse:
@@ -1427,9 +1439,9 @@ components:
       properties:
         hook:
           allOf:
-            - title: hook
-              description: The found hook
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hook
+          description: The found hook
       title: GetJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobHooksRequest:
@@ -1468,9 +1480,9 @@ components:
       properties:
         nextRuns:
           allOf:
-            - title: next_runs
-              description: The list of next run times
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobNextRuns'
+          title: next_runs
+          description: The list of next run times
       title: GetJobNextRunsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRecentRunsRequest:
@@ -1509,9 +1521,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was retrieved
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was retrieved
       title: GetJobResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunEventsRequest:
@@ -1572,19 +1584,20 @@ components:
           description: The unique identifier of the account
         window:
           allOf:
-            - title: window
-              description: The time window in which to retrieve the logs
             - $ref: '#/components/schemas/mgmt.v1alpha1.LogWindow'
+          title: window
+          description: The time window in which to retrieve the logs
         shouldTail:
           type: boolean
           title: should_tail
           description: 'Whether or not to tail the stream. Note: only works with k8s-pods and is not currently supported with Loki logs'
         maxLogLines:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: max_log_lines
           minimum: 1
+          format: int64
           description: Optionally provide a max log limit
         logLevels:
           type: array
@@ -1618,9 +1631,9 @@ components:
           description: The log line
         timestamp:
           allOf:
-            - title: timestamp
-              description: The timestamp of the log line
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: timestamp
+          description: The timestamp of the log line
       title: GetJobRunLogsStreamResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunRequest:
@@ -1642,9 +1655,9 @@ components:
       properties:
         jobRun:
           allOf:
-            - title: job_run
-              description: The job run that was retrieved
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRun'
+          title: job_run
+          description: The job run that was retrieved
       title: GetJobRunResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunsRequest:
@@ -1711,9 +1724,9 @@ components:
       properties:
         status:
           allOf:
-            - title: status
-              description: The status of the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobStatus'
+          title: status
+          description: The status of the job
       title: GetJobStatusResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobStatusesRequest:
@@ -1763,9 +1776,9 @@ components:
       properties:
         id:
           allOf:
-            - title: id
-              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
+          title: id
+          description: The run context key
       title: GetRunContextRequest
       additionalProperties: false
     mgmt.v1alpha1.GetRunContextResponse:
@@ -1851,24 +1864,24 @@ components:
           title: created_by_user_id
         createdAt:
           allOf:
-            - title: created_at
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
         updatedByUserId:
           type: string
           title: updated_by_user_id
         updatedAt:
           allOf:
-            - title: updated_at
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
         name:
           type: string
           title: name
           description: The unique, friendly name of the job
         source:
           allOf:
-            - title: source
-              description: The source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
+          title: source
+          description: The source connection configuration
         destinations:
           type: array
           items:
@@ -1891,17 +1904,17 @@ components:
           description: The account identifier that a job is associated with
         syncOptions:
           allOf:
-            - title: sync_options
-              description: |-
-                Specify timeout and retry options for data synchronization activities
-                 Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
-                 For the data sync and generate jobs, this will be applied per table
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityOptions'
+          title: sync_options
+          description: |-
+            Specify timeout and retry options for data synchronization activities
+             Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+             For the data sync and generate jobs, this will be applied per table
         workflowOptions:
           allOf:
-            - title: workflow_options
-              description: Specify timeouts and other workflow options for the underlying temporal workflow
             - $ref: '#/components/schemas/mgmt.v1alpha1.WorkflowOptions'
+          title: workflow_options
+          description: Specify timeouts and other workflow options for the underlying temporal workflow
         virtualForeignKeys:
           type: array
           items:
@@ -1920,9 +1933,9 @@ components:
           description: The connection id to use for the job destination
         options:
           allOf:
-            - title: options
-              description: The destination options to use for the job destination
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
+          title: options
+          description: The destination options to use for the job destination
         id:
           type: string
           title: id
@@ -1997,35 +2010,35 @@ components:
       properties:
         postgresOptions:
           allOf:
-            - title: postgres_options
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresDestinationConnectionOptions'
+          title: postgres_options
         awsS3Options:
           allOf:
-            - title: aws_s3_options
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3DestinationConnectionOptions'
+          title: aws_s3_options
         mysqlOptions:
           allOf:
-            - title: mysql_options
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlDestinationConnectionOptions'
+          title: mysql_options
         mongodbOptions:
           allOf:
-            - title: mongodb_options
             - $ref: '#/components/schemas/mgmt.v1alpha1.MongoDBDestinationConnectionOptions'
+          title: mongodb_options
         gcpCloudstorageOptions:
           allOf:
-            - title: gcp_cloudstorage_options
-              description: Destination Connecton options for Google Cloud Storage
             - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions'
+          title: gcp_cloudstorage_options
+          description: Destination Connecton options for Google Cloud Storage
         dynamodbOptions:
           allOf:
-            - title: dynamodb_options
-              description: Destination Connection options for DynamoDB
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBDestinationConnectionOptions'
+          title: dynamodb_options
+          description: Destination Connection options for DynamoDB
         mssqlOptions:
           allOf:
-            - title: mssql_options
-              description: Destination Connection options for Microsoft SQL Server
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlDestinationConnectionOptions'
+          title: mssql_options
+          description: Destination Connection options for Microsoft SQL Server
       title: JobDestinationOptions
       additionalProperties: false
     mgmt.v1alpha1.JobHook:
@@ -2049,27 +2062,27 @@ components:
           description: The unique identifier of the job this hook belongs to.
         config:
           allOf:
-            - title: config
-              description: Hook-type specific configuration.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+          title: config
+          description: Hook-type specific configuration.
         createdByUserId:
           type: string
           title: created_by_user_id
           description: The user that created this hook.
         createdAt:
           allOf:
-            - title: created_at
-              description: The time this hook was created.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The time this hook was created.
         updatedByUserId:
           type: string
           title: updated_by_user_id
           description: The user that last updated this hook.
         updatedAt:
           allOf:
-            - title: updated_at
-              description: The last time this hook was updated.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The last time this hook was updated.
         enabled:
           type: boolean
           title: enabled
@@ -2103,9 +2116,9 @@ components:
       properties:
         sql:
           allOf:
-            - title: sql
-              description: Configuration for SQL-specific hooks.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook'
+          title: sql
+          description: Configuration for SQL-specific hooks.
       title: JobHookConfig
       additionalProperties: false
       description: Contains the specific hook type configurations.
@@ -2124,9 +2137,9 @@ components:
           description: Unique identifier of the Neosync connection to run this hook for. Must be a connection id that is present in the job.
         timing:
           allOf:
-            - title: timing
-              description: The timing of when the hook will run
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig.JobSqlHook.Timing'
+          title: timing
+          description: The timing of when the hook will run
       title: JobSqlHook
       additionalProperties: false
       description: Configuration for SQL-based hooks
@@ -2158,18 +2171,18 @@ components:
       properties:
         preSync:
           allOf:
-            - title: pre_sync
-              description: |-
-                A Pre-Sync timing.
-                 Will run before the first table sync.
-                 Will run before Truncation, if enabled.
-                 Will run before Schema Init, if enabled.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPreSync'
+          title: pre_sync
+          description: |-
+            A Pre-Sync timing.
+             Will run before the first table sync.
+             Will run before Truncation, if enabled.
+             Will run before Schema Init, if enabled.
         postSync:
           allOf:
-            - title: post_sync
-              description: A Post-Sync timing. Will run after the last table sync.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookTimingPostSync'
+          title: post_sync
+          description: A Post-Sync timing. Will run after the last table sync.
       title: Timing
       additionalProperties: false
     mgmt.v1alpha1.JobHookTimingPostSync:
@@ -2205,9 +2218,9 @@ components:
           description: The column in the configured schema.table
         transformer:
           allOf:
-            - title: transformer
-              description: The transformer configuration that will be applied to each cell in the column
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
+          title: transformer
+          description: The transformer configuration that will be applied to each cell in the column
       title: JobMapping
       additionalProperties: false
     mgmt.v1alpha1.JobMappingTransformer:
@@ -2215,9 +2228,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The transformer configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+          title: config
+          description: The transformer configuration
       title: JobMappingTransformer
       additionalProperties: false
     mgmt.v1alpha1.JobNextRuns:
@@ -2236,9 +2249,9 @@ components:
       properties:
         startTime:
           allOf:
-            - title: start_time
-              description: The start time of the job run
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: start_time
+          description: The start time of the job run
         jobRunId:
           type: string
           title: job_run_id
@@ -2277,19 +2290,19 @@ components:
           description: The name of the job run.
         status:
           allOf:
-            - title: status
-              description: the status of the job run
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunStatus'
+          title: status
+          description: the status of the job run
         startedAt:
           allOf:
-            - title: started_at
-              description: A timestamp of when the run started
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: started_at
+          description: A timestamp of when the run started
         completedAt:
           allOf:
-            - title: completed_at
-              description: Available if the run completed or has not yet been archived by the system
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: completed_at
+          description: Available if the run completed or has not yet been archived by the system
         pendingActivities:
           type: array
           items:
@@ -2302,10 +2315,11 @@ components:
       type: object
       properties:
         id:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: id
+          format: int64
           description: The unique identifier of the event
         type:
           type: string
@@ -2313,19 +2327,19 @@ components:
           description: The type of the event
         startTime:
           allOf:
-            - title: start_time
-              description: The start time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: start_time
+          description: The start time of the event
         closeTime:
           allOf:
-            - title: close_time
-              description: The close time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: close_time
+          description: The close time of the event
         metadata:
           allOf:
-            - title: metadata
-              description: The metadata of the event
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEventMetadata'
+          title: metadata
+          description: The metadata of the event
         tasks:
           type: array
           items:
@@ -2354,19 +2368,20 @@ components:
       properties:
         syncMetadata:
           allOf:
-            - title: sync_metadata
-              description: The metadata of the sync
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunSyncMetadata'
+          title: sync_metadata
+          description: The metadata of the sync
       title: JobRunEventMetadata
       additionalProperties: false
     mgmt.v1alpha1.JobRunEventTask:
       type: object
       properties:
         id:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: id
+          format: int64
           description: The unique identifier of the task
         type:
           type: string
@@ -2374,14 +2389,14 @@ components:
           description: The type of the task
         eventTime:
           allOf:
-            - title: event_time
-              description: The time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: event_time
+          description: The time of the event
         error:
           allOf:
-            - title: error
-              description: The error of the task
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEventTaskError'
+          title: error
+          description: The error of the task
       title: JobRunEventTask
       additionalProperties: false
     mgmt.v1alpha1.JobRunEventTaskError:
@@ -2415,12 +2430,11 @@ components:
       properties:
         options:
           allOf:
-            - title: options
-              description: The source options to use for the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSourceOptions'
+          title: options
+          description: The source options to use for the job
       title: JobSource
       required:
-        - options
         - options
       additionalProperties: false
     mgmt.v1alpha1.JobSourceOptions:
@@ -2499,36 +2513,36 @@ components:
       properties:
         postgres:
           allOf:
-            - title: postgres
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions'
+          title: postgres
         awsS3:
           allOf:
-            - title: aws_s3
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3SourceConnectionOptions'
+          title: aws_s3
         mysql:
           allOf:
-            - title: mysql
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions'
+          title: mysql
         generate:
           allOf:
-            - title: generate
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSourceOptions'
+          title: generate
         aiGenerate:
           allOf:
-            - title: ai_generate
             - $ref: '#/components/schemas/mgmt.v1alpha1.AiGenerateSourceOptions'
+          title: ai_generate
         mongodb:
           allOf:
-            - title: mongodb
             - $ref: '#/components/schemas/mgmt.v1alpha1.MongoDBSourceConnectionOptions'
+          title: mongodb
         dynamodb:
           allOf:
-            - title: dynamodb
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSourceConnectionOptions'
+          title: dynamodb
         mssql:
           allOf:
-            - title: mssql
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions'
+          title: mssql
       title: JobSourceOptions
       additionalProperties: false
     mgmt.v1alpha1.JobSourceSqlSubetSchemas:
@@ -2575,24 +2589,24 @@ components:
       properties:
         postgresSubset:
           allOf:
-            - title: postgres_subset
-              description: The list of schemas (and their tables) along with any configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceSchemaSubset'
+          title: postgres_subset
+          description: The list of schemas (and their tables) along with any configuration options that will be used.
         mysqlSubset:
           allOf:
-            - title: mysql_subset
-              description: The list of schemas (and their tables) along with any configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceSchemaSubset'
+          title: mysql_subset
+          description: The list of schemas (and their tables) along with any configuration options that will be used.
         dynamodbSubset:
           allOf:
-            - title: dynamodb_subset
-              description: The list of tables (and their configuration) that reside within the schema
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSourceSchemaSubset'
+          title: dynamodb_subset
+          description: The list of tables (and their configuration) that reside within the schema
         mssqlSubset:
           allOf:
-            - title: mssql_subset
-              description: The list of schemas (and their tables) along with any configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceSchemaSubset'
+          title: mssql_subset
+          description: The list of schemas (and their tables) along with any configuration options that will be used.
       title: JobSourceSqlSubetSchemas
       additionalProperties: false
     mgmt.v1alpha1.JobStatusRecord:
@@ -2605,9 +2619,9 @@ components:
           description: The unique identifier of the job
         status:
           allOf:
-            - title: status
-              description: The status of the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobStatus'
+          title: status
+          description: The status of the job
       title: JobStatusRecord
       additionalProperties: false
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
@@ -2645,27 +2659,27 @@ components:
       properties:
         truncateTable:
           allOf:
-            - title: truncate_table
-              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlTruncateTableConfig'
+          title: truncate_table
+          description: Whether to truncate the table before inserting data
         initTableSchema:
           type: boolean
           title: init_table_schema
           description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
-            - title: on_conflict
-              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlOnConflictConfig'
+          title: on_conflict
+          description: The configuration for handling conflicts when inserting data
         skipForeignKeyViolations:
           type: boolean
           title: skip_foreign_key_violations
           description: Insert all valid records, skipping any that violate foreign key constraints.
         batch:
           allOf:
-            - title: batch
-              description: Configure batching options to handle how much data is sent to your database at once.
             - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+          title: batch
+          description: Configure batching options to handle how much data is sent to your database at once.
         maxInFlight:
           type: integer
           title: max_in_flight
@@ -2706,9 +2720,9 @@ components:
           description: Whether to subset the table by foreign key constraints
         columnRemovalStrategy:
           allOf:
-            - title: column_removal_strategy
-              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy'
+          title: column_removal_strategy
+          description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
       title: MssqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -2739,14 +2753,14 @@ components:
       properties:
         haltJob:
           allOf:
-            - title: halt_job
-              description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a column is removed
         continueJob:
           allOf:
-            - title: continue_job
-              description: continue job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
+          title: continue_job
+          description: continue job if a column is removed
       title: ColumnRemovalStrategy
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
@@ -2847,27 +2861,27 @@ components:
       properties:
         truncateTable:
           allOf:
-            - title: truncate_table
-              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlTruncateTableConfig'
+          title: truncate_table
+          description: Whether to truncate the table before inserting data
         initTableSchema:
           type: boolean
           title: init_table_schema
           description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
-            - title: on_conflict
-              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig'
+          title: on_conflict
+          description: The configuration for handling conflicts when inserting data
         skipForeignKeyViolations:
           type: boolean
           title: skip_foreign_key_violations
           description: Insert all valid records, skipping any that violate foreign key constraints.
         batch:
           allOf:
-            - title: batch
-              description: Configure batching options to handle how much data is sent to your database at once.
             - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+          title: batch
+          description: Configure batching options to handle how much data is sent to your database at once.
         maxInFlight:
           type: integer
           title: max_in_flight
@@ -2907,14 +2921,14 @@ components:
           description: '@deprecated - Use strategy nothing instead'
         nothing:
           allOf:
-            - title: nothing
-              description: Do nothing when a conflict occurs
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing'
+          title: nothing
+          description: Do nothing when a conflict occurs
         update:
           allOf:
-            - title: update
-              description: Update columns when a conflict occurs
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictUpdate'
+          title: update
+          description: Update columns when a conflict occurs
       title: MysqlOnConflictConfig
       additionalProperties: false
     mgmt.v1alpha1.MysqlOnConflictConfig.MysqlOnConflictDoNothing:
@@ -2953,9 +2967,9 @@ components:
           description: Whether to subset the table by foreign key constraints
         columnRemovalStrategy:
           allOf:
-            - title: column_removal_strategy
-              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy'
+          title: column_removal_strategy
+          description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
       title: MysqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -2986,14 +3000,14 @@ components:
       properties:
         haltJob:
           allOf:
-            - title: halt_job
-              description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a column is removed
         continueJob:
           allOf:
-            - title: continue_job
-              description: continue job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
+          title: continue_job
+          description: continue job if a column is removed
       title: ColumnRemovalStrategy
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
@@ -3089,9 +3103,9 @@ components:
           description: Description of what this hook does.
         config:
           allOf:
-            - title: config
-              description: Hook-type specific configuration.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+          title: config
+          description: Hook-type specific configuration.
         enabled:
           type: boolean
           title: enabled
@@ -3151,9 +3165,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was updated
       title: PauseJobResponse
       additionalProperties: false
     mgmt.v1alpha1.PendingActivity:
@@ -3176,18 +3190,18 @@ components:
       properties:
         status:
           allOf:
-            - title: status
-              description: The status of the activity
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityStatus'
+          title: status
+          description: The status of the activity
         activityName:
           type: string
           title: activity_name
           description: The name of the activity
         lastFailure:
           allOf:
-            - title: last_failure
-              description: The last failure of the activity
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityFailure'
+          title: last_failure
+          description: The last failure of the activity
       title: PendingActivity
       additionalProperties: false
     mgmt.v1alpha1.PiiAnonymizer:
@@ -3242,29 +3256,29 @@ components:
       properties:
         replace:
           allOf:
-            - title: replace
-              description: Configures the anonymizer to replace the identified PII with a specific value
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Replace'
+          title: replace
+          description: Configures the anonymizer to replace the identified PII with a specific value
         redact:
           allOf:
-            - title: redact
-              description: Configures the anonymizer to completely remove the identified PII
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Redact'
+          title: redact
+          description: Configures the anonymizer to completely remove the identified PII
         mask:
           allOf:
-            - title: mask
-              description: Configures the anonymizer to mask the identified PII
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Mask'
+          title: mask
+          description: Configures the anonymizer to mask the identified PII
         hash:
           allOf:
-            - title: hash
-              description: Configures the anonymizer to hash the identified PII
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Hash'
+          title: hash
+          description: Configures the anonymizer to hash the identified PII
         transform:
           allOf:
-            - title: transform
-              description: Configures the anonymizer to use a Neosync configured transformer
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Transform'
+          title: transform
+          description: Configures the anonymizer to use a Neosync configured transformer
       title: PiiAnonymizer
       additionalProperties: false
     mgmt.v1alpha1.PiiAnonymizer.Hash:
@@ -3287,9 +3301,9 @@ components:
       properties:
         algo:
           allOf:
-            - title: algo
-              description: The hashing algorithm to use.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer.Hash.HashType'
+          title: algo
+          description: The hashing algorithm to use.
       title: Hash
       additionalProperties: false
     mgmt.v1alpha1.PiiAnonymizer.Mask:
@@ -3324,6 +3338,7 @@ components:
         charsToMask:
           type: integer
           title: chars_to_mask
+          format: int32
           description: How many characters to mask.
         fromEnd:
           type: boolean
@@ -3364,9 +3379,9 @@ components:
       properties:
         config:
           allOf:
-            - title: config
-              description: The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+          title: config
+          description: The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
       title: Transform
       additionalProperties: false
     mgmt.v1alpha1.PiiDenyRecognizer:
@@ -3406,27 +3421,27 @@ components:
       properties:
         truncateTable:
           allOf:
-            - title: truncate_table
-              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresTruncateTableConfig'
+          title: truncate_table
+          description: Whether to truncate the table before inserting data
         initTableSchema:
           type: boolean
           title: init_table_schema
           description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
-            - title: on_conflict
-              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig'
+          title: on_conflict
+          description: The configuration for handling conflicts when inserting data
         skipForeignKeyViolations:
           type: boolean
           title: skip_foreign_key_violations
           description: Whether to skip records that violate foreign key constraints
         batch:
           allOf:
-            - title: batch
-              description: Configure batching options to handle how much data is sent to your database at once.
             - $ref: '#/components/schemas/mgmt.v1alpha1.BatchConfig'
+          title: batch
+          description: Configure batching options to handle how much data is sent to your database at once.
         maxInFlight:
           type: integer
           title: max_in_flight
@@ -3466,14 +3481,14 @@ components:
           description: '@deprecated - Use strategy nothing instead'
         nothing:
           allOf:
-            - title: nothing
-              description: Do nothing when a conflict occurs
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing'
+          title: nothing
+          description: Do nothing when a conflict occurs
         update:
           allOf:
-            - title: update
-              description: Update columns when a conflict occurs
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictUpdate'
+          title: update
+          description: Update columns when a conflict occurs
       title: PostgresOnConflictConfig
       additionalProperties: false
     mgmt.v1alpha1.PostgresOnConflictConfig.PostgresOnConflictDoNothing:
@@ -3508,14 +3523,14 @@ components:
           description: Whether to subset the table by foreign key constraints
         newColumnAdditionStrategy:
           allOf:
-            - title: new_column_addition_strategy
-              description: Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy'
+          title: new_column_addition_strategy
+          description: Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
         columnRemovalStrategy:
           allOf:
-            - title: column_removal_strategy
-              description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy'
+          title: column_removal_strategy
+          description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
       title: PostgresSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy:
@@ -3546,14 +3561,14 @@ components:
       properties:
         haltJob:
           allOf:
-            - title: halt_job
-              description: halt job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a column is removed
         continueJob:
           allOf:
-            - title: continue_job
-              description: continue job if a column is removed
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob'
+          title: continue_job
+          description: continue job if a column is removed
       title: ColumnRemovalStrategy
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob:
@@ -3594,17 +3609,17 @@ components:
       properties:
         haltJob:
           allOf:
-            - title: halt_job
-              description: halt job if a new column is detected.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a new column is detected.
         autoMap:
           allOf:
-            - title: auto_map
-              description: |-
-                automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
-                 If this doesn't exist, will fall back to configuring generators for supported datatypes.
-                 If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap'
+          title: auto_map
+          description: |-
+            automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+             If this doesn't exist, will fall back to configuring generators for supported datatypes.
+             If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -3710,6 +3725,7 @@ components:
         maximumAttempts:
           type: integer
           title: maximum_attempts
+          format: int32
           description: |-
             Maximum number of attempts. When exceeded the retries stop even if not expired yet.
              If not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.
@@ -3755,9 +3771,9 @@ components:
       properties:
         hook:
           allOf:
-            - title: hook
-              description: The updated job hook
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hook
+          description: The updated job hook
       title: SetJobHookEnabledResponse
       additionalProperties: false
     mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest:
@@ -3770,9 +3786,9 @@ components:
           description: The unique identifier of the job to update subsets for
         schemas:
           allOf:
-            - title: schemas
-              description: The subset configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSourceSqlSubetSchemas'
+          title: schemas
+          description: The subset configuration
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
@@ -3784,9 +3800,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was updated
       title: SetJobSourceSqlConnectionSubsetsResponse
       additionalProperties: false
     mgmt.v1alpha1.SetJobSyncOptionsRequest:
@@ -3799,9 +3815,9 @@ components:
           description: The unique identifier of the job
         syncOptions:
           allOf:
-            - title: sync_options
-              description: The sync options object. The entire object must be provided and will fully overwrite the previous result
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityOptions'
+          title: sync_options
+          description: The sync options object. The entire object must be provided and will fully overwrite the previous result
       title: SetJobSyncOptionsRequest
       additionalProperties: false
     mgmt.v1alpha1.SetJobSyncOptionsResponse:
@@ -3809,9 +3825,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The updated job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The updated job
       title: SetJobSyncOptionsResponse
       additionalProperties: false
     mgmt.v1alpha1.SetJobWorkflowOptionsRequest:
@@ -3824,9 +3840,9 @@ components:
           description: The unique identifier of the job
         worfklowOptions:
           allOf:
-            - title: worfklow_options
-              description: The workflow options object. The entire object must be provided and will fully overwrite the previous result
             - $ref: '#/components/schemas/mgmt.v1alpha1.WorkflowOptions'
+          title: worfklow_options
+          description: The workflow options object. The entire object must be provided and will fully overwrite the previous result
       title: SetJobWorkflowOptionsRequest
       additionalProperties: false
     mgmt.v1alpha1.SetJobWorkflowOptionsResponse:
@@ -3834,9 +3850,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The updated job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The updated job
       title: SetJobWorkflowOptionsResponse
       additionalProperties: false
     mgmt.v1alpha1.SetRunContextRequest:
@@ -3844,9 +3860,9 @@ components:
       properties:
         id:
           allOf:
-            - title: id
-              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
+          title: id
+          description: The run context key
         value:
           type: string
           title: value
@@ -3863,9 +3879,9 @@ components:
       properties:
         id:
           allOf:
-            - title: id
-              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
+          title: id
+          description: The run context key
         value:
           type: string
           title: value
@@ -3991,14 +4007,14 @@ components:
           description: A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
         emailType:
           allOf:
-            - title: email_type
-              description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmailType'
+          title: email_type
+          description: Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
         invalidEmailAction:
           allOf:
-            - title: invalid_email_action
-              description: Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.
             - $ref: '#/components/schemas/mgmt.v1alpha1.InvalidEmailAction'
+          title: invalid_email_action
+          description: Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.
       title: TransformEmail
       additionalProperties: false
     mgmt.v1alpha1.TransformFirstName:
@@ -4044,16 +4060,14 @@ components:
                       - randomizationRangeMin
       properties:
         randomizationRangeMin:
-          oneOf:
-            - type: string
-            - type: number
+          type: number
           title: randomization_range_min
+          format: double
           description: The minimum value to randomize the float64 to. This will be relative to the original value.
         randomizationRangeMax:
-          oneOf:
-            - type: string
-            - type: number
+          type: number
           title: randomization_range_max
+          format: double
           description: The maximum value to randomize the float64 to. This will be relative to the original value.
       title: TransformFloat64
       additionalProperties: false
@@ -4100,16 +4114,18 @@ components:
                       - randomizationRangeMin
       properties:
         randomizationRangeMin:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: randomization_range_min
+          format: int64
           description: The minimum value to randomize the int64 to. This will be relative to the original value.
         randomizationRangeMax:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: randomization_range_max
+          format: int64
           description: The maximum value to randomize the int64 to. This will be relative to the original value.
       title: TransformInt64
       additionalProperties: false
@@ -4215,12 +4231,13 @@ components:
         scoreThreshold:
           type: number
           title: score_threshold
+          format: float
           description: Minimal detection score for determining PII. 0.0-1.0
         defaultAnonymizer:
           allOf:
-            - title: default_anonymizer
-              description: The default anonmyization config used for all instances of detected PII.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+          title: default_anonymizer
+          description: The default anonmyization config used for all instances of detected PII.
         denyRecognizers:
           type: array
           items:
@@ -4255,8 +4272,8 @@ components:
           title: entity_anonymizers
           additionalProperties:
             allOf:
-              - title: value
               - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+            title: value
           description: |-
             A map of entity names to anonymizer configurations.
              The key in this map corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) which can be found via the GetPiiTextEntities() RPC method.
@@ -4273,8 +4290,8 @@ components:
           title: key
         value:
           allOf:
-            - title: value
             - $ref: '#/components/schemas/mgmt.v1alpha1.PiiAnonymizer'
+          title: value
       title: EntityAnonymizersEntry
       additionalProperties: false
     mgmt.v1alpha1.TransformString:
@@ -4693,193 +4710,193 @@ components:
       properties:
         generateEmailConfig:
           allOf:
-            - title: generate_email_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateEmail'
+          title: generate_email_config
         transformEmailConfig:
           allOf:
-            - title: transform_email_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformEmail'
+          title: transform_email_config
         generateBoolConfig:
           allOf:
-            - title: generate_bool_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBool'
+          title: generate_bool_config
         generateCardNumberConfig:
           allOf:
-            - title: generate_card_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCardNumber'
+          title: generate_card_number_config
         generateCityConfig:
           allOf:
-            - title: generate_city_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCity'
+          title: generate_city_config
         generateE164PhoneNumberConfig:
           allOf:
-            - title: generate_e164_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateE164PhoneNumber'
+          title: generate_e164_phone_number_config
         generateFirstNameConfig:
           allOf:
-            - title: generate_first_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFirstName'
+          title: generate_first_name_config
         generateFloat64Config:
           allOf:
-            - title: generate_float64_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFloat64'
+          title: generate_float64_config
         generateFullAddressConfig:
           allOf:
-            - title: generate_full_address_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFullAddress'
+          title: generate_full_address_config
         generateFullNameConfig:
           allOf:
-            - title: generate_full_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateFullName'
+          title: generate_full_name_config
         generateGenderConfig:
           allOf:
-            - title: generate_gender_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateGender'
+          title: generate_gender_config
         generateInt64PhoneNumberConfig:
           allOf:
-            - title: generate_int64_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateInt64PhoneNumber'
+          title: generate_int64_phone_number_config
         generateInt64Config:
           allOf:
-            - title: generate_int64_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateInt64'
+          title: generate_int64_config
         generateLastNameConfig:
           allOf:
-            - title: generate_last_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateLastName'
+          title: generate_last_name_config
         generateSha256hashConfig:
           allOf:
-            - title: generate_sha256hash_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSha256Hash'
+          title: generate_sha256hash_config
         generateSsnConfig:
           allOf:
-            - title: generate_ssn_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSSN'
+          title: generate_ssn_config
         generateStateConfig:
           allOf:
-            - title: generate_state_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateState'
+          title: generate_state_config
         generateStreetAddressConfig:
           allOf:
-            - title: generate_street_address_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateStreetAddress'
+          title: generate_street_address_config
         generateStringPhoneNumberConfig:
           allOf:
-            - title: generate_string_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateStringPhoneNumber'
+          title: generate_string_phone_number_config
         generateStringConfig:
           allOf:
-            - title: generate_string_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateString'
+          title: generate_string_config
         generateUnixtimestampConfig:
           allOf:
-            - title: generate_unixtimestamp_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUnixTimestamp'
+          title: generate_unixtimestamp_config
         generateUsernameConfig:
           allOf:
-            - title: generate_username_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUsername'
+          title: generate_username_config
         generateUtctimestampConfig:
           allOf:
-            - title: generate_utctimestamp_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUtcTimestamp'
+          title: generate_utctimestamp_config
         generateUuidConfig:
           allOf:
-            - title: generate_uuid_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateUuid'
+          title: generate_uuid_config
         generateZipcodeConfig:
           allOf:
-            - title: generate_zipcode_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateZipcode'
+          title: generate_zipcode_config
         transformE164PhoneNumberConfig:
           allOf:
-            - title: transform_e164_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformE164PhoneNumber'
+          title: transform_e164_phone_number_config
         transformFirstNameConfig:
           allOf:
-            - title: transform_first_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFirstName'
+          title: transform_first_name_config
         transformFloat64Config:
           allOf:
-            - title: transform_float64_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFloat64'
+          title: transform_float64_config
         transformFullNameConfig:
           allOf:
-            - title: transform_full_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformFullName'
+          title: transform_full_name_config
         transformInt64PhoneNumberConfig:
           allOf:
-            - title: transform_int64_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformInt64PhoneNumber'
+          title: transform_int64_phone_number_config
         transformInt64Config:
           allOf:
-            - title: transform_int64_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformInt64'
+          title: transform_int64_config
         transformLastNameConfig:
           allOf:
-            - title: transform_last_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformLastName'
+          title: transform_last_name_config
         transformPhoneNumberConfig:
           allOf:
-            - title: transform_phone_number_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPhoneNumber'
+          title: transform_phone_number_config
         transformStringConfig:
           allOf:
-            - title: transform_string_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformString'
+          title: transform_string_config
         passthroughConfig:
           allOf:
-            - title: passthrough_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.Passthrough'
+          title: passthrough_config
         nullconfig:
           allOf:
-            - title: nullconfig
             - $ref: '#/components/schemas/mgmt.v1alpha1.Null'
+          title: nullconfig
         userDefinedTransformerConfig:
           allOf:
-            - title: user_defined_transformer_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.UserDefinedTransformerConfig'
+          title: user_defined_transformer_config
         generateDefaultConfig:
           allOf:
-            - title: generate_default_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateDefault'
+          title: generate_default_config
         transformJavascriptConfig:
           allOf:
-            - title: transform_javascript_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformJavascript'
+          title: transform_javascript_config
         generateCategoricalConfig:
           allOf:
-            - title: generate_categorical_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCategorical'
+          title: generate_categorical_config
         transformCharacterScrambleConfig:
           allOf:
-            - title: transform_character_scramble_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformCharacterScramble'
+          title: transform_character_scramble_config
         generateJavascriptConfig:
           allOf:
-            - title: generate_javascript_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateJavascript'
+          title: generate_javascript_config
         generateCountryConfig:
           allOf:
-            - title: generate_country_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateCountry'
+          title: generate_country_config
         transformPiiTextConfig:
           allOf:
-            - title: transform_pii_text_config
-              description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformPiiText'
+          title: transform_pii_text_config
+          description: NeosyncCloud/Enterprise only transformer for anonymizing PII Text
         generateBusinessNameConfig:
           allOf:
-            - title: generate_business_name_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateBusinessName'
+          title: generate_business_name_config
         generateIpAddressConfig:
           allOf:
-            - title: generate_ip_address_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddress'
+          title: generate_ip_address_config
         transformUuidConfig:
           allOf:
-            - title: transform_uuid_config
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
+          title: transform_uuid_config
       title: TransformerConfig
       additionalProperties: false
       description: The configuration for a transformer. This determines what type of transformation or generation is performed.
@@ -4898,9 +4915,9 @@ components:
           description: The unique identifier of the connection
         options:
           allOf:
-            - title: options
-              description: The destination connection options
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
+          title: options
+          description: The destination connection options
         destinationId:
           type: string
           title: destination_id
@@ -4912,9 +4929,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was updated
       title: UpdateJobDestinationConnectionResponse
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobHookRequest:
@@ -4937,9 +4954,9 @@ components:
           description: Description of what this hook does.
         config:
           allOf:
-            - title: config
-              description: Hook-type specific configuration.
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHookConfig'
+          title: config
+          description: Hook-type specific configuration.
         enabled:
           type: boolean
           title: enabled
@@ -4958,9 +4975,9 @@ components:
       properties:
         hook:
           allOf:
-            - title: hook
-              description: The updated job hook
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobHook'
+          title: hook
+          description: The updated job hook
       title: UpdateJobHookResponse
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobScheduleRequest:
@@ -4997,9 +5014,9 @@ components:
       properties:
         job:
           allOf:
-            - title: job
-              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
+          description: The job that was updated
       title: UpdateJobScheduleResponse
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobSourceConnectionRequest:
@@ -5012,9 +5029,9 @@ components:
           description: The unique identifier of the job
         source:
           allOf:
-            - title: source
-              description: The new source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
+          title: source
+          description: The new source connection configuration
         mappings:
           type: array
           items:
@@ -5034,8 +5051,8 @@ components:
       properties:
         job:
           allOf:
-            - title: job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
+          title: job
       title: UpdateJobSourceConnectionResponse
       additionalProperties: false
     mgmt.v1alpha1.UserDefinedTransformerConfig:
@@ -5086,9 +5103,9 @@ components:
           description: The list of column errors
         databaseErrors:
           allOf:
-            - title: database_errors
-              description: The database error
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseError'
+          title: database_errors
+          description: The database error
       title: ValidateJobMappingsResponse
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:
@@ -5110,9 +5127,9 @@ components:
           description: The list of columns
         foreignKey:
           allOf:
-            - title: foreign_key
-              description: The foreign key
             - $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignKey'
+          title: foreign_key
+          description: The foreign key
       title: VirtualForeignConstraint
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignKey:
@@ -5153,10 +5170,11 @@ components:
                   - runTimeout
       properties:
         runTimeout:
-          oneOf:
-            - type: string
-            - type: number
+          type:
+            - integer
+            - string
           title: run_timeout
+          format: int64
           description: |-
             The timeout for a single workflow run.
              Measured in seconds
