@@ -1,25 +1,27 @@
-import { PostgresSourceOptionsFormValues } from '@/yup-validations/jobs';
+import { MssqlSourceOptionsFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
 import ColumnRemovalStrategyOptionsForm from './ColumnRemovalStrategyOptionsForm';
 import NewColumnAdditionStrategyOptionsForm from './NewColumnAdditionStrategyOptionsForm';
 
 interface Props {
-  value: PostgresSourceOptionsFormValues;
-  setValue(newVal: PostgresSourceOptionsFormValues): void;
+  value: MssqlSourceOptionsFormValues;
+  setValue(newVal: MssqlSourceOptionsFormValues): void;
 }
 
-export default function PostgresDBSourceOptionsForm(
-  props: Props
-): ReactElement {
+export default function MssqlDBSourceOptionsForm(props: Props): ReactElement {
   const { value, setValue } = props;
 
   return (
     <div className="flex flex-col md:flex-row gap-6 pb-2">
       <div className="w-full">
         <NewColumnAdditionStrategyOptionsForm
-          value={value.newColumnAdditionStrategy}
+          disableAutoMap={true}
+          value={value.haltOnNewColumnAddition ? 'halt' : 'continue'}
           setValue={(strategy) => {
-            setValue({ ...value, newColumnAdditionStrategy: strategy });
+            setValue({
+              ...value,
+              haltOnNewColumnAddition: strategy === 'halt',
+            });
           }}
         />
       </div>

@@ -136,6 +136,8 @@ message PostgresSourceConnectionOptions {
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
   NewColumnAdditionStrategy new_column_addition_strategy = 5;
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 6;
 
   message NewColumnAdditionStrategy {
     oneof strategy {
@@ -150,6 +152,21 @@ message PostgresSourceConnectionOptions {
     message HaltJob {}
     // Configuration for the AutoMap strategy
     message AutoMap {}
+  }
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // continue job if a column is removed
+      ContinueJob continue_job = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+
+    // Configuration for the ContinueJob strategy
+    message ContinueJob {}
   }
 }
 
@@ -167,6 +184,24 @@ message MysqlSourceConnectionOptions {
   repeated MysqlSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
+
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 5;
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // continue job if a column is removed
+      ContinueJob continue_job = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+
+    // Configuration for the ContinueJob strategy
+    message ContinueJob {}
+  }
 }
 
 message MysqlSourceSchemaOption {
@@ -183,6 +218,23 @@ message MssqlSourceConnectionOptions {
   repeated MssqlSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   bool subset_by_foreign_key_constraints = 4;
+  // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+  ColumnRemovalStrategy column_removal_strategy = 5;
+
+  message ColumnRemovalStrategy {
+    oneof strategy {
+      // halt job if a column is removed
+      HaltJob halt_job = 1;
+
+      // continue job if a column is removed
+      ContinueJob continue_job = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+
+    // Configuration for the ContinueJob strategy
+    message ContinueJob {}
+  }
 }
 
 message MssqlSourceSchemaOption {

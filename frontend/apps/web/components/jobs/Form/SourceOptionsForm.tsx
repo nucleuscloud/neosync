@@ -1,11 +1,12 @@
 'use client';
 import { getDefaultUnmappedTransformConfig } from '@/app/(mgmt)/[account]/jobs/util';
-import SwitchCard from '@/components/switches/SwitchCard';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { SourceOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import DynamoDBSourceOptionsForm from './DynamoDBSourceOptionsForm';
+import MssqlDBSourceOptionsForm from './MssqlDBSourceOptionsForm';
+import MysqlDBSourceOptionsForm from './MysqlDBSourceOptionsForm';
 import PostgresDBSourceOptionsForm from './PostgresDBSourceOptionsForm';
 
 interface SourceOptionsProps {
@@ -31,7 +32,12 @@ export default function SourceOptionsForm(
     case 'pgConfig':
       return (
         <PostgresDBSourceOptionsForm
-          value={value.postgres ?? { newColumnAdditionStrategy: 'continue' }}
+          value={
+            value.postgres ?? {
+              newColumnAdditionStrategy: 'continue',
+              columnRemovalStrategy: 'continue',
+            }
+          }
           setValue={(newval) => {
             setValue({
               postgres: {
@@ -44,23 +50,22 @@ export default function SourceOptionsForm(
       );
     case 'mysqlConfig':
       return (
-        <div className="flex flex-col gap-2">
-          <div>
-            <SwitchCard
-              isChecked={value.mysql?.haltOnNewColumnAddition ?? false}
-              onCheckedChange={(checked) => {
-                setValue({
-                  mysql: {
-                    ...(value.mysql ?? { haltOnNewColumnAddition: false }),
-                    haltOnNewColumnAddition: checked,
-                  },
-                });
-              }}
-              title="Halt Job on new column addition"
-              description="Stops job runs if new column is detected"
-            />
-          </div>
-        </div>
+        <MysqlDBSourceOptionsForm
+          value={
+            value.mysql ?? {
+              haltOnNewColumnAddition: false,
+              columnRemovalStrategy: 'continue',
+            }
+          }
+          setValue={(newval) => {
+            setValue({
+              mysql: {
+                ...(value.mysql ?? {}),
+                ...newval,
+              },
+            });
+          }}
+        />
       );
     case 'awsS3Config':
       return <></>;
@@ -92,25 +97,22 @@ export default function SourceOptionsForm(
       );
     case 'mssqlConfig': {
       return (
-        <div className="flex flex-col gap-2">
-          <div>
-            <SwitchCard
-              isChecked={value.mssql?.haltOnNewColumnAddition ?? false}
-              onCheckedChange={(checked) => {
-                setValue({
-                  mysql: {
-                    ...(value.mssql ?? {
-                      haltOnNewColumnAddition: false,
-                    }),
-                    haltOnNewColumnAddition: checked,
-                  },
-                });
-              }}
-              title="Halt Job on new column addition"
-              description="Stops job runs if new column is detected"
-            />
-          </div>
-        </div>
+        <MssqlDBSourceOptionsForm
+          value={
+            value.mssql ?? {
+              haltOnNewColumnAddition: false,
+              columnRemovalStrategy: 'continue',
+            }
+          }
+          setValue={(newval) => {
+            setValue({
+              mssql: {
+                ...(value.mssql ?? {}),
+                ...newval,
+              },
+            });
+          }}
+        />
       );
     }
     default:

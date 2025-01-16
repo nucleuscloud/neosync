@@ -229,7 +229,7 @@ class DynamoDBSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class PostgresSourceConnectionOptions(_message.Message):
-    __slots__ = ("schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy")
+    __slots__ = ("schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy", "column_removal_strategy")
     class NewColumnAdditionStrategy(_message.Message):
         __slots__ = ("halt_job", "auto_map")
         class HaltJob(_message.Message):
@@ -243,15 +243,30 @@ class PostgresSourceConnectionOptions(_message.Message):
         halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
         def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+    class ColumnRemovalStrategy(_message.Message):
+        __slots__ = ("halt_job", "continue_job")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class ContinueJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        CONTINUE_JOB_FIELD_NUMBER: _ClassVar[int]
+        halt_job: PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
+        continue_job: PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
+        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     schemas: _containers.RepeatedCompositeFieldContainer[PostgresSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
     new_column_addition_strategy: PostgresSourceConnectionOptions.NewColumnAdditionStrategy
-    def __init__(self, schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
+    column_removal_strategy: PostgresSourceConnectionOptions.ColumnRemovalStrategy
+    def __init__(self, schemas: _Optional[_Iterable[_Union[PostgresSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., new_column_addition_strategy: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ..., column_removal_strategy: _Optional[_Union[PostgresSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
 
 class PostgresSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -270,16 +285,31 @@ class PostgresSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class MysqlSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy")
+    class ColumnRemovalStrategy(_message.Message):
+        __slots__ = ("halt_job", "continue_job")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class ContinueJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        CONTINUE_JOB_FIELD_NUMBER: _ClassVar[int]
+        halt_job: MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
+        continue_job: MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
+        def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[MysqlSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MysqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ...) -> None: ...
+    column_removal_strategy: MysqlSourceConnectionOptions.ColumnRemovalStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MysqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
 
 class MysqlSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -298,16 +328,31 @@ class MysqlSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class MssqlSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy")
+    class ColumnRemovalStrategy(_message.Message):
+        __slots__ = ("halt_job", "continue_job")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class ContinueJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        CONTINUE_JOB_FIELD_NUMBER: _ClassVar[int]
+        halt_job: MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
+        continue_job: MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
+        def __init__(self, halt_job: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[MssqlSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MssqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ...) -> None: ...
+    column_removal_strategy: MssqlSourceConnectionOptions.ColumnRemovalStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MssqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
 
 class MssqlSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
