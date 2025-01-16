@@ -210,6 +210,7 @@ export default function NosqlTable(props: Props): ReactElement {
         onExportMappingsClick={onExportMappingsClick}
         onImportMappingsClick={onImportMappingsClick}
         isApplyDefaultTransformerButtonDisabled={data.length === 0}
+        displayApplyDefaultTransformersButton={true}
         getAvalableTransformersForBulk={getAvailableTransformersForBulk}
         getTransformerFromFieldValue={getTransformerFromFieldValue}
         onTransformerBulkUpdate={onTransformerBulkUpdate}
