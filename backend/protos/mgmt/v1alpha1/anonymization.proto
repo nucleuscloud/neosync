@@ -46,9 +46,9 @@ message DefaultTransformersConfig {
   // Any identified boolean value will be transformed using this configuration if no mapping is found.
   TransformerConfig boolean = 2;
   // Any identified number value will be transformed using this configuration if no mapping is found.
-  TransformerConfig number = 3;
+  TransformerConfig n = 3;
   // Any identified string value will be transformed using this configuration if no mapping is found.
-  TransformerConfig string = 4;
+  TransformerConfig s = 4;
 }
 
 message AnonymizeManyErrors {
