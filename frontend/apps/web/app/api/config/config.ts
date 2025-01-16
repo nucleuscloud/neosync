@@ -35,6 +35,11 @@ export function getSystemAppConfig(): SystemAppConfig {
     publicNeosyncApiBaseUrl: PUBLIC_PATHNAME, // ensures that this always points to the same domain
     isJobHooksEnabled: process.env.JOBHOOKS_ENABLED === 'true',
     isRbacEnabled: isNeosyncCloud || process.env.RBAC_ENABLED === 'true',
+    gtag: {
+      enabled: isAnalyticsEnabled() && !!process.env.gtag,
+      key: process.env.gtag,
+      conversion: process.env.gtag_conversion,
+    },
   };
 }
 
