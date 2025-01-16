@@ -8,6 +8,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetUser
+      description: Retrieves the current user.
       operationId: mgmt.v1alpha1.UserAccountService.GetUser
       parameters:
         - name: Connect-Protocol-Version
@@ -43,6 +44,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetUser
+      description: Sets the current user.
       operationId: mgmt.v1alpha1.UserAccountService.SetUser
       parameters:
         - name: Connect-Protocol-Version
@@ -78,6 +80,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetUserAccounts
+      description: Retrieves the list of accounts that the user belongs to.
       operationId: mgmt.v1alpha1.UserAccountService.GetUserAccounts
       parameters:
         - name: Connect-Protocol-Version
@@ -113,6 +116,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetPersonalAccount
+      description: Sets the current personal account.
       operationId: mgmt.v1alpha1.UserAccountService.SetPersonalAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -220,6 +224,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: IsUserInAccount
+      description: Checks if the user is in the account.
       operationId: mgmt.v1alpha1.UserAccountService.IsUserInAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -255,6 +260,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetAccountTemporalConfig
+      description: Retrieves the temporal config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -290,6 +296,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetAccountTemporalConfig
+      description: Sets the temporal config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -325,6 +332,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetTeamAccountMembers
+      description: Retrieves the list of members in the team account.
       operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers
       parameters:
         - name: Connect-Protocol-Version
@@ -360,6 +368,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: RemoveTeamAccountMember
+      description: Removes a member from the team account.
       operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember
       parameters:
         - name: Connect-Protocol-Version
@@ -395,6 +404,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: InviteUserToTeamAccount
+      description: Invites a user to the team account.
       operationId: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -430,6 +440,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetTeamAccountInvites
+      description: Retrieves the list of invites for the team account.
       operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
       parameters:
         - name: Connect-Protocol-Version
@@ -465,6 +476,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: RemoveTeamAccountInvite
+      description: Removes an invite from the team account.
       operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
       parameters:
         - name: Connect-Protocol-Version
@@ -500,6 +512,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: AcceptTeamAccountInvite
+      description: Accepts an invite to the team account.
       operationId: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite
       parameters:
         - name: Connect-Protocol-Version
@@ -535,6 +548,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetSystemInformation
+      description: Retrieves the system information.
       operationId: mgmt.v1alpha1.UserAccountService.GetSystemInformation
       parameters:
         - name: Connect-Protocol-Version
@@ -570,6 +584,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetAccountOnboardingConfig
+      description: Retrieves the onboarding config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -605,6 +620,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetAccountOnboardingConfig
+      description: Sets the onboarding config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -1023,6 +1039,7 @@ components:
           type: string
           title: token
           minLength: 1
+          description: The token that the user will use to accept the invite.
       title: AcceptTeamAccountInviteRequest
       additionalProperties: false
     mgmt.v1alpha1.AcceptTeamAccountInviteResponse:
@@ -1031,6 +1048,7 @@ components:
         account:
           allOf:
             - title: account
+              description: The account that the user was invited to.
             - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
       title: AcceptTeamAccountInviteResponse
       additionalProperties: false
@@ -1040,32 +1058,41 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the invite.
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the account to invite the user to.
         senderUserId:
           type: string
           title: sender_user_id
+          description: The unique identifier of the user that sent the invite.
         email:
           type: string
           title: email
+          description: The email of the user to invite.
         token:
           type: string
           title: token
+          description: The token that the user will use to accept the invite.
         accepted:
           type: boolean
           title: accepted
+          description: Whether or not the invite has been accepted.
         createdAt:
           allOf:
             - title: created_at
+              description: The time when the invite was created.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         updatedAt:
           allOf:
             - title: updated_at
+              description: The time when the invite was last updated.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         expiresAt:
           allOf:
             - title: expires_at
+              description: The time when the invite expires.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         role:
           allOf:
@@ -1080,6 +1107,7 @@ components:
         hasCompletedOnboarding:
           type: boolean
           title: has_completed_onboarding
+          description: Whether or not the account has completed onboarding.
       title: AccountOnboardingConfig
       additionalProperties: false
     mgmt.v1alpha1.AccountTemporalConfig:
@@ -1089,14 +1117,17 @@ components:
           type: string
           title: url
           minLength: 1
+          description: The temporal url for the account.
         namespace:
           type: string
           title: namespace
           minLength: 1
+          description: The temporal namespace for the account.
         syncJobQueueName:
           type: string
           title: sync_job_queue_name
           minLength: 1
+          description: The temporal sync job queue name for the account.
       title: AccountTemporalConfig
       additionalProperties: false
     mgmt.v1alpha1.AccountUser:
@@ -1105,15 +1136,19 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the user.
         name:
           type: string
           title: name
+          description: The name of the user (if there is one)
         image:
           type: string
           title: image
+          description: The image of the user (if there is one)
         email:
           type: string
           title: email
+          description: The email of the user.
         role:
           allOf:
             - title: role
@@ -1216,6 +1251,7 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the team account that was created.
         checkoutSessionUrl:
           type: string
           title: checkout_session_url
@@ -1229,6 +1265,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the billing checkout session for.
       title: GetAccountBillingCheckoutSessionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse:
@@ -1247,6 +1284,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the billing portal session for.
       title: GetAccountBillingPortalSessionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountBillingPortalSessionResponse:
@@ -1265,6 +1303,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the onboarding config for.
       title: GetAccountOnboardingConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountOnboardingConfigResponse:
@@ -1273,6 +1312,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The onboarding config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: GetAccountOnboardingConfigResponse
       additionalProperties: false
@@ -1283,6 +1323,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the status for.
       title: GetAccountStatusRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountStatusResponse:
@@ -1331,6 +1372,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the temporal config for.
       title: GetAccountTemporalConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountTemporalConfigResponse:
@@ -1339,6 +1381,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The temporal config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: GetAccountTemporalConfigResponse
       additionalProperties: false
@@ -1361,6 +1404,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
           title: accounts
+          description: The list of accounts that have a billing id.
       title: GetBillingAccountsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetSystemInformationRequest:
@@ -1405,6 +1449,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the invites for.
       title: GetTeamAccountInvitesRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountInvitesResponse:
@@ -1415,6 +1460,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
           title: invites
+          description: The list of invites for the account.
       title: GetTeamAccountInvitesResponse
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountMembersRequest:
@@ -1424,6 +1470,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the members for.
       title: GetTeamAccountMembersRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountMembersResponse:
@@ -1448,6 +1495,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
           title: accounts
+          description: The list of accounts that the user belongs to.
       title: GetUserAccountsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetUserRequest:
@@ -1460,6 +1508,7 @@ components:
         userId:
           type: string
           title: user_id
+          description: The unique identifier of the user that was retrieved.
       title: GetUserResponse
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
@@ -1484,12 +1533,12 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to invite the user to
+          description: The unique identifier of the account to invite the user to.
         email:
           type: string
           title: email
           minLength: 1
-          description: The email of the user to invite
+          description: The email of the user to invite.
         role:
           allOf:
             - title: role
@@ -1503,6 +1552,7 @@ components:
         invite:
           allOf:
             - title: invite
+              description: The invite that was created.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
       title: InviteUserToTeamAccountResponse
       additionalProperties: false
@@ -1528,6 +1578,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the status for.
         requestedRecordCount:
           oneOf:
             - type: string
@@ -1557,6 +1608,7 @@ components:
         isValid:
           type: boolean
           title: is_valid
+          description: Whether or not the account is valid.
         reason:
           type: string
           title: reason
@@ -1584,6 +1636,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to check if the user is in.
       title: IsUserInAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.IsUserInAccountResponse:
@@ -1592,6 +1645,7 @@ components:
         ok:
           type: boolean
           title: ok
+          description: Whether or not the user is in the account.
       title: IsUserInAccountResponse
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountInviteRequest:
@@ -1601,6 +1655,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the invite to remove.
       title: RemoveTeamAccountInviteRequest
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountInviteResponse:
@@ -1614,10 +1669,12 @@ components:
           type: string
           title: user_id
           format: uuid
+          description: The unique identifier of the user to remove from the account.
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to remove the user from.
       title: RemoveTeamAccountMemberRequest
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
@@ -1631,9 +1688,11 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to set the onboarding config for.
         config:
           allOf:
             - title: config
+              description: The onboarding config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: SetAccountOnboardingConfigRequest
       additionalProperties: false
@@ -1643,6 +1702,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The onboarding config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: SetAccountOnboardingConfigResponse
       additionalProperties: false
@@ -1653,9 +1713,11 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to set the temporal config for.
         config:
           allOf:
             - title: config
+              description: The temporal config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: SetAccountTemporalConfigRequest
       additionalProperties: false
@@ -1665,6 +1727,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The temporal config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: SetAccountTemporalConfigResponse
       additionalProperties: false
@@ -1690,7 +1753,7 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to apply this metered event to
+          description: The unique identifier of the account to apply this metered event to.
         eventName:
           type: string
           title: event_name
@@ -1728,6 +1791,7 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the personal account that was created.
       title: SetPersonalAccountResponse
       additionalProperties: false
     mgmt.v1alpha1.SetUserRequest:
@@ -1740,6 +1804,7 @@ components:
         userId:
           type: string
           title: user_id
+          description: The unique identifier of the user that was created.
       title: SetUserResponse
       additionalProperties: false
     mgmt.v1alpha1.SetUserRoleRequest:
@@ -1749,16 +1814,16 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to apply this role to
+          description: The unique identifier of the account to apply this role to.
         userId:
           type: string
           title: user_id
           format: uuid
-          description: The user that this will be applied to
+          description: The unique identifier of the user that this will be applied to.
         role:
           allOf:
             - title: role
-              description: The role that this user will obtain
+              description: The role that this user will obtain.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: SetUserRoleRequest
       additionalProperties: false
@@ -1865,3 +1930,4 @@ components:
 security: []
 tags:
   - name: mgmt.v1alpha1.UserAccountService
+    description: Service that manages users, accounts, and billing

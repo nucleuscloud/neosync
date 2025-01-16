@@ -219,11 +219,11 @@ type DefaultTransformersConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Boolean
+	// Any identified boolean value will be transformed using this configuration if no mapping is found.
 	Boolean *TransformerConfig `protobuf:"bytes,2,opt,name=boolean,proto3" json:"boolean,omitempty"`
-	// Number
+	// Any identified number value will be transformed using this configuration if no mapping is found.
 	N *TransformerConfig `protobuf:"bytes,3,opt,name=n,proto3" json:"n,omitempty"`
-	// String
+	// Any identified string value will be transformed using this configuration if no mapping is found.
 	S *TransformerConfig `protobuf:"bytes,4,opt,name=s,proto3" json:"s,omitempty"`
 }
 

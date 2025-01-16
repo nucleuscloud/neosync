@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/connection_data.proto.
  */
 export const file_mgmt_v1alpha1_connection_data: GenFile = /*@__PURE__*/
-  fileDesc("CiNtZ210L3YxYWxwaGExL2Nvbm5lY3Rpb25fZGF0YS5wcm90bxINbWdtdC52MWFscGhhMSIWChRQb3N0Z3Jlc1N0cmVhbUNvbmZpZyITChFNeXNxbFN0cmVhbUNvbmZpZyIZChdBd3NEeW5hbW9EQlN0cmVhbUNvbmZpZyJUChFBd3NTM1N0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIl4KG0djcENsb3VkU3RvcmFnZVN0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIuoCChZDb25uZWN0aW9uU3RyZWFtQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTdHJlYW1Db25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1N0cmVhbUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTdHJlYW1Db25maWdIABJNChdnY3BfY2xvdWRzdG9yYWdlX2NvbmZpZxgEIAEoCzIqLm1nbXQudjFhbHBoYTEuR2NwQ2xvdWRTdG9yYWdlU3RyZWFtQ29uZmlnSAASQQoPZHluYW1vZGJfY29uZmlnGAUgASgLMiYubWdtdC52MWFscGhhMS5Bd3NEeW5hbW9EQlN0cmVhbUNvbmZpZ0gAQg8KBmNvbmZpZxIFukgCCAEingEKHkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABARI8Cg1zdHJlYW1fY29uZmlnGAIgASgLMiUubWdtdC52MWFscGhhMS5Db25uZWN0aW9uU3RyZWFtQ29uZmlnEg4KBnNjaGVtYRgDIAEoCRINCgV0YWJsZRgEIAEoCSI6Ch9HZXRDb25uZWN0aW9uRGF0YVN0cmVhbVJlc3BvbnNlEhEKCXJvd19ieXRlcxgCIAEoDEoECAEQAiIWChRQb3N0Z3Jlc1NjaGVtYUNvbmZpZyITChFNeXNxbFNjaGVtYUNvbmZpZyITChFNc3NxbFNjaGVtYUNvbmZpZyJUChFBd3NTM1NjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIhMKEU1vbmdvU2NoZW1hQ29uZmlnIhYKFER5bmFtb0RCU2NoZW1hQ29uZmlnIl4KG0djcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkItsDChZDb25uZWN0aW9uU2NoZW1hQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTY2hlbWFDb25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1NjaGVtYUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTY2hlbWFDb25maWdIABI4Cgxtb25nb19jb25maWcYBCABKAsyIC5tZ210LnYxYWxwaGExLk1vbmdvU2NoZW1hQ29uZmlnSAASTQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYBSABKAsyKi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZ0gAEj4KD2R5bmFtb2RiX2NvbmZpZxgGIAEoCzIjLm1nbXQudjFhbHBoYTEuRHluYW1vREJTY2hlbWFDb25maWdIABI4Cgxtc3NxbF9jb25maWcYByABKAsyIC5tZ210LnYxYWxwaGExLk1zc3FsU2NoZW1hQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASKBAgoORGF0YWJhc2VDb2x1bW4SDgoGc2NoZW1hGAEgASgJEg0KBXRhYmxlGAIgASgJEg4KBmNvbHVtbhgDIAEoCRIRCglkYXRhX3R5cGUYBCABKAkSEwoLaXNfbnVsbGFibGUYBSABKAkSGwoOY29sdW1uX2RlZmF1bHQYBiABKAlIAIgBARIbCg5nZW5lcmF0ZWRfdHlwZRgHIAEoCUgBiAEBEiAKE2lkZW50aXR5X2dlbmVyYXRpb24YCCABKAlIAogBAUIRCg9fY29sdW1uX2RlZmF1bHRCEQoPX2dlbmVyYXRlZF90eXBlQhYKFF9pZGVudGl0eV9nZW5lcmF0aW9uInsKGkdldENvbm5lY3Rpb25TY2hlbWFSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWciTQobR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlEi4KB3NjaGVtYXMYASADKAsyHS5tZ210LnYxYWxwaGExLkRhdGFiYXNlQ29sdW1uIn4KHUdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWci0AEKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRJQCgpzY2hlbWFfbWFwGAEgAygLMjwubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UuU2NoZW1hTWFwRW50cnkaXAoOU2NoZW1hTWFwRW50cnkSCwoDa2V5GAEgASgJEjkKBXZhbHVlGAIgASgLMioubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVzcG9uc2U6AjgBImAKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVxdWVzdBI+CghyZXF1ZXN0cxgBIAMoCzIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QiewofR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXNwb25zZRJACglyZXNwb25zZXMYASADKAsyLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRIWCg5jb25uZWN0aW9uX2lkcxgCIAMoCSIyCgpGb3JlaWduS2V5Eg0KBXRhYmxlGAEgASgJEg8KB2NvbHVtbnMYAyADKAlKBAgCEAMidgoRRm9yZWlnbkNvbnN0cmFpbnQSLgoLZm9yZWlnbl9rZXkYAyABKAsyGS5tZ210LnYxYWxwaGExLkZvcmVpZ25LZXkSDwoHY29sdW1ucxgEIAMoCRIUCgxub3RfbnVsbGFibGUYBSADKAhKBAgBEAJKBAgCEAMiUAoXRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXMSNQoLY29uc3RyYWludHMYASADKAsyIC5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50ImUKFEluaXRTdGF0ZW1lbnRPcHRpb25zEhMKC2luaXRfc2NoZW1hGAEgASgIEh4KFnRydW5jYXRlX2JlZm9yZV9pbnNlcnQYAiABKAgSGAoQdHJ1bmNhdGVfY2FzY2FkZRgDIAEoCCJ7CiJHZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjQKB29wdGlvbnMYAiABKAsyIy5tZ210LnYxYWxwaGExLkluaXRTdGF0ZW1lbnRPcHRpb25zIjkKFFNjaGVtYUluaXRTdGF0ZW1lbnRzEg0KBWxhYmVsGAEgASgJEhIKCnN0YXRlbWVudHMYAiADKAkixgMKI0dldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlEmoKFXRhYmxlX2luaXRfc3RhdGVtZW50cxgBIAMoCzJLLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzUmVzcG9uc2UuVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EnIKGXRhYmxlX3RydW5jYXRlX3N0YXRlbWVudHMYAiADKAsyTy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlLlRhYmxlVHJ1bmNhdGVTdGF0ZW1lbnRzRW50cnkSQwoWc2NoZW1hX2luaXRfc3RhdGVtZW50cxgDIAMoCzIjLm1nbXQudjFhbHBoYTEuU2NoZW1hSW5pdFN0YXRlbWVudHMaOgoYVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaPgocVGFibGVUcnVuY2F0ZVN0YXRlbWVudHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIiQKEVByaW1hcnlDb25zdHJhaW50Eg8KB2NvbHVtbnMYASADKAkiIwoQVW5pcXVlQ29uc3RyYWludBIPCgdjb2x1bW5zGAEgAygJIvMBChlHZXRBaUdlbmVyYXRlZERhdGFSZXF1ZXN0EiIKEGFpX2Nvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEhgKBWNvdW50GAIgASgDQgm6SAYiBBgKKAESGwoKbW9kZWxfbmFtZRgDIAEoCUIHukgEcgIQARIYCgt1c2VyX3Byb21wdBgEIAEoCUgAiAEBEiQKEmRhdGFfY29ubmVjdGlvbl9pZBgFIAEoCUIIukgFcgOwAQESKwoFdGFibGUYBiABKAsyHC5tZ210LnYxYWxwaGExLkRhdGFiYXNlVGFibGVCDgoMX3VzZXJfcHJvbXB0IkAKDURhdGFiYXNlVGFibGUSFwoGc2NoZW1hGAEgASgJQge6SARyAhABEhYKBXRhYmxlGAIgASgJQge6SARyAhABIkYKGkdldEFpR2VuZXJhdGVkRGF0YVJlc3BvbnNlEigKB3JlY29yZHMYASADKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IkcKJEdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABASJJChFVbmlxdWVDb25zdHJhaW50cxI0Cgtjb25zdHJhaW50cxgBIAMoCzIfLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludCKWBQolR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZRJwChdmb3JlaWduX2tleV9jb25zdHJhaW50cxgBIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5Gb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRJwChdwcmltYXJ5X2tleV9jb25zdHJhaW50cxgCIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5QcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRJnChJ1bmlxdWVfY29uc3RyYWludHMYAyADKAsySy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVzcG9uc2UuVW5pcXVlQ29uc3RyYWludHNFbnRyeRpkChpGb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSNQoFdmFsdWUYAiABKAsyJi5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50VGFibGVzOgI4ARpeChpQcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSLwoFdmFsdWUYAiABKAsyIC5tZ210LnYxYWxwaGExLlByaW1hcnlDb25zdHJhaW50OgI4ARpaChZVbmlxdWVDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRIvCgV2YWx1ZRgCIAEoCzIgLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludHM6AjgBInsKF0dldFRhYmxlUm93Q291bnRSZXF1ZXN0EhUKDWNvbm5lY3Rpb25faWQYASABKAkSDgoGc2NoZW1hGAIgASgJEg0KBXRhYmxlGAMgASgJEhkKDHdoZXJlX2NsYXVzZRgEIAEoCUgAiAEBQg8KDV93aGVyZV9jbGF1c2UiKQoYR2V0VGFibGVSb3dDb3VudFJlc3BvbnNlEg0KBWNvdW50GAEgASgDMuYHChVDb25uZWN0aW9uRGF0YVNlcnZpY2USfAoXR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW0SLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBouLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXNwb25zZSIAMAESbgoTR2V0Q29ubmVjdGlvblNjaGVtYRIpLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYVJlcXVlc3QaKi5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFSZXNwb25zZSIAEncKFkdldENvbm5lY3Rpb25TY2hlbWFNYXASLC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Gi0ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UiABJ6ChdHZXRDb25uZWN0aW9uU2NoZW1hTWFwcxItLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwc1Jlc3BvbnNlIgASjAEKHUdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzEjMubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uVGFibGVDb25zdHJhaW50c1JlcXVlc3QaNC5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVzcG9uc2UiABKGAQobR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzEjEubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0GjIubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXNwb25zZSIAEmsKEkdldEFpR2VuZXJhdGVkRGF0YRIoLm1nbXQudjFhbHBoYTEuR2V0QWlHZW5lcmF0ZWREYXRhUmVxdWVzdBopLm1nbXQudjFhbHBoYTEuR2V0QWlHZW5lcmF0ZWREYXRhUmVzcG9uc2UiABJlChBHZXRUYWJsZVJvd0NvdW50EiYubWdtdC52MWFscGhhMS5HZXRUYWJsZVJvd0NvdW50UmVxdWVzdBonLm1nbXQudjFhbHBoYTEuR2V0VGFibGVSb3dDb3VudFJlc3BvbnNlIgBCzwEKEWNvbS5tZ210LnYxYWxwaGExQhNDb25uZWN0aW9uRGF0YVByb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_struct]);
+  fileDesc("CiNtZ210L3YxYWxwaGExL2Nvbm5lY3Rpb25fZGF0YS5wcm90bxINbWdtdC52MWFscGhhMSIWChRQb3N0Z3Jlc1N0cmVhbUNvbmZpZyITChFNeXNxbFN0cmVhbUNvbmZpZyIZChdBd3NEeW5hbW9EQlN0cmVhbUNvbmZpZyJUChFBd3NTM1N0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIl4KG0djcENsb3VkU3RvcmFnZVN0cmVhbUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIuoCChZDb25uZWN0aW9uU3RyZWFtQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTdHJlYW1Db25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1N0cmVhbUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTdHJlYW1Db25maWdIABJNChdnY3BfY2xvdWRzdG9yYWdlX2NvbmZpZxgEIAEoCzIqLm1nbXQudjFhbHBoYTEuR2NwQ2xvdWRTdG9yYWdlU3RyZWFtQ29uZmlnSAASQQoPZHluYW1vZGJfY29uZmlnGAUgASgLMiYubWdtdC52MWFscGhhMS5Bd3NEeW5hbW9EQlN0cmVhbUNvbmZpZ0gAQg8KBmNvbmZpZxIFukgCCAEingEKHkdldENvbm5lY3Rpb25EYXRhU3RyZWFtUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABARI8Cg1zdHJlYW1fY29uZmlnGAIgASgLMiUubWdtdC52MWFscGhhMS5Db25uZWN0aW9uU3RyZWFtQ29uZmlnEg4KBnNjaGVtYRgDIAEoCRINCgV0YWJsZRgEIAEoCSI6Ch9HZXRDb25uZWN0aW9uRGF0YVN0cmVhbVJlc3BvbnNlEhEKCXJvd19ieXRlcxgCIAEoDEoECAEQAiIWChRQb3N0Z3Jlc1NjaGVtYUNvbmZpZyITChFNeXNxbFNjaGVtYUNvbmZpZyITChFNc3NxbFNjaGVtYUNvbmZpZyJUChFBd3NTM1NjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkIhMKEU1vbmdvU2NoZW1hQ29uZmlnIhYKFER5bmFtb0RCU2NoZW1hQ29uZmlnIl4KG0djcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZxIaCgZqb2JfaWQYASABKAlCCLpIBXIDsAEBSAASHQoKam9iX3J1bl9pZBgCIAEoCUIHukgEcgIQAUgAQgQKAmlkItsDChZDb25uZWN0aW9uU2NoZW1hQ29uZmlnEjgKCXBnX2NvbmZpZxgBIAEoCzIjLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNTY2hlbWFDb25maWdIABI5Cg1hd3NfczNfY29uZmlnGAIgASgLMiAubWdtdC52MWFscGhhMS5Bd3NTM1NjaGVtYUNvbmZpZ0gAEjgKDG15c3FsX2NvbmZpZxgDIAEoCzIgLm1nbXQudjFhbHBoYTEuTXlzcWxTY2hlbWFDb25maWdIABI4Cgxtb25nb19jb25maWcYBCABKAsyIC5tZ210LnYxYWxwaGExLk1vbmdvU2NoZW1hQ29uZmlnSAASTQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYBSABKAsyKi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZVNjaGVtYUNvbmZpZ0gAEj4KD2R5bmFtb2RiX2NvbmZpZxgGIAEoCzIjLm1nbXQudjFhbHBoYTEuRHluYW1vREJTY2hlbWFDb25maWdIABI4Cgxtc3NxbF9jb25maWcYByABKAsyIC5tZ210LnYxYWxwaGExLk1zc3FsU2NoZW1hQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASKBAgoORGF0YWJhc2VDb2x1bW4SDgoGc2NoZW1hGAEgASgJEg0KBXRhYmxlGAIgASgJEg4KBmNvbHVtbhgDIAEoCRIRCglkYXRhX3R5cGUYBCABKAkSEwoLaXNfbnVsbGFibGUYBSABKAkSGwoOY29sdW1uX2RlZmF1bHQYBiABKAlIAIgBARIbCg5nZW5lcmF0ZWRfdHlwZRgHIAEoCUgBiAEBEiAKE2lkZW50aXR5X2dlbmVyYXRpb24YCCABKAlIAogBAUIRCg9fY29sdW1uX2RlZmF1bHRCEQoPX2dlbmVyYXRlZF90eXBlQhYKFF9pZGVudGl0eV9nZW5lcmF0aW9uInsKGkdldENvbm5lY3Rpb25TY2hlbWFSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWciTQobR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlEi4KB3NjaGVtYXMYASADKAsyHS5tZ210LnYxYWxwaGExLkRhdGFiYXNlQ29sdW1uIn4KHUdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjwKDXNjaGVtYV9jb25maWcYAiABKAsyJS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25TY2hlbWFDb25maWci0AEKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRJQCgpzY2hlbWFfbWFwGAEgAygLMjwubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwUmVzcG9uc2UuU2NoZW1hTWFwRW50cnkaXAoOU2NoZW1hTWFwRW50cnkSCwoDa2V5GAEgASgJEjkKBXZhbHVlGAIgASgLMioubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVzcG9uc2U6AjgBImAKHkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVxdWVzdBI+CghyZXF1ZXN0cxgBIAMoCzIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QiewofR2V0Q29ubmVjdGlvblNjaGVtYU1hcHNSZXNwb25zZRJACglyZXNwb25zZXMYASADKAsyLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZRIWCg5jb25uZWN0aW9uX2lkcxgCIAMoCSIyCgpGb3JlaWduS2V5Eg0KBXRhYmxlGAEgASgJEg8KB2NvbHVtbnMYAyADKAlKBAgCEAMidgoRRm9yZWlnbkNvbnN0cmFpbnQSLgoLZm9yZWlnbl9rZXkYAyABKAsyGS5tZ210LnYxYWxwaGExLkZvcmVpZ25LZXkSDwoHY29sdW1ucxgEIAMoCRIUCgxub3RfbnVsbGFibGUYBSADKAhKBAgBEAJKBAgCEAMiUAoXRm9yZWlnbkNvbnN0cmFpbnRUYWJsZXMSNQoLY29uc3RyYWludHMYASADKAsyIC5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50ImUKFEluaXRTdGF0ZW1lbnRPcHRpb25zEhMKC2luaXRfc2NoZW1hGAEgASgIEh4KFnRydW5jYXRlX2JlZm9yZV9pbnNlcnQYAiABKAgSGAoQdHJ1bmNhdGVfY2FzY2FkZRgDIAEoCCJ7CiJHZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHNSZXF1ZXN0Eh8KDWNvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEjQKB29wdGlvbnMYAiABKAsyIy5tZ210LnYxYWxwaGExLkluaXRTdGF0ZW1lbnRPcHRpb25zIjkKFFNjaGVtYUluaXRTdGF0ZW1lbnRzEg0KBWxhYmVsGAEgASgJEhIKCnN0YXRlbWVudHMYAiADKAkixgMKI0dldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlEmoKFXRhYmxlX2luaXRfc3RhdGVtZW50cxgBIAMoCzJLLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkluaXRTdGF0ZW1lbnRzUmVzcG9uc2UuVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EnIKGXRhYmxlX3RydW5jYXRlX3N0YXRlbWVudHMYAiADKAsyTy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlLlRhYmxlVHJ1bmNhdGVTdGF0ZW1lbnRzRW50cnkSQwoWc2NoZW1hX2luaXRfc3RhdGVtZW50cxgDIAMoCzIjLm1nbXQudjFhbHBoYTEuU2NoZW1hSW5pdFN0YXRlbWVudHMaOgoYVGFibGVJbml0U3RhdGVtZW50c0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaPgocVGFibGVUcnVuY2F0ZVN0YXRlbWVudHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIiQKEVByaW1hcnlDb25zdHJhaW50Eg8KB2NvbHVtbnMYASADKAkiIwoQVW5pcXVlQ29uc3RyYWludBIPCgdjb2x1bW5zGAEgAygJIvMBChlHZXRBaUdlbmVyYXRlZERhdGFSZXF1ZXN0EiIKEGFpX2Nvbm5lY3Rpb25faWQYASABKAlCCLpIBXIDsAEBEhgKBWNvdW50GAIgASgDQgm6SAYiBBgKKAESGwoKbW9kZWxfbmFtZRgDIAEoCUIHukgEcgIQARIYCgt1c2VyX3Byb21wdBgEIAEoCUgAiAEBEiQKEmRhdGFfY29ubmVjdGlvbl9pZBgFIAEoCUIIukgFcgOwAQESKwoFdGFibGUYBiABKAsyHC5tZ210LnYxYWxwaGExLkRhdGFiYXNlVGFibGVCDgoMX3VzZXJfcHJvbXB0IkAKDURhdGFiYXNlVGFibGUSFwoGc2NoZW1hGAEgASgJQge6SARyAhABEhYKBXRhYmxlGAIgASgJQge6SARyAhABIkYKGkdldEFpR2VuZXJhdGVkRGF0YVJlc3BvbnNlEigKB3JlY29yZHMYASADKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IkcKJEdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABASJJChFVbmlxdWVDb25zdHJhaW50cxI0Cgtjb25zdHJhaW50cxgBIAMoCzIfLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludCKWBQolR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZRJwChdmb3JlaWduX2tleV9jb25zdHJhaW50cxgBIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5Gb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRJwChdwcmltYXJ5X2tleV9jb25zdHJhaW50cxgCIAMoCzJPLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZS5QcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRJnChJ1bmlxdWVfY29uc3RyYWludHMYAyADKAsySy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVzcG9uc2UuVW5pcXVlQ29uc3RyYWludHNFbnRyeRpkChpGb3JlaWduS2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSNQoFdmFsdWUYAiABKAsyJi5tZ210LnYxYWxwaGExLkZvcmVpZ25Db25zdHJhaW50VGFibGVzOgI4ARpeChpQcmltYXJ5S2V5Q29uc3RyYWludHNFbnRyeRILCgNrZXkYASABKAkSLwoFdmFsdWUYAiABKAsyIC5tZ210LnYxYWxwaGExLlByaW1hcnlDb25zdHJhaW50OgI4ARpaChZVbmlxdWVDb25zdHJhaW50c0VudHJ5EgsKA2tleRgBIAEoCRIvCgV2YWx1ZRgCIAEoCzIgLm1nbXQudjFhbHBoYTEuVW5pcXVlQ29uc3RyYWludHM6AjgBIpcBChdHZXRUYWJsZVJvd0NvdW50UmVxdWVzdBIfCg1jb25uZWN0aW9uX2lkGAEgASgJQgi6SAVyA7ABARIXCgZzY2hlbWEYAiABKAlCB7pIBHICEAESFgoFdGFibGUYAyABKAlCB7pIBHICEAESGQoMd2hlcmVfY2xhdXNlGAQgASgJSACIAQFCDwoNX3doZXJlX2NsYXVzZSIpChhHZXRUYWJsZVJvd0NvdW50UmVzcG9uc2USDQoFY291bnQYASABKAMy6QcKFUNvbm5lY3Rpb25EYXRhU2VydmljZRJ8ChdHZXRDb25uZWN0aW9uRGF0YVN0cmVhbRItLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvbkRhdGFTdHJlYW1SZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uRGF0YVN0cmVhbVJlc3BvbnNlIgAwARJuChNHZXRDb25uZWN0aW9uU2NoZW1hEikubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hUmVxdWVzdBoqLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYVJlc3BvbnNlIgASdwoWR2V0Q29ubmVjdGlvblNjaGVtYU1hcBIsLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblNjaGVtYU1hcFJlcXVlc3QaLS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBSZXNwb25zZSIAEnoKF0dldENvbm5lY3Rpb25TY2hlbWFNYXBzEi0ubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uU2NoZW1hTWFwc1JlcXVlc3QaLi5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25TY2hlbWFNYXBzUmVzcG9uc2UiABKMAQodR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHMSMy5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25UYWJsZUNvbnN0cmFpbnRzUmVxdWVzdBo0Lm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblRhYmxlQ29uc3RyYWludHNSZXNwb25zZSIAEoYBChtHZXRDb25uZWN0aW9uSW5pdFN0YXRlbWVudHMSMS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1JlcXVlc3QaMi5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25Jbml0U3RhdGVtZW50c1Jlc3BvbnNlIgASawoSR2V0QWlHZW5lcmF0ZWREYXRhEigubWdtdC52MWFscGhhMS5HZXRBaUdlbmVyYXRlZERhdGFSZXF1ZXN0GikubWdtdC52MWFscGhhMS5HZXRBaUdlbmVyYXRlZERhdGFSZXNwb25zZSIAEmgKEEdldFRhYmxlUm93Q291bnQSJi5tZ210LnYxYWxwaGExLkdldFRhYmxlUm93Q291bnRSZXF1ZXN0GicubWdtdC52MWFscGhhMS5HZXRUYWJsZVJvd0NvdW50UmVzcG9uc2UiA5ACAULPAQoRY29tLm1nbXQudjFhbHBoYTFCE0Nvbm5lY3Rpb25EYXRhUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_struct]);
 
 /**
  * @generated from message mgmt.v1alpha1.PostgresStreamConfig
@@ -62,12 +62,16 @@ export type AwsS3StreamConfig = Message<"mgmt.v1alpha1.AwsS3StreamConfig"> & {
    */
   id: {
     /**
+     * The unique identifier of the job to get the data stream for.
+     *
      * @generated from field: string job_id = 1;
      */
     value: string;
     case: "jobId";
   } | {
     /**
+     * The unique identifier of the job run to get the data stream for.
+     *
      * @generated from field: string job_run_id = 2;
      */
     value: string;
@@ -91,12 +95,16 @@ export type GcpCloudStorageStreamConfig = Message<"mgmt.v1alpha1.GcpCloudStorage
    */
   id: {
     /**
+     * The unique identifier of the job to get the data stream for.
+     *
      * @generated from field: string job_id = 1;
      */
     value: string;
     case: "jobId";
   } | {
     /**
+     * The unique identifier of the job run to get the data stream for.
+     *
      * @generated from field: string job_run_id = 2;
      */
     value: string;
@@ -163,21 +171,29 @@ export const ConnectionStreamConfigSchema: GenMessage<ConnectionStreamConfig> = 
  */
 export type GetConnectionDataStreamRequest = Message<"mgmt.v1alpha1.GetConnectionDataStreamRequest"> & {
   /**
+   * The unique identifier of the connection to get the data stream for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
 
   /**
+   * The stream configuration to use for the data stream.
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionStreamConfig stream_config = 2;
    */
   streamConfig?: ConnectionStreamConfig;
 
   /**
+   * The schema of the table to get the data stream for.
+   *
    * @generated from field: string schema = 3;
    */
   schema: string;
 
   /**
+   * The table to get the data stream for.
+   *
    * @generated from field: string table = 4;
    */
   table: string;
@@ -259,12 +275,16 @@ export type AwsS3SchemaConfig = Message<"mgmt.v1alpha1.AwsS3SchemaConfig"> & {
    */
   id: {
     /**
+     * The unique identifier of the job to get the schema for.
+     *
      * @generated from field: string job_id = 1;
      */
     value: string;
     case: "jobId";
   } | {
     /**
+     * The unique identifier of the job run to get the schema for.
+     *
      * @generated from field: string job_run_id = 2;
      */
     value: string;
@@ -314,12 +334,16 @@ export type GcpCloudStorageSchemaConfig = Message<"mgmt.v1alpha1.GcpCloudStorage
    */
   id: {
     /**
+     * The unique identifier of the job to get the schema for.
+     *
      * @generated from field: string job_id = 1;
      */
     value: string;
     case: "jobId";
   } | {
     /**
+     * The unique identifier of the job run to get the schema for.
+     *
      * @generated from field: string job_run_id = 2;
      */
     value: string;
@@ -467,11 +491,15 @@ export const DatabaseColumnSchema: GenMessage<DatabaseColumn> = /*@__PURE__*/
  */
 export type GetConnectionSchemaRequest = Message<"mgmt.v1alpha1.GetConnectionSchemaRequest"> & {
   /**
+   * The unique identifier of the connection to get the schema for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
 
   /**
+   * The schema configuration to use for the schema map.
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionSchemaConfig schema_config = 2;
    */
   schemaConfig?: ConnectionSchemaConfig;
@@ -489,6 +517,8 @@ export const GetConnectionSchemaRequestSchema: GenMessage<GetConnectionSchemaReq
  */
 export type GetConnectionSchemaResponse = Message<"mgmt.v1alpha1.GetConnectionSchemaResponse"> & {
   /**
+   * The list of database columns
+   *
    * @generated from field: repeated mgmt.v1alpha1.DatabaseColumn schemas = 1;
    */
   schemas: DatabaseColumn[];
@@ -506,11 +536,15 @@ export const GetConnectionSchemaResponseSchema: GenMessage<GetConnectionSchemaRe
  */
 export type GetConnectionSchemaMapRequest = Message<"mgmt.v1alpha1.GetConnectionSchemaMapRequest"> & {
   /**
+   * The unique identifier of the connection to get the schema map for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
 
   /**
+   * The schema configuration to use for the schema map.
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionSchemaConfig schema_config = 2;
    */
   schemaConfig?: ConnectionSchemaConfig;
@@ -592,11 +626,15 @@ export const GetConnectionSchemaMapsResponseSchema: GenMessage<GetConnectionSche
  */
 export type ForeignKey = Message<"mgmt.v1alpha1.ForeignKey"> & {
   /**
+   * The table that the foreign key is associated with
+   *
    * @generated from field: string table = 1;
    */
   table: string;
 
   /**
+   * The columns that are part of the foreign key
+   *
    * @generated from field: repeated string columns = 3;
    */
   columns: string[];
@@ -614,16 +652,22 @@ export const ForeignKeySchema: GenMessage<ForeignKey> = /*@__PURE__*/
  */
 export type ForeignConstraint = Message<"mgmt.v1alpha1.ForeignConstraint"> & {
   /**
+   * The foreign key that is associated with the constraint
+   *
    * @generated from field: mgmt.v1alpha1.ForeignKey foreign_key = 3;
    */
   foreignKey?: ForeignKey;
 
   /**
+   * The columns that are part of the constraint
+   *
    * @generated from field: repeated string columns = 4;
    */
   columns: string[];
 
   /**
+   * The not nullable flag for each column
+   *
    * @generated from field: repeated bool not_nullable = 5;
    */
   notNullable: boolean[];
@@ -641,6 +685,8 @@ export const ForeignConstraintSchema: GenMessage<ForeignConstraint> = /*@__PURE_
  */
 export type ForeignConstraintTables = Message<"mgmt.v1alpha1.ForeignConstraintTables"> & {
   /**
+   * A list of foreign key constraints
+   *
    * @generated from field: repeated mgmt.v1alpha1.ForeignConstraint constraints = 1;
    */
   constraints: ForeignConstraint[];
@@ -658,16 +704,22 @@ export const ForeignConstraintTablesSchema: GenMessage<ForeignConstraintTables> 
  */
 export type InitStatementOptions = Message<"mgmt.v1alpha1.InitStatementOptions"> & {
   /**
+   * Whether or not to generate schema init statements.
+   *
    * @generated from field: bool init_schema = 1;
    */
   initSchema: boolean;
 
   /**
+   * Whether or not to generate truncation statements
+   *
    * @generated from field: bool truncate_before_insert = 2;
    */
   truncateBeforeInsert: boolean;
 
   /**
+   * Whether or not to generate truncate cascade statements.
+   *
    * @generated from field: bool truncate_cascade = 3;
    */
   truncateCascade: boolean;
@@ -685,11 +737,15 @@ export const InitStatementOptionsSchema: GenMessage<InitStatementOptions> = /*@_
  */
 export type GetConnectionInitStatementsRequest = Message<"mgmt.v1alpha1.GetConnectionInitStatementsRequest"> & {
   /**
+   * The unique identifier of the connection to get the init statements for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
 
   /**
+   * The options to use for the init statements.
+   *
    * @generated from field: mgmt.v1alpha1.InitStatementOptions options = 2;
    */
   options?: InitStatementOptions;
@@ -707,11 +763,15 @@ export const GetConnectionInitStatementsRequestSchema: GenMessage<GetConnectionI
  */
 export type SchemaInitStatements = Message<"mgmt.v1alpha1.SchemaInitStatements"> & {
   /**
+   * A friendly label associated with the generated schema init statement(s)
+   *
    * @generated from field: string label = 1;
    */
   label: string;
 
   /**
+   * A list of SQL statements that may be used to initialize a database from scratch.
+   *
    * @generated from field: repeated string statements = 2;
    */
   statements: string[];
@@ -731,20 +791,22 @@ export const SchemaInitStatementsSchema: GenMessage<SchemaInitStatements> = /*@_
  */
 export type GetConnectionInitStatementsResponse = Message<"mgmt.v1alpha1.GetConnectionInitStatementsResponse"> & {
   /**
-   * the key here is <schema>.<table> and value is the table init statement.
+   * The key here is <schema>.<table> and value is the table init statement.
    *
    * @generated from field: map<string, string> table_init_statements = 1;
    */
   tableInitStatements: { [key: string]: string };
 
   /**
-   * the key here is <schema>.<table> and value is the table truncate statement.
+   * The key here is <schema>.<table> and value is the table truncate statement.
    *
    * @generated from field: map<string, string> table_truncate_statements = 2;
    */
   tableTruncateStatements: { [key: string]: string };
 
   /**
+   * A list of schema initialization statements
+   *
    * @generated from field: repeated mgmt.v1alpha1.SchemaInitStatements schema_init_statements = 3;
    */
   schemaInitStatements: SchemaInitStatements[];
@@ -762,6 +824,8 @@ export const GetConnectionInitStatementsResponseSchema: GenMessage<GetConnection
  */
 export type PrimaryConstraint = Message<"mgmt.v1alpha1.PrimaryConstraint"> & {
   /**
+   * The columns that are part of the primary constraint
+   *
    * @generated from field: repeated string columns = 1;
    */
   columns: string[];
@@ -779,6 +843,8 @@ export const PrimaryConstraintSchema: GenMessage<PrimaryConstraint> = /*@__PURE_
  */
 export type UniqueConstraint = Message<"mgmt.v1alpha1.UniqueConstraint"> & {
   /**
+   * The columns that are part of the unique constraint
+   *
    * @generated from field: repeated string columns = 1;
    */
   columns: string[];
@@ -796,31 +862,43 @@ export const UniqueConstraintSchema: GenMessage<UniqueConstraint> = /*@__PURE__*
  */
 export type GetAiGeneratedDataRequest = Message<"mgmt.v1alpha1.GetAiGeneratedDataRequest"> & {
   /**
+   * The unique identifier of a connection, specifically one that is configured for LLM use.
+   *
    * @generated from field: string ai_connection_id = 1;
    */
   aiConnectionId: string;
 
   /**
+   * The number of records to generate
+   *
    * @generated from field: int64 count = 2;
    */
   count: bigint;
 
   /**
+   * The LLM model name to use that works with the configured connection id.
+   *
    * @generated from field: string model_name = 3;
    */
   modelName: string;
 
   /**
+   * The prompt that will be used to further refine the data generation. This is appended to the prompt that Neosync generates that includes schema information.
+   *
    * @generated from field: optional string user_prompt = 4;
    */
   userPrompt?: string;
 
   /**
+   * The unique identifier of a connection that the AI generated data would be inserted into. This is used to generate and send schema information to the LLM to help shape the generated data.
+   *
    * @generated from field: string data_connection_id = 5;
    */
   dataConnectionId: string;
 
   /**
+   * The table to generate data for.
+   *
    * @generated from field: mgmt.v1alpha1.DatabaseTable table = 6;
    */
   table?: DatabaseTable;
@@ -838,11 +916,15 @@ export const GetAiGeneratedDataRequestSchema: GenMessage<GetAiGeneratedDataReque
  */
 export type DatabaseTable = Message<"mgmt.v1alpha1.DatabaseTable"> & {
   /**
+   * The schema of the table
+   *
    * @generated from field: string schema = 1;
    */
   schema: string;
 
   /**
+   * The table name
+   *
    * @generated from field: string table = 2;
    */
   table: string;
@@ -879,6 +961,8 @@ export const GetAiGeneratedDataResponseSchema: GenMessage<GetAiGeneratedDataResp
  */
 export type GetConnectionTableConstraintsRequest = Message<"mgmt.v1alpha1.GetConnectionTableConstraintsRequest"> & {
   /**
+   * The unique identifier of the connection to get the constraints for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
@@ -896,6 +980,8 @@ export const GetConnectionTableConstraintsRequestSchema: GenMessage<GetConnectio
  */
 export type UniqueConstraints = Message<"mgmt.v1alpha1.UniqueConstraints"> & {
   /**
+   * The unique constraints found for the table
+   *
    * @generated from field: repeated mgmt.v1alpha1.UniqueConstraint constraints = 1;
    */
   constraints: UniqueConstraint[];
@@ -946,21 +1032,29 @@ export const GetConnectionTableConstraintsResponseSchema: GenMessage<GetConnecti
  */
 export type GetTableRowCountRequest = Message<"mgmt.v1alpha1.GetTableRowCountRequest"> & {
   /**
+   * The unique identifier of the connection to get the row count for.
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId: string;
 
   /**
+   * The schema of the table to get the row count for.
+   *
    * @generated from field: string schema = 2;
    */
   schema: string;
 
   /**
+   * The table to get the row count for.
+   *
    * @generated from field: string table = 3;
    */
   table: string;
 
   /**
+   * The optional where clause to filter the rows by.
+   *
    * @generated from field: optional string where_clause = 4;
    */
   whereClause?: string;
@@ -978,6 +1072,8 @@ export const GetTableRowCountRequestSchema: GenMessage<GetTableRowCountRequest> 
  */
 export type GetTableRowCountResponse = Message<"mgmt.v1alpha1.GetTableRowCountResponse"> & {
   /**
+   * The count of the rows in the table
+   *
    * @generated from field: int64 count = 1;
    */
   count: bigint;

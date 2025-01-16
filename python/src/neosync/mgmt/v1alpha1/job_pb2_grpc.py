@@ -6,7 +6,8 @@ from mgmt.v1alpha1 import job_pb2 as mgmt_dot_v1alpha1_dot_job__pb2
 
 
 class JobServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles jobs, runs, and hooks
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -207,82 +208,95 @@ class JobServiceStub(object):
 
 
 class JobServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles jobs, runs, and hooks
+    """
 
     def GetJobs(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Returns a list of jobs by either account or job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetJob(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Returns a specific job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateJob(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Creates a new job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def DeleteJob(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Deletes a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def IsJobNameAvailable(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Checks if a job name is available
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def UpdateJobSchedule(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Updates the schedule of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def UpdateJobSourceConnection(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Updates the source connection of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SetJobSourceSqlConnectionSubsets(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Sets the source sql connection subsets of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def UpdateJobDestinationConnection(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Updates the destination connection of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def DeleteJobDestinationConnection(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Deletes the destination connection of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateJobDestinationConnections(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Creates the destination connections of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def PauseJob(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Pauses or unpauses a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetJobRecentRuns(self, request, context):
-        """Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+        """Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -296,13 +310,15 @@ class JobServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetJobStatus(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Returns the status of a job
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetJobStatuses(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Returns the statuses of jobs within an account
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -315,7 +331,8 @@ class JobServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetJobRunEvents(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Returns a list of events for a job run to understand more details of the run itself
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -328,25 +345,29 @@ class JobServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def DeleteJobRun(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Deletes a job run
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateJobRun(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Creates a new job run
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CancelJobRun(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def TerminateJobRun(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -373,7 +394,7 @@ class JobServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ValidateJobMappings(self, request, context):
-        """validates that the jobmapping configured can run with table constraints
+        """Validates that the jobmapping configured can run with table constraints
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -658,7 +679,8 @@ def add_JobServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class JobService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles jobs, runs, and hooks
+    """
 
     @staticmethod
     def GetJobs(request,

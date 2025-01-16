@@ -13,13 +13,15 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/connection.proto.
  */
 export const file_mgmt_v1alpha1_connection: GenFile = /*@__PURE__*/
-  fileDesc("Ch5tZ210L3YxYWxwaGExL2Nvbm5lY3Rpb24ucHJvdG8SDW1nbXQudjFhbHBoYTEiNQoVR2V0Q29ubmVjdGlvbnNSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkgKFkdldENvbm5lY3Rpb25zUmVzcG9uc2USLgoLY29ubmVjdGlvbnMYASADKAsyGS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb24iLAoUR2V0Q29ubmVjdGlvblJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIkYKFUdldENvbm5lY3Rpb25SZXNwb25zZRItCgpjb25uZWN0aW9uGAEgASgLMhkubWdtdC52MWFscGhhMS5Db25uZWN0aW9uIpwBChdDcmVhdGVDb25uZWN0aW9uUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEjoKEWNvbm5lY3Rpb25fY29uZmlnGAMgASgLMh8ubWdtdC52MWFscGhhMS5Db25uZWN0aW9uQ29uZmlnIkkKGENyZWF0ZUNvbm5lY3Rpb25SZXNwb25zZRItCgpjb25uZWN0aW9uGAEgASgLMhkubWdtdC52MWFscGhhMS5Db25uZWN0aW9uIpQBChdVcGRhdGVDb25uZWN0aW9uUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBI6ChFjb25uZWN0aW9uX2NvbmZpZxgDIAEoCzIfLm1nbXQudjFhbHBoYTEuQ29ubmVjdGlvbkNvbmZpZyJJChhVcGRhdGVDb25uZWN0aW9uUmVzcG9uc2USLQoKY29ubmVjdGlvbhgBIAEoCzIZLm1nbXQudjFhbHBoYTEuQ29ubmVjdGlvbiIvChdEZWxldGVDb25uZWN0aW9uUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiGgoYRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlIloKHENoZWNrQ29ubmVjdGlvbkNvbmZpZ1JlcXVlc3QSOgoRY29ubmVjdGlvbl9jb25maWcYASABKAsyHy5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25Db25maWciOAogQ2hlY2tDb25uZWN0aW9uQ29uZmlnQnlJZFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIqkBCiFDaGVja0Nvbm5lY3Rpb25Db25maWdCeUlkUmVzcG9uc2USFAoMaXNfY29ubmVjdGVkGAEgASgIEh0KEGNvbm5lY3Rpb25fZXJyb3IYAiABKAlIAIgBARI6Cgpwcml2aWxlZ2VzGAMgAygLMiYubWdtdC52MWFscGhhMS5Db25uZWN0aW9uUm9sZVByaXZpbGVnZUITChFfY29ubmVjdGlvbl9lcnJvciKlAQodQ2hlY2tDb25uZWN0aW9uQ29uZmlnUmVzcG9uc2USFAoMaXNfY29ubmVjdGVkGAEgASgIEh0KEGNvbm5lY3Rpb25fZXJyb3IYAiABKAlIAIgBARI6Cgpwcml2aWxlZ2VzGAMgAygLMiYubWdtdC52MWFscGhhMS5Db25uZWN0aW9uUm9sZVByaXZpbGVnZUITChFfY29ubmVjdGlvbl9lcnJvciJhChdDb25uZWN0aW9uUm9sZVByaXZpbGVnZRIPCgdncmFudGVlGAEgASgJEg4KBnNjaGVtYRgCIAEoCRINCgV0YWJsZRgDIAEoCRIWCg5wcml2aWxlZ2VfdHlwZRgEIAMoCSKOAgoKQ29ubmVjdGlvbhIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjoKEWNvbm5lY3Rpb25fY29uZmlnGAMgASgLMh8ubWdtdC52MWFscGhhMS5Db25uZWN0aW9uQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYBiABKAkSLgoKdXBkYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEgoKYWNjb3VudF9pZBgIIAEoCSL8BAoQQ29ubmVjdGlvbkNvbmZpZxI8CglwZ19jb25maWcYASABKAsyJy5tZ210LnYxYWxwaGExLlBvc3RncmVzQ29ubmVjdGlvbkNvbmZpZ0gAEj0KDWF3c19zM19jb25maWcYAiABKAsyJC5tZ210LnYxYWxwaGExLkF3c1MzQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG15c3FsX2NvbmZpZxgDIAEoCzIkLm1nbXQudjFhbHBoYTEuTXlzcWxDb25uZWN0aW9uQ29uZmlnSAASSQoQbG9jYWxfZGlyX2NvbmZpZxgEIAEoCzItLm1nbXQudjFhbHBoYTEuTG9jYWxEaXJlY3RvcnlDb25uZWN0aW9uQ29uZmlnSAASPgoNb3BlbmFpX2NvbmZpZxgFIAEoCzIlLm1nbXQudjFhbHBoYTEuT3BlbkFpQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG1vbmdvX2NvbmZpZxgGIAEoCzIkLm1nbXQudjFhbHBoYTEuTW9uZ29Db25uZWN0aW9uQ29uZmlnSAASUQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYByABKAsyLi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZUNvbm5lY3Rpb25Db25maWdIABJCCg9keW5hbW9kYl9jb25maWcYCCABKAsyJy5tZ210LnYxYWxwaGExLkR5bmFtb0RCQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG1zc3FsX2NvbmZpZxgJIAEoCzIkLm1nbXQudjFhbHBoYTEuTXNzcWxDb25uZWN0aW9uQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASL5AQoVTXNzcWxDb25uZWN0aW9uQ29uZmlnEg0KA3VybBgBIAEoCUgAEhYKDHVybF9mcm9tX2VudhgFIAEoCUgAEj8KEmNvbm5lY3Rpb25fb3B0aW9ucxgCIAEoCzIjLm1nbXQudjFhbHBoYTEuU3FsQ29ubmVjdGlvbk9wdGlvbnMSKAoGdHVubmVsGAMgASgLMhgubWdtdC52MWFscGhhMS5TU0hUdW5uZWwSMgoKY2xpZW50X3RscxgEIAEoCzIeLm1nbXQudjFhbHBoYTEuQ2xpZW50VGxzQ29uZmlnQhoKEWNvbm5lY3Rpb25fY29uZmlnEgW6SAIIASKpAQoYRHluYW1vREJDb25uZWN0aW9uQ29uZmlnEjkKC2NyZWRlbnRpYWxzGAEgASgLMh8ubWdtdC52MWFscGhhMS5Bd3NTM0NyZWRlbnRpYWxzSACIAQESEwoGcmVnaW9uGAIgASgJSAGIAQESFQoIZW5kcG9pbnQYAyABKAlIAogBAUIOCgxfY3JlZGVudGlhbHNCCQoHX3JlZ2lvbkILCglfZW5kcG9pbnQioAEKFU1vbmdvQ29ubmVjdGlvbkNvbmZpZxINCgN1cmwYASABKAlIABIoCgZ0dW5uZWwYAiABKAsyGC5tZ210LnYxYWxwaGExLlNTSFR1bm5lbBIyCgpjbGllbnRfdGxzGAMgASgLMh4ubWdtdC52MWFscGhhMS5DbGllbnRUbHNDb25maWdCGgoRY29ubmVjdGlvbl9jb25maWcSBbpIAggBIjoKFk9wZW5BaUNvbm5lY3Rpb25Db25maWcSDwoHYXBpX2tleRgBIAEoCRIPCgdhcGlfdXJsGAIgASgJIjcKHkxvY2FsRGlyZWN0b3J5Q29ubmVjdGlvbkNvbmZpZxIVCgRwYXRoGAEgASgJQge6SARyAhABIrUCChhQb3N0Z3Jlc0Nvbm5lY3Rpb25Db25maWcSDQoDdXJsGAEgASgJSAASNwoKY29ubmVjdGlvbhgCIAEoCzIhLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNDb25uZWN0aW9uSAASFgoMdXJsX2Zyb21fZW52GAYgASgJSAASKAoGdHVubmVsGAMgASgLMhgubWdtdC52MWFscGhhMS5TU0hUdW5uZWwSPwoSY29ubmVjdGlvbl9vcHRpb25zGAQgASgLMiMubWdtdC52MWFscGhhMS5TcWxDb25uZWN0aW9uT3B0aW9ucxIyCgpjbGllbnRfdGxzGAUgASgLMh4ubWdtdC52MWFscGhhMS5DbGllbnRUbHNDb25maWdCGgoRY29ubmVjdGlvbl9jb25maWcSBbpIAggBIrMBCg9DbGllbnRUbHNDb25maWcSFgoJcm9vdF9jZXJ0GAEgASgJSACIAQESGAoLY2xpZW50X2NlcnQYAiABKAlIAYgBARIXCgpjbGllbnRfa2V5GAMgASgJSAKIAQESGAoLc2VydmVyX25hbWUYBCABKAlIA4gBAUIMCgpfcm9vdF9jZXJ0Qg4KDF9jbGllbnRfY2VydEINCgtfY2xpZW50X2tleUIOCgxfc2VydmVyX25hbWUi+gEKFFNxbENvbm5lY3Rpb25PcHRpb25zEiEKFG1heF9jb25uZWN0aW9uX2xpbWl0GAEgASgFSACIAQESIQoUbWF4X2lkbGVfY29ubmVjdGlvbnMYAiABKAVIAYgBARIeChFtYXhfaWRsZV9kdXJhdGlvbhgDIAEoCUgCiAEBEh4KEW1heF9vcGVuX2R1cmF0aW9uGAQgASgJSAOIAQFCFwoVX21heF9jb25uZWN0aW9uX2xpbWl0QhcKFV9tYXhfaWRsZV9jb25uZWN0aW9uc0IUChJfbWF4X2lkbGVfZHVyYXRpb25CFAoSX21heF9vcGVuX2R1cmF0aW9uItEBCglTU0hUdW5uZWwSFQoEaG9zdBgBIAEoCUIHukgEcgIQARIVCgRwb3J0GAIgASgFQge6SAQaAigAEhUKBHVzZXIYAyABKAlCB7pIBHICEAESKwoVa25vd25faG9zdF9wdWJsaWNfa2V5GAQgASgJQge6SARyAhABSACIAQESOAoOYXV0aGVudGljYXRpb24YBSABKAsyIC5tZ210LnYxYWxwaGExLlNTSEF1dGhlbnRpY2F0aW9uQhgKFl9rbm93bl9ob3N0X3B1YmxpY19rZXkikgEKEVNTSEF1dGhlbnRpY2F0aW9uEjIKCnBhc3NwaHJhc2UYASABKAsyHC5tZ210LnYxYWxwaGExLlNTSFBhc3NwaHJhc2VIABIzCgtwcml2YXRlX2tleRgCIAEoCzIcLm1nbXQudjFhbHBoYTEuU1NIUHJpdmF0ZUtleUgAQhQKC2F1dGhfY29uZmlnEgW6SAIIASInCg1TU0hQYXNzcGhyYXNlEhYKBXZhbHVlGAEgASgJQge6SARyAhABIk8KDVNTSFByaXZhdGVLZXkSFgoFdmFsdWUYASABKAlCB7pIBHICEAESFwoKcGFzc3BocmFzZRgCIAEoCUgAiAEBQg0KC19wYXNzcGhyYXNlIn4KElBvc3RncmVzQ29ubmVjdGlvbhIMCgRob3N0GAEgASgJEgwKBHBvcnQYAiABKAUSDAoEbmFtZRgDIAEoCRIMCgR1c2VyGAQgASgJEgwKBHBhc3MYBSABKAkSFQoIc3NsX21vZGUYBiABKAlIAIgBAUILCglfc3NsX21vZGUiaQoPTXlzcWxDb25uZWN0aW9uEgwKBHVzZXIYASABKAkSDAoEcGFzcxgCIAEoCRIQCghwcm90b2NvbBgDIAEoCRIMCgRob3N0GAQgASgJEgwKBHBvcnQYBSABKAUSDAoEbmFtZRgGIAEoCSKvAgoVTXlzcWxDb25uZWN0aW9uQ29uZmlnEg0KA3VybBgBIAEoCUgAEjQKCmNvbm5lY3Rpb24YAiABKAsyHi5tZ210LnYxYWxwaGExLk15c3FsQ29ubmVjdGlvbkgAEhYKDHVybF9mcm9tX2VudhgGIAEoCUgAEigKBnR1bm5lbBgDIAEoCzIYLm1nbXQudjFhbHBoYTEuU1NIVHVubmVsEj8KEmNvbm5lY3Rpb25fb3B0aW9ucxgEIAEoCzIjLm1nbXQudjFhbHBoYTEuU3FsQ29ubmVjdGlvbk9wdGlvbnMSMgoKY2xpZW50X3RscxgFIAEoCzIeLm1nbXQudjFhbHBoYTEuQ2xpZW50VGxzQ29uZmlnQhoKEWNvbm5lY3Rpb25fY29uZmlnEgW6SAIIASLvAQoVQXdzUzNDb25uZWN0aW9uQ29uZmlnEhgKC3BhdGhfcHJlZml4GAIgASgJSACIAQESOQoLY3JlZGVudGlhbHMYAyABKAsyHy5tZ210LnYxYWxwaGExLkF3c1MzQ3JlZGVudGlhbHNIAYgBARITCgZyZWdpb24YBCABKAlIAogBARIVCghlbmRwb2ludBgFIAEoCUgDiAEBEhcKBmJ1Y2tldBgGIAEoCUIHukgEcgIQAUIOCgxfcGF0aF9wcmVmaXhCDgoMX2NyZWRlbnRpYWxzQgkKB19yZWdpb25CCwoJX2VuZHBvaW50SgQIARACIswCChBBd3NTM0NyZWRlbnRpYWxzEhQKB3Byb2ZpbGUYASABKAlIAIgBARIaCg1hY2Nlc3Nfa2V5X2lkGAIgASgJSAGIAQESHgoRc2VjcmV0X2FjY2Vzc19rZXkYAyABKAlIAogBARIaCg1zZXNzaW9uX3Rva2VuGAQgASgJSAOIAQESGgoNZnJvbV9lYzJfcm9sZRgFIAEoCEgEiAEBEhUKCHJvbGVfYXJuGAYgASgJSAWIAQESHQoQcm9sZV9leHRlcm5hbF9pZBgHIAEoCUgGiAEBQgoKCF9wcm9maWxlQhAKDl9hY2Nlc3Nfa2V5X2lkQhQKEl9zZWNyZXRfYWNjZXNzX2tleUIQCg5fc2Vzc2lvbl90b2tlbkIQCg5fZnJvbV9lYzJfcm9sZUILCglfcm9sZV9hcm5CEwoRX3JvbGVfZXh0ZXJuYWxfaWQirgEKH0djcENsb3VkU3RvcmFnZUNvbm5lY3Rpb25Db25maWcSFwoGYnVja2V0GAEgASgJQge6SARyAhABEhgKC3BhdGhfcHJlZml4GAIgASgJSACIAQESKAobc2VydmljZV9hY2NvdW50X2NyZWRlbnRpYWxzGAMgASgJSAGIAQFCDgoMX3BhdGhfcHJlZml4Qh4KHF9zZXJ2aWNlX2FjY291bnRfY3JlZGVudGlhbHMidAogSXNDb25uZWN0aW9uTmFtZUF2YWlsYWJsZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESMgoPY29ubmVjdGlvbl9uYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kIjkKIUlzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGVSZXNwb25zZRIUCgxpc19hdmFpbGFibGUYASABKAgiRAoUQ2hlY2tTcWxRdWVyeVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEhYKBXF1ZXJ5GAIgASgJQge6SARyAhABIlcKFUNoZWNrU3FsUXVlcnlSZXNwb25zZRIQCghpc192YWxpZBgBIAEoCBIaCg1lcm9ycl9tZXNzYWdlGAIgASgJSACIAQFCEAoOX2Vyb3JyX21lc3NhZ2Uy4QcKEUNvbm5lY3Rpb25TZXJ2aWNlEl8KDkdldENvbm5lY3Rpb25zEiQubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uc1JlcXVlc3QaJS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25zUmVzcG9uc2UiABJcCg1HZXRDb25uZWN0aW9uEiMubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uUmVxdWVzdBokLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblJlc3BvbnNlIgASZQoQQ3JlYXRlQ29ubmVjdGlvbhImLm1nbXQudjFhbHBoYTEuQ3JlYXRlQ29ubmVjdGlvblJlcXVlc3QaJy5tZ210LnYxYWxwaGExLkNyZWF0ZUNvbm5lY3Rpb25SZXNwb25zZSIAEmUKEFVwZGF0ZUNvbm5lY3Rpb24SJi5tZ210LnYxYWxwaGExLlVwZGF0ZUNvbm5lY3Rpb25SZXF1ZXN0GicubWdtdC52MWFscGhhMS5VcGRhdGVDb25uZWN0aW9uUmVzcG9uc2UiABJlChBEZWxldGVDb25uZWN0aW9uEiYubWdtdC52MWFscGhhMS5EZWxldGVDb25uZWN0aW9uUmVxdWVzdBonLm1nbXQudjFhbHBoYTEuRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlIgASgAEKGUlzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGUSLy5tZ210LnYxYWxwaGExLklzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGVSZXF1ZXN0GjAubWdtdC52MWFscGhhMS5Jc0Nvbm5lY3Rpb25OYW1lQXZhaWxhYmxlUmVzcG9uc2UiABJ0ChVDaGVja0Nvbm5lY3Rpb25Db25maWcSKy5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ1JlcXVlc3QaLC5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ1Jlc3BvbnNlIgASgAEKGUNoZWNrQ29ubmVjdGlvbkNvbmZpZ0J5SWQSLy5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ0J5SWRSZXF1ZXN0GjAubWdtdC52MWFscGhhMS5DaGVja0Nvbm5lY3Rpb25Db25maWdCeUlkUmVzcG9uc2UiABJcCg1DaGVja1NxbFF1ZXJ5EiMubWdtdC52MWFscGhhMS5DaGVja1NxbFF1ZXJ5UmVxdWVzdBokLm1nbXQudjFhbHBoYTEuQ2hlY2tTcWxRdWVyeVJlc3BvbnNlIgBCywEKEWNvbS5tZ210LnYxYWxwaGExQg9Db25uZWN0aW9uUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("Ch5tZ210L3YxYWxwaGExL2Nvbm5lY3Rpb24ucHJvdG8SDW1nbXQudjFhbHBoYTEiNQoVR2V0Q29ubmVjdGlvbnNSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkgKFkdldENvbm5lY3Rpb25zUmVzcG9uc2USLgoLY29ubmVjdGlvbnMYASADKAsyGS5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb24iLAoUR2V0Q29ubmVjdGlvblJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIkYKFUdldENvbm5lY3Rpb25SZXNwb25zZRItCgpjb25uZWN0aW9uGAEgASgLMhkubWdtdC52MWFscGhhMS5Db25uZWN0aW9uIpwBChdDcmVhdGVDb25uZWN0aW9uUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEjoKEWNvbm5lY3Rpb25fY29uZmlnGAMgASgLMh8ubWdtdC52MWFscGhhMS5Db25uZWN0aW9uQ29uZmlnIkkKGENyZWF0ZUNvbm5lY3Rpb25SZXNwb25zZRItCgpjb25uZWN0aW9uGAEgASgLMhkubWdtdC52MWFscGhhMS5Db25uZWN0aW9uIpQBChdVcGRhdGVDb25uZWN0aW9uUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBI6ChFjb25uZWN0aW9uX2NvbmZpZxgDIAEoCzIfLm1nbXQudjFhbHBoYTEuQ29ubmVjdGlvbkNvbmZpZyJJChhVcGRhdGVDb25uZWN0aW9uUmVzcG9uc2USLQoKY29ubmVjdGlvbhgBIAEoCzIZLm1nbXQudjFhbHBoYTEuQ29ubmVjdGlvbiIvChdEZWxldGVDb25uZWN0aW9uUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiGgoYRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlIloKHENoZWNrQ29ubmVjdGlvbkNvbmZpZ1JlcXVlc3QSOgoRY29ubmVjdGlvbl9jb25maWcYASABKAsyHy5tZ210LnYxYWxwaGExLkNvbm5lY3Rpb25Db25maWciOAogQ2hlY2tDb25uZWN0aW9uQ29uZmlnQnlJZFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIqkBCiFDaGVja0Nvbm5lY3Rpb25Db25maWdCeUlkUmVzcG9uc2USFAoMaXNfY29ubmVjdGVkGAEgASgIEh0KEGNvbm5lY3Rpb25fZXJyb3IYAiABKAlIAIgBARI6Cgpwcml2aWxlZ2VzGAMgAygLMiYubWdtdC52MWFscGhhMS5Db25uZWN0aW9uUm9sZVByaXZpbGVnZUITChFfY29ubmVjdGlvbl9lcnJvciKlAQodQ2hlY2tDb25uZWN0aW9uQ29uZmlnUmVzcG9uc2USFAoMaXNfY29ubmVjdGVkGAEgASgIEh0KEGNvbm5lY3Rpb25fZXJyb3IYAiABKAlIAIgBARI6Cgpwcml2aWxlZ2VzGAMgAygLMiYubWdtdC52MWFscGhhMS5Db25uZWN0aW9uUm9sZVByaXZpbGVnZUITChFfY29ubmVjdGlvbl9lcnJvciJhChdDb25uZWN0aW9uUm9sZVByaXZpbGVnZRIPCgdncmFudGVlGAEgASgJEg4KBnNjaGVtYRgCIAEoCRINCgV0YWJsZRgDIAEoCRIWCg5wcml2aWxlZ2VfdHlwZRgEIAMoCSKOAgoKQ29ubmVjdGlvbhIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjoKEWNvbm5lY3Rpb25fY29uZmlnGAMgASgLMh8ubWdtdC52MWFscGhhMS5Db25uZWN0aW9uQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYBiABKAkSLgoKdXBkYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASEgoKYWNjb3VudF9pZBgIIAEoCSL8BAoQQ29ubmVjdGlvbkNvbmZpZxI8CglwZ19jb25maWcYASABKAsyJy5tZ210LnYxYWxwaGExLlBvc3RncmVzQ29ubmVjdGlvbkNvbmZpZ0gAEj0KDWF3c19zM19jb25maWcYAiABKAsyJC5tZ210LnYxYWxwaGExLkF3c1MzQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG15c3FsX2NvbmZpZxgDIAEoCzIkLm1nbXQudjFhbHBoYTEuTXlzcWxDb25uZWN0aW9uQ29uZmlnSAASSQoQbG9jYWxfZGlyX2NvbmZpZxgEIAEoCzItLm1nbXQudjFhbHBoYTEuTG9jYWxEaXJlY3RvcnlDb25uZWN0aW9uQ29uZmlnSAASPgoNb3BlbmFpX2NvbmZpZxgFIAEoCzIlLm1nbXQudjFhbHBoYTEuT3BlbkFpQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG1vbmdvX2NvbmZpZxgGIAEoCzIkLm1nbXQudjFhbHBoYTEuTW9uZ29Db25uZWN0aW9uQ29uZmlnSAASUQoXZ2NwX2Nsb3Vkc3RvcmFnZV9jb25maWcYByABKAsyLi5tZ210LnYxYWxwaGExLkdjcENsb3VkU3RvcmFnZUNvbm5lY3Rpb25Db25maWdIABJCCg9keW5hbW9kYl9jb25maWcYCCABKAsyJy5tZ210LnYxYWxwaGExLkR5bmFtb0RCQ29ubmVjdGlvbkNvbmZpZ0gAEjwKDG1zc3FsX2NvbmZpZxgJIAEoCzIkLm1nbXQudjFhbHBoYTEuTXNzcWxDb25uZWN0aW9uQ29uZmlnSABCDwoGY29uZmlnEgW6SAIIASL5AQoVTXNzcWxDb25uZWN0aW9uQ29uZmlnEg0KA3VybBgBIAEoCUgAEhYKDHVybF9mcm9tX2VudhgFIAEoCUgAEj8KEmNvbm5lY3Rpb25fb3B0aW9ucxgCIAEoCzIjLm1nbXQudjFhbHBoYTEuU3FsQ29ubmVjdGlvbk9wdGlvbnMSKAoGdHVubmVsGAMgASgLMhgubWdtdC52MWFscGhhMS5TU0hUdW5uZWwSMgoKY2xpZW50X3RscxgEIAEoCzIeLm1nbXQudjFhbHBoYTEuQ2xpZW50VGxzQ29uZmlnQhoKEWNvbm5lY3Rpb25fY29uZmlnEgW6SAIIASKpAQoYRHluYW1vREJDb25uZWN0aW9uQ29uZmlnEjkKC2NyZWRlbnRpYWxzGAEgASgLMh8ubWdtdC52MWFscGhhMS5Bd3NTM0NyZWRlbnRpYWxzSACIAQESEwoGcmVnaW9uGAIgASgJSAGIAQESFQoIZW5kcG9pbnQYAyABKAlIAogBAUIOCgxfY3JlZGVudGlhbHNCCQoHX3JlZ2lvbkILCglfZW5kcG9pbnQioAEKFU1vbmdvQ29ubmVjdGlvbkNvbmZpZxINCgN1cmwYASABKAlIABIoCgZ0dW5uZWwYAiABKAsyGC5tZ210LnYxYWxwaGExLlNTSFR1bm5lbBIyCgpjbGllbnRfdGxzGAMgASgLMh4ubWdtdC52MWFscGhhMS5DbGllbnRUbHNDb25maWdCGgoRY29ubmVjdGlvbl9jb25maWcSBbpIAggBIjoKFk9wZW5BaUNvbm5lY3Rpb25Db25maWcSDwoHYXBpX2tleRgBIAEoCRIPCgdhcGlfdXJsGAIgASgJIjcKHkxvY2FsRGlyZWN0b3J5Q29ubmVjdGlvbkNvbmZpZxIVCgRwYXRoGAEgASgJQge6SARyAhABIrUCChhQb3N0Z3Jlc0Nvbm5lY3Rpb25Db25maWcSDQoDdXJsGAEgASgJSAASNwoKY29ubmVjdGlvbhgCIAEoCzIhLm1nbXQudjFhbHBoYTEuUG9zdGdyZXNDb25uZWN0aW9uSAASFgoMdXJsX2Zyb21fZW52GAYgASgJSAASKAoGdHVubmVsGAMgASgLMhgubWdtdC52MWFscGhhMS5TU0hUdW5uZWwSPwoSY29ubmVjdGlvbl9vcHRpb25zGAQgASgLMiMubWdtdC52MWFscGhhMS5TcWxDb25uZWN0aW9uT3B0aW9ucxIyCgpjbGllbnRfdGxzGAUgASgLMh4ubWdtdC52MWFscGhhMS5DbGllbnRUbHNDb25maWdCGgoRY29ubmVjdGlvbl9jb25maWcSBbpIAggBIrMBCg9DbGllbnRUbHNDb25maWcSFgoJcm9vdF9jZXJ0GAEgASgJSACIAQESGAoLY2xpZW50X2NlcnQYAiABKAlIAYgBARIXCgpjbGllbnRfa2V5GAMgASgJSAKIAQESGAoLc2VydmVyX25hbWUYBCABKAlIA4gBAUIMCgpfcm9vdF9jZXJ0Qg4KDF9jbGllbnRfY2VydEINCgtfY2xpZW50X2tleUIOCgxfc2VydmVyX25hbWUi+gEKFFNxbENvbm5lY3Rpb25PcHRpb25zEiEKFG1heF9jb25uZWN0aW9uX2xpbWl0GAEgASgFSACIAQESIQoUbWF4X2lkbGVfY29ubmVjdGlvbnMYAiABKAVIAYgBARIeChFtYXhfaWRsZV9kdXJhdGlvbhgDIAEoCUgCiAEBEh4KEW1heF9vcGVuX2R1cmF0aW9uGAQgASgJSAOIAQFCFwoVX21heF9jb25uZWN0aW9uX2xpbWl0QhcKFV9tYXhfaWRsZV9jb25uZWN0aW9uc0IUChJfbWF4X2lkbGVfZHVyYXRpb25CFAoSX21heF9vcGVuX2R1cmF0aW9uItEBCglTU0hUdW5uZWwSFQoEaG9zdBgBIAEoCUIHukgEcgIQARIVCgRwb3J0GAIgASgFQge6SAQaAigAEhUKBHVzZXIYAyABKAlCB7pIBHICEAESKwoVa25vd25faG9zdF9wdWJsaWNfa2V5GAQgASgJQge6SARyAhABSACIAQESOAoOYXV0aGVudGljYXRpb24YBSABKAsyIC5tZ210LnYxYWxwaGExLlNTSEF1dGhlbnRpY2F0aW9uQhgKFl9rbm93bl9ob3N0X3B1YmxpY19rZXkikgEKEVNTSEF1dGhlbnRpY2F0aW9uEjIKCnBhc3NwaHJhc2UYASABKAsyHC5tZ210LnYxYWxwaGExLlNTSFBhc3NwaHJhc2VIABIzCgtwcml2YXRlX2tleRgCIAEoCzIcLm1nbXQudjFhbHBoYTEuU1NIUHJpdmF0ZUtleUgAQhQKC2F1dGhfY29uZmlnEgW6SAIIASInCg1TU0hQYXNzcGhyYXNlEhYKBXZhbHVlGAEgASgJQge6SARyAhABIk8KDVNTSFByaXZhdGVLZXkSFgoFdmFsdWUYASABKAlCB7pIBHICEAESFwoKcGFzc3BocmFzZRgCIAEoCUgAiAEBQg0KC19wYXNzcGhyYXNlIn4KElBvc3RncmVzQ29ubmVjdGlvbhIMCgRob3N0GAEgASgJEgwKBHBvcnQYAiABKAUSDAoEbmFtZRgDIAEoCRIMCgR1c2VyGAQgASgJEgwKBHBhc3MYBSABKAkSFQoIc3NsX21vZGUYBiABKAlIAIgBAUILCglfc3NsX21vZGUiaQoPTXlzcWxDb25uZWN0aW9uEgwKBHVzZXIYASABKAkSDAoEcGFzcxgCIAEoCRIQCghwcm90b2NvbBgDIAEoCRIMCgRob3N0GAQgASgJEgwKBHBvcnQYBSABKAUSDAoEbmFtZRgGIAEoCSKvAgoVTXlzcWxDb25uZWN0aW9uQ29uZmlnEg0KA3VybBgBIAEoCUgAEjQKCmNvbm5lY3Rpb24YAiABKAsyHi5tZ210LnYxYWxwaGExLk15c3FsQ29ubmVjdGlvbkgAEhYKDHVybF9mcm9tX2VudhgGIAEoCUgAEigKBnR1bm5lbBgDIAEoCzIYLm1nbXQudjFhbHBoYTEuU1NIVHVubmVsEj8KEmNvbm5lY3Rpb25fb3B0aW9ucxgEIAEoCzIjLm1nbXQudjFhbHBoYTEuU3FsQ29ubmVjdGlvbk9wdGlvbnMSMgoKY2xpZW50X3RscxgFIAEoCzIeLm1nbXQudjFhbHBoYTEuQ2xpZW50VGxzQ29uZmlnQhoKEWNvbm5lY3Rpb25fY29uZmlnEgW6SAIIASLvAQoVQXdzUzNDb25uZWN0aW9uQ29uZmlnEhgKC3BhdGhfcHJlZml4GAIgASgJSACIAQESOQoLY3JlZGVudGlhbHMYAyABKAsyHy5tZ210LnYxYWxwaGExLkF3c1MzQ3JlZGVudGlhbHNIAYgBARITCgZyZWdpb24YBCABKAlIAogBARIVCghlbmRwb2ludBgFIAEoCUgDiAEBEhcKBmJ1Y2tldBgGIAEoCUIHukgEcgIQAUIOCgxfcGF0aF9wcmVmaXhCDgoMX2NyZWRlbnRpYWxzQgkKB19yZWdpb25CCwoJX2VuZHBvaW50SgQIARACIswCChBBd3NTM0NyZWRlbnRpYWxzEhQKB3Byb2ZpbGUYASABKAlIAIgBARIaCg1hY2Nlc3Nfa2V5X2lkGAIgASgJSAGIAQESHgoRc2VjcmV0X2FjY2Vzc19rZXkYAyABKAlIAogBARIaCg1zZXNzaW9uX3Rva2VuGAQgASgJSAOIAQESGgoNZnJvbV9lYzJfcm9sZRgFIAEoCEgEiAEBEhUKCHJvbGVfYXJuGAYgASgJSAWIAQESHQoQcm9sZV9leHRlcm5hbF9pZBgHIAEoCUgGiAEBQgoKCF9wcm9maWxlQhAKDl9hY2Nlc3Nfa2V5X2lkQhQKEl9zZWNyZXRfYWNjZXNzX2tleUIQCg5fc2Vzc2lvbl90b2tlbkIQCg5fZnJvbV9lYzJfcm9sZUILCglfcm9sZV9hcm5CEwoRX3JvbGVfZXh0ZXJuYWxfaWQirgEKH0djcENsb3VkU3RvcmFnZUNvbm5lY3Rpb25Db25maWcSFwoGYnVja2V0GAEgASgJQge6SARyAhABEhgKC3BhdGhfcHJlZml4GAIgASgJSACIAQESKAobc2VydmljZV9hY2NvdW50X2NyZWRlbnRpYWxzGAMgASgJSAGIAQFCDgoMX3BhdGhfcHJlZml4Qh4KHF9zZXJ2aWNlX2FjY291bnRfY3JlZGVudGlhbHMidAogSXNDb25uZWN0aW9uTmFtZUF2YWlsYWJsZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESMgoPY29ubmVjdGlvbl9uYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kIjkKIUlzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGVSZXNwb25zZRIUCgxpc19hdmFpbGFibGUYASABKAgiRAoUQ2hlY2tTcWxRdWVyeVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEhYKBXF1ZXJ5GAIgASgJQge6SARyAhABIlcKFUNoZWNrU3FsUXVlcnlSZXNwb25zZRIQCghpc192YWxpZBgBIAEoCBIaCg1lcm9ycl9tZXNzYWdlGAIgASgJSACIAQFCEAoOX2Vyb3JyX21lc3NhZ2Uy5wcKEUNvbm5lY3Rpb25TZXJ2aWNlEmIKDkdldENvbm5lY3Rpb25zEiQubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uc1JlcXVlc3QaJS5tZ210LnYxYWxwaGExLkdldENvbm5lY3Rpb25zUmVzcG9uc2UiA5ACARJfCg1HZXRDb25uZWN0aW9uEiMubWdtdC52MWFscGhhMS5HZXRDb25uZWN0aW9uUmVxdWVzdBokLm1nbXQudjFhbHBoYTEuR2V0Q29ubmVjdGlvblJlc3BvbnNlIgOQAgESZQoQQ3JlYXRlQ29ubmVjdGlvbhImLm1nbXQudjFhbHBoYTEuQ3JlYXRlQ29ubmVjdGlvblJlcXVlc3QaJy5tZ210LnYxYWxwaGExLkNyZWF0ZUNvbm5lY3Rpb25SZXNwb25zZSIAEmUKEFVwZGF0ZUNvbm5lY3Rpb24SJi5tZ210LnYxYWxwaGExLlVwZGF0ZUNvbm5lY3Rpb25SZXF1ZXN0GicubWdtdC52MWFscGhhMS5VcGRhdGVDb25uZWN0aW9uUmVzcG9uc2UiABJlChBEZWxldGVDb25uZWN0aW9uEiYubWdtdC52MWFscGhhMS5EZWxldGVDb25uZWN0aW9uUmVxdWVzdBonLm1nbXQudjFhbHBoYTEuRGVsZXRlQ29ubmVjdGlvblJlc3BvbnNlIgASgAEKGUlzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGUSLy5tZ210LnYxYWxwaGExLklzQ29ubmVjdGlvbk5hbWVBdmFpbGFibGVSZXF1ZXN0GjAubWdtdC52MWFscGhhMS5Jc0Nvbm5lY3Rpb25OYW1lQXZhaWxhYmxlUmVzcG9uc2UiABJ0ChVDaGVja0Nvbm5lY3Rpb25Db25maWcSKy5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ1JlcXVlc3QaLC5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ1Jlc3BvbnNlIgASgAEKGUNoZWNrQ29ubmVjdGlvbkNvbmZpZ0J5SWQSLy5tZ210LnYxYWxwaGExLkNoZWNrQ29ubmVjdGlvbkNvbmZpZ0J5SWRSZXF1ZXN0GjAubWdtdC52MWFscGhhMS5DaGVja0Nvbm5lY3Rpb25Db25maWdCeUlkUmVzcG9uc2UiABJcCg1DaGVja1NxbFF1ZXJ5EiMubWdtdC52MWFscGhhMS5DaGVja1NxbFF1ZXJ5UmVxdWVzdBokLm1nbXQudjFhbHBoYTEuQ2hlY2tTcWxRdWVyeVJlc3BvbnNlIgBCywEKEWNvbS5tZ210LnYxYWxwaGExQg9Db25uZWN0aW9uUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
  */
 export type GetConnectionsRequest = Message<"mgmt.v1alpha1.GetConnectionsRequest"> & {
   /**
+   * The unique identifier of the account to get connections for
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -37,6 +39,8 @@ export const GetConnectionsRequestSchema: GenMessage<GetConnectionsRequest> = /*
  */
 export type GetConnectionsResponse = Message<"mgmt.v1alpha1.GetConnectionsResponse"> & {
   /**
+   * The connections
+   *
    * @generated from field: repeated mgmt.v1alpha1.Connection connections = 1;
    */
   connections: Connection[];
@@ -54,6 +58,8 @@ export const GetConnectionsResponseSchema: GenMessage<GetConnectionsResponse> = 
  */
 export type GetConnectionRequest = Message<"mgmt.v1alpha1.GetConnectionRequest"> & {
   /**
+   * The unique identifier of the connection to get
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -71,6 +77,8 @@ export const GetConnectionRequestSchema: GenMessage<GetConnectionRequest> = /*@_
  */
 export type GetConnectionResponse = Message<"mgmt.v1alpha1.GetConnectionResponse"> & {
   /**
+   * The connection
+   *
    * @generated from field: mgmt.v1alpha1.Connection connection = 1;
    */
   connection?: Connection;
@@ -88,6 +96,8 @@ export const GetConnectionResponseSchema: GenMessage<GetConnectionResponse> = /*
  */
 export type CreateConnectionRequest = Message<"mgmt.v1alpha1.CreateConnectionRequest"> & {
   /**
+   * The unique identifier of the account to create the connection for
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -100,6 +110,8 @@ export type CreateConnectionRequest = Message<"mgmt.v1alpha1.CreateConnectionReq
   name: string;
 
   /**
+   * The connection configuration to use for the connection
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
    */
   connectionConfig?: ConnectionConfig;
@@ -117,6 +129,8 @@ export const CreateConnectionRequestSchema: GenMessage<CreateConnectionRequest> 
  */
 export type CreateConnectionResponse = Message<"mgmt.v1alpha1.CreateConnectionResponse"> & {
   /**
+   * The created connection
+   *
    * @generated from field: mgmt.v1alpha1.Connection connection = 1;
    */
   connection?: Connection;
@@ -134,16 +148,22 @@ export const CreateConnectionResponseSchema: GenMessage<CreateConnectionResponse
  */
 export type UpdateConnectionRequest = Message<"mgmt.v1alpha1.UpdateConnectionRequest"> & {
   /**
+   * The unique identifier of the connection to update
+   *
    * @generated from field: string id = 1;
    */
   id: string;
 
   /**
+   * The friendly name of the connection
+   *
    * @generated from field: string name = 2;
    */
   name: string;
 
   /**
+   * The connection configuration to use for the connection
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
    */
   connectionConfig?: ConnectionConfig;
@@ -161,6 +181,8 @@ export const UpdateConnectionRequestSchema: GenMessage<UpdateConnectionRequest> 
  */
 export type UpdateConnectionResponse = Message<"mgmt.v1alpha1.UpdateConnectionResponse"> & {
   /**
+   * The updated connection
+   *
    * @generated from field: mgmt.v1alpha1.Connection connection = 1;
    */
   connection?: Connection;
@@ -178,6 +200,8 @@ export const UpdateConnectionResponseSchema: GenMessage<UpdateConnectionResponse
  */
 export type DeleteConnectionRequest = Message<"mgmt.v1alpha1.DeleteConnectionRequest"> & {
   /**
+   * The unique identifier of the connection to delete
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -208,6 +232,8 @@ export const DeleteConnectionResponseSchema: GenMessage<DeleteConnectionResponse
  */
 export type CheckConnectionConfigRequest = Message<"mgmt.v1alpha1.CheckConnectionConfigRequest"> & {
   /**
+   * The connection configuration to validate
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 1;
    */
   connectionConfig?: ConnectionConfig;
@@ -534,6 +560,8 @@ export type MssqlConnectionConfig = Message<"mgmt.v1alpha1.MssqlConnectionConfig
   } | { case: undefined; value?: undefined };
 
   /**
+   * Provide connection options that can be used to further fine-tune the connection
+   *
    * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 2;
    */
   connectionOptions?: SqlConnectionOptions;
@@ -651,7 +679,7 @@ export type OpenAiConnectionConfig = Message<"mgmt.v1alpha1.OpenAiConnectionConf
   apiKey: string;
 
   /**
-   * OpenAI URL
+   * OpenAI URL (if using a custom endpoint)
    *
    * @generated from field: string api_url = 2;
    */
@@ -697,12 +725,16 @@ export type PostgresConnectionConfig = Message<"mgmt.v1alpha1.PostgresConnection
    */
   connectionConfig: {
     /**
+     * A raw string url that will be used to construct the connection. Must be URI format.
+     *
      * @generated from field: string url = 1;
      */
     value: string;
     case: "url";
   } | {
     /**
+     * A structured representation of the connection that will be used to construct the url
+     *
      * @generated from field: mgmt.v1alpha1.PostgresConnection connection = 2;
      */
     value: PostgresConnection;
@@ -727,6 +759,8 @@ export type PostgresConnectionConfig = Message<"mgmt.v1alpha1.PostgresConnection
   tunnel?: SSHTunnel;
 
   /**
+   * Provide connection options that can be used to further fine-tune the connection
+   *
    * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 4;
    */
   connectionOptions?: SqlConnectionOptions;
@@ -899,12 +933,16 @@ export type SSHAuthentication = Message<"mgmt.v1alpha1.SSHAuthentication"> & {
    */
   authConfig: {
     /**
+     * Password authentication
+     *
      * @generated from field: mgmt.v1alpha1.SSHPassphrase passphrase = 1;
      */
     value: SSHPassphrase;
     case: "passphrase";
   } | {
     /**
+     * Private key authentication
+     *
      * @generated from field: mgmt.v1alpha1.SSHPrivateKey private_key = 2;
      */
     value: SSHPrivateKey;
@@ -975,31 +1013,43 @@ export const SSHPrivateKeySchema: GenMessage<SSHPrivateKey> = /*@__PURE__*/
  */
 export type PostgresConnection = Message<"mgmt.v1alpha1.PostgresConnection"> & {
   /**
+   * The host to use for the connection
+   *
    * @generated from field: string host = 1;
    */
   host: string;
 
   /**
+   * The port to use for the connection
+   *
    * @generated from field: int32 port = 2;
    */
   port: number;
 
   /**
+   * The name of the database to use for the connection
+   *
    * @generated from field: string name = 3;
    */
   name: string;
 
   /**
+   * The user to use for the connection
+   *
    * @generated from field: string user = 4;
    */
   user: string;
 
   /**
+   * The password to use for the connection
+   *
    * @generated from field: string pass = 5;
    */
   pass: string;
 
   /**
+   * The SSL mode to use for the connection
+   *
    * @generated from field: optional string ssl_mode = 6;
    */
   sslMode?: string;
@@ -1017,31 +1067,43 @@ export const PostgresConnectionSchema: GenMessage<PostgresConnection> = /*@__PUR
  */
 export type MysqlConnection = Message<"mgmt.v1alpha1.MysqlConnection"> & {
   /**
+   * The user to use for the connection
+   *
    * @generated from field: string user = 1;
    */
   user: string;
 
   /**
+   * The password to use for the connection
+   *
    * @generated from field: string pass = 2;
    */
   pass: string;
 
   /**
+   * The protocol to use for the connection
+   *
    * @generated from field: string protocol = 3;
    */
   protocol: string;
 
   /**
+   * The host to use for the connection
+   *
    * @generated from field: string host = 4;
    */
   host: string;
 
   /**
+   * The port to use for the connection
+   *
    * @generated from field: int32 port = 5;
    */
   port: number;
 
   /**
+   * The name of the database to use for the connection
+   *
    * @generated from field: string name = 6;
    */
   name: string;
@@ -1065,12 +1127,16 @@ export type MysqlConnectionConfig = Message<"mgmt.v1alpha1.MysqlConnectionConfig
    */
   connectionConfig: {
     /**
+     * A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
+     *
      * @generated from field: string url = 1;
      */
     value: string;
     case: "url";
   } | {
     /**
+     * A structured representation of the connection that will be used to construct the url
+     *
      * @generated from field: mgmt.v1alpha1.MysqlConnection connection = 2;
      */
     value: MysqlConnection;
@@ -1095,6 +1161,8 @@ export type MysqlConnectionConfig = Message<"mgmt.v1alpha1.MysqlConnectionConfig
   tunnel?: SSHTunnel;
 
   /**
+   * Provide connection options that can be used to further fine-tune the connection
+   *
    * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 4;
    */
   connectionOptions?: SqlConnectionOptions;
@@ -1119,26 +1187,36 @@ export const MysqlConnectionConfigSchema: GenMessage<MysqlConnectionConfig> = /*
  */
 export type AwsS3ConnectionConfig = Message<"mgmt.v1alpha1.AwsS3ConnectionConfig"> & {
   /**
+   * The bucket path prefix that will be appended to each file
+   *
    * @generated from field: optional string path_prefix = 2;
    */
   pathPrefix?: string;
 
   /**
+   * The credentials to use for the S3 bucket
+   *
    * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 3;
    */
   credentials?: AwsS3Credentials;
 
   /**
+   * The region of the S3 bucket
+   *
    * @generated from field: optional string region = 4;
    */
   region?: string;
 
   /**
+   * The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)
+   *
    * @generated from field: optional string endpoint = 5;
    */
   endpoint?: string;
 
   /**
+   * The name of the S3 bucket
+   *
    * @generated from field: string bucket = 6;
    */
   bucket: string;
@@ -1159,36 +1237,50 @@ export const AwsS3ConnectionConfigSchema: GenMessage<AwsS3ConnectionConfig> = /*
  */
 export type AwsS3Credentials = Message<"mgmt.v1alpha1.AwsS3Credentials"> & {
   /**
+   * The profile to use for the S3 credentials
+   *
    * @generated from field: optional string profile = 1;
    */
   profile?: string;
 
   /**
+   * The access key id to use for the S3 credentials
+   *
    * @generated from field: optional string access_key_id = 2;
    */
   accessKeyId?: string;
 
   /**
+   * The secret access key to use for the S3 credentials
+   *
    * @generated from field: optional string secret_access_key = 3;
    */
   secretAccessKey?: string;
 
   /**
+   * The session token to use for the S3 credentials
+   *
    * @generated from field: optional string session_token = 4;
    */
   sessionToken?: string;
 
   /**
+   * Whether or not the credentials are from an EC2 role
+   *
    * @generated from field: optional bool from_ec2_role = 5;
    */
   fromEc2Role?: boolean;
 
   /**
+   * The ARN of the role to use for the S3 credentials
+   *
    * @generated from field: optional string role_arn = 6;
    */
   roleArn?: string;
 
   /**
+   * The role's external ID to use for the S3 credentials
+   *
    * @generated from field: optional string role_external_id = 7;
    */
   roleExternalId?: string;
@@ -1241,11 +1333,15 @@ export const GcpCloudStorageConnectionConfigSchema: GenMessage<GcpCloudStorageCo
  */
 export type IsConnectionNameAvailableRequest = Message<"mgmt.v1alpha1.IsConnectionNameAvailableRequest"> & {
   /**
+   * The unique identifier of the account to check the connection name for
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
+   * The connection name to check for availability
+   *
    * @generated from field: string connection_name = 2;
    */
   connectionName: string;
@@ -1263,6 +1359,8 @@ export const IsConnectionNameAvailableRequestSchema: GenMessage<IsConnectionName
  */
 export type IsConnectionNameAvailableResponse = Message<"mgmt.v1alpha1.IsConnectionNameAvailableResponse"> & {
   /**
+   * Whether or not the connection name is available
+   *
    * @generated from field: bool is_available = 1;
    */
   isAvailable: boolean;

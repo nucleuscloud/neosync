@@ -6,7 +6,9 @@ import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 message CreateAccountApiKeyRequest {
+  // The unique identifier of the account to create the API key for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The friendly name of the API key
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Validate between now and one year: now < x < 365 days
   google.protobuf.Timestamp expires_at = 3 [
@@ -16,40 +18,53 @@ message CreateAccountApiKeyRequest {
   ];
 }
 message CreateAccountApiKeyResponse {
+  // The created API key
   AccountApiKey api_key = 1;
 }
 
 message AccountApiKey {
+  // The unique identifier of the API key
   string id = 1;
   // The friendly name of the API Key
   string name = 2;
+  // The unique identifier of the account that the API key belongs to
   string account_id = 3;
+  // The unique identifier of the user that created the API key
   string created_by_id = 4;
+  // The timestamp of when the API key was created
   google.protobuf.Timestamp created_at = 5;
+  // The unique identifier of the user that last updated the API key
   string updated_by_id = 6;
+  // The timestamp of when the API key was last updated
   google.protobuf.Timestamp updated_at = 7;
   // key_value is only returned on initial creation or when it is regenerated
   optional string key_value = 8;
+  // The unique identifier of the user that the API key belongs to (Each API Key is associated with its own user record to identify what the API key does in the system)
   string user_id = 9;
   // The timestamp of what the API key expires and will not longer be usable.
   google.protobuf.Timestamp expires_at = 10;
 }
 
 message GetAccountApiKeysRequest {
+  // The unique identifier of the account to get the API keys for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetAccountApiKeysResponse {
+  // The list of API keys for the account.
   repeated AccountApiKey api_keys = 1;
 }
 
 message GetAccountApiKeyRequest {
+  // The unique identifier of the API key to get.
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetAccountApiKeyResponse {
+  // The API key that was retrieved.
   AccountApiKey api_key = 1;
 }
 
 message RegenerateAccountApiKeyRequest {
+  // The unique identifier of the API key to regenerate.
   string id = 1 [(buf.validate.field).string.uuid = true];
   // Validate between now and one year: now < x < 365 days
   google.protobuf.Timestamp expires_at = 2 [
@@ -59,10 +74,12 @@ message RegenerateAccountApiKeyRequest {
   ];
 }
 message RegenerateAccountApiKeyResponse {
+  // The regenerated API key
   AccountApiKey api_key = 1;
 }
 
 message DeleteAccountApiKeyRequest {
+  // The unique identifier of the API key to delete.
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteAccountApiKeyResponse {}
@@ -70,9 +87,13 @@ message DeleteAccountApiKeyResponse {}
 // Service that manages the lifecycle of API Keys that are associated with a specific Account.
 service ApiKeyService {
   // Retrieves a list of Account API Keys
-  rpc GetAccountApiKeys(GetAccountApiKeysRequest) returns (GetAccountApiKeysResponse) {}
+  rpc GetAccountApiKeys(GetAccountApiKeysRequest) returns (GetAccountApiKeysResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Retrieves a single API Key
-  rpc GetAccountApiKey(GetAccountApiKeyRequest) returns (GetAccountApiKeyResponse) {}
+  rpc GetAccountApiKey(GetAccountApiKeyRequest) returns (GetAccountApiKeyResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Creates a single API Key
   // This method will return the decrypted contents of the API key
   rpc CreateAccountApiKey(CreateAccountApiKeyRequest) returns (CreateAccountApiKeyResponse) {}

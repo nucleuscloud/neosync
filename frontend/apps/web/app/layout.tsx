@@ -1,4 +1,5 @@
 import '@/app/globals.css';
+import { GoogleScriptProvider } from '@/components/providers/googleTag-provider';
 import {
   PHProvider,
   PostHogPageview,
@@ -36,6 +37,7 @@ export default async function RootLayout({
                 <>
                   <Suspense>
                     <UnifyScriptProvider />
+                    <GoogleScriptProvider />
                   </Suspense>
                   <Suspense>
                     <PostHogPageview />

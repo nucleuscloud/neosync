@@ -303,6 +303,7 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the API key
         name:
           type: string
           title: name
@@ -310,19 +311,24 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the account that the API key belongs to
         createdById:
           type: string
           title: created_by_id
+          description: The unique identifier of the user that created the API key
         createdAt:
           allOf:
             - title: created_at
+              description: The timestamp of when the API key was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         updatedById:
           type: string
           title: updated_by_id
+          description: The unique identifier of the user that last updated the API key
         updatedAt:
           allOf:
             - title: updated_at
+              description: The timestamp of when the API key was last updated
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         keyValue:
           type: string
@@ -331,6 +337,7 @@ components:
         userId:
           type: string
           title: user_id
+          description: The unique identifier of the user that the API key belongs to (Each API Key is associated with its own user record to identify what the API key does in the system)
         expiresAt:
           allOf:
             - title: expires_at
@@ -345,10 +352,12 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to create the API key for.
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the API key
         expiresAt:
           allOf:
             - title: expires_at
@@ -365,6 +374,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The created API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: CreateAccountApiKeyResponse
       additionalProperties: false
@@ -375,6 +385,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to delete.
       title: DeleteAccountApiKeyRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteAccountApiKeyResponse:
@@ -388,6 +399,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to get.
       title: GetAccountApiKeyRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountApiKeyResponse:
@@ -396,6 +408,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The API key that was retrieved.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: GetAccountApiKeyResponse
       additionalProperties: false
@@ -406,6 +419,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the API keys for.
       title: GetAccountApiKeysRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountApiKeysResponse:
@@ -416,6 +430,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
           title: api_keys
+          description: The list of API keys for the account.
       title: GetAccountApiKeysResponse
       additionalProperties: false
     mgmt.v1alpha1.RegenerateAccountApiKeyRequest:
@@ -425,6 +440,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to regenerate.
         expiresAt:
           allOf:
             - title: expires_at
@@ -441,6 +457,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The regenerated API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: RegenerateAccountApiKeyResponse
       additionalProperties: false

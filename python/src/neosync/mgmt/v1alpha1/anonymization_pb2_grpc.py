@@ -6,7 +6,8 @@ from mgmt.v1alpha1 import anonymization_pb2 as mgmt_dot_v1alpha1_dot_anonymizati
 
 
 class AnonymizationServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that transactionally anonymizes data, regardless of the connection type.
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -27,10 +28,11 @@ class AnonymizationServiceStub(object):
 
 
 class AnonymizationServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that transactionally anonymizes data, regardless of the connection type.
+    """
 
     def AnonymizeMany(self, request, context):
-        """Anonymizes many JSON strings by applying specified transformation mappings.
+        """Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -65,7 +67,8 @@ def add_AnonymizationServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class AnonymizationService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that transactionally anonymizes data, regardless of the connection type.
+    """
 
     @staticmethod
     def AnonymizeMany(request,

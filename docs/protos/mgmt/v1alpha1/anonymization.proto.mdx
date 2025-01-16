@@ -38,7 +38,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `DefaultTransformersConfig`
-<ProtoMessage key={5} message={{"name":"DefaultTransformersConfig","longName":"DefaultTransformersConfig","fullName":"mgmt.v1alpha1.DefaultTransformersConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"boolean","description":"Boolean","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"n","description":"Number","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"s","description":"String","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
+<ProtoMessage key={5} message={{"name":"DefaultTransformersConfig","longName":"DefaultTransformersConfig","fullName":"mgmt.v1alpha1.DefaultTransformersConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"boolean","description":"Any identified boolean value will be transformed using this configuration if no mapping is found.","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"n","description":"Any identified number value will be transformed using this configuration if no mapping is found.","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"},{"name":"s","description":"Any identified string value will be transformed using this configuration if no mapping is found.","label":"","type":"TransformerConfig","longType":"TransformerConfig","fullType":"mgmt.v1alpha1.TransformerConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/transformer.proto#transformerconfig"}]}} />
 
 
 ### `TransformerMapping`
@@ -50,11 +50,11 @@ _**package** mgmt.v1alpha1_
 
 ### `AnonymizationService`
 
-
+Service that transactionally anonymizes data, regardless of the connection type.
 
 
 #### `AnonymizeMany`
-<ProtoServiceMethod key={'AnonymizeMany-0'} method={{"name":"AnonymizeMany","description":"Anonymizes many JSON strings by applying specified transformation mappings.","requestType":"AnonymizeManyRequest","requestLongType":"AnonymizeManyRequest","requestFullType":"mgmt.v1alpha1.AnonymizeManyRequest","requestStreaming":false,"responseType":"AnonymizeManyResponse","responseLongType":"AnonymizeManyResponse","responseFullType":"mgmt.v1alpha1.AnonymizeManyResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyrequest","responseTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyresponse"}} />
+<ProtoServiceMethod key={'AnonymizeMany-0'} method={{"name":"AnonymizeMany","description":"Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.","requestType":"AnonymizeManyRequest","requestLongType":"AnonymizeManyRequest","requestFullType":"mgmt.v1alpha1.AnonymizeManyRequest","requestStreaming":false,"responseType":"AnonymizeManyResponse","responseLongType":"AnonymizeManyResponse","responseFullType":"mgmt.v1alpha1.AnonymizeManyResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyrequest","responseTypeLink":"/api/mgmt/v1alpha1/anonymization.proto#anonymizemanyresponse"}} />
 
 
 #### `AnonymizeSingle`

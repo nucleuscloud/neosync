@@ -22,7 +22,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `DayResult`
-<ProtoMessage key={1} message={{"name":"DayResult","longName":"DayResult","fullName":"mgmt.v1alpha1.DayResult","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"date","description":"","label":"","type":"Date","longType":"Date","fullType":"mgmt.v1alpha1.Date","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#date"},{"name":"count","description":"","label":"","type":"uint64","longType":"uint64","fullType":"uint64","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+<ProtoMessage key={1} message={{"name":"DayResult","longName":"DayResult","fullName":"mgmt.v1alpha1.DayResult","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"date","description":"The date of the result","label":"","type":"Date","longType":"Date","fullType":"mgmt.v1alpha1.Date","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#date"},{"name":"count","description":"The count of the metric for the given date","label":"","type":"uint64","longType":"uint64","fullType":"uint64","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
 ### `GetDailyMetricCountRequest`
@@ -30,7 +30,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `GetDailyMetricCountResponse`
-<ProtoMessage key={3} message={{"name":"GetDailyMetricCountResponse","longName":"GetDailyMetricCountResponse","fullName":"mgmt.v1alpha1.GetDailyMetricCountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"results","description":"","label":"repeated","type":"DayResult","longType":"DayResult","fullType":"mgmt.v1alpha1.DayResult","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#dayresult"}]}} />
+<ProtoMessage key={3} message={{"name":"GetDailyMetricCountResponse","longName":"GetDailyMetricCountResponse","fullName":"mgmt.v1alpha1.GetDailyMetricCountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"results","description":"The list of results for the given metric and date range","label":"repeated","type":"DayResult","longType":"DayResult","fullType":"mgmt.v1alpha1.DayResult","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#dayresult"}]}} />
 
 
 ### `GetMetricCountRequest`
@@ -53,15 +53,15 @@ _**package** mgmt.v1alpha1_
 
 ### `MetricsService`
 
-
+Service that handles serving up usage metrics
 
 
 #### `GetDailyMetricCount`
-<ProtoServiceMethod key={'GetDailyMetricCount-0'} method={{"name":"GetDailyMetricCount","description":"Retrieve a timed range of records","requestType":"GetDailyMetricCountRequest","requestLongType":"GetDailyMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetDailyMetricCountRequest","requestStreaming":false,"responseType":"GetDailyMetricCountResponse","responseLongType":"GetDailyMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetDailyMetricCountResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountresponse"}} />
+<ProtoServiceMethod key={'GetDailyMetricCount-0'} method={{"name":"GetDailyMetricCount","description":"Retrieve a timed range of records","requestType":"GetDailyMetricCountRequest","requestLongType":"GetDailyMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetDailyMetricCountRequest","requestStreaming":false,"responseType":"GetDailyMetricCountResponse","responseLongType":"GetDailyMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetDailyMetricCountResponse","responseStreaming":false,"options":{"idempotency_level":"NO_SIDE_EFFECTS"},"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountresponse"}} />
 
 
 #### `GetMetricCount`
-<ProtoServiceMethod key={'GetMetricCount-1'} method={{"name":"GetMetricCount","description":"For the given metric and time range, returns the total count found","requestType":"GetMetricCountRequest","requestLongType":"GetMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetMetricCountRequest","requestStreaming":false,"responseType":"GetMetricCountResponse","responseLongType":"GetMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetMetricCountResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountresponse"}} />
+<ProtoServiceMethod key={'GetMetricCount-1'} method={{"name":"GetMetricCount","description":"For the given metric and time range, returns the total count found","requestType":"GetMetricCountRequest","requestLongType":"GetMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetMetricCountRequest","requestStreaming":false,"responseType":"GetMetricCountResponse","responseLongType":"GetMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetMetricCountResponse","responseStreaming":false,"options":{"idempotency_level":"NO_SIDE_EFFECTS"},"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountresponse"}} />
 
 
 ---

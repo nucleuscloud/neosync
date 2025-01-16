@@ -233,6 +233,7 @@ export function SchemaTable(props: Props): ReactElement {
             <JobMappingTable
               data={tableData}
               columns={SQL_COLUMNS}
+              displayApplyDefaultTransformersButton={jobType === 'sync'}
               onTransformerUpdate={onTransformerUpdate}
               getAvailableTransformers={getAvailableTransformers}
               getTransformerFromField={getTransformerFromField}
@@ -276,6 +277,7 @@ export function SchemaTable(props: Props): ReactElement {
         <JobMappingTable
           data={tableData}
           columns={SQL_COLUMNS}
+          displayApplyDefaultTransformersButton={jobType === 'sync'}
           onTransformerUpdate={onTransformerUpdate}
           getAvailableTransformers={getAvailableTransformers}
           getTransformerFromField={getTransformerFromField}
