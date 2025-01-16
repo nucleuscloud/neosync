@@ -90,12 +90,14 @@ func NewApiKeyServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			httpClient,
 			baseURL+ApiKeyServiceGetAccountApiKeysProcedure,
 			connect.WithSchema(apiKeyServiceGetAccountApiKeysMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAccountApiKey: connect.NewClient[v1alpha1.GetAccountApiKeyRequest, v1alpha1.GetAccountApiKeyResponse](
 			httpClient,
 			baseURL+ApiKeyServiceGetAccountApiKeyProcedure,
 			connect.WithSchema(apiKeyServiceGetAccountApiKeyMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createAccountApiKey: connect.NewClient[v1alpha1.CreateAccountApiKeyRequest, v1alpha1.CreateAccountApiKeyResponse](
@@ -179,12 +181,14 @@ func NewApiKeyServiceHandler(svc ApiKeyServiceHandler, opts ...connect.HandlerOp
 		ApiKeyServiceGetAccountApiKeysProcedure,
 		svc.GetAccountApiKeys,
 		connect.WithSchema(apiKeyServiceGetAccountApiKeysMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceGetAccountApiKeyHandler := connect.NewUnaryHandler(
 		ApiKeyServiceGetAccountApiKeyProcedure,
 		svc.GetAccountApiKey,
 		connect.WithSchema(apiKeyServiceGetAccountApiKeyMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceCreateAccountApiKeyHandler := connect.NewUnaryHandler(

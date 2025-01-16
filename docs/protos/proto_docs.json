@@ -160,12 +160,12 @@
             {
               "name": "SUPPORTED_JOB_TYPE_SYNC",
               "number": "1",
-              "description": ""
+              "description": "Determines if a transformer is supported for a sync job."
             },
             {
               "name": "SUPPORTED_JOB_TYPE_GENERATE",
               "number": "2",
-              "description": ""
+              "description": "Determines if a transformer is supported for a generate job."
             }
           ]
         },
@@ -495,7 +495,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to create the user defined transformer for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -507,7 +507,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -519,7 +519,7 @@
             },
             {
               "name": "description",
-              "description": "",
+              "description": "The description of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -531,7 +531,7 @@
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The source of the user defined transformer.",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",
@@ -543,7 +543,7 @@
             },
             {
               "name": "transformer_config",
-              "description": "",
+              "description": "The configuration of the user defined transformer.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -591,7 +591,7 @@
           "fields": [
             {
               "name": "transformer_id",
-              "description": "",
+              "description": "The unique identifier of the user defined transformer to delete.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -648,7 +648,7 @@
           "fields": [
             {
               "name": "valid_luhn",
-              "description": "",
+              "description": "Whether or not to validate the card number using the Luhn algorithm.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -672,7 +672,7 @@
           "fields": [
             {
               "name": "categories",
-              "description": "",
+              "description": "A comma separated list of categories that will be used to generate a random value from.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -742,7 +742,7 @@
           "fields": [
             {
               "name": "min",
-              "description": "",
+              "description": "The minimum length of the phone number to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -754,7 +754,7 @@
             },
             {
               "name": "max",
-              "description": "",
+              "description": "The maximum length of the phone number to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -813,7 +813,7 @@
           "fields": [
             {
               "name": "randomize_sign",
-              "description": "",
+              "description": "Whether or not to randomize the sign of the float64.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -825,7 +825,7 @@
             },
             {
               "name": "min",
-              "description": "",
+              "description": "The minimum value to randomize the float64 to.",
               "label": "optional",
               "type": "double",
               "longType": "double",
@@ -837,7 +837,7 @@
             },
             {
               "name": "max",
-              "description": "",
+              "description": "The maximum value to randomize the float64 to.",
               "label": "optional",
               "type": "double",
               "longType": "double",
@@ -849,7 +849,7 @@
             },
             {
               "name": "precision",
-              "description": "",
+              "description": "The precision of the float64 to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -895,7 +895,7 @@
           "fields": [
             {
               "name": "abbreviate",
-              "description": "",
+              "description": "Whether or not to abbreviate the gender.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -919,7 +919,7 @@
           "fields": [
             {
               "name": "randomize_sign",
-              "description": "",
+              "description": "Whether or not to randomize the sign of the int64.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -931,7 +931,7 @@
             },
             {
               "name": "min",
-              "description": "",
+              "description": "The minimum value to randomize the int64 to.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -943,7 +943,7 @@
             },
             {
               "name": "max",
-              "description": "",
+              "description": "The maximum value to randomize the int64 to.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -978,7 +978,7 @@
           "fields": [
             {
               "name": "ip_type",
-              "description": "",
+              "description": "Optionally specify the type of ip address to generate.",
               "label": "optional",
               "type": "GenerateIpAddressType",
               "longType": "GenerateIpAddressType",
@@ -1002,7 +1002,7 @@
           "fields": [
             {
               "name": "code",
-              "description": "",
+              "description": "The user provided javascript code that will be executed in the transformer",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1094,7 +1094,7 @@
           "fields": [
             {
               "name": "min",
-              "description": "",
+              "description": "The minimum length of the string to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -1106,7 +1106,7 @@
             },
             {
               "name": "max",
-              "description": "",
+              "description": "The maximum length of the string to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -1130,7 +1130,7 @@
           "fields": [
             {
               "name": "min",
-              "description": "",
+              "description": "The minimum length of the phone number to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -1142,7 +1142,7 @@
             },
             {
               "name": "max",
-              "description": "",
+              "description": "The maximum length of the phone number to generate.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -1199,7 +1199,7 @@
           "fields": [
             {
               "name": "include_hyphens",
-              "description": "",
+              "description": "Whether or not to include hyphens in the uuid. Defaults to true. If false, the uuid will be returned without hyphens.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -1234,7 +1234,7 @@
           "fields": [
             {
               "name": "source",
-              "description": "",
+              "description": "The source of the transformer to retrieve.",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",
@@ -1365,7 +1365,7 @@
           "fields": [
             {
               "name": "transformer_id",
-              "description": "",
+              "description": "The unique identifier of the user defined transformer to get.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1413,7 +1413,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the user defined transformers for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1461,7 +1461,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to check for the availability of the transformer name.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1473,7 +1473,7 @@
             },
             {
               "name": "transformer_name",
-              "description": "",
+              "description": "The name of the transformer to check for availability.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1497,7 +1497,7 @@
           "fields": [
             {
               "name": "is_available",
-              "description": "",
+              "description": "Whether or not the transformer name is available.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -1774,7 +1774,7 @@
           "name": "SystemTransformer",
           "longName": "SystemTransformer",
           "fullName": "mgmt.v1alpha1.SystemTransformer",
-          "description": "",
+          "description": "A system transformer is a transformer that is built into the Neosync platform.\nIt can be used directly in job mappings or used in user-defined transformers to snapshot a specific configuration.",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -1782,7 +1782,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1794,7 +1794,7 @@
             },
             {
               "name": "description",
-              "description": "",
+              "description": "The description of the transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1806,7 +1806,7 @@
             },
             {
               "name": "data_type",
-              "description": "",
+              "description": "@deprecated: data_types is deprecated and will be removed in a future release. Use data_types instead.",
               "label": "",
               "type": "TransformerDataType",
               "longType": "TransformerDataType",
@@ -1814,11 +1814,14 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The source of the transformer.",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",
@@ -1830,7 +1833,7 @@
             },
             {
               "name": "config",
-              "description": "",
+              "description": "The configuration of the transformer.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -1842,7 +1845,7 @@
             },
             {
               "name": "data_types",
-              "description": "",
+              "description": "The data types supported by the transformer.",
               "label": "repeated",
               "type": "TransformerDataType",
               "longType": "TransformerDataType",
@@ -1878,7 +1881,7 @@
           "fields": [
             {
               "name": "user_provided_regex",
-              "description": "a user provided regular expression that they wish to validate if it compiles in GO",
+              "description": "A user provided regular expression that will be used to scramble the characters in the input string. Must be a valid Golang regex.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -1902,7 +1905,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -1998,7 +2001,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the first name. This causes the transformed first name to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2022,7 +2025,7 @@
           "fields": [
             {
               "name": "randomization_range_min",
-              "description": "",
+              "description": "The minimum value to randomize the float64 to. This will be relative to the original value.",
               "label": "optional",
               "type": "double",
               "longType": "double",
@@ -2034,7 +2037,7 @@
             },
             {
               "name": "randomization_range_max",
-              "description": "",
+              "description": "The maximum value to randomize the float64 to. This will be relative to the original value.",
               "label": "optional",
               "type": "double",
               "longType": "double",
@@ -2058,7 +2061,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the full name. This causes the transformed full name to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2082,7 +2085,7 @@
           "fields": [
             {
               "name": "randomization_range_min",
-              "description": "",
+              "description": "The minimum value to randomize the int64 to. This will be relative to the original value.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -2094,7 +2097,7 @@
             },
             {
               "name": "randomization_range_max",
-              "description": "",
+              "description": "The maximum value to randomize the int64 to. This will be relative to the original value.",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -2118,7 +2121,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2142,7 +2145,7 @@
           "fields": [
             {
               "name": "code",
-              "description": "",
+              "description": "The user provided javascript code that will be executed in the transformer",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -2166,7 +2169,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the last name. This causes the transformed last name to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2190,7 +2193,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2346,7 +2349,7 @@
           "fields": [
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the string. This causes the transformed string to retain the original length.",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -2373,7 +2376,7 @@
           "name": "TransformerConfig",
           "longName": "TransformerConfig",
           "fullName": "mgmt.v1alpha1.TransformerConfig",
-          "description": "",
+          "description": "The configuration for a transformer. This determines what type of transformation or generation is performed.",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": true,
@@ -2957,7 +2960,7 @@
           "fields": [
             {
               "name": "transformer_id",
-              "description": "",
+              "description": "The unique identifier of the user defined transformer to update.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -2969,7 +2972,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -2981,7 +2984,7 @@
             },
             {
               "name": "description",
-              "description": "",
+              "description": "The description of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -2993,7 +2996,7 @@
             },
             {
               "name": "transformer_config",
-              "description": "",
+              "description": "The configuration of the user defined transformer.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3041,7 +3044,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3053,7 +3056,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3065,7 +3068,7 @@
             },
             {
               "name": "description",
-              "description": "",
+              "description": "The description of the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3077,7 +3080,7 @@
             },
             {
               "name": "data_type",
-              "description": "This property is readonly and is calculated based off the origin system transformer",
+              "description": "@deprecated: data_type is deprecated and will be removed in a future release. Use data_types instead.",
               "label": "",
               "type": "TransformerDataType",
               "longType": "TransformerDataType",
@@ -3085,11 +3088,14 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The source of the user defined transformer.",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",
@@ -3101,7 +3107,7 @@
             },
             {
               "name": "config",
-              "description": "",
+              "description": "The configuration of the user defined transformer.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3113,7 +3119,7 @@
             },
             {
               "name": "created_at",
-              "description": "",
+              "description": "The date and time the user defined transformer was created.",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -3125,7 +3131,7 @@
             },
             {
               "name": "updated_at",
-              "description": "",
+              "description": "The date and time the user defined transformer was last updated.",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -3137,7 +3143,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account that owns the user defined transformer.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3149,7 +3155,7 @@
             },
             {
               "name": "data_types",
-              "description": "",
+              "description": "The data types supported by the user defined transformer. This is currently calculated based off the origin system transformer.",
               "label": "repeated",
               "type": "TransformerDataType",
               "longType": "TransformerDataType",
@@ -3173,7 +3179,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The id of the user defined transformer. When used in a job mapping, this will be used to reference the underlying system transformer along with it's configuration that was chosen.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3197,7 +3203,7 @@
           "fields": [
             {
               "name": "code",
-              "description": "",
+              "description": "The user provided javascript code that will be validated.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3245,7 +3251,7 @@
           "fields": [
             {
               "name": "user_provided_regex",
-              "description": "",
+              "description": "The user provided regex to validate",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3269,7 +3275,7 @@
           "fields": [
             {
               "name": "valid",
-              "description": "",
+              "description": "Whether the regex is valid",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -3287,11 +3293,11 @@
           "name": "TransformersService",
           "longName": "TransformersService",
           "fullName": "mgmt.v1alpha1.TransformersService",
-          "description": "",
+          "description": "Service that manages system and user defined transformers",
           "methods": [
             {
               "name": "GetSystemTransformers",
-              "description": "",
+              "description": "Get a list of all system transformers",
               "requestType": "GetSystemTransformersRequest",
               "requestLongType": "GetSystemTransformersRequest",
               "requestFullType": "mgmt.v1alpha1.GetSystemTransformersRequest",
@@ -3299,11 +3305,14 @@
               "responseType": "GetSystemTransformersResponse",
               "responseLongType": "GetSystemTransformersResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemTransformersResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetSystemTransformerBySource",
-              "description": "",
+              "description": "Get a system transformer by its source",
               "requestType": "GetSystemTransformerBySourceRequest",
               "requestLongType": "GetSystemTransformerBySourceRequest",
               "requestFullType": "mgmt.v1alpha1.GetSystemTransformerBySourceRequest",
@@ -3311,11 +3320,14 @@
               "responseType": "GetSystemTransformerBySourceResponse",
               "responseLongType": "GetSystemTransformerBySourceResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemTransformerBySourceResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetUserDefinedTransformers",
-              "description": "",
+              "description": "Get a list of all user defined transformers",
               "requestType": "GetUserDefinedTransformersRequest",
               "requestLongType": "GetUserDefinedTransformersRequest",
               "requestFullType": "mgmt.v1alpha1.GetUserDefinedTransformersRequest",
@@ -3323,11 +3335,14 @@
               "responseType": "GetUserDefinedTransformersResponse",
               "responseLongType": "GetUserDefinedTransformersResponse",
               "responseFullType": "mgmt.v1alpha1.GetUserDefinedTransformersResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetUserDefinedTransformerById",
-              "description": "",
+              "description": "Get a user defined transformer by its id",
               "requestType": "GetUserDefinedTransformerByIdRequest",
               "requestLongType": "GetUserDefinedTransformerByIdRequest",
               "requestFullType": "mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest",
@@ -3335,11 +3350,14 @@
               "responseType": "GetUserDefinedTransformerByIdResponse",
               "responseLongType": "GetUserDefinedTransformerByIdResponse",
               "responseFullType": "mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "CreateUserDefinedTransformer",
-              "description": "",
+              "description": "Create a user defined transformer",
               "requestType": "CreateUserDefinedTransformerRequest",
               "requestLongType": "CreateUserDefinedTransformerRequest",
               "requestFullType": "mgmt.v1alpha1.CreateUserDefinedTransformerRequest",
@@ -3351,7 +3369,7 @@
             },
             {
               "name": "DeleteUserDefinedTransformer",
-              "description": "",
+              "description": "Delete a user defined transformer",
               "requestType": "DeleteUserDefinedTransformerRequest",
               "requestLongType": "DeleteUserDefinedTransformerRequest",
               "requestFullType": "mgmt.v1alpha1.DeleteUserDefinedTransformerRequest",
@@ -3363,7 +3381,7 @@
             },
             {
               "name": "UpdateUserDefinedTransformer",
-              "description": "",
+              "description": "Update a user defined transformer",
               "requestType": "UpdateUserDefinedTransformerRequest",
               "requestLongType": "UpdateUserDefinedTransformerRequest",
               "requestFullType": "mgmt.v1alpha1.UpdateUserDefinedTransformerRequest",
@@ -3375,7 +3393,7 @@
             },
             {
               "name": "IsTransformerNameAvailable",
-              "description": "",
+              "description": "Check if a transformer name is available in your account",
               "requestType": "IsTransformerNameAvailableRequest",
               "requestLongType": "IsTransformerNameAvailableRequest",
               "requestFullType": "mgmt.v1alpha1.IsTransformerNameAvailableRequest",
@@ -3387,7 +3405,7 @@
             },
             {
               "name": "ValidateUserJavascriptCode",
-              "description": "",
+              "description": "Validate user provided javascript code before saving it to a user defined transformer or within a job mapping",
               "requestType": "ValidateUserJavascriptCodeRequest",
               "requestLongType": "ValidateUserJavascriptCodeRequest",
               "requestFullType": "mgmt.v1alpha1.ValidateUserJavascriptCodeRequest",
@@ -3399,7 +3417,7 @@
             },
             {
               "name": "ValidateUserRegexCode",
-              "description": "",
+              "description": "Validate user provided regex code before saving it to a user defined transformer",
               "requestType": "ValidateUserRegexCodeRequest",
               "requestLongType": "ValidateUserRegexCodeRequest",
               "requestFullType": "mgmt.v1alpha1.ValidateUserRegexCodeRequest",
@@ -3679,7 +3697,7 @@
           "fields": [
             {
               "name": "boolean",
-              "description": "Boolean",
+              "description": "Any identified boolean value will be transformed using this configuration if no mapping is found.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3690,8 +3708,8 @@
               "defaultValue": ""
             },
             {
-              "name": "n",
-              "description": "Number",
+              "name": "number",
+              "description": "Any identified number value will be transformed using this configuration if no mapping is found.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3702,8 +3720,8 @@
               "defaultValue": ""
             },
             {
-              "name": "s",
-              "description": "String",
+              "name": "string",
+              "description": "Any identified string value will be transformed using this configuration if no mapping is found.",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3757,11 +3775,11 @@
           "name": "AnonymizationService",
           "longName": "AnonymizationService",
           "fullName": "mgmt.v1alpha1.AnonymizationService",
-          "description": "",
+          "description": "Service that transactionally anonymizes data, regardless of the connection type.",
           "methods": [
             {
               "name": "AnonymizeMany",
-              "description": "Anonymizes many JSON strings by applying specified transformation mappings.",
+              "description": "Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.",
               "requestType": "AnonymizeManyRequest",
               "requestLongType": "AnonymizeManyRequest",
               "requestFullType": "mgmt.v1alpha1.AnonymizeManyRequest",
@@ -3810,7 +3828,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the API key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3834,7 +3852,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account that the API key belongs to",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3846,7 +3864,7 @@
             },
             {
               "name": "created_by_id",
-              "description": "",
+              "description": "The unique identifier of the user that created the API key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3858,7 +3876,7 @@
             },
             {
               "name": "created_at",
-              "description": "",
+              "description": "The timestamp of when the API key was created",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -3870,7 +3888,7 @@
             },
             {
               "name": "updated_by_id",
-              "description": "",
+              "description": "The unique identifier of the user that last updated the API key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3882,7 +3900,7 @@
             },
             {
               "name": "updated_at",
-              "description": "",
+              "description": "The timestamp of when the API key was last updated",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -3906,7 +3924,7 @@
             },
             {
               "name": "user_id",
-              "description": "",
+              "description": "The unique identifier of the user that the API key belongs to (Each API Key is associated with its own user record to identify what the API key does in the system)",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3942,7 +3960,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to create the API key for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3954,7 +3972,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The friendly name of the API key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3990,7 +4008,7 @@
           "fields": [
             {
               "name": "api_key",
-              "description": "",
+              "description": "The created API key",
               "label": "",
               "type": "AccountApiKey",
               "longType": "AccountApiKey",
@@ -4014,7 +4032,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the API key to delete.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -4049,7 +4067,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the API key to get.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -4073,7 +4091,7 @@
           "fields": [
             {
               "name": "api_key",
-              "description": "",
+              "description": "The API key that was retrieved.",
               "label": "",
               "type": "AccountApiKey",
               "longType": "AccountApiKey",
@@ -4097,7 +4115,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the API keys for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -4121,7 +4139,7 @@
           "fields": [
             {
               "name": "api_keys",
-              "description": "",
+              "description": "The list of API keys for the account.",
               "label": "repeated",
               "type": "AccountApiKey",
               "longType": "AccountApiKey",
@@ -4145,7 +4163,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the API key to regenerate.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -4181,7 +4199,7 @@
           "fields": [
             {
               "name": "api_key",
-              "description": "",
+              "description": "The regenerated API key",
               "label": "",
               "type": "AccountApiKey",
               "longType": "AccountApiKey",
@@ -4211,7 +4229,10 @@
               "responseType": "GetAccountApiKeysResponse",
               "responseLongType": "GetAccountApiKeysResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountApiKeysResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetAccountApiKey",
@@ -4223,7 +4244,10 @@
               "responseType": "GetAccountApiKeyResponse",
               "responseLongType": "GetAccountApiKeyResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountApiKeyResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "CreateAccountApiKey",
@@ -4651,7 +4675,10 @@
               "responseType": "GetAuthorizeUrlResponse",
               "responseLongType": "GetAuthorizeUrlResponse",
               "responseFullType": "mgmt.v1alpha1.GetAuthorizeUrlResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetAuthStatus",
@@ -4663,7 +4690,10 @@
               "responseType": "GetAuthStatusResponse",
               "responseLongType": "GetAuthStatusResponse",
               "responseFullType": "mgmt.v1alpha1.GetAuthStatusResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }
@@ -4692,7 +4722,7 @@
           "fields": [
             {
               "name": "path_prefix",
-              "description": "",
+              "description": "The bucket path prefix that will be appended to each file",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4704,7 +4734,7 @@
             },
             {
               "name": "credentials",
-              "description": "",
+              "description": "The credentials to use for the S3 bucket",
               "label": "optional",
               "type": "AwsS3Credentials",
               "longType": "AwsS3Credentials",
@@ -4716,7 +4746,7 @@
             },
             {
               "name": "region",
-              "description": "",
+              "description": "The region of the S3 bucket",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4728,7 +4758,7 @@
             },
             {
               "name": "endpoint",
-              "description": "",
+              "description": "The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4740,7 +4770,7 @@
             },
             {
               "name": "bucket",
-              "description": "",
+              "description": "The name of the S3 bucket",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -4764,7 +4794,7 @@
           "fields": [
             {
               "name": "profile",
-              "description": "",
+              "description": "The profile to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4776,7 +4806,7 @@
             },
             {
               "name": "access_key_id",
-              "description": "",
+              "description": "The access key id to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4788,7 +4818,7 @@
             },
             {
               "name": "secret_access_key",
-              "description": "",
+              "description": "The secret access key to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4800,7 +4830,7 @@
             },
             {
               "name": "session_token",
-              "description": "",
+              "description": "The session token to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4812,7 +4842,7 @@
             },
             {
               "name": "from_ec2_role",
-              "description": "",
+              "description": "Whether or not the credentials are from an EC2 role",
               "label": "optional",
               "type": "bool",
               "longType": "bool",
@@ -4824,7 +4854,7 @@
             },
             {
               "name": "role_arn",
-              "description": "",
+              "description": "The ARN of the role to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4836,7 +4866,7 @@
             },
             {
               "name": "role_external_id",
-              "description": "",
+              "description": "The role's external ID to use for the S3 credentials",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -4932,7 +4962,7 @@
           "fields": [
             {
               "name": "connection_config",
-              "description": "",
+              "description": "The connection configuration to validate",
               "label": "",
               "type": "ConnectionConfig",
               "longType": "ConnectionConfig",
@@ -5424,7 +5454,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to create the connection for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5448,7 +5478,7 @@
             },
             {
               "name": "connection_config",
-              "description": "",
+              "description": "The connection configuration to use for the connection",
               "label": "",
               "type": "ConnectionConfig",
               "longType": "ConnectionConfig",
@@ -5472,7 +5502,7 @@
           "fields": [
             {
               "name": "connection",
-              "description": "",
+              "description": "The created connection",
               "label": "",
               "type": "Connection",
               "longType": "Connection",
@@ -5496,7 +5526,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the connection to delete",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5627,7 +5657,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the connection to get",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5651,7 +5681,7 @@
           "fields": [
             {
               "name": "connection",
-              "description": "",
+              "description": "The connection",
               "label": "",
               "type": "Connection",
               "longType": "Connection",
@@ -5675,7 +5705,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get connections for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5699,7 +5729,7 @@
           "fields": [
             {
               "name": "connections",
-              "description": "",
+              "description": "The connections",
               "label": "repeated",
               "type": "Connection",
               "longType": "Connection",
@@ -5723,7 +5753,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to check the connection name for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5735,7 +5765,7 @@
             },
             {
               "name": "connection_name",
-              "description": "",
+              "description": "The connection name to check for availability",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5759,7 +5789,7 @@
           "fields": [
             {
               "name": "is_available",
-              "description": "",
+              "description": "Whether or not the connection name is available",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -5879,7 +5909,7 @@
             },
             {
               "name": "connection_options",
-              "description": "",
+              "description": "Provide connection options that can be used to further fine-tune the connection",
               "label": "",
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
@@ -5927,7 +5957,7 @@
           "fields": [
             {
               "name": "user",
-              "description": "",
+              "description": "The user to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5939,7 +5969,7 @@
             },
             {
               "name": "pass",
-              "description": "",
+              "description": "The password to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5951,7 +5981,7 @@
             },
             {
               "name": "protocol",
-              "description": "",
+              "description": "The protocol to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5963,7 +5993,7 @@
             },
             {
               "name": "host",
-              "description": "",
+              "description": "The host to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5975,7 +6005,7 @@
             },
             {
               "name": "port",
-              "description": "",
+              "description": "The port to use for the connection",
               "label": "",
               "type": "int32",
               "longType": "int32",
@@ -5987,7 +6017,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the database to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6011,7 +6041,7 @@
           "fields": [
             {
               "name": "url",
-              "description": "",
+              "description": "A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6023,7 +6053,7 @@
             },
             {
               "name": "connection",
-              "description": "",
+              "description": "A structured representation of the connection that will be used to construct the url",
               "label": "",
               "type": "MysqlConnection",
               "longType": "MysqlConnection",
@@ -6059,7 +6089,7 @@
             },
             {
               "name": "connection_options",
-              "description": "",
+              "description": "Provide connection options that can be used to further fine-tune the connection",
               "label": "",
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
@@ -6107,7 +6137,7 @@
             },
             {
               "name": "api_url",
-              "description": "OpenAI URL",
+              "description": "OpenAI URL (if using a custom endpoint)",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6131,7 +6161,7 @@
           "fields": [
             {
               "name": "host",
-              "description": "",
+              "description": "The host to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6143,7 +6173,7 @@
             },
             {
               "name": "port",
-              "description": "",
+              "description": "The port to use for the connection",
               "label": "",
               "type": "int32",
               "longType": "int32",
@@ -6155,7 +6185,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the database to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6167,7 +6197,7 @@
             },
             {
               "name": "user",
-              "description": "",
+              "description": "The user to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6179,7 +6209,7 @@
             },
             {
               "name": "pass",
-              "description": "",
+              "description": "The password to use for the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6191,7 +6221,7 @@
             },
             {
               "name": "ssl_mode",
-              "description": "",
+              "description": "The SSL mode to use for the connection",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -6215,7 +6245,7 @@
           "fields": [
             {
               "name": "url",
-              "description": "",
+              "description": "A raw string url that will be used to construct the connection. Must be URI format.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6227,7 +6257,7 @@
             },
             {
               "name": "connection",
-              "description": "",
+              "description": "A structured representation of the connection that will be used to construct the url",
               "label": "",
               "type": "PostgresConnection",
               "longType": "PostgresConnection",
@@ -6263,7 +6293,7 @@
             },
             {
               "name": "connection_options",
-              "description": "",
+              "description": "Provide connection options that can be used to further fine-tune the connection",
               "label": "",
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
@@ -6299,7 +6329,7 @@
           "fields": [
             {
               "name": "passphrase",
-              "description": "",
+              "description": "Password authentication",
               "label": "",
               "type": "SSHPassphrase",
               "longType": "SSHPassphrase",
@@ -6311,7 +6341,7 @@
             },
             {
               "name": "private_key",
-              "description": "",
+              "description": "Private key authentication",
               "label": "",
               "type": "SSHPrivateKey",
               "longType": "SSHPrivateKey",
@@ -6527,7 +6557,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the connection to update",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6539,7 +6569,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The friendly name of the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6551,7 +6581,7 @@
             },
             {
               "name": "connection_config",
-              "description": "",
+              "description": "The connection configuration to use for the connection",
               "label": "",
               "type": "ConnectionConfig",
               "longType": "ConnectionConfig",
@@ -6575,7 +6605,7 @@
           "fields": [
             {
               "name": "connection",
-              "description": "",
+              "description": "The updated connection",
               "label": "",
               "type": "Connection",
               "longType": "Connection",
@@ -6605,7 +6635,10 @@
               "responseType": "GetConnectionsResponse",
               "responseLongType": "GetConnectionsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetConnection",
@@ -6617,7 +6650,10 @@
               "responseType": "GetConnectionResponse",
               "responseLongType": "GetConnectionResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "CreateConnection",
@@ -6741,7 +6777,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job to get the schema for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6753,7 +6789,7 @@
             },
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run to get the schema for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6777,7 +6813,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6789,7 +6825,7 @@
             },
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7089,7 +7125,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7101,7 +7137,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table name",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7136,7 +7172,7 @@
           "fields": [
             {
               "name": "foreign_key",
-              "description": "",
+              "description": "The foreign key that is associated with the constraint",
               "label": "",
               "type": "ForeignKey",
               "longType": "ForeignKey",
@@ -7148,7 +7184,7 @@
             },
             {
               "name": "columns",
-              "description": "",
+              "description": "The columns that are part of the constraint",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -7160,7 +7196,7 @@
             },
             {
               "name": "not_nullable",
-              "description": "",
+              "description": "The not nullable flag for each column",
               "label": "repeated",
               "type": "bool",
               "longType": "bool",
@@ -7184,7 +7220,7 @@
           "fields": [
             {
               "name": "constraints",
-              "description": "",
+              "description": "A list of foreign key constraints",
               "label": "repeated",
               "type": "ForeignConstraint",
               "longType": "ForeignConstraint",
@@ -7208,7 +7244,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that the foreign key is associated with",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7220,7 +7256,7 @@
             },
             {
               "name": "columns",
-              "description": "",
+              "description": "The columns that are part of the foreign key",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -7244,7 +7280,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job to get the schema for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7256,7 +7292,7 @@
             },
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run to get the schema for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7280,7 +7316,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7292,7 +7328,7 @@
             },
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7316,7 +7352,7 @@
           "fields": [
             {
               "name": "ai_connection_id",
-              "description": "",
+              "description": "The unique identifier of a connection, specifically one that is configured for LLM use.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7328,7 +7364,7 @@
             },
             {
               "name": "count",
-              "description": "",
+              "description": "The number of records to generate",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -7340,7 +7376,7 @@
             },
             {
               "name": "model_name",
-              "description": "",
+              "description": "The LLM model name to use that works with the configured connection id.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7352,7 +7388,7 @@
             },
             {
               "name": "user_prompt",
-              "description": "",
+              "description": "The prompt that will be used to further refine the data generation. This is appended to the prompt that Neosync generates that includes schema information.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -7364,7 +7400,7 @@
             },
             {
               "name": "data_connection_id",
-              "description": "",
+              "description": "The unique identifier of a connection that the AI generated data would be inserted into. This is used to generate and send schema information to the LLM to help shape the generated data.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7376,7 +7412,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table to generate data for.",
               "label": "",
               "type": "DatabaseTable",
               "longType": "DatabaseTable",
@@ -7424,7 +7460,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7436,7 +7472,7 @@
             },
             {
               "name": "stream_config",
-              "description": "",
+              "description": "The stream configuration to use for the data stream.",
               "label": "",
               "type": "ConnectionStreamConfig",
               "longType": "ConnectionStreamConfig",
@@ -7448,7 +7484,7 @@
             },
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7460,7 +7496,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table to get the data stream for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7508,7 +7544,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the init statements for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7520,7 +7556,7 @@
             },
             {
               "name": "options",
-              "description": "",
+              "description": "The options to use for the init statements.",
               "label": "",
               "type": "InitStatementOptions",
               "longType": "InitStatementOptions",
@@ -7544,7 +7580,7 @@
           "fields": [
             {
               "name": "table_init_statements",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the table init statement.",
+              "description": "The key here is \u003cschema\u003e.\u003ctable\u003e and value is the table init statement.",
               "label": "repeated",
               "type": "TableInitStatementsEntry",
               "longType": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
@@ -7556,7 +7592,7 @@
             },
             {
               "name": "table_truncate_statements",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the table truncate statement.",
+              "description": "The key here is \u003cschema\u003e.\u003ctable\u003e and value is the table truncate statement.",
               "label": "repeated",
               "type": "TableTruncateStatementsEntry",
               "longType": "GetConnectionInitStatementsResponse.TableTruncateStatementsEntry",
@@ -7568,7 +7604,7 @@
             },
             {
               "name": "schema_init_statements",
-              "description": "",
+              "description": "A list of schema initialization statements",
               "label": "repeated",
               "type": "SchemaInitStatements",
               "longType": "SchemaInitStatements",
@@ -7664,7 +7700,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the schema map for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7676,7 +7712,7 @@
             },
             {
               "name": "schema_config",
-              "description": "",
+              "description": "The schema configuration to use for the schema map.",
               "label": "",
               "type": "ConnectionSchemaConfig",
               "longType": "ConnectionSchemaConfig",
@@ -7820,7 +7856,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the schema for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7832,7 +7868,7 @@
             },
             {
               "name": "schema_config",
-              "description": "",
+              "description": "The schema configuration to use for the schema map.",
               "label": "",
               "type": "ConnectionSchemaConfig",
               "longType": "ConnectionSchemaConfig",
@@ -7856,7 +7892,7 @@
           "fields": [
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of database columns",
               "label": "repeated",
               "type": "DatabaseColumn",
               "longType": "DatabaseColumn",
@@ -7880,7 +7916,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the constraints for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8060,7 +8096,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection to get the row count for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8072,7 +8108,7 @@
             },
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table to get the row count for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8084,7 +8120,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table to get the row count for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8096,7 +8132,7 @@
             },
             {
               "name": "where_clause",
-              "description": "",
+              "description": "The optional where clause to filter the rows by.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -8120,7 +8156,7 @@
           "fields": [
             {
               "name": "count",
-              "description": "",
+              "description": "The count of the rows in the table",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -8144,7 +8180,7 @@
           "fields": [
             {
               "name": "init_schema",
-              "description": "",
+              "description": "Whether or not to generate schema init statements.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -8156,7 +8192,7 @@
             },
             {
               "name": "truncate_before_insert",
-              "description": "",
+              "description": "Whether or not to generate truncation statements",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -8168,7 +8204,7 @@
             },
             {
               "name": "truncate_cascade",
-              "description": "",
+              "description": "Whether or not to generate truncate cascade statements.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -8258,7 +8294,7 @@
           "fields": [
             {
               "name": "columns",
-              "description": "",
+              "description": "The columns that are part of the primary constraint",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -8282,7 +8318,7 @@
           "fields": [
             {
               "name": "label",
-              "description": "",
+              "description": "A friendly label associated with the generated schema init statement(s)",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8294,7 +8330,7 @@
             },
             {
               "name": "statements",
-              "description": "",
+              "description": "A list of SQL statements that may be used to initialize a database from scratch.",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -8318,7 +8354,7 @@
           "fields": [
             {
               "name": "columns",
-              "description": "",
+              "description": "The columns that are part of the unique constraint",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -8342,7 +8378,7 @@
           "fields": [
             {
               "name": "constraints",
-              "description": "",
+              "description": "The unique constraints found for the table",
               "label": "repeated",
               "type": "UniqueConstraint",
               "longType": "UniqueConstraint",
@@ -8456,7 +8492,10 @@
               "responseType": "GetTableRowCountResponse",
               "responseLongType": "GetTableRowCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetTableRowCountResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }
@@ -8732,7 +8771,7 @@
           "fields": [
             {
               "name": "message",
-              "description": "",
+              "description": "The message of the failure",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9020,7 +9059,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique connection id to a aws s3 connection configuration",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9080,7 +9119,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9092,7 +9131,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9127,7 +9166,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9139,7 +9178,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table of the column",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9151,7 +9190,7 @@
             },
             {
               "name": "column",
-              "description": "",
+              "description": "The column of the error",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9163,7 +9202,7 @@
             },
             {
               "name": "errors",
-              "description": "",
+              "description": "The list of errors",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -9187,7 +9226,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The connection id to use for the job destination",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9199,7 +9238,7 @@
             },
             {
               "name": "options",
-              "description": "",
+              "description": "The destination options to use for the job destination",
               "label": "",
               "type": "JobDestinationOptions",
               "longType": "JobDestinationOptions",
@@ -9223,7 +9262,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9235,7 +9274,7 @@
             },
             {
               "name": "destinations",
-              "description": "",
+              "description": "The list of destinations to create and associate with the job",
               "label": "repeated",
               "type": "CreateJobDestination",
               "longType": "CreateJobDestination",
@@ -9259,7 +9298,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was updated",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -9379,7 +9418,7 @@
             },
             {
               "name": "mappings",
-              "description": "",
+              "description": "The list of mappings that will be used to transform the data",
               "label": "repeated",
               "type": "JobMapping",
               "longType": "JobMapping",
@@ -9391,7 +9430,7 @@
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The source connection configuration",
               "label": "",
               "type": "JobSource",
               "longType": "JobSource",
@@ -9403,7 +9442,7 @@
             },
             {
               "name": "destinations",
-              "description": "",
+              "description": "The list of destinations that will be used to store the data",
               "label": "repeated",
               "type": "CreateJobDestination",
               "longType": "CreateJobDestination",
@@ -9451,7 +9490,7 @@
             },
             {
               "name": "virtual_foreign_keys",
-              "description": "",
+              "description": "The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints",
               "label": "repeated",
               "type": "VirtualForeignConstraint",
               "longType": "VirtualForeignConstraint",
@@ -9475,7 +9514,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was created",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -9499,7 +9538,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9534,7 +9573,7 @@
           "fields": [
             {
               "name": "errors",
-              "description": "",
+              "description": "The list of errors",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -9558,7 +9597,7 @@
           "fields": [
             {
               "name": "destination_id",
-              "description": "",
+              "description": "The unique identifier of the destination to delete",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9628,7 +9667,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job to delete",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9663,7 +9702,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9675,7 +9714,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9830,7 +9869,7 @@
           "fields": [
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema",
               "label": "repeated",
               "type": "DynamoDBSourceTableOption",
               "longType": "DynamoDBSourceTableOption",
@@ -9961,7 +10000,7 @@
           "fields": [
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used to generate data for.",
               "label": "repeated",
               "type": "GenerateSourceSchemaOption",
               "longType": "GenerateSourceSchemaOption",
@@ -9973,7 +10012,7 @@
             },
             {
               "name": "fk_source_connection_id",
-              "description": "",
+              "description": "An optional connection id that will be used as the basis for the shape of data to be generated.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -9997,7 +10036,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The database schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10009,7 +10048,7 @@
             },
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema to receive generated data",
               "label": "repeated",
               "type": "GenerateSourceTableOption",
               "longType": "GenerateSourceTableOption",
@@ -10033,7 +10072,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10045,7 +10084,7 @@
             },
             {
               "name": "row_count",
-              "description": "",
+              "description": "The total number of records to be generated.",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -10225,7 +10264,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10249,7 +10288,7 @@
           "fields": [
             {
               "name": "next_runs",
-              "description": "",
+              "description": "The list of next run times",
               "label": "",
               "type": "JobNextRuns",
               "longType": "JobNextRuns",
@@ -10273,7 +10312,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10297,7 +10336,7 @@
           "fields": [
             {
               "name": "recent_runs",
-              "description": "",
+              "description": "The list of recent job runs",
               "label": "repeated",
               "type": "JobRecentRun",
               "longType": "JobRecentRun",
@@ -10321,7 +10360,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10345,7 +10384,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was retrieved",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -10369,7 +10408,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10381,7 +10420,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10405,7 +10444,7 @@
           "fields": [
             {
               "name": "events",
-              "description": "",
+              "description": "The list of events",
               "label": "repeated",
               "type": "JobRunEvent",
               "longType": "JobRunEvent",
@@ -10417,7 +10456,7 @@
             },
             {
               "name": "is_run_complete",
-              "description": "",
+              "description": "Whether the run is complete",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -10441,7 +10480,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10453,7 +10492,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10525,7 +10564,7 @@
           "fields": [
             {
               "name": "log_line",
-              "description": "",
+              "description": "The log line",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10537,7 +10576,7 @@
             },
             {
               "name": "timestamp",
-              "description": "",
+              "description": "The timestamp of the log line",
               "label": "optional",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -10561,7 +10600,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10573,7 +10612,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10597,7 +10636,7 @@
           "fields": [
             {
               "name": "job_run",
-              "description": "",
+              "description": "The job run that was retrieved",
               "label": "",
               "type": "JobRun",
               "longType": "JobRun",
@@ -10621,7 +10660,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "Retireve runs for a specific job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10633,7 +10672,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "Retrieve runs for all jobs in an account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10657,7 +10696,7 @@
           "fields": [
             {
               "name": "job_runs",
-              "description": "",
+              "description": "The list of job runs",
               "label": "repeated",
               "type": "JobRun",
               "longType": "JobRun",
@@ -10681,7 +10720,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10705,7 +10744,7 @@
           "fields": [
             {
               "name": "status",
-              "description": "",
+              "description": "The status of the job",
               "label": "",
               "type": "JobStatus",
               "longType": "JobStatus",
@@ -10729,7 +10768,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10753,7 +10792,7 @@
           "fields": [
             {
               "name": "statuses",
-              "description": "",
+              "description": "The list of job statuses",
               "label": "repeated",
               "type": "JobStatusRecord",
               "longType": "JobStatusRecord",
@@ -10777,7 +10816,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get jobs for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10801,7 +10840,7 @@
           "fields": [
             {
               "name": "jobs",
-              "description": "",
+              "description": "The list of jobs",
               "label": "repeated",
               "type": "Job",
               "longType": "Job",
@@ -10825,7 +10864,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The run context key",
               "label": "",
               "type": "RunContextKey",
               "longType": "RunContextKey",
@@ -10849,7 +10888,7 @@
           "fields": [
             {
               "name": "value",
-              "description": "",
+              "description": "The returned value in bytes. The format is determined by the key when it is set.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -10933,7 +10972,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "",
+              "description": "The name to check for availability",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10945,7 +10984,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to check for availability",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10969,7 +11008,7 @@
           "fields": [
             {
               "name": "is_available",
-              "description": "",
+              "description": "Whether the name is available",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -11065,7 +11104,7 @@
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The source connection configuration",
               "label": "",
               "type": "JobSource",
               "longType": "JobSource",
@@ -11077,7 +11116,7 @@
             },
             {
               "name": "destinations",
-              "description": "",
+              "description": "The list of destinations that will be used to store the data",
               "label": "repeated",
               "type": "JobDestination",
               "longType": "JobDestination",
@@ -11089,7 +11128,7 @@
             },
             {
               "name": "mappings",
-              "description": "",
+              "description": "The list of mappings that will be used to transform the data",
               "label": "repeated",
               "type": "JobMapping",
               "longType": "JobMapping",
@@ -11101,7 +11140,7 @@
             },
             {
               "name": "cron_schedule",
-              "description": "",
+              "description": "The cron schedule that will be used to trigger the job",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -11173,7 +11212,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The connection id to use for the job destination",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11185,7 +11224,7 @@
             },
             {
               "name": "options",
-              "description": "",
+              "description": "The destination options to use for the job destination",
               "label": "",
               "type": "JobDestinationOptions",
               "longType": "JobDestinationOptions",
@@ -11197,7 +11236,7 @@
             },
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job destination",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11591,7 +11630,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The database schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11603,7 +11642,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The database table.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11615,7 +11654,7 @@
             },
             {
               "name": "column",
-              "description": "",
+              "description": "The column in the configured schema.table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11627,7 +11666,7 @@
             },
             {
               "name": "transformer",
-              "description": "",
+              "description": "The transformer configuration that will be applied to each cell in the column",
               "label": "",
               "type": "JobMappingTransformer",
               "longType": "JobMappingTransformer",
@@ -11651,7 +11690,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "",
+              "description": "The transformer configuration",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -11675,7 +11714,7 @@
           "fields": [
             {
               "name": "next_run_times",
-              "description": "",
+              "description": "The list of next run times",
               "label": "repeated",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -11699,7 +11738,7 @@
           "fields": [
             {
               "name": "start_time",
-              "description": "",
+              "description": "The start time of the job run",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -11711,7 +11750,7 @@
             },
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11831,7 +11870,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the event",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -11843,7 +11882,7 @@
             },
             {
               "name": "type",
-              "description": "",
+              "description": "The type of the event",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11855,7 +11894,7 @@
             },
             {
               "name": "start_time",
-              "description": "",
+              "description": "The start time of the event",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -11867,7 +11906,7 @@
             },
             {
               "name": "close_time",
-              "description": "",
+              "description": "The close time of the event",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -11879,7 +11918,7 @@
             },
             {
               "name": "metadata",
-              "description": "",
+              "description": "The metadata of the event",
               "label": "",
               "type": "JobRunEventMetadata",
               "longType": "JobRunEventMetadata",
@@ -11891,7 +11930,7 @@
             },
             {
               "name": "tasks",
-              "description": "",
+              "description": "The list of tasks associated with the event",
               "label": "repeated",
               "type": "JobRunEventTask",
               "longType": "JobRunEventTask",
@@ -11915,7 +11954,7 @@
           "fields": [
             {
               "name": "sync_metadata",
-              "description": "",
+              "description": "The metadata of the sync",
               "label": "",
               "type": "JobRunSyncMetadata",
               "longType": "JobRunSyncMetadata",
@@ -11939,7 +11978,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the task",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -11951,7 +11990,7 @@
             },
             {
               "name": "type",
-              "description": "",
+              "description": "The type of the task",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11963,7 +12002,7 @@
             },
             {
               "name": "event_time",
-              "description": "",
+              "description": "The time of the event",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -11975,7 +12014,7 @@
             },
             {
               "name": "error",
-              "description": "",
+              "description": "The error of the task",
               "label": "",
               "type": "JobRunEventTaskError",
               "longType": "JobRunEventTaskError",
@@ -11999,7 +12038,7 @@
           "fields": [
             {
               "name": "message",
-              "description": "",
+              "description": "The message of the error",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12011,7 +12050,7 @@
             },
             {
               "name": "retry_state",
-              "description": "",
+              "description": "The retry state of the error",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12035,7 +12074,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12047,7 +12086,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table of the sync",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12071,7 +12110,7 @@
           "fields": [
             {
               "name": "options",
-              "description": "",
+              "description": "The source options to use for the job",
               "label": "",
               "type": "JobSourceOptions",
               "longType": "JobSourceOptions",
@@ -12203,7 +12242,7 @@
           "fields": [
             {
               "name": "postgres_subset",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "",
               "type": "PostgresSourceSchemaSubset",
               "longType": "PostgresSourceSchemaSubset",
@@ -12215,7 +12254,7 @@
             },
             {
               "name": "mysql_subset",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "",
               "type": "MysqlSourceSchemaSubset",
               "longType": "MysqlSourceSchemaSubset",
@@ -12227,7 +12266,7 @@
             },
             {
               "name": "dynamodb_subset",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema",
               "label": "",
               "type": "DynamoDBSourceSchemaSubset",
               "longType": "DynamoDBSourceSchemaSubset",
@@ -12239,7 +12278,7 @@
             },
             {
               "name": "mssql_subset",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "",
               "type": "MssqlSourceSchemaSubset",
               "longType": "MssqlSourceSchemaSubset",
@@ -12263,7 +12302,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12275,7 +12314,7 @@
             },
             {
               "name": "status",
-              "description": "",
+              "description": "The status of the job",
               "label": "",
               "type": "JobStatus",
               "longType": "JobStatus",
@@ -12334,7 +12373,7 @@
           "fields": [
             {
               "name": "truncate_table",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "MssqlTruncateTableConfig",
               "longType": "MssqlTruncateTableConfig",
@@ -12346,7 +12385,7 @@
             },
             {
               "name": "init_table_schema",
-              "description": "Currently not supported and a placeholder for future implementation",
+              "description": "Whether to initialize the table schema before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12358,7 +12397,7 @@
             },
             {
               "name": "on_conflict",
-              "description": "Currently not supported and a placeholder for future implementation",
+              "description": "The configuration for handling conflicts when inserting data",
               "label": "",
               "type": "MssqlOnConflictConfig",
               "longType": "MssqlOnConflictConfig",
@@ -12418,7 +12457,7 @@
           "fields": [
             {
               "name": "do_nothing",
-              "description": "",
+              "description": "Whether to do nothing when a conflict occurs",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12442,7 +12481,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "",
+              "description": "Whether to halt the job if a new column is added",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12454,7 +12493,7 @@
             },
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "MssqlSourceSchemaOption",
               "longType": "MssqlSourceSchemaOption",
@@ -12466,7 +12505,7 @@
             },
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique connection id to a mssql connection configuration",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12478,7 +12517,7 @@
             },
             {
               "name": "subset_by_foreign_key_constraints",
-              "description": "",
+              "description": "Whether to subset the table by foreign key constraints",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12526,7 +12565,7 @@
             },
             {
               "name": "continue_job",
-              "description": "",
+              "description": "continue job if a column is removed",
               "label": "",
               "type": "ContinueJob",
               "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
@@ -12572,7 +12611,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The database schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12584,7 +12623,7 @@
             },
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema",
               "label": "repeated",
               "type": "MssqlSourceTableOption",
               "longType": "MssqlSourceTableOption",
@@ -12608,7 +12647,7 @@
           "fields": [
             {
               "name": "mssql_schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "MssqlSourceSchemaOption",
               "longType": "MssqlSourceSchemaOption",
@@ -12632,7 +12671,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12644,7 +12683,7 @@
             },
             {
               "name": "where_clause",
-              "description": "",
+              "description": "This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.\nIs used to subset the table.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -12668,7 +12707,7 @@
           "fields": [
             {
               "name": "truncate_before_insert",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12692,7 +12731,7 @@
           "fields": [
             {
               "name": "truncate_table",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "MysqlTruncateTableConfig",
               "longType": "MysqlTruncateTableConfig",
@@ -12704,7 +12743,7 @@
             },
             {
               "name": "init_table_schema",
-              "description": "",
+              "description": "Whether to initialize the table schema before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12716,7 +12755,7 @@
             },
             {
               "name": "on_conflict",
-              "description": "",
+              "description": "The configuration for handling conflicts when inserting data",
               "label": "",
               "type": "MysqlOnConflictConfig",
               "longType": "MysqlOnConflictConfig",
@@ -12846,7 +12885,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "",
+              "description": "Whether to halt the job if a new column is added",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12858,7 +12897,7 @@
             },
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "MysqlSourceSchemaOption",
               "longType": "MysqlSourceSchemaOption",
@@ -12870,7 +12909,7 @@
             },
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique connection id to a mysql connection configuration",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12882,7 +12921,7 @@
             },
             {
               "name": "subset_by_foreign_key_constraints",
-              "description": "",
+              "description": "Whether to subset the table by foreign key constraints",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -12930,7 +12969,7 @@
             },
             {
               "name": "continue_job",
-              "description": "",
+              "description": "continue job if a column is removed",
               "label": "",
               "type": "ContinueJob",
               "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
@@ -12976,7 +13015,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The database schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12988,7 +13027,7 @@
             },
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema",
               "label": "repeated",
               "type": "MysqlSourceTableOption",
               "longType": "MysqlSourceTableOption",
@@ -13012,7 +13051,7 @@
           "fields": [
             {
               "name": "mysql_schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "MysqlSourceSchemaOption",
               "longType": "MysqlSourceSchemaOption",
@@ -13036,7 +13075,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13048,7 +13087,7 @@
             },
             {
               "name": "where_clause",
-              "description": "",
+              "description": "This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.\nIs used to subset the table.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -13072,7 +13111,7 @@
           "fields": [
             {
               "name": "truncate_before_insert",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13168,7 +13207,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13180,7 +13219,7 @@
             },
             {
               "name": "pause",
-              "description": "",
+              "description": "Whether to pause or unpause the job",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13192,7 +13231,7 @@
             },
             {
               "name": "note",
-              "description": "",
+              "description": "An optional note to be associated with the pause",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -13216,7 +13255,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was updated",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -13240,7 +13279,7 @@
           "fields": [
             {
               "name": "status",
-              "description": "",
+              "description": "The status of the activity",
               "label": "",
               "type": "ActivityStatus",
               "longType": "ActivityStatus",
@@ -13252,7 +13291,7 @@
             },
             {
               "name": "activity_name",
-              "description": "",
+              "description": "The name of the activity",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13264,7 +13303,7 @@
             },
             {
               "name": "last_failure",
-              "description": "",
+              "description": "The last failure of the activity",
               "label": "optional",
               "type": "ActivityFailure",
               "longType": "ActivityFailure",
@@ -13288,7 +13327,7 @@
           "fields": [
             {
               "name": "truncate_table",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "PostgresTruncateTableConfig",
               "longType": "PostgresTruncateTableConfig",
@@ -13300,7 +13339,7 @@
             },
             {
               "name": "init_table_schema",
-              "description": "",
+              "description": "Whether to initialize the table schema before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13312,7 +13351,7 @@
             },
             {
               "name": "on_conflict",
-              "description": "",
+              "description": "The configuration for handling conflicts when inserting data",
               "label": "",
               "type": "PostgresOnConflictConfig",
               "longType": "PostgresOnConflictConfig",
@@ -13324,7 +13363,7 @@
             },
             {
               "name": "skip_foreign_key_violations",
-              "description": "Insert all valid records, skipping any that violate foreign key constraints.",
+              "description": "Whether to skip records that violate foreign key constraints",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13442,7 +13481,7 @@
           "fields": [
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "PostgresSourceSchemaOption",
               "longType": "PostgresSourceSchemaOption",
@@ -13454,7 +13493,7 @@
             },
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique connection id to a postgres connection configuration",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13466,7 +13505,7 @@
             },
             {
               "name": "subset_by_foreign_key_constraints",
-              "description": "",
+              "description": "Whether to subset the table by foreign key constraints",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13526,7 +13565,7 @@
             },
             {
               "name": "continue_job",
-              "description": "",
+              "description": "continue job if a column is removed",
               "label": "",
               "type": "ContinueJob",
               "longType": "PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob",
@@ -13630,7 +13669,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The database schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13642,7 +13681,7 @@
             },
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema",
               "label": "repeated",
               "type": "PostgresSourceTableOption",
               "longType": "PostgresSourceTableOption",
@@ -13666,7 +13705,7 @@
           "fields": [
             {
               "name": "postgres_schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used.",
               "label": "repeated",
               "type": "PostgresSourceSchemaOption",
               "longType": "PostgresSourceSchemaOption",
@@ -13690,7 +13729,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13702,7 +13741,7 @@
             },
             {
               "name": "where_clause",
-              "description": "",
+              "description": "This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.\nIs used to subset the table.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -13726,7 +13765,7 @@
           "fields": [
             {
               "name": "truncate_before_insert",
-              "description": "",
+              "description": "Whether to truncate the table before inserting data",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13738,7 +13777,7 @@
             },
             {
               "name": "cascade",
-              "description": "",
+              "description": "Whether to cascade the truncate to child tables",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13942,7 +13981,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was updated",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -14002,7 +14041,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The updated job",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -14062,7 +14101,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The updated job",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -14086,7 +14125,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The run context key",
               "label": "",
               "type": "RunContextKey",
               "longType": "RunContextKey",
@@ -14133,7 +14172,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The run context key",
               "label": "",
               "type": "RunContextKey",
               "longType": "RunContextKey",
@@ -14180,7 +14219,7 @@
           "fields": [
             {
               "name": "job_run_id",
-              "description": "",
+              "description": "The unique identifier of the job run",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14192,7 +14231,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14227,7 +14266,7 @@
           "fields": [
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14239,7 +14278,7 @@
             },
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14251,7 +14290,7 @@
             },
             {
               "name": "options",
-              "description": "",
+              "description": "The destination connection options",
               "label": "",
               "type": "JobDestinationOptions",
               "longType": "JobDestinationOptions",
@@ -14263,7 +14302,7 @@
             },
             {
               "name": "destination_id",
-              "description": "",
+              "description": "The unique identifier of the destination",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14287,7 +14326,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was updated",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -14419,7 +14458,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14431,7 +14470,7 @@
             },
             {
               "name": "cron_schedule",
-              "description": "",
+              "description": "The new cron schedule",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -14455,7 +14494,7 @@
           "fields": [
             {
               "name": "job",
-              "description": "",
+              "description": "The job that was updated",
               "label": "",
               "type": "Job",
               "longType": "Job",
@@ -14479,7 +14518,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14491,7 +14530,7 @@
             },
             {
               "name": "source",
-              "description": "",
+              "description": "The new source connection configuration",
               "label": "",
               "type": "JobSource",
               "longType": "JobSource",
@@ -14503,7 +14542,7 @@
             },
             {
               "name": "mappings",
-              "description": "",
+              "description": "The new list of mappings that will be used to transform the data",
               "label": "repeated",
               "type": "JobMapping",
               "longType": "JobMapping",
@@ -14515,7 +14554,7 @@
             },
             {
               "name": "virtual_foreign_keys",
-              "description": "",
+              "description": "The new list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints",
               "label": "repeated",
               "type": "VirtualForeignConstraint",
               "longType": "VirtualForeignConstraint",
@@ -14563,7 +14602,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "The unique account identifier that this job will be associated with",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14575,7 +14614,7 @@
             },
             {
               "name": "mappings",
-              "description": "",
+              "description": "The list of mappings to validate",
               "label": "repeated",
               "type": "JobMapping",
               "longType": "JobMapping",
@@ -14587,7 +14626,7 @@
             },
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique identifier of the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14599,7 +14638,7 @@
             },
             {
               "name": "virtual_foreign_keys",
-              "description": "",
+              "description": "The list of virtual foreign keys",
               "label": "repeated",
               "type": "VirtualForeignConstraint",
               "longType": "VirtualForeignConstraint",
@@ -14623,7 +14662,7 @@
           "fields": [
             {
               "name": "column_errors",
-              "description": "",
+              "description": "The list of column errors",
               "label": "repeated",
               "type": "ColumnError",
               "longType": "ColumnError",
@@ -14635,7 +14674,7 @@
             },
             {
               "name": "database_errors",
-              "description": "",
+              "description": "The database error",
               "label": "",
               "type": "DatabaseError",
               "longType": "DatabaseError",
@@ -14659,7 +14698,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14671,7 +14710,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table of the virtual foreign key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14683,7 +14722,7 @@
             },
             {
               "name": "columns",
-              "description": "",
+              "description": "The list of columns",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -14695,7 +14734,7 @@
             },
             {
               "name": "foreign_key",
-              "description": "",
+              "description": "The foreign key",
               "label": "",
               "type": "VirtualForeignKey",
               "longType": "VirtualForeignKey",
@@ -14719,7 +14758,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14731,7 +14770,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table of the virtual foreign key",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14743,7 +14782,7 @@
             },
             {
               "name": "columns",
-              "description": "",
+              "description": "The list of columns",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -14785,11 +14824,11 @@
           "name": "JobService",
           "longName": "JobService",
           "fullName": "mgmt.v1alpha1.JobService",
-          "description": "",
+          "description": "Service that handles jobs, runs, and hooks",
           "methods": [
             {
               "name": "GetJobs",
-              "description": "",
+              "description": "Returns a list of jobs by either account or job",
               "requestType": "GetJobsRequest",
               "requestLongType": "GetJobsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobsRequest",
@@ -14797,11 +14836,14 @@
               "responseType": "GetJobsResponse",
               "responseLongType": "GetJobsResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJob",
-              "description": "",
+              "description": "Returns a specific job",
               "requestType": "GetJobRequest",
               "requestLongType": "GetJobRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRequest",
@@ -14809,11 +14851,14 @@
               "responseType": "GetJobResponse",
               "responseLongType": "GetJobResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "CreateJob",
-              "description": "",
+              "description": "Creates a new job",
               "requestType": "CreateJobRequest",
               "requestLongType": "CreateJobRequest",
               "requestFullType": "mgmt.v1alpha1.CreateJobRequest",
@@ -14825,7 +14870,7 @@
             },
             {
               "name": "DeleteJob",
-              "description": "",
+              "description": "Deletes a job",
               "requestType": "DeleteJobRequest",
               "requestLongType": "DeleteJobRequest",
               "requestFullType": "mgmt.v1alpha1.DeleteJobRequest",
@@ -14837,7 +14882,7 @@
             },
             {
               "name": "IsJobNameAvailable",
-              "description": "",
+              "description": "Checks if a job name is available",
               "requestType": "IsJobNameAvailableRequest",
               "requestLongType": "IsJobNameAvailableRequest",
               "requestFullType": "mgmt.v1alpha1.IsJobNameAvailableRequest",
@@ -14845,11 +14890,14 @@
               "responseType": "IsJobNameAvailableResponse",
               "responseLongType": "IsJobNameAvailableResponse",
               "responseFullType": "mgmt.v1alpha1.IsJobNameAvailableResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "UpdateJobSchedule",
-              "description": "",
+              "description": "Updates the schedule of a job",
               "requestType": "UpdateJobScheduleRequest",
               "requestLongType": "UpdateJobScheduleRequest",
               "requestFullType": "mgmt.v1alpha1.UpdateJobScheduleRequest",
@@ -14861,7 +14909,7 @@
             },
             {
               "name": "UpdateJobSourceConnection",
-              "description": "",
+              "description": "Updates the source connection of a job",
               "requestType": "UpdateJobSourceConnectionRequest",
               "requestLongType": "UpdateJobSourceConnectionRequest",
               "requestFullType": "mgmt.v1alpha1.UpdateJobSourceConnectionRequest",
@@ -14873,7 +14921,7 @@
             },
             {
               "name": "SetJobSourceSqlConnectionSubsets",
-              "description": "",
+              "description": "Sets the source sql connection subsets of a job",
               "requestType": "SetJobSourceSqlConnectionSubsetsRequest",
               "requestLongType": "SetJobSourceSqlConnectionSubsetsRequest",
               "requestFullType": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest",
@@ -14885,7 +14933,7 @@
             },
             {
               "name": "UpdateJobDestinationConnection",
-              "description": "",
+              "description": "Updates the destination connection of a job",
               "requestType": "UpdateJobDestinationConnectionRequest",
               "requestLongType": "UpdateJobDestinationConnectionRequest",
               "requestFullType": "mgmt.v1alpha1.UpdateJobDestinationConnectionRequest",
@@ -14897,7 +14945,7 @@
             },
             {
               "name": "DeleteJobDestinationConnection",
-              "description": "",
+              "description": "Deletes the destination connection of a job",
               "requestType": "DeleteJobDestinationConnectionRequest",
               "requestLongType": "DeleteJobDestinationConnectionRequest",
               "requestFullType": "mgmt.v1alpha1.DeleteJobDestinationConnectionRequest",
@@ -14909,7 +14957,7 @@
             },
             {
               "name": "CreateJobDestinationConnections",
-              "description": "",
+              "description": "Creates the destination connections of a job",
               "requestType": "CreateJobDestinationConnectionsRequest",
               "requestLongType": "CreateJobDestinationConnectionsRequest",
               "requestFullType": "mgmt.v1alpha1.CreateJobDestinationConnectionsRequest",
@@ -14921,7 +14969,7 @@
             },
             {
               "name": "PauseJob",
-              "description": "",
+              "description": "Pauses or unpauses a job",
               "requestType": "PauseJobRequest",
               "requestLongType": "PauseJobRequest",
               "requestFullType": "mgmt.v1alpha1.PauseJobRequest",
@@ -14933,7 +14981,7 @@
             },
             {
               "name": "GetJobRecentRuns",
-              "description": "Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs",
+              "description": "Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs",
               "requestType": "GetJobRecentRunsRequest",
               "requestLongType": "GetJobRecentRunsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRecentRunsRequest",
@@ -14941,7 +14989,10 @@
               "responseType": "GetJobRecentRunsResponse",
               "responseLongType": "GetJobRecentRunsResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRecentRunsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobNextRuns",
@@ -14953,11 +15004,14 @@
               "responseType": "GetJobNextRunsResponse",
               "responseLongType": "GetJobNextRunsResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobNextRunsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobStatus",
-              "description": "",
+              "description": "Returns the status of a job",
               "requestType": "GetJobStatusRequest",
               "requestLongType": "GetJobStatusRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobStatusRequest",
@@ -14965,11 +15019,14 @@
               "responseType": "GetJobStatusResponse",
               "responseLongType": "GetJobStatusResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobStatusResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobStatuses",
-              "description": "",
+              "description": "Returns the statuses of jobs within an account",
               "requestType": "GetJobStatusesRequest",
               "requestLongType": "GetJobStatusesRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobStatusesRequest",
@@ -14977,7 +15034,10 @@
               "responseType": "GetJobStatusesResponse",
               "responseLongType": "GetJobStatusesResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobStatusesResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobRuns",
@@ -14989,11 +15049,14 @@
               "responseType": "GetJobRunsResponse",
               "responseLongType": "GetJobRunsResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobRunEvents",
-              "description": "",
+              "description": "Returns a list of events for a job run to understand more details of the run itself",
               "requestType": "GetJobRunEventsRequest",
               "requestLongType": "GetJobRunEventsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRunEventsRequest",
@@ -15001,7 +15064,10 @@
               "responseType": "GetJobRunEventsResponse",
               "responseLongType": "GetJobRunEventsResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunEventsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobRun",
@@ -15013,11 +15079,14 @@
               "responseType": "GetJobRunResponse",
               "responseLongType": "GetJobRunResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "DeleteJobRun",
-              "description": "",
+              "description": "Deletes a job run",
               "requestType": "DeleteJobRunRequest",
               "requestLongType": "DeleteJobRunRequest",
               "requestFullType": "mgmt.v1alpha1.DeleteJobRunRequest",
@@ -15029,7 +15098,7 @@
             },
             {
               "name": "CreateJobRun",
-              "description": "",
+              "description": "Creates a new job run",
               "requestType": "CreateJobRunRequest",
               "requestLongType": "CreateJobRunRequest",
               "requestFullType": "mgmt.v1alpha1.CreateJobRunRequest",
@@ -15041,7 +15110,7 @@
             },
             {
               "name": "CancelJobRun",
-              "description": "",
+              "description": "Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.",
               "requestType": "CancelJobRunRequest",
               "requestLongType": "CancelJobRunRequest",
               "requestFullType": "mgmt.v1alpha1.CancelJobRunRequest",
@@ -15053,7 +15122,7 @@
             },
             {
               "name": "TerminateJobRun",
-              "description": "",
+              "description": "Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.",
               "requestType": "TerminateJobRunRequest",
               "requestLongType": "TerminateJobRunRequest",
               "requestFullType": "mgmt.v1alpha1.TerminateJobRunRequest",
@@ -15101,7 +15170,7 @@
             },
             {
               "name": "ValidateJobMappings",
-              "description": "validates that the jobmapping configured can run with table constraints",
+              "description": "Validates that the jobmapping configured can run with table constraints",
               "requestType": "ValidateJobMappingsRequest",
               "requestLongType": "ValidateJobMappingsRequest",
               "requestFullType": "mgmt.v1alpha1.ValidateJobMappingsRequest",
@@ -15157,7 +15226,10 @@
               "responseType": "GetJobHooksResponse",
               "responseLongType": "GetJobHooksResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobHooksResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetJobHook",
@@ -15169,7 +15241,10 @@
               "responseType": "GetJobHookResponse",
               "responseLongType": "GetJobHookResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobHookResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "CreateJobHook",
@@ -15241,7 +15316,10 @@
               "responseType": "GetActiveJobHooksByTimingResponse",
               "responseLongType": "GetActiveJobHooksByTimingResponse",
               "responseFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }
@@ -15337,7 +15415,7 @@
           "fields": [
             {
               "name": "date",
-              "description": "",
+              "description": "The date of the result",
               "label": "",
               "type": "Date",
               "longType": "Date",
@@ -15349,7 +15427,7 @@
             },
             {
               "name": "count",
-              "description": "",
+              "description": "The count of the metric for the given date",
               "label": "",
               "type": "uint64",
               "longType": "uint64",
@@ -15457,7 +15535,7 @@
           "fields": [
             {
               "name": "results",
-              "description": "",
+              "description": "The list of results for the given metric and date range",
               "label": "repeated",
               "type": "DayResult",
               "longType": "DayResult",
@@ -15583,7 +15661,7 @@
           "name": "MetricsService",
           "longName": "MetricsService",
           "fullName": "mgmt.v1alpha1.MetricsService",
-          "description": "",
+          "description": "Service that handles serving up usage metrics",
           "methods": [
             {
               "name": "GetDailyMetricCount",
@@ -15595,7 +15673,10 @@
               "responseType": "GetDailyMetricCountResponse",
               "responseLongType": "GetDailyMetricCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetDailyMetricCountResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetMetricCount",
@@ -15607,7 +15688,10 @@
               "responseType": "GetMetricCountResponse",
               "responseLongType": "GetMetricCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetMetricCountResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }
@@ -15730,17 +15814,17 @@
             {
               "name": "USER_ACCOUNT_TYPE_PERSONAL",
               "number": "1",
-              "description": ""
+              "description": "A personal account is an account that is owned by a single user."
             },
             {
               "name": "USER_ACCOUNT_TYPE_TEAM",
               "number": "2",
-              "description": ""
+              "description": "A team account is an account that is owned by a team of users."
             },
             {
               "name": "USER_ACCOUNT_TYPE_ENTERPRISE",
               "number": "3",
-              "description": ""
+              "description": "An enterprise account is an account that is owned by an enterprise."
             }
           ]
         }
@@ -15759,7 +15843,7 @@
           "fields": [
             {
               "name": "token",
-              "description": "",
+              "description": "The token that the user will use to accept the invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15783,7 +15867,7 @@
           "fields": [
             {
               "name": "account",
-              "description": "",
+              "description": "The account that the user was invited to.",
               "label": "",
               "type": "UserAccount",
               "longType": "UserAccount",
@@ -15807,7 +15891,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15819,7 +15903,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to invite the user to.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15831,7 +15915,7 @@
             },
             {
               "name": "sender_user_id",
-              "description": "",
+              "description": "The unique identifier of the user that sent the invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15843,7 +15927,7 @@
             },
             {
               "name": "email",
-              "description": "",
+              "description": "The email of the user to invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15855,7 +15939,7 @@
             },
             {
               "name": "token",
-              "description": "",
+              "description": "The token that the user will use to accept the invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15867,7 +15951,7 @@
             },
             {
               "name": "accepted",
-              "description": "",
+              "description": "Whether or not the invite has been accepted.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -15879,7 +15963,7 @@
             },
             {
               "name": "created_at",
-              "description": "",
+              "description": "The time when the invite was created.",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -15891,7 +15975,7 @@
             },
             {
               "name": "updated_at",
-              "description": "",
+              "description": "The time when the invite was last updated.",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -15903,7 +15987,7 @@
             },
             {
               "name": "expires_at",
-              "description": "",
+              "description": "The time when the invite expires.",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -15939,7 +16023,7 @@
           "fields": [
             {
               "name": "has_completed_onboarding",
-              "description": "",
+              "description": "Whether or not the account has completed onboarding.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -15963,7 +16047,7 @@
           "fields": [
             {
               "name": "url",
-              "description": "",
+              "description": "The temporal url for the account.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15975,7 +16059,7 @@
             },
             {
               "name": "namespace",
-              "description": "",
+              "description": "The temporal namespace for the account.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15987,7 +16071,7 @@
             },
             {
               "name": "sync_job_queue_name",
-              "description": "",
+              "description": "The temporal sync job queue name for the account.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16011,7 +16095,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the user.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16023,7 +16107,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the user (if there is one)",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16035,7 +16119,7 @@
             },
             {
               "name": "image",
-              "description": "",
+              "description": "The image of the user (if there is one)",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16047,7 +16131,7 @@
             },
             {
               "name": "email",
-              "description": "",
+              "description": "The email of the user.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16191,7 +16275,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the team account that was created.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16227,7 +16311,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the billing checkout session for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16275,7 +16359,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the billing portal session for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16323,7 +16407,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the onboarding config for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16347,7 +16431,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "",
+              "description": "The onboarding config for the account.",
               "label": "",
               "type": "AccountOnboardingConfig",
               "longType": "AccountOnboardingConfig",
@@ -16371,7 +16455,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the status for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16443,7 +16527,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the temporal config for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16467,7 +16551,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "",
+              "description": "The temporal config for the account.",
               "label": "",
               "type": "AccountTemporalConfig",
               "longType": "AccountTemporalConfig",
@@ -16515,7 +16599,7 @@
           "fields": [
             {
               "name": "accounts",
-              "description": "",
+              "description": "The list of accounts that have a billing id.",
               "label": "repeated",
               "type": "UserAccount",
               "longType": "UserAccount",
@@ -16634,7 +16718,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the invites for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16658,7 +16742,7 @@
           "fields": [
             {
               "name": "invites",
-              "description": "",
+              "description": "The list of invites for the account.",
               "label": "repeated",
               "type": "AccountInvite",
               "longType": "AccountInvite",
@@ -16682,7 +16766,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the members for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16741,7 +16825,7 @@
           "fields": [
             {
               "name": "accounts",
-              "description": "",
+              "description": "The list of accounts that the user belongs to.",
               "label": "repeated",
               "type": "UserAccount",
               "longType": "UserAccount",
@@ -16776,7 +16860,7 @@
           "fields": [
             {
               "name": "user_id",
-              "description": "",
+              "description": "The unique identifier of the user that was retrieved.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16800,7 +16884,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "The account id to invite the user to",
+              "description": "The unique identifier of the account to invite the user to.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16812,7 +16896,7 @@
             },
             {
               "name": "email",
-              "description": "The email of the user to invite",
+              "description": "The email of the user to invite.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16848,7 +16932,7 @@
           "fields": [
             {
               "name": "invite",
-              "description": "",
+              "description": "The invite that was created.",
               "label": "",
               "type": "AccountInvite",
               "longType": "AccountInvite",
@@ -16872,7 +16956,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to get the status for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -16908,7 +16992,7 @@
           "fields": [
             {
               "name": "is_valid",
-              "description": "",
+              "description": "Whether or not the account is valid.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -16980,7 +17064,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to check if the user is in.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17004,7 +17088,7 @@
           "fields": [
             {
               "name": "ok",
-              "description": "",
+              "description": "Whether or not the user is in the account.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -17028,7 +17112,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the invite to remove.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17063,7 +17147,7 @@
           "fields": [
             {
               "name": "user_id",
-              "description": "",
+              "description": "The unique identifier of the user to remove from the account.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17075,7 +17159,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to remove the user from.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17110,7 +17194,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to set the onboarding config for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17122,7 +17206,7 @@
             },
             {
               "name": "config",
-              "description": "",
+              "description": "The onboarding config to set for the account.",
               "label": "",
               "type": "AccountOnboardingConfig",
               "longType": "AccountOnboardingConfig",
@@ -17146,7 +17230,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "",
+              "description": "The onboarding config that was set for the account.",
               "label": "",
               "type": "AccountOnboardingConfig",
               "longType": "AccountOnboardingConfig",
@@ -17170,7 +17254,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the account to set the temporal config for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17182,7 +17266,7 @@
             },
             {
               "name": "config",
-              "description": "",
+              "description": "The temporal config to set for the account.",
               "label": "",
               "type": "AccountTemporalConfig",
               "longType": "AccountTemporalConfig",
@@ -17206,7 +17290,7 @@
           "fields": [
             {
               "name": "config",
-              "description": "",
+              "description": "The temporal config that was set for the account.",
               "label": "",
               "type": "AccountTemporalConfig",
               "longType": "AccountTemporalConfig",
@@ -17230,7 +17314,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "The account id to apply this metered event to",
+              "description": "The unique identifier of the account to apply this metered event to.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17324,7 +17408,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique identifier of the personal account that was created.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17359,7 +17443,7 @@
           "fields": [
             {
               "name": "user_id",
-              "description": "",
+              "description": "The unique identifier of the user that was created.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17383,7 +17467,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "The account id to apply this role to",
+              "description": "The unique identifier of the account to apply this role to.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17395,7 +17479,7 @@
             },
             {
               "name": "user_id",
-              "description": "The user that this will be applied to",
+              "description": "The unique identifier of the user that this will be applied to.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -17407,7 +17491,7 @@
             },
             {
               "name": "role",
-              "description": "The role that this user will obtain",
+              "description": "The role that this user will obtain.",
               "label": "",
               "type": "AccountRole",
               "longType": "AccountRole",
@@ -17544,11 +17628,11 @@
           "name": "UserAccountService",
           "longName": "UserAccountService",
           "fullName": "mgmt.v1alpha1.UserAccountService",
-          "description": "",
+          "description": "Service that manages users, accounts, and billing",
           "methods": [
             {
               "name": "GetUser",
-              "description": "",
+              "description": "Retrieves the current user.",
               "requestType": "GetUserRequest",
               "requestLongType": "GetUserRequest",
               "requestFullType": "mgmt.v1alpha1.GetUserRequest",
@@ -17556,11 +17640,14 @@
               "responseType": "GetUserResponse",
               "responseLongType": "GetUserResponse",
               "responseFullType": "mgmt.v1alpha1.GetUserResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "SetUser",
-              "description": "",
+              "description": "Sets the current user.",
               "requestType": "SetUserRequest",
               "requestLongType": "SetUserRequest",
               "requestFullType": "mgmt.v1alpha1.SetUserRequest",
@@ -17572,7 +17659,7 @@
             },
             {
               "name": "GetUserAccounts",
-              "description": "",
+              "description": "Retrieves the list of accounts that the user belongs to.",
               "requestType": "GetUserAccountsRequest",
               "requestLongType": "GetUserAccountsRequest",
               "requestFullType": "mgmt.v1alpha1.GetUserAccountsRequest",
@@ -17580,11 +17667,14 @@
               "responseType": "GetUserAccountsResponse",
               "responseLongType": "GetUserAccountsResponse",
               "responseFullType": "mgmt.v1alpha1.GetUserAccountsResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "SetPersonalAccount",
-              "description": "",
+              "description": "Sets the current personal account.",
               "requestType": "SetPersonalAccountRequest",
               "requestLongType": "SetPersonalAccountRequest",
               "requestFullType": "mgmt.v1alpha1.SetPersonalAccountRequest",
@@ -17620,7 +17710,7 @@
             },
             {
               "name": "IsUserInAccount",
-              "description": "",
+              "description": "Checks if the user is in the account.",
               "requestType": "IsUserInAccountRequest",
               "requestLongType": "IsUserInAccountRequest",
               "requestFullType": "mgmt.v1alpha1.IsUserInAccountRequest",
@@ -17632,7 +17722,7 @@
             },
             {
               "name": "GetAccountTemporalConfig",
-              "description": "",
+              "description": "Retrieves the temporal config for the account.",
               "requestType": "GetAccountTemporalConfigRequest",
               "requestLongType": "GetAccountTemporalConfigRequest",
               "requestFullType": "mgmt.v1alpha1.GetAccountTemporalConfigRequest",
@@ -17640,11 +17730,14 @@
               "responseType": "GetAccountTemporalConfigResponse",
               "responseLongType": "GetAccountTemporalConfigResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountTemporalConfigResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "SetAccountTemporalConfig",
-              "description": "",
+              "description": "Sets the temporal config for the account.",
               "requestType": "SetAccountTemporalConfigRequest",
               "requestLongType": "SetAccountTemporalConfigRequest",
               "requestFullType": "mgmt.v1alpha1.SetAccountTemporalConfigRequest",
@@ -17656,7 +17749,7 @@
             },
             {
               "name": "GetTeamAccountMembers",
-              "description": "",
+              "description": "Retrieves the list of members in the team account.",
               "requestType": "GetTeamAccountMembersRequest",
               "requestLongType": "GetTeamAccountMembersRequest",
               "requestFullType": "mgmt.v1alpha1.GetTeamAccountMembersRequest",
@@ -17664,11 +17757,14 @@
               "responseType": "GetTeamAccountMembersResponse",
               "responseLongType": "GetTeamAccountMembersResponse",
               "responseFullType": "mgmt.v1alpha1.GetTeamAccountMembersResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "RemoveTeamAccountMember",
-              "description": "",
+              "description": "Removes a member from the team account.",
               "requestType": "RemoveTeamAccountMemberRequest",
               "requestLongType": "RemoveTeamAccountMemberRequest",
               "requestFullType": "mgmt.v1alpha1.RemoveTeamAccountMemberRequest",
@@ -17680,7 +17776,7 @@
             },
             {
               "name": "InviteUserToTeamAccount",
-              "description": "",
+              "description": "Invites a user to the team account.",
               "requestType": "InviteUserToTeamAccountRequest",
               "requestLongType": "InviteUserToTeamAccountRequest",
               "requestFullType": "mgmt.v1alpha1.InviteUserToTeamAccountRequest",
@@ -17692,7 +17788,7 @@
             },
             {
               "name": "GetTeamAccountInvites",
-              "description": "",
+              "description": "Retrieves the list of invites for the team account.",
               "requestType": "GetTeamAccountInvitesRequest",
               "requestLongType": "GetTeamAccountInvitesRequest",
               "requestFullType": "mgmt.v1alpha1.GetTeamAccountInvitesRequest",
@@ -17700,11 +17796,14 @@
               "responseType": "GetTeamAccountInvitesResponse",
               "responseLongType": "GetTeamAccountInvitesResponse",
               "responseFullType": "mgmt.v1alpha1.GetTeamAccountInvitesResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "RemoveTeamAccountInvite",
-              "description": "",
+              "description": "Removes an invite from the team account.",
               "requestType": "RemoveTeamAccountInviteRequest",
               "requestLongType": "RemoveTeamAccountInviteRequest",
               "requestFullType": "mgmt.v1alpha1.RemoveTeamAccountInviteRequest",
@@ -17716,7 +17815,7 @@
             },
             {
               "name": "AcceptTeamAccountInvite",
-              "description": "",
+              "description": "Accepts an invite to the team account.",
               "requestType": "AcceptTeamAccountInviteRequest",
               "requestLongType": "AcceptTeamAccountInviteRequest",
               "requestFullType": "mgmt.v1alpha1.AcceptTeamAccountInviteRequest",
@@ -17728,7 +17827,7 @@
             },
             {
               "name": "GetSystemInformation",
-              "description": "",
+              "description": "Retrieves the system information.",
               "requestType": "GetSystemInformationRequest",
               "requestLongType": "GetSystemInformationRequest",
               "requestFullType": "mgmt.v1alpha1.GetSystemInformationRequest",
@@ -17743,7 +17842,7 @@
             },
             {
               "name": "GetAccountOnboardingConfig",
-              "description": "",
+              "description": "Retrieves the onboarding config for the account.",
               "requestType": "GetAccountOnboardingConfigRequest",
               "requestLongType": "GetAccountOnboardingConfigRequest",
               "requestFullType": "mgmt.v1alpha1.GetAccountOnboardingConfigRequest",
@@ -17751,11 +17850,14 @@
               "responseType": "GetAccountOnboardingConfigResponse",
               "responseLongType": "GetAccountOnboardingConfigResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountOnboardingConfigResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "SetAccountOnboardingConfig",
-              "description": "",
+              "description": "Sets the onboarding config for the account.",
               "requestType": "SetAccountOnboardingConfigRequest",
               "requestLongType": "SetAccountOnboardingConfigRequest",
               "requestFullType": "mgmt.v1alpha1.SetAccountOnboardingConfigRequest",
@@ -17805,7 +17907,10 @@
               "responseType": "GetAccountBillingCheckoutSessionResponse",
               "responseLongType": "GetAccountBillingCheckoutSessionResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetAccountBillingPortalSession",
@@ -17817,7 +17922,10 @@
               "responseType": "GetAccountBillingPortalSessionResponse",
               "responseLongType": "GetAccountBillingPortalSessionResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetBillingAccounts",

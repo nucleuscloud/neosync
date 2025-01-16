@@ -130,12 +130,14 @@ components:
         date:
           allOf:
             - title: date
+              description: The date of the result
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
         count:
           oneOf:
             - type: string
             - type: number
           title: count
+          description: The count of the metric for the given date
       title: DayResult
       additionalProperties: false
     mgmt.v1alpha1.GetDailyMetricCountRequest:
@@ -212,6 +214,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.DayResult'
           title: results
+          description: The list of results for the given metric and date range
       title: GetDailyMetricCountResponse
       additionalProperties: false
     mgmt.v1alpha1.GetMetricCountRequest:
@@ -348,3 +351,4 @@ components:
 security: []
 tags:
   - name: mgmt.v1alpha1.MetricsService
+    description: Service that handles serving up usage metrics

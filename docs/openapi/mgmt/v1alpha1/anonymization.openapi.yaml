@@ -8,7 +8,7 @@ paths:
       tags:
         - mgmt.v1alpha1.AnonymizationService
       summary: AnonymizeMany
-      description: Anonymizes many JSON strings by applying specified transformation mappings.
+      description: Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
       operationId: mgmt.v1alpha1.AnonymizationService.AnonymizeMany
       parameters:
         - name: Connect-Protocol-Version
@@ -255,17 +255,17 @@ components:
         boolean:
           allOf:
             - title: boolean
-              description: Boolean
+              description: Any identified boolean value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        n:
+        number:
           allOf:
-            - title: n
-              description: Number
+            - title: number
+              description: Any identified number value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        s:
+        string:
           allOf:
-            - title: s
-              description: String
+            - title: string
+              description: Any identified string value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: DefaultTransformersConfig
       additionalProperties: false
@@ -298,6 +298,7 @@ components:
         validLuhn:
           type: boolean
           title: valid_luhn
+          description: Whether or not to validate the card number using the Luhn algorithm.
       title: GenerateCardNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateCategorical:
@@ -321,6 +322,7 @@ components:
         categories:
           type: string
           title: categories
+          description: A comma separated list of categories that will be used to generate a random value from.
       title: GenerateCategorical
       additionalProperties: false
     mgmt.v1alpha1.GenerateCity:
@@ -378,11 +380,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the phone number to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the phone number to generate.
       title: GenerateE164PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateEmail:
@@ -449,21 +453,25 @@ components:
         randomizeSign:
           type: boolean
           title: randomize_sign
+          description: Whether or not to randomize the sign of the float64.
         min:
           oneOf:
             - type: string
             - type: number
           title: min
+          description: The minimum value to randomize the float64 to.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum value to randomize the float64 to.
         precision:
           oneOf:
             - type: string
             - type: number
           title: precision
+          description: The precision of the float64 to generate.
       title: GenerateFloat64
       additionalProperties: false
     mgmt.v1alpha1.GenerateFullAddress:
@@ -495,6 +503,7 @@ components:
         abbreviate:
           type: boolean
           title: abbreviate
+          description: Whether or not to abbreviate the gender.
       title: GenerateGender
       additionalProperties: false
     mgmt.v1alpha1.GenerateInt64:
@@ -525,16 +534,19 @@ components:
         randomizeSign:
           type: boolean
           title: randomize_sign
+          description: Whether or not to randomize the sign of the int64.
         min:
           oneOf:
             - type: string
             - type: number
           title: min
+          description: The minimum value to randomize the int64 to.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum value to randomize the int64 to.
       title: GenerateInt64
       additionalProperties: false
     mgmt.v1alpha1.GenerateInt64PhoneNumber:
@@ -562,6 +574,7 @@ components:
         ipType:
           allOf:
             - title: ip_type
+              description: Optionally specify the type of ip address to generate.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
       title: GenerateIpAddress
       additionalProperties: false
@@ -571,6 +584,7 @@ components:
         code:
           type: string
           title: code
+          description: The user provided javascript code that will be executed in the transformer
       title: GenerateJavascript
       additionalProperties: false
     mgmt.v1alpha1.GenerateLastName:
@@ -636,11 +650,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the string to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the string to generate.
       title: GenerateString
       additionalProperties: false
     mgmt.v1alpha1.GenerateStringPhoneNumber:
@@ -666,11 +682,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the phone number to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the phone number to generate.
       title: GenerateStringPhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateUnixTimestamp:
@@ -706,6 +724,7 @@ components:
         includeHyphens:
           type: boolean
           title: include_hyphens
+          description: Whether or not to include hyphens in the uuid. Defaults to true. If false, the uuid will be returned without hyphens.
       title: GenerateUuid
       additionalProperties: false
     mgmt.v1alpha1.GenerateZipcode:
@@ -937,7 +956,7 @@ components:
         userProvidedRegex:
           type: string
           title: user_provided_regex
-          description: a user provided regular expression that they wish to validate if it compiles in GO
+          description: A user provided regular expression that will be used to scramble the characters in the input string. Must be a valid Golang regex.
       title: TransformCharacterScramble
       additionalProperties: false
     mgmt.v1alpha1.TransformE164PhoneNumber:
@@ -961,6 +980,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
       title: TransformE164PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformEmail:
@@ -1042,6 +1062,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the first name. This causes the transformed first name to retain the original length.
       title: TransformFirstName
       additionalProperties: false
     mgmt.v1alpha1.TransformFloat64:
@@ -1067,11 +1088,13 @@ components:
             - type: string
             - type: number
           title: randomization_range_min
+          description: The minimum value to randomize the float64 to. This will be relative to the original value.
         randomizationRangeMax:
           oneOf:
             - type: string
             - type: number
           title: randomization_range_max
+          description: The maximum value to randomize the float64 to. This will be relative to the original value.
       title: TransformFloat64
       additionalProperties: false
     mgmt.v1alpha1.TransformFullName:
@@ -1095,6 +1118,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the full name. This causes the transformed full name to retain the original length.
       title: TransformFullName
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64:
@@ -1120,11 +1144,13 @@ components:
             - type: string
             - type: number
           title: randomization_range_min
+          description: The minimum value to randomize the int64 to. This will be relative to the original value.
         randomizationRangeMax:
           oneOf:
             - type: string
             - type: number
           title: randomization_range_max
+          description: The maximum value to randomize the int64 to. This will be relative to the original value.
       title: TransformInt64
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64PhoneNumber:
@@ -1148,6 +1174,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
       title: TransformInt64PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformJavascript:
@@ -1156,6 +1183,7 @@ components:
         code:
           type: string
           title: code
+          description: The user provided javascript code that will be executed in the transformer
       title: TransformJavascript
       additionalProperties: false
     mgmt.v1alpha1.TransformLastName:
@@ -1179,6 +1207,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the last name. This causes the transformed last name to retain the original length.
       title: TransformLastName
       additionalProperties: false
     mgmt.v1alpha1.TransformPhoneNumber:
@@ -1202,6 +1231,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
       title: TransformPhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformPiiText:
@@ -1308,6 +1338,7 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: Whether or not to preserve the original length of the string. This causes the transformed string to retain the original length.
       title: TransformString
       additionalProperties: false
     mgmt.v1alpha1.TransformUuid:
@@ -1891,6 +1922,7 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
       title: TransformerConfig
       additionalProperties: false
+      description: The configuration for a transformer. This determines what type of transformation or generation is performed.
     mgmt.v1alpha1.TransformerMapping:
       type: object
       properties:
@@ -1916,6 +1948,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The id of the user defined transformer. When used in a job mapping, this will be used to reference the underlying system transformer along with it's configuration that was chosen.
       title: UserDefinedTransformerConfig
       additionalProperties: false
     connect-protocol-version:
@@ -1977,3 +2010,4 @@ components:
 security: []
 tags:
   - name: mgmt.v1alpha1.AnonymizationService
+    description: Service that transactionally anonymizes data, regardless of the connection type.

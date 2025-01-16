@@ -149,7 +149,7 @@ message GetConnectionSchemaMapsResponse {
 
 message ForeignKey {
   // The table that the foreign key is associated with
-  string table = 1;h
+  string table = 1;
   reserved 2; // Was: string column = 2;
   // The columns that are part of the foreign key
   repeated string columns = 3;
@@ -158,8 +158,11 @@ message ForeignKey {
 message ForeignConstraint {
   reserved 1; // Was: string column = 1;
   reserved 2; // Was: bool is_nullable = 2;
+  // The foreign key that is associated with the constraint
   ForeignKey foreign_key = 3;
+  // The columns that are part of the constraint
   repeated string columns = 4;
+  // The not nullable flag for each column
   repeated bool not_nullable = 5;
 }
 

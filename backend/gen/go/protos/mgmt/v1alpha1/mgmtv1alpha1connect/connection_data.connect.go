@@ -150,6 +150,7 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			httpClient,
 			baseURL+ConnectionDataServiceGetTableRowCountProcedure,
 			connect.WithSchema(connectionDataServiceGetTableRowCountMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -284,6 +285,7 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		ConnectionDataServiceGetTableRowCountProcedure,
 		svc.GetTableRowCount,
 		connect.WithSchema(connectionDataServiceGetTableRowCountMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
