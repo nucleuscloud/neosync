@@ -6,7 +6,8 @@ from mgmt.v1alpha1 import transformer_pb2 as mgmt_dot_v1alpha1_dot_transformer__
 
 
 class TransformersServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages system and user defined transformers
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -72,64 +73,75 @@ class TransformersServiceStub(object):
 
 
 class TransformersServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages system and user defined transformers
+    """
 
     def GetSystemTransformers(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Get a list of all system transformers
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetSystemTransformerBySource(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Get a system transformer by its source
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetUserDefinedTransformers(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Get a list of all user defined transformers
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetUserDefinedTransformerById(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Get a user defined transformer by its id
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateUserDefinedTransformer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Create a user defined transformer
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def DeleteUserDefinedTransformer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Delete a user defined transformer
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def UpdateUserDefinedTransformer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Update a user defined transformer
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def IsTransformerNameAvailable(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Check if a transformer name is available in your account
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ValidateUserJavascriptCode(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ValidateUserRegexCode(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Validate user provided regex code before saving it to a user defined transformer
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -208,7 +220,8 @@ def add_TransformersServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class TransformersService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages system and user defined transformers
+    """
 
     @staticmethod
     def GetSystemTransformers(request,

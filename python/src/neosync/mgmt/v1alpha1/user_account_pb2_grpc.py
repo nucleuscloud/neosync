@@ -6,7 +6,8 @@ from mgmt.v1alpha1 import user_account_pb2 as mgmt_dot_v1alpha1_dot_user__accoun
 
 
 class UserAccountServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages users, accounts, and billing
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -142,28 +143,33 @@ class UserAccountServiceStub(object):
 
 
 class UserAccountServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages users, accounts, and billing
+    """
 
     def GetUser(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the current user.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SetUser(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Sets the current user.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetUserAccounts(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the list of accounts that the user belongs to.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SetPersonalAccount(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Sets the current personal account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -183,73 +189,85 @@ class UserAccountServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def IsUserInAccount(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Checks if the user is in the account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAccountTemporalConfig(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the temporal config for the account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SetAccountTemporalConfig(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Sets the temporal config for the account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetTeamAccountMembers(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the list of members in the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def RemoveTeamAccountMember(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Removes a member from the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def InviteUserToTeamAccount(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Invites a user to the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetTeamAccountInvites(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the list of invites for the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def RemoveTeamAccountInvite(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Removes an invite from the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def AcceptTeamAccountInvite(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Accepts an invite to the team account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetSystemInformation(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the system information.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAccountOnboardingConfig(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Retrieves the onboarding config for the account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SetAccountOnboardingConfig(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Sets the onboarding config for the account.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -440,7 +458,8 @@ def add_UserAccountServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class UserAccountService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that manages users, accounts, and billing
+    """
 
     @staticmethod
     def GetUser(request,

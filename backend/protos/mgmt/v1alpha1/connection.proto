@@ -6,45 +6,57 @@ import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 message GetConnectionsRequest {
+  // The unique identifier of the account to get connections for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetConnectionsResponse {
+  // The connections
   repeated Connection connections = 1;
 }
 
 message GetConnectionRequest {
+  // The unique identifier of the connection to get
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetConnectionResponse {
+  // The connection
   Connection connection = 1;
 }
 
 message CreateConnectionRequest {
+  // The unique identifier of the account to create the connection for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The friendly name of the connection
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
-
+  // The connection configuration to use for the connection
   ConnectionConfig connection_config = 3;
 }
 message CreateConnectionResponse {
+  // The created connection
   Connection connection = 1;
 }
 
 message UpdateConnectionRequest {
+  // The unique identifier of the connection to update
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // The friendly name of the connection
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // The connection configuration to use for the connection
   ConnectionConfig connection_config = 3;
 }
 message UpdateConnectionResponse {
+  // The updated connection
   Connection connection = 1;
 }
 
 message DeleteConnectionRequest {
+  // The unique identifier of the connection to delete
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteConnectionResponse {}
 
 message CheckConnectionConfigRequest {
+  // The connection configuration to validate
   ConnectionConfig connection_config = 1;
 }
 
@@ -139,6 +151,7 @@ message MssqlConnectionConfig {
     string url_from_env = 5;
   }
 
+  // Provide connection options that can be used to further fine-tune the connection
   SqlConnectionOptions connection_options = 2;
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
@@ -176,7 +189,7 @@ message MongoConnectionConfig {
 message OpenAiConnectionConfig {
   // OpenAI Api Key
   string api_key = 1;
-  // OpenAI URL
+  // OpenAI URL (if using a custom endpoint)
   string api_url = 2;
 }
 
@@ -191,7 +204,9 @@ message PostgresConnectionConfig {
   oneof connection_config {
     option (buf.validate.oneof).required = true;
 
+    // A raw string url that will be used to construct the connection. Must be URI format.
     string url = 1;
+    // A structured representation of the connection that will be used to construct the url
     PostgresConnection connection = 2;
     // Source a url from an environment variable.
     // The value is expected to be in the same format as the "url" field above.
@@ -201,6 +216,7 @@ message PostgresConnectionConfig {
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
   SSHTunnel tunnel = 3;
+  // Provide connection options that can be used to further fine-tune the connection
   SqlConnectionOptions connection_options = 4;
   // Provide client-side TLS Certificates
   ClientTlsConfig client_tls = 5;
@@ -263,7 +279,9 @@ message SSHAuthentication {
   oneof auth_config {
     option (buf.validate.oneof).required = true;
 
+    // Password authentication
     SSHPassphrase passphrase = 1;
+    // Private key authentication
     SSHPrivateKey private_key = 2;
   }
 }
@@ -284,20 +302,32 @@ message SSHPrivateKey {
 }
 
 message PostgresConnection {
+  // The host to use for the connection
   string host = 1;
+  // The port to use for the connection
   int32 port = 2;
+  // The name of the database to use for the connection
   string name = 3;
+  // The user to use for the connection
   string user = 4;
+  // The password to use for the connection
   string pass = 5;
+  // The SSL mode to use for the connection
   optional string ssl_mode = 6;
 }
 
 message MysqlConnection {
+  // The user to use for the connection
   string user = 1;
+  // The password to use for the connection
   string pass = 2;
+  // The protocol to use for the connection
   string protocol = 3;
+  // The host to use for the connection
   string host = 4;
+  // The port to use for the connection
   int32 port = 5;
+  // The name of the database to use for the connection
   string name = 6;
 }
 
@@ -306,7 +336,9 @@ message MysqlConnectionConfig {
   oneof connection_config {
     option (buf.validate.oneof).required = true;
 
+    // A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
     string url = 1;
+    // A structured representation of the connection that will be used to construct the url
     MysqlConnection connection = 2;
     // Source a url from an environment variable.
     // The value is expected to be in the same format as the "url" field above.
@@ -316,6 +348,7 @@ message MysqlConnectionConfig {
 
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
   SSHTunnel tunnel = 3;
+  // Provide connection options that can be used to further fine-tune the connection
   SqlConnectionOptions connection_options = 4;
   // Provide client-side TLS Certificates
   ClientTlsConfig client_tls = 5;
@@ -323,22 +356,34 @@ message MysqlConnectionConfig {
 
 message AwsS3ConnectionConfig {
   reserved 1; // Was: string bucket_arn = 1 [deprecated = true];
+  // The bucket path prefix that will be appended to each file
   optional string path_prefix = 2;
+  // The credentials to use for the S3 bucket
   optional AwsS3Credentials credentials = 3;
+  // The region of the S3 bucket
   optional string region = 4;
+  // The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)
   optional string endpoint = 5;
+  // The name of the S3 bucket
   string bucket = 6 [(buf.validate.field).string.min_len = 1];
 }
 
 // S3 Credentials that are used by the worker process.
 // Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
 message AwsS3Credentials {
+  // The profile to use for the S3 credentials
   optional string profile = 1;
+  // The access key id to use for the S3 credentials
   optional string access_key_id = 2;
+  // The secret access key to use for the S3 credentials
   optional string secret_access_key = 3;
+  // The session token to use for the S3 credentials
   optional string session_token = 4;
+  // Whether or not the credentials are from an EC2 role
   optional bool from_ec2_role = 5;
+  // The ARN of the role to use for the S3 credentials
   optional string role_arn = 6;
+  // The role's external ID to use for the S3 credentials
   optional string role_external_id = 7;
 }
 
@@ -354,11 +399,14 @@ message GcpCloudStorageConnectionConfig {
 }
 
 message IsConnectionNameAvailableRequest {
+  // The unique identifier of the account to check the connection name for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The connection name to check for availability
   string connection_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 
 message IsConnectionNameAvailableResponse {
+  // Whether or not the connection name is available
   bool is_available = 1;
 }
 
@@ -379,9 +427,13 @@ message CheckSqlQueryResponse {
 // This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
 service ConnectionService {
   // Returns a list of connections associated with the account
-  rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
+  rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Returns a single connection
-  rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
+  rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Creates a new connection
   rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
   // Updates an existing connection

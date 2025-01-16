@@ -105,12 +105,14 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+AuthServiceGetAuthorizeUrlProcedure,
 			connect.WithSchema(authServiceGetAuthorizeUrlMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAuthStatus: connect.NewClient[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse](
 			httpClient,
 			baseURL+AuthServiceGetAuthStatusProcedure,
 			connect.WithSchema(authServiceGetAuthStatusMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -194,12 +196,14 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		AuthServiceGetAuthorizeUrlProcedure,
 		svc.GetAuthorizeUrl,
 		connect.WithSchema(authServiceGetAuthorizeUrlMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	authServiceGetAuthStatusHandler := connect.NewUnaryHandler(
 		AuthServiceGetAuthStatusProcedure,
 		svc.GetAuthStatus,
 		connect.WithSchema(authServiceGetAuthStatusMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

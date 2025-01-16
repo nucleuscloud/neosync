@@ -142,25 +142,41 @@ var (
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceClient interface {
+	// Retrieves the current user.
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
+	// Sets the current user.
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
+	// Retrieves the list of accounts that the user belongs to.
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
+	// Sets the current personal account.
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
 	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
 	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
+	// Checks if the user is in the account.
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
+	// Retrieves the temporal config for the account.
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
+	// Sets the temporal config for the account.
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
+	// Retrieves the list of members in the team account.
 	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
+	// Removes a member from the team account.
 	RemoveTeamAccountMember(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error)
+	// Invites a user to the team account.
 	InviteUserToTeamAccount(context.Context, *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error)
+	// Retrieves the list of invites for the team account.
 	GetTeamAccountInvites(context.Context, *connect.Request[v1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[v1alpha1.GetTeamAccountInvitesResponse], error)
+	// Removes an invite from the team account.
 	RemoveTeamAccountInvite(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountInviteResponse], error)
+	// Accepts an invite to the team account.
 	AcceptTeamAccountInvite(context.Context, *connect.Request[v1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[v1alpha1.AcceptTeamAccountInviteResponse], error)
+	// Retrieves the system information.
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
+	// Retrieves the onboarding config for the account.
 	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
+	// Sets the onboarding config for the account.
 	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
 	// Returns different metrics on the account status for the active billing period
 	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
@@ -192,6 +208,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetUserProcedure,
 			connect.WithSchema(userAccountServiceGetUserMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		setUser: connect.NewClient[v1alpha1.SetUserRequest, v1alpha1.SetUserResponse](
@@ -204,6 +221,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetUserAccountsProcedure,
 			connect.WithSchema(userAccountServiceGetUserAccountsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		setPersonalAccount: connect.NewClient[v1alpha1.SetPersonalAccountRequest, v1alpha1.SetPersonalAccountResponse](
@@ -234,6 +252,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetAccountTemporalConfigProcedure,
 			connect.WithSchema(userAccountServiceGetAccountTemporalConfigMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		setAccountTemporalConfig: connect.NewClient[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse](
@@ -246,6 +265,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetTeamAccountMembersProcedure,
 			connect.WithSchema(userAccountServiceGetTeamAccountMembersMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		removeTeamAccountMember: connect.NewClient[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse](
@@ -264,6 +284,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetTeamAccountInvitesProcedure,
 			connect.WithSchema(userAccountServiceGetTeamAccountInvitesMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		removeTeamAccountInvite: connect.NewClient[v1alpha1.RemoveTeamAccountInviteRequest, v1alpha1.RemoveTeamAccountInviteResponse](
@@ -289,6 +310,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetAccountOnboardingConfigProcedure,
 			connect.WithSchema(userAccountServiceGetAccountOnboardingConfigMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		setAccountOnboardingConfig: connect.NewClient[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse](
@@ -315,12 +337,14 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetAccountBillingCheckoutSessionProcedure,
 			connect.WithSchema(userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAccountBillingPortalSession: connect.NewClient[v1alpha1.GetAccountBillingPortalSessionRequest, v1alpha1.GetAccountBillingPortalSessionResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetAccountBillingPortalSessionProcedure,
 			connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getBillingAccounts: connect.NewClient[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse](
@@ -503,25 +527,41 @@ func (c *userAccountServiceClient) SetUserRole(ctx context.Context, req *connect
 
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
+	// Retrieves the current user.
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
+	// Sets the current user.
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
+	// Retrieves the list of accounts that the user belongs to.
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
+	// Sets the current personal account.
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
 	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
 	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
+	// Checks if the user is in the account.
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
+	// Retrieves the temporal config for the account.
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
+	// Sets the temporal config for the account.
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
+	// Retrieves the list of members in the team account.
 	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
+	// Removes a member from the team account.
 	RemoveTeamAccountMember(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error)
+	// Invites a user to the team account.
 	InviteUserToTeamAccount(context.Context, *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error)
+	// Retrieves the list of invites for the team account.
 	GetTeamAccountInvites(context.Context, *connect.Request[v1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[v1alpha1.GetTeamAccountInvitesResponse], error)
+	// Removes an invite from the team account.
 	RemoveTeamAccountInvite(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountInviteResponse], error)
+	// Accepts an invite to the team account.
 	AcceptTeamAccountInvite(context.Context, *connect.Request[v1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[v1alpha1.AcceptTeamAccountInviteResponse], error)
+	// Retrieves the system information.
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
+	// Retrieves the onboarding config for the account.
 	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
+	// Sets the onboarding config for the account.
 	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
 	// Returns different metrics on the account status for the active billing period
 	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
@@ -549,6 +589,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetUserProcedure,
 		svc.GetUser,
 		connect.WithSchema(userAccountServiceGetUserMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetUserHandler := connect.NewUnaryHandler(
@@ -561,6 +602,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetUserAccountsProcedure,
 		svc.GetUserAccounts,
 		connect.WithSchema(userAccountServiceGetUserAccountsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetPersonalAccountHandler := connect.NewUnaryHandler(
@@ -591,6 +633,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetAccountTemporalConfigProcedure,
 		svc.GetAccountTemporalConfig,
 		connect.WithSchema(userAccountServiceGetAccountTemporalConfigMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetAccountTemporalConfigHandler := connect.NewUnaryHandler(
@@ -603,6 +646,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetTeamAccountMembersProcedure,
 		svc.GetTeamAccountMembers,
 		connect.WithSchema(userAccountServiceGetTeamAccountMembersMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceRemoveTeamAccountMemberHandler := connect.NewUnaryHandler(
@@ -621,6 +665,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetTeamAccountInvitesProcedure,
 		svc.GetTeamAccountInvites,
 		connect.WithSchema(userAccountServiceGetTeamAccountInvitesMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceRemoveTeamAccountInviteHandler := connect.NewUnaryHandler(
@@ -646,6 +691,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetAccountOnboardingConfigProcedure,
 		svc.GetAccountOnboardingConfig,
 		connect.WithSchema(userAccountServiceGetAccountOnboardingConfigMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetAccountOnboardingConfigHandler := connect.NewUnaryHandler(
@@ -672,12 +718,14 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetAccountBillingCheckoutSessionProcedure,
 		svc.GetAccountBillingCheckoutSession,
 		connect.WithSchema(userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetAccountBillingPortalSessionHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetAccountBillingPortalSessionProcedure,
 		svc.GetAccountBillingPortalSession,
 		connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetBillingAccountsHandler := connect.NewUnaryHandler(

@@ -50,7 +50,7 @@ var (
 
 // AnonymizationServiceClient is a client for the mgmt.v1alpha1.AnonymizationService service.
 type AnonymizationServiceClient interface {
-	// Anonymizes many JSON strings by applying specified transformation mappings.
+	// Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
 	AnonymizeMany(context.Context, *connect.Request[v1alpha1.AnonymizeManyRequest]) (*connect.Response[v1alpha1.AnonymizeManyResponse], error)
 	// Anonymizes a single JSON strings by applying specified transformation mappings.
 	AnonymizeSingle(context.Context, *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error)
@@ -100,7 +100,7 @@ func (c *anonymizationServiceClient) AnonymizeSingle(ctx context.Context, req *c
 // AnonymizationServiceHandler is an implementation of the mgmt.v1alpha1.AnonymizationService
 // service.
 type AnonymizationServiceHandler interface {
-	// Anonymizes many JSON strings by applying specified transformation mappings.
+	// Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
 	AnonymizeMany(context.Context, *connect.Request[v1alpha1.AnonymizeManyRequest]) (*connect.Response[v1alpha1.AnonymizeManyResponse], error)
 	// Anonymizes a single JSON strings by applying specified transformation mappings.
 	AnonymizeSingle(context.Context, *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error)

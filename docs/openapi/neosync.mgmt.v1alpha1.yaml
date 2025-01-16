@@ -4,6 +4,9 @@ info:
   title: mgmt.v1alpha1
 tags:
   - name: mgmt.v1alpha1.AnonymizationService
+    description: >-
+      Service that transactionally anonymizes data, regardless of the connection
+      type.
     x-displayName: mgmt.v1alpha1.AnonymizationService
   - name: mgmt.v1alpha1.ApiKeyService
     description: >-
@@ -26,12 +29,16 @@ tags:
        This is used in handle data from a connection
     x-displayName: mgmt.v1alpha1.ConnectionDataService
   - name: mgmt.v1alpha1.JobService
+    description: Service that handles jobs, runs, and hooks
     x-displayName: mgmt.v1alpha1.JobService
   - name: mgmt.v1alpha1.MetricsService
+    description: Service that handles serving up usage metrics
     x-displayName: mgmt.v1alpha1.MetricsService
   - name: mgmt.v1alpha1.TransformersService
+    description: Service that manages system and user defined transformers
     x-displayName: mgmt.v1alpha1.TransformersService
   - name: mgmt.v1alpha1.UserAccountService
+    description: Service that manages users, accounts, and billing
     x-displayName: mgmt.v1alpha1.UserAccountService
 paths:
   /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
@@ -41,7 +48,7 @@ paths:
       summary: AnonymizeMany
       description: >-
         Anonymizes many JSON strings by applying specified transformation
-        mappings.
+        mappings. This is the bulk version of the `AnonymizeSingle` method.
       operationId: mgmt.v1alpha1.AnonymizationService.AnonymizeMany
       parameters:
         - name: Connect-Protocol-Version
@@ -1123,6 +1130,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: GetJobs
+      description: Returns a list of jobs by either account or job
       operationId: mgmt.v1alpha1.JobService.GetJobs
       parameters:
         - name: Connect-Protocol-Version
@@ -1159,6 +1167,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: GetJob
+      description: Returns a specific job
       operationId: mgmt.v1alpha1.JobService.GetJob
       parameters:
         - name: Connect-Protocol-Version
@@ -1195,6 +1204,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: CreateJob
+      description: Creates a new job
       operationId: mgmt.v1alpha1.JobService.CreateJob
       parameters:
         - name: Connect-Protocol-Version
@@ -1231,6 +1241,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: DeleteJob
+      description: Deletes a job
       operationId: mgmt.v1alpha1.JobService.DeleteJob
       parameters:
         - name: Connect-Protocol-Version
@@ -1267,6 +1278,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: IsJobNameAvailable
+      description: Checks if a job name is available
       operationId: mgmt.v1alpha1.JobService.IsJobNameAvailable
       parameters:
         - name: Connect-Protocol-Version
@@ -1303,6 +1315,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: UpdateJobSchedule
+      description: Updates the schedule of a job
       operationId: mgmt.v1alpha1.JobService.UpdateJobSchedule
       parameters:
         - name: Connect-Protocol-Version
@@ -1339,6 +1352,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: UpdateJobSourceConnection
+      description: Updates the source connection of a job
       operationId: mgmt.v1alpha1.JobService.UpdateJobSourceConnection
       parameters:
         - name: Connect-Protocol-Version
@@ -1377,6 +1391,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: SetJobSourceSqlConnectionSubsets
+      description: Sets the source sql connection subsets of a job
       operationId: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets
       parameters:
         - name: Connect-Protocol-Version
@@ -1415,6 +1430,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: UpdateJobDestinationConnection
+      description: Updates the destination connection of a job
       operationId: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection
       parameters:
         - name: Connect-Protocol-Version
@@ -1453,6 +1469,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: DeleteJobDestinationConnection
+      description: Deletes the destination connection of a job
       operationId: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection
       parameters:
         - name: Connect-Protocol-Version
@@ -1491,6 +1508,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: CreateJobDestinationConnections
+      description: Creates the destination connections of a job
       operationId: mgmt.v1alpha1.JobService.CreateJobDestinationConnections
       parameters:
         - name: Connect-Protocol-Version
@@ -1529,6 +1547,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: PauseJob
+      description: Pauses or unpauses a job
       operationId: mgmt.v1alpha1.JobService.PauseJob
       parameters:
         - name: Connect-Protocol-Version
@@ -1566,7 +1585,7 @@ paths:
         - mgmt.v1alpha1.JobService
       summary: GetJobRecentRuns
       description: >-
-        Returns a list of recently invoked job runs baseds on the Temporal cron
+        Returns a list of recently invoked job runs based on the Temporal cron
         scheduler. This will return a list of job runs that include archived
         runs
       operationId: mgmt.v1alpha1.JobService.GetJobRecentRuns
@@ -1644,6 +1663,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: GetJobStatus
+      description: Returns the status of a job
       operationId: mgmt.v1alpha1.JobService.GetJobStatus
       parameters:
         - name: Connect-Protocol-Version
@@ -1680,6 +1700,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: GetJobStatuses
+      description: Returns the statuses of jobs within an account
       operationId: mgmt.v1alpha1.JobService.GetJobStatuses
       parameters:
         - name: Connect-Protocol-Version
@@ -1753,6 +1774,9 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: GetJobRunEvents
+      description: >-
+        Returns a list of events for a job run to understand more details of the
+        run itself
       operationId: mgmt.v1alpha1.JobService.GetJobRunEvents
       parameters:
         - name: Connect-Protocol-Version
@@ -1826,6 +1850,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: DeleteJobRun
+      description: Deletes a job run
       operationId: mgmt.v1alpha1.JobService.DeleteJobRun
       parameters:
         - name: Connect-Protocol-Version
@@ -1862,6 +1887,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: CreateJobRun
+      description: Creates a new job run
       operationId: mgmt.v1alpha1.JobService.CreateJobRun
       parameters:
         - name: Connect-Protocol-Version
@@ -1898,6 +1924,9 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: CancelJobRun
+      description: >-
+        Cancels a job run. This is a graceful termination and allows the
+        workflow to clean up and exit gracefully.
       operationId: mgmt.v1alpha1.JobService.CancelJobRun
       parameters:
         - name: Connect-Protocol-Version
@@ -1934,6 +1963,9 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: TerminateJobRun
+      description: >-
+        Terminates a job run. This is an immediate termination and will not
+        allow the workflow to clean up and exit gracefully.
       operationId: mgmt.v1alpha1.JobService.TerminateJobRun
       parameters:
         - name: Connect-Protocol-Version
@@ -2050,7 +2082,7 @@ paths:
       tags:
         - mgmt.v1alpha1.JobService
       summary: ValidateJobMappings
-      description: validates that the jobmapping configured can run with table constraints
+      description: Validates that the jobmapping configured can run with table constraints
       operationId: mgmt.v1alpha1.JobService.ValidateJobMappings
       parameters:
         - name: Connect-Protocol-Version
@@ -2537,6 +2569,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: GetSystemTransformers
+      description: Get a list of all system transformers
       operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformers
       parameters:
         - name: Connect-Protocol-Version
@@ -2574,6 +2607,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: GetSystemTransformerBySource
+      description: Get a system transformer by its source
       operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource
       parameters:
         - name: Connect-Protocol-Version
@@ -2612,6 +2646,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: GetUserDefinedTransformers
+      description: Get a list of all user defined transformers
       operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers
       parameters:
         - name: Connect-Protocol-Version
@@ -2650,6 +2685,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: GetUserDefinedTransformerById
+      description: Get a user defined transformer by its id
       operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById
       parameters:
         - name: Connect-Protocol-Version
@@ -2688,6 +2724,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: CreateUserDefinedTransformer
+      description: Create a user defined transformer
       operationId: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer
       parameters:
         - name: Connect-Protocol-Version
@@ -2726,6 +2763,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: DeleteUserDefinedTransformer
+      description: Delete a user defined transformer
       operationId: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer
       parameters:
         - name: Connect-Protocol-Version
@@ -2764,6 +2802,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: UpdateUserDefinedTransformer
+      description: Update a user defined transformer
       operationId: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer
       parameters:
         - name: Connect-Protocol-Version
@@ -2802,6 +2841,7 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: IsTransformerNameAvailable
+      description: Check if a transformer name is available in your account
       operationId: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable
       parameters:
         - name: Connect-Protocol-Version
@@ -2840,6 +2880,9 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: ValidateUserJavascriptCode
+      description: >-
+        Validate user provided javascript code before saving it to a user
+        defined transformer or within a job mapping
       operationId: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode
       parameters:
         - name: Connect-Protocol-Version
@@ -2878,6 +2921,9 @@ paths:
       tags:
         - mgmt.v1alpha1.TransformersService
       summary: ValidateUserRegexCode
+      description: >-
+        Validate user provided regex code before saving it to a user defined
+        transformer
       operationId: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode
       parameters:
         - name: Connect-Protocol-Version
@@ -2956,6 +3002,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetUser
+      description: Retrieves the current user.
       operationId: mgmt.v1alpha1.UserAccountService.GetUser
       parameters:
         - name: Connect-Protocol-Version
@@ -2992,6 +3039,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetUser
+      description: Sets the current user.
       operationId: mgmt.v1alpha1.UserAccountService.SetUser
       parameters:
         - name: Connect-Protocol-Version
@@ -3028,6 +3076,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetUserAccounts
+      description: Retrieves the list of accounts that the user belongs to.
       operationId: mgmt.v1alpha1.UserAccountService.GetUserAccounts
       parameters:
         - name: Connect-Protocol-Version
@@ -3064,6 +3113,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetPersonalAccount
+      description: Sets the current personal account.
       operationId: mgmt.v1alpha1.UserAccountService.SetPersonalAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -3178,6 +3228,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: IsUserInAccount
+      description: Checks if the user is in the account.
       operationId: mgmt.v1alpha1.UserAccountService.IsUserInAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -3214,6 +3265,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetAccountTemporalConfig
+      description: Retrieves the temporal config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -3252,6 +3304,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetAccountTemporalConfig
+      description: Sets the temporal config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -3290,6 +3343,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetTeamAccountMembers
+      description: Retrieves the list of members in the team account.
       operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers
       parameters:
         - name: Connect-Protocol-Version
@@ -3327,6 +3381,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: RemoveTeamAccountMember
+      description: Removes a member from the team account.
       operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember
       parameters:
         - name: Connect-Protocol-Version
@@ -3365,6 +3420,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: InviteUserToTeamAccount
+      description: Invites a user to the team account.
       operationId: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount
       parameters:
         - name: Connect-Protocol-Version
@@ -3403,6 +3459,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetTeamAccountInvites
+      description: Retrieves the list of invites for the team account.
       operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
       parameters:
         - name: Connect-Protocol-Version
@@ -3440,6 +3497,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: RemoveTeamAccountInvite
+      description: Removes an invite from the team account.
       operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
       parameters:
         - name: Connect-Protocol-Version
@@ -3478,6 +3536,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: AcceptTeamAccountInvite
+      description: Accepts an invite to the team account.
       operationId: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite
       parameters:
         - name: Connect-Protocol-Version
@@ -3516,6 +3575,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetSystemInformation
+      description: Retrieves the system information.
       operationId: mgmt.v1alpha1.UserAccountService.GetSystemInformation
       parameters:
         - name: Connect-Protocol-Version
@@ -3553,6 +3613,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: GetAccountOnboardingConfig
+      description: Retrieves the onboarding config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -3591,6 +3652,7 @@ paths:
       tags:
         - mgmt.v1alpha1.UserAccountService
       summary: SetAccountOnboardingConfig
+      description: Sets the onboarding config for the account.
       operationId: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig
       parameters:
         - name: Connect-Protocol-Version
@@ -4076,17 +4138,23 @@ components:
         boolean:
           allOf:
             - title: boolean
-              description: Boolean
+              description: >-
+                Any identified boolean value will be transformed using this
+                configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
         'n':
           allOf:
             - title: 'n'
-              description: Number
+              description: >-
+                Any identified number value will be transformed using this
+                configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
         s:
           allOf:
             - title: s
-              description: String
+              description: >-
+                Any identified string value will be transformed using this
+                configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: DefaultTransformersConfig
       additionalProperties: false
@@ -4119,6 +4187,7 @@ components:
         validLuhn:
           type: boolean
           title: valid_luhn
+          description: Whether or not to validate the card number using the Luhn algorithm.
       title: GenerateCardNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateCategorical:
@@ -4142,6 +4211,9 @@ components:
         categories:
           type: string
           title: categories
+          description: >-
+            A comma separated list of categories that will be used to generate a
+            random value from.
       title: GenerateCategorical
       additionalProperties: false
     mgmt.v1alpha1.GenerateCity:
@@ -4201,11 +4273,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the phone number to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the phone number to generate.
       title: GenerateE164PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateEmail:
@@ -4274,21 +4348,25 @@ components:
         randomizeSign:
           type: boolean
           title: randomize_sign
+          description: Whether or not to randomize the sign of the float64.
         min:
           oneOf:
             - type: string
             - type: number
           title: min
+          description: The minimum value to randomize the float64 to.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum value to randomize the float64 to.
         precision:
           oneOf:
             - type: string
             - type: number
           title: precision
+          description: The precision of the float64 to generate.
       title: GenerateFloat64
       additionalProperties: false
     mgmt.v1alpha1.GenerateFullAddress:
@@ -4320,6 +4398,7 @@ components:
         abbreviate:
           type: boolean
           title: abbreviate
+          description: Whether or not to abbreviate the gender.
       title: GenerateGender
       additionalProperties: false
     mgmt.v1alpha1.GenerateInt64:
@@ -4350,16 +4429,19 @@ components:
         randomizeSign:
           type: boolean
           title: randomize_sign
+          description: Whether or not to randomize the sign of the int64.
         min:
           oneOf:
             - type: string
             - type: number
           title: min
+          description: The minimum value to randomize the int64 to.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum value to randomize the int64 to.
       title: GenerateInt64
       additionalProperties: false
     mgmt.v1alpha1.GenerateInt64PhoneNumber:
@@ -4387,6 +4469,7 @@ components:
         ipType:
           allOf:
             - title: ip_type
+              description: Optionally specify the type of ip address to generate.
             - $ref: '#/components/schemas/mgmt.v1alpha1.GenerateIpAddressType'
       title: GenerateIpAddress
       additionalProperties: false
@@ -4396,6 +4479,9 @@ components:
         code:
           type: string
           title: code
+          description: >-
+            The user provided javascript code that will be executed in the
+            transformer
       title: GenerateJavascript
       additionalProperties: false
     mgmt.v1alpha1.GenerateLastName:
@@ -4463,11 +4549,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the string to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the string to generate.
       title: GenerateString
       additionalProperties: false
     mgmt.v1alpha1.GenerateStringPhoneNumber:
@@ -4493,11 +4581,13 @@ components:
             - type: string
             - type: number
           title: min
+          description: The minimum length of the phone number to generate.
         max:
           oneOf:
             - type: string
             - type: number
           title: max
+          description: The maximum length of the phone number to generate.
       title: GenerateStringPhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.GenerateUnixTimestamp:
@@ -4533,6 +4623,9 @@ components:
         includeHyphens:
           type: boolean
           title: include_hyphens
+          description: >-
+            Whether or not to include hyphens in the uuid. Defaults to true. If
+            false, the uuid will be returned without hyphens.
       title: GenerateUuid
       additionalProperties: false
     mgmt.v1alpha1.GenerateZipcode:
@@ -4776,8 +4869,8 @@ components:
           type: string
           title: user_provided_regex
           description: >-
-            a user provided regular expression that they wish to validate if it
-            compiles in GO
+            A user provided regular expression that will be used to scramble the
+            characters in the input string. Must be a valid Golang regex.
       title: TransformCharacterScramble
       additionalProperties: false
     mgmt.v1alpha1.TransformE164PhoneNumber:
@@ -4801,6 +4894,10 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the phone number.
+            This causes the transformed phone number to retain the original
+            length.
       title: TransformE164PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformEmail:
@@ -4892,6 +4989,10 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the first name.
+            This causes the transformed first name to retain the original
+            length.
       title: TransformFirstName
       additionalProperties: false
     mgmt.v1alpha1.TransformFloat64:
@@ -4917,11 +5018,17 @@ components:
             - type: string
             - type: number
           title: randomization_range_min
+          description: >-
+            The minimum value to randomize the float64 to. This will be relative
+            to the original value.
         randomizationRangeMax:
           oneOf:
             - type: string
             - type: number
           title: randomization_range_max
+          description: >-
+            The maximum value to randomize the float64 to. This will be relative
+            to the original value.
       title: TransformFloat64
       additionalProperties: false
     mgmt.v1alpha1.TransformFullName:
@@ -4945,6 +5052,9 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the full name.
+            This causes the transformed full name to retain the original length.
       title: TransformFullName
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64:
@@ -4970,11 +5080,17 @@ components:
             - type: string
             - type: number
           title: randomization_range_min
+          description: >-
+            The minimum value to randomize the int64 to. This will be relative
+            to the original value.
         randomizationRangeMax:
           oneOf:
             - type: string
             - type: number
           title: randomization_range_max
+          description: >-
+            The maximum value to randomize the int64 to. This will be relative
+            to the original value.
       title: TransformInt64
       additionalProperties: false
     mgmt.v1alpha1.TransformInt64PhoneNumber:
@@ -4998,6 +5114,10 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the phone number.
+            This causes the transformed phone number to retain the original
+            length.
       title: TransformInt64PhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformJavascript:
@@ -5006,6 +5126,9 @@ components:
         code:
           type: string
           title: code
+          description: >-
+            The user provided javascript code that will be executed in the
+            transformer
       title: TransformJavascript
       additionalProperties: false
     mgmt.v1alpha1.TransformLastName:
@@ -5029,6 +5152,9 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the last name.
+            This causes the transformed last name to retain the original length.
       title: TransformLastName
       additionalProperties: false
     mgmt.v1alpha1.TransformPhoneNumber:
@@ -5052,6 +5178,10 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the phone number.
+            This causes the transformed phone number to retain the original
+            length.
       title: TransformPhoneNumber
       additionalProperties: false
     mgmt.v1alpha1.TransformPiiText:
@@ -5161,6 +5291,9 @@ components:
         preserveLength:
           type: boolean
           title: preserve_length
+          description: >-
+            Whether or not to preserve the original length of the string. This
+            causes the transformed string to retain the original length.
       title: TransformString
       additionalProperties: false
     mgmt.v1alpha1.TransformUuid:
@@ -5746,6 +5879,9 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
       title: TransformerConfig
       additionalProperties: false
+      description: >-
+        The configuration for a transformer. This determines what type of
+        transformation or generation is performed.
     mgmt.v1alpha1.TransformerMapping:
       type: object
       properties:
@@ -5771,6 +5907,10 @@ components:
           type: string
           title: id
           format: uuid
+          description: >-
+            The id of the user defined transformer. When used in a job mapping,
+            this will be used to reference the underlying system transformer
+            along with it's configuration that was chosen.
       title: UserDefinedTransformerConfig
       additionalProperties: false
     connect-protocol-version:
@@ -5954,6 +6094,7 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the API key
         name:
           type: string
           title: name
@@ -5961,19 +6102,24 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the account that the API key belongs to
         createdById:
           type: string
           title: created_by_id
+          description: The unique identifier of the user that created the API key
         createdAt:
           allOf:
             - title: created_at
+              description: The timestamp of when the API key was created
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         updatedById:
           type: string
           title: updated_by_id
+          description: The unique identifier of the user that last updated the API key
         updatedAt:
           allOf:
             - title: updated_at
+              description: The timestamp of when the API key was last updated
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         keyValue:
           type: string
@@ -5984,6 +6130,10 @@ components:
         userId:
           type: string
           title: user_id
+          description: >-
+            The unique identifier of the user that the API key belongs to (Each
+            API Key is associated with its own user record to identify what the
+            API key does in the system)
         expiresAt:
           allOf:
             - title: expires_at
@@ -6000,10 +6150,12 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to create the API key for.
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the API key
         expiresAt:
           allOf:
             - title: expires_at
@@ -6020,6 +6172,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The created API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: CreateAccountApiKeyResponse
       additionalProperties: false
@@ -6030,6 +6183,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to delete.
       title: DeleteAccountApiKeyRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteAccountApiKeyResponse:
@@ -6043,6 +6197,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to get.
       title: GetAccountApiKeyRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountApiKeyResponse:
@@ -6051,6 +6206,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The API key that was retrieved.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: GetAccountApiKeyResponse
       additionalProperties: false
@@ -6061,6 +6217,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the API keys for.
       title: GetAccountApiKeysRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountApiKeysResponse:
@@ -6071,6 +6228,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
           title: api_keys
+          description: The list of API keys for the account.
       title: GetAccountApiKeysResponse
       additionalProperties: false
     mgmt.v1alpha1.RegenerateAccountApiKeyRequest:
@@ -6080,6 +6238,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the API key to regenerate.
         expiresAt:
           allOf:
             - title: expires_at
@@ -6096,6 +6255,7 @@ components:
         apiKey:
           allOf:
             - title: api_key
+              description: The regenerated API key
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountApiKey'
       title: RegenerateAccountApiKeyResponse
       additionalProperties: false
@@ -6292,20 +6452,27 @@ components:
         pathPrefix:
           type: string
           title: path_prefix
+          description: The bucket path prefix that will be appended to each file
         credentials:
           allOf:
             - title: credentials
+              description: The credentials to use for the S3 bucket
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
         region:
           type: string
           title: region
+          description: The region of the S3 bucket
         endpoint:
           type: string
           title: endpoint
+          description: >-
+            The endpoint of the S3 bucket (if using a custom endpoint like
+            region specific endpoints or S3-compatible APIs)
         bucket:
           type: string
           title: bucket
           minLength: 1
+          description: The name of the S3 bucket
       title: AwsS3ConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.AwsS3Credentials:
@@ -6364,24 +6531,31 @@ components:
         profile:
           type: string
           title: profile
+          description: The profile to use for the S3 credentials
         accessKeyId:
           type: string
           title: access_key_id
+          description: The access key id to use for the S3 credentials
         secretAccessKey:
           type: string
           title: secret_access_key
+          description: The secret access key to use for the S3 credentials
         sessionToken:
           type: string
           title: session_token
+          description: The session token to use for the S3 credentials
         fromEc2Role:
           type: boolean
           title: from_ec2_role
+          description: Whether or not the credentials are from an EC2 role
         roleArn:
           type: string
           title: role_arn
+          description: The ARN of the role to use for the S3 credentials
         roleExternalId:
           type: string
           title: role_external_id
+          description: The role's external ID to use for the S3 credentials
       title: AwsS3Credentials
       additionalProperties: false
       description: |-
@@ -6437,6 +6611,7 @@ components:
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to validate
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: CheckConnectionConfigRequest
       additionalProperties: false
@@ -6778,6 +6953,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to create the connection for
         name:
           type: string
           title: name
@@ -6786,6 +6962,7 @@ components:
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: CreateConnectionRequest
       additionalProperties: false
@@ -6795,6 +6972,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The created connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: CreateConnectionResponse
       additionalProperties: false
@@ -6805,6 +6983,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to delete
       title: DeleteConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteConnectionResponse:
@@ -6898,6 +7077,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to get
       title: GetConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionResponse:
@@ -6906,6 +7086,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: GetConnectionResponse
       additionalProperties: false
@@ -6916,6 +7097,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get connections for
       title: GetConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsResponse:
@@ -6926,6 +7108,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
           title: connections
+          description: The connections
       title: GetConnectionsResponse
       additionalProperties: false
     mgmt.v1alpha1.IsConnectionNameAvailableRequest:
@@ -6935,10 +7118,14 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to check the connection name
+            for
         connectionName:
           type: string
           title: connection_name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The connection name to check for availability
       title: IsConnectionNameAvailableRequest
       additionalProperties: false
     mgmt.v1alpha1.IsConnectionNameAvailableResponse:
@@ -6947,6 +7134,7 @@ components:
         isAvailable:
           type: boolean
           title: is_available
+          description: Whether or not the connection name is available
       title: IsConnectionNameAvailableResponse
       additionalProperties: false
     mgmt.v1alpha1.LocalDirectoryConnectionConfig:
@@ -7040,6 +7228,9 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: >-
+                Provide connection options that can be used to further fine-tune
+                the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         tunnel:
           allOf:
@@ -7063,21 +7254,27 @@ components:
         user:
           type: string
           title: user
+          description: The user to use for the connection
         pass:
           type: string
           title: pass
+          description: The password to use for the connection
         protocol:
           type: string
           title: protocol
+          description: The protocol to use for the connection
         host:
           type: string
           title: host
+          description: The host to use for the connection
         port:
           type: integer
           title: port
+          description: The port to use for the connection
         name:
           type: string
           title: name
+          description: The name of the database to use for the connection
       title: MysqlConnection
       additionalProperties: false
     mgmt.v1alpha1.MysqlConnectionConfig:
@@ -7117,9 +7314,15 @@ components:
         url:
           type: string
           title: url
+          description: >-
+            A raw string url that will be used to construct the connection. DSN
+            format. URI format also supported but more limited.
         connection:
           allOf:
             - title: connection
+              description: >-
+                A structured representation of the connection that will be used
+                to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
         urlFromEnv:
           type: string
@@ -7139,6 +7342,9 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: >-
+                Provide connection options that can be used to further fine-tune
+                the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         clientTls:
           allOf:
@@ -7157,7 +7363,7 @@ components:
         apiUrl:
           type: string
           title: api_url
-          description: OpenAI URL
+          description: OpenAI URL (if using a custom endpoint)
       title: OpenAiConnectionConfig
       additionalProperties: false
       description: Configures a connection to OpenAI or OpenAI compatible API.
@@ -7182,21 +7388,27 @@ components:
         host:
           type: string
           title: host
+          description: The host to use for the connection
         port:
           type: integer
           title: port
+          description: The port to use for the connection
         name:
           type: string
           title: name
+          description: The name of the database to use for the connection
         user:
           type: string
           title: user
+          description: The user to use for the connection
         pass:
           type: string
           title: pass
+          description: The password to use for the connection
         sslMode:
           type: string
           title: ssl_mode
+          description: The SSL mode to use for the connection
       title: PostgresConnection
       additionalProperties: false
     mgmt.v1alpha1.PostgresConnectionConfig:
@@ -7236,9 +7448,15 @@ components:
         url:
           type: string
           title: url
+          description: >-
+            A raw string url that will be used to construct the connection. Must
+            be URI format.
         connection:
           allOf:
             - title: connection
+              description: >-
+                A structured representation of the connection that will be used
+                to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
         urlFromEnv:
           type: string
@@ -7258,6 +7476,9 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: >-
+                Provide connection options that can be used to further fine-tune
+                the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         clientTls:
           allOf:
@@ -7295,10 +7516,12 @@ components:
         passphrase:
           allOf:
             - title: passphrase
+              description: Password authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPassphrase'
         privateKey:
           allOf:
             - title: private_key
+              description: Private key authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPrivateKey'
       title: SSHAuthentication
       additionalProperties: false
@@ -7471,13 +7694,16 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to update
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the connection
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: UpdateConnectionRequest
       additionalProperties: false
@@ -7487,6 +7713,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The updated connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: UpdateConnectionResponse
       additionalProperties: false
@@ -7600,10 +7827,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the schema for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the schema for.
       title: AwsS3SchemaConfig
       additionalProperties: false
     mgmt.v1alpha1.AwsS3StreamConfig:
@@ -7636,10 +7865,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the data stream for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the data stream for.
       title: AwsS3StreamConfig
       additionalProperties: false
     mgmt.v1alpha1.ConnectionSchemaConfig:
@@ -7882,10 +8113,12 @@ components:
           type: string
           title: schema
           minLength: 1
+          description: The schema of the table
         table:
           type: string
           title: table
           minLength: 1
+          description: The table name
       title: DatabaseTable
       additionalProperties: false
     mgmt.v1alpha1.DynamoDBSchemaConfig:
@@ -7898,17 +8131,20 @@ components:
         foreignKey:
           allOf:
             - title: foreign_key
+              description: The foreign key that is associated with the constraint
             - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignKey'
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The columns that are part of the constraint
         notNullable:
           type: array
           items:
             type: boolean
           title: not_nullable
+          description: The not nullable flag for each column
       title: ForeignConstraint
       additionalProperties: false
     mgmt.v1alpha1.ForeignConstraintTables:
@@ -7919,6 +8155,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraint'
           title: constraints
+          description: A list of foreign key constraints
       title: ForeignConstraintTables
       additionalProperties: false
     mgmt.v1alpha1.ForeignKey:
@@ -7927,11 +8164,13 @@ components:
         table:
           type: string
           title: table
+          description: The table that the foreign key is associated with
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The columns that are part of the foreign key
       title: ForeignKey
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageSchemaConfig:
@@ -7964,10 +8203,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the schema for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the schema for.
       title: GcpCloudStorageSchemaConfig
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageStreamConfig:
@@ -8000,10 +8241,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the data stream for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the data stream for.
       title: GcpCloudStorageStreamConfig
       additionalProperties: false
     mgmt.v1alpha1.GetAiGeneratedDataRequest:
@@ -8028,6 +8271,9 @@ components:
           type: string
           title: ai_connection_id
           format: uuid
+          description: >-
+            The unique identifier of a connection, specifically one that is
+            configured for LLM use.
         count:
           oneOf:
             - type: string
@@ -8035,20 +8281,33 @@ components:
           title: count
           maximum: 10
           minimum: 1
+          description: The number of records to generate
         modelName:
           type: string
           title: model_name
           minLength: 1
+          description: >-
+            The LLM model name to use that works with the configured connection
+            id.
         userPrompt:
           type: string
           title: user_prompt
+          description: >-
+            The prompt that will be used to further refine the data generation.
+            This is appended to the prompt that Neosync generates that includes
+            schema information.
         dataConnectionId:
           type: string
           title: data_connection_id
           format: uuid
+          description: >-
+            The unique identifier of a connection that the AI generated data
+            would be inserted into. This is used to generate and send schema
+            information to the LLM to help shape the generated data.
         table:
           allOf:
             - title: table
+              description: The table to generate data for.
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseTable'
       title: GetAiGeneratedDataRequest
       additionalProperties: false
@@ -8070,16 +8329,20 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the data stream for.
         streamConfig:
           allOf:
             - title: stream_config
+              description: The stream configuration to use for the data stream.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionStreamConfig'
         schema:
           type: string
           title: schema
+          description: The schema of the table to get the data stream for.
         table:
           type: string
           title: table
+          description: The table to get the data stream for.
       title: GetConnectionDataStreamRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionDataStreamResponse:
@@ -8102,9 +8365,13 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: >-
+            The unique identifier of the connection to get the init statements
+            for.
         options:
           allOf:
             - title: options
+              description: The options to use for the init statements.
             - $ref: '#/components/schemas/mgmt.v1alpha1.InitStatementOptions'
       title: GetConnectionInitStatementsRequest
       additionalProperties: false
@@ -8118,7 +8385,7 @@ components:
             type: string
             title: value
           description: >-
-            the key here is <schema>.<table> and value is the table init
+            The key here is <schema>.<table> and value is the table init
             statement.
         tableTruncateStatements:
           type: object
@@ -8127,13 +8394,14 @@ components:
             type: string
             title: value
           description: >-
-            the key here is <schema>.<table> and value is the table truncate
+            The key here is <schema>.<table> and value is the table truncate
             statement.
         schemaInitStatements:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.SchemaInitStatements'
           title: schema_init_statements
+          description: A list of schema initialization statements
       title: GetConnectionInitStatementsResponse
       additionalProperties: false
       description: Init statement for a specific table
@@ -8166,9 +8434,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the schema map for.
         schemaConfig:
           allOf:
             - title: schema_config
+              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
       title: GetConnectionSchemaMapRequest
       additionalProperties: false
@@ -8234,9 +8504,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the schema for.
         schemaConfig:
           allOf:
             - title: schema_config
+              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
       title: GetConnectionSchemaRequest
       additionalProperties: false
@@ -8248,6 +8520,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
           title: schemas
+          description: The list of database columns
       title: GetConnectionSchemaResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsRequest:
@@ -8257,6 +8530,7 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the constraints for.
       title: GetConnectionTableConstraintsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse:
@@ -8347,15 +8621,22 @@ components:
         connectionId:
           type: string
           title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to get the row count for.
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The schema of the table to get the row count for.
         table:
           type: string
           title: table
+          minLength: 1
+          description: The table to get the row count for.
         whereClause:
           type: string
           title: where_clause
+          description: The optional where clause to filter the rows by.
       title: GetTableRowCountRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountResponse:
@@ -8366,6 +8647,7 @@ components:
             - type: string
             - type: number
           title: count
+          description: The count of the rows in the table
       title: GetTableRowCountResponse
       additionalProperties: false
     mgmt.v1alpha1.InitStatementOptions:
@@ -8374,12 +8656,15 @@ components:
         initSchema:
           type: boolean
           title: init_schema
+          description: Whether or not to generate schema init statements.
         truncateBeforeInsert:
           type: boolean
           title: truncate_before_insert
+          description: Whether or not to generate truncation statements
         truncateCascade:
           type: boolean
           title: truncate_cascade
+          description: Whether or not to generate truncate cascade statements.
       title: InitStatementOptions
       additionalProperties: false
     mgmt.v1alpha1.MongoSchemaConfig:
@@ -8414,6 +8699,7 @@ components:
           items:
             type: string
           title: columns
+          description: The columns that are part of the primary constraint
       title: PrimaryConstraint
       additionalProperties: false
     mgmt.v1alpha1.SchemaInitStatements:
@@ -8422,11 +8708,17 @@ components:
         label:
           type: string
           title: label
+          description: >-
+            A friendly label associated with the generated schema init
+            statement(s)
         statements:
           type: array
           items:
             type: string
           title: statements
+          description: >-
+            A list of SQL statements that may be used to initialize a database
+            from scratch.
       title: SchemaInitStatements
       additionalProperties: false
     mgmt.v1alpha1.UniqueConstraint:
@@ -8437,6 +8729,7 @@ components:
           items:
             type: string
           title: columns
+          description: The columns that are part of the unique constraint
       title: UniqueConstraint
       additionalProperties: false
     mgmt.v1alpha1.UniqueConstraints:
@@ -8447,6 +8740,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
           title: constraints
+          description: The unique constraints found for the table
       title: UniqueConstraints
       additionalProperties: false
     mgmt.v1alpha1.ActivityStatus:
@@ -8522,6 +8816,7 @@ components:
         message:
           type: string
           title: message
+          description: The message of the failure
       title: ActivityFailure
       additionalProperties: false
     mgmt.v1alpha1.ActivityOptions:
@@ -8670,10 +8965,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used to generate data for
         rowCount:
           oneOf:
             - type: string
@@ -8739,6 +9031,7 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique connection id to a aws s3 connection configuration
       title: AwsS3SourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.BatchConfig:
@@ -8778,10 +9071,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: CancelJobRunRequest
       additionalProperties: false
     mgmt.v1alpha1.CancelJobRunResponse:
@@ -8794,17 +9089,21 @@ components:
         schema:
           type: string
           title: schema
+          description: The schema of the table
         table:
           type: string
           title: table
+          description: The table of the column
         column:
           type: string
           title: column
+          description: The column of the error
         errors:
           type: array
           items:
             type: string
           title: errors
+          description: The list of errors
       title: ColumnError
       additionalProperties: false
     mgmt.v1alpha1.CreateJobDestination:
@@ -8814,9 +9113,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The connection id to use for the job destination
         options:
           allOf:
             - title: options
+              description: The destination options to use for the job destination
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
       title: CreateJobDestination
       additionalProperties: false
@@ -8827,11 +9128,13 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job
         destinations:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
+          description: The list of destinations to create and associate with the job
       title: CreateJobDestinationConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobDestinationConnectionsResponse:
@@ -8840,6 +9143,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: CreateJobDestinationConnectionsResponse
       additionalProperties: false
@@ -8906,15 +9210,18 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
+          description: The list of mappings that will be used to transform the data
         source:
           allOf:
             - title: source
+              description: The source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
         destinations:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
+          description: The list of destinations that will be used to store the data
         initiateJobRun:
           type: boolean
           title: initiate_job_run
@@ -8942,6 +9249,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
+          description: >-
+            The list of virtual foreign keys that will be used to further
+            constrain the data ontop of the database defined constraints
       title: CreateJobRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobResponse:
@@ -8950,6 +9260,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was created
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: CreateJobResponse
       additionalProperties: false
@@ -8960,6 +9271,7 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job
       title: CreateJobRunRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobRunResponse:
@@ -8974,6 +9286,7 @@ components:
           items:
             type: string
           title: errors
+          description: The list of errors
       title: DatabaseError
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobDestinationConnectionRequest:
@@ -8983,6 +9296,7 @@ components:
           type: string
           title: destination_id
           format: uuid
+          description: The unique identifier of the destination to delete
       title: DeleteJobDestinationConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobDestinationConnectionResponse:
@@ -9010,6 +9324,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the job to delete
       title: DeleteJobRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobResponse:
@@ -9022,10 +9337,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: DeleteJobRunRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobRunResponse:
@@ -9102,6 +9419,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSourceTableOption'
           title: tables
+          description: >-
+            The list of tables (and their configuration) that reside within the
+            schema
       title: DynamoDBSourceSchemaSubset
       additionalProperties: false
     mgmt.v1alpha1.DynamoDBSourceTableOption:
@@ -9192,10 +9512,16 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSourceSchemaOption'
           title: schemas
           minItems: 1
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used to generate data for.
         fkSourceConnectionId:
           type: string
           title: fk_source_connection_id
           format: uuid
+          description: >-
+            An optional connection id that will be used as the basis for the
+            shape of data to be generated.
       title: GenerateSourceOptions
       additionalProperties: false
     mgmt.v1alpha1.GenerateSourceSchemaOption:
@@ -9205,12 +9531,16 @@ components:
           type: string
           title: schema
           minLength: 1
+          description: The database schema
         tables:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.GenerateSourceTableOption'
           title: tables
           minItems: 1
+          description: >-
+            The list of tables (and their configuration) that reside within the
+            schema to receive generated data
       title: GenerateSourceSchemaOption
       additionalProperties: false
     mgmt.v1alpha1.GenerateSourceTableOption:
@@ -9220,12 +9550,14 @@ components:
           type: string
           title: table
           minLength: 1
+          description: The table that will be used to generate data for.
         rowCount:
           oneOf:
             - type: string
             - type: number
           title: row_count
           minimum: 1
+          description: The total number of records to be generated.
       title: GenerateSourceTableOption
       additionalProperties: false
     mgmt.v1alpha1.GetActiveJobHooksByTimingRequest:
@@ -9302,6 +9634,8 @@ components:
         jobId:
           type: string
           title: job_id
+          format: uuid
+          description: The unique identifier of the job
       title: GetJobNextRunsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobNextRunsResponse:
@@ -9310,6 +9644,7 @@ components:
         nextRuns:
           allOf:
             - title: next_runs
+              description: The list of next run times
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobNextRuns'
       title: GetJobNextRunsResponse
       additionalProperties: false
@@ -9320,6 +9655,7 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job
       title: GetJobRecentRunsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobRecentRunsResponse:
@@ -9330,6 +9666,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobRecentRun'
           title: recent_runs
+          description: The list of recent job runs
       title: GetJobRecentRunsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRequest:
@@ -9339,6 +9676,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the job
       title: GetJobRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobResponse:
@@ -9347,6 +9685,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was retrieved
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: GetJobResponse
       additionalProperties: false
@@ -9356,10 +9695,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: GetJobRunEventsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunEventsResponse:
@@ -9370,9 +9711,11 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEvent'
           title: events
+          description: The list of events
         isRunComplete:
           type: boolean
           title: is_run_complete
+          description: Whether the run is complete
       title: GetJobRunEventsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunLogsStreamRequest:
@@ -9396,10 +9739,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
         window:
           allOf:
             - title: window
@@ -9449,9 +9794,11 @@ components:
         logLine:
           type: string
           title: log_line
+          description: The log line
         timestamp:
           allOf:
             - title: timestamp
+              description: The timestamp of the log line
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
       title: GetJobRunLogsStreamResponse
       additionalProperties: false
@@ -9461,10 +9808,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: GetJobRunRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunResponse:
@@ -9473,6 +9822,7 @@ components:
         jobRun:
           allOf:
             - title: job_run
+              description: The job run that was retrieved
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRun'
       title: GetJobRunResponse
       additionalProperties: false
@@ -9506,10 +9856,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: Retireve runs for a specific job
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: Retrieve runs for all jobs in an account
       title: GetJobRunsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunsResponse:
@@ -9520,6 +9872,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobRun'
           title: job_runs
+          description: The list of job runs
       title: GetJobRunsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobStatusRequest:
@@ -9528,6 +9881,8 @@ components:
         jobId:
           type: string
           title: job_id
+          format: uuid
+          description: The unique identifier of the job
       title: GetJobStatusRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobStatusResponse:
@@ -9536,6 +9891,7 @@ components:
         status:
           allOf:
             - title: status
+              description: The status of the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobStatus'
       title: GetJobStatusResponse
       additionalProperties: false
@@ -9546,6 +9902,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: GetJobStatusesRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobStatusesResponse:
@@ -9556,6 +9913,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobStatusRecord'
           title: statuses
+          description: The list of job statuses
       title: GetJobStatusesResponse
       additionalProperties: false
     mgmt.v1alpha1.GetJobsRequest:
@@ -9565,6 +9923,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get jobs for
       title: GetJobsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetJobsResponse:
@@ -9575,6 +9934,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.Job'
           title: jobs
+          description: The list of jobs
       title: GetJobsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetRunContextRequest:
@@ -9583,6 +9943,7 @@ components:
         id:
           allOf:
             - title: id
+              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
       title: GetRunContextRequest
       additionalProperties: false
@@ -9593,6 +9954,9 @@ components:
           type: string
           title: value
           format: byte
+          description: >-
+            The returned value in bytes. The format is determined by the key
+            when it is set.
       title: GetRunContextResponse
       additionalProperties: false
     mgmt.v1alpha1.IsJobHookNameAvailableRequest:
@@ -9624,10 +9988,12 @@ components:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The name to check for availability
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to check for availability
       title: IsJobNameAvailableRequest
       additionalProperties: false
     mgmt.v1alpha1.IsJobNameAvailableResponse:
@@ -9636,6 +10002,7 @@ components:
         isAvailable:
           type: boolean
           title: is_available
+          description: Whether the name is available
       title: IsJobNameAvailableResponse
       additionalProperties: false
     mgmt.v1alpha1.Job:
@@ -9681,20 +10048,24 @@ components:
         source:
           allOf:
             - title: source
+              description: The source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
         destinations:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobDestination'
           title: destinations
+          description: The list of destinations that will be used to store the data
         mappings:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
+          description: The list of mappings that will be used to transform the data
         cronSchedule:
           type: string
           title: cron_schedule
+          description: The cron schedule that will be used to trigger the job
         accountId:
           type: string
           title: account_id
@@ -9729,13 +10100,17 @@ components:
         connectionId:
           type: string
           title: connection_id
+          format: uuid
+          description: The connection id to use for the job destination
         options:
           allOf:
             - title: options
+              description: The destination options to use for the job destination
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
         id:
           type: string
           title: id
+          description: The unique identifier of the job destination
       title: JobDestination
       additionalProperties: false
     mgmt.v1alpha1.JobDestinationOptions:
@@ -10011,15 +10386,24 @@ components:
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The database schema
         table:
           type: string
           title: table
+          minLength: 1
+          description: The database table.
         column:
           type: string
           title: column
+          minLength: 1
+          description: The column in the configured schema.table
         transformer:
           allOf:
             - title: transformer
+              description: >-
+                The transformer configuration that will be applied to each cell
+                in the column
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobMappingTransformer'
       title: JobMapping
       additionalProperties: false
@@ -10029,6 +10413,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The transformer configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: JobMappingTransformer
       additionalProperties: false
@@ -10040,6 +10425,7 @@ components:
           items:
             $ref: '#/components/schemas/google.protobuf.Timestamp'
           title: next_run_times
+          description: The list of next run times
       title: JobNextRuns
       additionalProperties: false
     mgmt.v1alpha1.JobRecentRun:
@@ -10048,10 +10434,12 @@ components:
         startTime:
           allOf:
             - title: start_time
+              description: The start time of the job run
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
       title: JobRecentRun
       additionalProperties: false
     mgmt.v1alpha1.JobRun:
@@ -10121,26 +10509,32 @@ components:
             - type: string
             - type: number
           title: id
+          description: The unique identifier of the event
         type:
           type: string
           title: type
+          description: The type of the event
         startTime:
           allOf:
             - title: start_time
+              description: The start time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         closeTime:
           allOf:
             - title: close_time
+              description: The close time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         metadata:
           allOf:
             - title: metadata
+              description: The metadata of the event
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEventMetadata'
         tasks:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEventTask'
           title: tasks
+          description: The list of tasks associated with the event
       title: JobRunEvent
       additionalProperties: false
     mgmt.v1alpha1.JobRunEventMetadata:
@@ -10164,6 +10558,7 @@ components:
         syncMetadata:
           allOf:
             - title: sync_metadata
+              description: The metadata of the sync
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunSyncMetadata'
       title: JobRunEventMetadata
       additionalProperties: false
@@ -10175,16 +10570,20 @@ components:
             - type: string
             - type: number
           title: id
+          description: The unique identifier of the task
         type:
           type: string
           title: type
+          description: The type of the task
         eventTime:
           allOf:
             - title: event_time
+              description: The time of the event
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         error:
           allOf:
             - title: error
+              description: The error of the task
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobRunEventTaskError'
       title: JobRunEventTask
       additionalProperties: false
@@ -10194,9 +10593,11 @@ components:
         message:
           type: string
           title: message
+          description: The message of the error
         retryState:
           type: string
           title: retry_state
+          description: The retry state of the error
       title: JobRunEventTaskError
       additionalProperties: false
     mgmt.v1alpha1.JobRunSyncMetadata:
@@ -10205,9 +10606,11 @@ components:
         schema:
           type: string
           title: schema
+          description: The schema of the table
         table:
           type: string
           title: table
+          description: The table of the sync
       title: JobRunSyncMetadata
       additionalProperties: false
     mgmt.v1alpha1.JobSource:
@@ -10216,6 +10619,7 @@ components:
         options:
           allOf:
             - title: options
+              description: The source options to use for the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSourceOptions'
       title: JobSource
       required:
@@ -10378,18 +10782,30 @@ components:
         postgresSubset:
           allOf:
             - title: postgres_subset
+              description: >-
+                The list of schemas (and their tables) along with any
+                configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceSchemaSubset'
         mysqlSubset:
           allOf:
             - title: mysql_subset
+              description: >-
+                The list of schemas (and their tables) along with any
+                configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceSchemaSubset'
         dynamodbSubset:
           allOf:
             - title: dynamodb_subset
+              description: >-
+                The list of tables (and their configuration) that reside within
+                the schema
             - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBSourceSchemaSubset'
         mssqlSubset:
           allOf:
             - title: mssql_subset
+              description: >-
+                The list of schemas (and their tables) along with any
+                configuration options that will be used.
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceSchemaSubset'
       title: JobSourceSqlSubetSchemas
       additionalProperties: false
@@ -10399,9 +10815,12 @@ components:
         jobId:
           type: string
           title: job_id
+          format: uuid
+          description: The unique identifier of the job
         status:
           allOf:
             - title: status
+              description: The status of the job
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobStatus'
       title: JobStatusRecord
       additionalProperties: false
@@ -10441,17 +10860,16 @@ components:
         truncateTable:
           allOf:
             - title: truncate_table
+              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlTruncateTableConfig'
         initTableSchema:
           type: boolean
           title: init_table_schema
-          description: Currently not supported and a placeholder for future implementation
+          description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
             - title: on_conflict
-              description: >-
-                Currently not supported and a placeholder for future
-                implementation
+              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlOnConflictConfig'
         skipForeignKeyViolations:
           type: boolean
@@ -10479,6 +10897,7 @@ components:
         doNothing:
           type: boolean
           title: do_nothing
+          description: Whether to do nothing when a conflict occurs
       title: MssqlOnConflictConfig
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions:
@@ -10487,18 +10906,24 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
+          description: Whether to halt the job if a new column is added
         schemas:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceSchemaOption'
           title: schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
         connectionId:
           type: string
           title: connection_id
           format: uuid
+          description: The unique connection id to a mssql connection configuration
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+          description: Whether to subset the table by foreign key constraints
         columnRemovalStrategy:
           allOf:
             - title: column_removal_strategy
@@ -10544,6 +10969,7 @@ components:
         continueJob:
           allOf:
             - title: continue_job
+              description: continue job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
       title: ColumnRemovalStrategy
@@ -10564,11 +10990,17 @@ components:
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The database schema
         tables:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceTableOption'
           title: tables
+          minItems: 1
+          description: >-
+            The list of tables (and their configuration) that reside within the
+            schema
       title: MssqlSourceSchemaOption
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceSchemaSubset:
@@ -10579,6 +11011,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceSchemaOption'
           title: mssql_schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
       title: MssqlSourceSchemaSubset
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceTableOption:
@@ -10602,9 +11037,15 @@ components:
         table:
           type: string
           title: table
+          minLength: 1
+          description: The table that will be used to subset the data for.
         whereClause:
           type: string
           title: where_clause
+          description: >-
+            This is not a parameterized query and must be valid. Intended to be
+            everything after the WHERE keyword.
+             Is used to subset the table.
       title: MssqlSourceTableOption
       additionalProperties: false
     mgmt.v1alpha1.MssqlTruncateTableConfig:
@@ -10613,6 +11054,7 @@ components:
         truncateBeforeInsert:
           type: boolean
           title: truncate_before_insert
+          description: Whether to truncate the table before inserting data
       title: MssqlTruncateTableConfig
       additionalProperties: false
     mgmt.v1alpha1.MysqlDestinationConnectionOptions:
@@ -10636,13 +11078,16 @@ components:
         truncateTable:
           allOf:
             - title: truncate_table
+              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlTruncateTableConfig'
         initTableSchema:
           type: boolean
           title: init_table_schema
+          description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
             - title: on_conflict
+              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlOnConflictConfig'
         skipForeignKeyViolations:
           type: boolean
@@ -10726,18 +11171,24 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
+          description: Whether to halt the job if a new column is added
         schemas:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceSchemaOption'
           title: schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
         connectionId:
           type: string
           title: connection_id
           format: uuid
+          description: The unique connection id to a mysql connection configuration
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+          description: Whether to subset the table by foreign key constraints
         columnRemovalStrategy:
           allOf:
             - title: column_removal_strategy
@@ -10783,6 +11234,7 @@ components:
         continueJob:
           allOf:
             - title: continue_job
+              description: continue job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
       title: ColumnRemovalStrategy
@@ -10803,11 +11255,17 @@ components:
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The database schema
         tables:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceTableOption'
           title: tables
+          minItems: 1
+          description: >-
+            The list of tables (and their configuration) that reside within the
+            schema
       title: MysqlSourceSchemaOption
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceSchemaSubset:
@@ -10818,6 +11276,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceSchemaOption'
           title: mysql_schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
       title: MysqlSourceSchemaSubset
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceTableOption:
@@ -10841,9 +11302,15 @@ components:
         table:
           type: string
           title: table
+          minLength: 1
+          description: The table that will be used to subset the data for.
         whereClause:
           type: string
           title: where_clause
+          description: >-
+            This is not a parameterized query and must be valid. Intended to be
+            everything after the WHERE keyword.
+             Is used to subset the table.
       title: MysqlSourceTableOption
       additionalProperties: false
     mgmt.v1alpha1.MysqlTruncateTableConfig:
@@ -10852,6 +11319,7 @@ components:
         truncateBeforeInsert:
           type: boolean
           title: truncate_before_insert
+          description: Whether to truncate the table before inserting data
       title: MysqlTruncateTableConfig
       additionalProperties: false
     mgmt.v1alpha1.NewJobHook:
@@ -10908,12 +11376,15 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the job
         pause:
           type: boolean
           title: pause
+          description: Whether to pause or unpause the job
         note:
           type: string
           title: note
+          description: An optional note to be associated with the pause
       title: PauseJobRequest
       additionalProperties: false
     mgmt.v1alpha1.PauseJobResponse:
@@ -10922,6 +11393,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: PauseJobResponse
       additionalProperties: false
@@ -10946,13 +11418,16 @@ components:
         status:
           allOf:
             - title: status
+              description: The status of the activity
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityStatus'
         activityName:
           type: string
           title: activity_name
+          description: The name of the activity
         lastFailure:
           allOf:
             - title: last_failure
+              description: The last failure of the activity
             - $ref: '#/components/schemas/mgmt.v1alpha1.ActivityFailure'
       title: PendingActivity
       additionalProperties: false
@@ -10977,20 +11452,21 @@ components:
         truncateTable:
           allOf:
             - title: truncate_table
+              description: Whether to truncate the table before inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresTruncateTableConfig'
         initTableSchema:
           type: boolean
           title: init_table_schema
+          description: Whether to initialize the table schema before inserting data
         onConflict:
           allOf:
             - title: on_conflict
+              description: The configuration for handling conflicts when inserting data
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresOnConflictConfig'
         skipForeignKeyViolations:
           type: boolean
           title: skip_foreign_key_violations
-          description: >-
-            Insert all valid records, skipping any that violate foreign key
-            constraints.
+          description: Whether to skip records that violate foreign key constraints
         batch:
           allOf:
             - title: batch
@@ -11069,13 +11545,18 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceSchemaOption'
           title: schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
         connectionId:
           type: string
           title: connection_id
           format: uuid
+          description: The unique connection id to a postgres connection configuration
         subsetByForeignKeyConstraints:
           type: boolean
           title: subset_by_foreign_key_constraints
+          description: Whether to subset the table by foreign key constraints
         newColumnAdditionStrategy:
           allOf:
             - title: new_column_addition_strategy
@@ -11129,6 +11610,7 @@ components:
         continueJob:
           allOf:
             - title: continue_job
+              description: continue job if a column is removed
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
       title: ColumnRemovalStrategy
@@ -11203,11 +11685,17 @@ components:
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The database schema
         tables:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceTableOption'
           title: tables
+          minItems: 1
+          description: >-
+            The list of tables (and their configuration) that reside within the
+            schema
       title: PostgresSourceSchemaOption
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceSchemaSubset:
@@ -11218,6 +11706,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceSchemaOption'
           title: postgres_schemas
+          description: >-
+            The list of schemas (and their tables) along with any configuration
+            options that will be used.
       title: PostgresSourceSchemaSubset
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceTableOption:
@@ -11241,9 +11732,15 @@ components:
         table:
           type: string
           title: table
+          minLength: 1
+          description: The table that will be used subset the data for.
         whereClause:
           type: string
           title: where_clause
+          description: >-
+            This is not a parameterized query and must be valid. Intended to be
+            everything after the WHERE keyword.
+             Is used to subset the table.
       title: PostgresSourceTableOption
       additionalProperties: false
     mgmt.v1alpha1.PostgresTruncateTableConfig:
@@ -11252,9 +11749,11 @@ components:
         truncateBeforeInsert:
           type: boolean
           title: truncate_before_insert
+          description: Whether to truncate the table before inserting data
         cascade:
           type: boolean
           title: cascade
+          description: Whether to cascade the truncate to child tables
       title: PostgresTruncateTableConfig
       additionalProperties: false
     mgmt.v1alpha1.RetryPolicy:
@@ -11356,6 +11855,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: SetJobSourceSqlConnectionSubsetsResponse
       additionalProperties: false
@@ -11382,6 +11882,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The updated job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: SetJobSyncOptionsResponse
       additionalProperties: false
@@ -11408,6 +11909,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The updated job
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: SetJobWorkflowOptionsResponse
       additionalProperties: false
@@ -11417,6 +11919,7 @@ components:
         id:
           allOf:
             - title: id
+              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
         value:
           type: string
@@ -11435,6 +11938,7 @@ components:
         id:
           allOf:
             - title: id
+              description: The run context key
             - $ref: '#/components/schemas/mgmt.v1alpha1.RunContextKey'
         value:
           type: string
@@ -11453,10 +11957,12 @@ components:
         jobRunId:
           type: string
           title: job_run_id
+          description: The unique identifier of the job run
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account
       title: TerminateJobRunRequest
       additionalProperties: false
     mgmt.v1alpha1.TerminateJobRunResponse:
@@ -11470,17 +11976,21 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job
         connectionId:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection
         options:
           allOf:
             - title: options
+              description: The destination connection options
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobDestinationOptions'
         destinationId:
           type: string
           title: destination_id
+          description: The unique identifier of the destination
       title: UpdateJobDestinationConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobDestinationConnectionResponse:
@@ -11489,6 +11999,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: UpdateJobDestinationConnectionResponse
       additionalProperties: false
@@ -11561,9 +12072,11 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the job
         cronSchedule:
           type: string
           title: cron_schedule
+          description: The new cron schedule
       title: UpdateJobScheduleRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobScheduleResponse:
@@ -11572,6 +12085,7 @@ components:
         job:
           allOf:
             - title: job
+              description: The job that was updated
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
       title: UpdateJobScheduleResponse
       additionalProperties: false
@@ -11582,20 +12096,26 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the job
         source:
           allOf:
             - title: source
+              description: The new source connection configuration
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
         mappings:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
+          description: The new list of mappings that will be used to transform the data
         virtualForeignKeys:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
+          description: >-
+            The new list of virtual foreign keys that will be used to further
+            constrain the data ontop of the database defined constraints
       title: UpdateJobSourceConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobSourceConnectionResponse:
@@ -11614,20 +12134,24 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The unique account identifier that this job will be associated with
+          description: The unique identifier of the account
         mappings:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
+          description: The list of mappings to validate
         connectionId:
           type: string
           title: connection_id
+          format: uuid
+          description: The unique identifier of the connection
         virtualForeignKeys:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
+          description: The list of virtual foreign keys
       title: ValidateJobMappingsRequest
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsResponse:
@@ -11638,9 +12162,11 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.ColumnError'
           title: column_errors
+          description: The list of column errors
         databaseErrors:
           allOf:
             - title: database_errors
+              description: The database error
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseError'
       title: ValidateJobMappingsResponse
       additionalProperties: false
@@ -11650,17 +12176,21 @@ components:
         schema:
           type: string
           title: schema
+          description: The schema of the table
         table:
           type: string
           title: table
+          description: The table of the virtual foreign key
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The list of columns
         foreignKey:
           allOf:
             - title: foreign_key
+              description: The foreign key
             - $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignKey'
       title: VirtualForeignConstraint
       additionalProperties: false
@@ -11670,14 +12200,17 @@ components:
         schema:
           type: string
           title: schema
+          description: The schema of the table
         table:
           type: string
           title: table
+          description: The table of the virtual foreign key
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The list of columns
       title: VirtualForeignKey
       additionalProperties: false
     mgmt.v1alpha1.WorkflowOptions:
@@ -11769,12 +12302,14 @@ components:
         date:
           allOf:
             - title: date
+              description: The date of the result
             - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
         count:
           oneOf:
             - type: string
             - type: number
           title: count
+          description: The count of the metric for the given date
       title: DayResult
       additionalProperties: false
     mgmt.v1alpha1.GetDailyMetricCountRequest:
@@ -11851,6 +12386,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.DayResult'
           title: results
+          description: The list of results for the given metric and date range
       title: GetDailyMetricCountResponse
       additionalProperties: false
     mgmt.v1alpha1.GetMetricCountRequest:
@@ -12011,20 +12547,27 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to create the user defined
+            transformer for.
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The name of the user defined transformer.
         description:
           type: string
           title: description
+          description: The description of the user defined transformer.
         source:
           allOf:
             - title: source
+              description: The source of the user defined transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         transformerConfig:
           allOf:
             - title: transformer_config
+              description: The configuration of the user defined transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: CreateUserDefinedTransformerRequest
       additionalProperties: false
@@ -12044,6 +12587,7 @@ components:
           type: string
           title: transformer_id
           format: uuid
+          description: The unique identifier of the user defined transformer to delete.
       title: DeleteUserDefinedTransformerRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteUserDefinedTransformerResponse:
@@ -12056,6 +12600,7 @@ components:
         source:
           allOf:
             - title: source
+              description: The source of the transformer to retrieve.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
       title: GetSystemTransformerBySourceRequest
       additionalProperties: false
@@ -12112,6 +12657,7 @@ components:
           type: string
           title: transformer_id
           format: uuid
+          description: The unique identifier of the user defined transformer to get.
       title: GetUserDefinedTransformerByIdRequest
       additionalProperties: false
     mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse:
@@ -12130,6 +12676,9 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to get the user defined
+            transformers for.
       title: GetUserDefinedTransformersRequest
       additionalProperties: false
     mgmt.v1alpha1.GetUserDefinedTransformersResponse:
@@ -12149,10 +12698,14 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to check for the availability
+            of the transformer name.
         transformerName:
           type: string
           title: transformer_name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The name of the transformer to check for availability.
       title: IsTransformerNameAvailableRequest
       additionalProperties: false
     mgmt.v1alpha1.IsTransformerNameAvailableResponse:
@@ -12161,6 +12714,7 @@ components:
         isAvailable:
           type: boolean
           title: is_available
+          description: Whether or not the transformer name is available.
       title: IsTransformerNameAvailableResponse
       additionalProperties: false
     mgmt.v1alpha1.SystemTransformer:
@@ -12169,26 +12723,34 @@ components:
         name:
           type: string
           title: name
+          description: The name of the transformer.
         description:
           type: string
           title: description
+          description: The description of the transformer.
         dataType:
           allOf:
             - title: data_type
+              description: >-
+                @deprecated: data_types is deprecated and will be removed in a
+                future release. Use data_types instead.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerDataType'
         source:
           allOf:
             - title: source
+              description: The source of the transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         config:
           allOf:
             - title: config
+              description: The configuration of the transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
         dataTypes:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.TransformerDataType'
           title: data_types
+          description: The data types supported by the transformer.
         supportedJobTypes:
           type: array
           items:
@@ -12196,6 +12758,10 @@ components:
           title: supported_job_types
       title: SystemTransformer
       additionalProperties: false
+      description: >-
+        A system transformer is a transformer that is built into the Neosync
+        platform.
+         It can be used directly in job mappings or used in user-defined transformers to snapshot a specific configuration.
     mgmt.v1alpha1.UpdateUserDefinedTransformerRequest:
       type: object
       properties:
@@ -12203,16 +12769,20 @@ components:
           type: string
           title: transformer_id
           format: uuid
+          description: The unique identifier of the user defined transformer to update.
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The name of the user defined transformer.
         description:
           type: string
           title: description
+          description: The description of the user defined transformer.
         transformerConfig:
           allOf:
             - title: transformer_config
+              description: The configuration of the user defined transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: UpdateUserDefinedTransformerRequest
       additionalProperties: false
@@ -12232,43 +12802,56 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the user defined transformer.
         name:
           type: string
           title: name
+          description: The name of the user defined transformer.
         description:
           type: string
           title: description
+          description: The description of the user defined transformer.
         dataType:
           allOf:
             - title: data_type
               description: >-
-                This property is readonly and is calculated based off the origin
-                system transformer
+                @deprecated: data_type is deprecated and will be removed in a
+                future release. Use data_types instead.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerDataType'
         source:
           allOf:
             - title: source
+              description: The source of the user defined transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerSource'
         config:
           allOf:
             - title: config
+              description: The configuration of the user defined transformer.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
         createdAt:
           allOf:
             - title: created_at
+              description: The date and time the user defined transformer was created.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         updatedAt:
           allOf:
             - title: updated_at
+              description: The date and time the user defined transformer was last updated.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         accountId:
           type: string
           title: account_id
+          description: >-
+            The unique identifier of the account that owns the user defined
+            transformer.
         dataTypes:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.TransformerDataType'
           title: data_types
+          description: >-
+            The data types supported by the user defined transformer. This is
+            currently calculated based off the origin system transformer.
       title: UserDefinedTransformer
       additionalProperties: false
     mgmt.v1alpha1.ValidateUserJavascriptCodeRequest:
@@ -12278,6 +12861,7 @@ components:
           type: string
           title: code
           minLength: 1
+          description: The user provided javascript code that will be validated.
       title: ValidateUserJavascriptCodeRequest
       additionalProperties: false
     mgmt.v1alpha1.ValidateUserJavascriptCodeResponse:
@@ -12294,6 +12878,7 @@ components:
         userProvidedRegex:
           type: string
           title: user_provided_regex
+          description: The user provided regex to validate
       title: ValidateUserRegexCodeRequest
       additionalProperties: false
     mgmt.v1alpha1.ValidateUserRegexCodeResponse:
@@ -12302,6 +12887,7 @@ components:
         valid:
           type: boolean
           title: valid
+          description: Whether the regex is valid
       title: ValidateUserRegexCodeResponse
       additionalProperties: false
     mgmt.v1alpha1.AccountRole:
@@ -12345,6 +12931,7 @@ components:
           type: string
           title: token
           minLength: 1
+          description: The token that the user will use to accept the invite.
       title: AcceptTeamAccountInviteRequest
       additionalProperties: false
     mgmt.v1alpha1.AcceptTeamAccountInviteResponse:
@@ -12353,6 +12940,7 @@ components:
         account:
           allOf:
             - title: account
+              description: The account that the user was invited to.
             - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
       title: AcceptTeamAccountInviteResponse
       additionalProperties: false
@@ -12362,32 +12950,41 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the invite.
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the account to invite the user to.
         senderUserId:
           type: string
           title: sender_user_id
+          description: The unique identifier of the user that sent the invite.
         email:
           type: string
           title: email
+          description: The email of the user to invite.
         token:
           type: string
           title: token
+          description: The token that the user will use to accept the invite.
         accepted:
           type: boolean
           title: accepted
+          description: Whether or not the invite has been accepted.
         createdAt:
           allOf:
             - title: created_at
+              description: The time when the invite was created.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         updatedAt:
           allOf:
             - title: updated_at
+              description: The time when the invite was last updated.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         expiresAt:
           allOf:
             - title: expires_at
+              description: The time when the invite expires.
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
         role:
           allOf:
@@ -12402,6 +12999,7 @@ components:
         hasCompletedOnboarding:
           type: boolean
           title: has_completed_onboarding
+          description: Whether or not the account has completed onboarding.
       title: AccountOnboardingConfig
       additionalProperties: false
     mgmt.v1alpha1.AccountTemporalConfig:
@@ -12411,14 +13009,17 @@ components:
           type: string
           title: url
           minLength: 1
+          description: The temporal url for the account.
         namespace:
           type: string
           title: namespace
           minLength: 1
+          description: The temporal namespace for the account.
         syncJobQueueName:
           type: string
           title: sync_job_queue_name
           minLength: 1
+          description: The temporal sync job queue name for the account.
       title: AccountTemporalConfig
       additionalProperties: false
     mgmt.v1alpha1.AccountUser:
@@ -12427,15 +13028,19 @@ components:
         id:
           type: string
           title: id
+          description: The unique identifier of the user.
         name:
           type: string
           title: name
+          description: The name of the user (if there is one)
         image:
           type: string
           title: image
+          description: The image of the user (if there is one)
         email:
           type: string
           title: email
+          description: The email of the user.
         role:
           allOf:
             - title: role
@@ -12545,6 +13150,7 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the team account that was created.
         checkoutSessionUrl:
           type: string
           title: checkout_session_url
@@ -12560,6 +13166,9 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to get the billing checkout
+            session for.
       title: GetAccountBillingCheckoutSessionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse:
@@ -12578,6 +13187,9 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to get the billing portal
+            session for.
       title: GetAccountBillingPortalSessionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountBillingPortalSessionResponse:
@@ -12596,6 +13208,9 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to get the onboarding config
+            for.
       title: GetAccountOnboardingConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountOnboardingConfigResponse:
@@ -12604,6 +13219,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The onboarding config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: GetAccountOnboardingConfigResponse
       additionalProperties: false
@@ -12614,6 +13230,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the status for.
       title: GetAccountStatusRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountStatusResponse:
@@ -12665,6 +13282,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the temporal config for.
       title: GetAccountTemporalConfigRequest
       additionalProperties: false
     mgmt.v1alpha1.GetAccountTemporalConfigResponse:
@@ -12673,6 +13291,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The temporal config for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: GetAccountTemporalConfigResponse
       additionalProperties: false
@@ -12695,6 +13314,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
           title: accounts
+          description: The list of accounts that have a billing id.
       title: GetBillingAccountsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetSystemInformationRequest:
@@ -12739,6 +13359,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the invites for.
       title: GetTeamAccountInvitesRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountInvitesResponse:
@@ -12749,6 +13370,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
           title: invites
+          description: The list of invites for the account.
       title: GetTeamAccountInvitesResponse
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountMembersRequest:
@@ -12758,6 +13380,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the members for.
       title: GetTeamAccountMembersRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTeamAccountMembersResponse:
@@ -12782,6 +13405,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
           title: accounts
+          description: The list of accounts that the user belongs to.
       title: GetUserAccountsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetUserRequest:
@@ -12794,6 +13418,7 @@ components:
         userId:
           type: string
           title: user_id
+          description: The unique identifier of the user that was retrieved.
       title: GetUserResponse
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
@@ -12818,12 +13443,12 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to invite the user to
+          description: The unique identifier of the account to invite the user to.
         email:
           type: string
           title: email
           minLength: 1
-          description: The email of the user to invite
+          description: The email of the user to invite.
         role:
           allOf:
             - title: role
@@ -12837,6 +13462,7 @@ components:
         invite:
           allOf:
             - title: invite
+              description: The invite that was created.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
       title: InviteUserToTeamAccountResponse
       additionalProperties: false
@@ -12862,6 +13488,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get the status for.
         requestedRecordCount:
           oneOf:
             - type: string
@@ -12893,6 +13520,7 @@ components:
         isValid:
           type: boolean
           title: is_valid
+          description: Whether or not the account is valid.
         reason:
           type: string
           title: reason
@@ -12922,6 +13550,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to check if the user is in.
       title: IsUserInAccountRequest
       additionalProperties: false
     mgmt.v1alpha1.IsUserInAccountResponse:
@@ -12930,6 +13559,7 @@ components:
         ok:
           type: boolean
           title: ok
+          description: Whether or not the user is in the account.
       title: IsUserInAccountResponse
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountInviteRequest:
@@ -12939,6 +13569,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the invite to remove.
       title: RemoveTeamAccountInviteRequest
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountInviteResponse:
@@ -12952,10 +13583,12 @@ components:
           type: string
           title: user_id
           format: uuid
+          description: The unique identifier of the user to remove from the account.
         accountId:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to remove the user from.
       title: RemoveTeamAccountMemberRequest
       additionalProperties: false
     mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
@@ -12969,9 +13602,13 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: >-
+            The unique identifier of the account to set the onboarding config
+            for.
         config:
           allOf:
             - title: config
+              description: The onboarding config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: SetAccountOnboardingConfigRequest
       additionalProperties: false
@@ -12981,6 +13618,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The onboarding config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
       title: SetAccountOnboardingConfigResponse
       additionalProperties: false
@@ -12991,9 +13629,11 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to set the temporal config for.
         config:
           allOf:
             - title: config
+              description: The temporal config to set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: SetAccountTemporalConfigRequest
       additionalProperties: false
@@ -13003,6 +13643,7 @@ components:
         config:
           allOf:
             - title: config
+              description: The temporal config that was set for the account.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
       title: SetAccountTemporalConfigResponse
       additionalProperties: false
@@ -13028,7 +13669,7 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to apply this metered event to
+          description: The unique identifier of the account to apply this metered event to.
         eventName:
           type: string
           title: event_name
@@ -13068,6 +13709,7 @@ components:
         accountId:
           type: string
           title: account_id
+          description: The unique identifier of the personal account that was created.
       title: SetPersonalAccountResponse
       additionalProperties: false
     mgmt.v1alpha1.SetUserRequest:
@@ -13080,6 +13722,7 @@ components:
         userId:
           type: string
           title: user_id
+          description: The unique identifier of the user that was created.
       title: SetUserResponse
       additionalProperties: false
     mgmt.v1alpha1.SetUserRoleRequest:
@@ -13089,16 +13732,16 @@ components:
           type: string
           title: account_id
           format: uuid
-          description: The account id to apply this role to
+          description: The unique identifier of the account to apply this role to.
         userId:
           type: string
           title: user_id
           format: uuid
-          description: The user that this will be applied to
+          description: The unique identifier of the user that this will be applied to.
         role:
           allOf:
             - title: role
-              description: The role that this user will obtain
+              description: The role that this user will obtain.
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
       title: SetUserRoleRequest
       additionalProperties: false

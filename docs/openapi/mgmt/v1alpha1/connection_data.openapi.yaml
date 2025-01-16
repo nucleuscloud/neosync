@@ -369,10 +369,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the schema for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the schema for.
       title: AwsS3SchemaConfig
       additionalProperties: false
     mgmt.v1alpha1.AwsS3StreamConfig:
@@ -405,10 +407,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the data stream for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the data stream for.
       title: AwsS3StreamConfig
       additionalProperties: false
     mgmt.v1alpha1.ConnectionSchemaConfig:
@@ -647,10 +651,12 @@ components:
           type: string
           title: schema
           minLength: 1
+          description: The schema of the table
         table:
           type: string
           title: table
           minLength: 1
+          description: The table name
       title: DatabaseTable
       additionalProperties: false
     mgmt.v1alpha1.DynamoDBSchemaConfig:
@@ -663,17 +669,20 @@ components:
         foreignKey:
           allOf:
             - title: foreign_key
+              description: The foreign key that is associated with the constraint
             - $ref: '#/components/schemas/mgmt.v1alpha1.ForeignKey'
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The columns that are part of the constraint
         notNullable:
           type: array
           items:
             type: boolean
           title: not_nullable
+          description: The not nullable flag for each column
       title: ForeignConstraint
       additionalProperties: false
     mgmt.v1alpha1.ForeignConstraintTables:
@@ -684,6 +693,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.ForeignConstraint'
           title: constraints
+          description: A list of foreign key constraints
       title: ForeignConstraintTables
       additionalProperties: false
     mgmt.v1alpha1.ForeignKey:
@@ -692,11 +702,13 @@ components:
         table:
           type: string
           title: table
+          description: The table that the foreign key is associated with
         columns:
           type: array
           items:
             type: string
           title: columns
+          description: The columns that are part of the foreign key
       title: ForeignKey
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageSchemaConfig:
@@ -729,10 +741,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the schema for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the schema for.
       title: GcpCloudStorageSchemaConfig
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageStreamConfig:
@@ -765,10 +779,12 @@ components:
           type: string
           title: job_id
           format: uuid
+          description: The unique identifier of the job to get the data stream for.
         jobRunId:
           type: string
           title: job_run_id
           minLength: 1
+          description: The unique identifier of the job run to get the data stream for.
       title: GcpCloudStorageStreamConfig
       additionalProperties: false
     mgmt.v1alpha1.GetAiGeneratedDataRequest:
@@ -793,6 +809,7 @@ components:
           type: string
           title: ai_connection_id
           format: uuid
+          description: The unique identifier of a connection, specifically one that is configured for LLM use.
         count:
           oneOf:
             - type: string
@@ -800,20 +817,25 @@ components:
           title: count
           maximum: 10
           minimum: 1
+          description: The number of records to generate
         modelName:
           type: string
           title: model_name
           minLength: 1
+          description: The LLM model name to use that works with the configured connection id.
         userPrompt:
           type: string
           title: user_prompt
+          description: The prompt that will be used to further refine the data generation. This is appended to the prompt that Neosync generates that includes schema information.
         dataConnectionId:
           type: string
           title: data_connection_id
           format: uuid
+          description: The unique identifier of a connection that the AI generated data would be inserted into. This is used to generate and send schema information to the LLM to help shape the generated data.
         table:
           allOf:
             - title: table
+              description: The table to generate data for.
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseTable'
       title: GetAiGeneratedDataRequest
       additionalProperties: false
@@ -835,16 +857,20 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the data stream for.
         streamConfig:
           allOf:
             - title: stream_config
+              description: The stream configuration to use for the data stream.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionStreamConfig'
         schema:
           type: string
           title: schema
+          description: The schema of the table to get the data stream for.
         table:
           type: string
           title: table
+          description: The table to get the data stream for.
       title: GetConnectionDataStreamRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionDataStreamResponse:
@@ -865,9 +891,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the init statements for.
         options:
           allOf:
             - title: options
+              description: The options to use for the init statements.
             - $ref: '#/components/schemas/mgmt.v1alpha1.InitStatementOptions'
       title: GetConnectionInitStatementsRequest
       additionalProperties: false
@@ -880,19 +908,20 @@ components:
           additionalProperties:
             type: string
             title: value
-          description: the key here is <schema>.<table> and value is the table init statement.
+          description: The key here is <schema>.<table> and value is the table init statement.
         tableTruncateStatements:
           type: object
           title: table_truncate_statements
           additionalProperties:
             type: string
             title: value
-          description: the key here is <schema>.<table> and value is the table truncate statement.
+          description: The key here is <schema>.<table> and value is the table truncate statement.
         schemaInitStatements:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.SchemaInitStatements'
           title: schema_init_statements
+          description: A list of schema initialization statements
       title: GetConnectionInitStatementsResponse
       additionalProperties: false
       description: Init statement for a specific table
@@ -925,9 +954,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the schema map for.
         schemaConfig:
           allOf:
             - title: schema_config
+              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
       title: GetConnectionSchemaMapRequest
       additionalProperties: false
@@ -991,9 +1022,11 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the schema for.
         schemaConfig:
           allOf:
             - title: schema_config
+              description: The schema configuration to use for the schema map.
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionSchemaConfig'
       title: GetConnectionSchemaRequest
       additionalProperties: false
@@ -1005,6 +1038,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
           title: schemas
+          description: The list of database columns
       title: GetConnectionSchemaResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsRequest:
@@ -1014,6 +1048,7 @@ components:
           type: string
           title: connection_id
           format: uuid
+          description: The unique identifier of the connection to get the constraints for.
       title: GetConnectionTableConstraintsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse:
@@ -1102,15 +1137,22 @@ components:
         connectionId:
           type: string
           title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to get the row count for.
         schema:
           type: string
           title: schema
+          minLength: 1
+          description: The schema of the table to get the row count for.
         table:
           type: string
           title: table
+          minLength: 1
+          description: The table to get the row count for.
         whereClause:
           type: string
           title: where_clause
+          description: The optional where clause to filter the rows by.
       title: GetTableRowCountRequest
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountResponse:
@@ -1121,6 +1163,7 @@ components:
             - type: string
             - type: number
           title: count
+          description: The count of the rows in the table
       title: GetTableRowCountResponse
       additionalProperties: false
     mgmt.v1alpha1.InitStatementOptions:
@@ -1129,12 +1172,15 @@ components:
         initSchema:
           type: boolean
           title: init_schema
+          description: Whether or not to generate schema init statements.
         truncateBeforeInsert:
           type: boolean
           title: truncate_before_insert
+          description: Whether or not to generate truncation statements
         truncateCascade:
           type: boolean
           title: truncate_cascade
+          description: Whether or not to generate truncate cascade statements.
       title: InitStatementOptions
       additionalProperties: false
     mgmt.v1alpha1.MongoSchemaConfig:
@@ -1169,6 +1215,7 @@ components:
           items:
             type: string
           title: columns
+          description: The columns that are part of the primary constraint
       title: PrimaryConstraint
       additionalProperties: false
     mgmt.v1alpha1.SchemaInitStatements:
@@ -1177,11 +1224,13 @@ components:
         label:
           type: string
           title: label
+          description: A friendly label associated with the generated schema init statement(s)
         statements:
           type: array
           items:
             type: string
           title: statements
+          description: A list of SQL statements that may be used to initialize a database from scratch.
       title: SchemaInitStatements
       additionalProperties: false
     mgmt.v1alpha1.UniqueConstraint:
@@ -1192,6 +1241,7 @@ components:
           items:
             type: string
           title: columns
+          description: The columns that are part of the unique constraint
       title: UniqueConstraint
       additionalProperties: false
     mgmt.v1alpha1.UniqueConstraints:
@@ -1202,6 +1252,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraint'
           title: constraints
+          description: The unique constraints found for the table
       title: UniqueConstraints
       additionalProperties: false
     connect-protocol-version:

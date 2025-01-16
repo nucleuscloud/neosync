@@ -43,11 +43,11 @@ message TransformerMapping {
 }
 
 message DefaultTransformersConfig {
-  // Boolean
+  // Any identified boolean value will be transformed using this configuration if no mapping is found.
   TransformerConfig boolean = 2;
-  // Number
+  // Any identified number value will be transformed using this configuration if no mapping is found.
   TransformerConfig n = 3;
-  // String
+  // Any identified string value will be transformed using this configuration if no mapping is found.
   TransformerConfig s = 4;
 }
 
@@ -76,8 +76,9 @@ message AnonymizeSingleResponse {
   string output_data = 1;
 }
 
+// Service that transactionally anonymizes data, regardless of the connection type.
 service AnonymizationService {
-  // Anonymizes many JSON strings by applying specified transformation mappings.
+  // Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
   rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}
   // Anonymizes a single JSON strings by applying specified transformation mappings.
   rpc AnonymizeSingle(AnonymizeSingleRequest) returns (AnonymizeSingleResponse) {}
