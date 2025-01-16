@@ -139,7 +139,7 @@ func buildSystemPrompt(
 	columns, dataTypes []string,
 ) string {
 	csvPrompt :=
-		"You generate valid CSV data. When generating records, include the headers, one record per line. Only return the CSV data. Ensure each record has exact number of fields as headers. Separate each record by a newline. Do NOT return anything other than the raw CSV data. Do NOT include the csv markdown wrapper."
+		"You generate valid CSV data. When generating records, include the headers, one record per line. Only return the CSV data. Ensure each record has exact number of fields as headers. Separate each record by a newline. Do NOT return anything other than the raw CSV data. Do NOT include the csv markdown wrapper. JSON and JSONB datatypes should be double quoted so they are in correct CSV format."
 
 	headerPrompt := getColumnPrompt(columns, dataTypes)
 	return fmt.Sprintf("%s %s %s",
@@ -354,7 +354,10 @@ func parseBracketedArray(value string) []any {
 func getCsvReader(input string) *csv.Reader {
 	var buffer bytes.Buffer
 	buffer.WriteString(input)
-	return csv.NewReader(&buffer)
+	reader := csv.NewReader(&buffer)
+	reader.FieldsPerRecord = -1
+	reader.LazyQuotes = true
+	return reader
 }
 
 func getCsvRecordsFromInput(input string, logger *service.Logger) ([][]string, error) {
