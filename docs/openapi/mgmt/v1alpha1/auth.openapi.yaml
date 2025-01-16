@@ -1,192 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.AuthService/LoginCli:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: LoginCli
-      description: Used by the CLI to login to Neosync with OAuth.
-      operationId: mgmt.v1alpha1.AuthService.LoginCli
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliResponse'
-  /mgmt.v1alpha1.AuthService/RefreshCli:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: RefreshCli
-      description: |-
-        Used by the CLI to refresh an expired Neosync accesss token.
-         This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
-      operationId: mgmt.v1alpha1.AuthService.RefreshCli
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliResponse'
-  /mgmt.v1alpha1.AuthService/CheckToken:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: CheckToken
-      description: Empty endpoint to simply check if the provided access token is valid
-      operationId: mgmt.v1alpha1.AuthService.CheckToken
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenResponse'
-  /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: GetAuthorizeUrl
-      description: Used by the CLI to retrieve an Authorize URL for use with OAuth login.
-      operationId: mgmt.v1alpha1.AuthService.GetAuthorizeUrl
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlResponse'
-  /mgmt.v1alpha1.AuthService/GetAuthStatus:
-    post:
-      tags:
-        - mgmt.v1alpha1.AuthService
-      summary: GetAuthStatus
-      description: |-
-        Returns the auth status of the API server. Whether or not the backend has authentication enabled.
-         This is used by clients to make decisions on whether or not they should send access tokens to the API.
-      operationId: mgmt.v1alpha1.AuthService.GetAuthStatus
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     mgmt.v1alpha1.AccessToken:
@@ -391,7 +226,193 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.AuthService/LoginCli:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: LoginCli
+      description: Used by the CLI to login to Neosync with OAuth.
+      operationId: mgmt.v1alpha1.AuthService.LoginCli
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.LoginCliResponse'
+  /mgmt.v1alpha1.AuthService/RefreshCli:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: RefreshCli
+      description: |-
+        Used by the CLI to refresh an expired Neosync accesss token.
+         This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
+      operationId: mgmt.v1alpha1.AuthService.RefreshCli
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.RefreshCliResponse'
+  /mgmt.v1alpha1.AuthService/CheckToken:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: CheckToken
+      description: Empty endpoint to simply check if the provided access token is valid
+      operationId: mgmt.v1alpha1.AuthService.CheckToken
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckTokenResponse'
+  /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: GetAuthorizeUrl
+      description: Used by the CLI to retrieve an Authorize URL for use with OAuth login.
+      operationId: mgmt.v1alpha1.AuthService.GetAuthorizeUrl
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthorizeUrlResponse'
+  /mgmt.v1alpha1.AuthService/GetAuthStatus:
+    post:
+      tags:
+        - mgmt.v1alpha1.AuthService
+      summary: GetAuthStatus
+      description: |-
+        Returns the auth status of the API server. Whether or not the backend has authentication enabled.
+         This is used by clients to make decisions on whether or not they should send access tokens to the API.
+      operationId: mgmt.v1alpha1.AuthService.GetAuthStatus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAuthStatusResponse'
 tags:
   - name: mgmt.v1alpha1.AuthService
     description: |-

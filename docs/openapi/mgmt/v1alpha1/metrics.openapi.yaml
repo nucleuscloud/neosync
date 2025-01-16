@@ -1,80 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
-    post:
-      tags:
-        - mgmt.v1alpha1.MetricsService
-      summary: GetDailyMetricCount
-      description: Retrieve a timed range of records
-      operationId: mgmt.v1alpha1.MetricsService.GetDailyMetricCount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountResponse'
-  /mgmt.v1alpha1.MetricsService/GetMetricCount:
-    post:
-      tags:
-        - mgmt.v1alpha1.MetricsService
-      summary: GetMetricCount
-      description: For the given metric and time range, returns the total count found
-      operationId: mgmt.v1alpha1.MetricsService.GetMetricCount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     mgmt.v1alpha1.RangedMetricName:
@@ -348,7 +295,81 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.MetricsService
+      summary: GetDailyMetricCount
+      description: Retrieve a timed range of records
+      operationId: mgmt.v1alpha1.MetricsService.GetDailyMetricCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetDailyMetricCountResponse'
+  /mgmt.v1alpha1.MetricsService/GetMetricCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.MetricsService
+      summary: GetMetricCount
+      description: For the given metric and time range, returns the total count found
+      operationId: mgmt.v1alpha1.MetricsService.GetMetricCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountResponse'
 tags:
   - name: mgmt.v1alpha1.MetricsService
     description: Service that handles serving up usage metrics

@@ -1,8 +1,11 @@
 openapi: 3.1.0
 info:
+  summary: Neosync API
+  description: Neosync API
   version: 0.5
   termsOfService: "https://www.neosync.dev/terms-of-service"
   contact:
+    name: Neosync Support
     email: support@neosync.dev
   license:
     name: MIT
@@ -12,4 +15,18 @@ externalDocs:
   url: https://docs.neosync.dev/api
 servers:
   - url: https://neosync-api.svcs.neosync.dev
-    description: Neosync Cloud API
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: 8080
+        description: The port to use for the development server
+components:
+  securitySchemas:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API Key or JWT are accepted as valid access tokens. However, authentication is required for Neosync Cloud, it may not be required for local or self-hosted deployments.
+security:
+  - BearerAuth: []

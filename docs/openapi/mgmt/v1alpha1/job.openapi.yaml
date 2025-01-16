@@ -1,1306 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.JobService/GetJobs:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobs
-      description: Returns a list of jobs by either account or job
-      operationId: mgmt.v1alpha1.JobService.GetJobs
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobsResponse'
-  /mgmt.v1alpha1.JobService/GetJob:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJob
-      description: Returns a specific job
-      operationId: mgmt.v1alpha1.JobService.GetJob
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobResponse'
-  /mgmt.v1alpha1.JobService/CreateJob:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: CreateJob
-      description: Creates a new job
-      operationId: mgmt.v1alpha1.JobService.CreateJob
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobResponse'
-  /mgmt.v1alpha1.JobService/DeleteJob:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: DeleteJob
-      description: Deletes a job
-      operationId: mgmt.v1alpha1.JobService.DeleteJob
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobResponse'
-  /mgmt.v1alpha1.JobService/IsJobNameAvailable:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: IsJobNameAvailable
-      description: Checks if a job name is available
-      operationId: mgmt.v1alpha1.JobService.IsJobNameAvailable
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsJobNameAvailableRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsJobNameAvailableResponse'
-  /mgmt.v1alpha1.JobService/UpdateJobSchedule:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: UpdateJobSchedule
-      description: Updates the schedule of a job
-      operationId: mgmt.v1alpha1.JobService.UpdateJobSchedule
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobScheduleRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobScheduleResponse'
-  /mgmt.v1alpha1.JobService/UpdateJobSourceConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: UpdateJobSourceConnection
-      description: Updates the source connection of a job
-      operationId: mgmt.v1alpha1.JobService.UpdateJobSourceConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobSourceConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobSourceConnectionResponse'
-  /mgmt.v1alpha1.JobService/SetJobSourceSqlConnectionSubsets:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: SetJobSourceSqlConnectionSubsets
-      description: Sets the source sql connection subsets of a job
-      operationId: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse'
-  /mgmt.v1alpha1.JobService/UpdateJobDestinationConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: UpdateJobDestinationConnection
-      description: Updates the destination connection of a job
-      operationId: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobDestinationConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobDestinationConnectionResponse'
-  /mgmt.v1alpha1.JobService/DeleteJobDestinationConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: DeleteJobDestinationConnection
-      description: Deletes the destination connection of a job
-      operationId: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobDestinationConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobDestinationConnectionResponse'
-  /mgmt.v1alpha1.JobService/CreateJobDestinationConnections:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: CreateJobDestinationConnections
-      description: Creates the destination connections of a job
-      operationId: mgmt.v1alpha1.JobService.CreateJobDestinationConnections
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestinationConnectionsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestinationConnectionsResponse'
-  /mgmt.v1alpha1.JobService/PauseJob:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: PauseJob
-      description: Pauses or unpauses a job
-      operationId: mgmt.v1alpha1.JobService.PauseJob
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.PauseJobRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.PauseJobResponse'
-  /mgmt.v1alpha1.JobService/GetJobRecentRuns:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobRecentRuns
-      description: Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
-      operationId: mgmt.v1alpha1.JobService.GetJobRecentRuns
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRecentRunsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRecentRunsResponse'
-  /mgmt.v1alpha1.JobService/GetJobNextRuns:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobNextRuns
-      description: Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
-      operationId: mgmt.v1alpha1.JobService.GetJobNextRuns
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobNextRunsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobNextRunsResponse'
-  /mgmt.v1alpha1.JobService/GetJobStatus:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobStatus
-      description: Returns the status of a job
-      operationId: mgmt.v1alpha1.JobService.GetJobStatus
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusResponse'
-  /mgmt.v1alpha1.JobService/GetJobStatuses:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobStatuses
-      description: Returns the statuses of jobs within an account
-      operationId: mgmt.v1alpha1.JobService.GetJobStatuses
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusesRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusesResponse'
-  /mgmt.v1alpha1.JobService/GetJobRuns:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobRuns
-      description: Returns a list of job runs by either account or job
-      operationId: mgmt.v1alpha1.JobService.GetJobRuns
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunsResponse'
-  /mgmt.v1alpha1.JobService/GetJobRunEvents:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobRunEvents
-      description: Returns a list of events for a job run to understand more details of the run itself
-      operationId: mgmt.v1alpha1.JobService.GetJobRunEvents
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunEventsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunEventsResponse'
-  /mgmt.v1alpha1.JobService/GetJobRun:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobRun
-      description: Returns a specific job run, along with any of its pending activities
-      operationId: mgmt.v1alpha1.JobService.GetJobRun
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunResponse'
-  /mgmt.v1alpha1.JobService/DeleteJobRun:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: DeleteJobRun
-      description: Deletes a job run
-      operationId: mgmt.v1alpha1.JobService.DeleteJobRun
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRunRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRunResponse'
-  /mgmt.v1alpha1.JobService/CreateJobRun:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: CreateJobRun
-      description: Creates a new job run
-      operationId: mgmt.v1alpha1.JobService.CreateJobRun
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRunRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRunResponse'
-  /mgmt.v1alpha1.JobService/CancelJobRun:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: CancelJobRun
-      description: Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
-      operationId: mgmt.v1alpha1.JobService.CancelJobRun
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CancelJobRunRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CancelJobRunResponse'
-  /mgmt.v1alpha1.JobService/TerminateJobRun:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: TerminateJobRun
-      description: Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
-      operationId: mgmt.v1alpha1.JobService.TerminateJobRun
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.TerminateJobRunRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.TerminateJobRunResponse'
-  /mgmt.v1alpha1.JobService/GetJobRunLogsStream: {}
-  /mgmt.v1alpha1.JobService/SetJobWorkflowOptions:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: SetJobWorkflowOptions
-      description: Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
-      operationId: mgmt.v1alpha1.JobService.SetJobWorkflowOptions
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobWorkflowOptionsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobWorkflowOptionsResponse'
-  /mgmt.v1alpha1.JobService/SetJobSyncOptions:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: SetJobSyncOptions
-      description: Set the job sync options. Must provide entire object as it will fully override the previous configuration
-      operationId: mgmt.v1alpha1.JobService.SetJobSyncOptions
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSyncOptionsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSyncOptionsResponse'
-  /mgmt.v1alpha1.JobService/ValidateJobMappings:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: ValidateJobMappings
-      description: Validates that the jobmapping configured can run with table constraints
-      operationId: mgmt.v1alpha1.JobService.ValidateJobMappings
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateJobMappingsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateJobMappingsResponse'
-  /mgmt.v1alpha1.JobService/GetRunContext:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetRunContext
-      description: Gets a run context to be used by a workflow run
-      operationId: mgmt.v1alpha1.JobService.GetRunContext
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetRunContextRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetRunContextResponse'
-  /mgmt.v1alpha1.JobService/SetRunContext:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: SetRunContext
-      description: Sets a run context to be used by a workflow run
-      operationId: mgmt.v1alpha1.JobService.SetRunContext
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetRunContextRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetRunContextResponse'
-  /mgmt.v1alpha1.JobService/SetRunContexts: {}
-  /mgmt.v1alpha1.JobService/GetJobHooks:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobHooks
-      description: Retrieves all job hooks
-      operationId: mgmt.v1alpha1.JobService.GetJobHooks
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksResponse'
-  /mgmt.v1alpha1.JobService/GetJobHook:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetJobHook
-      description: Retrieves a specific job hook
-      operationId: mgmt.v1alpha1.JobService.GetJobHook
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookResponse'
-  /mgmt.v1alpha1.JobService/CreateJobHook:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: CreateJobHook
-      description: Creates a new job hook
-      operationId: mgmt.v1alpha1.JobService.CreateJobHook
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookResponse'
-  /mgmt.v1alpha1.JobService/DeleteJobHook:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: DeleteJobHook
-      description: Removes a job hook
-      operationId: mgmt.v1alpha1.JobService.DeleteJobHook
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookResponse'
-  /mgmt.v1alpha1.JobService/IsJobHookNameAvailable:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: IsJobHookNameAvailable
-      description: Check if a specific job hook name is available
-      operationId: mgmt.v1alpha1.JobService.IsJobHookNameAvailable
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableResponse'
-  /mgmt.v1alpha1.JobService/UpdateJobHook:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: UpdateJobHook
-      description: Updates a job hook
-      operationId: mgmt.v1alpha1.JobService.UpdateJobHook
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookResponse'
-  /mgmt.v1alpha1.JobService/SetJobHookEnabled:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: SetJobHookEnabled
-      description: Enables or disables a job hook
-      operationId: mgmt.v1alpha1.JobService.SetJobHookEnabled
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledResponse'
-  /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
-    post:
-      tags:
-        - mgmt.v1alpha1.JobService
-      summary: GetActiveJobHooksByTiming
-      description: Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
-      operationId: mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     mgmt.v1alpha1.ActivityStatus:
@@ -6500,7 +5221,1307 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.JobService/GetJobs:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobs
+      description: Returns a list of jobs by either account or job
+      operationId: mgmt.v1alpha1.JobService.GetJobs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobsResponse'
+  /mgmt.v1alpha1.JobService/GetJob:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJob
+      description: Returns a specific job
+      operationId: mgmt.v1alpha1.JobService.GetJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobResponse'
+  /mgmt.v1alpha1.JobService/CreateJob:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CreateJob
+      description: Creates a new job
+      operationId: mgmt.v1alpha1.JobService.CreateJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobResponse'
+  /mgmt.v1alpha1.JobService/DeleteJob:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: DeleteJob
+      description: Deletes a job
+      operationId: mgmt.v1alpha1.JobService.DeleteJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobResponse'
+  /mgmt.v1alpha1.JobService/IsJobNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: IsJobNameAvailable
+      description: Checks if a job name is available
+      operationId: mgmt.v1alpha1.JobService.IsJobNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsJobNameAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsJobNameAvailableResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobSchedule:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobSchedule
+      description: Updates the schedule of a job
+      operationId: mgmt.v1alpha1.JobService.UpdateJobSchedule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobScheduleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobScheduleResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobSourceConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobSourceConnection
+      description: Updates the source connection of a job
+      operationId: mgmt.v1alpha1.JobService.UpdateJobSourceConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobSourceConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobSourceConnectionResponse'
+  /mgmt.v1alpha1.JobService/SetJobSourceSqlConnectionSubsets:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobSourceSqlConnectionSubsets
+      description: Sets the source sql connection subsets of a job
+      operationId: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobDestinationConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobDestinationConnection
+      description: Updates the destination connection of a job
+      operationId: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobDestinationConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobDestinationConnectionResponse'
+  /mgmt.v1alpha1.JobService/DeleteJobDestinationConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: DeleteJobDestinationConnection
+      description: Deletes the destination connection of a job
+      operationId: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobDestinationConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobDestinationConnectionResponse'
+  /mgmt.v1alpha1.JobService/CreateJobDestinationConnections:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CreateJobDestinationConnections
+      description: Creates the destination connections of a job
+      operationId: mgmt.v1alpha1.JobService.CreateJobDestinationConnections
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestinationConnectionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestinationConnectionsResponse'
+  /mgmt.v1alpha1.JobService/PauseJob:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: PauseJob
+      description: Pauses or unpauses a job
+      operationId: mgmt.v1alpha1.JobService.PauseJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.PauseJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.PauseJobResponse'
+  /mgmt.v1alpha1.JobService/GetJobRecentRuns:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobRecentRuns
+      description: Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+      operationId: mgmt.v1alpha1.JobService.GetJobRecentRuns
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRecentRunsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRecentRunsResponse'
+  /mgmt.v1alpha1.JobService/GetJobNextRuns:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobNextRuns
+      description: Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
+      operationId: mgmt.v1alpha1.JobService.GetJobNextRuns
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobNextRunsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobNextRunsResponse'
+  /mgmt.v1alpha1.JobService/GetJobStatus:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobStatus
+      description: Returns the status of a job
+      operationId: mgmt.v1alpha1.JobService.GetJobStatus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusResponse'
+  /mgmt.v1alpha1.JobService/GetJobStatuses:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobStatuses
+      description: Returns the statuses of jobs within an account
+      operationId: mgmt.v1alpha1.JobService.GetJobStatuses
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobStatusesResponse'
+  /mgmt.v1alpha1.JobService/GetJobRuns:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobRuns
+      description: Returns a list of job runs by either account or job
+      operationId: mgmt.v1alpha1.JobService.GetJobRuns
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunsResponse'
+  /mgmt.v1alpha1.JobService/GetJobRunEvents:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobRunEvents
+      description: Returns a list of events for a job run to understand more details of the run itself
+      operationId: mgmt.v1alpha1.JobService.GetJobRunEvents
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunEventsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunEventsResponse'
+  /mgmt.v1alpha1.JobService/GetJobRun:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobRun
+      description: Returns a specific job run, along with any of its pending activities
+      operationId: mgmt.v1alpha1.JobService.GetJobRun
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunResponse'
+  /mgmt.v1alpha1.JobService/DeleteJobRun:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: DeleteJobRun
+      description: Deletes a job run
+      operationId: mgmt.v1alpha1.JobService.DeleteJobRun
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRunRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobRunResponse'
+  /mgmt.v1alpha1.JobService/CreateJobRun:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CreateJobRun
+      description: Creates a new job run
+      operationId: mgmt.v1alpha1.JobService.CreateJobRun
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRunRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobRunResponse'
+  /mgmt.v1alpha1.JobService/CancelJobRun:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CancelJobRun
+      description: Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
+      operationId: mgmt.v1alpha1.JobService.CancelJobRun
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CancelJobRunRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CancelJobRunResponse'
+  /mgmt.v1alpha1.JobService/TerminateJobRun:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: TerminateJobRun
+      description: Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
+      operationId: mgmt.v1alpha1.JobService.TerminateJobRun
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.TerminateJobRunRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.TerminateJobRunResponse'
+  /mgmt.v1alpha1.JobService/GetJobRunLogsStream: {}
+  /mgmt.v1alpha1.JobService/SetJobWorkflowOptions:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobWorkflowOptions
+      description: Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
+      operationId: mgmt.v1alpha1.JobService.SetJobWorkflowOptions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobWorkflowOptionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobWorkflowOptionsResponse'
+  /mgmt.v1alpha1.JobService/SetJobSyncOptions:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobSyncOptions
+      description: Set the job sync options. Must provide entire object as it will fully override the previous configuration
+      operationId: mgmt.v1alpha1.JobService.SetJobSyncOptions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSyncOptionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobSyncOptionsResponse'
+  /mgmt.v1alpha1.JobService/ValidateJobMappings:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: ValidateJobMappings
+      description: Validates that the jobmapping configured can run with table constraints
+      operationId: mgmt.v1alpha1.JobService.ValidateJobMappings
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateJobMappingsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateJobMappingsResponse'
+  /mgmt.v1alpha1.JobService/GetRunContext:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetRunContext
+      description: Gets a run context to be used by a workflow run
+      operationId: mgmt.v1alpha1.JobService.GetRunContext
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetRunContextRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetRunContextResponse'
+  /mgmt.v1alpha1.JobService/SetRunContext:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetRunContext
+      description: Sets a run context to be used by a workflow run
+      operationId: mgmt.v1alpha1.JobService.SetRunContext
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetRunContextRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetRunContextResponse'
+  /mgmt.v1alpha1.JobService/SetRunContexts: {}
+  /mgmt.v1alpha1.JobService/GetJobHooks:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobHooks
+      description: Retrieves all job hooks
+      operationId: mgmt.v1alpha1.JobService.GetJobHooks
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHooksResponse'
+  /mgmt.v1alpha1.JobService/GetJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobHook
+      description: Retrieves a specific job hook
+      operationId: mgmt.v1alpha1.JobService.GetJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobHookResponse'
+  /mgmt.v1alpha1.JobService/CreateJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: CreateJobHook
+      description: Creates a new job hook
+      operationId: mgmt.v1alpha1.JobService.CreateJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobHookResponse'
+  /mgmt.v1alpha1.JobService/DeleteJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: DeleteJobHook
+      description: Removes a job hook
+      operationId: mgmt.v1alpha1.JobService.DeleteJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteJobHookResponse'
+  /mgmt.v1alpha1.JobService/IsJobHookNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: IsJobHookNameAvailable
+      description: Check if a specific job hook name is available
+      operationId: mgmt.v1alpha1.JobService.IsJobHookNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsJobHookNameAvailableResponse'
+  /mgmt.v1alpha1.JobService/UpdateJobHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: UpdateJobHook
+      description: Updates a job hook
+      operationId: mgmt.v1alpha1.JobService.UpdateJobHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateJobHookResponse'
+  /mgmt.v1alpha1.JobService/SetJobHookEnabled:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: SetJobHookEnabled
+      description: Enables or disables a job hook
+      operationId: mgmt.v1alpha1.JobService.SetJobHookEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetJobHookEnabledResponse'
+  /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetActiveJobHooksByTiming
+      description: Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
+      operationId: mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse'
 tags:
   - name: mgmt.v1alpha1.JobService
     description: Service that handles jobs, runs, and hooks

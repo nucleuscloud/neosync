@@ -1,263 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionSchema
-      description: Returns the schema for a specific connection. Used mostly for SQL-based connections
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchema
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMap:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionSchemaMap
-      description: Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMaps:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionSchemaMaps
-      description: Returns the schema in map format for every request provided
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionTableConstraints
-      description: For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionTableConstraints
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetConnectionInitStatements
-      description: |-
-        For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
-         Used primarily by the CLI sync command to create table schema init statement.
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetAiGeneratedData
-      description: Query an AI connection by providing the necessary values. Typically used for generating preview data
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetTableRowCount:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionDataService
-      summary: GetTableRowCount
-      description: Query table with subset to get row count
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetTableRowCount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     google.protobuf.NullValue:
@@ -1311,7 +1075,264 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchema
+      description: Returns the schema for a specific connection. Used mostly for SQL-based connections
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchema
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMap:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchemaMap
+      description: Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMaps:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionSchemaMaps
+      description: Returns the schema in map format for every request provided
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionSchemaMapsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionTableConstraints
+      description: For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionTableConstraints
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionTableConstraintsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetConnectionInitStatements
+      description: |-
+        For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+         Used primarily by the CLI sync command to create table schema init statement.
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionInitStatementsResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetAiGeneratedData
+      description: Query an AI connection by providing the necessary values. Typically used for generating preview data
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAiGeneratedDataResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetTableRowCount:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetTableRowCount
+      description: Query table with subset to get row count
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetTableRowCount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionDataService
     description: |-

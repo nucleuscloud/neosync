@@ -1,7 +1,24 @@
 openapi: 3.1.0
 info:
-  version: '0.4'
+  summary: Neosync API
+  version: '0.5'
+  termsOfService: https://www.neosync.dev/terms-of-service
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: '8080'
+        description: The port to use for the development server
 tags:
   - name: mgmt.v1alpha1.AnonymizationService
     description: >-
@@ -40,6 +57,9 @@ tags:
   - name: mgmt.v1alpha1.UserAccountService
     description: Service that manages users, accounts, and billing
     x-displayName: mgmt.v1alpha1.UserAccountService
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
 paths:
   /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
     post:
@@ -79,7 +99,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AnonymizationService/AnonymizeSingle:
     post:
       tags:
@@ -118,7 +139,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ApiKeyService/GetAccountApiKeys:
     post:
       tags:
@@ -155,7 +177,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ApiKeyService/GetAccountApiKey:
     post:
       tags:
@@ -192,7 +215,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ApiKeyService/CreateAccountApiKey:
     post:
       tags:
@@ -231,7 +255,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ApiKeyService/RegenerateAccountApiKey:
     post:
       tags:
@@ -272,7 +297,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ApiKeyService/DeleteAccountApiKey:
     post:
       tags:
@@ -309,7 +335,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AuthService/LoginCli:
     post:
       tags:
@@ -346,7 +373,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AuthService/RefreshCli:
     post:
       tags:
@@ -385,7 +413,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AuthService/CheckToken:
     post:
       tags:
@@ -422,7 +451,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AuthService/GetAuthorizeUrl:
     post:
       tags:
@@ -459,7 +489,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AuthService/GetAuthStatus:
     post:
       tags:
@@ -499,7 +530,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/GetConnections:
     post:
       tags:
@@ -536,7 +568,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/GetConnection:
     post:
       tags:
@@ -573,7 +606,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/CreateConnection:
     post:
       tags:
@@ -610,7 +644,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/UpdateConnection:
     post:
       tags:
@@ -647,7 +682,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/DeleteConnection:
     post:
       tags:
@@ -684,7 +720,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/IsConnectionNameAvailable:
     post:
       tags:
@@ -725,7 +762,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/CheckConnectionConfig:
     post:
       tags:
@@ -765,7 +803,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/CheckConnectionConfigById:
     post:
       tags:
@@ -806,7 +845,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionService/CheckSqlQuery:
     post:
       tags:
@@ -846,7 +886,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
     post:
@@ -886,7 +927,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMap:
     post:
       tags:
@@ -926,7 +968,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMaps:
     post:
       tags:
@@ -965,7 +1008,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints:
     post:
       tags:
@@ -1006,7 +1050,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements:
     post:
       tags:
@@ -1048,7 +1093,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData:
     post:
       tags:
@@ -1087,7 +1133,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetTableRowCount:
     post:
       tags:
@@ -1124,7 +1171,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobs:
     post:
       tags:
@@ -1161,7 +1209,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJob:
     post:
       tags:
@@ -1198,7 +1247,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/CreateJob:
     post:
       tags:
@@ -1235,7 +1285,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/DeleteJob:
     post:
       tags:
@@ -1272,7 +1323,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/IsJobNameAvailable:
     post:
       tags:
@@ -1309,7 +1361,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/UpdateJobSchedule:
     post:
       tags:
@@ -1346,7 +1399,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/UpdateJobSourceConnection:
     post:
       tags:
@@ -1385,7 +1439,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/SetJobSourceSqlConnectionSubsets:
     post:
       tags:
@@ -1424,7 +1479,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/UpdateJobDestinationConnection:
     post:
       tags:
@@ -1463,7 +1519,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/DeleteJobDestinationConnection:
     post:
       tags:
@@ -1502,7 +1559,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/CreateJobDestinationConnections:
     post:
       tags:
@@ -1541,7 +1599,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/PauseJob:
     post:
       tags:
@@ -1578,7 +1637,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobRecentRuns:
     post:
       tags:
@@ -1618,7 +1678,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobNextRuns:
     post:
       tags:
@@ -1657,7 +1718,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobStatus:
     post:
       tags:
@@ -1694,7 +1756,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobStatuses:
     post:
       tags:
@@ -1731,7 +1794,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobRuns:
     post:
       tags:
@@ -1768,7 +1832,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobRunEvents:
     post:
       tags:
@@ -1807,7 +1872,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobRun:
     post:
       tags:
@@ -1844,7 +1910,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/DeleteJobRun:
     post:
       tags:
@@ -1881,7 +1948,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/CreateJobRun:
     post:
       tags:
@@ -1918,7 +1986,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/CancelJobRun:
     post:
       tags:
@@ -1957,7 +2026,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/TerminateJobRun:
     post:
       tags:
@@ -1996,7 +2066,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobRunLogsStream: {}
   /mgmt.v1alpha1.JobService/SetJobWorkflowOptions:
     post:
@@ -2037,7 +2108,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/SetJobSyncOptions:
     post:
       tags:
@@ -2076,7 +2148,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/ValidateJobMappings:
     post:
       tags:
@@ -2113,7 +2186,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetRunContext:
     post:
       tags:
@@ -2150,7 +2224,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/SetRunContext:
     post:
       tags:
@@ -2187,7 +2262,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/SetRunContexts: {}
   /mgmt.v1alpha1.JobService/GetJobHooks:
     post:
@@ -2225,7 +2301,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetJobHook:
     post:
       tags:
@@ -2262,7 +2339,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/CreateJobHook:
     post:
       tags:
@@ -2299,7 +2377,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/DeleteJobHook:
     post:
       tags:
@@ -2336,7 +2415,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/IsJobHookNameAvailable:
     post:
       tags:
@@ -2374,7 +2454,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/UpdateJobHook:
     post:
       tags:
@@ -2411,7 +2492,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/SetJobHookEnabled:
     post:
       tags:
@@ -2448,7 +2530,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming:
     post:
       tags:
@@ -2489,7 +2572,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
     post:
       tags:
@@ -2526,7 +2610,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.MetricsService/GetMetricCount:
     post:
       tags:
@@ -2563,7 +2648,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/GetSystemTransformers:
     post:
       tags:
@@ -2601,7 +2687,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/GetSystemTransformerBySource:
     post:
       tags:
@@ -2640,7 +2727,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformers:
     post:
       tags:
@@ -2679,7 +2767,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformerById:
     post:
       tags:
@@ -2718,7 +2807,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/CreateUserDefinedTransformer:
     post:
       tags:
@@ -2757,7 +2847,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/DeleteUserDefinedTransformer:
     post:
       tags:
@@ -2796,7 +2887,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/UpdateUserDefinedTransformer:
     post:
       tags:
@@ -2835,7 +2927,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/IsTransformerNameAvailable:
     post:
       tags:
@@ -2874,7 +2967,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode:
     post:
       tags:
@@ -2915,7 +3009,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/ValidateUserRegexCode:
     post:
       tags:
@@ -2955,7 +3050,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.TransformersService/GetTransformPiiEntities:
     post:
       tags:
@@ -2996,7 +3092,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetUser:
     post:
       tags:
@@ -3033,7 +3130,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetUser:
     post:
       tags:
@@ -3070,7 +3168,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetUserAccounts:
     post:
       tags:
@@ -3107,7 +3206,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetPersonalAccount:
     post:
       tags:
@@ -3144,7 +3244,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/ConvertPersonalToTeamAccount:
     post:
       tags:
@@ -3185,7 +3286,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/CreateTeamAccount:
     post:
       tags:
@@ -3222,7 +3324,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/IsUserInAccount:
     post:
       tags:
@@ -3259,7 +3362,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetAccountTemporalConfig:
     post:
       tags:
@@ -3298,7 +3402,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetAccountTemporalConfig:
     post:
       tags:
@@ -3337,7 +3442,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetTeamAccountMembers:
     post:
       tags:
@@ -3375,7 +3481,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountMember:
     post:
       tags:
@@ -3414,7 +3521,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/InviteUserToTeamAccount:
     post:
       tags:
@@ -3453,7 +3561,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetTeamAccountInvites:
     post:
       tags:
@@ -3491,7 +3600,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountInvite:
     post:
       tags:
@@ -3530,7 +3640,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/AcceptTeamAccountInvite:
     post:
       tags:
@@ -3569,7 +3680,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetSystemInformation:
     post:
       tags:
@@ -3607,7 +3719,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetAccountOnboardingConfig:
     post:
       tags:
@@ -3646,7 +3759,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetAccountOnboardingConfig:
     post:
       tags:
@@ -3685,7 +3799,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetAccountStatus:
     post:
       tags:
@@ -3724,7 +3839,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/IsAccountStatusValid:
     post:
       tags:
@@ -3762,7 +3878,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetAccountBillingCheckoutSession:
     post:
       tags:
@@ -3801,7 +3918,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetAccountBillingPortalSession:
     post:
       tags:
@@ -3842,7 +3960,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/GetBillingAccounts:
     post:
       tags:
@@ -3879,7 +3998,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent:
     post:
       tags:
@@ -3917,7 +4037,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.UserAccountService/SetUserRole:
     post:
       tags:
@@ -3954,7 +4075,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/connect.error'
-      security: []
+      security:
+        - BearerAuth: []
 components:
   schemas:
     mgmt.v1alpha1.GenerateEmailType:

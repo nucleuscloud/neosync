@@ -1,192 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.ApiKeyService/GetAccountApiKeys:
-    post:
-      tags:
-        - mgmt.v1alpha1.ApiKeyService
-      summary: GetAccountApiKeys
-      description: Retrieves a list of Account API Keys
-      operationId: mgmt.v1alpha1.ApiKeyService.GetAccountApiKeys
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeysRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeysResponse'
-  /mgmt.v1alpha1.ApiKeyService/GetAccountApiKey:
-    post:
-      tags:
-        - mgmt.v1alpha1.ApiKeyService
-      summary: GetAccountApiKey
-      description: Retrieves a single API Key
-      operationId: mgmt.v1alpha1.ApiKeyService.GetAccountApiKey
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeyRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeyResponse'
-  /mgmt.v1alpha1.ApiKeyService/CreateAccountApiKey:
-    post:
-      tags:
-        - mgmt.v1alpha1.ApiKeyService
-      summary: CreateAccountApiKey
-      description: |-
-        Creates a single API Key
-         This method will return the decrypted contents of the API key
-      operationId: mgmt.v1alpha1.ApiKeyService.CreateAccountApiKey
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountApiKeyRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountApiKeyResponse'
-  /mgmt.v1alpha1.ApiKeyService/RegenerateAccountApiKey:
-    post:
-      tags:
-        - mgmt.v1alpha1.ApiKeyService
-      summary: RegenerateAccountApiKey
-      description: |-
-        Regenerates a single API Key with a new expiration time
-         This method will return the decrypted contents of the API key
-      operationId: mgmt.v1alpha1.ApiKeyService.RegenerateAccountApiKey
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.RegenerateAccountApiKeyRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.RegenerateAccountApiKeyResponse'
-  /mgmt.v1alpha1.ApiKeyService/DeleteAccountApiKey:
-    post:
-      tags:
-        - mgmt.v1alpha1.ApiKeyService
-      summary: DeleteAccountApiKey
-      description: Deletes an API Key from the system.
-      operationId: mgmt.v1alpha1.ApiKeyService.DeleteAccountApiKey
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountApiKeyRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountApiKeyResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     google.protobuf.Timestamp:
@@ -517,7 +352,193 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.ApiKeyService/GetAccountApiKeys:
+    post:
+      tags:
+        - mgmt.v1alpha1.ApiKeyService
+      summary: GetAccountApiKeys
+      description: Retrieves a list of Account API Keys
+      operationId: mgmt.v1alpha1.ApiKeyService.GetAccountApiKeys
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeysRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeysResponse'
+  /mgmt.v1alpha1.ApiKeyService/GetAccountApiKey:
+    post:
+      tags:
+        - mgmt.v1alpha1.ApiKeyService
+      summary: GetAccountApiKey
+      description: Retrieves a single API Key
+      operationId: mgmt.v1alpha1.ApiKeyService.GetAccountApiKey
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountApiKeyResponse'
+  /mgmt.v1alpha1.ApiKeyService/CreateAccountApiKey:
+    post:
+      tags:
+        - mgmt.v1alpha1.ApiKeyService
+      summary: CreateAccountApiKey
+      description: |-
+        Creates a single API Key
+         This method will return the decrypted contents of the API key
+      operationId: mgmt.v1alpha1.ApiKeyService.CreateAccountApiKey
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountApiKeyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountApiKeyResponse'
+  /mgmt.v1alpha1.ApiKeyService/RegenerateAccountApiKey:
+    post:
+      tags:
+        - mgmt.v1alpha1.ApiKeyService
+      summary: RegenerateAccountApiKey
+      description: |-
+        Regenerates a single API Key with a new expiration time
+         This method will return the decrypted contents of the API key
+      operationId: mgmt.v1alpha1.ApiKeyService.RegenerateAccountApiKey
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.RegenerateAccountApiKeyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.RegenerateAccountApiKeyResponse'
+  /mgmt.v1alpha1.ApiKeyService/DeleteAccountApiKey:
+    post:
+      tags:
+        - mgmt.v1alpha1.ApiKeyService
+      summary: DeleteAccountApiKey
+      description: Deletes an API Key from the system.
+      operationId: mgmt.v1alpha1.ApiKeyService.DeleteAccountApiKey
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountApiKeyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountApiKeyResponse'
 tags:
   - name: mgmt.v1alpha1.ApiKeyService
     description: Service that manages the lifecycle of API Keys that are associated with a specific Account.

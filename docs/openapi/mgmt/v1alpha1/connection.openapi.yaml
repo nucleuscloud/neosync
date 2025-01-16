@@ -1,338 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.ConnectionService/GetConnections:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: GetConnections
-      description: Returns a list of connections associated with the account
-      operationId: mgmt.v1alpha1.ConnectionService.GetConnections
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionsResponse'
-  /mgmt.v1alpha1.ConnectionService/GetConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: GetConnection
-      description: Returns a single connection
-      operationId: mgmt.v1alpha1.ConnectionService.GetConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionResponse'
-  /mgmt.v1alpha1.ConnectionService/CreateConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: CreateConnection
-      description: Creates a new connection
-      operationId: mgmt.v1alpha1.ConnectionService.CreateConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateConnectionResponse'
-  /mgmt.v1alpha1.ConnectionService/UpdateConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: UpdateConnection
-      description: Updates an existing connection
-      operationId: mgmt.v1alpha1.ConnectionService.UpdateConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateConnectionResponse'
-  /mgmt.v1alpha1.ConnectionService/DeleteConnection:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: DeleteConnection
-      description: Removes a connection from the system.
-      operationId: mgmt.v1alpha1.ConnectionService.DeleteConnection
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteConnectionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteConnectionResponse'
-  /mgmt.v1alpha1.ConnectionService/IsConnectionNameAvailable:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: IsConnectionNameAvailable
-      description: Connections have friendly names, this method checks if the requested name is available in the system based on the account
-      operationId: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsConnectionNameAvailableRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsConnectionNameAvailableResponse'
-  /mgmt.v1alpha1.ConnectionService/CheckConnectionConfig:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: CheckConnectionConfig
-      description: |-
-        Checks if the connection config is connectable by the backend.
-         Used mostly to verify that a connection is valid prior to creating a Connection object.
-      operationId: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigResponse'
-  /mgmt.v1alpha1.ConnectionService/CheckConnectionConfigById:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: CheckConnectionConfigById
-      description: |-
-        Checks if the connection id is connectable by the backend.
-         Used to verify that a connection is still connectable.
-      operationId: mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigByIdRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigByIdResponse'
-  /mgmt.v1alpha1.ConnectionService/CheckSqlQuery:
-    post:
-      tags:
-        - mgmt.v1alpha1.ConnectionService
-      summary: CheckSqlQuery
-      description: |-
-        Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
-         This is useful when constructing subsets to see if the WHERE clause is correct
-      operationId: mgmt.v1alpha1.ConnectionService.CheckSqlQuery
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     google.protobuf.Timestamp:
@@ -1730,7 +1419,339 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.ConnectionService/GetConnections:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: GetConnections
+      description: Returns a list of connections associated with the account
+      operationId: mgmt.v1alpha1.ConnectionService.GetConnections
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionsResponse'
+  /mgmt.v1alpha1.ConnectionService/GetConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: GetConnection
+      description: Returns a single connection
+      operationId: mgmt.v1alpha1.ConnectionService.GetConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetConnectionResponse'
+  /mgmt.v1alpha1.ConnectionService/CreateConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CreateConnection
+      description: Creates a new connection
+      operationId: mgmt.v1alpha1.ConnectionService.CreateConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateConnectionResponse'
+  /mgmt.v1alpha1.ConnectionService/UpdateConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: UpdateConnection
+      description: Updates an existing connection
+      operationId: mgmt.v1alpha1.ConnectionService.UpdateConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateConnectionResponse'
+  /mgmt.v1alpha1.ConnectionService/DeleteConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: DeleteConnection
+      description: Removes a connection from the system.
+      operationId: mgmt.v1alpha1.ConnectionService.DeleteConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteConnectionResponse'
+  /mgmt.v1alpha1.ConnectionService/IsConnectionNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: IsConnectionNameAvailable
+      description: Connections have friendly names, this method checks if the requested name is available in the system based on the account
+      operationId: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsConnectionNameAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsConnectionNameAvailableResponse'
+  /mgmt.v1alpha1.ConnectionService/CheckConnectionConfig:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckConnectionConfig
+      description: |-
+        Checks if the connection config is connectable by the backend.
+         Used mostly to verify that a connection is valid prior to creating a Connection object.
+      operationId: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigResponse'
+  /mgmt.v1alpha1.ConnectionService/CheckConnectionConfigById:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckConnectionConfigById
+      description: |-
+        Checks if the connection id is connectable by the backend.
+         Used to verify that a connection is still connectable.
+      operationId: mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigByIdRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckConnectionConfigByIdResponse'
+  /mgmt.v1alpha1.ConnectionService/CheckSqlQuery:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSqlQuery
+      description: |-
+        Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
+         This is useful when constructing subsets to see if the WHERE clause is correct
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSqlQuery
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionService
     description: |-

@@ -1,404 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.TransformersService/GetSystemTransformers:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: GetSystemTransformers
-      description: Get a list of all system transformers
-      operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformers
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformersRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformersResponse'
-  /mgmt.v1alpha1.TransformersService/GetSystemTransformerBySource:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: GetSystemTransformerBySource
-      description: Get a system transformer by its source
-      operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformerBySourceRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformerBySourceResponse'
-  /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformers:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: GetUserDefinedTransformers
-      description: Get a list of all user defined transformers
-      operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformersRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformersResponse'
-  /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformerById:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: GetUserDefinedTransformerById
-      description: Get a user defined transformer by its id
-      operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse'
-  /mgmt.v1alpha1.TransformersService/CreateUserDefinedTransformer:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: CreateUserDefinedTransformer
-      description: Create a user defined transformer
-      operationId: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateUserDefinedTransformerRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateUserDefinedTransformerResponse'
-  /mgmt.v1alpha1.TransformersService/DeleteUserDefinedTransformer:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: DeleteUserDefinedTransformer
-      description: Delete a user defined transformer
-      operationId: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteUserDefinedTransformerRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteUserDefinedTransformerResponse'
-  /mgmt.v1alpha1.TransformersService/UpdateUserDefinedTransformer:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: UpdateUserDefinedTransformer
-      description: Update a user defined transformer
-      operationId: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateUserDefinedTransformerRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateUserDefinedTransformerResponse'
-  /mgmt.v1alpha1.TransformersService/IsTransformerNameAvailable:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: IsTransformerNameAvailable
-      description: Check if a transformer name is available in your account
-      operationId: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsTransformerNameAvailableRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsTransformerNameAvailableResponse'
-  /mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: ValidateUserJavascriptCode
-      description: Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
-      operationId: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserJavascriptCodeRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserJavascriptCodeResponse'
-  /mgmt.v1alpha1.TransformersService/ValidateUserRegexCode:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: ValidateUserRegexCode
-      description: Validate user provided regex code before saving it to a user defined transformer
-      operationId: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserRegexCodeRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserRegexCodeResponse'
-  /mgmt.v1alpha1.TransformersService/GetTransformPiiEntities:
-    post:
-      tags:
-        - mgmt.v1alpha1.TransformersService
-      summary: GetTransformPiiEntities
-      description: Retrieve a list of available Pii entities for use with the TransformPiiText transformer
-      operationId: mgmt.v1alpha1.TransformersService.GetTransformPiiEntities
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetTransformPiiEntitiesRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetTransformPiiEntitiesResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     mgmt.v1alpha1.GenerateEmailType:
@@ -2659,7 +2282,405 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.TransformersService/GetSystemTransformers:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: GetSystemTransformers
+      description: Get a list of all system transformers
+      operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformersResponse'
+  /mgmt.v1alpha1.TransformersService/GetSystemTransformerBySource:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: GetSystemTransformerBySource
+      description: Get a system transformer by its source
+      operationId: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformerBySourceRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemTransformerBySourceResponse'
+  /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformers:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: GetUserDefinedTransformers
+      description: Get a list of all user defined transformers
+      operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformersResponse'
+  /mgmt.v1alpha1.TransformersService/GetUserDefinedTransformerById:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: GetUserDefinedTransformerById
+      description: Get a user defined transformer by its id
+      operationId: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse'
+  /mgmt.v1alpha1.TransformersService/CreateUserDefinedTransformer:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: CreateUserDefinedTransformer
+      description: Create a user defined transformer
+      operationId: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateUserDefinedTransformerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateUserDefinedTransformerResponse'
+  /mgmt.v1alpha1.TransformersService/DeleteUserDefinedTransformer:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: DeleteUserDefinedTransformer
+      description: Delete a user defined transformer
+      operationId: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteUserDefinedTransformerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteUserDefinedTransformerResponse'
+  /mgmt.v1alpha1.TransformersService/UpdateUserDefinedTransformer:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: UpdateUserDefinedTransformer
+      description: Update a user defined transformer
+      operationId: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateUserDefinedTransformerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateUserDefinedTransformerResponse'
+  /mgmt.v1alpha1.TransformersService/IsTransformerNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: IsTransformerNameAvailable
+      description: Check if a transformer name is available in your account
+      operationId: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsTransformerNameAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsTransformerNameAvailableResponse'
+  /mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: ValidateUserJavascriptCode
+      description: Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
+      operationId: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserJavascriptCodeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserJavascriptCodeResponse'
+  /mgmt.v1alpha1.TransformersService/ValidateUserRegexCode:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: ValidateUserRegexCode
+      description: Validate user provided regex code before saving it to a user defined transformer
+      operationId: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserRegexCodeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateUserRegexCodeResponse'
+  /mgmt.v1alpha1.TransformersService/GetTransformPiiEntities:
+    post:
+      tags:
+        - mgmt.v1alpha1.TransformersService
+      summary: GetTransformPiiEntities
+      description: Retrieve a list of available Pii entities for use with the TransformPiiText transformer
+      operationId: mgmt.v1alpha1.TransformersService.GetTransformPiiEntities
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetTransformPiiEntitiesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetTransformPiiEntitiesResponse'
 tags:
   - name: mgmt.v1alpha1.TransformersService
     description: Service that manages system and user defined transformers

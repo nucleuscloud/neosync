@@ -1,908 +1,27 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
-paths:
-  /mgmt.v1alpha1.UserAccountService/GetUser:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetUser
-      description: Retrieves the current user.
-      operationId: mgmt.v1alpha1.UserAccountService.GetUser
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserResponse'
-  /mgmt.v1alpha1.UserAccountService/SetUser:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetUser
-      description: Sets the current user.
-      operationId: mgmt.v1alpha1.UserAccountService.SetUser
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserResponse'
-  /mgmt.v1alpha1.UserAccountService/GetUserAccounts:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetUserAccounts
-      description: Retrieves the list of accounts that the user belongs to.
-      operationId: mgmt.v1alpha1.UserAccountService.GetUserAccounts
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserAccountsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserAccountsResponse'
-  /mgmt.v1alpha1.UserAccountService/SetPersonalAccount:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetPersonalAccount
-      description: Sets the current personal account.
-      operationId: mgmt.v1alpha1.UserAccountService.SetPersonalAccount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetPersonalAccountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetPersonalAccountResponse'
-  /mgmt.v1alpha1.UserAccountService/ConvertPersonalToTeamAccount:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: ConvertPersonalToTeamAccount
-      description: Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
-      operationId: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse'
-  /mgmt.v1alpha1.UserAccountService/CreateTeamAccount:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: CreateTeamAccount
-      description: Creates a new team account
-      operationId: mgmt.v1alpha1.UserAccountService.CreateTeamAccount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.CreateTeamAccountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.CreateTeamAccountResponse'
-  /mgmt.v1alpha1.UserAccountService/IsUserInAccount:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: IsUserInAccount
-      description: Checks if the user is in the account.
-      operationId: mgmt.v1alpha1.UserAccountService.IsUserInAccount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsUserInAccountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsUserInAccountResponse'
-  /mgmt.v1alpha1.UserAccountService/GetAccountTemporalConfig:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetAccountTemporalConfig
-      description: Retrieves the temporal config for the account.
-      operationId: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountTemporalConfigRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountTemporalConfigResponse'
-  /mgmt.v1alpha1.UserAccountService/SetAccountTemporalConfig:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetAccountTemporalConfig
-      description: Sets the temporal config for the account.
-      operationId: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountTemporalConfigRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountTemporalConfigResponse'
-  /mgmt.v1alpha1.UserAccountService/GetTeamAccountMembers:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetTeamAccountMembers
-      description: Retrieves the list of members in the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountMembersRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountMembersResponse'
-  /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountMember:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: RemoveTeamAccountMember
-      description: Removes a member from the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountMemberRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountMemberResponse'
-  /mgmt.v1alpha1.UserAccountService/InviteUserToTeamAccount:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: InviteUserToTeamAccount
-      description: Invites a user to the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.InviteUserToTeamAccountRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.InviteUserToTeamAccountResponse'
-  /mgmt.v1alpha1.UserAccountService/GetTeamAccountInvites:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetTeamAccountInvites
-      description: Retrieves the list of invites for the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountInvitesRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountInvitesResponse'
-  /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountInvite:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: RemoveTeamAccountInvite
-      description: Removes an invite from the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountInviteRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountInviteResponse'
-  /mgmt.v1alpha1.UserAccountService/AcceptTeamAccountInvite:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: AcceptTeamAccountInvite
-      description: Accepts an invite to the team account.
-      operationId: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.AcceptTeamAccountInviteRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.AcceptTeamAccountInviteResponse'
-  /mgmt.v1alpha1.UserAccountService/GetSystemInformation:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetSystemInformation
-      description: Retrieves the system information.
-      operationId: mgmt.v1alpha1.UserAccountService.GetSystemInformation
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemInformationRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemInformationResponse'
-  /mgmt.v1alpha1.UserAccountService/GetAccountOnboardingConfig:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetAccountOnboardingConfig
-      description: Retrieves the onboarding config for the account.
-      operationId: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountOnboardingConfigRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountOnboardingConfigResponse'
-  /mgmt.v1alpha1.UserAccountService/SetAccountOnboardingConfig:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetAccountOnboardingConfig
-      description: Sets the onboarding config for the account.
-      operationId: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountOnboardingConfigRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountOnboardingConfigResponse'
-  /mgmt.v1alpha1.UserAccountService/GetAccountStatus:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetAccountStatus
-      description: Returns different metrics on the account status for the active billing period
-      operationId: mgmt.v1alpha1.UserAccountService.GetAccountStatus
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountStatusRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountStatusResponse'
-  /mgmt.v1alpha1.UserAccountService/IsAccountStatusValid:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: IsAccountStatusValid
-      description: Distils the account status down to whether not it is in a valid state.
-      operationId: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.IsAccountStatusValidRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.IsAccountStatusValidResponse'
-  /mgmt.v1alpha1.UserAccountService/GetAccountBillingCheckoutSession:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetAccountBillingCheckoutSession
-      description: Returns a new checkout session for the account to subscribe
-      operationId: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse'
-  /mgmt.v1alpha1.UserAccountService/GetAccountBillingPortalSession:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetAccountBillingPortalSession
-      description: Returns a new billing portal session if the account has a billing customer id
-      operationId: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingPortalSessionRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingPortalSessionResponse'
-  /mgmt.v1alpha1.UserAccountService/GetBillingAccounts:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: GetBillingAccounts
-      description: Returns user accounts that have a billing id.
-      operationId: mgmt.v1alpha1.UserAccountService.GetBillingAccounts
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetBillingAccountsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetBillingAccountsResponse'
-  /mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetBillingMeterEvent
-      description: Sends a new metered event to the billing system
-      operationId: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventResponse'
-  /mgmt.v1alpha1.UserAccountService/SetUserRole:
-    post:
-      tags:
-        - mgmt.v1alpha1.UserAccountService
-      summary: SetUserRole
-      description: Sets the users role
-      operationId: mgmt.v1alpha1.UserAccountService.SetUserRole
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleResponse'
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
 components:
   schemas:
     mgmt.v1alpha1.AccountRole:
@@ -1927,7 +1046,909 @@ components:
           additionalProperties: true
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
+security:
+  - BearerAuth: []
+paths:
+  /mgmt.v1alpha1.UserAccountService/GetUser:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetUser
+      description: Retrieves the current user.
+      operationId: mgmt.v1alpha1.UserAccountService.GetUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserResponse'
+  /mgmt.v1alpha1.UserAccountService/SetUser:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetUser
+      description: Sets the current user.
+      operationId: mgmt.v1alpha1.UserAccountService.SetUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserResponse'
+  /mgmt.v1alpha1.UserAccountService/GetUserAccounts:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetUserAccounts
+      description: Retrieves the list of accounts that the user belongs to.
+      operationId: mgmt.v1alpha1.UserAccountService.GetUserAccounts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetUserAccountsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetUserAccountsResponse'
+  /mgmt.v1alpha1.UserAccountService/SetPersonalAccount:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetPersonalAccount
+      description: Sets the current personal account.
+      operationId: mgmt.v1alpha1.UserAccountService.SetPersonalAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetPersonalAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetPersonalAccountResponse'
+  /mgmt.v1alpha1.UserAccountService/ConvertPersonalToTeamAccount:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: ConvertPersonalToTeamAccount
+      description: Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
+      operationId: mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse'
+  /mgmt.v1alpha1.UserAccountService/CreateTeamAccount:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: CreateTeamAccount
+      description: Creates a new team account
+      operationId: mgmt.v1alpha1.UserAccountService.CreateTeamAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateTeamAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateTeamAccountResponse'
+  /mgmt.v1alpha1.UserAccountService/IsUserInAccount:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: IsUserInAccount
+      description: Checks if the user is in the account.
+      operationId: mgmt.v1alpha1.UserAccountService.IsUserInAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsUserInAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsUserInAccountResponse'
+  /mgmt.v1alpha1.UserAccountService/GetAccountTemporalConfig:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetAccountTemporalConfig
+      description: Retrieves the temporal config for the account.
+      operationId: mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountTemporalConfigRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountTemporalConfigResponse'
+  /mgmt.v1alpha1.UserAccountService/SetAccountTemporalConfig:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetAccountTemporalConfig
+      description: Sets the temporal config for the account.
+      operationId: mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountTemporalConfigRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountTemporalConfigResponse'
+  /mgmt.v1alpha1.UserAccountService/GetTeamAccountMembers:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetTeamAccountMembers
+      description: Retrieves the list of members in the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountMembersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountMembersResponse'
+  /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountMember:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: RemoveTeamAccountMember
+      description: Removes a member from the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountMemberRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountMemberResponse'
+  /mgmt.v1alpha1.UserAccountService/InviteUserToTeamAccount:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: InviteUserToTeamAccount
+      description: Invites a user to the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.InviteUserToTeamAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.InviteUserToTeamAccountResponse'
+  /mgmt.v1alpha1.UserAccountService/GetTeamAccountInvites:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetTeamAccountInvites
+      description: Retrieves the list of invites for the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountInvitesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetTeamAccountInvitesResponse'
+  /mgmt.v1alpha1.UserAccountService/RemoveTeamAccountInvite:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: RemoveTeamAccountInvite
+      description: Removes an invite from the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountInviteRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.RemoveTeamAccountInviteResponse'
+  /mgmt.v1alpha1.UserAccountService/AcceptTeamAccountInvite:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: AcceptTeamAccountInvite
+      description: Accepts an invite to the team account.
+      operationId: mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.AcceptTeamAccountInviteRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.AcceptTeamAccountInviteResponse'
+  /mgmt.v1alpha1.UserAccountService/GetSystemInformation:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetSystemInformation
+      description: Retrieves the system information.
+      operationId: mgmt.v1alpha1.UserAccountService.GetSystemInformation
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemInformationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetSystemInformationResponse'
+  /mgmt.v1alpha1.UserAccountService/GetAccountOnboardingConfig:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetAccountOnboardingConfig
+      description: Retrieves the onboarding config for the account.
+      operationId: mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountOnboardingConfigRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountOnboardingConfigResponse'
+  /mgmt.v1alpha1.UserAccountService/SetAccountOnboardingConfig:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetAccountOnboardingConfig
+      description: Sets the onboarding config for the account.
+      operationId: mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountOnboardingConfigRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountOnboardingConfigResponse'
+  /mgmt.v1alpha1.UserAccountService/GetAccountStatus:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetAccountStatus
+      description: Returns different metrics on the account status for the active billing period
+      operationId: mgmt.v1alpha1.UserAccountService.GetAccountStatus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountStatusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountStatusResponse'
+  /mgmt.v1alpha1.UserAccountService/IsAccountStatusValid:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: IsAccountStatusValid
+      description: Distils the account status down to whether not it is in a valid state.
+      operationId: mgmt.v1alpha1.UserAccountService.IsAccountStatusValid
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.IsAccountStatusValidRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.IsAccountStatusValidResponse'
+  /mgmt.v1alpha1.UserAccountService/GetAccountBillingCheckoutSession:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetAccountBillingCheckoutSession
+      description: Returns a new checkout session for the account to subscribe
+      operationId: mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse'
+  /mgmt.v1alpha1.UserAccountService/GetAccountBillingPortalSession:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetAccountBillingPortalSession
+      description: Returns a new billing portal session if the account has a billing customer id
+      operationId: mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingPortalSessionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountBillingPortalSessionResponse'
+  /mgmt.v1alpha1.UserAccountService/GetBillingAccounts:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: GetBillingAccounts
+      description: Returns user accounts that have a billing id.
+      operationId: mgmt.v1alpha1.UserAccountService.GetBillingAccounts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetBillingAccountsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetBillingAccountsResponse'
+  /mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetBillingMeterEvent
+      description: Sends a new metered event to the billing system
+      operationId: mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetBillingMeterEventResponse'
+  /mgmt.v1alpha1.UserAccountService/SetUserRole:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: SetUserRole
+      description: Sets the users role
+      operationId: mgmt.v1alpha1.UserAccountService.SetUserRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleResponse'
 tags:
   - name: mgmt.v1alpha1.UserAccountService
     description: Service that manages users, accounts, and billing
