@@ -51,7 +51,7 @@ export function GoogleScriptProvider(): ReactElement {
 
 const isBrowser = () => typeof window !== 'undefined';
 
-export function UnifyIdentifier(): ReactElement {
+export function GtagIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
@@ -65,8 +65,8 @@ export function UnifyIdentifier(): ReactElement {
       isUserDataLoading ||
       isAccountLoading ||
       isSystemAppConfigLoading ||
-      !systemAppConfig?.unify.enabled ||
-      !systemAppConfig.unify.key ||
+      !systemAppConfig?.gtag.enabled ||
+      !systemAppConfig.gtag.key ||
       !systemAppConfig.isAuthEnabled ||
       !user?.email
     ) {
@@ -97,8 +97,8 @@ export function UnifyIdentifier(): ReactElement {
     systemAppConfig?.isNeosyncCloud,
     user?.email,
     user?.name,
-    systemAppConfig?.unify.enabled,
-    systemAppConfig?.unify.key,
+    systemAppConfig?.gtag.enabled,
+    systemAppConfig?.gtag.key,
   ]);
 
   return <></>;
