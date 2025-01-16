@@ -39,8 +39,8 @@ export default function SampleTable(props: Props): ReactElement {
         </div>
         <div>
           <p className="text-[0.8rem] text-muted-foreground tracking-tight">
-            A sample of synthetic data given the inputs above. Returns at most
-            10 records.
+            A sample of synthetic data given the inputs above. Will return the
+            configured row count up to 10 records, whichever is smaller.
           </p>
         </div>
       </div>
