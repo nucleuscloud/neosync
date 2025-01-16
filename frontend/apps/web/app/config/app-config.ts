@@ -9,6 +9,7 @@ export interface SystemAppConfig {
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;
   isJobHooksEnabled: boolean;
+  gtag: GtagConfig;
 
   calendlyUpgradeLink: string;
   isGcpCloudStorageConnectionsEnabled: boolean;
@@ -28,4 +29,10 @@ interface PosthogConfig {
 interface UnifyConfig {
   enabled: boolean;
   key?: string;
+}
+
+interface GtagConfig {
+  enabled: boolean;
+  key?: string;
+  conversion?: string;
 }
