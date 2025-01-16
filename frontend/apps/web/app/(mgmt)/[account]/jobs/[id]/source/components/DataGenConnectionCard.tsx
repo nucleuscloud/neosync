@@ -280,7 +280,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           table: row.table,
           column: row.column,
         },
-        'sync'
+        'generate'
       )
     );
   }
