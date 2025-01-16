@@ -464,9 +464,9 @@ message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
   // The minimum length of the phone number to generate.
-  optional int64 min = 1;
+  optional int64 min = 2;
   // The maximum length of the phone number to generate.
-  optional int64 max = 2;
+  optional int64 max = 3;
 }
 
 message GenerateString {
