@@ -13,6 +13,11 @@ Postgres is one of the most commonly used databases in the world and Neosync nat
 
 The following guide will show you how to configure and test your Postgres Connection.
 
+## Things to watch out for
+
+1. Currently Neosync only supports syncing between two physical databases and does not support syncing between two logical databases. This is on the roadmap and will be supported soon.
+2. When syncing across two databases, the databases must have the same name.
+
 ## Configuring Postgres
 
 In order to connect to your Postgres database, first navigate to **Connections** and then click **+ New Connection**.

@@ -10,6 +10,11 @@ Neosync is an open-source, developer-first product that allows you to create ano
 
 Neosync supports most Mysql-compatible databases natively using the Mysql connection.
 
+## Things to watch out for
+
+1. Currently Neosync only supports syncing between two physical databases and does not support syncing between two logical databases. This is on the roadmap and will be supported soon.
+2. When syncing across two databases, the databases must have the same name.
+
 ## MySQL Database Connection Configuration
 
 ### Connection URL
