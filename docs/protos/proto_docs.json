@@ -14398,6 +14398,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "source",
+              "description": "",
+              "label": "",
+              "type": "JobSource",
+              "longType": "JobSource",
+              "fullType": "mgmt.v1alpha1.JobSource",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },

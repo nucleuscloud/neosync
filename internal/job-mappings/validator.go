@@ -11,18 +11,31 @@ import (
 )
 
 type JobMappingsValidator struct {
-	databaseErrors []string
-	columnErrors   map[string]map[string][]string // schema.table -> column -> errors
+	databaseErrors   []string
+	databaseWarnings []string
+	columnErrors     map[string]map[string][]string // schema.table -> column -> errors
+	columnWarnings   map[string]map[string][]string // schema.table -> column -> errors
 
-	jobMappings map[string]map[string]*mgmtv1alpha1.JobMapping // schema.table -> column -> job mapping
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions
+	jobMappings      map[string]map[string]*mgmtv1alpha1.JobMapping // schema.table -> column -> job mapping
 }
 
 type JobMappingsValidatorResponse struct {
-	DatabaseErrors []string
-	ColumnErrors   map[string]map[string][]string
+	DatabaseErrors   []string
+	DatabaseWarnings []string
+	ColumnErrors     map[string]map[string][]string
+	ColumnWarnings   map[string]map[string][]string
 }
 
-func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping) *JobMappingsValidator {
+type Option func(*JobMappingsValidator)
+
+func WithJobSourceOptions(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) Option {
+	return func(jmv *JobMappingsValidator) {
+		jmv.jobSourceOptions = jobSourceOptions
+	}
+}
+
+func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping, opts ...Option) *JobMappingsValidator {
 	tableToColumnMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
 	for _, m := range jobMappings {
 		tn := sqlmanager_shared.BuildTable(m.Schema, m.Table)
@@ -32,23 +45,42 @@ func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping) *JobMapping
 		tableToColumnMappings[tn][m.Column] = m
 	}
 
-	return &JobMappingsValidator{
-		jobMappings:    tableToColumnMappings,
-		databaseErrors: []string{},
-		columnErrors:   map[string]map[string][]string{},
+	jmv := &JobMappingsValidator{
+		jobMappings:      tableToColumnMappings,
+		databaseErrors:   []string{},
+		databaseWarnings: []string{},
+		columnErrors:     map[string]map[string][]string{},
+		columnWarnings:   map[string]map[string][]string{},
 	}
+
+	for _, opt := range opts {
+		opt(jmv)
+	}
+	return jmv
 }
 
 func (j *JobMappingsValidator) GetDatabaseErrors() []string {
 	return j.databaseErrors
 }
 
+func (j *JobMappingsValidator) GetDatabaseWarnings() []string {
+	return j.databaseWarnings
+}
+
 func (j *JobMappingsValidator) GetColumnErrors() map[string]map[string][]string {
 	return j.columnErrors
 }
 
+func (j *JobMappingsValidator) GetColumnWarnings() map[string]map[string][]string {
+	return j.columnWarnings
+}
+
 func (j *JobMappingsValidator) addDatabaseError(err string) {
 	j.databaseErrors = append(j.databaseErrors, err)
+}
+
+func (j *JobMappingsValidator) addDatabaseWarning(err string) {
+	j.databaseWarnings = append(j.databaseWarnings, err)
 }
 
 func (j *JobMappingsValidator) addColumnError(table, column, err string) {
@@ -58,12 +90,19 @@ func (j *JobMappingsValidator) addColumnError(table, column, err string) {
 	j.columnErrors[table][column] = append(j.columnErrors[table][column], err)
 }
 
+func (j *JobMappingsValidator) addColumnWarning(table, column, err string) {
+	if _, ok := j.columnWarnings[table]; !ok {
+		j.columnWarnings[table] = map[string][]string{}
+	}
+	j.columnWarnings[table][column] = append(j.columnWarnings[table][column], err)
+}
+
 func (j *JobMappingsValidator) Validate(
 	tableColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
 	tableConstraints *sqlmanager_shared.TableConstraints,
 ) (*JobMappingsValidatorResponse, error) {
-	j.ValidateTablesExist(tableColumnMap)
+	j.ValidateJobMappingsExistInSource(tableColumnMap)
 	j.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, tableConstraints)
 	err := j.ValidateCircularDependencies(tableConstraints.ForeignKeyConstraints, virtualForeignKeys, tableColumnMap)
 	if err != nil {
@@ -77,13 +116,32 @@ func (j *JobMappingsValidator) Validate(
 	}, nil
 }
 
-// validate that all tables in job mappings exist in source
-func (j *JobMappingsValidator) ValidateTablesExist(
+// validate that all tables and columns in job mappings exist in source
+func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 	tableColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) {
-	for table := range j.jobMappings {
+	// check for job mappings that do not exist in the source
+	for table, colMappings := range j.jobMappings {
 		if _, ok := tableColumnMap[table]; !ok {
 			j.addDatabaseError(fmt.Sprintf("Table does not exist [%s] in source", table))
+			continue
+		}
+		for col := range colMappings {
+			if _, ok := tableColumnMap[table][col]; !ok {
+				j.addColumnError(table, col, fmt.Sprintf("Column does not exist in source. Remove column from job mappings: %s.%s", table, col))
+			}
+		}
+	}
+
+	// check for source columns that do not exist in job mappings
+	for table, colMap := range tableColumnMap {
+		if _, ok := j.jobMappings[table]; !ok {
+			continue
+		}
+		for col := range colMap {
+			if _, ok := j.jobMappings[table][col]; !ok {
+				j.addColumnError(table, col, fmt.Sprintf("Column does not exist in job mappings. Add column to job mappings: %s.%s", table, col))
+			}
 		}
 	}
 }

@@ -11457,6 +11457,10 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
+        source:
+          allOf:
+            - title: source
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
       title: ValidateJobMappingsRequest
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsResponse:
