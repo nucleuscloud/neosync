@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 	"time"
 
@@ -18,11 +17,10 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
-	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	job_mappings "github.com/nucleuscloud/neosync/internal/job-mappings"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -1502,8 +1500,6 @@ func (s *Service) ValidateJobMappings(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest],
 ) (*connect.Response[mgmtv1alpha1.ValidateJobMappingsResponse], error) {
-
-	// START SETUP
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.GetAccountId())
 
@@ -1550,179 +1546,19 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
-	for _, m := range req.Msg.Mappings {
-		tn := sqlmanager_shared.BuildTable(m.Schema, m.Table)
-		if _, ok := tableColMappings[tn]; !ok {
-			tableColMappings[tn] = map[string]*mgmtv1alpha1.JobMapping{}
-		}
-		tableColMappings[tn][m.Column] = m
-	}
-
-	colErrorsMap := map[string]map[string][]string{}
-	dbErrors := &mgmtv1alpha1.DatabaseError{
-		Errors: []string{},
-	}
-	// END SETUP
-
-	// VERIFY TABLES EXIST IN SOURCE BASED ON JOB MAPPINGS
-	for table := range tableColMappings {
-		if _, ok := colInfoMap[table]; !ok {
-			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Table does not exist [%s]", table))
-		}
-	}
-
-	// VALIDATES VIRTUAL FOREIGN KEYS
-	vfkErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
-	dbErrors.Errors = append(dbErrors.Errors, vfkErrs.DbErrors...)
-
-	for t, colErrMap := range vfkErrs.ColumnErrorMap {
-		if _, ok := colErrorsMap[t]; !ok {
-			colErrorsMap[t] = map[string][]string{}
-		}
-		for c, e := range colErrMap {
-			colErrorsMap[t][c] = append(colErrorsMap[t][c], e...)
-		}
-	}
-
-	// verify that all circular dependencies have a nullable entrypoint
-	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
-	for table, fks := range tableConstraints.ForeignKeyConstraints {
-		colMappings, ok := tableColMappings[table]
-		if !ok {
-			// skip. table not in mapping
-			continue
-		}
-		for _, fk := range fks {
-			for idx, col := range fk.Columns {
-				_, ok := colMappings[col]
-				if !ok {
-					continue
-				}
-				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
-				if !ok {
-					continue
-				}
-				fkCol := fk.ForeignKey.Columns[idx]
-				_, ok = fkColMappings[fkCol]
-				if !ok {
-					continue
-				}
-				filteredDepsMap[table] = append(filteredDepsMap[table], fk.ForeignKey.Table)
-			}
-		}
-	}
-
-	// VALIDATES CIRCULAR DEPENDENCIES WITH VIRTUAL FOREIGN KEYS
-	allForeignKeys := tableConstraints.ForeignKeyConstraints
-	for _, vfk := range req.Msg.GetVirtualForeignKeys() {
-		tableName := sqlmanager_shared.BuildTable(vfk.Schema, vfk.Table)
-		fkTable := sqlmanager_shared.BuildTable(vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
-		filteredDepsMap[tableName] = append(filteredDepsMap[tableName], fkTable)
-
-		// merge virtual foreign keys with table foreign keys
-		tableCols, ok := colInfoMap[tableName]
-		if !ok {
-			continue
-		}
-		notNullable := []bool{}
-		for _, col := range vfk.GetColumns() {
-			colInfo, ok := tableCols[col]
-			if !ok {
-				return nil, fmt.Errorf("Column does not exist in schema: %s.%s", tableName, col)
-			}
-			notNullable = append(notNullable, !colInfo.IsNullable)
-		}
-
-		allForeignKeys[tableName] = append(allForeignKeys[tableName], &sqlmanager_shared.ForeignConstraint{
-			Columns:     vfk.GetColumns(),
-			NotNullable: notNullable,
-			ForeignKey: &sqlmanager_shared.ForeignKey{
-				Columns: vfk.GetColumns(),
-				Table:   fkTable,
-			},
-		})
-	}
-
-	for table, deps := range filteredDepsMap {
-		filteredDepsMap[table] = utils.DedupeSlice(deps)
-	}
-
-	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
-	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, allForeignKeys)
+	validator := job_mappings.NewJobMappingsValidator(req.Msg.Mappings)
+	result, err := validator.Validate(colInfoMap, req.Msg.VirtualForeignKeys, tableConstraints)
 	if err != nil {
 		return nil, err
 	}
 
-	containsStart := func(t string) bool {
-		return slices.Contains(startTables, t)
+	dbErrors := &mgmtv1alpha1.DatabaseError{
+		Errors: []string{},
 	}
-
-	for _, cycle := range cycles {
-		if !slices.ContainsFunc(cycle, containsStart) {
-			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
-		}
-	}
-
-	// VALIDATES REQUIRED FOREIGN KEYS
-	// verify that all non nullable foreign key constraints are not missing from mapping
-	for table, fks := range tableConstraints.ForeignKeyConstraints {
-		_, ok := tableColMappings[table]
-		if !ok {
-			// skip. table not in mapping
-			continue
-		}
-		for _, fk := range fks {
-			for idx, notNull := range fk.NotNullable {
-				if !notNull {
-					// skip. foreign key is nullable
-					continue
-				}
-				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
-				fkCol := fk.ForeignKey.Columns[idx]
-				if !ok {
-					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
-						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
-					}
-					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
-					continue
-				}
-				_, ok = fkColMappings[fkCol]
-				if !ok {
-					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
-						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
-					}
-					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
-				}
-			}
-		}
-	}
-
-	// VALIDATES REQUIRED COLUMNS
-	// verify that no non nullable columns are missing for tables in mapping
-	for table, colMap := range colInfoMap {
-		cm, ok := tableColMappings[table]
-		if !ok {
-			// skip. table not in mapping
-			continue
-		}
-		for col, info := range colMap {
-			if info.IsNullable {
-				// skip. column is nullable
-				continue
-			}
-			if _, ok := cm[col]; !ok {
-				if _, ok := colErrorsMap[table]; !ok {
-					colErrorsMap[table] = map[string][]string{}
-				}
-				// add error
-				colErrorsMap[table][col] = append(colErrorsMap[table][col], fmt.Sprintf("Violates not-null constraint. Missing required column. Table: %s  Column: %s", table, col))
-			}
-		}
-	}
+	dbErrors.Errors = append(dbErrors.Errors, result.DatabaseErrors...)
 
 	colErrors := []*mgmtv1alpha1.ColumnError{}
-	for tableName, colMap := range colErrorsMap {
+	for tableName, colMap := range result.ColumnErrors {
 		for col, errors := range colMap {
 			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
@@ -1738,158 +1574,6 @@ func (s *Service) ValidateJobMappings(
 		DatabaseErrors: dbErrors,
 		ColumnErrors:   colErrors,
 	}), nil
-}
-
-type validateVirtualForeignKeysResponse struct {
-	IsValid        bool
-	ColumnErrorMap map[string]map[string][]string
-	DbErrors       []string
-}
-
-func validateVirtualForeignKeys(
-	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
-	jobColMappings map[string]map[string]*mgmtv1alpha1.JobMapping,
-	tc *sqlmanager_shared.TableConstraints,
-	colMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) *validateVirtualForeignKeysResponse {
-	dbErrors := []string{}
-	colErrorsMap := map[string]map[string][]string{}
-	isValid := true
-
-	for _, vfk := range virtualForeignKeys {
-		sourceTable := fmt.Sprintf("%s.%s", vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
-		targetTable := fmt.Sprintf("%s.%s", vfk.Schema, vfk.Table)
-
-		// check that source table exist in job mappings
-		sourceColMappings, ok := jobColMappings[sourceTable]
-		if !ok {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable))
-			continue
-		}
-
-		// check that source table and columns exist in source
-		sourceCols, ok := colMap[sourceTable]
-		if !ok {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable))
-			continue
-		}
-		for _, c := range vfk.GetForeignKey().GetColumns() {
-			_, ok = sourceColMappings[c]
-			if !ok {
-				isValid = false
-				if _, ok := colErrorsMap[sourceTable]; !ok {
-					colErrorsMap[sourceTable] = map[string][]string{}
-				}
-				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in job mappings. Table: %s Column: %s", sourceTable, c))
-			}
-			_, ok := sourceCols[c]
-			if !ok {
-				isValid = false
-				if _, ok := colErrorsMap[sourceTable]; !ok {
-					colErrorsMap[sourceTable] = map[string][]string{}
-				}
-				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", sourceTable, c))
-			}
-		}
-		// check that all sources of virtual foreign keys are either a primary key or have a unique constraint
-		pks := tc.PrimaryKeyConstraints[sourceTable]
-		uniqueConstraints := tc.UniqueConstraints[sourceTable]
-		isVfkValid := isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
-		if !isVfkValid {
-			isValid = false
-			if _, ok := colErrorsMap[sourceTable]; !ok {
-				colErrorsMap[sourceTable] = map[string][]string{}
-			}
-			for _, c := range vfk.GetForeignKey().GetColumns() {
-				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", sourceTable, vfk.GetForeignKey().GetColumns()))
-			}
-		}
-
-		// check that target table exist in job mappings
-		targetColMappings, ok := jobColMappings[targetTable]
-		if !ok {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable))
-			continue
-		}
-		targetCols, ok := colMap[targetTable]
-		if !ok {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
-			continue
-		}
-		// check that all self referencing virtual foreign keys are on nullable columns
-		if sourceTable == targetTable {
-			for _, c := range vfk.GetColumns() {
-				_, ok = targetColMappings[c]
-				if !ok {
-					isValid = false
-					if _, ok := colErrorsMap[targetTable]; !ok {
-						colErrorsMap[targetTable] = map[string][]string{}
-					}
-					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c))
-				}
-				colInfo, ok := targetCols[c]
-				if !ok {
-					isValid = false
-					if _, ok := colErrorsMap[targetTable]; !ok {
-						colErrorsMap[targetTable] = map[string][]string{}
-					}
-					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c))
-					continue
-				}
-				if !colInfo.IsNullable {
-					isValid = false
-					if _, ok := colErrorsMap[targetTable]; !ok {
-						colErrorsMap[targetTable] = map[string][]string{}
-					}
-					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Column: %s", targetTable, c))
-				}
-			}
-		}
-
-		if len(vfk.GetColumns()) != len(vfk.GetForeignKey().GetColumns()) {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("length of source columns was not equal to length of foreign key cols: %d %d. SourceTable: %s SourceColumn: %+v TargetTable: %s  TargetColumn: %+v", len(vfk.GetColumns()), len(vfk.GetForeignKey().GetColumns()), sourceTable, vfk.GetColumns(), targetTable, vfk.GetForeignKey().GetColumns()))
-			continue
-		}
-		// check that source and target column datatypes are the same
-		for idx, srcCol := range vfk.GetForeignKey().GetColumns() {
-			tarCol := vfk.GetColumns()[idx]
-			srcColInfo := sourceCols[srcCol]
-			tarColInfo := targetCols[tarCol]
-			if srcColInfo.DataType != tarColInfo.DataType {
-				isValid = false
-				if _, ok := colErrorsMap[targetTable]; !ok {
-					colErrorsMap[targetTable] = map[string][]string{}
-				}
-				colErrorsMap[targetTable][tarCol] = append(colErrorsMap[targetTable][tarCol], fmt.Sprintf("Column datatype mismatch. Source: %s.%s %s Target: %s.%s %s", sourceTable, srcCol, srcColInfo.DataType, targetTable, tarCol, tarColInfo.DataType))
-			}
-		}
-	}
-	return &validateVirtualForeignKeysResponse{
-		IsValid:        isValid,
-		ColumnErrorMap: colErrorsMap,
-		DbErrors:       dbErrors,
-	}
-}
-
-func isVirtualForeignKeySourceUnique(
-	virtualForeignKey *mgmtv1alpha1.VirtualForeignConstraint,
-	primaryKeys []string,
-	uniqueConstraints [][]string,
-) bool {
-	if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), primaryKeys) {
-		return true
-	}
-	for _, uc := range uniqueConstraints {
-		if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), uc) {
-			return true
-		}
-	}
-	return false
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
