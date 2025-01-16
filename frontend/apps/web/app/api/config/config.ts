@@ -36,9 +36,9 @@ export function getSystemAppConfig(): SystemAppConfig {
     isJobHooksEnabled: process.env.JOBHOOKS_ENABLED === 'true',
     isRbacEnabled: isNeosyncCloud || process.env.RBAC_ENABLED === 'true',
     gtag: {
-      enabled: isAnalyticsEnabled() && !!process.env.gtag,
-      key: process.env.gtag,
-      conversion: process.env.gtag_conversion,
+      enabled: isAnalyticsEnabled() && !!process.env.GTAG,
+      key: process.env.GTAG,
+      conversion: process.env.GTAG_CONVERSION,
     },
   };
 }
