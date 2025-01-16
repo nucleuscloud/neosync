@@ -20,7 +20,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	job_mappings "github.com/nucleuscloud/neosync/internal/job-mappings"
+	"github.com/nucleuscloud/neosync/internal/job"
+	job_util "github.com/nucleuscloud/neosync/internal/job"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -1546,7 +1547,7 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	validator := job_mappings.NewJobMappingsValidator(req.Msg.Mappings)
+	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job.WithJobSourceOptions(req.Msg.GetSource().GetOptions()))
 	result, err := validator.Validate(colInfoMap, req.Msg.VirtualForeignKeys, tableConstraints)
 	if err != nil {
 		return nil, err
