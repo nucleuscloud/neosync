@@ -67,6 +67,7 @@ export function GtagIdentifier(): ReactElement {
       isSystemAppConfigLoading ||
       !systemAppConfig?.gtag.enabled ||
       !systemAppConfig.gtag.key ||
+      !systemAppConfig.gtag.conversion ||
       !systemAppConfig.isAuthEnabled ||
       !user?.email
     ) {
@@ -84,6 +85,7 @@ export function GtagIdentifier(): ReactElement {
     user?.email,
     user?.name,
     systemAppConfig?.gtag.enabled,
+    systemAppConfig?.gtag.conversion,
     systemAppConfig?.gtag.key,
   ]);
 
