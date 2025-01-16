@@ -34,4 +34,5 @@ interface UnifyConfig {
 interface GtagConfig {
   enabled: boolean;
   key?: string;
+  conversion: string;
 }

@@ -40,7 +40,7 @@ export function GoogleScriptProvider(): ReactElement {
         dangerouslySetInnerHTML={{
           __html: `
         gtag('event', 'conversion', {
-          'send_to': 'AW-11350558666/9_e_CKSV7uUYEMqPr6Qq'
+          'send_to': ${systemAppConfig.gtag.conversion}
         });
       `,
         }}
@@ -72,20 +72,6 @@ export function GtagIdentifier(): ReactElement {
     ) {
       return;
     }
-    // we only want to set the user id if auth is enabled, otherwise it is always the same
-    // so it makes it harder to identify unique posthog sessions when running in un-auth mode.
-    const userId = systemAppConfig?.isAuthEnabled
-      ? userData?.userId
-      : undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).ko?.identify(user?.email, {
-      accountName: account?.name,
-      accountId: account?.id,
-      email: user?.email,
-      name: user?.name,
-      neosyncCloud: systemAppConfig?.isNeosyncCloud ?? false,
-      userId,
-    });
   }, [
     isUserDataLoading,
     isAccountLoading,
