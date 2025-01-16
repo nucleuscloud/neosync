@@ -912,12 +912,20 @@ message ColumnError {
   repeated string errors = 4;
 }
 
+message ColumnWarning {
+  string schema = 1;
+  string table = 2;
+  string column = 3;
+  repeated string warnings = 5;
+}
+
 message DatabaseError {
   repeated string errors = 1;
 }
 message ValidateJobMappingsResponse {
   repeated ColumnError column_errors = 1;
   DatabaseError database_errors = 2;
+  repeated ColumnWarning column_warnings = 3;
 }
 
 message VirtualForeignKey {

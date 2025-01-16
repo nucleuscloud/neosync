@@ -1162,6 +1162,18 @@ class ColumnError(_message.Message):
     errors: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., errors: _Optional[_Iterable[str]] = ...) -> None: ...
 
+class ColumnWarning(_message.Message):
+    __slots__ = ("schema", "table", "column", "warnings")
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    TABLE_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_FIELD_NUMBER: _ClassVar[int]
+    WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    schema: str
+    table: str
+    column: str
+    warnings: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class DatabaseError(_message.Message):
     __slots__ = ("errors",)
     ERRORS_FIELD_NUMBER: _ClassVar[int]
@@ -1169,12 +1181,14 @@ class DatabaseError(_message.Message):
     def __init__(self, errors: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ValidateJobMappingsResponse(_message.Message):
-    __slots__ = ("column_errors", "database_errors")
+    __slots__ = ("column_errors", "database_errors", "column_warnings")
     COLUMN_ERRORS_FIELD_NUMBER: _ClassVar[int]
     DATABASE_ERRORS_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_WARNINGS_FIELD_NUMBER: _ClassVar[int]
     column_errors: _containers.RepeatedCompositeFieldContainer[ColumnError]
     database_errors: DatabaseError
-    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ...) -> None: ...
+    column_warnings: _containers.RepeatedCompositeFieldContainer[ColumnWarning]
+    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ...) -> None: ...
 
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")

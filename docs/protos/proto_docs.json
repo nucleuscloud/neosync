@@ -9176,6 +9176,66 @@
           ]
         },
         {
+          "name": "ColumnWarning",
+          "longName": "ColumnWarning",
+          "fullName": "mgmt.v1alpha1.ColumnWarning",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "warnings",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CreateJobDestination",
           "longName": "CreateJobDestination",
           "fullName": "mgmt.v1alpha1.CreateJobDestination",
@@ -14652,6 +14712,18 @@
               "type": "DatabaseError",
               "longType": "DatabaseError",
               "fullType": "mgmt.v1alpha1.DatabaseError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_warnings",
+              "description": "",
+              "label": "repeated",
+              "type": "ColumnWarning",
+              "longType": "ColumnWarning",
+              "fullType": "mgmt.v1alpha1.ColumnWarning",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

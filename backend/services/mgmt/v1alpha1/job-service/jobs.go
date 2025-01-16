@@ -1547,7 +1547,12 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job.WithJobSourceOptions(req.Msg.GetSource().GetOptions()))
+	sqlSourceOpts, err := job_util.GetSqlJobSourceOpts(req.Msg.GetSource())
+	if err != nil {
+		return nil, err
+	}
+
+	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job.WithJobSourceOptions(sqlSourceOpts))
 	result, err := validator.Validate(colInfoMap, req.Msg.VirtualForeignKeys, tableConstraints)
 	if err != nil {
 		return nil, err

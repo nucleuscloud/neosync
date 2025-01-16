@@ -1747,6 +1747,25 @@ components:
           title: errors
       title: ColumnError
       additionalProperties: false
+    mgmt.v1alpha1.ColumnWarning:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+        table:
+          type: string
+          title: table
+        column:
+          type: string
+          title: column
+        warnings:
+          type: array
+          items:
+            type: string
+          title: warnings
+      title: ColumnWarning
+      additionalProperties: false
     mgmt.v1alpha1.CreateJobDestination:
       type: object
       properties:
@@ -6129,6 +6148,11 @@ components:
           allOf:
             - title: database_errors
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseError'
+        columnWarnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ColumnWarning'
+          title: column_warnings
       title: ValidateJobMappingsResponse
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:

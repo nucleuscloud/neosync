@@ -137,14 +137,13 @@ func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions, tableMap m
 
 func groupSqlJobSourceOptionsByTable(
 	sqlSourceOpts *job_util.SqlJobSourceOpts,
-) map[string]*job_util.TableOptions {
-	groupedMappings := map[string]*job_util.TableOptions{}
+) map[string]*sqlSourceTableOptions {
+	groupedMappings := map[string]*sqlSourceTableOptions{}
 	for _, schemaOpt := range sqlSourceOpts.SchemaOpt {
 		for tidx := range schemaOpt.Tables {
 			tableOpt := schemaOpt.Tables[tidx]
 			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = &job_util.TableOptions{
-				Table:       tableOpt.Table,
+			groupedMappings[key] = &sqlSourceTableOptions{
 				WhereClause: tableOpt.WhereClause,
 			}
 		}
