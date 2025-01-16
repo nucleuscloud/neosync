@@ -4142,16 +4142,16 @@ components:
                 Any identified boolean value will be transformed using this
                 configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        number:
+        'n':
           allOf:
-            - title: number
+            - title: 'n'
               description: >-
                 Any identified number value will be transformed using this
                 configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        string:
+        s:
           allOf:
-            - title: string
+            - title: s
               description: >-
                 Any identified string value will be transformed using this
                 configuration if no mapping is found.
@@ -8965,10 +8965,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used to generate data for
         rowCount:
           oneOf:
             - type: string
@@ -9554,10 +9551,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used to generate data for.
         rowCount:
           oneOf:
             - type: string
@@ -11047,10 +11041,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used to subset the data for.
         whereClause:
           type: string
           title: where_clause
@@ -11315,10 +11306,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used to subset the data for.
         whereClause:
           type: string
           title: where_clause
@@ -11748,10 +11736,7 @@ components:
           type: string
           title: table
           minLength: 1
-          description: >-
-            The table that will be used to. 1. The schema of the table will be
-            injected into the prompt, of which the resulting data will then be
-            inserted.
+          description: The table that will be used subset the data for.
         whereClause:
           type: string
           title: where_clause

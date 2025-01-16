@@ -38,14 +38,14 @@ class TransformerMapping(_message.Message):
     def __init__(self, expression: _Optional[str] = ..., transformer: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
 
 class DefaultTransformersConfig(_message.Message):
-    __slots__ = ("boolean", "number", "string")
+    __slots__ = ("boolean", "n", "s")
     BOOLEAN_FIELD_NUMBER: _ClassVar[int]
-    NUMBER_FIELD_NUMBER: _ClassVar[int]
-    STRING_FIELD_NUMBER: _ClassVar[int]
+    N_FIELD_NUMBER: _ClassVar[int]
+    S_FIELD_NUMBER: _ClassVar[int]
     boolean: _transformer_pb2.TransformerConfig
-    number: _transformer_pb2.TransformerConfig
-    string: _transformer_pb2.TransformerConfig
-    def __init__(self, boolean: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ..., number: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ..., string: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
+    n: _transformer_pb2.TransformerConfig
+    s: _transformer_pb2.TransformerConfig
+    def __init__(self, boolean: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ..., n: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ..., s: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
 
 class AnonymizeManyErrors(_message.Message):
     __slots__ = ("input_index", "error_message")

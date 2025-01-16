@@ -283,7 +283,7 @@ export const AiGenerateSourceSchemaOptionSchema: GenMessage<AiGenerateSourceSche
  */
 export type AiGenerateSourceTableOption = Message<"mgmt.v1alpha1.AiGenerateSourceTableOption"> & {
   /**
-   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   * The table that will be used to generate data for
    *
    * @generated from field: string table = 1;
    */
@@ -361,7 +361,7 @@ export const GenerateSourceSchemaOptionSchema: GenMessage<GenerateSourceSchemaOp
  */
 export type GenerateSourceTableOption = Message<"mgmt.v1alpha1.GenerateSourceTableOption"> & {
   /**
-   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   * The table that will be used to generate data for.
    *
    * @generated from field: string table = 1;
    */
@@ -721,7 +721,7 @@ export const PostgresSourceSchemaOptionSchema: GenMessage<PostgresSourceSchemaOp
  */
 export type PostgresSourceTableOption = Message<"mgmt.v1alpha1.PostgresSourceTableOption"> & {
   /**
-   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   * The table that will be used subset the data for.
    *
    * @generated from field: string table = 1;
    */
@@ -884,7 +884,7 @@ export const MysqlSourceSchemaOptionSchema: GenMessage<MysqlSourceSchemaOption> 
  */
 export type MysqlSourceTableOption = Message<"mgmt.v1alpha1.MysqlSourceTableOption"> & {
   /**
-   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   * The table that will be used to subset the data for.
    *
    * @generated from field: string table = 1;
    */
@@ -1047,7 +1047,7 @@ export const MssqlSourceSchemaOptionSchema: GenMessage<MssqlSourceSchemaOption> 
  */
 export type MssqlSourceTableOption = Message<"mgmt.v1alpha1.MssqlSourceTableOption"> & {
   /**
-   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   * The table that will be used to subset the data for.
    *
    * @generated from field: string table = 1;
    */

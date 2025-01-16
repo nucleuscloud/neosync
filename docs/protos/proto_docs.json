@@ -3708,7 +3708,7 @@
               "defaultValue": ""
             },
             {
-              "name": "number",
+              "name": "n",
               "description": "Any identified number value will be transformed using this configuration if no mapping is found.",
               "label": "",
               "type": "TransformerConfig",
@@ -3720,7 +3720,7 @@
               "defaultValue": ""
             },
             {
-              "name": "string",
+              "name": "s",
               "description": "Any identified string value will be transformed using this configuration if no mapping is found.",
               "label": "",
               "type": "TransformerConfig",
@@ -8963,7 +8963,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
+              "description": "The table that will be used to generate data for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -10072,7 +10072,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
+              "description": "The table that will be used to generate data for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -12671,7 +12671,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
+              "description": "The table that will be used to subset the data for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13075,7 +13075,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
+              "description": "The table that will be used to subset the data for.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -13729,7 +13729,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
+              "description": "The table that will be used subset the data for.",
               "label": "",
               "type": "string",
               "longType": "string",

@@ -1000,7 +1000,7 @@ type AiGenerateSourceTableOption struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+	// The table that will be used to generate data for
 	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
 	// The total number of records to be generated.
 	RowCount int64 `protobuf:"varint,2,opt,name=row_count,json=rowCount,proto3" json:"row_count,omitempty"`
@@ -1165,7 +1165,7 @@ type GenerateSourceTableOption struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+	// The table that will be used to generate data for.
 	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
 	// The total number of records to be generated.
 	RowCount int64 `protobuf:"varint,2,opt,name=row_count,json=rowCount,proto3" json:"row_count,omitempty"`
@@ -1610,7 +1610,7 @@ type PostgresSourceTableOption struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+	// The table that will be used subset the data for.
 	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
 	// This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
 	// Is used to subset the table.
@@ -1803,7 +1803,7 @@ type MysqlSourceTableOption struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+	// The table that will be used to subset the data for.
 	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
 	// This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
 	// Is used to subset the table.
@@ -1996,7 +1996,7 @@ type MssqlSourceTableOption struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+	// The table that will be used to subset the data for.
 	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
 	// This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
 	// Is used to subset the table.

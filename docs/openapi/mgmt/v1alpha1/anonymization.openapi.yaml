@@ -257,14 +257,14 @@ components:
             - title: boolean
               description: Any identified boolean value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        number:
+        n:
           allOf:
-            - title: number
+            - title: n
               description: Any identified number value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
-        string:
+        s:
           allOf:
-            - title: string
+            - title: s
               description: Any identified string value will be transformed using this configuration if no mapping is found.
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
       title: DefaultTransformersConfig

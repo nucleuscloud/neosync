@@ -75,7 +75,7 @@ message AiGenerateSourceSchemaOption {
   repeated AiGenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message AiGenerateSourceTableOption {
-  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  // The table that will be used to generate data for
   string table = 1 [(buf.validate.field).string.min_len = 1];
   // The total number of records to be generated.
   int64 row_count = 2 [
@@ -97,7 +97,7 @@ message GenerateSourceSchemaOption {
   repeated GenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message GenerateSourceTableOption {
-  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  // The table that will be used to generate data for.
   string table = 1 [(buf.validate.field).string.min_len = 1];
   // The total number of records to be generated.
   int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
@@ -194,7 +194,7 @@ message PostgresSourceSchemaOption {
   repeated PostgresSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message PostgresSourceTableOption {
-  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  // The table that will be used subset the data for.
   string table = 1 [(buf.validate.field).string.min_len = 1];
   // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
   // Is used to subset the table.
@@ -237,7 +237,7 @@ message MysqlSourceSchemaOption {
   repeated MysqlSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message MysqlSourceTableOption {
-  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  // The table that will be used to subset the data for.
   string table = 1 [(buf.validate.field).string.min_len = 1];
   // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
   // Is used to subset the table.
@@ -279,7 +279,7 @@ message MssqlSourceSchemaOption {
   repeated MssqlSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message MssqlSourceTableOption {
-  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  // The table that will be used to subset the data for.
   string table = 1 [(buf.validate.field).string.min_len = 1];
   // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
   // Is used to subset the table.
