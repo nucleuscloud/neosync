@@ -1,31 +1,31 @@
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { NewColumnAdditionStrategy } from '@/yup-validations/jobs';
+import { ColumnRemovalStrategy } from '@/yup-validations/jobs';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 
 interface Props {
-  value: NewColumnAdditionStrategy;
-  setValue(strategy: NewColumnAdditionStrategy): void;
-  disableAutoMap?: boolean;
+  value: ColumnRemovalStrategy;
+  setValue(strategy: ColumnRemovalStrategy): void;
 }
 
-export default function NewColumnAdditionStrategyOptionsForm(
+export default function ColumnRemovalStrategyOptionsForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, disableAutoMap } = props;
+  const { value, setValue } = props;
 
   return (
     <div className="flex flex-col gap-2">
-      <FormLabel>New Column Addition Strategy</FormLabel>
+      <FormLabel>Column Removal Strategy</FormLabel>
       <div className="flex flex-row gap-1">
         <FormDescription>
-          Determine what happens when a new column is detected during a job run.
+          Choose how to handle situations when columns that are currently mapped
+          no longer exist in the source database schema.
         </FormDescription>
         <Link
-          href="https://docs.neosync.dev/guides/new-column-addition-strategies"
+          href="https://docs.neosync.dev/guides/column-removal-strategies"
           target="_blank"
           className="hover:underline inline-flex gap-1 flex-row items-center tracking-tight text-[0.8rem] text-muted-foreground"
         >
@@ -35,23 +35,17 @@ export default function NewColumnAdditionStrategyOptionsForm(
       </div>
       <RadioGroup
         onValueChange={(newval) => {
-          setValue(newval as NewColumnAdditionStrategy);
+          setValue(newval as ColumnRemovalStrategy);
         }}
         value={value}
       >
         <StrategyRadioItem
           value="halt"
-          label="Halt - Stop the run if a new column is detected"
+          label="Halt - Stop the job if a mapped column is missing from the source database"
         />
-        {!disableAutoMap && (
-          <StrategyRadioItem
-            value="automap"
-            label="AutoMap - Automatically generate a new value"
-          />
-        )}
         <StrategyRadioItem
           value="continue"
-          label="Continue - Ignores new columns; may fail if column doesn't have default"
+          label="Continue - Proceed with the job and ignore any mapped columns that are no longer present in the source database"
         />
       </RadioGroup>
     </div>
@@ -59,7 +53,7 @@ export default function NewColumnAdditionStrategyOptionsForm(
 }
 
 interface StrategyRadioItemProps {
-  value: NewColumnAdditionStrategy;
+  value: ColumnRemovalStrategy;
   label: string;
 }
 

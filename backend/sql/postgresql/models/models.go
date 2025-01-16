@@ -844,11 +844,48 @@ type JobSourceOptions struct {
 }
 
 type MssqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                       `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                       `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MssqlSourceSchemaOption `json:"schemas"`
-	ConnectionId                  string                     `json:"connectionId"`
+	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MssqlSourceSchemaOption  `json:"schemas"`
+	ConnectionId                  string                      `json:"connectionId"`
+	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
 }
+
+type MssqlColumnRemovalStrategy struct {
+	HaltJob     *MssqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *MssqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
+}
+
+func (p *MssqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy {
+	if p.HaltJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
+			},
+		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
+	}
+	return nil
+}
+func (p *MssqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{}
+	}
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
+		p.HaltJob = &MssqlHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &MssqlContinueJobColumnRemovalStrategy{}
+	}
+}
+
+type MssqlHaltJobColumnRemovalStrategy struct{}
+type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
@@ -860,6 +897,11 @@ func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions 
 	for idx := range m.Schemas {
 		dto.Schemas[idx] = m.Schemas[idx].ToDto()
 	}
+
+	if m.ColumnRemovalStrategy != nil {
+		dto.ColumnRemovalStrategy = m.ColumnRemovalStrategy.ToDto()
+	}
+
 	return dto
 }
 func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions) {
@@ -870,6 +912,11 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 	m.ConnectionId = dto.GetConnectionId()
 	m.SubsetByForeignKeyConstraints = dto.GetSubsetByForeignKeyConstraints()
 	m.Schemas = FromDtoMssqlSourceSchemaOptions(dto.GetSchemas())
+
+	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
+		m.ColumnRemovalStrategy = &MssqlColumnRemovalStrategy{}
+		m.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
+	}
 }
 
 type MssqlSourceSchemaOption struct {
@@ -1069,11 +1116,49 @@ func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnection
 }
 
 type MysqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                       `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                       `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MysqlSourceSchemaOption `json:"schemas"`
-	ConnectionId                  string                     `json:"connectionId"`
+	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MysqlSourceSchemaOption  `json:"schemas"`
+	ConnectionId                  string                      `json:"connectionId"`
+	ColumnRemovalStrategy         *MysqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
 }
+
+type MysqlColumnRemovalStrategy struct {
+	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *MysqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
+}
+
+func (p *MysqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy {
+	if p.HaltJob != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
+			},
+		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
+	}
+	return nil
+}
+func (p *MysqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{}
+	}
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
+		p.HaltJob = &MysqlHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &MysqlContinueJobColumnRemovalStrategy{}
+	}
+}
+
+type MysqlHaltJobColumnRemovalStrategy struct{}
+type MysqlContinueJobColumnRemovalStrategy struct{}
+
 type PostgresSourceOptions struct {
 	// @deprecated
 	HaltOnNewColumnAddition       bool                               `json:"haltOnNewColumnAddition,omitempty"`
@@ -1081,6 +1166,7 @@ type PostgresSourceOptions struct {
 	Schemas                       []*PostgresSourceSchemaOption      `json:"schemas"`
 	ConnectionId                  string                             `json:"connectionId"`
 	NewColumnAdditionStrategy     *PostgresNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
+	ColumnRemovalStrategy         *PostgresColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
 }
 
 type PostgresNewColumnAdditionStrategy struct {
@@ -1119,6 +1205,41 @@ func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSo
 type PostgresHaltJobStrategy struct{}
 type PostgresAutoMapStrategy struct{}
 
+type PostgresColumnRemovalStrategy struct {
+	HaltJob     *PostgresHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
+	ContinueJob *PostgresContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
+}
+
+func (p *PostgresColumnRemovalStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy {
+	if p.HaltJob != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob{},
+			},
+		}
+	} else if p.ContinueJob != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_{
+				ContinueJob: &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob{},
+			},
+		}
+	}
+	return nil
+}
+func (p *PostgresColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{}
+	}
+	switch dto.GetStrategy().(type) {
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJob_:
+		p.HaltJob = &PostgresHaltJobColumnRemovalStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob_:
+		p.ContinueJob = &PostgresContinueJobColumnRemovalStrategy{}
+	}
+}
+
+type PostgresHaltJobColumnRemovalStrategy struct{}
+type PostgresContinueJobColumnRemovalStrategy struct{}
 type GenerateSourceOptions struct {
 	Schemas              []*GenerateSourceSchemaOption `json:"schemas"`
 	FkSourceConnectionId *string                       `json:"fkSourceConnectionId,omitempty"`
@@ -1185,6 +1306,10 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 		}
 	}
 
+	if s.ColumnRemovalStrategy != nil {
+		dto.ColumnRemovalStrategy = s.ColumnRemovalStrategy.ToDto()
+	}
+
 	return dto
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
@@ -1194,6 +1319,10 @@ func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnecti
 	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
 		s.NewColumnAdditionStrategy = &PostgresNewColumnAdditionStrategy{}
 		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	}
+	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
+		s.ColumnRemovalStrategy = &PostgresColumnRemovalStrategy{}
+		s.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
 	}
 }
 
@@ -1241,6 +1370,10 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 		}
 	}
 
+	if s.ColumnRemovalStrategy != nil {
+		dto.ColumnRemovalStrategy = s.ColumnRemovalStrategy.ToDto()
+	}
+
 	return dto
 }
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
@@ -1248,6 +1381,10 @@ func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOpti
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
+	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
+		s.ColumnRemovalStrategy = &MysqlColumnRemovalStrategy{}
+		s.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
+	}
 }
 
 func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOption) []*MysqlSourceSchemaOption {

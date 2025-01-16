@@ -27,6 +27,7 @@ import (
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
+	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -55,6 +56,8 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"net/http/pprof"
+
+	"github.com/grafana/pyroscope-go"
 )
 
 func NewCmd() *cobra.Command {
@@ -83,6 +86,18 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("unable to initialize neosync cloud license from env: %w", err)
 	}
 	logger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
+
+	pyroscopeConfig, isPyroscopeEnabled, err := pyroscope_env.NewFromEnv("neosync-worker", logger)
+	if err != nil {
+		return fmt.Errorf("unable to initialize pyroscope from env: %w", err)
+	}
+	if isPyroscopeEnabled {
+		profiler, err := pyroscope.Start(*pyroscopeConfig)
+		if err != nil {
+			return fmt.Errorf("unable to start pyroscope profiler: %w", err)
+		}
+		defer profiler.Stop() //nolint:errcheck
+	}
 
 	var syncActivityMeter metric.Meter
 	temporalClientInterceptors := []interceptor.ClientInterceptor{}

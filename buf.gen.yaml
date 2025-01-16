@@ -37,10 +37,10 @@ plugins:
     out: backend/gen/go/protos
     opt: paths=source_relative
 
-  - remote: buf.build/protocolbuffers/python:v28.2 # generates messages and enums
+  - remote: buf.build/protocolbuffers/python:v29.3 # generates messages and enums
     out: python/src/neosync
     include_imports: true
-  - remote: buf.build/protocolbuffers/pyi:v28.2 # generates type hints
+  - remote: buf.build/protocolbuffers/pyi:v29.3 # generates type hints
     out: python/src/neosync
-  - remote: buf.build/grpc/python:v1.67.0 # generates grpc client
+  - remote: buf.build/grpc/python:v1.69.0 # generates grpc client
     out: python/src/neosync

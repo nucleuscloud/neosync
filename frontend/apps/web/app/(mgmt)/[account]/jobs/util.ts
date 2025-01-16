@@ -12,6 +12,10 @@ import {
   NewDestinationFormValues,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
+  toColumnRemovalStrategy,
+  toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
   VirtualForeignConstraintFormValues,
@@ -151,7 +155,7 @@ export function getSampleAiGeneratedRecordsRequest(
 ): GetAiGeneratedDataRequest {
   return create(GetAiGeneratedDataRequestSchema, {
     aiConnectionId: values.connect.sourceId,
-    count: BigInt(10),
+    count: BigInt(Math.min(10, values.schema.numRows)),
     modelName: values.schema.model,
     userPrompt: values.schema.userPrompt,
     dataConnectionId: values.connect.fkSourceConnectionId,
@@ -675,6 +679,9 @@ function toJobSourceOptions(
               toJobSourcePostgresNewColumnAdditionStrategy(
                 values.connect.sourceOptions.postgres?.newColumnAdditionStrategy
               ),
+            columnRemovalStrategy: toJobSourcePostgresColumnRemovalStrategy(
+              values.connect.sourceOptions.postgres?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -692,6 +699,9 @@ function toJobSourceOptions(
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
               false,
+            columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
+              values.connect.sourceOptions.mysql?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -736,6 +746,9 @@ function toJobSourceOptions(
             haltOnNewColumnAddition:
               values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
               false,
+            columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
+              values.connect.sourceOptions.mssql?.columnRemovalStrategy
+            ),
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -1178,6 +1191,9 @@ function setDefaultConnectFormValues(
           mysql: {
             haltOnNewColumnAddition:
               job.source.options.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>
@@ -1196,6 +1212,9 @@ function setDefaultConnectFormValues(
             newColumnAdditionStrategy: toNewColumnAdditionStrategy(
               job.source.options.config.value.newColumnAdditionStrategy
             ),
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>
@@ -1213,6 +1232,9 @@ function setDefaultConnectFormValues(
           mssql: {
             haltOnNewColumnAddition:
               job.source.options.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
         destinations: job.destinations.map((dest) =>
