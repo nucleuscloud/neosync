@@ -112,6 +112,7 @@ message GetMetricCountResponse {
   uint64 count = 1;
 }
 
+// Service that handles serving up usage metrics
 service MetricsService {
   // Retrieve a timed range of records
   rpc GetDailyMetricCount(GetDailyMetricCountRequest) returns (GetDailyMetricCountResponse) {

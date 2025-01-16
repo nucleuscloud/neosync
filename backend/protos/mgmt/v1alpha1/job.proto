@@ -1337,6 +1337,7 @@ message GetActiveJobHooksByTimingResponse {
   repeated JobHook hooks = 1;
 }
 
+// Service that handles jobs, runs, and hooks
 service JobService {
   // Returns a list of jobs by either account or job
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {

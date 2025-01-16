@@ -76,6 +76,7 @@ message AnonymizeSingleResponse {
   string output_data = 1;
 }
 
+// Service that transactionally anonymizes data, regardless of the connection type.
 service AnonymizationService {
   // Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
   rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}

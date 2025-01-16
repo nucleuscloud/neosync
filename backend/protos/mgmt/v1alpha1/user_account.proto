@@ -396,6 +396,7 @@ enum AccountRole {
 
 message SetUserRoleResponse {}
 
+// Service that manages users, accounts, and billing
 service UserAccountService {
   // Retrieves the current user.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {

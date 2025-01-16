@@ -632,6 +632,7 @@ message GenerateIpAddress {
 
 message TransformUuid {}
 
+// Service that manages system and user defined transformers
 service TransformersService {
   // Get a list of all system transformers
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {
