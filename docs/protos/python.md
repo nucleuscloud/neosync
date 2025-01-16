@@ -24,103 +24,45 @@ You can add the Neosync Python SDK using:
 
 There are a few prerequisites that the SDK needs in order to be properly configured.
 
-| **Properties** | **Details**                                                                                                                                                                 |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **API URL**    | Production: `https://neosync-api.svcs.neosync.dev`<br /> Local: `http://localhost:8080`                                                                                     |
-| **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App                                       |
-| **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |
+| **Properties** | **Details**                                                                                                                                                                 | **Default**                      |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App.                                      |                                  |
+| **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |                                  |
+| **API URL**    | The instance of Neosync to point to.                                                                                                                                        | neosync-api.svcs.neosync.dev:443 |
 
 ## Authentication
 
 If you are using Neosync locally and in unauthenticated mode then there is no authentication required and you can move onto the [Getting Started](go#getting-started) section.
 
-If you are using Neosync locally in `auth mode` or using Neosync Cloud, you can authenticate with the Neosync server using an API URL and API Key. Here is an example showing how to authenticate with Neosync's GRPC server.
+If you are using Neosync locally in `auth mode` or using **Neosync Cloud**, you can authenticate with the Neosync server using an API Key or Access Token. Here is an example showing how to authenticate with Neosync's server.
 
 ```python
-import grpc
-import json
+from neosync import Neosync
 import os
 
-from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
-from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
-from neosync.mgmt.v1alpha1.transformer_pb2 import TransformerConfig, TransformPiiText
-
 def main():
-
-    # Creates TLS credentials for secure communication
-    channel_credentials = grpc.ssl_channel_credentials()
-
-    # Opens a secure channel to communication to the GRPC endpoint
-    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
-
-    # Creates an client stub that we can use to invoke the AnonymizationService
-    stub = AnonymizationServiceStub(channel)
-
-    # Defines the Transformer that we want to use
-    transformer_mapping = TransformerMapping(
-        expression=".text",
-        transformer=TransformerConfig(
-            transform_pii_text_config=TransformPiiText(
-                score_threshold=0.5,
-            )
-        )
+    client = Neosync(
+        # Optional, defaults to Neosync Cloud if not provided
+        api_url=os.getenv("NEOSYNC_API_URL"),
+        # Optional if connecting to a custom instance of Neosync with no auth
+        access_token=os.getenv("NEOSYNC_API_KEY"),
     )
 
-    # Defines our data input
-    data = {'text': "This is John Williams and I need to be anonymized!"}
-
-    # Stringifies the json in order to pass it into the API
-    input_data = json.dumps(data)
-
-    # Sets the Neosync API token to authenticate with the Neosync API Server
-    access_token = '<neosnc-api-token>'
-
-    # Defines metadata and an authorization header
-    metadata = [('authorization', f'Bearer {access_token}')] if access_token else None
-
-    try:
-            # Make the RPC call
-            response = stub.AnonymizeSingle(
-                AnonymizeSingleRequest(
-                    input_data=input_data,
-                    transformer_mappings=[transformer_mapping],
-                    account_id="<neosync-aaccount-id>"
-                ),
-                metadata=metadata
-            )
-
-            # Parse and print response
-            try:
-                output_data = json.loads(response.output_data)
-                print("Anonymized data:", output_data)
-            except json.JSONDecodeError:
-                print("Raw response:", response.output_data)
-    except grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.UNAUTHENTICATED:
-            print("Authentication failed - please check your access token")
-        elif e.code() == grpc.StatusCode.UNAVAILABLE:
-            print("Failed to connect to server. Please check the hostname and port.")
-        else:
-            print(f"RPC failed: {e.code()}, {e.details()}")
-    finally:
-        channel.close()
 if __name__ == "__main__":
     main()
 ```
 
 ## Getting started
 
-In this section, we're going to walk through two examples that show you how to make an API call using Neosync's Python SDK. For a complete list of the APIs, check out the APIs in the `Services` section of our [protos](/api/mgmt/v1alpha1/job.proto#jobservice).
+In this section, we're going to walk through two examples that show you how to make an API call using Neosync's Python SDK. For a complete list of the APIs, check out the APIs in the `Services` section of each proto file. ex.: [AnonymizationService](/api/mgmt/v1alpha1/anonymization.proto#anonymizationservice).
 
-Neosync is made up of a number of different services that live inside of the same process. All of the services are exposed through a stub class called `<service_name>Stub` which you can import from the `neosync.mgmt.v1alpa1.<service_name>_pb2_grpc` module. For example, the Anonymization service is available at:
+Neosync is made up of a number of different services that live inside of the same process. These are all present on the `Neosync` client class.
 
-- `from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub`
+Each function that is called has a corresponding request and response class.
 
-The types for this package are available at:
+For example, the `AnonymizeSingle` function has a corresponding request class called `AnonymizeSingleRequest` and a corresponding response class called `AnonymizeSingleResponse`.
 
-- `from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest`
-
-Notice the different in the file names between the GRPC service stubs and the types. The GRPC service stubs end in a `_grpc` suffix while the types end in `_pb2`.
+These are all importable directly from the root `neosync` package, or may be imported from the `neosync.mgmt.v1alpha1` package.
 
 All services are structured this way.
 
@@ -151,85 +93,69 @@ Here's how you do it:
 
 ```python
 
-import grpc
 import json
 import os
 
-from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
-from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
-from neosync.mgmt.v1alpha1.transformer_pb2 import TransformerConfig, TransformCharacterScramble, TransformFullName, TransformEmail
+from neosync import (
+    Neosync,
+    AnonymizeSingleRequest,
+    AnonymizeSingleResponse,
+    TransformerMapping,
+    TransformerConfig,
+    TransformCharacterScramble,
+    TransformFullName,
+    TransformEmail,
+)
+
+ACCESS_TOKEN = os.getenv("NEOSYNC_API_KEY")
+ACCOUNT_ID = os.getenv("NEOSYNC_ACCOUNT_ID")
+
 
 def main():
+    client = Neosync(access_token=ACCESS_TOKEN)
 
-    channel_credentials = grpc.ssl_channel_credentials()
-
-    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
-    stub = AnonymizationServiceStub(channel)
-
-    transformer_mapping = [TransformerMapping(
-        expression=".user.name",
-        transformer=TransformerConfig(
-            transform_full_name_config=TransformFullName(
-                preserve_length=True,
-            )
-        )
-    ),TransformerMapping(
-        expression=".user.email",
-        transformer=TransformerConfig(
-            transform_email_config=TransformEmail(
-            )
-        )
-    ),TransformerMapping(
-        expression=".details.favorites[]",
-        transformer=TransformerConfig(
-            transform_character_scramble_config=TransformCharacterScramble(
-            )
-        )
-    )]
-
-    data = {
-        "user": {
-            "name": "John Doe",
-            "email": "john@example.com"
-        },
-        "details": {
-            "address": "123 Main St",
-            "phone": "555-1234",
-            "favorites": ["dog", "cat", "bird"]
+    input_data = json.dumps(
+        {
+            "user": {"name": "John Doe", "email": "john@example.com"},
+            "details": {
+                "address": "123 Main St",
+                "phone": "555-1234",
+                "favorites": ["dog", "cat", "bird"],
+            },
         }
-    }
+    )
 
-    input_data = json.dumps(data)
-
-    access_token = 'neosync-api-token'
-    metadata = [('authorization', f'Bearer {access_token}')] if access_token else None
-
-    try:
-            # Make the RPC call
-            response = stub.AnonymizeSingle(
-                AnonymizeSingleRequest(
-                    input_data=input_data,
-                    transformer_mappings=transformer_mapping,
-                    account_id="neosync-account-id"
+    response: AnonymizeSingleResponse = client.anonymization.AnonymizeSingle(
+        AnonymizeSingleRequest(
+            input_data=input_data,
+            transformer_mappings=[
+                TransformerMapping(
+                    expression=".user.name",
+                    transformer=TransformerConfig(
+                        transform_full_name_config=TransformFullName(
+                            preserve_length=True,
+                        )
+                    ),
                 ),
-                metadata=metadata
-            )
+                TransformerMapping(
+                    expression=".user.email",
+                    transformer=TransformerConfig(
+                        transform_email_config=TransformEmail()
+                    ),
+                ),
+                TransformerMapping(
+                    expression=".details.favorites[]",
+                    transformer=TransformerConfig(
+                        transform_character_scramble_config=TransformCharacterScramble()
+                    ),
+                ),
+            ],
+            account_id=ACCOUNT_ID,
+        ),
+    )
+    print(json.loads(response.output_data))
 
-            # Parse and print response
-            try:
-                output_data = json.loads(response.output_data)
-                print("Anonymized data:", output_data)
-            except json.JSONDecodeError:
-                print("Raw response:", response.output_data)
-    except grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.UNAUTHENTICATED:
-            print("Authentication failed - please check your access token")
-        elif e.code() == grpc.StatusCode.UNAVAILABLE:
-            print("Failed to connect to server. Please check the hostname and port.")
-        else:
-            print(f"RPC failed: {e.code()}, {e.details()}")
-    finally:
-        channel.close()
+
 if __name__ == "__main__":
     main()
 
@@ -272,65 +198,53 @@ The best part is that all you have to do is change a transformer, that's it! Her
 Our input object is a transcription from a call from a doctor's office. In this transcript, we have PII (personally identifiable information) such as names (John Chang, Jake), social security number (246-80-1357) and dates(8/1/2024). Using Neosync's `TransformPiiText` transformer, you can easily anonymize the sensitive data in this text. See [here](https://docs.neosync.dev/api/mgmt/v1alpha1/transformer.proto#transformpiitext) for the `TransformPiiText` proto definition.
 
 ```python
-import grpc
 import json
 import os
 
-from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
-from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
-from neosync.mgmt.v1alpha1.transformer_pb2 import TransformerConfig, TransformPiiText
+from neosync import (
+    Neosync,
+    AnonymizeSingleRequest,
+    AnonymizeSingleResponse,
+    TransformerMapping,
+    TransformerConfig,
+    TransformPiiText,
+)
+
+ACCESS_TOKEN = os.getenv("NEOSYNC_API_KEY")
+ACCOUNT_ID = os.getenv("NEOSYNC_ACCOUNT_ID")
+
 
 def main():
+    client = Neosync(access_token=ACCESS_TOKEN)
 
-    channel_credentials = grpc.ssl_channel_credentials()
-
-    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
-    stub = AnonymizationServiceStub(channel)
-
-    transformer_mapping = TransformerMapping(
-        expression=".text",
-        transformer=TransformerConfig(
-            transform_pii_text_config=TransformPiiText(
-                score_threshold=0.5,
-            )
-        )
+    input_data = json.dumps(
+        {
+            "text": "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?"
+        }
     )
 
-    data =  {"text": "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?"}
+    response: AnonymizeSingleResponse = client.anonymization.AnonymizeSingle(
+        AnonymizeSingleRequest(
+            input_data=input_data,
+            transformer_mappings=[
+                TransformerMapping(
+                    expression=".text",
+                    transformer=TransformerConfig(
+                        transform_pii_text_config=TransformPiiText(
+                            score_threshold=0.5,
+                        )
+                    ),
+                )
+            ],
+            account_id=ACCOUNT_ID,
+        ),
+    )
+    print(json.loads(response.output_data))
 
-    input_data = json.dumps(data)
 
-    access_token = '<neosync-api-token>'
-    metadata = [('authorization', f'Bearer {access_token}')] if access_token else None
-
-    try:
-            # Make the RPC call
-            response = stub.AnonymizeSingle(
-                AnonymizeSingleRequest(
-                    input_data=input_data,
-                    transformer_mappings=[transformer_mapping],
-                    account_id="<neosync-account-id>"
-                ),
-                metadata=metadata
-            )
-
-            # Parse and print response
-            try:
-                output_data = json.loads(response.output_data)
-                print("Anonymized data:", output_data)
-            except json.JSONDecodeError:
-                print("Raw response:", response.output_data)
-    except grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.UNAUTHENTICATED:
-            print("Authentication failed - please check your access token")
-        elif e.code() == grpc.StatusCode.UNAVAILABLE:
-            print("Failed to connect to server. Please check the hostname and port.")
-        else:
-            print(f"RPC failed: {e.code()}, {e.details()}")
-    finally:
-        channel.close()
 if __name__ == "__main__":
     main()
+
 ```
 
 Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API uses [JQ](https://jqlang.github.io/jq/manual/) expressions to target field(s) in your object. This means that you don't have to parse your object before sending it to Neosync. You can pass it in as-is and just write JQ expressions to target the field(s) that you want to anonymize or generate.
@@ -351,37 +265,83 @@ Another common use case is to create resources in Neosync such as Jobs, Connecti
 Let's augment our code from above to call the `CreateJobRun` API.
 
 ```python
-import grpc
-import json
 import os
 
-from neosync.mgmt.v1alpha1.job_pb2_grpc import JobServiceStub
-from neosync.mgmt.v1alpha1.job_pb2 import CreateJobRunRequest
+from neosync import (
+    Neosync,
+    CreateJobRunRequest,
+)
 
-from google.protobuf.json_format import MessageToDict, MessageToJson
+ACCESS_TOKEN = os.getenv("NEOSYNC_API_KEY")
+
 
 def main():
+    client = Neosync(access_token=ACCESS_TOKEN)
 
-    channel_credentials = grpc.ssl_channel_credentials()
+    # Create a job run, returns an empty response
+    client.jobs.CreateJobRun(
+        CreateJobRunRequest(job_id="your-job-id"),
+    )
 
-    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
-    stub = JobServiceStub(channel)
 
-    access_token = '<neosync-api-token>'
-    metadata = [('authorization', f'Bearer {access_token}')] if access_token else None
+if __name__ == "__main__":
+    main()
+
+```
+
+## Error Handling
+
+Most of these examples show the happy path. This section details how to properly catch errors when using the Python SDK.
+
+Today the Python SDK connects to Neosync using gRPC. This means that you can catch errors using the `grpc` library, which is installed as a dependency to this SDK.
+
+Here is the anonymize single example from above, but with some basic error handling added in.
+
+```python
+import json
+import os
+import grpc
+
+from neosync import (
+    Neosync,
+    AnonymizeSingleRequest,
+    AnonymizeSingleResponse,
+    TransformerMapping,
+    TransformerConfig,
+    TransformPiiText,
+)
+
+ACCESS_TOKEN = os.getenv("NEOSYNC_API_KEY")
+ACCOUNT_ID = os.getenv("NEOSYNC_ACCOUNT_ID")
+
+
+def main():
+    client = Neosync(access_token=ACCESS_TOKEN)
+
+    input_data = json.dumps(
+        {
+            "text": "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?"
+        }
+    )
 
     try:
-            # Make the RPC call
-            response = stub.CreateJobRun(
-                CreateJobRunRequest(job_id="<job-id>"),
-                metadata=metadata
-            )
-            # Parse and print response
-            try:
-                response_json = MessageToJson(response)
-                print(response_json)
-            except json.JSONDecodeError:
-                print("Raw response:", response)
+        response: AnonymizeSingleResponse = client.anonymization.AnonymizeSingle(
+            AnonymizeSingleRequest(
+                input_data=input_data,
+                transformer_mappings=[
+                    TransformerMapping(
+                        expression=".text",
+                        transformer=TransformerConfig(
+                            transform_pii_text_config=TransformPiiText(
+                                score_threshold=0.5,
+                            )
+                        ),
+                    )
+                ],
+                account_id=ACCOUNT_ID,
+            ),
+        )
+        print(json.loads(gresponse.output_data))
     except grpc.RpcError as e:
         if e.code() == grpc.StatusCode.UNAUTHENTICATED:
             print("Authentication failed - please check your access token")
@@ -389,8 +349,43 @@ def main():
             print("Failed to connect to server. Please check the hostname and port.")
         else:
             print(f"RPC failed: {e.code()}, {e.details()}")
-    finally:
-        channel.close()
+
+if __name__ == "__main__":
+    main()
+
+```
+
+## Decoding Anonymization `output_data`
+
+When using the `TransformPiiText` transformer, you may notice that the output output of redacted text can sometimes be in an escaped format. So instead of `<PERSON>` you see `\u003cPERSON\u003e`. This is because the `output_data` is returned as a stringifed JSON object.
+
+There are a few ways to decode this properly:
+
+### Decoding as a JSON object
+
+The `output_data` is a stringified JSON object. You can use `json.loads()` to decode the string into a JSON object.
+
+### Decoding as a string
+
+You can use the `response.output_data.encode().decode("unicode-escape")` method.
+
+This will properly decode the escaped characters in the output data. This can be printed or passed into `json.loads()` to then extract your data as needed.
+
+## Context Manager
+
+The Neosync Python SDK also supports context managers. This means that you can use the `with` statement to create a Neosync client and automatically close the gRPC channel when you're done.
+Otherwise, you'll need to call `client.close()` manually (only if it's desired to cleanly close the gRPC channel).
+
+Here's an example:
+
+```python
+from neosync import Neosync
+
+def main():
+    with Neosync() as client:
+        # Do something with the client
+        pass
+
 if __name__ == "__main__":
     main()
 ```

@@ -8,11 +8,16 @@ export function getAiSampleTableColumns(
     return {
       accessorKey: key,
       header: () => <p>{key}</p>,
-      cell: ({ getValue }) => (
-        <div>
-          <p>{getValue<string>()}</p>
-        </div>
-      ),
+      cell: ({ getValue }) => {
+        const rawValue = getValue();
+        const value =
+          typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue);
+        return (
+          <div>
+            <p>{value}</p>
+          </div>
+        );
+      },
     };
   });
 }

@@ -41,6 +41,10 @@ import {
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
+  toColumnRemovalStrategy,
+  toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
@@ -899,6 +903,9 @@ function toJobSourceOptions(
               toJobSourcePostgresNewColumnAdditionStrategy(
                 values.sourceOptions.postgres?.newColumnAdditionStrategy
               ),
+            columnRemovalStrategy: toJobSourcePostgresColumnRemovalStrategy(
+              values.sourceOptions.postgres?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -912,6 +919,9 @@ function toJobSourceOptions(
             connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.mysql?.haltOnNewColumnAddition ?? false,
+            columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
+              values.sourceOptions.mysql?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -974,6 +984,9 @@ function toJobSourceOptions(
             connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.mssql?.haltOnNewColumnAddition ?? false,
+            columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
+              values.sourceOptions.mssql?.columnRemovalStrategy
+            ),
           }),
         },
       });
@@ -1119,6 +1132,9 @@ function getJobSource(
             newColumnAdditionStrategy: toNewColumnAdditionStrategy(
               job.source.options.config.value.newColumnAdditionStrategy
             ),
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1130,6 +1146,9 @@ function getJobSource(
           mysql: {
             haltOnNewColumnAddition:
               job?.source?.options?.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1175,6 +1194,9 @@ function getJobSource(
           mssql: {
             haltOnNewColumnAddition:
               job?.source?.options?.config.value.haltOnNewColumnAddition,
+            columnRemovalStrategy: toColumnRemovalStrategy(
+              job.source.options.config.value.columnRemovalStrategy
+            ),
           },
         },
       };
@@ -1229,6 +1251,7 @@ async function getUpdatedValues(
         sourceOptions: {
           postgres: {
             newColumnAdditionStrategy: 'halt',
+            columnRemovalStrategy: 'continue',
           },
         },
       };
@@ -1238,6 +1261,7 @@ async function getUpdatedValues(
         sourceOptions: {
           mysql: {
             haltOnNewColumnAddition: false,
+            columnRemovalStrategy: 'continue',
           },
         },
       };
@@ -1259,6 +1283,7 @@ async function getUpdatedValues(
         sourceOptions: {
           mssql: {
             haltOnNewColumnAddition: false,
+            columnRemovalStrategy: 'continue',
           },
         },
       };

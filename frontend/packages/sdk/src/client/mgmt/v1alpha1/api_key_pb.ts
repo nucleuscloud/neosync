@@ -13,18 +13,22 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/api_key.proto.
  */
 export const file_mgmt_v1alpha1_api_key: GenFile = /*@__PURE__*/
-  fileDesc("ChttZ210L3YxYWxwaGExL2FwaV9rZXkucHJvdG8SDW1nbXQudjFhbHBoYTEipwEKGkNyZWF0ZUFjY291bnRBcGlLZXlSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEicKBG5hbWUYAiABKAlCGbpIFnIUMhJeW2EtejAtOS1dezMsMTAwfSQSQgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCErpID8gBAbIBCUoFCIDnhA9AASJMChtDcmVhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2USLQoHYXBpX2tleRgBIAEoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSKyAgoNQWNjb3VudEFwaUtleRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhIKCmFjY291bnRfaWQYAyABKAkSFQoNY3JlYXRlZF9ieV9pZBgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg11cGRhdGVkX2J5X2lkGAYgASgJEi4KCnVwZGF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhYKCWtleV92YWx1ZRgIIAEoCUgAiAEBEg8KB3VzZXJfaWQYCSABKAkSLgoKZXhwaXJlc19hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCDAoKX2tleV92YWx1ZSI4ChhHZXRBY2NvdW50QXBpS2V5c1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiSwoZR2V0QWNjb3VudEFwaUtleXNSZXNwb25zZRIuCghhcGlfa2V5cxgBIAMoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSIvChdHZXRBY2NvdW50QXBpS2V5UmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiSQoYR2V0QWNjb3VudEFwaUtleVJlc3BvbnNlEi0KB2FwaV9rZXkYASABKAsyHC5tZ210LnYxYWxwaGExLkFjY291bnRBcGlLZXkiegoeUmVnZW5lcmF0ZUFjY291bnRBcGlLZXlSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARJCCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEISukgPyAEBsgEJSgUIgOeED0ABIlAKH1JlZ2VuZXJhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2USLQoHYXBpX2tleRgBIAEoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSIyChpEZWxldGVBY2NvdW50QXBpS2V5UmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiHQobRGVsZXRlQWNjb3VudEFwaUtleVJlc3BvbnNlMrwECg1BcGlLZXlTZXJ2aWNlEmgKEUdldEFjY291bnRBcGlLZXlzEicubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QXBpS2V5c1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLkdldEFjY291bnRBcGlLZXlzUmVzcG9uc2UiABJlChBHZXRBY2NvdW50QXBpS2V5EiYubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QXBpS2V5UmVxdWVzdBonLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEFwaUtleVJlc3BvbnNlIgASbgoTQ3JlYXRlQWNjb3VudEFwaUtleRIpLm1nbXQudjFhbHBoYTEuQ3JlYXRlQWNjb3VudEFwaUtleVJlcXVlc3QaKi5tZ210LnYxYWxwaGExLkNyZWF0ZUFjY291bnRBcGlLZXlSZXNwb25zZSIAEnoKF1JlZ2VuZXJhdGVBY2NvdW50QXBpS2V5Ei0ubWdtdC52MWFscGhhMS5SZWdlbmVyYXRlQWNjb3VudEFwaUtleVJlcXVlc3QaLi5tZ210LnYxYWxwaGExLlJlZ2VuZXJhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2UiABJuChNEZWxldGVBY2NvdW50QXBpS2V5EikubWdtdC52MWFscGhhMS5EZWxldGVBY2NvdW50QXBpS2V5UmVxdWVzdBoqLm1nbXQudjFhbHBoYTEuRGVsZXRlQWNjb3VudEFwaUtleVJlc3BvbnNlIgBCxwEKEWNvbS5tZ210LnYxYWxwaGExQgtBcGlLZXlQcm90b1ABWlBnaXRodWIuY29tL251Y2xldXNjbG91ZC9uZW9zeW5jL2JhY2tlbmQvZ2VuL2dvL3Byb3Rvcy9tZ210L3YxYWxwaGExO21nbXR2MWFscGhhMaICA01YWKoCDU1nbXQuVjFhbHBoYTHKAg1NZ210XFYxYWxwaGEx4gIZTWdtdFxWMWFscGhhMVxHUEJNZXRhZGF0YeoCDk1nbXQ6OlYxYWxwaGExYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("ChttZ210L3YxYWxwaGExL2FwaV9rZXkucHJvdG8SDW1nbXQudjFhbHBoYTEipwEKGkNyZWF0ZUFjY291bnRBcGlLZXlSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEicKBG5hbWUYAiABKAlCGbpIFnIUMhJeW2EtejAtOS1dezMsMTAwfSQSQgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCErpID8gBAbIBCUoFCIDnhA9AASJMChtDcmVhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2USLQoHYXBpX2tleRgBIAEoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSKyAgoNQWNjb3VudEFwaUtleRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhIKCmFjY291bnRfaWQYAyABKAkSFQoNY3JlYXRlZF9ieV9pZBgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg11cGRhdGVkX2J5X2lkGAYgASgJEi4KCnVwZGF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhYKCWtleV92YWx1ZRgIIAEoCUgAiAEBEg8KB3VzZXJfaWQYCSABKAkSLgoKZXhwaXJlc19hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCDAoKX2tleV92YWx1ZSI4ChhHZXRBY2NvdW50QXBpS2V5c1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiSwoZR2V0QWNjb3VudEFwaUtleXNSZXNwb25zZRIuCghhcGlfa2V5cxgBIAMoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSIvChdHZXRBY2NvdW50QXBpS2V5UmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiSQoYR2V0QWNjb3VudEFwaUtleVJlc3BvbnNlEi0KB2FwaV9rZXkYASABKAsyHC5tZ210LnYxYWxwaGExLkFjY291bnRBcGlLZXkiegoeUmVnZW5lcmF0ZUFjY291bnRBcGlLZXlSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARJCCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEISukgPyAEBsgEJSgUIgOeED0ABIlAKH1JlZ2VuZXJhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2USLQoHYXBpX2tleRgBIAEoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEFwaUtleSIyChpEZWxldGVBY2NvdW50QXBpS2V5UmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiHQobRGVsZXRlQWNjb3VudEFwaUtleVJlc3BvbnNlMsIECg1BcGlLZXlTZXJ2aWNlEmsKEUdldEFjY291bnRBcGlLZXlzEicubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QXBpS2V5c1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLkdldEFjY291bnRBcGlLZXlzUmVzcG9uc2UiA5ACARJoChBHZXRBY2NvdW50QXBpS2V5EiYubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QXBpS2V5UmVxdWVzdBonLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEFwaUtleVJlc3BvbnNlIgOQAgESbgoTQ3JlYXRlQWNjb3VudEFwaUtleRIpLm1nbXQudjFhbHBoYTEuQ3JlYXRlQWNjb3VudEFwaUtleVJlcXVlc3QaKi5tZ210LnYxYWxwaGExLkNyZWF0ZUFjY291bnRBcGlLZXlSZXNwb25zZSIAEnoKF1JlZ2VuZXJhdGVBY2NvdW50QXBpS2V5Ei0ubWdtdC52MWFscGhhMS5SZWdlbmVyYXRlQWNjb3VudEFwaUtleVJlcXVlc3QaLi5tZ210LnYxYWxwaGExLlJlZ2VuZXJhdGVBY2NvdW50QXBpS2V5UmVzcG9uc2UiABJuChNEZWxldGVBY2NvdW50QXBpS2V5EikubWdtdC52MWFscGhhMS5EZWxldGVBY2NvdW50QXBpS2V5UmVxdWVzdBoqLm1nbXQudjFhbHBoYTEuRGVsZXRlQWNjb3VudEFwaUtleVJlc3BvbnNlIgBCxwEKEWNvbS5tZ210LnYxYWxwaGExQgtBcGlLZXlQcm90b1ABWlBnaXRodWIuY29tL251Y2xldXNjbG91ZC9uZW9zeW5jL2JhY2tlbmQvZ2VuL2dvL3Byb3Rvcy9tZ210L3YxYWxwaGExO21nbXR2MWFscGhhMaICA01YWKoCDU1nbXQuVjFhbHBoYTHKAg1NZ210XFYxYWxwaGEx4gIZTWdtdFxWMWFscGhhMVxHUEJNZXRhZGF0YeoCDk1nbXQ6OlYxYWxwaGExYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message mgmt.v1alpha1.CreateAccountApiKeyRequest
  */
 export type CreateAccountApiKeyRequest = Message<"mgmt.v1alpha1.CreateAccountApiKeyRequest"> & {
   /**
+   * The unique identifier of the account to create the API key for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
+   * The friendly name of the API key
+   *
    * @generated from field: string name = 2;
    */
   name: string;
@@ -49,6 +53,8 @@ export const CreateAccountApiKeyRequestSchema: GenMessage<CreateAccountApiKeyReq
  */
 export type CreateAccountApiKeyResponse = Message<"mgmt.v1alpha1.CreateAccountApiKeyResponse"> & {
   /**
+   * The created API key
+   *
    * @generated from field: mgmt.v1alpha1.AccountApiKey api_key = 1;
    */
   apiKey?: AccountApiKey;
@@ -66,6 +72,8 @@ export const CreateAccountApiKeyResponseSchema: GenMessage<CreateAccountApiKeyRe
  */
 export type AccountApiKey = Message<"mgmt.v1alpha1.AccountApiKey"> & {
   /**
+   * The unique identifier of the API key
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -78,26 +86,36 @@ export type AccountApiKey = Message<"mgmt.v1alpha1.AccountApiKey"> & {
   name: string;
 
   /**
+   * The unique identifier of the account that the API key belongs to
+   *
    * @generated from field: string account_id = 3;
    */
   accountId: string;
 
   /**
+   * The unique identifier of the user that created the API key
+   *
    * @generated from field: string created_by_id = 4;
    */
   createdById: string;
 
   /**
+   * The timestamp of when the API key was created
+   *
    * @generated from field: google.protobuf.Timestamp created_at = 5;
    */
   createdAt?: Timestamp;
 
   /**
+   * The unique identifier of the user that last updated the API key
+   *
    * @generated from field: string updated_by_id = 6;
    */
   updatedById: string;
 
   /**
+   * The timestamp of when the API key was last updated
+   *
    * @generated from field: google.protobuf.Timestamp updated_at = 7;
    */
   updatedAt?: Timestamp;
@@ -110,6 +128,8 @@ export type AccountApiKey = Message<"mgmt.v1alpha1.AccountApiKey"> & {
   keyValue?: string;
 
   /**
+   * The unique identifier of the user that the API key belongs to (Each API Key is associated with its own user record to identify what the API key does in the system)
+   *
    * @generated from field: string user_id = 9;
    */
   userId: string;
@@ -134,6 +154,8 @@ export const AccountApiKeySchema: GenMessage<AccountApiKey> = /*@__PURE__*/
  */
 export type GetAccountApiKeysRequest = Message<"mgmt.v1alpha1.GetAccountApiKeysRequest"> & {
   /**
+   * The unique identifier of the account to get the API keys for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -151,6 +173,8 @@ export const GetAccountApiKeysRequestSchema: GenMessage<GetAccountApiKeysRequest
  */
 export type GetAccountApiKeysResponse = Message<"mgmt.v1alpha1.GetAccountApiKeysResponse"> & {
   /**
+   * The list of API keys for the account.
+   *
    * @generated from field: repeated mgmt.v1alpha1.AccountApiKey api_keys = 1;
    */
   apiKeys: AccountApiKey[];
@@ -168,6 +192,8 @@ export const GetAccountApiKeysResponseSchema: GenMessage<GetAccountApiKeysRespon
  */
 export type GetAccountApiKeyRequest = Message<"mgmt.v1alpha1.GetAccountApiKeyRequest"> & {
   /**
+   * The unique identifier of the API key to get.
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -185,6 +211,8 @@ export const GetAccountApiKeyRequestSchema: GenMessage<GetAccountApiKeyRequest> 
  */
 export type GetAccountApiKeyResponse = Message<"mgmt.v1alpha1.GetAccountApiKeyResponse"> & {
   /**
+   * The API key that was retrieved.
+   *
    * @generated from field: mgmt.v1alpha1.AccountApiKey api_key = 1;
    */
   apiKey?: AccountApiKey;
@@ -202,6 +230,8 @@ export const GetAccountApiKeyResponseSchema: GenMessage<GetAccountApiKeyResponse
  */
 export type RegenerateAccountApiKeyRequest = Message<"mgmt.v1alpha1.RegenerateAccountApiKeyRequest"> & {
   /**
+   * The unique identifier of the API key to regenerate.
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -226,6 +256,8 @@ export const RegenerateAccountApiKeyRequestSchema: GenMessage<RegenerateAccountA
  */
 export type RegenerateAccountApiKeyResponse = Message<"mgmt.v1alpha1.RegenerateAccountApiKeyResponse"> & {
   /**
+   * The regenerated API key
+   *
    * @generated from field: mgmt.v1alpha1.AccountApiKey api_key = 1;
    */
   apiKey?: AccountApiKey;
@@ -243,6 +275,8 @@ export const RegenerateAccountApiKeyResponseSchema: GenMessage<RegenerateAccount
  */
 export type DeleteAccountApiKeyRequest = Message<"mgmt.v1alpha1.DeleteAccountApiKeyRequest"> & {
   /**
+   * The unique identifier of the API key to delete.
+   *
    * @generated from field: string id = 1;
    */
   id: string;

@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -1552,7 +1553,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 
 		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
 		mockanon := presidioapi.NewMockAnonymizeInterface(t)
-
+		mockneosync := ee_transformer_fns.NewMockNeosyncOperatorApi(t)
 		mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnalyzeResponse{
 				JSON200: &[]presidioapi.RecognizerResultWithAnaysisExplanation{
@@ -1563,12 +1564,12 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		mockText := "bar"
 		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnonymizeResponse{
-				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText, Items: &[]presidioapi.OperatorResult{}},
 			}, nil)
 		defaultLan := "en"
 
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, mockneosync, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)
@@ -1589,6 +1590,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 
 		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
 		mockanon := presidioapi.NewMockAnonymizeInterface(t)
+		mockneosync := ee_transformer_fns.NewMockNeosyncOperatorApi(t)
 
 		mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnalyzeResponse{
@@ -1600,11 +1602,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		mockText := "bar"
 		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
 			Return(&presidioapi.PostAnonymizeResponse{
-				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText, Items: &[]presidioapi.OperatorResult{}},
 			}, nil)
 		defaultLan := "en"
 		execOpts := []TransformerExecutorOption{
-			WithTransformPiiTextConfig(mockanalyze, mockanon, &defaultLan),
+			WithTransformPiiTextConfig(mockanalyze, mockanon, mockneosync, &defaultLan),
 		}
 		executor, err := InitializeTransformerByConfigType(config, execOpts...)
 		require.NoError(t, err)

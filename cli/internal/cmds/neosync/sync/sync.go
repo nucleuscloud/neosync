@@ -637,6 +637,16 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig, tables map[string]s
 	if cmd.Destination != nil {
 		switch cmd.Destination.Driver {
 		case postgresDriver:
+			conflictConfig := &mgmtv1alpha1.PostgresOnConflictConfig{}
+			if cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
+				conflictConfig.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Update{
+					Update: &mgmtv1alpha1.PostgresOnConflictConfig_PostgresOnConflictUpdate{},
+				}
+			} else if cmd.Destination.OnConflict.DoNothing {
+				conflictConfig.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Nothing{
+					Nothing: &mgmtv1alpha1.PostgresOnConflictConfig_PostgresOnConflictDoNothing{},
+				}
+			}
 			return &mgmtv1alpha1.JobDestinationOptions{
 				Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 					PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -645,11 +655,9 @@ func cmdConfigToDestinationConnectionOptions(cmd *cmdConfig, tables map[string]s
 							Cascade:              cmd.Destination.TruncateCascade,
 						},
 						InitTableSchema: cmd.Destination.InitSchema,
-						OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
-							DoNothing: cmd.Destination.OnConflict.DoNothing,
-						},
-						MaxInFlight: cmd.Destination.MaxInFlight,
-						Batch:       cmdConfigSqlDestinationToBatch(cmd.Destination),
+						OnConflict:      conflictConfig,
+						MaxInFlight:     cmd.Destination.MaxInFlight,
+						Batch:           cmdConfigSqlDestinationToBatch(cmd.Destination),
 					},
 				},
 			}

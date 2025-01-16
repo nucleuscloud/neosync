@@ -7,16 +7,19 @@ import "google/protobuf/timestamp.proto";
 
 message GetUserRequest {}
 message GetUserResponse {
+  // The unique identifier of the user that was retrieved.
   string user_id = 1;
 }
 
 message SetUserRequest {}
 message SetUserResponse {
+  // The unique identifier of the user that was created.
   string user_id = 1;
 }
 
 message GetUserAccountsRequest {}
 message GetUserAccountsResponse {
+  // The list of accounts that the user belongs to.
   repeated UserAccount accounts = 1;
 }
 
@@ -33,8 +36,11 @@ message UserAccount {
 
 enum UserAccountType {
   USER_ACCOUNT_TYPE_UNSPECIFIED = 0;
+  // A personal account is an account that is owned by a single user.
   USER_ACCOUNT_TYPE_PERSONAL = 1;
+  // A team account is an account that is owned by a team of users.
   USER_ACCOUNT_TYPE_TEAM = 2;
+  // An enterprise account is an account that is owned by an enterprise.
   USER_ACCOUNT_TYPE_ENTERPRISE = 3;
 }
 
@@ -56,34 +62,45 @@ message ConvertPersonalToTeamAccountResponse {
 
 message SetPersonalAccountRequest {}
 message SetPersonalAccountResponse {
+  // The unique identifier of the personal account that was created.
   string account_id = 1;
 }
 
 message IsUserInAccountRequest {
+  // The unique identifier of the account to check if the user is in.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message IsUserInAccountResponse {
+  // Whether or not the user is in the account.
   bool ok = 1;
 }
 
 message GetAccountTemporalConfigRequest {
+  // The unique identifier of the account to get the temporal config for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetAccountTemporalConfigResponse {
+  // The temporal config for the account.
   AccountTemporalConfig config = 1;
 }
 
 message SetAccountTemporalConfigRequest {
+  // The unique identifier of the account to set the temporal config for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The temporal config to set for the account.
   AccountTemporalConfig config = 2;
 }
 message SetAccountTemporalConfigResponse {
+  // The temporal config that was set for the account.
   AccountTemporalConfig config = 1;
 }
 
 message AccountTemporalConfig {
+  // The temporal url for the account.
   string url = 1 [(buf.validate.field).string.min_len = 1];
+  // The temporal namespace for the account.
   string namespace = 2 [(buf.validate.field).string.min_len = 1];
+  // The temporal sync job queue name for the account.
   string sync_job_queue_name = 3 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -92,21 +109,27 @@ message CreateTeamAccountRequest {
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 message CreateTeamAccountResponse {
+  // The unique identifier of the team account that was created.
   string account_id = 1;
   // If NeosyncCloud, will respond with a checkout session url so they can setup billing
   optional string checkout_session_url = 2;
 }
 
 message AccountUser {
+  // The unique identifier of the user.
   string id = 1;
+  // The name of the user (if there is one)
   string name = 2;
+  // The image of the user (if there is one)
   string image = 3;
+  // The email of the user.
   string email = 4;
   // The role of the user in the account. If RBAC is not enabled, will be unspecified.
   AccountRole role = 5;
 }
 
 message GetTeamAccountMembersRequest {
+  // The unique identifier of the account to get the members for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetTeamAccountMembersResponse {
@@ -114,54 +137,71 @@ message GetTeamAccountMembersResponse {
 }
 
 message RemoveTeamAccountMemberRequest {
+  // The unique identifier of the user to remove from the account.
   string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the account to remove the user from.
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message RemoveTeamAccountMemberResponse {}
 
 message InviteUserToTeamAccountRequest {
-  // The account id to invite the user to
+  // The unique identifier of the account to invite the user to.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  // The email of the user to invite
+  // The email of the user to invite.
   string email = 2 [(buf.validate.field).string.min_len = 1];
   // The role of the user to invite. Only used if RBAC is enabled.
   optional AccountRole role = 3;
 }
 
 message AccountInvite {
+  // The unique identifier of the invite.
   string id = 1;
+  // The unique identifier of the account to invite the user to.
   string account_id = 2;
+  // The unique identifier of the user that sent the invite.
   string sender_user_id = 3;
+  // The email of the user to invite.
   string email = 4;
+  // The token that the user will use to accept the invite.
   string token = 5;
+  // Whether or not the invite has been accepted.
   bool accepted = 6;
+  // The time when the invite was created.
   google.protobuf.Timestamp created_at = 7;
+  // The time when the invite was last updated.
   google.protobuf.Timestamp updated_at = 8;
+  // The time when the invite expires.
   google.protobuf.Timestamp expires_at = 9;
   // The role of the user to invite. Only used if RBAC is enabled.
   AccountRole role = 10;
 }
 
 message InviteUserToTeamAccountResponse {
+  // The invite that was created.
   AccountInvite invite = 1;
 }
 
 message GetTeamAccountInvitesRequest {
+  // The unique identifier of the account to get the invites for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetTeamAccountInvitesResponse {
+  // The list of invites for the account.
   repeated AccountInvite invites = 1;
 }
 
 message RemoveTeamAccountInviteRequest {
+  // The unique identifier of the invite to remove.
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message RemoveTeamAccountInviteResponse {}
 
 message AcceptTeamAccountInviteRequest {
+  // The token that the user will use to accept the invite.
   string token = 1 [(buf.validate.field).string.min_len = 1];
 }
 message AcceptTeamAccountInviteResponse {
+  // The account that the user was invited to.
   UserAccount account = 1;
 }
 
@@ -191,17 +231,22 @@ message SystemLicense {
 }
 
 message GetAccountOnboardingConfigRequest {
+  // The unique identifier of the account to get the onboarding config for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetAccountOnboardingConfigResponse {
+  // The onboarding config for the account.
   AccountOnboardingConfig config = 1;
 }
 
 message SetAccountOnboardingConfigRequest {
+  // The unique identifier of the account to set the onboarding config for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The onboarding config to set for the account.
   AccountOnboardingConfig config = 2;
 }
 message SetAccountOnboardingConfigResponse {
+  // The onboarding config that was set for the account.
   AccountOnboardingConfig config = 1;
 }
 
@@ -210,10 +255,12 @@ message AccountOnboardingConfig {
   reserved 2; // Was: bool has_created_destination_connection = 2;
   reserved 3; // Was: bool has_created_job = 3;
   reserved 4; // Was: bool has_invited_members = 4;
+  // Whether or not the account has completed onboarding.
   bool has_completed_onboarding = 5;
 }
 
 message GetAccountStatusRequest {
+  // The unique identifier of the account to get the status for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -242,12 +289,14 @@ message GetAccountStatusResponse {
 }
 
 message IsAccountStatusValidRequest {
+  // The unique identifier of the account to get the status for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // An optional count of records to be added to the current usage for validation.
   optional uint64 requested_record_count = 2;
 }
 
 message IsAccountStatusValidResponse {
+  // Whether or not the account is valid.
   bool is_valid = 1;
   // If the account is not valid, a reason for why may be provided.
   optional string reason = 2;
@@ -278,6 +327,7 @@ enum AccountStatus {
 }
 
 message GetAccountBillingCheckoutSessionRequest {
+  // The unique identifier of the account to get the billing checkout session for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -287,6 +337,7 @@ message GetAccountBillingCheckoutSessionResponse {
 }
 
 message GetAccountBillingPortalSessionRequest {
+  // The unique identifier of the account to get the billing portal session for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -301,11 +352,12 @@ message GetBillingAccountsRequest {
 }
 
 message GetBillingAccountsResponse {
+  // The list of accounts that have a billing id.
   repeated UserAccount accounts = 1;
 }
 
 message SetBillingMeterEventRequest {
-  // The account id to apply this metered event to
+  // The unique identifier of the account to apply this metered event to.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 
   // The metered event name
@@ -321,11 +373,11 @@ message SetBillingMeterEventRequest {
 message SetBillingMeterEventResponse {}
 
 message SetUserRoleRequest {
-  // The account id to apply this role to
+  // The unique identifier of the account to apply this role to.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  // The user that this will be applied to
+  // The unique identifier of the user that this will be applied to.
   string user_id = 2 [(buf.validate.field).string.uuid = true];
-  // The role that this user will obtain
+  // The role that this user will obtain.
   AccountRole role = 3;
 }
 
@@ -344,12 +396,21 @@ enum AccountRole {
 
 message SetUserRoleResponse {}
 
+// Service that manages users, accounts, and billing
 service UserAccountService {
-  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  // Retrieves the current user.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Sets the current user.
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
 
-  rpc GetUserAccounts(GetUserAccountsRequest) returns (GetUserAccountsResponse) {}
+  // Retrieves the list of accounts that the user belongs to.
+  rpc GetUserAccounts(GetUserAccountsRequest) returns (GetUserAccountsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
+  // Sets the current personal account.
   rpc SetPersonalAccount(SetPersonalAccountRequest) returns (SetPersonalAccountResponse) {}
 
   // Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
@@ -357,24 +418,42 @@ service UserAccountService {
 
   // Creates a new team account
   rpc CreateTeamAccount(CreateTeamAccountRequest) returns (CreateTeamAccountResponse) {}
-
+  // Checks if the user is in the account.
   rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}
-
-  rpc GetAccountTemporalConfig(GetAccountTemporalConfigRequest) returns (GetAccountTemporalConfigResponse) {}
+  // Retrieves the temporal config for the account.
+  rpc GetAccountTemporalConfig(GetAccountTemporalConfigRequest) returns (GetAccountTemporalConfigResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Sets the temporal config for the account.
   rpc SetAccountTemporalConfig(SetAccountTemporalConfigRequest) returns (SetAccountTemporalConfigResponse) {}
 
-  rpc GetTeamAccountMembers(GetTeamAccountMembersRequest) returns (GetTeamAccountMembersResponse) {}
+  // Retrieves the list of members in the team account.
+  rpc GetTeamAccountMembers(GetTeamAccountMembersRequest) returns (GetTeamAccountMembersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Removes a member from the team account.
   rpc RemoveTeamAccountMember(RemoveTeamAccountMemberRequest) returns (RemoveTeamAccountMemberResponse) {}
+  // Invites a user to the team account.
   rpc InviteUserToTeamAccount(InviteUserToTeamAccountRequest) returns (InviteUserToTeamAccountResponse) {}
-  rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {}
+  // Retrieves the list of invites for the team account.
+  rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Removes an invite from the team account.
   rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
+  // Accepts an invite to the team account.
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
 
+  // Retrieves the system information.
   rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
+  // Retrieves the onboarding config for the account.
+  rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Sets the onboarding config for the account.
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}
 
   // Returns different metrics on the account status for the active billing period
@@ -387,10 +466,14 @@ service UserAccountService {
   }
 
   // Returns a new checkout session for the account to subscribe
-  rpc GetAccountBillingCheckoutSession(GetAccountBillingCheckoutSessionRequest) returns (GetAccountBillingCheckoutSessionResponse) {}
+  rpc GetAccountBillingCheckoutSession(GetAccountBillingCheckoutSessionRequest) returns (GetAccountBillingCheckoutSessionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Returns a new billing portal session if the account has a billing customer id
-  rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {}
+  rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Returns user accounts that have a billing id.
   rpc GetBillingAccounts(GetBillingAccountsRequest) returns (GetBillingAccountsResponse) {

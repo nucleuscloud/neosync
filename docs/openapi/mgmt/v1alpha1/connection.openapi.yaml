@@ -463,20 +463,25 @@ components:
         pathPrefix:
           type: string
           title: path_prefix
+          description: The bucket path prefix that will be appended to each file
         credentials:
           allOf:
             - title: credentials
+              description: The credentials to use for the S3 bucket
             - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
         region:
           type: string
           title: region
+          description: The region of the S3 bucket
         endpoint:
           type: string
           title: endpoint
+          description: The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)
         bucket:
           type: string
           title: bucket
           minLength: 1
+          description: The name of the S3 bucket
       title: AwsS3ConnectionConfig
       additionalProperties: false
     mgmt.v1alpha1.AwsS3Credentials:
@@ -535,24 +540,31 @@ components:
         profile:
           type: string
           title: profile
+          description: The profile to use for the S3 credentials
         accessKeyId:
           type: string
           title: access_key_id
+          description: The access key id to use for the S3 credentials
         secretAccessKey:
           type: string
           title: secret_access_key
+          description: The secret access key to use for the S3 credentials
         sessionToken:
           type: string
           title: session_token
+          description: The session token to use for the S3 credentials
         fromEc2Role:
           type: boolean
           title: from_ec2_role
+          description: Whether or not the credentials are from an EC2 role
         roleArn:
           type: string
           title: role_arn
+          description: The ARN of the role to use for the S3 credentials
         roleExternalId:
           type: string
           title: role_external_id
+          description: The role's external ID to use for the S3 credentials
       title: AwsS3Credentials
       additionalProperties: false
       description: |-
@@ -608,6 +620,7 @@ components:
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to validate
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: CheckConnectionConfigRequest
       additionalProperties: false
@@ -940,6 +953,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to create the connection for
         name:
           type: string
           title: name
@@ -948,6 +962,7 @@ components:
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: CreateConnectionRequest
       additionalProperties: false
@@ -957,6 +972,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The created connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: CreateConnectionResponse
       additionalProperties: false
@@ -967,6 +983,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to delete
       title: DeleteConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.DeleteConnectionResponse:
@@ -1057,6 +1074,7 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to get
       title: GetConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionResponse:
@@ -1065,6 +1083,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: GetConnectionResponse
       additionalProperties: false
@@ -1075,6 +1094,7 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to get connections for
       title: GetConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsResponse:
@@ -1085,6 +1105,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
           title: connections
+          description: The connections
       title: GetConnectionsResponse
       additionalProperties: false
     mgmt.v1alpha1.IsConnectionNameAvailableRequest:
@@ -1094,10 +1115,12 @@ components:
           type: string
           title: account_id
           format: uuid
+          description: The unique identifier of the account to check the connection name for
         connectionName:
           type: string
           title: connection_name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The connection name to check for availability
       title: IsConnectionNameAvailableRequest
       additionalProperties: false
     mgmt.v1alpha1.IsConnectionNameAvailableResponse:
@@ -1106,6 +1129,7 @@ components:
         isAvailable:
           type: boolean
           title: is_available
+          description: Whether or not the connection name is available
       title: IsConnectionNameAvailableResponse
       additionalProperties: false
     mgmt.v1alpha1.LocalDirectoryConnectionConfig:
@@ -1193,6 +1217,7 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         tunnel:
           allOf:
@@ -1213,21 +1238,27 @@ components:
         user:
           type: string
           title: user
+          description: The user to use for the connection
         pass:
           type: string
           title: pass
+          description: The password to use for the connection
         protocol:
           type: string
           title: protocol
+          description: The protocol to use for the connection
         host:
           type: string
           title: host
+          description: The host to use for the connection
         port:
           type: integer
           title: port
+          description: The port to use for the connection
         name:
           type: string
           title: name
+          description: The name of the database to use for the connection
       title: MysqlConnection
       additionalProperties: false
     mgmt.v1alpha1.MysqlConnectionConfig:
@@ -1267,9 +1298,11 @@ components:
         url:
           type: string
           title: url
+          description: A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
         connection:
           allOf:
             - title: connection
+              description: A structured representation of the connection that will be used to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
         urlFromEnv:
           type: string
@@ -1286,6 +1319,7 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         clientTls:
           allOf:
@@ -1304,7 +1338,7 @@ components:
         apiUrl:
           type: string
           title: api_url
-          description: OpenAI URL
+          description: OpenAI URL (if using a custom endpoint)
       title: OpenAiConnectionConfig
       additionalProperties: false
       description: Configures a connection to OpenAI or OpenAI compatible API.
@@ -1329,21 +1363,27 @@ components:
         host:
           type: string
           title: host
+          description: The host to use for the connection
         port:
           type: integer
           title: port
+          description: The port to use for the connection
         name:
           type: string
           title: name
+          description: The name of the database to use for the connection
         user:
           type: string
           title: user
+          description: The user to use for the connection
         pass:
           type: string
           title: pass
+          description: The password to use for the connection
         sslMode:
           type: string
           title: ssl_mode
+          description: The SSL mode to use for the connection
       title: PostgresConnection
       additionalProperties: false
     mgmt.v1alpha1.PostgresConnectionConfig:
@@ -1383,9 +1423,11 @@ components:
         url:
           type: string
           title: url
+          description: A raw string url that will be used to construct the connection. Must be URI format.
         connection:
           allOf:
             - title: connection
+              description: A structured representation of the connection that will be used to construct the url
             - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
         urlFromEnv:
           type: string
@@ -1402,6 +1444,7 @@ components:
         connectionOptions:
           allOf:
             - title: connection_options
+              description: Provide connection options that can be used to further fine-tune the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
         clientTls:
           allOf:
@@ -1439,10 +1482,12 @@ components:
         passphrase:
           allOf:
             - title: passphrase
+              description: Password authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPassphrase'
         privateKey:
           allOf:
             - title: private_key
+              description: Private key authentication
             - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPrivateKey'
       title: SSHAuthentication
       additionalProperties: false
@@ -1606,13 +1651,16 @@ components:
           type: string
           title: id
           format: uuid
+          description: The unique identifier of the connection to update
         name:
           type: string
           title: name
           pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the connection
         connectionConfig:
           allOf:
             - title: connection_config
+              description: The connection configuration to use for the connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
       title: UpdateConnectionRequest
       additionalProperties: false
@@ -1622,6 +1670,7 @@ components:
         connection:
           allOf:
             - title: connection
+              description: The updated connection
             - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
       title: UpdateConnectionResponse
       additionalProperties: false

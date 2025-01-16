@@ -33,6 +33,7 @@ interface Props<TData, TValue> {
   getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
 
   isApplyDefaultTransformerButtonDisabled: boolean;
+  displayApplyDefaultTransformersButton: boolean;
   onApplyDefaultClick(override: boolean): void;
 
   onExportMappingsClick(selected: Row<TData>[], shouldFormat: boolean): void;
@@ -82,6 +83,7 @@ export default function JobMappingTable<TData, TValue>(
     getAvalableTransformersForBulk,
     getTransformerFromFieldValue,
     isApplyDefaultTransformerButtonDisabled,
+    displayApplyDefaultTransformersButton,
     onApplyDefaultClick,
     onTransformerBulkUpdate,
     onDeleteRow,
@@ -125,7 +127,9 @@ export default function JobMappingTable<TData, TValue>(
       <div className="z-50 pt-4">
         <SchemaTableToolbar<TData>
           table={table}
-          displayApplyDefaultTransformersButton={true}
+          displayApplyDefaultTransformersButton={
+            displayApplyDefaultTransformersButton
+          }
           isApplyDefaultButtonDisabled={isApplyDefaultTransformerButtonDisabled}
           getAllowedTransformers={getAvalableTransformersForBulk}
           getTransformerFromField={getTransformerFromFieldValue}

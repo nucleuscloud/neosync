@@ -3,6 +3,18 @@ import { create, fromJson, JsonObject, toJson } from '@bufbuild/protobuf';
 import {
   JobMappingTransformer,
   JobMappingTransformerSchema,
+  MssqlSourceConnectionOptions_ColumnRemovalStrategy,
+  MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
+  MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
+  MssqlSourceConnectionOptions_ColumnRemovalStrategySchema,
+  MysqlSourceConnectionOptions_ColumnRemovalStrategy,
+  MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
+  MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_ColumnRemovalStrategySchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
+  PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
@@ -93,10 +105,15 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
 >;
 
 export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+export type ColumnRemovalStrategy = 'halt' | 'continue';
 
 export const PostgresSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
     .oneOf(['continue', 'halt', 'automap'])
+    .optional()
+    .default('continue'),
+  columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
+    .oneOf(['halt', 'continue'])
     .optional()
     .default('continue'),
 });
@@ -106,10 +123,25 @@ export type PostgresSourceOptionsFormValues = Yup.InferType<
 
 const MysqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+  columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
+    .oneOf(['halt', 'continue'])
+    .optional()
+    .default('continue'),
 });
+export type MysqlSourceOptionsFormValues = Yup.InferType<
+  typeof MysqlSourceOptionsFormValues
+>;
+
 const MssqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+  columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
+    .oneOf(['halt', 'continue'])
+    .optional()
+    .default('continue'),
 });
+export type MssqlSourceOptionsFormValues = Yup.InferType<
+  typeof MssqlSourceOptionsFormValues
+>;
 
 const DynamoDBSourceUnmappedTransformConfigFormValues = Yup.object({
   byte: JobMappingTransformerForm.required(
@@ -176,11 +208,23 @@ type DynamoDbDestinationOptionsFormValues = Yup.InferType<
   typeof DynamoDbDestinationOptionsFormValues
 >;
 
+const PostgresDbDestinationConflictStrategy = Yup.object({
+  onConflictDoNothing: Yup.boolean().default(false),
+  onConflictDoUpdate: Yup.boolean().default(false),
+}).test(
+  'only-one-conflict-strategy',
+  'Only one conflict strategy can be enabled at a time',
+  (value) => {
+    if (!value) return true;
+    return !(value.onConflictDoNothing && value.onConflictDoUpdate);
+  }
+);
+
 const PostgresDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   truncateCascade: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
-  onConflictDoNothing: Yup.boolean().optional().default(false),
+  conflictStrategy: PostgresDbDestinationConflictStrategy.optional(),
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
   maxInFlight: Yup.number()
     .min(1, 'Must be greater than or equal to 1')
@@ -395,6 +439,119 @@ export function toNewColumnAdditionStrategy(
     }
     case 'autoMap': {
       return 'automap';
+    }
+    default: {
+      return 'continue';
+    }
+  }
+}
+
+export function toJobSourcePostgresColumnRemovalStrategy(
+  strategy?: ColumnRemovalStrategy
+): PostgresSourceConnectionOptions_ColumnRemovalStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return create(
+        PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
+        {
+          strategy: {
+            case: 'continueJob',
+            value: create(
+              PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+            ),
+          },
+        }
+      );
+    }
+    case 'halt': {
+      return create(
+        PostgresSourceConnectionOptions_ColumnRemovalStrategySchema,
+        {
+          strategy: {
+            case: 'haltJob',
+            value: create(
+              PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toJobSourceMysqlColumnRemovalStrategy(
+  strategy?: ColumnRemovalStrategy
+): MysqlSourceConnectionOptions_ColumnRemovalStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return create(MysqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'continueJob',
+          value: create(
+            MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+          ),
+        },
+      });
+    }
+    case 'halt': {
+      return create(MysqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'haltJob',
+          value: create(
+            MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema
+          ),
+        },
+      });
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toJobSourceMssqlColumnRemovalStrategy(
+  strategy?: ColumnRemovalStrategy
+): MssqlSourceConnectionOptions_ColumnRemovalStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return create(MssqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'continueJob',
+          value: create(
+            MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema
+          ),
+        },
+      });
+    }
+    case 'halt': {
+      return create(MssqlSourceConnectionOptions_ColumnRemovalStrategySchema, {
+        strategy: {
+          case: 'haltJob',
+          value: create(
+            MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema
+          ),
+        },
+      });
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toColumnRemovalStrategy(
+  input:
+    | PostgresSourceConnectionOptions_ColumnRemovalStrategy
+    | MysqlSourceConnectionOptions_ColumnRemovalStrategy
+    | MssqlSourceConnectionOptions_ColumnRemovalStrategy
+    | undefined
+): ColumnRemovalStrategy {
+  switch (input?.strategy.case) {
+    case 'haltJob': {
+      return 'halt';
     }
     default: {
       return 'continue';

@@ -115,12 +115,14 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionsProcedure,
 			connect.WithSchema(connectionServiceGetConnectionsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getConnection: connect.NewClient[v1alpha1.GetConnectionRequest, v1alpha1.GetConnectionResponse](
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionProcedure,
 			connect.WithSchema(connectionServiceGetConnectionMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createConnection: connect.NewClient[v1alpha1.CreateConnectionRequest, v1alpha1.CreateConnectionResponse](
@@ -261,12 +263,14 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		ConnectionServiceGetConnectionsProcedure,
 		svc.GetConnections,
 		connect.WithSchema(connectionServiceGetConnectionsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceGetConnectionHandler := connect.NewUnaryHandler(
 		ConnectionServiceGetConnectionProcedure,
 		svc.GetConnection,
 		connect.WithSchema(connectionServiceGetConnectionMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceCreateConnectionHandler := connect.NewUnaryHandler(

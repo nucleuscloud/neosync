@@ -6,7 +6,8 @@ from mgmt.v1alpha1 import metrics_pb2 as mgmt_dot_v1alpha1_dot_metrics__pb2
 
 
 class MetricsServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles serving up usage metrics
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -27,7 +28,8 @@ class MetricsServiceStub(object):
 
 
 class MetricsServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles serving up usage metrics
+    """
 
     def GetDailyMetricCount(self, request, context):
         """Retrieve a timed range of records
@@ -65,7 +67,8 @@ def add_MetricsServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class MetricsService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Service that handles serving up usage metrics
+    """
 
     @staticmethod
     def GetDailyMetricCount(request,

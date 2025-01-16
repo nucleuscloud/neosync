@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
@@ -16,7 +18,9 @@ func GetInsertBuilder(
 	driver, schema, table string,
 	opts ...InsertOption,
 ) (InsertQueryBuilder, error) {
-	options := &InsertOptions{}
+	options := &InsertOptions{
+		conflictConfig: &conflictConfig{},
+	}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -57,11 +61,21 @@ type InsertQueryBuilder interface {
 	BuildInsertQuery(rows []map[string]any) (query string, args []any, err error)
 }
 
+type onConflictDoUpdateConfig struct {
+	conflictColumns []string
+}
+
+type onConflictDoNothingConfig struct{}
+
+type conflictConfig struct {
+	onConflictDoNothing *onConflictDoNothingConfig
+	onConflictDoUpdate  *onConflictDoUpdateConfig
+}
+
 type InsertOption func(*InsertOptions)
 type InsertOptions struct {
 	shouldOverrideColumnDefault bool
-	onConflictDoNothing         bool
-	onConflictDoUpdate          bool
+	conflictConfig              *conflictConfig
 	prefix, suffix              *string
 }
 
@@ -88,16 +102,22 @@ func WithSuffix(suffix *string) InsertOption {
 // WithOnConflictDoNothing adds on conflict do nothing to insert query
 func WithOnConflictDoNothing() InsertOption {
 	return func(opts *InsertOptions) {
-		opts.onConflictDoNothing = true
-		opts.onConflictDoUpdate = false
+		opts.conflictConfig = &conflictConfig{
+			onConflictDoNothing: &onConflictDoNothingConfig{},
+			onConflictDoUpdate:  nil,
+		}
 	}
 }
 
 // WithOnConflictDoUpdate adds on conflict do update to insert query
-func WithOnConflictDoUpdate() InsertOption {
+func WithOnConflictDoUpdate(conflictColumns []string) InsertOption {
 	return func(opts *InsertOptions) {
-		opts.onConflictDoUpdate = true
-		opts.onConflictDoNothing = false
+		opts.conflictConfig = &conflictConfig{
+			onConflictDoUpdate: &onConflictDoUpdateConfig{
+				conflictColumns: conflictColumns,
+			},
+			onConflictDoNothing: nil,
+		}
 	}
 }
 
@@ -111,7 +131,20 @@ type PostgresDriver struct {
 func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
 	goquRows := toGoquRecords(rows)
 
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &d.options.onConflictDoNothing)
+	if d.options.conflictConfig.onConflictDoUpdate != nil {
+		if len(rows) == 0 {
+			return "", []any{}, errors.New("no rows to insert")
+		}
+
+		columns := make([]string, 0, len(rows[0]))
+		for col := range rows[0] {
+			columns = append(columns, col)
+		}
+		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, columns)
+	}
+
+	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
+	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 	if err != nil {
 		return "", nil, err
 	}
@@ -119,6 +152,31 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 	return insertQuery, args, err
+}
+
+func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(
+	records []goqu.Record,
+	conflictColumns []string,
+	updateColumns []string,
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(sqlmanager_shared.GoquPostgresDriver)
+	sqltable := goqu.S(d.schema).Table(d.table)
+	insert := builder.Insert(sqltable).Prepared(true).Rows(records)
+
+	updateRecord := goqu.Record{}
+	for _, col := range updateColumns {
+		if !slices.Contains(conflictColumns, col) {
+			updateRecord[col] = goqu.L(fmt.Sprintf("EXCLUDED.%q", col))
+		}
+	}
+	targetColumns := strings.Join(conflictColumns, ", ")
+	insert = insert.OnConflict(goqu.DoUpdate(targetColumns, updateRecord))
+
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return "", nil, err
+	}
+	return query, args, nil
 }
 
 type MysqlDriver struct {
@@ -131,23 +189,24 @@ type MysqlDriver struct {
 func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
 	goquRows := toGoquRecords(rows)
 
-	if d.options.onConflictDoUpdate {
+	if d.options.conflictConfig.onConflictDoUpdate != nil {
 		if len(rows) == 0 {
 			return "", []any{}, errors.New("no rows to insert")
 		}
 
-		columns := []string{}
+		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
 			columns = append(columns, col)
 		}
-		insertQuery, args, err := BuildMysqlInsertOnConflictDoUpdateQuery(d.schema, d.table, goquRows, columns)
+		insertQuery, args, err := d.buildMysqlInsertOnConflictDoUpdateQuery(goquRows, columns)
 		if err != nil {
 			return "", nil, err
 		}
 		return insertQuery, args, nil
 	}
 
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &d.options.onConflictDoNothing)
+	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
+	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 	if err != nil {
 		return "", nil, err
 	}
@@ -159,6 +218,28 @@ func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 		insertQuery = addSuffix(insertQuery, *d.options.suffix)
 	}
 	return insertQuery, args, err
+}
+
+func (d *MysqlDriver) buildMysqlInsertOnConflictDoUpdateQuery(
+	records []goqu.Record,
+	updateColumns []string,
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(sqlmanager_shared.MysqlDriver)
+	sqltable := goqu.S(d.schema).Table(d.table)
+	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
+
+	updateRecord := goqu.Record{}
+	for _, col := range updateColumns {
+		updateRecord[col] = exp.NewIdentifierExpression("", "new", col)
+	}
+	targetColumn := "" // mysql does not support target column
+	insert = insert.OnConflict(goqu.DoUpdate(targetColumn, updateRecord))
+
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return "", nil, err
+	}
+	return strings.Replace(query, "INSERT IGNORE INTO", "INSERT INTO", 1), args, nil
 }
 
 type MssqlDriver struct {
@@ -175,7 +256,8 @@ func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 
 	goquRows := toGoquRecords(rows)
 
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &d.options.onConflictDoNothing)
+	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
+	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 	if err != nil {
 		return "", nil, err
 	}

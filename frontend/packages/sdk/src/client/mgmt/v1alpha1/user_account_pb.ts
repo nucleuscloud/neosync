@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/user_account.proto.
  */
 export const file_mgmt_v1alpha1_user_account: GenFile = /*@__PURE__*/
-  fileDesc("CiBtZ210L3YxYWxwaGExL3VzZXJfYWNjb3VudC5wcm90bxINbWdtdC52MWFscGhhMSIQCg5HZXRVc2VyUmVxdWVzdCIiCg9HZXRVc2VyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIQCg5TZXRVc2VyUmVxdWVzdCIiCg9TZXRVc2VyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIYChZHZXRVc2VyQWNjb3VudHNSZXF1ZXN0IkcKF0dldFVzZXJBY2NvdW50c1Jlc3BvbnNlEiwKCGFjY291bnRzGAEgAygLMhoubWdtdC52MWFscGhhMS5Vc2VyQWNjb3VudCJ1CgtVc2VyQWNjb3VudBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEiwKBHR5cGUYAyABKA4yHi5tZ210LnYxYWxwaGExLlVzZXJBY2NvdW50VHlwZRIeChZoYXNfc3RyaXBlX2N1c3RvbWVyX2lkGAQgASgIIoABCiNDb252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50UmVxdWVzdBInCgRuYW1lGAEgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEiEKCmFjY291bnRfaWQYAiABKAlCCLpIBXIDsAEBSACIAQFCDQoLX2FjY291bnRfaWQilwEKJENvbnZlcnRQZXJzb25hbFRvVGVhbUFjY291bnRSZXNwb25zZRISCgphY2NvdW50X2lkGAEgASgJEiEKFGNoZWNrb3V0X3Nlc3Npb25fdXJsGAIgASgJSACIAQESHwoXbmV3X3BlcnNvbmFsX2FjY291bnRfaWQYAyABKAlCFwoVX2NoZWNrb3V0X3Nlc3Npb25fdXJsIhsKGVNldFBlcnNvbmFsQWNjb3VudFJlcXVlc3QiMAoaU2V0UGVyc29uYWxBY2NvdW50UmVzcG9uc2USEgoKYWNjb3VudF9pZBgBIAEoCSI2ChZJc1VzZXJJbkFjY291bnRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIiUKF0lzVXNlckluQWNjb3VudFJlc3BvbnNlEgoKAm9rGAEgASgIIj8KH0dldEFjY291bnRUZW1wb3JhbENvbmZpZ1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiWAogR2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVzcG9uc2USNAoGY29uZmlnGAEgASgLMiQubWdtdC52MWFscGhhMS5BY2NvdW50VGVtcG9yYWxDb25maWcidQofU2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARI0CgZjb25maWcYAiABKAsyJC5tZ210LnYxYWxwaGExLkFjY291bnRUZW1wb3JhbENvbmZpZyJYCiBTZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXNwb25zZRI0CgZjb25maWcYASABKAsyJC5tZ210LnYxYWxwaGExLkFjY291bnRUZW1wb3JhbENvbmZpZyJvChVBY2NvdW50VGVtcG9yYWxDb25maWcSFAoDdXJsGAEgASgJQge6SARyAhABEhoKCW5hbWVzcGFjZRgCIAEoCUIHukgEcgIQARIkChNzeW5jX2pvYl9xdWV1ZV9uYW1lGAMgASgJQge6SARyAhABIkMKGENyZWF0ZVRlYW1BY2NvdW50UmVxdWVzdBInCgRuYW1lGAEgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kImsKGUNyZWF0ZVRlYW1BY2NvdW50UmVzcG9uc2USEgoKYWNjb3VudF9pZBgBIAEoCRIhChRjaGVja291dF9zZXNzaW9uX3VybBgCIAEoCUgAiAEBQhcKFV9jaGVja291dF9zZXNzaW9uX3VybCJvCgtBY2NvdW50VXNlchIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBWltYWdlGAMgASgJEg0KBWVtYWlsGAQgASgJEigKBHJvbGUYBSABKA4yGi5tZ210LnYxYWxwaGExLkFjY291bnRSb2xlIjwKHEdldFRlYW1BY2NvdW50TWVtYmVyc1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiSgodR2V0VGVhbUFjY291bnRNZW1iZXJzUmVzcG9uc2USKQoFdXNlcnMYASADKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRVc2VyIlkKHlJlbW92ZVRlYW1BY2NvdW50TWVtYmVyUmVxdWVzdBIZCgd1c2VyX2lkGAEgASgJQgi6SAVyA7ABARIcCgphY2NvdW50X2lkGAIgASgJQgi6SAVyA7ABASIhCh9SZW1vdmVUZWFtQWNjb3VudE1lbWJlclJlc3BvbnNlIo4BCh5JbnZpdGVVc2VyVG9UZWFtQWNjb3VudFJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESFgoFZW1haWwYAiABKAlCB7pIBHICEAESLQoEcm9sZRgDIAEoDjIaLm1nbXQudjFhbHBoYTEuQWNjb3VudFJvbGVIAIgBAUIHCgVfcm9sZSKxAgoNQWNjb3VudEludml0ZRIKCgJpZBgBIAEoCRISCgphY2NvdW50X2lkGAIgASgJEhYKDnNlbmRlcl91c2VyX2lkGAMgASgJEg0KBWVtYWlsGAQgASgJEg0KBXRva2VuGAUgASgJEhAKCGFjY2VwdGVkGAYgASgIEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmV4cGlyZXNfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEigKBHJvbGUYCiABKA4yGi5tZ210LnYxYWxwaGExLkFjY291bnRSb2xlIk8KH0ludml0ZVVzZXJUb1RlYW1BY2NvdW50UmVzcG9uc2USLAoGaW52aXRlGAEgASgLMhwubWdtdC52MWFscGhhMS5BY2NvdW50SW52aXRlIjwKHEdldFRlYW1BY2NvdW50SW52aXRlc1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiTgodR2V0VGVhbUFjY291bnRJbnZpdGVzUmVzcG9uc2USLQoHaW52aXRlcxgBIAMoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEludml0ZSI2Ch5SZW1vdmVUZWFtQWNjb3VudEludml0ZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiEKH1JlbW92ZVRlYW1BY2NvdW50SW52aXRlUmVzcG9uc2UiOAoeQWNjZXB0VGVhbUFjY291bnRJbnZpdGVSZXF1ZXN0EhYKBXRva2VuGAEgASgJQge6SARyAhABIk4KH0FjY2VwdFRlYW1BY2NvdW50SW52aXRlUmVzcG9uc2USKwoHYWNjb3VudBgBIAEoCzIaLm1nbXQudjFhbHBoYTEuVXNlckFjY291bnQiHQobR2V0U3lzdGVtSW5mb3JtYXRpb25SZXF1ZXN0IsIBChxHZXRTeXN0ZW1JbmZvcm1hdGlvblJlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSDgoGY29tbWl0GAIgASgJEhAKCGNvbXBpbGVyGAMgASgJEhAKCHBsYXRmb3JtGAQgASgJEi4KCmJ1aWxkX2RhdGUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KB2xpY2Vuc2UYBiABKAsyHC5tZ210LnYxYWxwaGExLlN5c3RlbUxpY2Vuc2UiawoNU3lzdGVtTGljZW5zZRIQCghpc192YWxpZBgBIAEoCBIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIYChBpc19uZW9zeW5jX2Nsb3VkGAMgASgIIkEKIUdldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJcCiJHZXRBY2NvdW50T25ib2FyZGluZ0NvbmZpZ1Jlc3BvbnNlEjYKBmNvbmZpZxgBIAEoCzImLm1nbXQudjFhbHBoYTEuQWNjb3VudE9uYm9hcmRpbmdDb25maWcieQohU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEjYKBmNvbmZpZxgCIAEoCzImLm1nbXQudjFhbHBoYTEuQWNjb3VudE9uYm9hcmRpbmdDb25maWciXAoiU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXNwb25zZRI2CgZjb25maWcYASABKAsyJi5tZ210LnYxYWxwaGExLkFjY291bnRPbmJvYXJkaW5nQ29uZmlnIlMKF0FjY291bnRPbmJvYXJkaW5nQ29uZmlnEiAKGGhhc19jb21wbGV0ZWRfb25ib2FyZGluZxgFIAEoCEoECAEQAkoECAIQA0oECAMQBEoECAQQBSI3ChdHZXRBY2NvdW50U3RhdHVzUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASKsAQoYR2V0QWNjb3VudFN0YXR1c1Jlc3BvbnNlEhkKEXVzZWRfcmVjb3JkX2NvdW50GAEgASgEEiEKFGFsbG93ZWRfcmVjb3JkX2NvdW50GAIgASgESACIAQESOQoTc3Vic2NyaXB0aW9uX3N0YXR1cxgDIAEoDjIcLm1nbXQudjFhbHBoYTEuQmlsbGluZ1N0YXR1c0IXChVfYWxsb3dlZF9yZWNvcmRfY291bnQiewobSXNBY2NvdW50U3RhdHVzVmFsaWRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEiMKFnJlcXVlc3RlZF9yZWNvcmRfY291bnQYAiABKARIAIgBAUIZChdfcmVxdWVzdGVkX3JlY29yZF9jb3VudCL3AQocSXNBY2NvdW50U3RhdHVzVmFsaWRSZXNwb25zZRIQCghpc192YWxpZBgBIAEoCBITCgZyZWFzb24YAiABKAlIAIgBARITCgtzaG91bGRfcG9sbBgDIAEoCBI0Cg5hY2NvdW50X3N0YXR1cxgGIAEoDjIcLm1nbXQudjFhbHBoYTEuQWNjb3VudFN0YXR1cxI5ChB0cmlhbF9leHBpcmVzX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgBiAEBQgkKB19yZWFzb25CEwoRX3RyaWFsX2V4cGlyZXNfYXRKBAgEEAVKBAgFEAYiRwonR2V0QWNjb3VudEJpbGxpbmdDaGVja291dFNlc3Npb25SZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkgKKEdldEFjY291bnRCaWxsaW5nQ2hlY2tvdXRTZXNzaW9uUmVzcG9uc2USHAoUY2hlY2tvdXRfc2Vzc2lvbl91cmwYASABKAkiRQolR2V0QWNjb3VudEJpbGxpbmdQb3J0YWxTZXNzaW9uUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJECiZHZXRBY2NvdW50QmlsbGluZ1BvcnRhbFNlc3Npb25SZXNwb25zZRIaChJwb3J0YWxfc2Vzc2lvbl91cmwYASABKAkiMAoZR2V0QmlsbGluZ0FjY291bnRzUmVxdWVzdBITCgthY2NvdW50X2lkcxgBIAMoCSJKChpHZXRCaWxsaW5nQWNjb3VudHNSZXNwb25zZRIsCghhY2NvdW50cxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuVXNlckFjY291bnQisQEKG1NldEJpbGxpbmdNZXRlckV2ZW50UmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARIbCgpldmVudF9uYW1lGAIgASgJQge6SARyAhABEhYKBXZhbHVlGAMgASgJQge6SARyAhABEhkKCGV2ZW50X2lkGAQgASgJQge6SARyAhABEhYKCXRpbWVzdGFtcBgFIAEoBEgAiAEBQgwKCl90aW1lc3RhbXAiHgocU2V0QmlsbGluZ01ldGVyRXZlbnRSZXNwb25zZSJ3ChJTZXRVc2VyUm9sZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESGQoHdXNlcl9pZBgCIAEoCUIIukgFcgOwAQESKAoEcm9sZRgDIAEoDjIaLm1nbXQudjFhbHBoYTEuQWNjb3VudFJvbGUiFQoTU2V0VXNlclJvbGVSZXNwb25zZSqSAQoPVXNlckFjY291bnRUeXBlEiEKHVVTRVJfQUNDT1VOVF9UWVBFX1VOU1BFQ0lGSUVEEAASHgoaVVNFUl9BQ0NPVU5UX1RZUEVfUEVSU09OQUwQARIaChZVU0VSX0FDQ09VTlRfVFlQRV9URUFNEAISIAocVVNFUl9BQ0NPVU5UX1RZUEVfRU5URVJQUklTRRADKqkBCg1CaWxsaW5nU3RhdHVzEh4KGkJJTExJTkdfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGQoVQklMTElOR19TVEFUVVNfQUNUSVZFEAESGgoWQklMTElOR19TVEFUVVNfRVhQSVJFRBACEh8KG0JJTExJTkdfU1RBVFVTX1RSSUFMX0FDVElWRRADEiAKHEJJTExJTkdfU1RBVFVTX1RSSUFMX0VYUElSRUQQBCqQAgoNQWNjb3VudFN0YXR1cxIlCiFBQ0NPVU5UX1NUQVRVU19SRUFTT05fVU5TUEVDSUZJRUQQABIrCidBQ0NPVU5UX1NUQVRVU19BQ0NPVU5UX0lOX0VYUElSRURfU1RBVEUQAxInCiNBQ0NPVU5UX1NUQVRVU19BQ0NPVU5UX1RSSUFMX0FDVElWRRAEEigKJEFDQ09VTlRfU1RBVFVTX0FDQ09VTlRfVFJJQUxfRVhQSVJFRBAFIgQIARABIgQIAhACKiRBQ0NPVU5UX1NUQVRVU19FWENFRURTX0FMTE9XRURfTElNSVQqJkFDQ09VTlRfU1RBVFVTX1JFUVVFU1RFRF9FWENFRURTX0xJTUlUKp8BCgtBY2NvdW50Um9sZRIcChhBQ0NPVU5UX1JPTEVfVU5TUEVDSUZJRUQQABIWChJBQ0NPVU5UX1JPTEVfQURNSU4QARIeChpBQ0NPVU5UX1JPTEVfSk9CX0RFVkVMT1BFUhACEhsKF0FDQ09VTlRfUk9MRV9KT0JfVklFV0VSEAMSHQoZQUNDT1VOVF9ST0xFX0pPQl9FWEVDVVRPUhAEMvgWChJVc2VyQWNjb3VudFNlcnZpY2USSgoHR2V0VXNlchIdLm1nbXQudjFhbHBoYTEuR2V0VXNlclJlcXVlc3QaHi5tZ210LnYxYWxwaGExLkdldFVzZXJSZXNwb25zZSIAEkoKB1NldFVzZXISHS5tZ210LnYxYWxwaGExLlNldFVzZXJSZXF1ZXN0Gh4ubWdtdC52MWFscGhhMS5TZXRVc2VyUmVzcG9uc2UiABJiCg9HZXRVc2VyQWNjb3VudHMSJS5tZ210LnYxYWxwaGExLkdldFVzZXJBY2NvdW50c1JlcXVlc3QaJi5tZ210LnYxYWxwaGExLkdldFVzZXJBY2NvdW50c1Jlc3BvbnNlIgASawoSU2V0UGVyc29uYWxBY2NvdW50EigubWdtdC52MWFscGhhMS5TZXRQZXJzb25hbEFjY291bnRSZXF1ZXN0GikubWdtdC52MWFscGhhMS5TZXRQZXJzb25hbEFjY291bnRSZXNwb25zZSIAEokBChxDb252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50EjIubWdtdC52MWFscGhhMS5Db252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50UmVxdWVzdBozLm1nbXQudjFhbHBoYTEuQ29udmVydFBlcnNvbmFsVG9UZWFtQWNjb3VudFJlc3BvbnNlIgASaAoRQ3JlYXRlVGVhbUFjY291bnQSJy5tZ210LnYxYWxwaGExLkNyZWF0ZVRlYW1BY2NvdW50UmVxdWVzdBooLm1nbXQudjFhbHBoYTEuQ3JlYXRlVGVhbUFjY291bnRSZXNwb25zZSIAEmIKD0lzVXNlckluQWNjb3VudBIlLm1nbXQudjFhbHBoYTEuSXNVc2VySW5BY2NvdW50UmVxdWVzdBomLm1nbXQudjFhbHBoYTEuSXNVc2VySW5BY2NvdW50UmVzcG9uc2UiABJ9ChhHZXRBY2NvdW50VGVtcG9yYWxDb25maWcSLi5tZ210LnYxYWxwaGExLkdldEFjY291bnRUZW1wb3JhbENvbmZpZ1JlcXVlc3QaLy5tZ210LnYxYWxwaGExLkdldEFjY291bnRUZW1wb3JhbENvbmZpZ1Jlc3BvbnNlIgASfQoYU2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnEi4ubWdtdC52MWFscGhhMS5TZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXF1ZXN0Gi8ubWdtdC52MWFscGhhMS5TZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXNwb25zZSIAEnQKFUdldFRlYW1BY2NvdW50TWVtYmVycxIrLm1nbXQudjFhbHBoYTEuR2V0VGVhbUFjY291bnRNZW1iZXJzUmVxdWVzdBosLm1nbXQudjFhbHBoYTEuR2V0VGVhbUFjY291bnRNZW1iZXJzUmVzcG9uc2UiABJ6ChdSZW1vdmVUZWFtQWNjb3VudE1lbWJlchItLm1nbXQudjFhbHBoYTEuUmVtb3ZlVGVhbUFjY291bnRNZW1iZXJSZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5SZW1vdmVUZWFtQWNjb3VudE1lbWJlclJlc3BvbnNlIgASegoXSW52aXRlVXNlclRvVGVhbUFjY291bnQSLS5tZ210LnYxYWxwaGExLkludml0ZVVzZXJUb1RlYW1BY2NvdW50UmVxdWVzdBouLm1nbXQudjFhbHBoYTEuSW52aXRlVXNlclRvVGVhbUFjY291bnRSZXNwb25zZSIAEnQKFUdldFRlYW1BY2NvdW50SW52aXRlcxIrLm1nbXQudjFhbHBoYTEuR2V0VGVhbUFjY291bnRJbnZpdGVzUmVxdWVzdBosLm1nbXQudjFhbHBoYTEuR2V0VGVhbUFjY291bnRJbnZpdGVzUmVzcG9uc2UiABJ6ChdSZW1vdmVUZWFtQWNjb3VudEludml0ZRItLm1nbXQudjFhbHBoYTEuUmVtb3ZlVGVhbUFjY291bnRJbnZpdGVSZXF1ZXN0Gi4ubWdtdC52MWFscGhhMS5SZW1vdmVUZWFtQWNjb3VudEludml0ZVJlc3BvbnNlIgASegoXQWNjZXB0VGVhbUFjY291bnRJbnZpdGUSLS5tZ210LnYxYWxwaGExLkFjY2VwdFRlYW1BY2NvdW50SW52aXRlUmVxdWVzdBouLm1nbXQudjFhbHBoYTEuQWNjZXB0VGVhbUFjY291bnRJbnZpdGVSZXNwb25zZSIAEnQKFEdldFN5c3RlbUluZm9ybWF0aW9uEioubWdtdC52MWFscGhhMS5HZXRTeXN0ZW1JbmZvcm1hdGlvblJlcXVlc3QaKy5tZ210LnYxYWxwaGExLkdldFN5c3RlbUluZm9ybWF0aW9uUmVzcG9uc2UiA5ACARKDAQoaR2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWcSMC5tZ210LnYxYWxwaGExLkdldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnUmVxdWVzdBoxLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXNwb25zZSIAEoMBChpTZXRBY2NvdW50T25ib2FyZGluZ0NvbmZpZxIwLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXF1ZXN0GjEubWdtdC52MWFscGhhMS5TZXRBY2NvdW50T25ib2FyZGluZ0NvbmZpZ1Jlc3BvbnNlIgASaAoQR2V0QWNjb3VudFN0YXR1cxImLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudFN0YXR1c1JlcXVlc3QaJy5tZ210LnYxYWxwaGExLkdldEFjY291bnRTdGF0dXNSZXNwb25zZSIDkAIBEnQKFElzQWNjb3VudFN0YXR1c1ZhbGlkEioubWdtdC52MWFscGhhMS5Jc0FjY291bnRTdGF0dXNWYWxpZFJlcXVlc3QaKy5tZ210LnYxYWxwaGExLklzQWNjb3VudFN0YXR1c1ZhbGlkUmVzcG9uc2UiA5ACARKVAQogR2V0QWNjb3VudEJpbGxpbmdDaGVja291dFNlc3Npb24SNi5tZ210LnYxYWxwaGExLkdldEFjY291bnRCaWxsaW5nQ2hlY2tvdXRTZXNzaW9uUmVxdWVzdBo3Lm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEJpbGxpbmdDaGVja291dFNlc3Npb25SZXNwb25zZSIAEo8BCh5HZXRBY2NvdW50QmlsbGluZ1BvcnRhbFNlc3Npb24SNC5tZ210LnYxYWxwaGExLkdldEFjY291bnRCaWxsaW5nUG9ydGFsU2Vzc2lvblJlcXVlc3QaNS5tZ210LnYxYWxwaGExLkdldEFjY291bnRCaWxsaW5nUG9ydGFsU2Vzc2lvblJlc3BvbnNlIgASbgoSR2V0QmlsbGluZ0FjY291bnRzEigubWdtdC52MWFscGhhMS5HZXRCaWxsaW5nQWNjb3VudHNSZXF1ZXN0GikubWdtdC52MWFscGhhMS5HZXRCaWxsaW5nQWNjb3VudHNSZXNwb25zZSIDkAIBEnEKFFNldEJpbGxpbmdNZXRlckV2ZW50EioubWdtdC52MWFscGhhMS5TZXRCaWxsaW5nTWV0ZXJFdmVudFJlcXVlc3QaKy5tZ210LnYxYWxwaGExLlNldEJpbGxpbmdNZXRlckV2ZW50UmVzcG9uc2UiABJWCgtTZXRVc2VyUm9sZRIhLm1nbXQudjFhbHBoYTEuU2V0VXNlclJvbGVSZXF1ZXN0GiIubWdtdC52MWFscGhhMS5TZXRVc2VyUm9sZVJlc3BvbnNlIgBCzAEKEWNvbS5tZ210LnYxYWxwaGExQhBVc2VyQWNjb3VudFByb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("CiBtZ210L3YxYWxwaGExL3VzZXJfYWNjb3VudC5wcm90bxINbWdtdC52MWFscGhhMSIQCg5HZXRVc2VyUmVxdWVzdCIiCg9HZXRVc2VyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIQCg5TZXRVc2VyUmVxdWVzdCIiCg9TZXRVc2VyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIYChZHZXRVc2VyQWNjb3VudHNSZXF1ZXN0IkcKF0dldFVzZXJBY2NvdW50c1Jlc3BvbnNlEiwKCGFjY291bnRzGAEgAygLMhoubWdtdC52MWFscGhhMS5Vc2VyQWNjb3VudCJ1CgtVc2VyQWNjb3VudBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEiwKBHR5cGUYAyABKA4yHi5tZ210LnYxYWxwaGExLlVzZXJBY2NvdW50VHlwZRIeChZoYXNfc3RyaXBlX2N1c3RvbWVyX2lkGAQgASgIIoABCiNDb252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50UmVxdWVzdBInCgRuYW1lGAEgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEiEKCmFjY291bnRfaWQYAiABKAlCCLpIBXIDsAEBSACIAQFCDQoLX2FjY291bnRfaWQilwEKJENvbnZlcnRQZXJzb25hbFRvVGVhbUFjY291bnRSZXNwb25zZRISCgphY2NvdW50X2lkGAEgASgJEiEKFGNoZWNrb3V0X3Nlc3Npb25fdXJsGAIgASgJSACIAQESHwoXbmV3X3BlcnNvbmFsX2FjY291bnRfaWQYAyABKAlCFwoVX2NoZWNrb3V0X3Nlc3Npb25fdXJsIhsKGVNldFBlcnNvbmFsQWNjb3VudFJlcXVlc3QiMAoaU2V0UGVyc29uYWxBY2NvdW50UmVzcG9uc2USEgoKYWNjb3VudF9pZBgBIAEoCSI2ChZJc1VzZXJJbkFjY291bnRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIiUKF0lzVXNlckluQWNjb3VudFJlc3BvbnNlEgoKAm9rGAEgASgIIj8KH0dldEFjY291bnRUZW1wb3JhbENvbmZpZ1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiWAogR2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVzcG9uc2USNAoGY29uZmlnGAEgASgLMiQubWdtdC52MWFscGhhMS5BY2NvdW50VGVtcG9yYWxDb25maWcidQofU2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARI0CgZjb25maWcYAiABKAsyJC5tZ210LnYxYWxwaGExLkFjY291bnRUZW1wb3JhbENvbmZpZyJYCiBTZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXNwb25zZRI0CgZjb25maWcYASABKAsyJC5tZ210LnYxYWxwaGExLkFjY291bnRUZW1wb3JhbENvbmZpZyJvChVBY2NvdW50VGVtcG9yYWxDb25maWcSFAoDdXJsGAEgASgJQge6SARyAhABEhoKCW5hbWVzcGFjZRgCIAEoCUIHukgEcgIQARIkChNzeW5jX2pvYl9xdWV1ZV9uYW1lGAMgASgJQge6SARyAhABIkMKGENyZWF0ZVRlYW1BY2NvdW50UmVxdWVzdBInCgRuYW1lGAEgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kImsKGUNyZWF0ZVRlYW1BY2NvdW50UmVzcG9uc2USEgoKYWNjb3VudF9pZBgBIAEoCRIhChRjaGVja291dF9zZXNzaW9uX3VybBgCIAEoCUgAiAEBQhcKFV9jaGVja291dF9zZXNzaW9uX3VybCJvCgtBY2NvdW50VXNlchIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBWltYWdlGAMgASgJEg0KBWVtYWlsGAQgASgJEigKBHJvbGUYBSABKA4yGi5tZ210LnYxYWxwaGExLkFjY291bnRSb2xlIjwKHEdldFRlYW1BY2NvdW50TWVtYmVyc1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiSgodR2V0VGVhbUFjY291bnRNZW1iZXJzUmVzcG9uc2USKQoFdXNlcnMYASADKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRVc2VyIlkKHlJlbW92ZVRlYW1BY2NvdW50TWVtYmVyUmVxdWVzdBIZCgd1c2VyX2lkGAEgASgJQgi6SAVyA7ABARIcCgphY2NvdW50X2lkGAIgASgJQgi6SAVyA7ABASIhCh9SZW1vdmVUZWFtQWNjb3VudE1lbWJlclJlc3BvbnNlIo4BCh5JbnZpdGVVc2VyVG9UZWFtQWNjb3VudFJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESFgoFZW1haWwYAiABKAlCB7pIBHICEAESLQoEcm9sZRgDIAEoDjIaLm1nbXQudjFhbHBoYTEuQWNjb3VudFJvbGVIAIgBAUIHCgVfcm9sZSKxAgoNQWNjb3VudEludml0ZRIKCgJpZBgBIAEoCRISCgphY2NvdW50X2lkGAIgASgJEhYKDnNlbmRlcl91c2VyX2lkGAMgASgJEg0KBWVtYWlsGAQgASgJEg0KBXRva2VuGAUgASgJEhAKCGFjY2VwdGVkGAYgASgIEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmV4cGlyZXNfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEigKBHJvbGUYCiABKA4yGi5tZ210LnYxYWxwaGExLkFjY291bnRSb2xlIk8KH0ludml0ZVVzZXJUb1RlYW1BY2NvdW50UmVzcG9uc2USLAoGaW52aXRlGAEgASgLMhwubWdtdC52MWFscGhhMS5BY2NvdW50SW52aXRlIjwKHEdldFRlYW1BY2NvdW50SW52aXRlc1JlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQEiTgodR2V0VGVhbUFjY291bnRJbnZpdGVzUmVzcG9uc2USLQoHaW52aXRlcxgBIAMoCzIcLm1nbXQudjFhbHBoYTEuQWNjb3VudEludml0ZSI2Ch5SZW1vdmVUZWFtQWNjb3VudEludml0ZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiEKH1JlbW92ZVRlYW1BY2NvdW50SW52aXRlUmVzcG9uc2UiOAoeQWNjZXB0VGVhbUFjY291bnRJbnZpdGVSZXF1ZXN0EhYKBXRva2VuGAEgASgJQge6SARyAhABIk4KH0FjY2VwdFRlYW1BY2NvdW50SW52aXRlUmVzcG9uc2USKwoHYWNjb3VudBgBIAEoCzIaLm1nbXQudjFhbHBoYTEuVXNlckFjY291bnQiHQobR2V0U3lzdGVtSW5mb3JtYXRpb25SZXF1ZXN0IsIBChxHZXRTeXN0ZW1JbmZvcm1hdGlvblJlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSDgoGY29tbWl0GAIgASgJEhAKCGNvbXBpbGVyGAMgASgJEhAKCHBsYXRmb3JtGAQgASgJEi4KCmJ1aWxkX2RhdGUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KB2xpY2Vuc2UYBiABKAsyHC5tZ210LnYxYWxwaGExLlN5c3RlbUxpY2Vuc2UiawoNU3lzdGVtTGljZW5zZRIQCghpc192YWxpZBgBIAEoCBIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIYChBpc19uZW9zeW5jX2Nsb3VkGAMgASgIIkEKIUdldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJcCiJHZXRBY2NvdW50T25ib2FyZGluZ0NvbmZpZ1Jlc3BvbnNlEjYKBmNvbmZpZxgBIAEoCzImLm1nbXQudjFhbHBoYTEuQWNjb3VudE9uYm9hcmRpbmdDb25maWcieQohU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEjYKBmNvbmZpZxgCIAEoCzImLm1nbXQudjFhbHBoYTEuQWNjb3VudE9uYm9hcmRpbmdDb25maWciXAoiU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXNwb25zZRI2CgZjb25maWcYASABKAsyJi5tZ210LnYxYWxwaGExLkFjY291bnRPbmJvYXJkaW5nQ29uZmlnIlMKF0FjY291bnRPbmJvYXJkaW5nQ29uZmlnEiAKGGhhc19jb21wbGV0ZWRfb25ib2FyZGluZxgFIAEoCEoECAEQAkoECAIQA0oECAMQBEoECAQQBSI3ChdHZXRBY2NvdW50U3RhdHVzUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASKsAQoYR2V0QWNjb3VudFN0YXR1c1Jlc3BvbnNlEhkKEXVzZWRfcmVjb3JkX2NvdW50GAEgASgEEiEKFGFsbG93ZWRfcmVjb3JkX2NvdW50GAIgASgESACIAQESOQoTc3Vic2NyaXB0aW9uX3N0YXR1cxgDIAEoDjIcLm1nbXQudjFhbHBoYTEuQmlsbGluZ1N0YXR1c0IXChVfYWxsb3dlZF9yZWNvcmRfY291bnQiewobSXNBY2NvdW50U3RhdHVzVmFsaWRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEiMKFnJlcXVlc3RlZF9yZWNvcmRfY291bnQYAiABKARIAIgBAUIZChdfcmVxdWVzdGVkX3JlY29yZF9jb3VudCL3AQocSXNBY2NvdW50U3RhdHVzVmFsaWRSZXNwb25zZRIQCghpc192YWxpZBgBIAEoCBITCgZyZWFzb24YAiABKAlIAIgBARITCgtzaG91bGRfcG9sbBgDIAEoCBI0Cg5hY2NvdW50X3N0YXR1cxgGIAEoDjIcLm1nbXQudjFhbHBoYTEuQWNjb3VudFN0YXR1cxI5ChB0cmlhbF9leHBpcmVzX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgBiAEBQgkKB19yZWFzb25CEwoRX3RyaWFsX2V4cGlyZXNfYXRKBAgEEAVKBAgFEAYiRwonR2V0QWNjb3VudEJpbGxpbmdDaGVja291dFNlc3Npb25SZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkgKKEdldEFjY291bnRCaWxsaW5nQ2hlY2tvdXRTZXNzaW9uUmVzcG9uc2USHAoUY2hlY2tvdXRfc2Vzc2lvbl91cmwYASABKAkiRQolR2V0QWNjb3VudEJpbGxpbmdQb3J0YWxTZXNzaW9uUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJECiZHZXRBY2NvdW50QmlsbGluZ1BvcnRhbFNlc3Npb25SZXNwb25zZRIaChJwb3J0YWxfc2Vzc2lvbl91cmwYASABKAkiMAoZR2V0QmlsbGluZ0FjY291bnRzUmVxdWVzdBITCgthY2NvdW50X2lkcxgBIAMoCSJKChpHZXRCaWxsaW5nQWNjb3VudHNSZXNwb25zZRIsCghhY2NvdW50cxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuVXNlckFjY291bnQisQEKG1NldEJpbGxpbmdNZXRlckV2ZW50UmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARIbCgpldmVudF9uYW1lGAIgASgJQge6SARyAhABEhYKBXZhbHVlGAMgASgJQge6SARyAhABEhkKCGV2ZW50X2lkGAQgASgJQge6SARyAhABEhYKCXRpbWVzdGFtcBgFIAEoBEgAiAEBQgwKCl90aW1lc3RhbXAiHgocU2V0QmlsbGluZ01ldGVyRXZlbnRSZXNwb25zZSJ3ChJTZXRVc2VyUm9sZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESGQoHdXNlcl9pZBgCIAEoCUIIukgFcgOwAQESKAoEcm9sZRgDIAEoDjIaLm1nbXQudjFhbHBoYTEuQWNjb3VudFJvbGUiFQoTU2V0VXNlclJvbGVSZXNwb25zZSqSAQoPVXNlckFjY291bnRUeXBlEiEKHVVTRVJfQUNDT1VOVF9UWVBFX1VOU1BFQ0lGSUVEEAASHgoaVVNFUl9BQ0NPVU5UX1RZUEVfUEVSU09OQUwQARIaChZVU0VSX0FDQ09VTlRfVFlQRV9URUFNEAISIAocVVNFUl9BQ0NPVU5UX1RZUEVfRU5URVJQUklTRRADKqkBCg1CaWxsaW5nU3RhdHVzEh4KGkJJTExJTkdfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGQoVQklMTElOR19TVEFUVVNfQUNUSVZFEAESGgoWQklMTElOR19TVEFUVVNfRVhQSVJFRBACEh8KG0JJTExJTkdfU1RBVFVTX1RSSUFMX0FDVElWRRADEiAKHEJJTExJTkdfU1RBVFVTX1RSSUFMX0VYUElSRUQQBCqQAgoNQWNjb3VudFN0YXR1cxIlCiFBQ0NPVU5UX1NUQVRVU19SRUFTT05fVU5TUEVDSUZJRUQQABIrCidBQ0NPVU5UX1NUQVRVU19BQ0NPVU5UX0lOX0VYUElSRURfU1RBVEUQAxInCiNBQ0NPVU5UX1NUQVRVU19BQ0NPVU5UX1RSSUFMX0FDVElWRRAEEigKJEFDQ09VTlRfU1RBVFVTX0FDQ09VTlRfVFJJQUxfRVhQSVJFRBAFIgQIARABIgQIAhACKiRBQ0NPVU5UX1NUQVRVU19FWENFRURTX0FMTE9XRURfTElNSVQqJkFDQ09VTlRfU1RBVFVTX1JFUVVFU1RFRF9FWENFRURTX0xJTUlUKp8BCgtBY2NvdW50Um9sZRIcChhBQ0NPVU5UX1JPTEVfVU5TUEVDSUZJRUQQABIWChJBQ0NPVU5UX1JPTEVfQURNSU4QARIeChpBQ0NPVU5UX1JPTEVfSk9CX0RFVkVMT1BFUhACEhsKF0FDQ09VTlRfUk9MRV9KT0JfVklFV0VSEAMSHQoZQUNDT1VOVF9ST0xFX0pPQl9FWEVDVVRPUhAEMpEXChJVc2VyQWNjb3VudFNlcnZpY2USTQoHR2V0VXNlchIdLm1nbXQudjFhbHBoYTEuR2V0VXNlclJlcXVlc3QaHi5tZ210LnYxYWxwaGExLkdldFVzZXJSZXNwb25zZSIDkAIBEkoKB1NldFVzZXISHS5tZ210LnYxYWxwaGExLlNldFVzZXJSZXF1ZXN0Gh4ubWdtdC52MWFscGhhMS5TZXRVc2VyUmVzcG9uc2UiABJlCg9HZXRVc2VyQWNjb3VudHMSJS5tZ210LnYxYWxwaGExLkdldFVzZXJBY2NvdW50c1JlcXVlc3QaJi5tZ210LnYxYWxwaGExLkdldFVzZXJBY2NvdW50c1Jlc3BvbnNlIgOQAgESawoSU2V0UGVyc29uYWxBY2NvdW50EigubWdtdC52MWFscGhhMS5TZXRQZXJzb25hbEFjY291bnRSZXF1ZXN0GikubWdtdC52MWFscGhhMS5TZXRQZXJzb25hbEFjY291bnRSZXNwb25zZSIAEokBChxDb252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50EjIubWdtdC52MWFscGhhMS5Db252ZXJ0UGVyc29uYWxUb1RlYW1BY2NvdW50UmVxdWVzdBozLm1nbXQudjFhbHBoYTEuQ29udmVydFBlcnNvbmFsVG9UZWFtQWNjb3VudFJlc3BvbnNlIgASaAoRQ3JlYXRlVGVhbUFjY291bnQSJy5tZ210LnYxYWxwaGExLkNyZWF0ZVRlYW1BY2NvdW50UmVxdWVzdBooLm1nbXQudjFhbHBoYTEuQ3JlYXRlVGVhbUFjY291bnRSZXNwb25zZSIAEmIKD0lzVXNlckluQWNjb3VudBIlLm1nbXQudjFhbHBoYTEuSXNVc2VySW5BY2NvdW50UmVxdWVzdBomLm1nbXQudjFhbHBoYTEuSXNVc2VySW5BY2NvdW50UmVzcG9uc2UiABKAAQoYR2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnEi4ubWdtdC52MWFscGhhMS5HZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXF1ZXN0Gi8ubWdtdC52MWFscGhhMS5HZXRBY2NvdW50VGVtcG9yYWxDb25maWdSZXNwb25zZSIDkAIBEn0KGFNldEFjY291bnRUZW1wb3JhbENvbmZpZxIuLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVxdWVzdBovLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudFRlbXBvcmFsQ29uZmlnUmVzcG9uc2UiABJ3ChVHZXRUZWFtQWNjb3VudE1lbWJlcnMSKy5tZ210LnYxYWxwaGExLkdldFRlYW1BY2NvdW50TWVtYmVyc1JlcXVlc3QaLC5tZ210LnYxYWxwaGExLkdldFRlYW1BY2NvdW50TWVtYmVyc1Jlc3BvbnNlIgOQAgESegoXUmVtb3ZlVGVhbUFjY291bnRNZW1iZXISLS5tZ210LnYxYWxwaGExLlJlbW92ZVRlYW1BY2NvdW50TWVtYmVyUmVxdWVzdBouLm1nbXQudjFhbHBoYTEuUmVtb3ZlVGVhbUFjY291bnRNZW1iZXJSZXNwb25zZSIAEnoKF0ludml0ZVVzZXJUb1RlYW1BY2NvdW50Ei0ubWdtdC52MWFscGhhMS5JbnZpdGVVc2VyVG9UZWFtQWNjb3VudFJlcXVlc3QaLi5tZ210LnYxYWxwaGExLkludml0ZVVzZXJUb1RlYW1BY2NvdW50UmVzcG9uc2UiABJ3ChVHZXRUZWFtQWNjb3VudEludml0ZXMSKy5tZ210LnYxYWxwaGExLkdldFRlYW1BY2NvdW50SW52aXRlc1JlcXVlc3QaLC5tZ210LnYxYWxwaGExLkdldFRlYW1BY2NvdW50SW52aXRlc1Jlc3BvbnNlIgOQAgESegoXUmVtb3ZlVGVhbUFjY291bnRJbnZpdGUSLS5tZ210LnYxYWxwaGExLlJlbW92ZVRlYW1BY2NvdW50SW52aXRlUmVxdWVzdBouLm1nbXQudjFhbHBoYTEuUmVtb3ZlVGVhbUFjY291bnRJbnZpdGVSZXNwb25zZSIAEnoKF0FjY2VwdFRlYW1BY2NvdW50SW52aXRlEi0ubWdtdC52MWFscGhhMS5BY2NlcHRUZWFtQWNjb3VudEludml0ZVJlcXVlc3QaLi5tZ210LnYxYWxwaGExLkFjY2VwdFRlYW1BY2NvdW50SW52aXRlUmVzcG9uc2UiABJ0ChRHZXRTeXN0ZW1JbmZvcm1hdGlvbhIqLm1nbXQudjFhbHBoYTEuR2V0U3lzdGVtSW5mb3JtYXRpb25SZXF1ZXN0GisubWdtdC52MWFscGhhMS5HZXRTeXN0ZW1JbmZvcm1hdGlvblJlc3BvbnNlIgOQAgEShgEKGkdldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnEjAubWdtdC52MWFscGhhMS5HZXRBY2NvdW50T25ib2FyZGluZ0NvbmZpZ1JlcXVlc3QaMS5tZ210LnYxYWxwaGExLkdldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnUmVzcG9uc2UiA5ACARKDAQoaU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWcSMC5tZ210LnYxYWxwaGExLlNldEFjY291bnRPbmJvYXJkaW5nQ29uZmlnUmVxdWVzdBoxLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudE9uYm9hcmRpbmdDb25maWdSZXNwb25zZSIAEmgKEEdldEFjY291bnRTdGF0dXMSJi5tZ210LnYxYWxwaGExLkdldEFjY291bnRTdGF0dXNSZXF1ZXN0GicubWdtdC52MWFscGhhMS5HZXRBY2NvdW50U3RhdHVzUmVzcG9uc2UiA5ACARJ0ChRJc0FjY291bnRTdGF0dXNWYWxpZBIqLm1nbXQudjFhbHBoYTEuSXNBY2NvdW50U3RhdHVzVmFsaWRSZXF1ZXN0GisubWdtdC52MWFscGhhMS5Jc0FjY291bnRTdGF0dXNWYWxpZFJlc3BvbnNlIgOQAgESmAEKIEdldEFjY291bnRCaWxsaW5nQ2hlY2tvdXRTZXNzaW9uEjYubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QmlsbGluZ0NoZWNrb3V0U2Vzc2lvblJlcXVlc3QaNy5tZ210LnYxYWxwaGExLkdldEFjY291bnRCaWxsaW5nQ2hlY2tvdXRTZXNzaW9uUmVzcG9uc2UiA5ACARKSAQoeR2V0QWNjb3VudEJpbGxpbmdQb3J0YWxTZXNzaW9uEjQubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QmlsbGluZ1BvcnRhbFNlc3Npb25SZXF1ZXN0GjUubWdtdC52MWFscGhhMS5HZXRBY2NvdW50QmlsbGluZ1BvcnRhbFNlc3Npb25SZXNwb25zZSIDkAIBEm4KEkdldEJpbGxpbmdBY2NvdW50cxIoLm1nbXQudjFhbHBoYTEuR2V0QmlsbGluZ0FjY291bnRzUmVxdWVzdBopLm1nbXQudjFhbHBoYTEuR2V0QmlsbGluZ0FjY291bnRzUmVzcG9uc2UiA5ACARJxChRTZXRCaWxsaW5nTWV0ZXJFdmVudBIqLm1nbXQudjFhbHBoYTEuU2V0QmlsbGluZ01ldGVyRXZlbnRSZXF1ZXN0GisubWdtdC52MWFscGhhMS5TZXRCaWxsaW5nTWV0ZXJFdmVudFJlc3BvbnNlIgASVgoLU2V0VXNlclJvbGUSIS5tZ210LnYxYWxwaGExLlNldFVzZXJSb2xlUmVxdWVzdBoiLm1nbXQudjFhbHBoYTEuU2V0VXNlclJvbGVSZXNwb25zZSIAQswBChFjb20ubWdtdC52MWFscGhhMUIQVXNlckFjY291bnRQcm90b1ABWlBnaXRodWIuY29tL251Y2xldXNjbG91ZC9uZW9zeW5jL2JhY2tlbmQvZ2VuL2dvL3Byb3Rvcy9tZ210L3YxYWxwaGExO21nbXR2MWFscGhhMaICA01YWKoCDU1nbXQuVjFhbHBoYTHKAg1NZ210XFYxYWxwaGEx4gIZTWdtdFxWMWFscGhhMVxHUEJNZXRhZGF0YeoCDk1nbXQ6OlYxYWxwaGExYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message mgmt.v1alpha1.GetUserRequest
@@ -33,6 +33,8 @@ export const GetUserRequestSchema: GenMessage<GetUserRequest> = /*@__PURE__*/
  */
 export type GetUserResponse = Message<"mgmt.v1alpha1.GetUserResponse"> & {
   /**
+   * The unique identifier of the user that was retrieved.
+   *
    * @generated from field: string user_id = 1;
    */
   userId: string;
@@ -63,6 +65,8 @@ export const SetUserRequestSchema: GenMessage<SetUserRequest> = /*@__PURE__*/
  */
 export type SetUserResponse = Message<"mgmt.v1alpha1.SetUserResponse"> & {
   /**
+   * The unique identifier of the user that was created.
+   *
    * @generated from field: string user_id = 1;
    */
   userId: string;
@@ -93,6 +97,8 @@ export const GetUserAccountsRequestSchema: GenMessage<GetUserAccountsRequest> = 
  */
 export type GetUserAccountsResponse = Message<"mgmt.v1alpha1.GetUserAccountsResponse"> & {
   /**
+   * The list of accounts that the user belongs to.
+   *
    * @generated from field: repeated mgmt.v1alpha1.UserAccount accounts = 1;
    */
   accounts: UserAccount[];
@@ -223,6 +229,8 @@ export const SetPersonalAccountRequestSchema: GenMessage<SetPersonalAccountReque
  */
 export type SetPersonalAccountResponse = Message<"mgmt.v1alpha1.SetPersonalAccountResponse"> & {
   /**
+   * The unique identifier of the personal account that was created.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -240,6 +248,8 @@ export const SetPersonalAccountResponseSchema: GenMessage<SetPersonalAccountResp
  */
 export type IsUserInAccountRequest = Message<"mgmt.v1alpha1.IsUserInAccountRequest"> & {
   /**
+   * The unique identifier of the account to check if the user is in.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -257,6 +267,8 @@ export const IsUserInAccountRequestSchema: GenMessage<IsUserInAccountRequest> = 
  */
 export type IsUserInAccountResponse = Message<"mgmt.v1alpha1.IsUserInAccountResponse"> & {
   /**
+   * Whether or not the user is in the account.
+   *
    * @generated from field: bool ok = 1;
    */
   ok: boolean;
@@ -274,6 +286,8 @@ export const IsUserInAccountResponseSchema: GenMessage<IsUserInAccountResponse> 
  */
 export type GetAccountTemporalConfigRequest = Message<"mgmt.v1alpha1.GetAccountTemporalConfigRequest"> & {
   /**
+   * The unique identifier of the account to get the temporal config for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -291,6 +305,8 @@ export const GetAccountTemporalConfigRequestSchema: GenMessage<GetAccountTempora
  */
 export type GetAccountTemporalConfigResponse = Message<"mgmt.v1alpha1.GetAccountTemporalConfigResponse"> & {
   /**
+   * The temporal config for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 1;
    */
   config?: AccountTemporalConfig;
@@ -308,11 +324,15 @@ export const GetAccountTemporalConfigResponseSchema: GenMessage<GetAccountTempor
  */
 export type SetAccountTemporalConfigRequest = Message<"mgmt.v1alpha1.SetAccountTemporalConfigRequest"> & {
   /**
+   * The unique identifier of the account to set the temporal config for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
+   * The temporal config to set for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 2;
    */
   config?: AccountTemporalConfig;
@@ -330,6 +350,8 @@ export const SetAccountTemporalConfigRequestSchema: GenMessage<SetAccountTempora
  */
 export type SetAccountTemporalConfigResponse = Message<"mgmt.v1alpha1.SetAccountTemporalConfigResponse"> & {
   /**
+   * The temporal config that was set for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 1;
    */
   config?: AccountTemporalConfig;
@@ -347,16 +369,22 @@ export const SetAccountTemporalConfigResponseSchema: GenMessage<SetAccountTempor
  */
 export type AccountTemporalConfig = Message<"mgmt.v1alpha1.AccountTemporalConfig"> & {
   /**
+   * The temporal url for the account.
+   *
    * @generated from field: string url = 1;
    */
   url: string;
 
   /**
+   * The temporal namespace for the account.
+   *
    * @generated from field: string namespace = 2;
    */
   namespace: string;
 
   /**
+   * The temporal sync job queue name for the account.
+   *
    * @generated from field: string sync_job_queue_name = 3;
    */
   syncJobQueueName: string;
@@ -393,6 +421,8 @@ export const CreateTeamAccountRequestSchema: GenMessage<CreateTeamAccountRequest
  */
 export type CreateTeamAccountResponse = Message<"mgmt.v1alpha1.CreateTeamAccountResponse"> & {
   /**
+   * The unique identifier of the team account that was created.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -417,21 +447,29 @@ export const CreateTeamAccountResponseSchema: GenMessage<CreateTeamAccountRespon
  */
 export type AccountUser = Message<"mgmt.v1alpha1.AccountUser"> & {
   /**
+   * The unique identifier of the user.
+   *
    * @generated from field: string id = 1;
    */
   id: string;
 
   /**
+   * The name of the user (if there is one)
+   *
    * @generated from field: string name = 2;
    */
   name: string;
 
   /**
+   * The image of the user (if there is one)
+   *
    * @generated from field: string image = 3;
    */
   image: string;
 
   /**
+   * The email of the user.
+   *
    * @generated from field: string email = 4;
    */
   email: string;
@@ -456,6 +494,8 @@ export const AccountUserSchema: GenMessage<AccountUser> = /*@__PURE__*/
  */
 export type GetTeamAccountMembersRequest = Message<"mgmt.v1alpha1.GetTeamAccountMembersRequest"> & {
   /**
+   * The unique identifier of the account to get the members for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -490,11 +530,15 @@ export const GetTeamAccountMembersResponseSchema: GenMessage<GetTeamAccountMembe
  */
 export type RemoveTeamAccountMemberRequest = Message<"mgmt.v1alpha1.RemoveTeamAccountMemberRequest"> & {
   /**
+   * The unique identifier of the user to remove from the account.
+   *
    * @generated from field: string user_id = 1;
    */
   userId: string;
 
   /**
+   * The unique identifier of the account to remove the user from.
+   *
    * @generated from field: string account_id = 2;
    */
   accountId: string;
@@ -525,14 +569,14 @@ export const RemoveTeamAccountMemberResponseSchema: GenMessage<RemoveTeamAccount
  */
 export type InviteUserToTeamAccountRequest = Message<"mgmt.v1alpha1.InviteUserToTeamAccountRequest"> & {
   /**
-   * The account id to invite the user to
+   * The unique identifier of the account to invite the user to.
    *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
-   * The email of the user to invite
+   * The email of the user to invite.
    *
    * @generated from field: string email = 2;
    */
@@ -558,46 +602,64 @@ export const InviteUserToTeamAccountRequestSchema: GenMessage<InviteUserToTeamAc
  */
 export type AccountInvite = Message<"mgmt.v1alpha1.AccountInvite"> & {
   /**
+   * The unique identifier of the invite.
+   *
    * @generated from field: string id = 1;
    */
   id: string;
 
   /**
+   * The unique identifier of the account to invite the user to.
+   *
    * @generated from field: string account_id = 2;
    */
   accountId: string;
 
   /**
+   * The unique identifier of the user that sent the invite.
+   *
    * @generated from field: string sender_user_id = 3;
    */
   senderUserId: string;
 
   /**
+   * The email of the user to invite.
+   *
    * @generated from field: string email = 4;
    */
   email: string;
 
   /**
+   * The token that the user will use to accept the invite.
+   *
    * @generated from field: string token = 5;
    */
   token: string;
 
   /**
+   * Whether or not the invite has been accepted.
+   *
    * @generated from field: bool accepted = 6;
    */
   accepted: boolean;
 
   /**
+   * The time when the invite was created.
+   *
    * @generated from field: google.protobuf.Timestamp created_at = 7;
    */
   createdAt?: Timestamp;
 
   /**
+   * The time when the invite was last updated.
+   *
    * @generated from field: google.protobuf.Timestamp updated_at = 8;
    */
   updatedAt?: Timestamp;
 
   /**
+   * The time when the invite expires.
+   *
    * @generated from field: google.protobuf.Timestamp expires_at = 9;
    */
   expiresAt?: Timestamp;
@@ -622,6 +684,8 @@ export const AccountInviteSchema: GenMessage<AccountInvite> = /*@__PURE__*/
  */
 export type InviteUserToTeamAccountResponse = Message<"mgmt.v1alpha1.InviteUserToTeamAccountResponse"> & {
   /**
+   * The invite that was created.
+   *
    * @generated from field: mgmt.v1alpha1.AccountInvite invite = 1;
    */
   invite?: AccountInvite;
@@ -639,6 +703,8 @@ export const InviteUserToTeamAccountResponseSchema: GenMessage<InviteUserToTeamA
  */
 export type GetTeamAccountInvitesRequest = Message<"mgmt.v1alpha1.GetTeamAccountInvitesRequest"> & {
   /**
+   * The unique identifier of the account to get the invites for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -656,6 +722,8 @@ export const GetTeamAccountInvitesRequestSchema: GenMessage<GetTeamAccountInvite
  */
 export type GetTeamAccountInvitesResponse = Message<"mgmt.v1alpha1.GetTeamAccountInvitesResponse"> & {
   /**
+   * The list of invites for the account.
+   *
    * @generated from field: repeated mgmt.v1alpha1.AccountInvite invites = 1;
    */
   invites: AccountInvite[];
@@ -673,6 +741,8 @@ export const GetTeamAccountInvitesResponseSchema: GenMessage<GetTeamAccountInvit
  */
 export type RemoveTeamAccountInviteRequest = Message<"mgmt.v1alpha1.RemoveTeamAccountInviteRequest"> & {
   /**
+   * The unique identifier of the invite to remove.
+   *
    * @generated from field: string id = 1;
    */
   id: string;
@@ -703,6 +773,8 @@ export const RemoveTeamAccountInviteResponseSchema: GenMessage<RemoveTeamAccount
  */
 export type AcceptTeamAccountInviteRequest = Message<"mgmt.v1alpha1.AcceptTeamAccountInviteRequest"> & {
   /**
+   * The token that the user will use to accept the invite.
+   *
    * @generated from field: string token = 1;
    */
   token: string;
@@ -720,6 +792,8 @@ export const AcceptTeamAccountInviteRequestSchema: GenMessage<AcceptTeamAccountI
  */
 export type AcceptTeamAccountInviteResponse = Message<"mgmt.v1alpha1.AcceptTeamAccountInviteResponse"> & {
   /**
+   * The account that the user was invited to.
+   *
    * @generated from field: mgmt.v1alpha1.UserAccount account = 1;
    */
   account?: UserAccount;
@@ -837,6 +911,8 @@ export const SystemLicenseSchema: GenMessage<SystemLicense> = /*@__PURE__*/
  */
 export type GetAccountOnboardingConfigRequest = Message<"mgmt.v1alpha1.GetAccountOnboardingConfigRequest"> & {
   /**
+   * The unique identifier of the account to get the onboarding config for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -854,6 +930,8 @@ export const GetAccountOnboardingConfigRequestSchema: GenMessage<GetAccountOnboa
  */
 export type GetAccountOnboardingConfigResponse = Message<"mgmt.v1alpha1.GetAccountOnboardingConfigResponse"> & {
   /**
+   * The onboarding config for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 1;
    */
   config?: AccountOnboardingConfig;
@@ -871,11 +949,15 @@ export const GetAccountOnboardingConfigResponseSchema: GenMessage<GetAccountOnbo
  */
 export type SetAccountOnboardingConfigRequest = Message<"mgmt.v1alpha1.SetAccountOnboardingConfigRequest"> & {
   /**
+   * The unique identifier of the account to set the onboarding config for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
+   * The onboarding config to set for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 2;
    */
   config?: AccountOnboardingConfig;
@@ -893,6 +975,8 @@ export const SetAccountOnboardingConfigRequestSchema: GenMessage<SetAccountOnboa
  */
 export type SetAccountOnboardingConfigResponse = Message<"mgmt.v1alpha1.SetAccountOnboardingConfigResponse"> & {
   /**
+   * The onboarding config that was set for the account.
+   *
    * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 1;
    */
   config?: AccountOnboardingConfig;
@@ -910,6 +994,8 @@ export const SetAccountOnboardingConfigResponseSchema: GenMessage<SetAccountOnbo
  */
 export type AccountOnboardingConfig = Message<"mgmt.v1alpha1.AccountOnboardingConfig"> & {
   /**
+   * Whether or not the account has completed onboarding.
+   *
    * @generated from field: bool has_completed_onboarding = 5;
    */
   hasCompletedOnboarding: boolean;
@@ -927,6 +1013,8 @@ export const AccountOnboardingConfigSchema: GenMessage<AccountOnboardingConfig> 
  */
 export type GetAccountStatusRequest = Message<"mgmt.v1alpha1.GetAccountStatusRequest"> & {
   /**
+   * The unique identifier of the account to get the status for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -978,6 +1066,8 @@ export const GetAccountStatusResponseSchema: GenMessage<GetAccountStatusResponse
  */
 export type IsAccountStatusValidRequest = Message<"mgmt.v1alpha1.IsAccountStatusValidRequest"> & {
   /**
+   * The unique identifier of the account to get the status for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -1002,6 +1092,8 @@ export const IsAccountStatusValidRequestSchema: GenMessage<IsAccountStatusValidR
  */
 export type IsAccountStatusValidResponse = Message<"mgmt.v1alpha1.IsAccountStatusValidResponse"> & {
   /**
+   * Whether or not the account is valid.
+   *
    * @generated from field: bool is_valid = 1;
    */
   isValid: boolean;
@@ -1047,6 +1139,8 @@ export const IsAccountStatusValidResponseSchema: GenMessage<IsAccountStatusValid
  */
 export type GetAccountBillingCheckoutSessionRequest = Message<"mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest"> & {
   /**
+   * The unique identifier of the account to get the billing checkout session for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -1083,6 +1177,8 @@ export const GetAccountBillingCheckoutSessionResponseSchema: GenMessage<GetAccou
  */
 export type GetAccountBillingPortalSessionRequest = Message<"mgmt.v1alpha1.GetAccountBillingPortalSessionRequest"> & {
   /**
+   * The unique identifier of the account to get the billing portal session for.
+   *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
@@ -1138,6 +1234,8 @@ export const GetBillingAccountsRequestSchema: GenMessage<GetBillingAccountsReque
  */
 export type GetBillingAccountsResponse = Message<"mgmt.v1alpha1.GetBillingAccountsResponse"> & {
   /**
+   * The list of accounts that have a billing id.
+   *
    * @generated from field: repeated mgmt.v1alpha1.UserAccount accounts = 1;
    */
   accounts: UserAccount[];
@@ -1155,7 +1253,7 @@ export const GetBillingAccountsResponseSchema: GenMessage<GetBillingAccountsResp
  */
 export type SetBillingMeterEventRequest = Message<"mgmt.v1alpha1.SetBillingMeterEventRequest"> & {
   /**
-   * The account id to apply this metered event to
+   * The unique identifier of the account to apply this metered event to.
    *
    * @generated from field: string account_id = 1;
    */
@@ -1215,21 +1313,21 @@ export const SetBillingMeterEventResponseSchema: GenMessage<SetBillingMeterEvent
  */
 export type SetUserRoleRequest = Message<"mgmt.v1alpha1.SetUserRoleRequest"> & {
   /**
-   * The account id to apply this role to
+   * The unique identifier of the account to apply this role to.
    *
    * @generated from field: string account_id = 1;
    */
   accountId: string;
 
   /**
-   * The user that this will be applied to
+   * The unique identifier of the user that this will be applied to.
    *
    * @generated from field: string user_id = 2;
    */
   userId: string;
 
   /**
-   * The role that this user will obtain
+   * The role that this user will obtain.
    *
    * @generated from field: mgmt.v1alpha1.AccountRole role = 3;
    */
@@ -1266,16 +1364,22 @@ export enum UserAccountType {
   UNSPECIFIED = 0,
 
   /**
+   * A personal account is an account that is owned by a single user.
+   *
    * @generated from enum value: USER_ACCOUNT_TYPE_PERSONAL = 1;
    */
   PERSONAL = 1,
 
   /**
+   * A team account is an account that is owned by a team of users.
+   *
    * @generated from enum value: USER_ACCOUNT_TYPE_TEAM = 2;
    */
   TEAM = 2,
 
   /**
+   * An enterprise account is an account that is owned by an enterprise.
+   *
    * @generated from enum value: USER_ACCOUNT_TYPE_ENTERPRISE = 3;
    */
   ENTERPRISE = 3,
@@ -1418,10 +1522,14 @@ export const AccountRoleSchema: GenEnum<AccountRole> = /*@__PURE__*/
   enumDesc(file_mgmt_v1alpha1_user_account, 3);
 
 /**
+ * Service that manages users, accounts, and billing
+ *
  * @generated from service mgmt.v1alpha1.UserAccountService
  */
 export const UserAccountService: GenService<{
   /**
+   * Retrieves the current user.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetUser
    */
   getUser: {
@@ -1430,6 +1538,8 @@ export const UserAccountService: GenService<{
     output: typeof GetUserResponseSchema;
   },
   /**
+   * Sets the current user.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.SetUser
    */
   setUser: {
@@ -1438,6 +1548,8 @@ export const UserAccountService: GenService<{
     output: typeof SetUserResponseSchema;
   },
   /**
+   * Retrieves the list of accounts that the user belongs to.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetUserAccounts
    */
   getUserAccounts: {
@@ -1446,6 +1558,8 @@ export const UserAccountService: GenService<{
     output: typeof GetUserAccountsResponseSchema;
   },
   /**
+   * Sets the current personal account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.SetPersonalAccount
    */
   setPersonalAccount: {
@@ -1474,6 +1588,8 @@ export const UserAccountService: GenService<{
     output: typeof CreateTeamAccountResponseSchema;
   },
   /**
+   * Checks if the user is in the account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.IsUserInAccount
    */
   isUserInAccount: {
@@ -1482,6 +1598,8 @@ export const UserAccountService: GenService<{
     output: typeof IsUserInAccountResponseSchema;
   },
   /**
+   * Retrieves the temporal config for the account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
    */
   getAccountTemporalConfig: {
@@ -1490,6 +1608,8 @@ export const UserAccountService: GenService<{
     output: typeof GetAccountTemporalConfigResponseSchema;
   },
   /**
+   * Sets the temporal config for the account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
    */
   setAccountTemporalConfig: {
@@ -1498,6 +1618,8 @@ export const UserAccountService: GenService<{
     output: typeof SetAccountTemporalConfigResponseSchema;
   },
   /**
+   * Retrieves the list of members in the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers
    */
   getTeamAccountMembers: {
@@ -1506,6 +1628,8 @@ export const UserAccountService: GenService<{
     output: typeof GetTeamAccountMembersResponseSchema;
   },
   /**
+   * Removes a member from the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember
    */
   removeTeamAccountMember: {
@@ -1514,6 +1638,8 @@ export const UserAccountService: GenService<{
     output: typeof RemoveTeamAccountMemberResponseSchema;
   },
   /**
+   * Invites a user to the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount
    */
   inviteUserToTeamAccount: {
@@ -1522,6 +1648,8 @@ export const UserAccountService: GenService<{
     output: typeof InviteUserToTeamAccountResponseSchema;
   },
   /**
+   * Retrieves the list of invites for the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
    */
   getTeamAccountInvites: {
@@ -1530,6 +1658,8 @@ export const UserAccountService: GenService<{
     output: typeof GetTeamAccountInvitesResponseSchema;
   },
   /**
+   * Removes an invite from the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
    */
   removeTeamAccountInvite: {
@@ -1538,6 +1668,8 @@ export const UserAccountService: GenService<{
     output: typeof RemoveTeamAccountInviteResponseSchema;
   },
   /**
+   * Accepts an invite to the team account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.AcceptTeamAccountInvite
    */
   acceptTeamAccountInvite: {
@@ -1546,6 +1678,8 @@ export const UserAccountService: GenService<{
     output: typeof AcceptTeamAccountInviteResponseSchema;
   },
   /**
+   * Retrieves the system information.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetSystemInformation
    */
   getSystemInformation: {
@@ -1554,6 +1688,8 @@ export const UserAccountService: GenService<{
     output: typeof GetSystemInformationResponseSchema;
   },
   /**
+   * Retrieves the onboarding config for the account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
    */
   getAccountOnboardingConfig: {
@@ -1562,6 +1698,8 @@ export const UserAccountService: GenService<{
     output: typeof GetAccountOnboardingConfigResponseSchema;
   },
   /**
+   * Sets the onboarding config for the account.
+   *
    * @generated from rpc mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig
    */
   setAccountOnboardingConfig: {

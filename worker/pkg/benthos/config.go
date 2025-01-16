@@ -379,6 +379,7 @@ type PooledSqlInsert struct {
 	ConnectionId                string    `json:"connection_id" yaml:"connection_id"`
 	Schema                      string    `json:"schema" yaml:"schema"`
 	Table                       string    `json:"table" yaml:"table"`
+	PrimaryKeyColumns           []string  `json:"primary_key_columns" yaml:"primary_key_columns"`
 	OnConflictDoNothing         bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
 	OnConflictDoUpdate          bool      `json:"on_conflict_do_update" yaml:"on_conflict_do_update"`
 	TruncateOnRetry             bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`

@@ -255,6 +255,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   {
                                     postgres: {
                                       newColumnAdditionStrategy: 'halt',
+                                      columnRemovalStrategy: 'continue',
                                     },
                                   },
                                   {
@@ -269,6 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   {
                                     mysql: {
                                       haltOnNewColumnAddition: false,
+                                      columnRemovalStrategy: 'continue',
                                     },
                                   },
                                   {
@@ -299,6 +301,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   {
                                     mssql: {
                                       haltOnNewColumnAddition: false,
+                                      columnRemovalStrategy: 'continue',
                                     },
                                   },
                                   {

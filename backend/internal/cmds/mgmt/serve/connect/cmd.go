@@ -17,12 +17,14 @@ import (
 	"connectrpc.com/otelconnect"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
+	"github.com/grafana/pyroscope-go"
 	"github.com/jackc/pgx/v5/stdlib"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
+	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -128,6 +130,18 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	slogger.Debug(fmt.Sprintf("neosync cloud enabled: %t", ncloudlicense.IsValid()))
+
+	pyroscopeConfig, isPyroscopeEnabled, err := pyroscope_env.NewFromEnv("neosync-api", slogger)
+	if err != nil {
+		return fmt.Errorf("unable to initialize pyroscope from env: %w", err)
+	}
+	if isPyroscopeEnabled {
+		profiler, err := pyroscope.Start(*pyroscopeConfig)
+		if err != nil {
+			return fmt.Errorf("unable to start pyroscope profiler: %w", err)
+		}
+		defer profiler.Stop() //nolint:errcheck
+	}
 
 	cascadelicense := license.NewCascadeLicense(
 		ncloudlicense,
@@ -1018,27 +1032,6 @@ func getPromApiKey() *string {
 func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	isRunLogsEnabled := viper.GetBool("RUN_LOGS_ENABLED")
 	if !isRunLogsEnabled {
-		// look for fallback variables
-		isKubernetes := getIsKubernetes()
-		ksNs := getKubernetesNamespace()
-		ksWorkerAppName := getKubernetesWorkerAppName()
-		if isKubernetes {
-			if ksNs == "" {
-				ksNs = "neosync"
-			}
-			if ksWorkerAppName == "" {
-				ksWorkerAppName = "neosync-worker"
-			}
-			runlogtype := v1alpha1_jobservice.KubePodRunLogType
-			return &v1alpha1_jobservice.RunLogConfig{
-				IsEnabled:  true,
-				RunLogType: &runlogtype,
-				RunLogPodConfig: &v1alpha1_jobservice.KubePodRunLogConfig{
-					Namespace:     ksNs,
-					WorkerAppName: ksWorkerAppName,
-				},
-			}, nil
-		}
 		return &v1alpha1_jobservice.RunLogConfig{
 			IsEnabled: false,
 		}, nil
@@ -1105,6 +1098,10 @@ func getRunLogType() *v1alpha1_jobservice.RunLogType {
 		rt := v1alpha1_jobservice.LokiRunLogType
 		return &rt
 	default:
+		if getIsKubernetes() {
+			rt := v1alpha1_jobservice.KubePodRunLogType
+			return &rt
+		}
 		return nil
 	}
 }

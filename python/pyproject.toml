@@ -12,13 +12,39 @@ description = "Neosync Python SDK"
 requires-python = ">=3.8"
 readme = "README.md"
 dependencies = [
-  "grpcio==1.67.*",
+  "grpcio==1.69.*",
   "protobuf==5.*",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Healthcare Industry",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Security",
+  "Topic :: Utilities",
+]
+keywords = [
+  "neosync",
+  "data",
+  "privacy",
+  "anonymization",
+  "data-privacy",
+  "data-anonymization",
+  "data-protection",
+  "data-masking",
+  "data-obfuscation",
+  "data-scrubbing",
+  "data-de-identification",
 ]
 
 [project.urls]
 Homepage = "https://github.com/nucleuscloud/neosync"
 Issues = "https://github.com/nucleuscloud/neosync/issues"
+Documentation = "https://docs.neosync.dev/api/python"
 
 
 [tool.hatch.version]

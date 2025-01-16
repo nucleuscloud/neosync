@@ -12,6 +12,7 @@ message GetSystemTransformersResponse {
 }
 
 message GetSystemTransformerBySourceRequest {
+  // The source of the transformer to retrieve.
   TransformerSource source = 1;
 }
 
@@ -20,6 +21,7 @@ message GetSystemTransformerBySourceResponse {
 }
 
 message GetUserDefinedTransformersRequest {
+  // The unique identifier of the account to get the user defined transformers for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -28,6 +30,7 @@ message GetUserDefinedTransformersResponse {
 }
 
 message GetUserDefinedTransformerByIdRequest {
+  // The unique identifier of the user defined transformer to get.
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -36,11 +39,17 @@ message GetUserDefinedTransformerByIdResponse {
 }
 
 message CreateUserDefinedTransformerRequest {
+  // The unique identifier of the account to create the user defined transformer for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The name of the user defined transformer.
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // The description of the user defined transformer.
   string description = 3;
+
   reserved 4; // Was: string type = 4;
+  // The source of the user defined transformer.
   TransformerSource source = 5;
+  // The configuration of the user defined transformer.
   TransformerConfig transformer_config = 6;
 }
 
@@ -49,15 +58,20 @@ message CreateUserDefinedTransformerResponse {
 }
 
 message DeleteUserDefinedTransformerRequest {
+  // The unique identifier of the user defined transformer to delete.
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteUserDefinedTransformerResponse {}
 
 message UpdateUserDefinedTransformerRequest {
+  // The unique identifier of the user defined transformer to update.
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
+  // The name of the user defined transformer.
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // The description of the user defined transformer.
   string description = 3;
+  // The configuration of the user defined transformer.
   TransformerConfig transformer_config = 4;
 }
 
@@ -66,25 +80,39 @@ message UpdateUserDefinedTransformerResponse {
 }
 
 message IsTransformerNameAvailableRequest {
+  // The unique identifier of the account to check for the availability of the transformer name.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The name of the transformer to check for availability.
   string transformer_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 
 message IsTransformerNameAvailableResponse {
+  // Whether or not the transformer name is available.
   bool is_available = 1;
 }
 
 message UserDefinedTransformer {
+  // The unique identifier of the user defined transformer.
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // The name of the user defined transformer.
   string name = 2;
+  // The description of the user defined transformer.
   string description = 3;
-  // This property is readonly and is calculated based off the origin system transformer
-  TransformerDataType data_type = 5;
+
+  reserved 4;
+  // @deprecated: data_type is deprecated and will be removed in a future release. Use data_types instead.
+  TransformerDataType data_type = 5 [deprecated = true];
+  // The source of the user defined transformer.
   TransformerSource source = 6;
+  // The configuration of the user defined transformer.
   TransformerConfig config = 7;
+  // The date and time the user defined transformer was created.
   google.protobuf.Timestamp created_at = 8;
+  // The date and time the user defined transformer was last updated.
   google.protobuf.Timestamp updated_at = 9;
+  // The unique identifier of the account that owns the user defined transformer.
   string account_id = 10;
+  // The data types supported by the user defined transformer. This is currently calculated based off the origin system transformer.
   repeated TransformerDataType data_types = 11;
 }
 
@@ -154,22 +182,33 @@ enum TransformerDataType {
   TRANSFORMER_DATA_TYPE_UUID = 8;
 }
 
+// A system transformer is a transformer that is built into the Neosync platform.
+// It can be used directly in job mappings or used in user-defined transformers to snapshot a specific configuration.
 message SystemTransformer {
+  // The name of the transformer.
   string name = 1;
+  // The description of the transformer.
   string description = 2;
-  TransformerDataType data_type = 3;
+  // @deprecated: data_types is deprecated and will be removed in a future release. Use data_types instead.
+  TransformerDataType data_type = 3 [deprecated = true];
+  // The source of the transformer.
   TransformerSource source = 4;
+  // The configuration of the transformer.
   TransformerConfig config = 5;
+  // The data types supported by the transformer.
   repeated TransformerDataType data_types = 6;
   repeated SupportedJobType supported_job_types = 7;
 }
 
 enum SupportedJobType {
   SUPPORTED_JOB_TYPE_UNSPECIFIED = 0;
+  // Determines if a transformer is supported for a sync job.
   SUPPORTED_JOB_TYPE_SYNC = 1;
+  // Determines if a transformer is supported for a generate job.
   SUPPORTED_JOB_TYPE_GENERATE = 2;
 }
 
+// The configuration for a transformer. This determines what type of transformation or generation is performed.
 message TransformerConfig {
   oneof config {
     option (buf.validate.oneof).required = true;
@@ -283,6 +322,8 @@ message PiiAnonymizer {
     Mask mask = 3;
     // Configures the anonymizer to hash the identified PII
     Hash hash = 4;
+    // Configures the anonymizer to use a Neosync configured transformer
+    Transform transform = 5;
   }
 
   message Replace {
@@ -312,6 +353,10 @@ message PiiAnonymizer {
       // The SHA512 Hash Algorithm
       HASH_TYPE_SHA512 = 3;
     }
+  }
+  message Transform {
+    // The transformer to use. If not provided, a transformer will automatically be selected (if supported), otherwise it falls back to generating a random hash.
+    TransformerConfig config = 1;
   }
 }
 
@@ -359,6 +404,7 @@ message TransformEmail {
 message GenerateBool {}
 
 message GenerateCardNumber {
+  // Whether or not to validate the card number using the Luhn algorithm.
   optional bool valid_luhn = 1;
 }
 
@@ -367,16 +413,22 @@ message GenerateCity {}
 message GenerateDefault {}
 
 message GenerateE164PhoneNumber {
+  // The minimum length of the phone number to generate.
   optional int64 min = 1;
+  // The maximum length of the phone number to generate.
   optional int64 max = 2;
 }
 
 message GenerateFirstName {}
 
 message GenerateFloat64 {
+  // Whether or not to randomize the sign of the float64.
   optional bool randomize_sign = 1;
+  // The minimum value to randomize the float64 to.
   optional double min = 2;
+  // The maximum value to randomize the float64 to.
   optional double max = 3;
+  // The precision of the float64 to generate.
   optional int64 precision = 4;
 }
 
@@ -385,14 +437,18 @@ message GenerateFullAddress {}
 message GenerateFullName {}
 
 message GenerateGender {
+  // Whether or not to abbreviate the gender.
   optional bool abbreviate = 1;
 }
 
 message GenerateInt64PhoneNumber {}
 
 message GenerateInt64 {
+  // Whether or not to randomize the sign of the int64.
   optional bool randomize_sign = 1;
+  // The minimum value to randomize the int64 to.
   optional int64 min = 2;
+  // The maximum value to randomize the int64 to.
   optional int64 max = 3;
 }
 
@@ -409,12 +465,17 @@ message GenerateState {
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
+  reserved 1;
+  // The minimum length of the phone number to generate.
   optional int64 min = 2;
+  // The maximum length of the phone number to generate.
   optional int64 max = 3;
 }
 
 message GenerateString {
+  // The minimum length of the string to generate.
   optional int64 min = 1;
+  // The maximum length of the string to generate.
   optional int64 max = 2;
 }
 
@@ -425,46 +486,58 @@ message GenerateUsername {}
 message GenerateUtcTimestamp {}
 
 message GenerateUuid {
+  // Whether or not to include hyphens in the uuid. Defaults to true. If false, the uuid will be returned without hyphens.
   optional bool include_hyphens = 1;
 }
 
 message GenerateZipcode {}
 
 message TransformE164PhoneNumber {
+  // Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformFirstName {
+  // Whether or not to preserve the original length of the first name. This causes the transformed first name to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformFloat64 {
+  // The minimum value to randomize the float64 to. This will be relative to the original value.
   optional double randomization_range_min = 1;
+  // The maximum value to randomize the float64 to. This will be relative to the original value.
   optional double randomization_range_max = 2;
 }
 
 message TransformFullName {
+  // Whether or not to preserve the original length of the full name. This causes the transformed full name to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformInt64PhoneNumber {
+  // Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformInt64 {
+  // The minimum value to randomize the int64 to. This will be relative to the original value.
   optional int64 randomization_range_min = 1;
+  // The maximum value to randomize the int64 to. This will be relative to the original value.
   optional int64 randomization_range_max = 2;
 }
 
 message TransformLastName {
+  // Whether or not to preserve the original length of the last name. This causes the transformed last name to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformPhoneNumber {
+  // Whether or not to preserve the original length of the phone number. This causes the transformed phone number to retain the original length.
   optional bool preserve_length = 1;
 }
 
 message TransformString {
+  // Whether or not to preserve the original length of the string. This causes the transformed string to retain the original length.
   optional bool preserve_length = 1;
 }
 
@@ -473,15 +546,18 @@ message Passthrough {}
 message Null {}
 
 message TransformJavascript {
+  // The user provided javascript code that will be executed in the transformer
   string code = 1;
 }
 
 message UserDefinedTransformerConfig {
+  // The id of the user defined transformer. When used in a job mapping, this will be used to reference the underlying system transformer along with it's configuration that was chosen.
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message ValidateUserJavascriptCodeRequest {
   reserved 1; // Was: string account_id = 1;
+  // The user provided javascript code that will be validated.
   string code = 2 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -490,24 +566,28 @@ message ValidateUserJavascriptCodeResponse {
 }
 
 message GenerateCategorical {
+  // A comma separated list of categories that will be used to generate a random value from.
   optional string categories = 1;
 }
 
 message TransformCharacterScramble {
-  // a user provided regular expression that they wish to validate if it compiles in GO
+  // A user provided regular expression that will be used to scramble the characters in the input string. Must be a valid Golang regex.
   optional string user_provided_regex = 1;
 }
 
 message GenerateJavascript {
+  // The user provided javascript code that will be executed in the transformer
   string code = 1;
 }
 
 message ValidateUserRegexCodeRequest {
   reserved 1; // Was: string account_id = 1;
+  // The user provided regex to validate
   string user_provided_regex = 2;
 }
 
 message ValidateUserRegexCodeResponse {
+  // Whether the regex is valid
   bool valid = 1;
 }
 
@@ -549,21 +629,41 @@ enum GenerateIpAddressType {
 }
 
 message GenerateIpAddress {
+  // Optionally specify the type of ip address to generate.
   optional GenerateIpAddressType ip_type = 1;
 }
 
 message TransformUuid {}
 
+// Service that manages system and user defined transformers
 service TransformersService {
-  rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
-  rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {}
-  rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {}
-  rpc GetUserDefinedTransformerById(GetUserDefinedTransformerByIdRequest) returns (GetUserDefinedTransformerByIdResponse) {}
+  // Get a list of all system transformers
+  rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Get a system transformer by its source
+  rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Get a list of all user defined transformers
+  rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Get a user defined transformer by its id
+  rpc GetUserDefinedTransformerById(GetUserDefinedTransformerByIdRequest) returns (GetUserDefinedTransformerByIdResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Create a user defined transformer
   rpc CreateUserDefinedTransformer(CreateUserDefinedTransformerRequest) returns (CreateUserDefinedTransformerResponse) {}
+  // Delete a user defined transformer
   rpc DeleteUserDefinedTransformer(DeleteUserDefinedTransformerRequest) returns (DeleteUserDefinedTransformerResponse) {}
+  // Update a user defined transformer
   rpc UpdateUserDefinedTransformer(UpdateUserDefinedTransformerRequest) returns (UpdateUserDefinedTransformerResponse) {}
+  // Check if a transformer name is available in your account
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
+  // Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
   rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
+  // Validate user provided regex code before saving it to a user defined transformer
   rpc ValidateUserRegexCode(ValidateUserRegexCodeRequest) returns (ValidateUserRegexCodeResponse) {}
 
   // Retrieve a list of available Pii entities for use with the TransformPiiText transformer

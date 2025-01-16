@@ -86,15 +86,25 @@ var (
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
+	// Get a list of all system transformers
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	// Get a system transformer by its source
 	GetSystemTransformerBySource(context.Context, *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error)
+	// Get a list of all user defined transformers
 	GetUserDefinedTransformers(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformersResponse], error)
+	// Get a user defined transformer by its id
 	GetUserDefinedTransformerById(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformerByIdRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformerByIdResponse], error)
+	// Create a user defined transformer
 	CreateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.CreateUserDefinedTransformerResponse], error)
+	// Delete a user defined transformer
 	DeleteUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.DeleteUserDefinedTransformerResponse], error)
+	// Update a user defined transformer
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
+	// Check if a transformer name is available in your account
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
+	// Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
+	// Validate user provided regex code before saving it to a user defined transformer
 	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
 	// Retrieve a list of available Pii entities for use with the TransformPiiText transformer
 	GetTransformPiiEntities(context.Context, *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error)
@@ -114,24 +124,28 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			httpClient,
 			baseURL+TransformersServiceGetSystemTransformersProcedure,
 			connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getSystemTransformerBySource: connect.NewClient[v1alpha1.GetSystemTransformerBySourceRequest, v1alpha1.GetSystemTransformerBySourceResponse](
 			httpClient,
 			baseURL+TransformersServiceGetSystemTransformerBySourceProcedure,
 			connect.WithSchema(transformersServiceGetSystemTransformerBySourceMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUserDefinedTransformers: connect.NewClient[v1alpha1.GetUserDefinedTransformersRequest, v1alpha1.GetUserDefinedTransformersResponse](
 			httpClient,
 			baseURL+TransformersServiceGetUserDefinedTransformersProcedure,
 			connect.WithSchema(transformersServiceGetUserDefinedTransformersMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUserDefinedTransformerById: connect.NewClient[v1alpha1.GetUserDefinedTransformerByIdRequest, v1alpha1.GetUserDefinedTransformerByIdResponse](
 			httpClient,
 			baseURL+TransformersServiceGetUserDefinedTransformerByIdProcedure,
 			connect.WithSchema(transformersServiceGetUserDefinedTransformerByIdMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createUserDefinedTransformer: connect.NewClient[v1alpha1.CreateUserDefinedTransformerRequest, v1alpha1.CreateUserDefinedTransformerResponse](
@@ -257,15 +271,25 @@ func (c *transformersServiceClient) GetTransformPiiEntities(ctx context.Context,
 
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
+	// Get a list of all system transformers
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	// Get a system transformer by its source
 	GetSystemTransformerBySource(context.Context, *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error)
+	// Get a list of all user defined transformers
 	GetUserDefinedTransformers(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformersResponse], error)
+	// Get a user defined transformer by its id
 	GetUserDefinedTransformerById(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformerByIdRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformerByIdResponse], error)
+	// Create a user defined transformer
 	CreateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.CreateUserDefinedTransformerResponse], error)
+	// Delete a user defined transformer
 	DeleteUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.DeleteUserDefinedTransformerResponse], error)
+	// Update a user defined transformer
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
+	// Check if a transformer name is available in your account
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
+	// Validate user provided javascript code before saving it to a user defined transformer or within a job mapping
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
+	// Validate user provided regex code before saving it to a user defined transformer
 	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
 	// Retrieve a list of available Pii entities for use with the TransformPiiText transformer
 	GetTransformPiiEntities(context.Context, *connect.Request[v1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[v1alpha1.GetTransformPiiEntitiesResponse], error)
@@ -281,24 +305,28 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		TransformersServiceGetSystemTransformersProcedure,
 		svc.GetSystemTransformers,
 		connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetSystemTransformerBySourceHandler := connect.NewUnaryHandler(
 		TransformersServiceGetSystemTransformerBySourceProcedure,
 		svc.GetSystemTransformerBySource,
 		connect.WithSchema(transformersServiceGetSystemTransformerBySourceMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetUserDefinedTransformersHandler := connect.NewUnaryHandler(
 		TransformersServiceGetUserDefinedTransformersProcedure,
 		svc.GetUserDefinedTransformers,
 		connect.WithSchema(transformersServiceGetUserDefinedTransformersMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetUserDefinedTransformerByIdHandler := connect.NewUnaryHandler(
 		TransformersServiceGetUserDefinedTransformerByIdProcedure,
 		svc.GetUserDefinedTransformerById,
 		connect.WithSchema(transformersServiceGetUserDefinedTransformerByIdMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceCreateUserDefinedTransformerHandler := connect.NewUnaryHandler(

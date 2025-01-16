@@ -316,7 +316,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           table: row.table,
           column: row.column,
         },
-        'sync'
+        'generate'
       )
     );
   }

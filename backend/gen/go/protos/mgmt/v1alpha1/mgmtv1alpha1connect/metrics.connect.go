@@ -70,12 +70,14 @@ func NewMetricsServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			httpClient,
 			baseURL+MetricsServiceGetDailyMetricCountProcedure,
 			connect.WithSchema(metricsServiceGetDailyMetricCountMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getMetricCount: connect.NewClient[v1alpha1.GetMetricCountRequest, v1alpha1.GetMetricCountResponse](
 			httpClient,
 			baseURL+MetricsServiceGetMetricCountProcedure,
 			connect.WithSchema(metricsServiceGetMetricCountMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -115,12 +117,14 @@ func NewMetricsServiceHandler(svc MetricsServiceHandler, opts ...connect.Handler
 		MetricsServiceGetDailyMetricCountProcedure,
 		svc.GetDailyMetricCount,
 		connect.WithSchema(metricsServiceGetDailyMetricCountMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	metricsServiceGetMetricCountHandler := connect.NewUnaryHandler(
 		MetricsServiceGetMetricCountProcedure,
 		svc.GetMetricCount,
 		connect.WithSchema(metricsServiceGetMetricCountMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.MetricsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

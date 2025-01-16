@@ -48,7 +48,10 @@ export default function DestinationOptionsForm(
           value={
             value.postgres ?? {
               initTableSchema: false,
-              onConflictDoNothing: false,
+              conflictStrategy: {
+                onConflictDoNothing: false,
+                onConflictDoUpdate: false,
+              },
               skipForeignKeyViolations: false,
               truncateBeforeInsert: false,
               truncateCascade: false,

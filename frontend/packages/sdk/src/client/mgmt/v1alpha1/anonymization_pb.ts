@@ -120,21 +120,21 @@ export const TransformerMappingSchema: GenMessage<TransformerMapping> = /*@__PUR
  */
 export type DefaultTransformersConfig = Message<"mgmt.v1alpha1.DefaultTransformersConfig"> & {
   /**
-   * Boolean
+   * Any identified boolean value will be transformed using this configuration if no mapping is found.
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig boolean = 2;
    */
   boolean?: TransformerConfig;
 
   /**
-   * Number
+   * Any identified number value will be transformed using this configuration if no mapping is found.
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig n = 3;
    */
   n?: TransformerConfig;
 
   /**
-   * String
+   * Any identified string value will be transformed using this configuration if no mapping is found.
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig s = 4;
    */
@@ -234,11 +234,13 @@ export const AnonymizeSingleResponseSchema: GenMessage<AnonymizeSingleResponse> 
   messageDesc(file_mgmt_v1alpha1_anonymization, 6);
 
 /**
+ * Service that transactionally anonymizes data, regardless of the connection type.
+ *
  * @generated from service mgmt.v1alpha1.AnonymizationService
  */
 export const AnonymizationService: GenService<{
   /**
-   * Anonymizes many JSON strings by applying specified transformation mappings.
+   * Anonymizes many JSON strings by applying specified transformation mappings. This is the bulk version of the `AnonymizeSingle` method.
    *
    * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeMany
    */

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
@@ -19,22 +20,32 @@ type TransformerExecutorOption func(c *TransformerExecutorConfig)
 
 type TransformerExecutorConfig struct {
 	transformPiiText *transformPiiTextConfig
+	logger           *slog.Logger
 }
 
 type transformPiiTextConfig struct {
 	analyze   presidioapi.AnalyzeInterface
 	anonymize presidioapi.AnonymizeInterface
 
+	neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi
+
 	defaultLanguage *string
 }
 
-func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, defaultLanguage *string) TransformerExecutorOption {
+func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi, defaultLanguage *string) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.transformPiiText = &transformPiiTextConfig{
-			analyze:         analyze,
-			anonymize:       anonymize,
-			defaultLanguage: defaultLanguage,
+			analyze:            analyze,
+			anonymize:          anonymize,
+			neosyncOperatorApi: neosyncOperatorApi,
+			defaultLanguage:    defaultLanguage,
 		}
+	}
+}
+
+func WithLogger(logger *slog.Logger) TransformerExecutorOption {
+	return func(c *TransformerExecutorConfig) {
+		c.logger = logger
 	}
 }
 
@@ -43,7 +54,7 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 }
 
 func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
-	execCfg := &TransformerExecutorConfig{}
+	execCfg := &TransformerExecutorConfig{logger: slog.Default()}
 	for _, opt := range opts {
 		opt(execCfg)
 	}
@@ -611,9 +622,10 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				}
 				return ee_transformer_fns.TransformPiiText(
 					context.Background(),
-					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
+					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
+					execCfg.logger,
 				)
 			},
 		}, nil

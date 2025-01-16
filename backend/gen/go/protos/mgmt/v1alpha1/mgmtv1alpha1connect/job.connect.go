@@ -181,32 +181,51 @@ var (
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
 type JobServiceClient interface {
+	// Returns a list of jobs by either account or job
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
+	// Returns a specific job
 	GetJob(context.Context, *connect.Request[v1alpha1.GetJobRequest]) (*connect.Response[v1alpha1.GetJobResponse], error)
+	// Creates a new job
 	CreateJob(context.Context, *connect.Request[v1alpha1.CreateJobRequest]) (*connect.Response[v1alpha1.CreateJobResponse], error)
+	// Deletes a job
 	DeleteJob(context.Context, *connect.Request[v1alpha1.DeleteJobRequest]) (*connect.Response[v1alpha1.DeleteJobResponse], error)
+	// Checks if a job name is available
 	IsJobNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobNameAvailableResponse], error)
+	// Updates the schedule of a job
 	UpdateJobSchedule(context.Context, *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error)
+	// Updates the source connection of a job
 	UpdateJobSourceConnection(context.Context, *connect.Request[v1alpha1.UpdateJobSourceConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobSourceConnectionResponse], error)
+	// Sets the source sql connection subsets of a job
 	SetJobSourceSqlConnectionSubsets(context.Context, *connect.Request[v1alpha1.SetJobSourceSqlConnectionSubsetsRequest]) (*connect.Response[v1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error)
+	// Updates the destination connection of a job
 	UpdateJobDestinationConnection(context.Context, *connect.Request[v1alpha1.UpdateJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobDestinationConnectionResponse], error)
+	// Deletes the destination connection of a job
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
+	// Creates the destination connections of a job
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
+	// Pauses or unpauses a job
 	PauseJob(context.Context, *connect.Request[v1alpha1.PauseJobRequest]) (*connect.Response[v1alpha1.PauseJobResponse], error)
-	// Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+	// Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
 	GetJobRecentRuns(context.Context, *connect.Request[v1alpha1.GetJobRecentRunsRequest]) (*connect.Response[v1alpha1.GetJobRecentRunsResponse], error)
 	// Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
+	// Returns the status of a job
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
+	// Returns the statuses of jobs within an account
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
 	// Returns a list of job runs by either account or job
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
+	// Returns a list of events for a job run to understand more details of the run itself
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	// Returns a specific job run, along with any of its pending activities
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
+	// Deletes a job run
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
+	// Creates a new job run
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
+	// Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
+	// Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error)
@@ -214,7 +233,7 @@ type JobServiceClient interface {
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
-	// validates that the jobmapping configured can run with table constraints
+	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
@@ -254,12 +273,14 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceGetJobsProcedure,
 			connect.WithSchema(jobServiceGetJobsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJob: connect.NewClient[v1alpha1.GetJobRequest, v1alpha1.GetJobResponse](
 			httpClient,
 			baseURL+JobServiceGetJobProcedure,
 			connect.WithSchema(jobServiceGetJobMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createJob: connect.NewClient[v1alpha1.CreateJobRequest, v1alpha1.CreateJobResponse](
@@ -278,6 +299,7 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceIsJobNameAvailableProcedure,
 			connect.WithSchema(jobServiceIsJobNameAvailableMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		updateJobSchedule: connect.NewClient[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse](
@@ -326,42 +348,49 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceGetJobRecentRunsProcedure,
 			connect.WithSchema(jobServiceGetJobRecentRunsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobNextRuns: connect.NewClient[v1alpha1.GetJobNextRunsRequest, v1alpha1.GetJobNextRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobNextRunsProcedure,
 			connect.WithSchema(jobServiceGetJobNextRunsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobStatus: connect.NewClient[v1alpha1.GetJobStatusRequest, v1alpha1.GetJobStatusResponse](
 			httpClient,
 			baseURL+JobServiceGetJobStatusProcedure,
 			connect.WithSchema(jobServiceGetJobStatusMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobStatuses: connect.NewClient[v1alpha1.GetJobStatusesRequest, v1alpha1.GetJobStatusesResponse](
 			httpClient,
 			baseURL+JobServiceGetJobStatusesProcedure,
 			connect.WithSchema(jobServiceGetJobStatusesMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
 			connect.WithSchema(jobServiceGetJobRunsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobRunEvents: connect.NewClient[v1alpha1.GetJobRunEventsRequest, v1alpha1.GetJobRunEventsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunEventsProcedure,
 			connect.WithSchema(jobServiceGetJobRunEventsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobRun: connect.NewClient[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunProcedure,
 			connect.WithSchema(jobServiceGetJobRunMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		deleteJobRun: connect.NewClient[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse](
@@ -434,12 +463,14 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceGetJobHooksProcedure,
 			connect.WithSchema(jobServiceGetJobHooksMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getJobHook: connect.NewClient[v1alpha1.GetJobHookRequest, v1alpha1.GetJobHookResponse](
 			httpClient,
 			baseURL+JobServiceGetJobHookProcedure,
 			connect.WithSchema(jobServiceGetJobHookMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createJobHook: connect.NewClient[v1alpha1.CreateJobHookRequest, v1alpha1.CreateJobHookResponse](
@@ -476,6 +507,7 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceGetActiveJobHooksByTimingProcedure,
 			connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -715,32 +747,51 @@ func (c *jobServiceClient) GetActiveJobHooksByTiming(ctx context.Context, req *c
 
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
+	// Returns a list of jobs by either account or job
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
+	// Returns a specific job
 	GetJob(context.Context, *connect.Request[v1alpha1.GetJobRequest]) (*connect.Response[v1alpha1.GetJobResponse], error)
+	// Creates a new job
 	CreateJob(context.Context, *connect.Request[v1alpha1.CreateJobRequest]) (*connect.Response[v1alpha1.CreateJobResponse], error)
+	// Deletes a job
 	DeleteJob(context.Context, *connect.Request[v1alpha1.DeleteJobRequest]) (*connect.Response[v1alpha1.DeleteJobResponse], error)
+	// Checks if a job name is available
 	IsJobNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobNameAvailableResponse], error)
+	// Updates the schedule of a job
 	UpdateJobSchedule(context.Context, *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error)
+	// Updates the source connection of a job
 	UpdateJobSourceConnection(context.Context, *connect.Request[v1alpha1.UpdateJobSourceConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobSourceConnectionResponse], error)
+	// Sets the source sql connection subsets of a job
 	SetJobSourceSqlConnectionSubsets(context.Context, *connect.Request[v1alpha1.SetJobSourceSqlConnectionSubsetsRequest]) (*connect.Response[v1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error)
+	// Updates the destination connection of a job
 	UpdateJobDestinationConnection(context.Context, *connect.Request[v1alpha1.UpdateJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobDestinationConnectionResponse], error)
+	// Deletes the destination connection of a job
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
+	// Creates the destination connections of a job
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
+	// Pauses or unpauses a job
 	PauseJob(context.Context, *connect.Request[v1alpha1.PauseJobRequest]) (*connect.Response[v1alpha1.PauseJobResponse], error)
-	// Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+	// Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
 	GetJobRecentRuns(context.Context, *connect.Request[v1alpha1.GetJobRecentRunsRequest]) (*connect.Response[v1alpha1.GetJobRecentRunsResponse], error)
 	// Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
+	// Returns the status of a job
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
+	// Returns the statuses of jobs within an account
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
 	// Returns a list of job runs by either account or job
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
+	// Returns a list of events for a job run to understand more details of the run itself
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	// Returns a specific job run, along with any of its pending activities
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
+	// Deletes a job run
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
+	// Creates a new job run
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
+	// Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
+	// Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error
@@ -748,7 +799,7 @@ type JobServiceHandler interface {
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
-	// validates that the jobmapping configured can run with table constraints
+	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
@@ -784,12 +835,14 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceGetJobsProcedure,
 		svc.GetJobs,
 		connect.WithSchema(jobServiceGetJobsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobHandler := connect.NewUnaryHandler(
 		JobServiceGetJobProcedure,
 		svc.GetJob,
 		connect.WithSchema(jobServiceGetJobMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCreateJobHandler := connect.NewUnaryHandler(
@@ -808,6 +861,7 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceIsJobNameAvailableProcedure,
 		svc.IsJobNameAvailable,
 		connect.WithSchema(jobServiceIsJobNameAvailableMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceUpdateJobScheduleHandler := connect.NewUnaryHandler(
@@ -856,42 +910,49 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceGetJobRecentRunsProcedure,
 		svc.GetJobRecentRuns,
 		connect.WithSchema(jobServiceGetJobRecentRunsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobNextRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobNextRunsProcedure,
 		svc.GetJobNextRuns,
 		connect.WithSchema(jobServiceGetJobNextRunsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobStatusHandler := connect.NewUnaryHandler(
 		JobServiceGetJobStatusProcedure,
 		svc.GetJobStatus,
 		connect.WithSchema(jobServiceGetJobStatusMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobStatusesHandler := connect.NewUnaryHandler(
 		JobServiceGetJobStatusesProcedure,
 		svc.GetJobStatuses,
 		connect.WithSchema(jobServiceGetJobStatusesMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
 		connect.WithSchema(jobServiceGetJobRunsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunEventsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunEventsProcedure,
 		svc.GetJobRunEvents,
 		connect.WithSchema(jobServiceGetJobRunEventsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunProcedure,
 		svc.GetJobRun,
 		connect.WithSchema(jobServiceGetJobRunMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceDeleteJobRunHandler := connect.NewUnaryHandler(
@@ -964,12 +1025,14 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceGetJobHooksProcedure,
 		svc.GetJobHooks,
 		connect.WithSchema(jobServiceGetJobHooksMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobHookHandler := connect.NewUnaryHandler(
 		JobServiceGetJobHookProcedure,
 		svc.GetJobHook,
 		connect.WithSchema(jobServiceGetJobHookMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCreateJobHookHandler := connect.NewUnaryHandler(
@@ -1006,6 +1069,7 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceGetActiveJobHooksByTimingProcedure,
 		svc.GetActiveJobHooksByTiming,
 		connect.WithSchema(jobServiceGetActiveJobHooksByTimingMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
