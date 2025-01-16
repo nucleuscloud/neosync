@@ -1,3 +1,15 @@
 openapi: 3.1.0
 info:
-  version: 0.4
+  version: 0.5
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud API
