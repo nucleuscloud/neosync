@@ -73,6 +73,7 @@ import {
   JobMappingSchema,
   JobMappingTransformerSchema,
   JobService,
+  JobSource,
   JobSourceOptions,
   JobSourceOptionsSchema,
   JobSourceSchema,
@@ -393,16 +394,29 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function validateMappings(
-    mappings: JobMappingFormValues[] = formMappings
+    mappings: JobMappingFormValues[] = formMappings,
+    job: Job | undefined = data?.job
   ) {
+    const values = form.getValues();
+    const connection = connections.find((c) => c.id === values.sourceId);
+    if (!connection) {
+      return;
+    }
     try {
       setIsValidatingMappings(true);
+      let jobsource: JobSource | undefined;
+      if (job) {
+        jobsource = create(JobSourceSchema, {
+          options: toJobSourceOptions(values, job, connection, values.sourceId),
+        });
+      }
       const res = await validateJobMapping(
         sourceConnectionId || '',
         mappings,
         account?.id || '',
         formVirtualForeignKeys,
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        jobsource
       );
       setValidateMappingsResponse(res);
     } catch (error) {
@@ -418,14 +432,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   async function validateVirtualForeignKeys(
     vfks: VirtualForeignConstraintFormValues[]
   ) {
+    const values = form.getValues();
+    const connection = connections.find((c) => c.id === values.sourceId);
+    const job = data?.job;
     try {
       setIsValidatingMappings(true);
+      let jobsource: JobSource | undefined;
+      if (job && connection) {
+        jobsource = create(JobSourceSchema, {
+          options: toJobSourceOptions(values, job, connection, values.sourceId),
+        });
+      }
       const res = await validateJobMapping(
         sourceConnectionId || '',
         formMappings,
         account?.id || '',
         vfks,
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        jobsource
       );
       setValidateMappingsResponse(res);
     } catch (error) {
@@ -448,14 +472,25 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 
   useEffect(() => {
-    if (!account?.id || !sourceConnectionId) {
+    if (
+      !account?.id ||
+      !sourceConnectionId ||
+      !data?.job?.id ||
+      isConnectionsLoading
+    ) {
       return;
     }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables, account?.id, sourceConnectionId]);
+  }, [
+    selectedTables,
+    account?.id,
+    sourceConnectionId,
+    data?.job?.id,
+    isConnectionsLoading,
+  ]);
 
   async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
     appendVfk(vfk);
@@ -662,6 +697,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 shouldTouch: true,
                 shouldValidate: true,
               });
+              validateMappings();
             }}
           />
 

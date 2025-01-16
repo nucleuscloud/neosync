@@ -1547,9 +1547,12 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	sqlSourceOpts, err := job_util.GetSqlJobSourceOpts(req.Msg.GetSource())
-	if err != nil {
-		return nil, err
+	var sqlSourceOpts *job_util.SqlJobSourceOpts
+	if req.Msg.GetJobSource() != nil {
+		sqlSourceOpts, err = job_util.GetSqlJobSourceOpts(req.Msg.GetJobSource())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job.WithJobSourceOptions(sqlSourceOpts))
@@ -1576,9 +1579,23 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	colWarnings := []*mgmtv1alpha1.ColumnWarning{}
+	for tableName, colMap := range result.ColumnWarnings {
+		for col, warnings := range colMap {
+			schema, table := sqlmanager_shared.SplitTableKey(tableName)
+			colWarnings = append(colWarnings, &mgmtv1alpha1.ColumnWarning{
+				Schema:   schema,
+				Table:    table,
+				Column:   col,
+				Warnings: warnings,
+			})
+		}
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{
 		DatabaseErrors: dbErrors,
 		ColumnErrors:   colErrors,
+		ColumnWarnings: colWarnings,
 	}), nil
 }
 

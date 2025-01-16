@@ -17,10 +17,13 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
+export type ErrorLevel = 'error' | 'warning';
+
 export interface FormError {
   message: string;
   type?: string;
   path: string;
+  level: ErrorLevel;
 }
 
 interface Props {
@@ -33,6 +36,7 @@ export default function FormErrorsCard(props: Props): ReactElement {
   const { formErrors, isValidating, onValidate } = props;
 
   const messages = formErrorsToMessages(formErrors);
+  const warnings = formWarningsToMessages(formErrors);
   return (
     <Card className="w-full flex flex-col">
       <CardHeader className="flex flex-col">
@@ -49,6 +53,13 @@ export default function FormErrorsCard(props: Props): ReactElement {
                 {messages.length == 1
                   ? `${messages.length} Error`
                   : `${messages.length} Errors`}
+              </Badge>
+            )}
+            {warnings.length != 0 && (
+              <Badge className="bg-yellow-200 dark:bg-yellow-800/70 text-yellow-900 dark:text-yellow-200">
+                {warnings.length == 1
+                  ? `${warnings.length} Warning`
+                  : `${warnings.length} Warnings`}
               </Badge>
             )}
           </div>
@@ -78,7 +89,7 @@ export default function FormErrorsCard(props: Props): ReactElement {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
-        {formErrors.length === 0 ? (
+        {formErrors.length === 0 && warnings.length === 0 ? (
           <div className="flex flex-col flex-1 items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 rounded-xl">
             <div className="text-sm flex flex-row items-center gap-2 px-1">
               <div className="flex">
@@ -98,6 +109,14 @@ export default function FormErrorsCard(props: Props): ReactElement {
                   {message}
                 </div>
               ))}
+              {warnings.map((message, index) => (
+                <div
+                  key={message + index}
+                  className="text-xs bg-yellow-200 dark:bg-yellow-800/70 rounded-sm p-2 text-wrap"
+                >
+                  {message}
+                </div>
+              ))}
             </div>
           </ScrollArea>
         )}
@@ -109,11 +128,31 @@ export default function FormErrorsCard(props: Props): ReactElement {
 function formErrorsToMessages(errors: FormError[]): string[] {
   const messages: string[] = [];
   errors.forEach((error) => {
+    if (error.level !== 'error') {
+      return;
+    }
     const pieces: string[] = [error.path];
     if (error.type) {
       pieces.push(`[${error.type}]`);
     }
     pieces.push(error.message);
+    messages.push(pieces.join(' '));
+  });
+
+  return messages;
+}
+
+function formWarningsToMessages(warnings: FormError[]): string[] {
+  const messages: string[] = [];
+  warnings.forEach((warning) => {
+    if (warning.level !== 'warning') {
+      return;
+    }
+    const pieces: string[] = [warning.path];
+    if (warning.type) {
+      pieces.push(`[${warning.type}]`);
+    }
+    pieces.push(warning.message);
     messages.push(pieces.join(' '));
   });
 

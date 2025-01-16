@@ -1137,18 +1137,18 @@ class SetJobSyncOptionsResponse(_message.Message):
     def __init__(self, job: _Optional[_Union[Job, _Mapping]] = ...) -> None: ...
 
 class ValidateJobMappingsRequest(_message.Message):
-    __slots__ = ("account_id", "mappings", "connection_id", "virtual_foreign_keys", "source")
+    __slots__ = ("account_id", "mappings", "connection_id", "virtual_foreign_keys", "job_source")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     MAPPINGS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    JOB_SOURCE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
     connection_id: str
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    source: JobSource
-    def __init__(self, account_id: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ...) -> None: ...
+    job_source: JobSource
+    def __init__(self, account_id: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_source: _Optional[_Union[JobSource, _Mapping]] = ...) -> None: ...
 
 class ColumnError(_message.Message):
     __slots__ = ("schema", "table", "column", "errors")

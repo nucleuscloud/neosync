@@ -14618,7 +14618,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -14670,15 +14670,15 @@
               "defaultValue": ""
             },
             {
-              "name": "source",
+              "name": "job_source",
               "description": "",
-              "label": "",
+              "label": "optional",
               "type": "JobSource",
               "longType": "JobSource",
               "fullType": "mgmt.v1alpha1.JobSource",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_job_source",
               "defaultValue": ""
             }
           ]

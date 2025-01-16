@@ -44,10 +44,11 @@ func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping, opts ...Opt
 	}
 
 	jmv := &JobMappingsValidator{
-		jobMappings:    tableToColumnMappings,
-		databaseErrors: []string{},
-		columnErrors:   map[string]map[string][]string{},
-		columnWarnings: map[string]map[string][]string{},
+		jobMappings:      tableToColumnMappings,
+		databaseErrors:   []string{},
+		columnErrors:     map[string]map[string][]string{},
+		columnWarnings:   map[string]map[string][]string{},
+		jobSourceOptions: &SqlJobSourceOpts{},
 	}
 
 	for _, opt := range opts {
@@ -102,6 +103,7 @@ func (j *JobMappingsValidator) Validate(
 	return &JobMappingsValidatorResponse{
 		DatabaseErrors: j.databaseErrors,
 		ColumnErrors:   j.columnErrors,
+		ColumnWarnings: j.columnWarnings,
 	}, nil
 }
 
@@ -118,10 +120,10 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 		for col := range colMappings {
 			if _, ok := tableColumnMap[table][col]; !ok {
 				msg := fmt.Sprintf("Column does not exist in source. Remove column from job mappings: %s.%s", table, col)
-				if j.jobSourceOptions.HaltOnColumnRemoval {
-					j.addColumnError(table, col, msg)
-				} else {
+				if j.jobSourceOptions != nil && !j.jobSourceOptions.HaltOnColumnRemoval {
 					j.addColumnWarning(table, col, msg)
+				} else {
+					j.addColumnError(table, col, msg)
 				}
 			}
 		}
@@ -135,10 +137,10 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 		for col := range colMap {
 			if _, ok := j.jobMappings[table][col]; !ok {
 				msg := fmt.Sprintf("Column does not exist in job mappings. Add column to job mappings: %s.%s", table, col)
-				if j.jobSourceOptions.HaltOnNewColumnAddition {
-					j.addColumnError(table, col, msg)
-				} else {
+				if j.jobSourceOptions != nil && !j.jobSourceOptions.HaltOnNewColumnAddition {
 					j.addColumnWarning(table, col, msg)
+				} else {
+					j.addColumnError(table, col, msg)
 				}
 			}
 		}

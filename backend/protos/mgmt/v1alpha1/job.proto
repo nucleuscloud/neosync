@@ -902,7 +902,7 @@ message ValidateJobMappingsRequest {
   repeated JobMapping mappings = 2;
   string connection_id = 3;
   repeated VirtualForeignConstraint virtual_foreign_keys = 4;
-  JobSource source = 5;
+  optional JobSource job_source = 5;
 }
 
 message ColumnError {

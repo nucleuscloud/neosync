@@ -11631,6 +11631,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsRequest:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobSource
+            - not:
+                anyOf:
+                  - required:
+                      - jobSource
+      anyOf:
+        - required:
+            - jobSource
+        - not:
+            anyOf:
+              - required:
+                  - jobSource
       properties:
         accountId:
           type: string
@@ -11650,9 +11665,9 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
-        source:
+        jobSource:
           allOf:
-            - title: source
+            - title: job_source
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
       title: ValidateJobMappingsRequest
       additionalProperties: false

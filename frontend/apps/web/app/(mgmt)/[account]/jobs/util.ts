@@ -1729,7 +1729,8 @@ export async function validateJobMapping(
   virtualForeignKeys: VirtualForeignConstraintFormValues[],
   validate: (
     req: ValidateJobMappingsRequest
-  ) => Promise<ValidateJobMappingsResponse>
+  ) => Promise<ValidateJobMappingsResponse>,
+  jobSource?: JobSource
 ): Promise<ValidateJobMappingsResponse> {
   const body = create(ValidateJobMappingsRequestSchema, {
     accountId,
@@ -1765,6 +1766,7 @@ export async function validateJobMapping(
       });
     }),
     connectionId: connectionId,
+    jobSource: jobSource,
   });
 
   return validate(body);
