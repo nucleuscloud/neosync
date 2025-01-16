@@ -79,11 +79,14 @@ enum RangedMetricName {
 }
 
 message GetDailyMetricCountResponse {
+  // The list of results for the given metric and date range
   repeated DayResult results = 1;
 }
 
 message DayResult {
+  // The date of the result
   Date date = 1;
+  // The count of the metric for the given date
   uint64 count = 2;
 }
 
@@ -111,8 +114,12 @@ message GetMetricCountResponse {
 
 service MetricsService {
   // Retrieve a timed range of records
-  rpc GetDailyMetricCount(GetDailyMetricCountRequest) returns (GetDailyMetricCountResponse) {}
+  rpc GetDailyMetricCount(GetDailyMetricCountRequest) returns (GetDailyMetricCountResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // For the given metric and time range, returns the total count found
-  rpc GetMetricCount(GetMetricCountRequest) returns (GetMetricCountResponse) {}
+  rpc GetMetricCount(GetMetricCountRequest) returns (GetMetricCountResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

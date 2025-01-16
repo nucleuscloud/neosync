@@ -76,9 +76,13 @@ service AuthService {
   rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse) {}
 
   // Used by the CLI to retrieve an Authorize URL for use with OAuth login.
-  rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}
+  rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Returns the auth status of the API server. Whether or not the backend has authentication enabled.
   // This is used by clients to make decisions on whether or not they should send access tokens to the API.
-  rpc GetAuthStatus(GetAuthStatusRequest) returns (GetAuthStatusResponse) {}
+  rpc GetAuthStatus(GetAuthStatusRequest) returns (GetAuthStatusResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

@@ -7,13 +7,16 @@ import "google/protobuf/timestamp.proto";
 import "mgmt/v1alpha1/transformer.proto";
 
 message GetJobsRequest {
+  // The unique identifier of the account to get jobs for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobsResponse {
+  // The list of jobs
   repeated Job jobs = 1;
 }
 
 message JobSource {
+  // The source options to use for the job
   JobSourceOptions options = 1 [(buf.validate.field).required = true];
 }
 
@@ -32,13 +35,18 @@ message JobSourceOptions {
 }
 
 message CreateJobDestination {
+  // The connection id to use for the job destination
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The destination options to use for the job destination
   JobDestinationOptions options = 2;
 }
 
 message JobDestination {
-  string connection_id = 1;
+  // The connection id to use for the job destination
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The destination options to use for the job destination
   JobDestinationOptions options = 2;
+  // The unique identifier of the job destination
   string id = 3;
 }
 
@@ -77,15 +85,21 @@ message AiGenerateSourceTableOption {
 }
 
 message GenerateSourceOptions {
+  // The list of schemas (and their tables) along with any configuration options that will be used to generate data for.
   repeated GenerateSourceSchemaOption schemas = 1 [(buf.validate.field).repeated.min_items = 1];
+  // An optional connection id that will be used as the basis for the shape of data to be generated.
   optional string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
 }
 message GenerateSourceSchemaOption {
+  // The database schema
   string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The list of tables (and their configuration) that reside within the schema to receive generated data
   repeated GenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message GenerateSourceTableOption {
+  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
   string table = 1 [(buf.validate.field).string.min_len = 1];
+  // The total number of records to be generated.
   int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
 }
 
@@ -131,8 +145,11 @@ message DynamoDBSourceTableOption {
 
 message PostgresSourceConnectionOptions {
   reserved 1; // Was: optional bool halt_on_new_column_addition = 1;
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated PostgresSourceSchemaOption schemas = 2;
+  // The unique connection id to a postgres connection configuration
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  // Whether to subset the table by foreign key constraints
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
   NewColumnAdditionStrategy new_column_addition_strategy = 5;
@@ -171,18 +188,27 @@ message PostgresSourceConnectionOptions {
 }
 
 message PostgresSourceSchemaOption {
-  string schema = 1;
-  repeated PostgresSourceTableOption tables = 2;
+  // The database schema
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The list of tables (and their configuration) that reside within the schema
+  repeated PostgresSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message PostgresSourceTableOption {
-  string table = 1;
+  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
+  // Is used to subset the table.
   optional string where_clause = 2;
 }
 
 message MysqlSourceConnectionOptions {
+  // Whether to halt the job if a new column is added
   bool halt_on_new_column_addition = 1;
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MysqlSourceSchemaOption schemas = 2;
+  // The unique connection id to a mysql connection configuration
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  // Whether to subset the table by foreign key constraints
   bool subset_by_foreign_key_constraints = 4;
 
   // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
@@ -205,18 +231,27 @@ message MysqlSourceConnectionOptions {
 }
 
 message MysqlSourceSchemaOption {
-  string schema = 1;
-  repeated MysqlSourceTableOption tables = 2;
+  // The database schema
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The list of tables (and their configuration) that reside within the schema
+  repeated MysqlSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message MysqlSourceTableOption {
-  string table = 1;
+  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
+  // Is used to subset the table.
   optional string where_clause = 2;
 }
 
 message MssqlSourceConnectionOptions {
+  // Whether to halt the job if a new column is added
   bool halt_on_new_column_addition = 1;
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MssqlSourceSchemaOption schemas = 2;
+  // The unique connection id to a mssql connection configuration
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  // Whether to subset the table by foreign key constraints
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
   ColumnRemovalStrategy column_removal_strategy = 5;
@@ -238,15 +273,21 @@ message MssqlSourceConnectionOptions {
 }
 
 message MssqlSourceSchemaOption {
-  string schema = 1;
-  repeated MssqlSourceTableOption tables = 2;
+  // The database schema
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The list of tables (and their configuration) that reside within the schema
+  repeated MssqlSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message MssqlSourceTableOption {
-  string table = 1;
+  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
+  // Is used to subset the table.
   optional string where_clause = 2;
 }
 
 message AwsS3SourceConnectionOptions {
+  // The unique connection id to a aws s3 connection configuration
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -286,10 +327,13 @@ message DynamoDBDestinationTableMapping {
 }
 
 message PostgresDestinationConnectionOptions {
+  // Whether to truncate the table before inserting data
   PostgresTruncateTableConfig truncate_table = 1;
+  // Whether to initialize the table schema before inserting data
   bool init_table_schema = 2;
+  // The configuration for handling conflicts when inserting data
   PostgresOnConflictConfig on_conflict = 3;
-  // Insert all valid records, skipping any that violate foreign key constraints.
+  // Whether to skip records that violate foreign key constraints
   bool skip_foreign_key_violations = 4;
   // Configure batching options to handle how much data is sent to your database at once.
   BatchConfig batch = 5;
@@ -334,13 +378,18 @@ message PostgresOnConflictConfig {
 }
 
 message PostgresTruncateTableConfig {
+  // Whether to truncate the table before inserting data
   bool truncate_before_insert = 1;
+  // Whether to cascade the truncate to child tables
   bool cascade = 2;
 }
 
 message MysqlDestinationConnectionOptions {
+  // Whether to truncate the table before inserting data
   MysqlTruncateTableConfig truncate_table = 1;
+  // Whether to initialize the table schema before inserting data
   bool init_table_schema = 2;
+  // The configuration for handling conflicts when inserting data
   MysqlOnConflictConfig on_conflict = 3;
   // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
@@ -350,6 +399,7 @@ message MysqlDestinationConnectionOptions {
   optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
 }
 message MysqlTruncateTableConfig {
+  // Whether to truncate the table before inserting data
   bool truncate_before_insert = 1;
 }
 message MysqlOnConflictConfig {
@@ -389,10 +439,11 @@ message MysqlOnConflictConfig {
 }
 
 message MssqlDestinationConnectionOptions {
+  // Whether to truncate the table before inserting data
   MssqlTruncateTableConfig truncate_table = 1;
-  // Currently not supported and a placeholder for future implementation
+  // Whether to initialize the table schema before inserting data
   bool init_table_schema = 2;
-  // Currently not supported and a placeholder for future implementation
+  // The configuration for handling conflicts when inserting data
   MssqlOnConflictConfig on_conflict = 3;
   // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
@@ -402,9 +453,11 @@ message MssqlDestinationConnectionOptions {
   optional uint32 max_in_flight = 6 [(buf.validate.field).uint32 = {gte: 1}];
 }
 message MssqlTruncateTableConfig {
+  // Whether to truncate the table before inserting data
   bool truncate_before_insert = 1;
 }
 message MssqlOnConflictConfig {
+  // Whether to do nothing when a conflict occurs
   bool do_nothing = 1;
 }
 
@@ -445,8 +498,11 @@ message CreateJobRequest {
   string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
+  // The list of mappings that will be used to transform the data
   repeated JobMapping mappings = 4;
+  // The source connection configuration
   JobSource source = 5;
+  // The list of destinations that will be used to store the data
   repeated CreateJobDestination destinations = 6;
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
@@ -458,6 +514,7 @@ message CreateJobRequest {
   // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 9;
+  // The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 
   // Specify and job hooks that should be created
@@ -496,19 +553,24 @@ message RetryPolicy {
 }
 
 message CreateJobResponse {
+  // The job that was created
   Job job = 1;
 }
 
 message JobMappingTransformer {
   reserved 1; // Was: TransformerSource source = 1;
-
+  // The transformer configuration
   TransformerConfig config = 3;
 }
 
 message JobMapping {
-  string schema = 1;
-  string table = 2;
-  string column = 3;
+  // The database schema
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The database table.
+  string table = 2 [(buf.validate.field).string.min_len = 1];
+  // The column in the configured schema.table
+  string column = 3 [(buf.validate.field).string.min_len = 1];
+  // The transformer configuration that will be applied to each cell in the column
   JobMappingTransformer transformer = 5;
 }
 
@@ -520,33 +582,46 @@ enum JobStatus {
 }
 
 message GetJobRequest {
+  // The unique identifier of the job
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobResponse {
+  // The job that was retrieved
   Job job = 1;
 }
 
 message UpdateJobScheduleRequest {
+  // The unique identifier of the job
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // The new cron schedule
   optional string cron_schedule = 2;
 }
 message UpdateJobScheduleResponse {
+  // The job that was updated
   Job job = 1;
 }
 
 message PauseJobRequest {
+  // The unique identifier of the job
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // Whether to pause or unpause the job
   bool pause = 2;
+  // An optional note to be associated with the pause
   optional string note = 3;
 }
 message PauseJobResponse {
+  // The job that was updated
   Job job = 1;
 }
 
 message UpdateJobSourceConnectionRequest {
+  // The unique identifier of the job
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // The new source connection configuration
   JobSource source = 2;
+  // The new list of mappings that will be used to transform the data
   repeated JobMapping mappings = 3;
+  // The new list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
   repeated VirtualForeignConstraint virtual_foreign_keys = 4;
 }
 message UpdateJobSourceConnectionResponse {
@@ -554,27 +629,35 @@ message UpdateJobSourceConnectionResponse {
 }
 
 message PostgresSourceSchemaSubset {
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated PostgresSourceSchemaOption postgres_schemas = 1;
 }
 
 message MysqlSourceSchemaSubset {
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MysqlSourceSchemaOption mysql_schemas = 1;
 }
 
 message DynamoDBSourceSchemaSubset {
+  // The list of tables (and their configuration) that reside within the schema
   repeated DynamoDBSourceTableOption tables = 1;
 }
 
 message MssqlSourceSchemaSubset {
+  // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MssqlSourceSchemaOption mssql_schemas = 1;
 }
 
 message JobSourceSqlSubetSchemas {
   oneof schemas {
     option (buf.validate.oneof).required = true;
+    // The list of schemas (and their tables) along with any configuration options that will be used.
     PostgresSourceSchemaSubset postgres_subset = 2;
+    // The list of schemas (and their tables) along with any configuration options that will be used.
     MysqlSourceSchemaSubset mysql_subset = 3;
+    // The list of tables (and their configuration) that reside within the schema
     DynamoDBSourceSchemaSubset dynamodb_subset = 4;
+    // The list of schemas (and their tables) along with any configuration options that will be used.
     MssqlSourceSchemaSubset mssql_subset = 5;
   }
 }
@@ -588,70 +671,93 @@ message SetJobSourceSqlConnectionSubsetsRequest {
   bool subset_by_foreign_key_constraints = 3;
 }
 message SetJobSourceSqlConnectionSubsetsResponse {
+  // The job that was updated
   Job job = 1;
 }
 
 message UpdateJobDestinationConnectionRequest {
+  // The unique identifier of the job
   string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the connection
   string connection_id = 2 [(buf.validate.field).string.uuid = true];
+  // The destination connection options
   JobDestinationOptions options = 3;
+  // The unique identifier of the destination
   string destination_id = 4;
 }
 message UpdateJobDestinationConnectionResponse {
+  // The job that was updated
   Job job = 1;
 }
 
 message DeleteJobDestinationConnectionRequest {
+  // The unique identifier of the destination to delete
   string destination_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobDestinationConnectionResponse {}
 
 message CreateJobDestinationConnectionsRequest {
+  // The unique identifier of the job
   string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The list of destinations to create and associate with the job
   repeated CreateJobDestination destinations = 2;
 }
 message CreateJobDestinationConnectionsResponse {
+  // The job that was updated
   Job job = 1;
 }
 
 message DeleteJobRequest {
+  // The unique identifier of the job to delete
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
+  // The name to check for availability
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // The unique identifier of the account to check for availability
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message IsJobNameAvailableResponse {
+  // Whether the name is available
   bool is_available = 1;
 }
 
 message GetJobRunsRequest {
   oneof id {
+    // Retireve runs for a specific job
     string job_id = 1 [(buf.validate.field).string.uuid = true];
+    // Retrieve runs for all jobs in an account
     string account_id = 2 [(buf.validate.field).string.uuid = true];
   }
 }
 message GetJobRunsResponse {
+  // The list of job runs
   repeated JobRun job_runs = 1;
 }
 
 message GetJobRunRequest {
+  // The unique identifier of the job run
   string job_run_id = 1;
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message GetJobRunResponse {
+  // The job run that was retrieved
   JobRun job_run = 1;
 }
 
 message CreateJobRunRequest {
+  // The unique identifier of the job
   string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message CreateJobRunResponse {}
 
 message CancelJobRunRequest {
+  // The unique identifier of the job run
   string job_run_id = 1;
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message CancelJobRunResponse {}
@@ -668,10 +774,13 @@ message Job {
 
   // The unique, friendly name of the job
   string name = 6;
-
+  // The source connection configuration
   JobSource source = 7;
+  // The list of destinations that will be used to store the data
   repeated JobDestination destinations = 8;
+  // The list of mappings that will be used to transform the data
   repeated JobMapping mappings = 9;
+  // The cron schedule that will be used to trigger the job
   optional string cron_schedule = 10;
 
   // The account identifier that a job is associated with
@@ -690,45 +799,57 @@ message Job {
 }
 
 message JobRecentRun {
+  // The start time of the job run
   google.protobuf.Timestamp start_time = 1;
-
+  // The unique identifier of the job run
   string job_run_id = 2;
 }
 
 message GetJobRecentRunsRequest {
+  // The unique identifier of the job
   string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobRecentRunsResponse {
+  // The list of recent job runs
   repeated JobRecentRun recent_runs = 1;
 }
 
 message JobNextRuns {
+  // The list of next run times
   repeated google.protobuf.Timestamp next_run_times = 1;
 }
 
 message GetJobNextRunsRequest {
-  string job_id = 1;
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobNextRunsResponse {
+  // The list of next run times
   JobNextRuns next_runs = 1;
 }
 
 message GetJobStatusRequest {
-  string job_id = 1;
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobStatusResponse {
+  // The status of the job
   JobStatus status = 1;
 }
 
 message JobStatusRecord {
-  string job_id = 1;
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The status of the job
   JobStatus status = 2;
 }
 
 message GetJobStatusesRequest {
+  // The unique identifier of the account
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobStatusesResponse {
+  // The list of job statuses
   repeated JobStatusRecord statuses = 1;
 }
 
@@ -741,12 +862,16 @@ enum ActivityStatus {
 }
 
 message ActivityFailure {
+  // The message of the failure
   string message = 1;
 }
 
 message PendingActivity {
+  // The status of the activity
   ActivityStatus status = 1;
+  // The name of the activity
   string activity_name = 2;
+  // The last failure of the activity
   optional ActivityFailure last_failure = 3;
 }
 
@@ -791,56 +916,79 @@ enum JobRunStatus {
 }
 
 message JobRunEventTaskError {
+  // The message of the error
   string message = 1;
+  // The retry state of the error
   string retry_state = 2;
 }
 
 message JobRunEventTask {
+  // The unique identifier of the task
   int64 id = 1;
+  // The type of the task
   string type = 2;
+  // The time of the event
   google.protobuf.Timestamp event_time = 3;
+  // The error of the task
   JobRunEventTaskError error = 4;
 }
 
 message JobRunSyncMetadata {
+  // The schema of the table
   string schema = 1;
+  // The table of the sync
   string table = 2;
 }
 
 message JobRunEventMetadata {
   oneof metadata {
     option (buf.validate.oneof).required = true;
+    // The metadata of the sync
     JobRunSyncMetadata sync_metadata = 1;
   }
 }
 
 message JobRunEvent {
+  // The unique identifier of the event
   int64 id = 1;
+  // The type of the event
   string type = 2;
+  // The start time of the event
   google.protobuf.Timestamp start_time = 3;
+  // The close time of the event
   google.protobuf.Timestamp close_time = 4;
+  // The metadata of the event
   JobRunEventMetadata metadata = 5;
+  // The list of tasks associated with the event
   repeated JobRunEventTask tasks = 6;
 }
 
 message GetJobRunEventsRequest {
-  string job_run_id = 1;
+  // The unique identifier of the job run
+  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 
 message GetJobRunEventsResponse {
+  // The list of events
   repeated JobRunEvent events = 1;
+  // Whether the run is complete
   bool is_run_complete = 2;
 }
 
 message DeleteJobRunRequest {
-  string job_run_id = 1;
+  // The unique identifier of the job run
+  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobRunResponse {}
 
 message TerminateJobRunRequest {
-  string job_run_id = 1;
+  // The unique identifier of the job run
+  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message TerminateJobRunResponse {}
@@ -859,7 +1007,9 @@ enum LogLevel {
   LOG_LEVEL_ERROR = 4;
 }
 message GetJobRunLogsStreamRequest {
-  string job_run_id = 1;
+  // The unique identifier of the job run
+  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the account
   string account_id = 2 [(buf.validate.field).string.uuid = true];
   // The time window in which to retrieve the logs
   LogWindow window = 3;
@@ -871,7 +1021,9 @@ message GetJobRunLogsStreamRequest {
   repeated LogLevel log_levels = 6;
 }
 message GetJobRunLogsStreamResponse {
+  // The log line
   string log_line = 1;
+  // The timestamp of the log line
   optional google.protobuf.Timestamp timestamp = 2;
 }
 
@@ -883,6 +1035,7 @@ message SetJobWorkflowOptionsRequest {
   WorkflowOptions worfklow_options = 2;
 }
 message SetJobWorkflowOptionsResponse {
+  // The updated job
   Job job = 1;
 }
 message SetJobSyncOptionsRequest {
@@ -893,42 +1046,60 @@ message SetJobSyncOptionsRequest {
   ActivityOptions sync_options = 2;
 }
 message SetJobSyncOptionsResponse {
+  // The updated job
   Job job = 1;
 }
 
 message ValidateJobMappingsRequest {
-  // The unique account identifier that this job will be associated with
+  // The unique identifier of the account
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The list of mappings to validate
   repeated JobMapping mappings = 2;
-  string connection_id = 3;
+  // The unique identifier of the connection
+  string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  // The list of virtual foreign keys
   repeated VirtualForeignConstraint virtual_foreign_keys = 4;
 }
 
 message ColumnError {
+  // The schema of the table
   string schema = 1;
+  // The table of the column
   string table = 2;
+  // The column of the error
   string column = 3;
+  // The list of errors
   repeated string errors = 4;
 }
 
 message DatabaseError {
+  // The list of errors
   repeated string errors = 1;
 }
 message ValidateJobMappingsResponse {
+  // The list of column errors
   repeated ColumnError column_errors = 1;
+  // The database error
   DatabaseError database_errors = 2;
 }
 
 message VirtualForeignKey {
+  // The schema of the table
   string schema = 1;
+  // The table of the virtual foreign key
   string table = 2;
+  // The list of columns
   repeated string columns = 3;
 }
 
 message VirtualForeignConstraint {
+  // The schema of the table
   string schema = 1;
+  // The table of the virtual foreign key
   string table = 2;
+  // The list of columns
   repeated string columns = 3;
+  // The foreign key
   VirtualForeignKey foreign_key = 4;
 }
 
@@ -942,14 +1113,17 @@ message RunContextKey {
 }
 
 message GetRunContextRequest {
+  // The run context key
   RunContextKey id = 1;
 }
 
 message GetRunContextResponse {
+  // The returned value in bytes. The format is determined by the key when it is set.
   bytes value = 1;
 }
 
 message SetRunContextRequest {
+  // The run context key
   RunContextKey id = 1;
   // An opaque value that is to be determined by the key
   bytes value = 2;
@@ -957,6 +1131,7 @@ message SetRunContextRequest {
 message SetRunContextResponse {}
 
 message SetRunContextsRequest {
+  // The run context key
   RunContextKey id = 1;
   // An opaque value that is to be determined by the key
   bytes value = 2;
@@ -1163,33 +1338,72 @@ message GetActiveJobHooksByTimingResponse {
 }
 
 service JobService {
-  rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
-  rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
+  // Returns a list of jobs by either account or job
+  rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Returns a specific job
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Creates a new job
   rpc CreateJob(CreateJobRequest) returns (CreateJobResponse) {}
+  // Deletes a job
   rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
-  rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
+  // Checks if a job name is available
+  rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Updates the schedule of a job
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
+  // Updates the source connection of a job
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
+  // Sets the source sql connection subsets of a job
   rpc SetJobSourceSqlConnectionSubsets(SetJobSourceSqlConnectionSubsetsRequest) returns (SetJobSourceSqlConnectionSubsetsResponse) {}
+  // Updates the destination connection of a job
   rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
+  // Deletes the destination connection of a job
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
+  // Creates the destination connections of a job
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
+  // Pauses or unpauses a job
   rpc PauseJob(PauseJobRequest) returns (PauseJobResponse) {}
-  // Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
-  rpc GetJobRecentRuns(GetJobRecentRunsRequest) returns (GetJobRecentRunsResponse) {}
+  // Returns a list of recently invoked job runs based on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+  rpc GetJobRecentRuns(GetJobRecentRunsRequest) returns (GetJobRecentRunsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
-  rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
-  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
-  rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
+  rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Returns the status of a job
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Returns the statuses of jobs within an account
+  rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Returns a list of job runs by either account or job
-  rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
-  rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
+  rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Returns a list of events for a job run to understand more details of the run itself
+  rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Returns a specific job run, along with any of its pending activities
-  rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
+  rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Deletes a job run
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
+  // Creates a new job run
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
+  // Cancels a job run. This is a graceful termination and allows the workflow to clean up and exit gracefully.
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+  // Terminates a job run. This is an immediate termination and will not allow the workflow to clean up and exit gracefully.
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
   // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
@@ -1197,7 +1411,7 @@ service JobService {
   rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
   // Set the job sync options. Must provide entire object as it will fully override the previous configuration
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
-  // validates that the jobmapping configured can run with table constraints
+  // Validates that the jobmapping configured can run with table constraints
   rpc ValidateJobMappings(ValidateJobMappingsRequest) returns (ValidateJobMappingsResponse) {}
 
   // Gets a run context to be used by a workflow run
@@ -1208,9 +1422,13 @@ service JobService {
   rpc SetRunContexts(stream SetRunContextsRequest) returns (SetRunContextsResponse) {}
 
   // Retrieves all job hooks
-  rpc GetJobHooks(GetJobHooksRequest) returns (GetJobHooksResponse) {}
+  rpc GetJobHooks(GetJobHooksRequest) returns (GetJobHooksResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Retrieves a specific job hook
-  rpc GetJobHook(GetJobHookRequest) returns (GetJobHookResponse) {}
+  rpc GetJobHook(GetJobHookRequest) returns (GetJobHookResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Creates a new job hook
   rpc CreateJobHook(CreateJobHookRequest) returns (CreateJobHookResponse) {}
   // Removes a job hook
@@ -1222,5 +1440,7 @@ service JobService {
   // Enables or disables a job hook
   rpc SetJobHookEnabled(SetJobHookEnabledRequest) returns (SetJobHookEnabledResponse) {}
   // Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
-  rpc GetActiveJobHooksByTiming(GetActiveJobHooksByTimingRequest) returns (GetActiveJobHooksByTimingResponse) {}
+  rpc GetActiveJobHooksByTiming(GetActiveJobHooksByTimingRequest) returns (GetActiveJobHooksByTimingResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

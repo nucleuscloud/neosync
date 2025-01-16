@@ -10,13 +10,17 @@ message MysqlStreamConfig {}
 message AwsDynamoDBStreamConfig {}
 message AwsS3StreamConfig {
   oneof id {
+    // The unique identifier of the job to get the data stream for.
     string job_id = 1 [(buf.validate.field).string.uuid = true];
+    // The unique identifier of the job run to get the data stream for.
     string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
   }
 }
 message GcpCloudStorageStreamConfig {
   oneof id {
+    // The unique identifier of the job to get the data stream for.
     string job_id = 1 [(buf.validate.field).string.uuid = true];
+    // The unique identifier of the job run to get the data stream for.
     string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
   }
 }
@@ -34,9 +38,13 @@ message ConnectionStreamConfig {
 }
 
 message GetConnectionDataStreamRequest {
+  // The unique identifier of the connection to get the data stream for.
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The stream configuration to use for the data stream.
   ConnectionStreamConfig stream_config = 2;
+  // The schema of the table to get the data stream for.
   string schema = 3;
+  // The table to get the data stream for.
   string table = 4;
 }
 
@@ -52,7 +60,9 @@ message MysqlSchemaConfig {}
 message MssqlSchemaConfig {}
 message AwsS3SchemaConfig {
   oneof id {
+    // The unique identifier of the job to get the schema for.
     string job_id = 1 [(buf.validate.field).string.uuid = true];
+    // The unique identifier of the job run to get the schema for.
     string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
   }
 }
@@ -60,7 +70,9 @@ message MongoSchemaConfig {}
 message DynamoDBSchemaConfig {}
 message GcpCloudStorageSchemaConfig {
   oneof id {
+    // The unique identifier of the job to get the schema for.
     string job_id = 1 [(buf.validate.field).string.uuid = true];
+    // The unique identifier of the job run to get the schema for.
     string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
   }
 }
@@ -100,16 +112,21 @@ message DatabaseColumn {
 }
 
 message GetConnectionSchemaRequest {
+  // The unique identifier of the connection to get the schema for.
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The schema configuration to use for the schema map.
   ConnectionSchemaConfig schema_config = 2;
 }
 
 message GetConnectionSchemaResponse {
+  // The list of database columns
   repeated DatabaseColumn schemas = 1;
 }
 
 message GetConnectionSchemaMapRequest {
+  // The unique identifier of the connection to get the schema map for.
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The schema configuration to use for the schema map.
   ConnectionSchemaConfig schema_config = 2;
 }
 
@@ -131,8 +148,10 @@ message GetConnectionSchemaMapsResponse {
 }
 
 message ForeignKey {
-  string table = 1;
+  // The table that the foreign key is associated with
+  string table = 1;h
   reserved 2; // Was: string column = 2;
+  // The columns that are part of the foreign key
   repeated string columns = 3;
 }
 
@@ -145,55 +164,74 @@ message ForeignConstraint {
 }
 
 message ForeignConstraintTables {
+  // A list of foreign key constraints
   repeated ForeignConstraint constraints = 1;
 }
 
 message InitStatementOptions {
+  // Whether or not to generate schema init statements.
   bool init_schema = 1;
+  // Whether or not to generate truncation statements
   bool truncate_before_insert = 2;
+  // Whether or not to generate truncate cascade statements.
   bool truncate_cascade = 3;
 }
 message GetConnectionInitStatementsRequest {
+  // The unique identifier of the connection to get the init statements for.
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The options to use for the init statements.
   InitStatementOptions options = 2;
 }
 
 message SchemaInitStatements {
+  // A friendly label associated with the generated schema init statement(s)
   string label = 1;
+  // A list of SQL statements that may be used to initialize a database from scratch.
   repeated string statements = 2;
 }
 
 // Init statement for a specific table
 message GetConnectionInitStatementsResponse {
-  // the key here is <schema>.<table> and value is the table init statement.
+  // The key here is <schema>.<table> and value is the table init statement.
   map<string, string> table_init_statements = 1;
-  // the key here is <schema>.<table> and value is the table truncate statement.
+  // The key here is <schema>.<table> and value is the table truncate statement.
   map<string, string> table_truncate_statements = 2;
+  // A list of schema initialization statements
   repeated SchemaInitStatements schema_init_statements = 3;
 }
 
 message PrimaryConstraint {
+  // The columns that are part of the primary constraint
   repeated string columns = 1;
 }
 
 message UniqueConstraint {
+  // The columns that are part of the unique constraint
   repeated string columns = 1;
 }
 
 message GetAiGeneratedDataRequest {
+  // The unique identifier of a connection, specifically one that is configured for LLM use.
   string ai_connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The number of records to generate
   int64 count = 2 [
     (buf.validate.field).int64.gte = 1,
     (buf.validate.field).int64.lte = 10
   ];
+  // The LLM model name to use that works with the configured connection id.
   string model_name = 3 [(buf.validate.field).string.min_len = 1];
+  // The prompt that will be used to further refine the data generation. This is appended to the prompt that Neosync generates that includes schema information.
   optional string user_prompt = 4;
+  // The unique identifier of a connection that the AI generated data would be inserted into. This is used to generate and send schema information to the LLM to help shape the generated data.
   string data_connection_id = 5 [(buf.validate.field).string.uuid = true];
+  // The table to generate data for.
   DatabaseTable table = 6;
 }
 
 message DatabaseTable {
+  // The schema of the table
   string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The table name
   string table = 2 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -203,10 +241,12 @@ message GetAiGeneratedDataResponse {
 }
 
 message GetConnectionTableConstraintsRequest {
+  // The unique identifier of the connection to get the constraints for.
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message UniqueConstraints {
+  // The unique constraints found for the table
   repeated UniqueConstraint constraints = 1;
 }
 
@@ -220,13 +260,18 @@ message GetConnectionTableConstraintsResponse {
 }
 
 message GetTableRowCountRequest {
-  string connection_id = 1;
-  string schema = 2;
-  string table = 3;
+  // The unique identifier of the connection to get the row count for.
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The schema of the table to get the row count for.
+  string schema = 2 [(buf.validate.field).string.min_len = 1];
+  // The table to get the row count for.
+  string table = 3 [(buf.validate.field).string.min_len = 1];
+  // The optional where clause to filter the rows by.
   optional string where_clause = 4;
 }
 
 message GetTableRowCountResponse {
+  // The count of the rows in the table
   int64 count = 1;
 }
 
@@ -250,5 +295,7 @@ service ConnectionDataService {
   // Query an AI connection by providing the necessary values. Typically used for generating preview data
   rpc GetAiGeneratedData(GetAiGeneratedDataRequest) returns (GetAiGeneratedDataResponse) {}
   // Query table with subset to get row count
-  rpc GetTableRowCount(GetTableRowCountRequest) returns (GetTableRowCountResponse) {}
+  rpc GetTableRowCount(GetTableRowCountRequest) returns (GetTableRowCountResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
