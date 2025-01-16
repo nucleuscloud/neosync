@@ -15,7 +15,7 @@ The following guide will show you how to configure and test your Postgres Connec
 
 ## Things to watch out for
 
-1. Currently Neosync only supports syncing between two physical databases and does not support syncing between two logical databases. This is on the roadmap and will be supported soon.
+1. Neosync can sync two logical Postgres databases (for ex. within the same Docker container) but the schema names do have to be the same.
 2. When syncing across two databases, the databases must have the same name.
 
 ## Configuring Postgres
