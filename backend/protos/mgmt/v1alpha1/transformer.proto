@@ -98,12 +98,14 @@ message UserDefinedTransformer {
   string name = 2;
   // The description of the user defined transformer.
   string description = 3;
+
+  reserved 4;
   // @deprecated: data_type is deprecated and will be removed in a future release. Use data_types instead.
-  TransformerDataType data_type = 4 [deprecated = true];
+  TransformerDataType data_type = 5 [deprecated = true];
   // The source of the user defined transformer.
-  TransformerSource source = 5;
+  TransformerSource source = 6;
   // The configuration of the user defined transformer.
-  TransformerConfig config = 6;
+  TransformerConfig config = 7;
   // The date and time the user defined transformer was created.
   google.protobuf.Timestamp created_at = 8;
   // The date and time the user defined transformer was last updated.
@@ -463,6 +465,7 @@ message GenerateState {
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
+  reserved 1;
   // The minimum length of the phone number to generate.
   optional int64 min = 2;
   // The maximum length of the phone number to generate.

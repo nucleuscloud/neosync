@@ -87,6 +87,7 @@ message AiGenerateSourceTableOption {
 message GenerateSourceOptions {
   // The list of schemas (and their tables) along with any configuration options that will be used to generate data for.
   repeated GenerateSourceSchemaOption schemas = 1 [(buf.validate.field).repeated.min_items = 1];
+  reserved 2;
   // An optional connection id that will be used as the basis for the shape of data to be generated.
   optional string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
 }
@@ -129,8 +130,10 @@ message DynamoDBSourceUnmappedTransformConfig {
   JobMappingTransformer b = 1;
   // Boolean
   JobMappingTransformer boolean = 2;
+  reserved 3;
   // Number
   JobMappingTransformer n = 4;
+  reserved 5;
   // String
   JobMappingTransformer s = 6;
 }
@@ -524,6 +527,13 @@ message CreateJobRequest {
 // Config that contains various timeouts that are configured in the underlying temporal workflow
 // More options will come in the future as needed
 message WorkflowOptions {
+  reserved 1;
+  reserved 2;
+  reserved 3;
+  reserved 4;
+  reserved 5;
+  reserved 6;
+  reserved 7;
   // The timeout for a single workflow run.
   // Measured in seconds
   optional int64 run_timeout = 8;
@@ -649,6 +659,7 @@ message MssqlSourceSchemaSubset {
 }
 
 message JobSourceSqlSubetSchemas {
+  reserved 1;
   oneof schemas {
     option (buf.validate.oneof).required = true;
     // The list of schemas (and their tables) along with any configuration options that will be used.
@@ -884,6 +895,8 @@ message JobRun {
   string name = 3;
   // the status of the job run
   JobRunStatus status = 4;
+
+  reserved 5;
 
   // A timestamp of when the run started
   google.protobuf.Timestamp started_at = 6;
@@ -1194,6 +1207,11 @@ message NewJobHook {
 
 // Contains the specific hook type configurations.
 message JobHookConfig {
+  reserved 1;
+  reserved 2;
+  reserved 3;
+  reserved 4;
+
   oneof config {
     option (buf.validate.oneof).required = true;
     // Configuration for SQL-specific hooks.
