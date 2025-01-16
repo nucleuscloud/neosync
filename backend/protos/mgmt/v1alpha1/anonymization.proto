@@ -44,11 +44,11 @@ message TransformerMapping {
 
 message DefaultTransformersConfig {
   // Any identified boolean value will be transformed using this configuration if no mapping is found.
-  TransformerConfig boolean = 1;
+  TransformerConfig boolean = 2;
   // Any identified number value will be transformed using this configuration if no mapping is found.
-  TransformerConfig number = 2;
+  TransformerConfig number = 3;
   // Any identified string value will be transformed using this configuration if no mapping is found.
-  TransformerConfig string = 3;
+  TransformerConfig string = 4;
 }
 
 message AnonymizeManyErrors {
