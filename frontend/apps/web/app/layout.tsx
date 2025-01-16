@@ -25,7 +25,6 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className="min-h-screen bg-background font-sans antialiased overflow-scroll">
-        <GoogleScriptProvider />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -38,6 +37,7 @@ export default async function RootLayout({
                 <>
                   <Suspense>
                     <UnifyScriptProvider />
+                    <GoogleScriptProvider />
                   </Suspense>
                   <Suspense>
                     <PostHogPageview />

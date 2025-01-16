@@ -1,10 +1,7 @@
 'use client';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
-import { useSession } from 'next-auth/react';
 import Script from 'next/script';
-import { ReactElement, useEffect } from 'react';
-import { useAccount } from './account-provider';
+import { ReactElement } from 'react';
 
 export function UnifyScriptProvider(): ReactElement {
   const { data: systemAppConfig, isLoading } = useGetSystemAppConfig();
@@ -24,45 +21,4 @@ export function UnifyScriptProvider(): ReactElement {
       }}
     />
   );
-}
-
-const isBrowser = () => typeof window !== 'undefined';
-
-export function UnifyIdentifier(): ReactElement {
-  const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
-    useGetSystemAppConfig();
-  const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
-  const { data: session } = useSession();
-  const { account, isLoading: isAccountLoading } = useAccount();
-  const user = session?.user;
-
-  useEffect(() => {
-    if (
-      !isBrowser() ||
-      isUserDataLoading ||
-      isAccountLoading ||
-      isSystemAppConfigLoading ||
-      !systemAppConfig?.unify.enabled ||
-      !systemAppConfig.unify.key ||
-      !systemAppConfig.isAuthEnabled ||
-      !user?.email
-    ) {
-      return;
-    }
-  }, [
-    isUserDataLoading,
-    isAccountLoading,
-    isSystemAppConfigLoading,
-    account?.id,
-    account?.name,
-    userData?.userId,
-    systemAppConfig?.isAuthEnabled,
-    systemAppConfig?.isNeosyncCloud,
-    user?.email,
-    user?.name,
-    systemAppConfig?.unify.enabled,
-    systemAppConfig?.unify.key,
-  ]);
-
-  return <></>;
 }

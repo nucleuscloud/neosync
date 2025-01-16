@@ -2,11 +2,9 @@ import SiteFooter from '@/components/SiteFooter';
 import WelcomeDialog from '@/components/onboarding-checklist/WelcomeDialog';
 import AccountProvider from '@/components/providers/account-provider';
 import ConnectProvider from '@/components/providers/connect-provider';
-import { GtagIdentifier } from '@/components/providers/googleTag-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import TanstackQueryProvider from '@/components/providers/query-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
-import { UnifyIdentifier } from '@/components/providers/unify-provider';
 import SiteHeader from '@/components/site-header/SiteHeader';
 import { Toaster } from '@/components/ui/sonner';
 import { ReactElement, ReactNode, Suspense } from 'react';
@@ -28,10 +26,6 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
           <AccountProvider>
             <Suspense>
               <PostHogIdentifier />
-            </Suspense>
-            <Suspense>
-              <UnifyIdentifier />
-              <GtagIdentifier />
             </Suspense>
             <div className="relative flex min-h-screen flex-col">
               <SiteHeader />

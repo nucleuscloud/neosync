@@ -1,10 +1,7 @@
 'use client';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
-import { useSession } from 'next-auth/react';
 import Script from 'next/script';
-import { ReactElement, useEffect } from 'react';
-import { useAccount } from './account-provider';
+import { ReactElement } from 'react';
 
 export function GoogleScriptProvider(): ReactElement {
   const { data: systemAppConfig, isLoading } = useGetSystemAppConfig();
@@ -47,47 +44,4 @@ export function GoogleScriptProvider(): ReactElement {
       />
     </>
   );
-}
-
-const isBrowser = () => typeof window !== 'undefined';
-
-export function GtagIdentifier(): ReactElement {
-  const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
-    useGetSystemAppConfig();
-  const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
-  const { data: session } = useSession();
-  const { account, isLoading: isAccountLoading } = useAccount();
-  const user = session?.user;
-
-  useEffect(() => {
-    if (
-      !isBrowser() ||
-      isUserDataLoading ||
-      isAccountLoading ||
-      isSystemAppConfigLoading ||
-      !systemAppConfig?.gtag.enabled ||
-      !systemAppConfig.gtag.key ||
-      !systemAppConfig.gtag.conversion ||
-      !systemAppConfig.isAuthEnabled ||
-      !user?.email
-    ) {
-      return;
-    }
-  }, [
-    isUserDataLoading,
-    isAccountLoading,
-    isSystemAppConfigLoading,
-    account?.id,
-    account?.name,
-    userData?.userId,
-    systemAppConfig?.isAuthEnabled,
-    systemAppConfig?.isNeosyncCloud,
-    user?.email,
-    user?.name,
-    systemAppConfig?.gtag.enabled,
-    systemAppConfig?.gtag.conversion,
-    systemAppConfig?.gtag.key,
-  ]);
-
-  return <></>;
 }
