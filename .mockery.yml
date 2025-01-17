@@ -123,3 +123,6 @@ packages:
   github.com/nucleuscloud/neosync/internal/ee/transformers/functions:
     interfaces:
       NeosyncOperatorApi:
+  github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers:
+    interfaces:
+      UserDefinedTransformerResolver:

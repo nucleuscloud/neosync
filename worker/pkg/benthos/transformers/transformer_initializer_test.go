@@ -13,6 +13,30 @@ import (
 )
 
 func Test_InitializeTransformerByConfigType(t *testing.T) {
+	t.Run("UserDefinedTransformerConfig", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+					Id: "test_id",
+				},
+			},
+		}
+		mockResolver := NewMockUserDefinedTransformerResolver(t)
+		categories := "A"
+		mockResolver.On("GetUserDefinedTransformer", mock.Anything, "test_id").Return(&mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+				GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+					Categories: &categories,
+				},
+			},
+		}, nil)
+		executor, err := InitializeTransformerByConfigType(config, WithUserDefinedTransformerResolver(mockResolver))
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate("test", executor.Opts)
+		require.NoError(t, err)
+		require.Equal(t, "A", result)
+	})
 	t.Run("PassthroughConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
