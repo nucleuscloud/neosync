@@ -1,8 +1,6 @@
 package javascript_processor
 
 import (
-	"fmt"
-
 	javascript_functions "github.com/nucleuscloud/neosync/internal/javascript/functions"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -48,6 +46,5 @@ func (b *benthosValueApi) MetaGet(key string) (any, bool) {
 }
 
 func (b *benthosValueApi) MetaSetMut(key string, value any) {
-	fmt.Println("setting meta", key, value)
 	b.message.MetaSetMut(key, value)
 }

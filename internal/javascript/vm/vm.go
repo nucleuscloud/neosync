@@ -106,7 +106,7 @@ func (r *Runner) Run(ctx context.Context, program *goja.Program) (goja.Value, er
 	return r.vm.RunProgram(program)
 }
 
-// Registers custom functions with the vm
+// Registers a custom function with the vm
 func registerFunction(runner *Runner, function *javascript_functions.FunctionDefinition) error {
 	var targetObj *goja.Object
 	if targetObjValue := runner.vm.GlobalObject().Get(function.Namespace()); targetObjValue != nil {
