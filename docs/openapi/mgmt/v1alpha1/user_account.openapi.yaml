@@ -1,7 +1,1057 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
+components:
+  schemas:
+    mgmt.v1alpha1.AccountRole:
+      type: string
+      title: AccountRole
+      enum:
+        - ACCOUNT_ROLE_UNSPECIFIED
+        - ACCOUNT_ROLE_ADMIN
+        - ACCOUNT_ROLE_JOB_DEVELOPER
+        - ACCOUNT_ROLE_JOB_VIEWER
+        - ACCOUNT_ROLE_JOB_EXECUTOR
+    mgmt.v1alpha1.AccountStatus:
+      type: string
+      title: AccountStatus
+      enum:
+        - ACCOUNT_STATUS_REASON_UNSPECIFIED
+        - ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
+        - ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
+        - ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
+    mgmt.v1alpha1.BillingStatus:
+      type: string
+      title: BillingStatus
+      enum:
+        - BILLING_STATUS_UNSPECIFIED
+        - BILLING_STATUS_ACTIVE
+        - BILLING_STATUS_EXPIRED
+        - BILLING_STATUS_TRIAL_ACTIVE
+        - BILLING_STATUS_TRIAL_EXPIRED
+    mgmt.v1alpha1.UserAccountType:
+      type: string
+      title: UserAccountType
+      enum:
+        - USER_ACCOUNT_TYPE_UNSPECIFIED
+        - USER_ACCOUNT_TYPE_PERSONAL
+        - USER_ACCOUNT_TYPE_TEAM
+        - USER_ACCOUNT_TYPE_ENTERPRISE
+    google.protobuf.Timestamp:
+      type: string
+      format: date-time
+      description: |-
+        A Timestamp represents a point in time independent of any time zone or local
+         calendar, encoded as a count of seconds and fractions of seconds at
+         nanosecond resolution. The count is relative to an epoch at UTC midnight on
+         January 1, 1970, in the proleptic Gregorian calendar which extends the
+         Gregorian calendar backwards to year one.
+
+         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
+         second table is needed for interpretation, using a [24-hour linear
+         smear](https://developers.google.com/time/smear).
+
+         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
+         restricting to that range, we ensure that we can convert to and from [RFC
+         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+
+         # Examples
+
+         Example 1: Compute Timestamp from POSIX `time()`.
+
+             Timestamp timestamp;
+             timestamp.set_seconds(time(NULL));
+             timestamp.set_nanos(0);
+
+         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
+
+             struct timeval tv;
+             gettimeofday(&tv, NULL);
+
+             Timestamp timestamp;
+             timestamp.set_seconds(tv.tv_sec);
+             timestamp.set_nanos(tv.tv_usec * 1000);
+
+         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
+
+             FILETIME ft;
+             GetSystemTimeAsFileTime(&ft);
+             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+
+             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
+             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
+             Timestamp timestamp;
+             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
+             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
+
+         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
+
+             long millis = System.currentTimeMillis();
+
+             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+                 .setNanos((int) ((millis % 1000) * 1000000)).build();
+
+         Example 5: Compute Timestamp from Java `Instant.now()`.
+
+             Instant now = Instant.now();
+
+             Timestamp timestamp =
+                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
+                     .setNanos(now.getNano()).build();
+
+         Example 6: Compute Timestamp from current time in Python.
+
+             timestamp = Timestamp()
+             timestamp.GetCurrentTime()
+
+         # JSON Mapping
+
+         In JSON format, the Timestamp type is encoded as a string in the
+         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
+         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
+         where {year} is always expressed using four digits while {month}, {day},
+         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
+         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
+         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
+         is required. A proto3 JSON serializer should always use UTC (as indicated by
+         "Z") when printing the Timestamp type and a proto3 JSON parser should be
+         able to accept both UTC and other timezones (as indicated by an offset).
+
+         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
+         01:30 UTC on January 15, 2017.
+
+         In JavaScript, one can convert a Date object to this format using the
+         standard
+         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
+         method. In Python, a standard `datetime.datetime` object can be converted
+         to this format using
+         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
+         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
+         the Joda Time's [`ISODateTimeFormat.dateTime()`](
+         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
+         ) to obtain a formatter capable of generating timestamps in this format.
+    mgmt.v1alpha1.AcceptTeamAccountInviteRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          title: token
+          minLength: 1
+          description: The token that the user will use to accept the invite.
+      title: AcceptTeamAccountInviteRequest
+      additionalProperties: false
+    mgmt.v1alpha1.AcceptTeamAccountInviteResponse:
+      type: object
+      properties:
+        account:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
+          title: account
+          description: The account that the user was invited to.
+      title: AcceptTeamAccountInviteResponse
+      additionalProperties: false
+    mgmt.v1alpha1.AccountInvite:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of the invite.
+        accountId:
+          type: string
+          title: account_id
+          description: The unique identifier of the account to invite the user to.
+        senderUserId:
+          type: string
+          title: sender_user_id
+          description: The unique identifier of the user that sent the invite.
+        email:
+          type: string
+          title: email
+          description: The email of the user to invite.
+        token:
+          type: string
+          title: token
+          description: The token that the user will use to accept the invite.
+        accepted:
+          type: boolean
+          title: accepted
+          description: Whether or not the invite has been accepted.
+        createdAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The time when the invite was created.
+        updatedAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The time when the invite was last updated.
+        expiresAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: The time when the invite expires.
+        role:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user to invite. Only used if RBAC is enabled.
+      title: AccountInvite
+      additionalProperties: false
+    mgmt.v1alpha1.AccountOnboardingConfig:
+      type: object
+      properties:
+        hasCompletedOnboarding:
+          type: boolean
+          title: has_completed_onboarding
+          description: Whether or not the account has completed onboarding.
+      title: AccountOnboardingConfig
+      additionalProperties: false
+    mgmt.v1alpha1.AccountTemporalConfig:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          minLength: 1
+          description: The temporal url for the account.
+        namespace:
+          type: string
+          title: namespace
+          minLength: 1
+          description: The temporal namespace for the account.
+        syncJobQueueName:
+          type: string
+          title: sync_job_queue_name
+          minLength: 1
+          description: The temporal sync job queue name for the account.
+      title: AccountTemporalConfig
+      additionalProperties: false
+    mgmt.v1alpha1.AccountUser:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of the user.
+        name:
+          type: string
+          title: name
+          description: The name of the user (if there is one)
+        image:
+          type: string
+          title: image
+          description: The image of the user (if there is one)
+        email:
+          type: string
+          title: email
+          description: The email of the user.
+        role:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
+      title: AccountUser
+      additionalProperties: false
+    mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accountId
+            - not:
+                anyOf:
+                  - required:
+                      - accountId
+      anyOf:
+        - required:
+            - accountId
+        - not:
+            anyOf:
+              - required:
+                  - accountId
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The name of the team account
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: |-
+            Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
+             And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
+      title: ConvertPersonalToTeamAccountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - checkoutSessionUrl
+            - not:
+                anyOf:
+                  - required:
+                      - checkoutSessionUrl
+      anyOf:
+        - required:
+            - checkoutSessionUrl
+        - not:
+            anyOf:
+              - required:
+                  - checkoutSessionUrl
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          description: The id of the team account (will be the same identifier as the personal account)
+        checkoutSessionUrl:
+          type: string
+          title: checkout_session_url
+          description: If NeosyncCloud, will respond with a checkout session url so they can setup billing
+        newPersonalAccountId:
+          type: string
+          title: new_personal_account_id
+          description: The identifier of the newly created personal account
+      title: ConvertPersonalToTeamAccountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CreateTeamAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The name of the team account
+      title: CreateTeamAccountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CreateTeamAccountResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - checkoutSessionUrl
+            - not:
+                anyOf:
+                  - required:
+                      - checkoutSessionUrl
+      anyOf:
+        - required:
+            - checkoutSessionUrl
+        - not:
+            anyOf:
+              - required:
+                  - checkoutSessionUrl
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          description: The unique identifier of the team account that was created.
+        checkoutSessionUrl:
+          type: string
+          title: checkout_session_url
+          description: If NeosyncCloud, will respond with a checkout session url so they can setup billing
+      title: CreateTeamAccountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the billing checkout session for.
+      title: GetAccountBillingCheckoutSessionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse:
+      type: object
+      properties:
+        checkoutSessionUrl:
+          type: string
+          title: checkout_session_url
+          description: The url that will be redirected to
+      title: GetAccountBillingCheckoutSessionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountBillingPortalSessionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the billing portal session for.
+      title: GetAccountBillingPortalSessionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountBillingPortalSessionResponse:
+      type: object
+      properties:
+        portalSessionUrl:
+          type: string
+          title: portal_session_url
+          description: The url that will be redirected to
+      title: GetAccountBillingPortalSessionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountOnboardingConfigRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the onboarding config for.
+      title: GetAccountOnboardingConfigRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountOnboardingConfigResponse:
+      type: object
+      properties:
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config for the account.
+      title: GetAccountOnboardingConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountStatusRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the status for.
+      title: GetAccountStatusRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountStatusResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - allowedRecordCount
+            - not:
+                anyOf:
+                  - required:
+                      - allowedRecordCount
+      anyOf:
+        - required:
+            - allowedRecordCount
+        - not:
+            anyOf:
+              - required:
+                  - allowedRecordCount
+      properties:
+        usedRecordCount:
+          type:
+            - integer
+            - string
+          title: used_record_count
+          format: int64
+          description: |-
+            A count of the currently used records for the current billing period.
+             This may go over the allowed record count depending on when the record count is polled by the metric system.
+        allowedRecordCount:
+          type:
+            - integer
+            - string
+          title: allowed_record_count
+          format: int64
+          description: The allowed record count. It will be null if there is no limit.
+        subscriptionStatus:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.BillingStatus'
+          title: subscription_status
+          description: The current subscription status determined by the billing system.
+      title: GetAccountStatusResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountTemporalConfigRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the temporal config for.
+      title: GetAccountTemporalConfigRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountTemporalConfigResponse:
+      type: object
+      properties:
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config for the account.
+      title: GetAccountTemporalConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetBillingAccountsRequest:
+      type: object
+      properties:
+        accountIds:
+          type: array
+          items:
+            type: string
+          title: account_ids
+          description: Optional list of account identifiers to filter the response by
+      title: GetBillingAccountsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetBillingAccountsResponse:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
+          title: accounts
+          description: The list of accounts that have a billing id.
+      title: GetBillingAccountsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetSystemInformationRequest:
+      type: object
+      title: GetSystemInformationRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetSystemInformationResponse:
+      type: object
+      properties:
+        version:
+          type: string
+          title: version
+          description: The Git tagged version
+        commit:
+          type: string
+          title: commit
+          description: The Git commit
+        compiler:
+          type: string
+          title: compiler
+          description: The Go compiler flag that was used to build this version of Neosync
+        platform:
+          type: string
+          title: platform
+          description: The Go platform flag that was used to build this version of Neosync
+        buildDate:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: build_date
+          description: The time when the build was created
+        license:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SystemLicense'
+          title: license
+          description: The license information for the system
+      title: GetSystemInformationResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetTeamAccountInvitesRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the invites for.
+      title: GetTeamAccountInvitesRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetTeamAccountInvitesResponse:
+      type: object
+      properties:
+        invites:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
+          title: invites
+          description: The list of invites for the account.
+      title: GetTeamAccountInvitesResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetTeamAccountMembersRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the members for.
+      title: GetTeamAccountMembersRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetTeamAccountMembersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountUser'
+          title: users
+      title: GetTeamAccountMembersResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetUserAccountsRequest:
+      type: object
+      title: GetUserAccountsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetUserAccountsResponse:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
+          title: accounts
+          description: The list of accounts that the user belongs to.
+      title: GetUserAccountsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetUserRequest:
+      type: object
+      title: GetUserRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          title: user_id
+          description: The unique identifier of the user that was retrieved.
+      title: GetUserResponse
+      additionalProperties: false
+    mgmt.v1alpha1.InviteUserToTeamAccountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - role
+            - not:
+                anyOf:
+                  - required:
+                      - role
+      anyOf:
+        - required:
+            - role
+        - not:
+            anyOf:
+              - required:
+                  - role
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to invite the user to.
+        email:
+          type: string
+          title: email
+          minLength: 1
+          description: The email of the user to invite.
+        role:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role of the user to invite. Only used if RBAC is enabled.
+      title: InviteUserToTeamAccountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.InviteUserToTeamAccountResponse:
+      type: object
+      properties:
+        invite:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
+          title: invite
+          description: The invite that was created.
+      title: InviteUserToTeamAccountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountStatusValidRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - requestedRecordCount
+            - not:
+                anyOf:
+                  - required:
+                      - requestedRecordCount
+      anyOf:
+        - required:
+            - requestedRecordCount
+        - not:
+            anyOf:
+              - required:
+                  - requestedRecordCount
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get the status for.
+        requestedRecordCount:
+          type:
+            - integer
+            - string
+          title: requested_record_count
+          format: int64
+          description: An optional count of records to be added to the current usage for validation.
+      title: IsAccountStatusValidRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountStatusValidResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - reason
+            - not:
+                anyOf:
+                  - required:
+                      - reason
+        - anyOf:
+            - required:
+                - trialExpiresAt
+            - not:
+                anyOf:
+                  - required:
+                      - trialExpiresAt
+      properties:
+        isValid:
+          type: boolean
+          title: is_valid
+          description: Whether or not the account is valid.
+        reason:
+          type: string
+          title: reason
+          description: If the account is not valid, a reason for why may be provided.
+        shouldPoll:
+          type: boolean
+          title: should_poll
+          description: Whether or not the process should decide to continue polling for validitiy updates
+        accountStatus:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountStatus'
+          title: account_status
+          description: The current status of the account. Default is valid.
+        trialExpiresAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: trial_expires_at
+          description: The time when the trial expires
+      title: IsAccountStatusValidResponse
+      additionalProperties: false
+    mgmt.v1alpha1.IsUserInAccountRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check if the user is in.
+      title: IsUserInAccountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsUserInAccountResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          title: ok
+          description: Whether or not the user is in the account.
+      title: IsUserInAccountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.RemoveTeamAccountInviteRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the invite to remove.
+      title: RemoveTeamAccountInviteRequest
+      additionalProperties: false
+    mgmt.v1alpha1.RemoveTeamAccountInviteResponse:
+      type: object
+      title: RemoveTeamAccountInviteResponse
+      additionalProperties: false
+    mgmt.v1alpha1.RemoveTeamAccountMemberRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          title: user_id
+          format: uuid
+          description: The unique identifier of the user to remove from the account.
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to remove the user from.
+      title: RemoveTeamAccountMemberRequest
+      additionalProperties: false
+    mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
+      type: object
+      title: RemoveTeamAccountMemberResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountOnboardingConfigRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to set the onboarding config for.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config to set for the account.
+      title: SetAccountOnboardingConfigRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountOnboardingConfigResponse:
+      type: object
+      properties:
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
+          title: config
+          description: The onboarding config that was set for the account.
+      title: SetAccountOnboardingConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountTemporalConfigRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to set the temporal config for.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config to set for the account.
+      title: SetAccountTemporalConfigRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountTemporalConfigResponse:
+      type: object
+      properties:
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
+          title: config
+          description: The temporal config that was set for the account.
+      title: SetAccountTemporalConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetBillingMeterEventRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - timestamp
+            - not:
+                anyOf:
+                  - required:
+                      - timestamp
+      anyOf:
+        - required:
+            - timestamp
+        - not:
+            anyOf:
+              - required:
+                  - timestamp
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to apply this metered event to.
+        eventName:
+          type: string
+          title: event_name
+          minLength: 1
+          description: The metered event name
+        value:
+          type: string
+          title: value
+          minLength: 1
+          description: The value of the meter for the given time
+        eventId:
+          type: string
+          title: event_id
+          minLength: 1
+          description: The unique identifier of this metered event
+        timestamp:
+          type:
+            - integer
+            - string
+          title: timestamp
+          format: int64
+          description: The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
+      title: SetBillingMeterEventRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetBillingMeterEventResponse:
+      type: object
+      title: SetBillingMeterEventResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetPersonalAccountRequest:
+      type: object
+      title: SetPersonalAccountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetPersonalAccountResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          description: The unique identifier of the personal account that was created.
+      title: SetPersonalAccountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRequest:
+      type: object
+      title: SetUserRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          title: user_id
+          description: The unique identifier of the user that was created.
+      title: SetUserResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to apply this role to.
+        userId:
+          type: string
+          title: user_id
+          format: uuid
+          description: The unique identifier of the user that this will be applied to.
+        role:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
+          title: role
+          description: The role that this user will obtain.
+      title: SetUserRoleRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetUserRoleResponse:
+      type: object
+      title: SetUserRoleResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SystemLicense:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          title: is_valid
+          description: Whether or not a valid license was found
+        expiresAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: expires_at
+          description: The time when the license expires
+        isNeosyncCloud:
+          type: boolean
+          title: is_neosync_cloud
+          description: Whether or not the license is for NeosyncCloud
+      title: SystemLicense
+      additionalProperties: false
+    mgmt.v1alpha1.UserAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of the account
+        name:
+          type: string
+          title: name
+          description: The account slug
+        type:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccountType'
+          title: type
+          description: The type of account
+        hasStripeCustomerId:
+          type: boolean
+          title: has_stripe_customer_id
+          description: Whether or not the account has an associated stripe customer id
+      title: UserAccount
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security:
+  - BearerAuth: []
 paths:
   /mgmt.v1alpha1.UserAccountService/GetUser:
     post:
@@ -903,1031 +1953,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.SetUserRoleResponse'
-components:
-  schemas:
-    mgmt.v1alpha1.AccountRole:
-      type: string
-      title: AccountRole
-      enum:
-        - ACCOUNT_ROLE_UNSPECIFIED
-        - ACCOUNT_ROLE_ADMIN
-        - ACCOUNT_ROLE_JOB_DEVELOPER
-        - ACCOUNT_ROLE_JOB_VIEWER
-        - ACCOUNT_ROLE_JOB_EXECUTOR
-    mgmt.v1alpha1.AccountStatus:
-      type: string
-      title: AccountStatus
-      enum:
-        - ACCOUNT_STATUS_REASON_UNSPECIFIED
-        - ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
-        - ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
-        - ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
-    mgmt.v1alpha1.BillingStatus:
-      type: string
-      title: BillingStatus
-      enum:
-        - BILLING_STATUS_UNSPECIFIED
-        - BILLING_STATUS_ACTIVE
-        - BILLING_STATUS_EXPIRED
-        - BILLING_STATUS_TRIAL_ACTIVE
-        - BILLING_STATUS_TRIAL_EXPIRED
-    mgmt.v1alpha1.UserAccountType:
-      type: string
-      title: UserAccountType
-      enum:
-        - USER_ACCOUNT_TYPE_UNSPECIFIED
-        - USER_ACCOUNT_TYPE_PERSONAL
-        - USER_ACCOUNT_TYPE_TEAM
-        - USER_ACCOUNT_TYPE_ENTERPRISE
-    google.protobuf.Timestamp:
-      type: string
-      format: date-time
-      description: |-
-        A Timestamp represents a point in time independent of any time zone or local
-         calendar, encoded as a count of seconds and fractions of seconds at
-         nanosecond resolution. The count is relative to an epoch at UTC midnight on
-         January 1, 1970, in the proleptic Gregorian calendar which extends the
-         Gregorian calendar backwards to year one.
-
-         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
-         second table is needed for interpretation, using a [24-hour linear
-         smear](https://developers.google.com/time/smear).
-
-         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
-         restricting to that range, we ensure that we can convert to and from [RFC
-         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
-
-         # Examples
-
-         Example 1: Compute Timestamp from POSIX `time()`.
-
-             Timestamp timestamp;
-             timestamp.set_seconds(time(NULL));
-             timestamp.set_nanos(0);
-
-         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
-
-             struct timeval tv;
-             gettimeofday(&tv, NULL);
-
-             Timestamp timestamp;
-             timestamp.set_seconds(tv.tv_sec);
-             timestamp.set_nanos(tv.tv_usec * 1000);
-
-         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
-
-             FILETIME ft;
-             GetSystemTimeAsFileTime(&ft);
-             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
-
-             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
-             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
-             Timestamp timestamp;
-             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
-             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
-
-         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
-
-             long millis = System.currentTimeMillis();
-
-             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-                 .setNanos((int) ((millis % 1000) * 1000000)).build();
-
-         Example 5: Compute Timestamp from Java `Instant.now()`.
-
-             Instant now = Instant.now();
-
-             Timestamp timestamp =
-                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
-                     .setNanos(now.getNano()).build();
-
-         Example 6: Compute Timestamp from current time in Python.
-
-             timestamp = Timestamp()
-             timestamp.GetCurrentTime()
-
-         # JSON Mapping
-
-         In JSON format, the Timestamp type is encoded as a string in the
-         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
-         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
-         where {year} is always expressed using four digits while {month}, {day},
-         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
-         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
-         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
-         is required. A proto3 JSON serializer should always use UTC (as indicated by
-         "Z") when printing the Timestamp type and a proto3 JSON parser should be
-         able to accept both UTC and other timezones (as indicated by an offset).
-
-         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
-         01:30 UTC on January 15, 2017.
-
-         In JavaScript, one can convert a Date object to this format using the
-         standard
-         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
-         method. In Python, a standard `datetime.datetime` object can be converted
-         to this format using
-         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
-         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
-         the Joda Time's [`ISODateTimeFormat.dateTime()`](
-         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
-         ) to obtain a formatter capable of generating timestamps in this format.
-    mgmt.v1alpha1.AcceptTeamAccountInviteRequest:
-      type: object
-      properties:
-        token:
-          type: string
-          title: token
-          minLength: 1
-          description: The token that the user will use to accept the invite.
-      title: AcceptTeamAccountInviteRequest
-      additionalProperties: false
-    mgmt.v1alpha1.AcceptTeamAccountInviteResponse:
-      type: object
-      properties:
-        account:
-          allOf:
-            - title: account
-              description: The account that the user was invited to.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
-      title: AcceptTeamAccountInviteResponse
-      additionalProperties: false
-    mgmt.v1alpha1.AccountInvite:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          description: The unique identifier of the invite.
-        accountId:
-          type: string
-          title: account_id
-          description: The unique identifier of the account to invite the user to.
-        senderUserId:
-          type: string
-          title: sender_user_id
-          description: The unique identifier of the user that sent the invite.
-        email:
-          type: string
-          title: email
-          description: The email of the user to invite.
-        token:
-          type: string
-          title: token
-          description: The token that the user will use to accept the invite.
-        accepted:
-          type: boolean
-          title: accepted
-          description: Whether or not the invite has been accepted.
-        createdAt:
-          allOf:
-            - title: created_at
-              description: The time when the invite was created.
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        updatedAt:
-          allOf:
-            - title: updated_at
-              description: The time when the invite was last updated.
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        expiresAt:
-          allOf:
-            - title: expires_at
-              description: The time when the invite expires.
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        role:
-          allOf:
-            - title: role
-              description: The role of the user to invite. Only used if RBAC is enabled.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
-      title: AccountInvite
-      additionalProperties: false
-    mgmt.v1alpha1.AccountOnboardingConfig:
-      type: object
-      properties:
-        hasCompletedOnboarding:
-          type: boolean
-          title: has_completed_onboarding
-          description: Whether or not the account has completed onboarding.
-      title: AccountOnboardingConfig
-      additionalProperties: false
-    mgmt.v1alpha1.AccountTemporalConfig:
-      type: object
-      properties:
-        url:
-          type: string
-          title: url
-          minLength: 1
-          description: The temporal url for the account.
-        namespace:
-          type: string
-          title: namespace
-          minLength: 1
-          description: The temporal namespace for the account.
-        syncJobQueueName:
-          type: string
-          title: sync_job_queue_name
-          minLength: 1
-          description: The temporal sync job queue name for the account.
-      title: AccountTemporalConfig
-      additionalProperties: false
-    mgmt.v1alpha1.AccountUser:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          description: The unique identifier of the user.
-        name:
-          type: string
-          title: name
-          description: The name of the user (if there is one)
-        image:
-          type: string
-          title: image
-          description: The image of the user (if there is one)
-        email:
-          type: string
-          title: email
-          description: The email of the user.
-        role:
-          allOf:
-            - title: role
-              description: The role of the user in the account. If RBAC is not enabled, will be unspecified.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
-      title: AccountUser
-      additionalProperties: false
-    mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - accountId
-            - not:
-                anyOf:
-                  - required:
-                      - accountId
-      anyOf:
-        - required:
-            - accountId
-        - not:
-            anyOf:
-              - required:
-                  - accountId
-      properties:
-        name:
-          type: string
-          title: name
-          pattern: ^[a-z0-9-]{3,100}$
-          description: The name of the team account
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: |-
-            Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
-             And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
-      title: ConvertPersonalToTeamAccountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - checkoutSessionUrl
-            - not:
-                anyOf:
-                  - required:
-                      - checkoutSessionUrl
-      anyOf:
-        - required:
-            - checkoutSessionUrl
-        - not:
-            anyOf:
-              - required:
-                  - checkoutSessionUrl
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          description: The id of the team account (will be the same identifier as the personal account)
-        checkoutSessionUrl:
-          type: string
-          title: checkout_session_url
-          description: If NeosyncCloud, will respond with a checkout session url so they can setup billing
-        newPersonalAccountId:
-          type: string
-          title: new_personal_account_id
-          description: The identifier of the newly created personal account
-      title: ConvertPersonalToTeamAccountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.CreateTeamAccountRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-          pattern: ^[a-z0-9-]{3,100}$
-          description: The name of the team account
-      title: CreateTeamAccountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.CreateTeamAccountResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - checkoutSessionUrl
-            - not:
-                anyOf:
-                  - required:
-                      - checkoutSessionUrl
-      anyOf:
-        - required:
-            - checkoutSessionUrl
-        - not:
-            anyOf:
-              - required:
-                  - checkoutSessionUrl
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          description: The unique identifier of the team account that was created.
-        checkoutSessionUrl:
-          type: string
-          title: checkout_session_url
-          description: If NeosyncCloud, will respond with a checkout session url so they can setup billing
-      title: CreateTeamAccountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the billing checkout session for.
-      title: GetAccountBillingCheckoutSessionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse:
-      type: object
-      properties:
-        checkoutSessionUrl:
-          type: string
-          title: checkout_session_url
-          description: The url that will be redirected to
-      title: GetAccountBillingCheckoutSessionResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountBillingPortalSessionRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the billing portal session for.
-      title: GetAccountBillingPortalSessionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountBillingPortalSessionResponse:
-      type: object
-      properties:
-        portalSessionUrl:
-          type: string
-          title: portal_session_url
-          description: The url that will be redirected to
-      title: GetAccountBillingPortalSessionResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountOnboardingConfigRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the onboarding config for.
-      title: GetAccountOnboardingConfigRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountOnboardingConfigResponse:
-      type: object
-      properties:
-        config:
-          allOf:
-            - title: config
-              description: The onboarding config for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
-      title: GetAccountOnboardingConfigResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountStatusRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the status for.
-      title: GetAccountStatusRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountStatusResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - allowedRecordCount
-            - not:
-                anyOf:
-                  - required:
-                      - allowedRecordCount
-      anyOf:
-        - required:
-            - allowedRecordCount
-        - not:
-            anyOf:
-              - required:
-                  - allowedRecordCount
-      properties:
-        usedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: used_record_count
-          description: |-
-            A count of the currently used records for the current billing period.
-             This may go over the allowed record count depending on when the record count is polled by the metric system.
-        allowedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: allowed_record_count
-          description: The allowed record count. It will be null if there is no limit.
-        subscriptionStatus:
-          allOf:
-            - title: subscription_status
-              description: The current subscription status determined by the billing system.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.BillingStatus'
-      title: GetAccountStatusResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountTemporalConfigRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the temporal config for.
-      title: GetAccountTemporalConfigRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetAccountTemporalConfigResponse:
-      type: object
-      properties:
-        config:
-          allOf:
-            - title: config
-              description: The temporal config for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
-      title: GetAccountTemporalConfigResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetBillingAccountsRequest:
-      type: object
-      properties:
-        accountIds:
-          type: array
-          items:
-            type: string
-          title: account_ids
-          description: Optional list of account identifiers to filter the response by
-      title: GetBillingAccountsRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetBillingAccountsResponse:
-      type: object
-      properties:
-        accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
-          title: accounts
-          description: The list of accounts that have a billing id.
-      title: GetBillingAccountsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetSystemInformationRequest:
-      type: object
-      title: GetSystemInformationRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetSystemInformationResponse:
-      type: object
-      properties:
-        version:
-          type: string
-          title: version
-          description: The Git tagged version
-        commit:
-          type: string
-          title: commit
-          description: The Git commit
-        compiler:
-          type: string
-          title: compiler
-          description: The Go compiler flag that was used to build this version of Neosync
-        platform:
-          type: string
-          title: platform
-          description: The Go platform flag that was used to build this version of Neosync
-        buildDate:
-          allOf:
-            - title: build_date
-              description: The time when the build was created
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        license:
-          allOf:
-            - title: license
-              description: The license information for the system
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SystemLicense'
-      title: GetSystemInformationResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetTeamAccountInvitesRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the invites for.
-      title: GetTeamAccountInvitesRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetTeamAccountInvitesResponse:
-      type: object
-      properties:
-        invites:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
-          title: invites
-          description: The list of invites for the account.
-      title: GetTeamAccountInvitesResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetTeamAccountMembersRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the members for.
-      title: GetTeamAccountMembersRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetTeamAccountMembersResponse:
-      type: object
-      properties:
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.AccountUser'
-          title: users
-      title: GetTeamAccountMembersResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetUserAccountsRequest:
-      type: object
-      title: GetUserAccountsRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetUserAccountsResponse:
-      type: object
-      properties:
-        accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.UserAccount'
-          title: accounts
-          description: The list of accounts that the user belongs to.
-      title: GetUserAccountsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetUserRequest:
-      type: object
-      title: GetUserRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetUserResponse:
-      type: object
-      properties:
-        userId:
-          type: string
-          title: user_id
-          description: The unique identifier of the user that was retrieved.
-      title: GetUserResponse
-      additionalProperties: false
-    mgmt.v1alpha1.InviteUserToTeamAccountRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - role
-            - not:
-                anyOf:
-                  - required:
-                      - role
-      anyOf:
-        - required:
-            - role
-        - not:
-            anyOf:
-              - required:
-                  - role
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to invite the user to.
-        email:
-          type: string
-          title: email
-          minLength: 1
-          description: The email of the user to invite.
-        role:
-          allOf:
-            - title: role
-              description: The role of the user to invite. Only used if RBAC is enabled.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
-      title: InviteUserToTeamAccountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.InviteUserToTeamAccountResponse:
-      type: object
-      properties:
-        invite:
-          allOf:
-            - title: invite
-              description: The invite that was created.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountInvite'
-      title: InviteUserToTeamAccountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.IsAccountStatusValidRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - requestedRecordCount
-            - not:
-                anyOf:
-                  - required:
-                      - requestedRecordCount
-      anyOf:
-        - required:
-            - requestedRecordCount
-        - not:
-            anyOf:
-              - required:
-                  - requestedRecordCount
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get the status for.
-        requestedRecordCount:
-          oneOf:
-            - type: string
-            - type: number
-          title: requested_record_count
-          description: An optional count of records to be added to the current usage for validation.
-      title: IsAccountStatusValidRequest
-      additionalProperties: false
-    mgmt.v1alpha1.IsAccountStatusValidResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - reason
-            - not:
-                anyOf:
-                  - required:
-                      - reason
-        - anyOf:
-            - required:
-                - trialExpiresAt
-            - not:
-                anyOf:
-                  - required:
-                      - trialExpiresAt
-      properties:
-        isValid:
-          type: boolean
-          title: is_valid
-          description: Whether or not the account is valid.
-        reason:
-          type: string
-          title: reason
-          description: If the account is not valid, a reason for why may be provided.
-        shouldPoll:
-          type: boolean
-          title: should_poll
-          description: Whether or not the process should decide to continue polling for validitiy updates
-        accountStatus:
-          allOf:
-            - title: account_status
-              description: The current status of the account. Default is valid.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountStatus'
-        trialExpiresAt:
-          allOf:
-            - title: trial_expires_at
-              description: The time when the trial expires
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-      title: IsAccountStatusValidResponse
-      additionalProperties: false
-    mgmt.v1alpha1.IsUserInAccountRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to check if the user is in.
-      title: IsUserInAccountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.IsUserInAccountResponse:
-      type: object
-      properties:
-        ok:
-          type: boolean
-          title: ok
-          description: Whether or not the user is in the account.
-      title: IsUserInAccountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.RemoveTeamAccountInviteRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The unique identifier of the invite to remove.
-      title: RemoveTeamAccountInviteRequest
-      additionalProperties: false
-    mgmt.v1alpha1.RemoveTeamAccountInviteResponse:
-      type: object
-      title: RemoveTeamAccountInviteResponse
-      additionalProperties: false
-    mgmt.v1alpha1.RemoveTeamAccountMemberRequest:
-      type: object
-      properties:
-        userId:
-          type: string
-          title: user_id
-          format: uuid
-          description: The unique identifier of the user to remove from the account.
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to remove the user from.
-      title: RemoveTeamAccountMemberRequest
-      additionalProperties: false
-    mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
-      type: object
-      title: RemoveTeamAccountMemberResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetAccountOnboardingConfigRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to set the onboarding config for.
-        config:
-          allOf:
-            - title: config
-              description: The onboarding config to set for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
-      title: SetAccountOnboardingConfigRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetAccountOnboardingConfigResponse:
-      type: object
-      properties:
-        config:
-          allOf:
-            - title: config
-              description: The onboarding config that was set for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountOnboardingConfig'
-      title: SetAccountOnboardingConfigResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetAccountTemporalConfigRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to set the temporal config for.
-        config:
-          allOf:
-            - title: config
-              description: The temporal config to set for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
-      title: SetAccountTemporalConfigRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetAccountTemporalConfigResponse:
-      type: object
-      properties:
-        config:
-          allOf:
-            - title: config
-              description: The temporal config that was set for the account.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountTemporalConfig'
-      title: SetAccountTemporalConfigResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetBillingMeterEventRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - timestamp
-            - not:
-                anyOf:
-                  - required:
-                      - timestamp
-      anyOf:
-        - required:
-            - timestamp
-        - not:
-            anyOf:
-              - required:
-                  - timestamp
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to apply this metered event to.
-        eventName:
-          type: string
-          title: event_name
-          minLength: 1
-          description: The metered event name
-        value:
-          type: string
-          title: value
-          minLength: 1
-          description: The value of the meter for the given time
-        eventId:
-          type: string
-          title: event_id
-          minLength: 1
-          description: The unique identifier of this metered event
-        timestamp:
-          oneOf:
-            - type: string
-            - type: number
-          title: timestamp
-          description: The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
-      title: SetBillingMeterEventRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetBillingMeterEventResponse:
-      type: object
-      title: SetBillingMeterEventResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetPersonalAccountRequest:
-      type: object
-      title: SetPersonalAccountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetPersonalAccountResponse:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          description: The unique identifier of the personal account that was created.
-      title: SetPersonalAccountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetUserRequest:
-      type: object
-      title: SetUserRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetUserResponse:
-      type: object
-      properties:
-        userId:
-          type: string
-          title: user_id
-          description: The unique identifier of the user that was created.
-      title: SetUserResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SetUserRoleRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to apply this role to.
-        userId:
-          type: string
-          title: user_id
-          format: uuid
-          description: The unique identifier of the user that this will be applied to.
-        role:
-          allOf:
-            - title: role
-              description: The role that this user will obtain.
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountRole'
-      title: SetUserRoleRequest
-      additionalProperties: false
-    mgmt.v1alpha1.SetUserRoleResponse:
-      type: object
-      title: SetUserRoleResponse
-      additionalProperties: false
-    mgmt.v1alpha1.SystemLicense:
-      type: object
-      properties:
-        isValid:
-          type: boolean
-          title: is_valid
-          description: Whether or not a valid license was found
-        expiresAt:
-          allOf:
-            - title: expires_at
-              description: The time when the license expires
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        isNeosyncCloud:
-          type: boolean
-          title: is_neosync_cloud
-          description: Whether or not the license is for NeosyncCloud
-      title: SystemLicense
-      additionalProperties: false
-    mgmt.v1alpha1.UserAccount:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          description: The unique identifier of the account
-        name:
-          type: string
-          title: name
-          description: The account slug
-        type:
-          allOf:
-            - title: type
-              description: The type of account
-            - $ref: '#/components/schemas/mgmt.v1alpha1.UserAccountType'
-        hasStripeCustomerId:
-          type: boolean
-          title: has_stripe_customer_id
-          description: Whether or not the account has an associated stripe customer id
-      title: UserAccount
-      additionalProperties: false
-    connect-protocol-version:
-      type: number
-      title: Connect-Protocol-Version
-      enum:
-        - 1
-      description: Define the version of the Connect protocol
-      const: 1
-    connect-timeout-header:
-      type: number
-      title: Connect-Timeout-Ms
-      description: Define the timeout, in ms
-    connect.error:
-      type: object
-      properties:
-        code:
-          type: string
-          examples:
-            - CodeNotFound
-          enum:
-            - CodeCanceled
-            - CodeUnknown
-            - CodeInvalidArgument
-            - CodeDeadlineExceeded
-            - CodeNotFound
-            - CodeAlreadyExists
-            - CodePermissionDenied
-            - CodeResourceExhausted
-            - CodeFailedPrecondition
-            - CodeAborted
-            - CodeOutOfRange
-            - CodeInternal
-            - CodeUnavailable
-            - CodeDataLoss
-            - CodeUnauthenticated
-          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-        message:
-          type: string
-          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-        detail:
-          $ref: '#/components/schemas/google.protobuf.Any'
-      title: Connect Error
-      additionalProperties: true
-      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
-    google.protobuf.Any:
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-          format: binary
-        debug:
-          type: object
-          additionalProperties: true
-      additionalProperties: true
-      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
 tags:
   - name: mgmt.v1alpha1.UserAccountService
     description: Service that manages users, accounts, and billing
