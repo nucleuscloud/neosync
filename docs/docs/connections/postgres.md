@@ -15,8 +15,28 @@ The following guide will show you how to configure and test your Postgres Connec
 
 ## Things to watch out for
 
-1. Neosync can sync two logical Postgres databases (for ex. within the same Docker container) but the schema names do have to be the same.
-2. When syncing across two databases, the databases must have the same name.
+1. Neosync can sync data between two physical Postgres databases that are exposed through two different ports. Alternatively, Neosync can sync data across two or virtual Postgres databases that are located in the same physical Postgres database. In both cases, the database schema and table schemas must be the same in the source and destination.
+
+Case 1: Two physical databases:
+
+Physical Postgres Server (server1):
+
+- hostname:5432/Database1 (physical database)
+  - public (schema)
+    - table1 (table)
+- hostname:5433/Database1 (physical database) - public (schema) - table1 (table)
+  Neosync will still work if the database names (in this case Database1) are different, i.e. Database1 & Database2 as long as you provide the database name in the connection URL and the database and table schemas are the same.
+
+Case 2: Two virtual databases:
+
+- hostname:5432:Database1 (virtual database)
+  - public (schema)
+    - table1 (table)
+- hostname:5432:Database2 (virtual database)
+  - public (schema)
+    - table1 (table)
+
+This will also work just fine as long as the database and table schemas are the same.
 
 ## Configuring Postgres
 
