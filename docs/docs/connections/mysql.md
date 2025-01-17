@@ -12,8 +12,18 @@ Neosync supports most Mysql-compatible databases natively using the Mysql connec
 
 ## Things to watch out for
 
-1. Currently Neosync only supports syncing between two physical databases and does not support syncing between two logical databases. This is on the roadmap and will be supported soon.
-2. When syncing across two databases, the databases must have the same name.
+1. Neosync can sync data between two physical Mysql databases that are exposed through two different ports. Today, Neosync cannot sync between two logical databases in Mysql.
+
+For example:
+
+Physical Mysql Server (server1):
+
+- hostname:3306/Database1 (physical database)
+  - public (schema)
+    - table1 (table)
+- hostname:3307/Database1 (physical database)
+  - public (schema)
+    - table1 (table)
 
 ## MySQL Database Connection Configuration
 

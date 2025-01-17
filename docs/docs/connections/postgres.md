@@ -24,8 +24,11 @@ Physical Postgres Server (server1):
 - hostname:5432/Database1 (physical database)
   - public (schema)
     - table1 (table)
-- hostname:5433/Database1 (physical database) - public (schema) - table1 (table)
-  Neosync will still work if the database names (in this case Database1) are different, i.e. Database1 & Database2 as long as you provide the database name in the connection URL and the database and table schemas are the same.
+- hostname:5433/Database1 (physical database)
+  - public (schema)
+    - table1 (table)
+
+Neosync will still work if the database names (in this case Database1) are different, i.e. Database1 & Database2 as long as you provide the database name in the connection URL and the database and table schemas are the same.
 
 Case 2: Two virtual databases:
 
