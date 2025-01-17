@@ -19,8 +19,9 @@ type TransformerExecutor struct {
 type TransformerExecutorOption func(c *TransformerExecutorConfig)
 
 type TransformerExecutorConfig struct {
-	transformPiiText *transformPiiTextConfig
-	logger           *slog.Logger
+	transformPiiText               *transformPiiTextConfig
+	userDefinedTransformerResolver UserDefinedTransformerResolver
+	logger                         *slog.Logger
 }
 
 type transformPiiTextConfig struct {
@@ -53,6 +54,16 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
 }
 
+type UserDefinedTransformerResolver interface {
+	GetUserDefinedTransformer(ctx context.Context, id string) (*mgmtv1alpha1.TransformerConfig, error)
+}
+
+func WithUserDefinedTransformerResolver(resolver UserDefinedTransformerResolver) TransformerExecutorOption {
+	return func(c *TransformerExecutorConfig) {
+		c.userDefinedTransformerResolver = resolver
+	}
+}
+
 func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
 	execCfg := &TransformerExecutorConfig{logger: slog.Default()}
 	for _, opt := range opts {
@@ -60,7 +71,20 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 	}
 
 	maxLength := int64(100) // TODO: update this based on colInfo if available
-	switch transformerConfig.GetConfig().(type) {
+	switch typedCfg := transformerConfig.GetConfig().(type) {
+	case *mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig:
+		if execCfg.userDefinedTransformerResolver == nil {
+			return nil, fmt.Errorf("user defined transformer resolver is not set")
+		}
+		config := typedCfg.UserDefinedTransformerConfig
+		if config == nil {
+			return nil, fmt.Errorf("user defined transformer config is nil")
+		}
+		resolvedConfig, err := execCfg.userDefinedTransformerResolver.GetUserDefinedTransformer(context.Background(), config.GetId())
+		if err != nil {
+			return nil, err
+		}
+		return InitializeTransformerByConfigType(resolvedConfig, opts...)
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
 		return &TransformerExecutor{
 			Opts: nil,

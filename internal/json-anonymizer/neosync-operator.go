@@ -3,22 +3,23 @@ package jsonanonymizer
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
+	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
 type neosyncOperatorApi struct {
-	logger *slog.Logger
+	opts []transformer.TransformerExecutorOption
 }
 
-func newNeosyncOperatorApi(logger *slog.Logger) *neosyncOperatorApi {
-	return &neosyncOperatorApi{logger: logger}
+func newNeosyncOperatorApi(executorOpts []transformer.TransformerExecutorOption) *neosyncOperatorApi {
+	return &neosyncOperatorApi{opts: executorOpts}
 }
 
 func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error) {
-	executor, err := transformer.InitializeTransformerByConfigType(config, transformer.WithLogger(n.logger))
+	executor, err := transformer.InitializeTransformerByConfigType(config, n.opts...)
 	if err != nil {
 		return "", err
 	}
@@ -35,4 +36,22 @@ func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1
 	default:
 		return fmt.Sprintf("%v", derefPointer(result)), nil
 	}
+}
+
+type udtResolver struct {
+	transformerClient mgmtv1alpha1connect.TransformersServiceClient
+}
+
+func newUdtResolver(transformerClient mgmtv1alpha1connect.TransformersServiceClient) *udtResolver {
+	return &udtResolver{transformerClient: transformerClient}
+}
+
+func (u *udtResolver) GetUserDefinedTransformer(ctx context.Context, id string) (*mgmtv1alpha1.TransformerConfig, error) {
+	resp, err := u.transformerClient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
+		TransformerId: id,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Msg.GetTransformer().GetConfig(), nil
 }

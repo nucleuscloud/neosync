@@ -212,6 +212,7 @@ func (s *NeosyncApiTestClient) setupMux(
 		nil, // meter
 		userclient,
 		userService,
+		transformerService,
 		presAnalyzeClient, presAnonClient,
 		neosyncDb,
 	)

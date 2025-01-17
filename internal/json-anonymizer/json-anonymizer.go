@@ -10,6 +10,7 @@ import (
 
 	"github.com/itchyny/gojq"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
@@ -29,7 +30,8 @@ type JsonAnonymizer struct {
 	skipPaths                  map[string]struct{}
 	anonymizeConfig            *anonymizeConfig
 
-	logger *slog.Logger
+	logger            *slog.Logger
+	transformerClient mgmtv1alpha1connect.TransformersServiceClient
 }
 
 type anonymizeConfig struct {
@@ -57,14 +59,14 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 
 	// Initialize transformerExecutors
 	var err error
-	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig, a.logger)
+	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig, a.transformerClient, a.logger)
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize defaultTransformerExecutor if needed
 	if a.defaultTransformers != nil {
-		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig, a.logger)
+		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig, a.transformerClient, a.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -80,6 +82,12 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 func WithLogger(logger *slog.Logger) Option {
 	return func(ja *JsonAnonymizer) {
 		ja.logger = logger
+	}
+}
+
+func WithTransformerClient(transformerClient mgmtv1alpha1connect.TransformersServiceClient) Option {
+	return func(ja *JsonAnonymizer) {
+		ja.transformerClient = transformerClient
 	}
 }
 
@@ -349,16 +357,18 @@ func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 func initTransformerExecutors(
 	transformerMappings []*mgmtv1alpha1.TransformerMapping,
 	anonymizeConfig *anonymizeConfig,
+	transformerClient mgmtv1alpha1connect.TransformersServiceClient,
 	logger *slog.Logger,
 ) ([]*transformer.TransformerExecutor, error) {
 	executors := []*transformer.TransformerExecutor{}
 	execOpts := []transformer.TransformerExecutorOption{
 		transformer.WithLogger(logger),
+		transformer.WithUserDefinedTransformerResolver(newUdtResolver(transformerClient)),
 	}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
 		execOpts = append(
 			execOpts,
-			transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(logger), anonymizeConfig.defaultLanguage),
+			transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(execOpts), anonymizeConfig.defaultLanguage),
 		)
 	}
 
@@ -382,13 +392,15 @@ type DefaultExecutors struct {
 func initDefaultTransformerExecutors(
 	defaultTransformer *mgmtv1alpha1.DefaultTransformersConfig,
 	anonymizeConfig *anonymizeConfig,
+	transformerClient mgmtv1alpha1connect.TransformersServiceClient,
 	logger *slog.Logger,
 ) (*DefaultExecutors, error) {
 	execOpts := []transformer.TransformerExecutorOption{
 		transformer.WithLogger(logger),
+		transformer.WithUserDefinedTransformerResolver(newUdtResolver(transformerClient)),
 	}
 	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(logger), anonymizeConfig.defaultLanguage))
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(execOpts), anonymizeConfig.defaultLanguage))
 	}
 
 	var stringExecutor, numberExecutor, booleanExecutor *transformer.TransformerExecutor
