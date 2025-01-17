@@ -15,7 +15,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -224,8 +223,8 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	assert.False(t, ok, "job mappings are valid set of database schemas")
-	assert.Empty(t, newCols)
+	require.False(t, ok, "job mappings are valid set of database schemas")
+	require.Empty(t, newCols)
 
 	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
