@@ -23,8 +23,8 @@ func javascriptProcessorConfig() *service.ConfigSpec {
 		Field(service.NewInterpolatedStringField(codeField))
 }
 
-func RegisterNeosyncJavascriptProcessor() error {
-	return service.RegisterBatchProcessor(
+func RegisterNeosyncJavascriptProcessor(env *service.Environment) error {
+	return env.RegisterBatchProcessor(
 		"neosync_javascript", javascriptProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
 			return newJavascriptProcessorFromConfig(conf, mgr)
