@@ -18,14 +18,25 @@ type Runner struct {
 	mu      sync.Mutex
 }
 
+func (r *Runner) ValueApi() javascript_functions.ValueApi {
+	return r.options.valueApi
+}
+
 type Options struct {
 	logger          *slog.Logger
 	requireRegistry *require.Registry
 	functions       []*javascript_functions.FunctionDefinition
 	consoleEnabled  bool
+	valueApi        javascript_functions.ValueApi
 }
 
 type Option func(*Options)
+
+func WithValueApi(valueApi javascript_functions.ValueApi) Option {
+	return func(opts *Options) {
+		opts.valueApi = valueApi
+	}
+}
 
 func WithLogger(logger *slog.Logger) Option {
 	return func(opts *Options) {
@@ -111,9 +122,11 @@ func registerFunction(runner *Runner, function *javascript_functions.FunctionDef
 	if err := targetObj.Set(function.Name(), func(call goja.FunctionCall, rt *goja.Runtime) goja.Value {
 		l := runner.options.logger.With("function", function.Name())
 		fn := function.Ctor()(runner)
-		result, err := fn(call, rt, l)
+		result, err := fn(context.Background(), call, rt, l)
 		if err != nil {
-			return rt.ToValue(err.Error())
+			// This _has_ to be a panic so that the error is properly thrown in the JS runtime
+			// Otherwise things like try/catch will not work properly
+			panic(rt.ToValue(err.Error()))
 		}
 		return rt.ToValue(result)
 	}); err != nil {
