@@ -67,6 +67,7 @@ import {
   clearNewJobSession,
   getCreateNewSyncJobRequest,
   getNewJobSessionKeys,
+  toJobSource,
   validateJobMapping,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
@@ -237,12 +238,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
+      const jobsource = toJobSource(
+        {
+          connect: connectFormValues,
+        },
+        (id) => connectionsRecord[id]
+      );
       const res = await validateJobMapping(
-        connectFormValues.sourceId,
         formMappings,
         account?.id || '',
         [],
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        jobsource
       );
       setValidateMappingsResponse(res);
     } catch (error) {
@@ -260,12 +267,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   ) {
     try {
       setIsValidatingMappings(true);
+      const jobsource = toJobSource(
+        {
+          connect: connectFormValues,
+        },
+        (id) => connectionsRecord[id]
+      );
       const res = await validateJobMapping(
-        connectFormValues.sourceId,
         formMappings,
         account?.id || '',
         vfks,
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        jobsource
       );
       setValidateMappingsResponse(res);
     } catch (error) {

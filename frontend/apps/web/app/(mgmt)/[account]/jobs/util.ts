@@ -262,7 +262,7 @@ export function toSingleTableEditAiGenerateJobSource(
   });
 }
 
-function toSingleTableGenerateJobSource(
+export function toSingleTableGenerateJobSource(
   values: Pick<CreateSingleTableGenerateJobFormValues, 'connect' | 'schema'>
 ): JobSource {
   const tableSchema =
@@ -652,7 +652,7 @@ function toSyncVirtualForeignKeys(
   );
 }
 
-function toJobSource(
+export function toJobSource(
   values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
   getConnectionById: GetConnectionById
 ): JobSource {
