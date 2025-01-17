@@ -12,6 +12,7 @@ import {
   clearNewJobSession,
   getCreateNewSingleTableGenerateJobRequest,
   getNewJobSessionKeys,
+  toSingleTableGenerateJobSource,
   validateJobMapping,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
@@ -188,14 +189,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const formMappings = form.watch('mappings');
 
   async function validateMappings() {
+    if (formMappings.length === 0) {
+      return;
+    }
     try {
       setIsValidatingMappings(true);
       const res = await validateJobMapping(
-        connectFormValues.fkSourceConnectionId,
         formMappings,
         account?.id || '',
         [],
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        toSingleTableGenerateJobSource({
+          connect: connectFormValues,
+          schema: form.getValues(),
+        })
       );
       setValidateMappingsResponse(res);
     } catch (error) {

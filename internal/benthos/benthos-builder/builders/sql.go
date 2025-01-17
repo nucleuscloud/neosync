@@ -17,6 +17,7 @@ import (
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	job_util "github.com/nucleuscloud/neosync/internal/job"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -60,7 +61,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	job := params.Job
 	logger := params.Logger
 
-	sqlSourceOpts, err := getSqlJobSourceOpts(job.Source)
+	sqlSourceOpts, err := job_util.GetSqlJobSourceOpts(job.Source)
 	if err != nil {
 		return nil, err
 	}

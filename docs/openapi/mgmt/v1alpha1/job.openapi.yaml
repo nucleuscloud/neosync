@@ -499,6 +499,29 @@ components:
           description: The list of errors
       title: ColumnError
       additionalProperties: false
+    mgmt.v1alpha1.ColumnWarning:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The table of the column
+        column:
+          type: string
+          title: column
+          description: The column of the warning
+        warnings:
+          type: array
+          items:
+            type: string
+          title: warnings
+          description: The list of warnings
+      title: ColumnWarning
+      additionalProperties: false
     mgmt.v1alpha1.CreateJobDestination:
       type: object
       properties:
@@ -5067,6 +5090,21 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsRequest:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - jobSource
+            - not:
+                anyOf:
+                  - required:
+                      - jobSource
+      anyOf:
+        - required:
+            - jobSource
+        - not:
+            anyOf:
+              - required:
+                  - jobSource
       properties:
         accountId:
           type: string
@@ -5090,6 +5128,11 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: The list of virtual foreign keys
+        jobSource:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobSource'
+          title: job_source
+          description: The source options of the job
       title: ValidateJobMappingsRequest
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsResponse:
@@ -5106,6 +5149,12 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseError'
           title: database_errors
           description: The database error
+        columnWarnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ColumnWarning'
+          title: column_warnings
+          description: The list of column warnings
       title: ValidateJobMappingsResponse
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:

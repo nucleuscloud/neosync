@@ -1137,16 +1137,18 @@ class SetJobSyncOptionsResponse(_message.Message):
     def __init__(self, job: _Optional[_Union[Job, _Mapping]] = ...) -> None: ...
 
 class ValidateJobMappingsRequest(_message.Message):
-    __slots__ = ("account_id", "mappings", "connection_id", "virtual_foreign_keys")
+    __slots__ = ("account_id", "mappings", "connection_id", "virtual_foreign_keys", "job_source")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     MAPPINGS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_SOURCE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
     connection_id: str
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, account_id: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_source: JobSource
+    def __init__(self, account_id: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_source: _Optional[_Union[JobSource, _Mapping]] = ...) -> None: ...
 
 class ColumnError(_message.Message):
     __slots__ = ("schema", "table", "column", "errors")
@@ -1160,6 +1162,18 @@ class ColumnError(_message.Message):
     errors: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., errors: _Optional[_Iterable[str]] = ...) -> None: ...
 
+class ColumnWarning(_message.Message):
+    __slots__ = ("schema", "table", "column", "warnings")
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    TABLE_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_FIELD_NUMBER: _ClassVar[int]
+    WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    schema: str
+    table: str
+    column: str
+    warnings: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class DatabaseError(_message.Message):
     __slots__ = ("errors",)
     ERRORS_FIELD_NUMBER: _ClassVar[int]
@@ -1167,12 +1181,14 @@ class DatabaseError(_message.Message):
     def __init__(self, errors: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ValidateJobMappingsResponse(_message.Message):
-    __slots__ = ("column_errors", "database_errors")
+    __slots__ = ("column_errors", "database_errors", "column_warnings")
     COLUMN_ERRORS_FIELD_NUMBER: _ClassVar[int]
     DATABASE_ERRORS_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_WARNINGS_FIELD_NUMBER: _ClassVar[int]
     column_errors: _containers.RepeatedCompositeFieldContainer[ColumnError]
     database_errors: DatabaseError
-    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ...) -> None: ...
+    column_warnings: _containers.RepeatedCompositeFieldContainer[ColumnWarning]
+    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ...) -> None: ...
 
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")

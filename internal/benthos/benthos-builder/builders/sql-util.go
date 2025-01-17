@@ -13,6 +13,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	job_util "github.com/nucleuscloud/neosync/internal/job"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -22,25 +23,6 @@ const (
 	haltOnSchemaAdditionErrMsg = "unable to continue: HaltOnNewColumnAddition: job mappings are missing columns for the mapped tables found in the source connection"
 	haltOnColumnRemovalErrMsg  = "unable to continue: HaltOnColumnRemoval: source database is missing columns for the mapped tables found in the job mappings"
 )
-
-type sqlJobSourceOpts struct {
-	// Determines if the job should halt if a new column is detected that is not present in the job mappings
-	HaltOnNewColumnAddition bool
-	// Determines if the job should halt if a column is removed from the source database
-	HaltOnColumnRemoval bool
-	// Newly detected columns are automatically transformed
-	GenerateNewColumnTransformers bool
-	SubsetByForeignKeyConstraints bool
-	SchemaOpt                     []*schemaOptions
-}
-type schemaOptions struct {
-	Schema string
-	Tables []*tableOptions
-}
-type tableOptions struct {
-	Table       string
-	WhereClause *string
-}
 
 type sqlSourceTableOptions struct {
 	WhereClause *string
@@ -154,7 +136,7 @@ func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions, tableMap m
 }
 
 func groupSqlJobSourceOptionsByTable(
-	sqlSourceOpts *sqlJobSourceOpts,
+	sqlSourceOpts *job_util.SqlJobSourceOpts,
 ) map[string]*sqlSourceTableOptions {
 	groupedMappings := map[string]*sqlSourceTableOptions{}
 	for _, schemaOpt := range sqlSourceOpts.SchemaOpt {
@@ -452,110 +434,6 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_in
 		redisDependsOnMap[runconfig.Table()] = runconfig.PrimaryKeys()
 	}
 	return redisDependsOnMap
-}
-
-func getSqlJobSourceOpts(
-	source *mgmtv1alpha1.JobSource,
-) (*sqlJobSourceOpts, error) {
-	switch jobSourceConfig := source.GetOptions().GetConfig().(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		if jobSourceConfig.Postgres == nil {
-			return nil, nil
-		}
-		schemaOpt := []*schemaOptions{}
-		for _, opt := range jobSourceConfig.Postgres.Schemas {
-			tableOpts := []*tableOptions{}
-			for _, t := range opt.GetTables() {
-				tableOpts = append(tableOpts, &tableOptions{
-					Table:       t.Table,
-					WhereClause: t.WhereClause,
-				})
-			}
-			schemaOpt = append(schemaOpt, &schemaOptions{
-				Schema: opt.GetSchema(),
-				Tables: tableOpts,
-			})
-		}
-		shouldHalt := false
-		shouldGenerateNewColTransforms := false
-		switch jobSourceConfig.Postgres.GetNewColumnAdditionStrategy().GetStrategy().(type) {
-		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
-			shouldHalt = true
-		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
-			shouldGenerateNewColTransforms = true
-		}
-
-		shouldHaltOnColumnRemoval := false
-		if jobSourceConfig.Postgres.GetColumnRemovalStrategy().GetHaltJob() != nil {
-			shouldHaltOnColumnRemoval = true
-		}
-
-		return &sqlJobSourceOpts{
-			HaltOnNewColumnAddition:       shouldHalt,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			GenerateNewColumnTransformers: shouldGenerateNewColTransforms,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
-		}, nil
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		if jobSourceConfig.Mysql == nil {
-			return nil, nil
-		}
-		schemaOpt := []*schemaOptions{}
-		for _, opt := range jobSourceConfig.Mysql.Schemas {
-			tableOpts := []*tableOptions{}
-			for _, t := range opt.GetTables() {
-				tableOpts = append(tableOpts, &tableOptions{
-					Table:       t.Table,
-					WhereClause: t.WhereClause,
-				})
-			}
-			schemaOpt = append(schemaOpt, &schemaOptions{
-				Schema: opt.GetSchema(),
-				Tables: tableOpts,
-			})
-		}
-		shouldHaltOnColumnRemoval := false
-		if jobSourceConfig.Mysql.GetColumnRemovalStrategy().GetHaltJob() != nil {
-			shouldHaltOnColumnRemoval = true
-		}
-		return &sqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
-		}, nil
-	case *mgmtv1alpha1.JobSourceOptions_Mssql:
-		if jobSourceConfig.Mssql == nil {
-			return nil, nil
-		}
-		schemaOpt := []*schemaOptions{}
-		for _, opt := range jobSourceConfig.Mssql.Schemas {
-			tableOpts := []*tableOptions{}
-			for _, t := range opt.GetTables() {
-				tableOpts = append(tableOpts, &tableOptions{
-					Table:       t.Table,
-					WhereClause: t.WhereClause,
-				})
-			}
-			schemaOpt = append(schemaOpt, &schemaOptions{
-				Schema: opt.GetSchema(),
-				Tables: tableOpts,
-			})
-		}
-		shouldHaltOnColumnRemoval := false
-		if jobSourceConfig.Mssql.GetColumnRemovalStrategy().GetHaltJob() != nil {
-			shouldHaltOnColumnRemoval = true
-		}
-		return &sqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Mssql.HaltOnNewColumnAddition,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
-	}
 }
 
 type destinationOptions struct {
