@@ -114,7 +114,11 @@ func shouldHaltOnSchemaAddition(
 	tableColMappings := getUniqueColMappingsMap(mappings)
 	newColumns := []string{}
 	for table, cols := range groupedSchemas {
-		mappingCols := tableColMappings[table]
+		mappingCols, exists := tableColMappings[table]
+		if !exists {
+			// table not mapped in job mappings, skip
+			continue
+		}
 		for col := range cols {
 			if _, exists := mappingCols[col]; !exists {
 				newColumns = append(newColumns, fmt.Sprintf("%s.%s", table, col))

@@ -15,6 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -223,8 +224,8 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	require.False(t, ok, "job mappings are valid set of database schemas")
-	require.Empty(t, newCols)
+	assert.False(t, ok, "job mappings are valid set of database schemas")
+	assert.Empty(t, newCols)
 
 	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
@@ -242,8 +243,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	require.True(t, ok, "job mappings are missing database schema mappings")
-	require.ElementsMatch(t, []string{"neosync_api.accounts.id", "neosync_api.accounts.name"}, newCols)
+	require.False(t, ok, "valid subset of job mappings")
 
 	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
