@@ -32,24 +32,33 @@ type Options struct {
 
 type Option func(*Options)
 
+// Sets the value api for the runner
+// This allows custom functions to access an underlying data structure that can be manipulated by the runner
 func WithValueApi(valueApi javascript_functions.ValueApi) Option {
 	return func(opts *Options) {
 		opts.valueApi = valueApi
 	}
 }
 
+// Sets the logger for the runner
 func WithLogger(logger *slog.Logger) Option {
 	return func(opts *Options) {
 		opts.logger = logger
 	}
 }
 
+// Sets the require registry for the runner
+// This allows custom modules to be registered with the runner
+// If the logger is provided, the console module will be registered with the logger
 func WithJsRegistry(registry *require.Registry) Option {
 	return func(opts *Options) {
 		opts.requireRegistry = registry
 	}
 }
 
+// Sets the functions for the runner
+// These functions will be registered with the runner
+// Functions may interact with the value api
 func WithFunctions(functions ...*javascript_functions.FunctionDefinition) Option {
 	return func(opts *Options) {
 		opts.functions = functions
