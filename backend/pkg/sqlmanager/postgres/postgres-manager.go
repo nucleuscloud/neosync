@@ -302,6 +302,16 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 			mu.Unlock()
 			return nil
 		})
+		errgrp.Go(func() error {
+			extensions, err := p.getExtensions(errctx)
+			if err != nil {
+				return fmt.Errorf("unable to get postgres extensions: %w", err)
+			}
+			mu.Lock()
+			output.Extensions = append(output.Extensions, extensions...)
+			mu.Unlock()
+			return nil
+		})
 	}
 	err := errgrp.Wait()
 	if err != nil {
@@ -327,6 +337,24 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 			Schema:     row.SchemaName,
 			Name:       row.SequenceName,
 			Definition: wrapPgIdempotentSequence(row.SchemaName, row.SequenceName, row.Definition),
+		})
+	}
+	return output, nil
+}
+
+func (p *PostgresManager) getExtensions(ctx context.Context) ([]*sqlmanager_shared.ExtensionDataType, error) {
+	rows, err := p.querier.GetExtensions(ctx, p.db)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.ExtensionDataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.ExtensionDataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.ExtensionDataType{
+			Name:       row.ExtensionName,
+			Definition: fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %q VERSION %q;", row.ExtensionName, row.InstalledVersion),
 		})
 	}
 	return output, nil

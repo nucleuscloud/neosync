@@ -583,6 +583,7 @@ column_default_functions AS (
     WHERE ad.adrelid IN (SELECT oid FROM relevant_schemas_tables)
     AND d.refclassid = 'pg_proc'::regclass
     AND d.classid = 'pg_attrdef'::regclass
+    AND p.oid NOT IN(SELECT objid FROM pg_catalog.pg_depend WHERE deptype = 'e') -- excludes extensions
 )
 SELECT
     schema_name,
@@ -602,6 +603,17 @@ FROM
 ORDER BY
     schema_name,
     function_name;
+
+
+-- name: GetExtensions :many
+SELECT
+    extname AS extension_name,
+    extversion AS installed_version
+FROM
+    pg_catalog.pg_extension
+WHERE extname != 'plpgsql'
+ORDER BY
+    extname;
 
 
 -- name: GetCustomTriggersBySchemaAndTables :many

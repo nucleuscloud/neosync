@@ -45,6 +45,7 @@ column_default_functions AS (
     WHERE ad.adrelid IN (SELECT oid FROM relevant_schemas_tables)
     AND d.refclassid = 'pg_proc'::regclass
     AND d.classid = 'pg_attrdef'::regclass
+    AND p.oid NOT IN(SELECT objid FROM pg_catalog.pg_depend WHERE deptype = 'e') -- excludes extensions
 )
 SELECT
     schema_name,
@@ -813,6 +814,45 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExtensions = `-- name: GetExtensions :many
+SELECT
+    extname AS extension_name,
+    extversion AS installed_version
+FROM
+    pg_catalog.pg_extension
+WHERE extname != 'plpgsql'
+ORDER BY
+    extname
+`
+
+type GetExtensionsRow struct {
+	ExtensionName    string
+	InstalledVersion string
+}
+
+func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
+	rows, err := db.QueryContext(ctx, getExtensions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetExtensionsRow
+	for rows.Next() {
+		var i GetExtensionsRow
+		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
