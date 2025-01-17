@@ -24,6 +24,9 @@ func (b *Bits) ScanPgx(value any) error {
 	}
 	b.Bytes = bits.Bytes
 	b.Len = bits.Len
+	if bits.Len == 0 {
+		b.Len = int32(len(bits.Bytes))
+	}
 	return nil
 }
 
@@ -31,7 +34,7 @@ func (b *Bits) ValuePgx() (any, error) {
 	return &pgtype.Bits{
 		Bytes: b.Bytes,
 		Len:   b.Len,
-		Valid: true,
+		Valid: b.Bytes != nil,
 	}, nil
 }
 
