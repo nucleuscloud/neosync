@@ -35,24 +35,23 @@ interface Props {
 export default function FormErrorsCard(props: Props): ReactElement {
   const { formErrors, isValidating, onValidate } = props;
 
-  const messages = formErrorsToMessages(formErrors);
-  const warnings = formWarningsToMessages(formErrors);
+  const { errors, warnings } = formErrorsToMessages(formErrors);
   return (
     <Card className="w-full flex flex-col">
       <CardHeader className="flex flex-col">
         <div className="flex flex-row items-center justify-between h-8">
           <div className="flex flex-row items-center gap-2">
-            {messages.length != 0 ? (
+            {errors.length != 0 ? (
               <ExclamationTriangleIcon className="h-4 w-4 text-destructive dark:text-red-400 text-red-600" />
             ) : (
               <CheckCircledIcon className="w-4 h-4" />
             )}
             <CardTitle>Validations</CardTitle>
-            {messages.length != 0 && (
+            {errors.length != 0 && (
               <Badge variant="destructive">
-                {messages.length == 1
-                  ? `${messages.length} Error`
-                  : `${messages.length} Errors`}
+                {errors.length == 1
+                  ? `${errors.length} Error`
+                  : `${errors.length} Errors`}
               </Badge>
             )}
             {warnings.length != 0 && (
@@ -101,7 +100,7 @@ export default function FormErrorsCard(props: Props): ReactElement {
         ) : (
           <ScrollArea className="max-h-[177px] overflow-auto">
             <div className="flex flex-col gap-2">
-              {messages.map((message, index) => (
+              {errors.map((message, index) => (
                 <div
                   key={message + index}
                   className="text-xs bg-red-200 dark:bg-red-800/70 rounded-sm p-2 text-wrap"
@@ -125,36 +124,29 @@ export default function FormErrorsCard(props: Props): ReactElement {
   );
 }
 
-function formErrorsToMessages(errors: FormError[]): string[] {
-  const messages: string[] = [];
-  errors.forEach((error) => {
-    if (error.level !== 'error') {
-      return;
-    }
+interface FormErrorMesageResponse {
+  errors: string[];
+  warnings: string[];
+}
+
+function formErrorsToMessages(
+  formErrors: FormError[]
+): FormErrorMesageResponse {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  formErrors.forEach((error) => {
     const pieces: string[] = [error.path];
     if (error.type) {
       pieces.push(`[${error.type}]`);
     }
     pieces.push(error.message);
-    messages.push(pieces.join(' '));
-  });
 
-  return messages;
-}
-
-function formWarningsToMessages(warnings: FormError[]): string[] {
-  const messages: string[] = [];
-  warnings.forEach((warning) => {
-    if (warning.level !== 'warning') {
+    if (error.level == 'warning') {
+      warnings.push(pieces.join(' '));
       return;
     }
-    const pieces: string[] = [warning.path];
-    if (warning.type) {
-      pieces.push(`[${warning.type}]`);
-    }
-    pieces.push(warning.message);
-    messages.push(pieces.join(' '));
+    errors.push(pieces.join(' '));
   });
 
-  return messages;
+  return { errors, warnings };
 }

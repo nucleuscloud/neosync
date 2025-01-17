@@ -411,7 +411,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         });
       }
       const res = await validateJobMapping(
-        sourceConnectionId || '',
         mappings,
         account?.id || '',
         formVirtualForeignKeys,
@@ -435,16 +434,18 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     const values = form.getValues();
     const connection = connections.find((c) => c.id === values.sourceId);
     const job = data?.job;
+    if (!connection) {
+      return;
+    }
     try {
       setIsValidatingMappings(true);
       let jobsource: JobSource | undefined;
-      if (job && connection) {
+      if (job) {
         jobsource = create(JobSourceSchema, {
           options: toJobSourceOptions(values, job, connection, values.sourceId),
         });
       }
       const res = await validateJobMapping(
-        sourceConnectionId || '',
         formMappings,
         account?.id || '',
         vfks,

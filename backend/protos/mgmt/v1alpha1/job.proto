@@ -1072,6 +1072,7 @@ message ValidateJobMappingsRequest {
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
   // The list of virtual foreign keys
   repeated VirtualForeignConstraint virtual_foreign_keys = 4;
+  // The source options of the job
   optional JobSource job_source = 5;
 }
 
@@ -1087,9 +1088,13 @@ message ColumnError {
 }
 
 message ColumnWarning {
+  // The schema of the table
   string schema = 1;
+  // The table of the column
   string table = 2;
+  // The column of the warning
   string column = 3;
+  // The list of warnings
   repeated string warnings = 5;
 }
 
@@ -1102,6 +1107,7 @@ message ValidateJobMappingsResponse {
   repeated ColumnError column_errors = 1;
   // The database error
   DatabaseError database_errors = 2;
+  // The list of column warnings
   repeated ColumnWarning column_warnings = 3;
 }
 

@@ -3680,6 +3680,8 @@ export type ValidateJobMappingsRequest = Message<"mgmt.v1alpha1.ValidateJobMappi
   virtualForeignKeys: VirtualForeignConstraint[];
 
   /**
+   * The source options of the job
+   *
    * @generated from field: optional mgmt.v1alpha1.JobSource job_source = 5;
    */
   jobSource?: JobSource;
@@ -3737,21 +3739,29 @@ export const ColumnErrorSchema: GenMessage<ColumnError> = /*@__PURE__*/
  */
 export type ColumnWarning = Message<"mgmt.v1alpha1.ColumnWarning"> & {
   /**
+   * The schema of the table
+   *
    * @generated from field: string schema = 1;
    */
   schema: string;
 
   /**
+   * The table of the column
+   *
    * @generated from field: string table = 2;
    */
   table: string;
 
   /**
+   * The column of the warning
+   *
    * @generated from field: string column = 3;
    */
   column: string;
 
   /**
+   * The list of warnings
+   *
    * @generated from field: repeated string warnings = 5;
    */
   warnings: string[];
@@ -3802,6 +3812,8 @@ export type ValidateJobMappingsResponse = Message<"mgmt.v1alpha1.ValidateJobMapp
   databaseErrors?: DatabaseError;
 
   /**
+   * The list of column warnings
+   *
    * @generated from field: repeated mgmt.v1alpha1.ColumnWarning column_warnings = 3;
    */
   columnWarnings: ColumnWarning[];

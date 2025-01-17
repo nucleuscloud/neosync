@@ -9226,7 +9226,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The schema of the table",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9238,7 +9238,7 @@
             },
             {
               "name": "table",
-              "description": "",
+              "description": "The table of the column",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9250,7 +9250,7 @@
             },
             {
               "name": "column",
-              "description": "",
+              "description": "The column of the warning",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -9262,7 +9262,7 @@
             },
             {
               "name": "warnings",
-              "description": "",
+              "description": "The list of warnings",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -14710,7 +14710,7 @@
             },
             {
               "name": "job_source",
-              "description": "",
+              "description": "The source options of the job",
               "label": "optional",
               "type": "JobSource",
               "longType": "JobSource",
@@ -14758,7 +14758,7 @@
             },
             {
               "name": "column_warnings",
-              "description": "",
+              "description": "The list of column warnings",
               "label": "repeated",
               "type": "ColumnWarning",
               "longType": "ColumnWarning",

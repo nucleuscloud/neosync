@@ -7,7 +7,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type JobMappingsValidator struct {
@@ -208,7 +207,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 	}
 
 	for table, deps := range validForeignKeyDependencies {
-		validForeignKeyDependencies[table] = utils.DedupeSlice(deps)
+		validForeignKeyDependencies[table] = slices.Compact(deps)
 	}
 
 	cycles := tabledependency.FindCircularDependencies(validForeignKeyDependencies)
@@ -403,11 +402,11 @@ func isVirtualForeignKeySourceUnique(
 	primaryKeys []string,
 	uniqueConstraints [][]string,
 ) bool {
-	if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), primaryKeys) {
+	if slices.Compare(virtualForeignKey.GetForeignKey().GetColumns(), primaryKeys) == 0 {
 		return true
 	}
 	for _, uc := range uniqueConstraints {
-		if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), uc) {
+		if slices.Compare(virtualForeignKey.GetForeignKey().GetColumns(), uc) == 0 {
 			return true
 		}
 	}

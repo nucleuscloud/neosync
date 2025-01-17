@@ -7257,7 +7257,8 @@ type ValidateJobMappingsRequest struct {
 	ConnectionId string `protobuf:"bytes,3,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
 	// The list of virtual foreign keys
 	VirtualForeignKeys []*VirtualForeignConstraint `protobuf:"bytes,4,rep,name=virtual_foreign_keys,json=virtualForeignKeys,proto3" json:"virtual_foreign_keys,omitempty"`
-	JobSource          *JobSource                  `protobuf:"bytes,5,opt,name=job_source,json=jobSource,proto3,oneof" json:"job_source,omitempty"`
+	// The source options of the job
+	JobSource *JobSource `protobuf:"bytes,5,opt,name=job_source,json=jobSource,proto3,oneof" json:"job_source,omitempty"`
 }
 
 func (x *ValidateJobMappingsRequest) Reset() {
@@ -7403,9 +7404,13 @@ type ColumnWarning struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Schema   string   `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
-	Table    string   `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
-	Column   string   `protobuf:"bytes,3,opt,name=column,proto3" json:"column,omitempty"`
+	// The schema of the table
+	Schema string `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
+	// The table of the column
+	Table string `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
+	// The column of the warning
+	Column string `protobuf:"bytes,3,opt,name=column,proto3" json:"column,omitempty"`
+	// The list of warnings
 	Warnings []string `protobuf:"bytes,5,rep,name=warnings,proto3" json:"warnings,omitempty"`
 }
 
@@ -7521,7 +7526,8 @@ type ValidateJobMappingsResponse struct {
 	// The list of column errors
 	ColumnErrors []*ColumnError `protobuf:"bytes,1,rep,name=column_errors,json=columnErrors,proto3" json:"column_errors,omitempty"`
 	// The database error
-	DatabaseErrors *DatabaseError   `protobuf:"bytes,2,opt,name=database_errors,json=databaseErrors,proto3" json:"database_errors,omitempty"`
+	DatabaseErrors *DatabaseError `protobuf:"bytes,2,opt,name=database_errors,json=databaseErrors,proto3" json:"database_errors,omitempty"`
+	// The list of column warnings
 	ColumnWarnings []*ColumnWarning `protobuf:"bytes,3,rep,name=column_warnings,json=columnWarnings,proto3" json:"column_warnings,omitempty"`
 }
 

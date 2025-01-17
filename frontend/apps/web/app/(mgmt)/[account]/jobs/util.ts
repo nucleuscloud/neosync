@@ -126,6 +126,7 @@ import {
   SubsetFormValues,
   WorkflowSettingsSchema,
 } from '../new/job/job-form-validations';
+import { getConnectionIdFromSource } from './[id]/source/components/util';
 
 type GetConnectionById = (id: string) => Connection | undefined;
 
@@ -1723,7 +1724,6 @@ export function clearNewJobSession(storage: Storage, sessionId: string): void {
 }
 
 export async function validateJobMapping(
-  connectionId: string,
   formMappings: JobMappingFormValues[],
   accountId: string,
   virtualForeignKeys: VirtualForeignConstraintFormValues[],
@@ -1765,7 +1765,7 @@ export async function validateJobMapping(
         }),
       });
     }),
-    connectionId: connectionId,
+    connectionId: getConnectionIdFromSource(jobSource),
     jobSource: jobSource,
   });
 
