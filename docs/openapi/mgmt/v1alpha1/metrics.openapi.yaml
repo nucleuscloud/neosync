@@ -1,7 +1,304 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
+components:
+  schemas:
+    mgmt.v1alpha1.RangedMetricName:
+      type: string
+      title: RangedMetricName
+      enum:
+        - RANGED_METRIC_NAME_UNSPECIFIED
+        - RANGED_METRIC_NAME_INPUT_RECEIVED
+    mgmt.v1alpha1.Date:
+      type: object
+      properties:
+        year:
+          type: integer
+          title: year
+          maximum: 9999
+          description: |-
+            Year of the date. Must be from 1 to 9999, or 0 to specify a date without
+             a year.
+        month:
+          type: integer
+          title: month
+          maximum: 31
+          description: |-
+            Month of a year. Must be from 1 to 12, or 0 to specify a year without a
+             month and day.
+        day:
+          type: integer
+          title: day
+          maximum: 31
+          description: |-
+            Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
+             to specify a year by itself or a year and month where the day isn't
+             significant.
+      title: Date
+      additionalProperties: false
+      description: |-
+        Represents a whole or partial calendar date, such as a birthday. The time of
+         day and time zone are either specified elsewhere or are insignificant. The
+         date is relative to the Gregorian Calendar. This can represent one of the
+         following:
+
+         * A full date, with non-zero year, month, and day values
+         * A month and day value, with a zero year, such as an anniversary
+         * A year on its own, with zero month and day values
+         * A year and month value, with a zero day, such as a credit card expiration
+         date
+
+         Related types are [google.type.TimeOfDay][google.type.TimeOfDay] and
+         `google.protobuf.Timestamp`.
+    mgmt.v1alpha1.DayResult:
+      type: object
+      properties:
+        date:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: date
+          description: The date of the result
+        count:
+          type:
+            - integer
+            - string
+          title: count
+          format: int64
+          description: The count of the metric for the given date
+      title: DayResult
+      additionalProperties: false
+    mgmt.v1alpha1.GetDailyMetricCountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accountId
+            - required:
+                - jobId
+            - required:
+                - runId
+            - not:
+                anyOf:
+                  - required:
+                      - accountId
+                  - required:
+                      - jobId
+                  - required:
+                      - runId
+      anyOf:
+        - required:
+            - accountId
+        - required:
+            - jobId
+        - required:
+            - runId
+        - not:
+            anyOf:
+              - required:
+                  - accountId
+              - required:
+                  - jobId
+              - required:
+                  - runId
+      properties:
+        start:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: start
+          description: The start day
+        end:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: end
+          description: The end day
+        metric:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+          title: metric
+          description: The metric to return
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account identifier that will be used to filter by
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The job identifier that will be used to filter by
+        runId:
+          type: string
+          title: run_id
+          format: uuid
+          description: The run identifier that will be used to filter by
+      title: GetDailyMetricCountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetDailyMetricCountResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DayResult'
+          title: results
+          description: The list of results for the given metric and date range
+      title: GetDailyMetricCountResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetMetricCountRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accountId
+            - required:
+                - jobId
+            - required:
+                - runId
+            - not:
+                anyOf:
+                  - required:
+                      - accountId
+                  - required:
+                      - jobId
+                  - required:
+                      - runId
+      anyOf:
+        - required:
+            - accountId
+        - required:
+            - jobId
+        - required:
+            - runId
+        - not:
+            anyOf:
+              - required:
+                  - accountId
+              - required:
+                  - jobId
+              - required:
+                  - runId
+      properties:
+        metric:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
+          title: metric
+          description: The metric to return
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account identifier that will be used to filter by
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The job identifier that will be used to filter by
+        runId:
+          type: string
+          title: run_id
+          format: uuid
+          description: The run identifier that will be used to filter by
+        startDay:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: start_day
+        endDay:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
+          title: end_day
+      title: GetMetricCountRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetMetricCountResponse:
+      type: object
+      properties:
+        count:
+          type:
+            - integer
+            - string
+          title: count
+          format: int64
+          description: The summed up count of the metric based on the input query and timerange specified
+      title: GetMetricCountResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security:
+  - BearerAuth: []
 paths:
   /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
     post:
@@ -75,280 +372,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetMetricCountResponse'
-components:
-  schemas:
-    mgmt.v1alpha1.RangedMetricName:
-      type: string
-      title: RangedMetricName
-      enum:
-        - RANGED_METRIC_NAME_UNSPECIFIED
-        - RANGED_METRIC_NAME_INPUT_RECEIVED
-    mgmt.v1alpha1.Date:
-      type: object
-      properties:
-        year:
-          type: integer
-          title: year
-          maximum: 9999
-          description: |-
-            Year of the date. Must be from 1 to 9999, or 0 to specify a date without
-             a year.
-        month:
-          type: integer
-          title: month
-          maximum: 31
-          description: |-
-            Month of a year. Must be from 1 to 12, or 0 to specify a year without a
-             month and day.
-        day:
-          type: integer
-          title: day
-          maximum: 31
-          description: |-
-            Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
-             to specify a year by itself or a year and month where the day isn't
-             significant.
-      title: Date
-      additionalProperties: false
-      description: |-
-        Represents a whole or partial calendar date, such as a birthday. The time of
-         day and time zone are either specified elsewhere or are insignificant. The
-         date is relative to the Gregorian Calendar. This can represent one of the
-         following:
-
-         * A full date, with non-zero year, month, and day values
-         * A month and day value, with a zero year, such as an anniversary
-         * A year on its own, with zero month and day values
-         * A year and month value, with a zero day, such as a credit card expiration
-         date
-
-         Related types are [google.type.TimeOfDay][google.type.TimeOfDay] and
-         `google.protobuf.Timestamp`.
-    mgmt.v1alpha1.DayResult:
-      type: object
-      properties:
-        date:
-          allOf:
-            - title: date
-              description: The date of the result
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
-        count:
-          oneOf:
-            - type: string
-            - type: number
-          title: count
-          description: The count of the metric for the given date
-      title: DayResult
-      additionalProperties: false
-    mgmt.v1alpha1.GetDailyMetricCountRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - accountId
-            - required:
-                - jobId
-            - required:
-                - runId
-            - not:
-                anyOf:
-                  - required:
-                      - accountId
-                  - required:
-                      - jobId
-                  - required:
-                      - runId
-      anyOf:
-        - required:
-            - accountId
-        - required:
-            - jobId
-        - required:
-            - runId
-        - not:
-            anyOf:
-              - required:
-                  - accountId
-              - required:
-                  - jobId
-              - required:
-                  - runId
-      properties:
-        start:
-          allOf:
-            - title: start
-              description: The start day
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
-        end:
-          allOf:
-            - title: end
-              description: The end day
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
-        metric:
-          allOf:
-            - title: metric
-              description: The metric to return
-            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The account identifier that will be used to filter by
-        jobId:
-          type: string
-          title: job_id
-          format: uuid
-          description: The job identifier that will be used to filter by
-        runId:
-          type: string
-          title: run_id
-          format: uuid
-          description: The run identifier that will be used to filter by
-      title: GetDailyMetricCountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetDailyMetricCountResponse:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.DayResult'
-          title: results
-          description: The list of results for the given metric and date range
-      title: GetDailyMetricCountResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetMetricCountRequest:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - accountId
-            - required:
-                - jobId
-            - required:
-                - runId
-            - not:
-                anyOf:
-                  - required:
-                      - accountId
-                  - required:
-                      - jobId
-                  - required:
-                      - runId
-      anyOf:
-        - required:
-            - accountId
-        - required:
-            - jobId
-        - required:
-            - runId
-        - not:
-            anyOf:
-              - required:
-                  - accountId
-              - required:
-                  - jobId
-              - required:
-                  - runId
-      properties:
-        metric:
-          allOf:
-            - title: metric
-              description: The metric to return
-            - $ref: '#/components/schemas/mgmt.v1alpha1.RangedMetricName'
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The account identifier that will be used to filter by
-        jobId:
-          type: string
-          title: job_id
-          format: uuid
-          description: The job identifier that will be used to filter by
-        runId:
-          type: string
-          title: run_id
-          format: uuid
-          description: The run identifier that will be used to filter by
-        startDay:
-          allOf:
-            - title: start_day
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
-        endDay:
-          allOf:
-            - title: end_day
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Date'
-      title: GetMetricCountRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetMetricCountResponse:
-      type: object
-      properties:
-        count:
-          oneOf:
-            - type: string
-            - type: number
-          title: count
-          description: The summed up count of the metric based on the input query and timerange specified
-      title: GetMetricCountResponse
-      additionalProperties: false
-    connect-protocol-version:
-      type: number
-      title: Connect-Protocol-Version
-      enum:
-        - 1
-      description: Define the version of the Connect protocol
-      const: 1
-    connect-timeout-header:
-      type: number
-      title: Connect-Timeout-Ms
-      description: Define the timeout, in ms
-    connect.error:
-      type: object
-      properties:
-        code:
-          type: string
-          examples:
-            - CodeNotFound
-          enum:
-            - CodeCanceled
-            - CodeUnknown
-            - CodeInvalidArgument
-            - CodeDeadlineExceeded
-            - CodeNotFound
-            - CodeAlreadyExists
-            - CodePermissionDenied
-            - CodeResourceExhausted
-            - CodeFailedPrecondition
-            - CodeAborted
-            - CodeOutOfRange
-            - CodeInternal
-            - CodeUnavailable
-            - CodeDataLoss
-            - CodeUnauthenticated
-          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-        message:
-          type: string
-          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-        detail:
-          $ref: '#/components/schemas/google.protobuf.Any'
-      title: Connect Error
-      additionalProperties: true
-      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
-    google.protobuf.Any:
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-          format: binary
-        debug:
-          type: object
-          additionalProperties: true
-      additionalProperties: true
-      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
 tags:
   - name: mgmt.v1alpha1.MetricsService
     description: Service that handles serving up usage metrics

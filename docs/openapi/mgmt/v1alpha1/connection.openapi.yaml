@@ -1,7 +1,1431 @@
 openapi: 3.1.0
 info:
-  version: "0.4"
+  summary: Neosync API
+  version: "0.5"
+  termsOfService: "https://www.neosync.dev/terms-of-service"
+  contact:
+    name: Neosync Support
+    email: support@neosync.dev
+  license:
+    name: MIT
+    url: https://github.com/nucleuscloud/neosync/blob/main/LICENSE.md
   title: mgmt.v1alpha1
+externalDocs:
+  description: API and SDK Documentation
+  url: https://docs.neosync.dev/api
+servers:
+  - url: https://neosync-api.svcs.neosync.dev
+    description: Neosync Cloud
+  - url: http://localhost:{port}
+    description: Development
+    variables:
+      port:
+        default: "8080"
+        description: The port to use for the development server
+components:
+  schemas:
+    google.protobuf.Timestamp:
+      type: string
+      format: date-time
+      description: |-
+        A Timestamp represents a point in time independent of any time zone or local
+         calendar, encoded as a count of seconds and fractions of seconds at
+         nanosecond resolution. The count is relative to an epoch at UTC midnight on
+         January 1, 1970, in the proleptic Gregorian calendar which extends the
+         Gregorian calendar backwards to year one.
+
+         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
+         second table is needed for interpretation, using a [24-hour linear
+         smear](https://developers.google.com/time/smear).
+
+         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
+         restricting to that range, we ensure that we can convert to and from [RFC
+         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+
+         # Examples
+
+         Example 1: Compute Timestamp from POSIX `time()`.
+
+             Timestamp timestamp;
+             timestamp.set_seconds(time(NULL));
+             timestamp.set_nanos(0);
+
+         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
+
+             struct timeval tv;
+             gettimeofday(&tv, NULL);
+
+             Timestamp timestamp;
+             timestamp.set_seconds(tv.tv_sec);
+             timestamp.set_nanos(tv.tv_usec * 1000);
+
+         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
+
+             FILETIME ft;
+             GetSystemTimeAsFileTime(&ft);
+             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+
+             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
+             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
+             Timestamp timestamp;
+             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
+             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
+
+         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
+
+             long millis = System.currentTimeMillis();
+
+             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+                 .setNanos((int) ((millis % 1000) * 1000000)).build();
+
+         Example 5: Compute Timestamp from Java `Instant.now()`.
+
+             Instant now = Instant.now();
+
+             Timestamp timestamp =
+                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
+                     .setNanos(now.getNano()).build();
+
+         Example 6: Compute Timestamp from current time in Python.
+
+             timestamp = Timestamp()
+             timestamp.GetCurrentTime()
+
+         # JSON Mapping
+
+         In JSON format, the Timestamp type is encoded as a string in the
+         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
+         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
+         where {year} is always expressed using four digits while {month}, {day},
+         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
+         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
+         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
+         is required. A proto3 JSON serializer should always use UTC (as indicated by
+         "Z") when printing the Timestamp type and a proto3 JSON parser should be
+         able to accept both UTC and other timezones (as indicated by an offset).
+
+         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
+         01:30 UTC on January 15, 2017.
+
+         In JavaScript, one can convert a Date object to this format using the
+         standard
+         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
+         method. In Python, a standard `datetime.datetime` object can be converted
+         to this format using
+         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
+         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
+         the Joda Time's [`ISODateTimeFormat.dateTime()`](
+         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
+         ) to obtain a formatter capable of generating timestamps in this format.
+    mgmt.v1alpha1.AwsS3ConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - credentials
+            - not:
+                anyOf:
+                  - required:
+                      - credentials
+        - anyOf:
+            - required:
+                - endpoint
+            - not:
+                anyOf:
+                  - required:
+                      - endpoint
+        - anyOf:
+            - required:
+                - pathPrefix
+            - not:
+                anyOf:
+                  - required:
+                      - pathPrefix
+        - anyOf:
+            - required:
+                - region
+            - not:
+                anyOf:
+                  - required:
+                      - region
+      properties:
+        pathPrefix:
+          type: string
+          title: path_prefix
+          description: The bucket path prefix that will be appended to each file
+        credentials:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
+          title: credentials
+          description: The credentials to use for the S3 bucket
+        region:
+          type: string
+          title: region
+          description: The region of the S3 bucket
+        endpoint:
+          type: string
+          title: endpoint
+          description: The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)
+        bucket:
+          type: string
+          title: bucket
+          minLength: 1
+          description: The name of the S3 bucket
+      title: AwsS3ConnectionConfig
+      additionalProperties: false
+    mgmt.v1alpha1.AwsS3Credentials:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - accessKeyId
+            - not:
+                anyOf:
+                  - required:
+                      - accessKeyId
+        - anyOf:
+            - required:
+                - fromEc2Role
+            - not:
+                anyOf:
+                  - required:
+                      - fromEc2Role
+        - anyOf:
+            - required:
+                - profile
+            - not:
+                anyOf:
+                  - required:
+                      - profile
+        - anyOf:
+            - required:
+                - roleArn
+            - not:
+                anyOf:
+                  - required:
+                      - roleArn
+        - anyOf:
+            - required:
+                - roleExternalId
+            - not:
+                anyOf:
+                  - required:
+                      - roleExternalId
+        - anyOf:
+            - required:
+                - secretAccessKey
+            - not:
+                anyOf:
+                  - required:
+                      - secretAccessKey
+        - anyOf:
+            - required:
+                - sessionToken
+            - not:
+                anyOf:
+                  - required:
+                      - sessionToken
+      properties:
+        profile:
+          type: string
+          title: profile
+          description: The profile to use for the S3 credentials
+        accessKeyId:
+          type: string
+          title: access_key_id
+          description: The access key id to use for the S3 credentials
+        secretAccessKey:
+          type: string
+          title: secret_access_key
+          description: The secret access key to use for the S3 credentials
+        sessionToken:
+          type: string
+          title: session_token
+          description: The session token to use for the S3 credentials
+        fromEc2Role:
+          type: boolean
+          title: from_ec2_role
+          description: Whether or not the credentials are from an EC2 role
+        roleArn:
+          type: string
+          title: role_arn
+          description: The ARN of the role to use for the S3 credentials
+        roleExternalId:
+          type: string
+          title: role_external_id
+          description: The role's external ID to use for the S3 credentials
+      title: AwsS3Credentials
+      additionalProperties: false
+      description: |-
+        S3 Credentials that are used by the worker process.
+         Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
+    mgmt.v1alpha1.CheckConnectionConfigByIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The connection id to validate
+      title: CheckConnectionConfigByIdRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckConnectionConfigByIdResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - connectionError
+            - not:
+                anyOf:
+                  - required:
+                      - connectionError
+      anyOf:
+        - required:
+            - connectionError
+        - not:
+            anyOf:
+              - required:
+                  - connectionError
+      properties:
+        isConnected:
+          type: boolean
+          title: is_connected
+          description: Whether or not the API was able to ping the connection
+        connectionError:
+          type: string
+          title: connection_error
+          description: This is the error that was received if the API was unable to connect
+        privileges:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionRolePrivilege'
+          title: privileges
+          description: The privileges the role has to the connection
+      title: CheckConnectionConfigByIdResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckConnectionConfigRequest:
+      type: object
+      properties:
+        connectionConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to validate
+      title: CheckConnectionConfigRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckConnectionConfigResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - connectionError
+            - not:
+                anyOf:
+                  - required:
+                      - connectionError
+      anyOf:
+        - required:
+            - connectionError
+        - not:
+            anyOf:
+              - required:
+                  - connectionError
+      properties:
+        isConnected:
+          type: boolean
+          title: is_connected
+          description: Whether or not the API was able to ping the connection
+        connectionError:
+          type: string
+          title: connection_error
+          description: This is the error that was received if the API was unable to connect
+        privileges:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionRolePrivilege'
+          title: privileges
+      title: CheckConnectionConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSqlQueryRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The connection id that the query will be checked against
+        query:
+          type: string
+          title: query
+          minLength: 1
+          description: The full query that will be run through a PREPARE statement
+      title: CheckSqlQueryRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSqlQueryResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - erorrMessage
+            - not:
+                anyOf:
+                  - required:
+                      - erorrMessage
+      anyOf:
+        - required:
+            - erorrMessage
+        - not:
+            anyOf:
+              - required:
+                  - erorrMessage
+      properties:
+        isValid:
+          type: boolean
+          title: is_valid
+          description: The query is run through PREPARE. Returns valid if it correctly compiled
+        erorrMessage:
+          type: string
+          title: erorr_message
+          description: The error message returned by the sql client if the prepare did not return successfully
+      title: CheckSqlQueryResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ClientTlsConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - clientCert
+            - not:
+                anyOf:
+                  - required:
+                      - clientCert
+        - anyOf:
+            - required:
+                - clientKey
+            - not:
+                anyOf:
+                  - required:
+                      - clientKey
+        - anyOf:
+            - required:
+                - rootCert
+            - not:
+                anyOf:
+                  - required:
+                      - rootCert
+        - anyOf:
+            - required:
+                - serverName
+            - not:
+                anyOf:
+                  - required:
+                      - serverName
+      properties:
+        rootCert:
+          type: string
+          title: root_cert
+          description: Root Certificate in PEM Format
+        clientCert:
+          type: string
+          title: client_cert
+          description: Client Certificate in PEM format. Must also provide key.
+        clientKey:
+          type: string
+          title: client_key
+          description: Client Key in PEM format. Must also provide cert.
+        serverName:
+          type: string
+          title: server_name
+          description: |-
+            Provide the expected server name. Depending on the driver or encryption mode, this may be required
+             In order to fully validate the server certificate.
+      title: ClientTlsConfig
+      additionalProperties: false
+      description: Config for providing client-side TLS certificates
+    mgmt.v1alpha1.Connection:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of the connection
+        name:
+          type: string
+          title: name
+          description: The unique, friendly name of the connection
+        connectionConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: Contains the connection configuration and connection type
+        createdByUserId:
+          type: string
+          title: created_by_user_id
+          description: The user id of the user that created the connection
+        createdAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: When the connection was created
+        updatedByUserId:
+          type: string
+          title: updated_by_user_id
+          description: Who last updated the connection
+        updatedAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: When the connection was last updated
+        accountId:
+          type: string
+          title: account_id
+          description: The unique account that owns this connection
+      title: Connection
+      additionalProperties: false
+    mgmt.v1alpha1.ConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - awsS3Config
+            - required:
+                - dynamodbConfig
+            - required:
+                - gcpCloudstorageConfig
+            - required:
+                - localDirConfig
+            - required:
+                - mongoConfig
+            - required:
+                - mssqlConfig
+            - required:
+                - mysqlConfig
+            - required:
+                - openaiConfig
+            - required:
+                - pgConfig
+            - not:
+                anyOf:
+                  - required:
+                      - awsS3Config
+                  - required:
+                      - dynamodbConfig
+                  - required:
+                      - gcpCloudstorageConfig
+                  - required:
+                      - localDirConfig
+                  - required:
+                      - mongoConfig
+                  - required:
+                      - mssqlConfig
+                  - required:
+                      - mysqlConfig
+                  - required:
+                      - openaiConfig
+                  - required:
+                      - pgConfig
+      anyOf:
+        - required:
+            - awsS3Config
+        - required:
+            - dynamodbConfig
+        - required:
+            - gcpCloudstorageConfig
+        - required:
+            - localDirConfig
+        - required:
+            - mongoConfig
+        - required:
+            - mssqlConfig
+        - required:
+            - mysqlConfig
+        - required:
+            - openaiConfig
+        - required:
+            - pgConfig
+        - not:
+            anyOf:
+              - required:
+                  - awsS3Config
+              - required:
+                  - dynamodbConfig
+              - required:
+                  - gcpCloudstorageConfig
+              - required:
+                  - localDirConfig
+              - required:
+                  - mongoConfig
+              - required:
+                  - mssqlConfig
+              - required:
+                  - mysqlConfig
+              - required:
+                  - openaiConfig
+              - required:
+                  - pgConfig
+      properties:
+        pgConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnectionConfig'
+          title: pg_config
+          description: Configures a PostgreSQL connection
+        awsS3Config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3ConnectionConfig'
+          title: aws_s3_config
+          description: Configures an AWS S3 Connection
+        mysqlConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnectionConfig'
+          title: mysql_config
+          description: Configures a MySQL connection
+        localDirConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.LocalDirectoryConnectionConfig'
+          title: local_dir_config
+          description: Configures a connection to a directory available on the local file system
+        openaiConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.OpenAiConnectionConfig'
+          title: openai_config
+          description: Connection config for an OpenAI (or compatible) Connection
+        mongoConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MongoConnectionConfig'
+          title: mongo_config
+          description: Configures a MongoDB Connection
+        gcpCloudstorageConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageConnectionConfig'
+          title: gcp_cloudstorage_config
+          description: Configures a GCP Cloud Storage Connection
+        dynamodbConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBConnectionConfig'
+          title: dynamodb_config
+          description: Configures a DynamoDB Connection
+        mssqlConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlConnectionConfig'
+          title: mssql_config
+          description: Configures a Microsoft SQL Server (mssql) Connection
+      title: ConnectionConfig
+      additionalProperties: false
+      description: Configuration for all of the supported Neosync connection types
+    mgmt.v1alpha1.ConnectionRolePrivilege:
+      type: object
+      properties:
+        grantee:
+          type: string
+          title: grantee
+          description: The role that was given the permissions
+        schema:
+          type: string
+          title: schema
+          description: 'The database schema. Ex: public'
+        table:
+          type: string
+          title: table
+          description: The name of the table in the schema
+        privilegeType:
+          type: array
+          items:
+            type: string
+          title: privilege_type
+          description: The privileges given to that role
+      title: ConnectionRolePrivilege
+      additionalProperties: false
+    mgmt.v1alpha1.CreateConnectionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to create the connection for
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the connection
+        connectionConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to use for the connection
+      title: CreateConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CreateConnectionResponse:
+      type: object
+      properties:
+        connection:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The created connection
+      title: CreateConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteConnectionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the connection to delete
+      title: DeleteConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteConnectionResponse:
+      type: object
+      title: DeleteConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DynamoDBConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - credentials
+            - not:
+                anyOf:
+                  - required:
+                      - credentials
+        - anyOf:
+            - required:
+                - endpoint
+            - not:
+                anyOf:
+                  - required:
+                      - endpoint
+        - anyOf:
+            - required:
+                - region
+            - not:
+                anyOf:
+                  - required:
+                      - region
+      properties:
+        credentials:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
+          title: credentials
+          description: |-
+            Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
+             If self-hosting, this may be provided by the environment in lieu of specifying these here
+        region:
+          type: string
+          title: region
+          description: Optionally specify the region that the dynamodb instance lives in if not provided by the environment.
+        endpoint:
+          type: string
+          title: endpoint
+          description: Optionally specify the endpoint that will be used by the AWS SDK.
+      title: DynamoDBConnectionConfig
+      additionalProperties: false
+      description: Configuration for a DynaomDB Connection
+    mgmt.v1alpha1.GcpCloudStorageConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - pathPrefix
+            - not:
+                anyOf:
+                  - required:
+                      - pathPrefix
+        - anyOf:
+            - required:
+                - serviceAccountCredentials
+            - not:
+                anyOf:
+                  - required:
+                      - serviceAccountCredentials
+      properties:
+        bucket:
+          type: string
+          title: bucket
+          minLength: 1
+          description: The GCP Cloud Storage bucket that will be accessed.
+        pathPrefix:
+          type: string
+          title: path_prefix
+          description: The path prefix that will be appended to each file
+        serviceAccountCredentials:
+          type: string
+          title: service_account_credentials
+          description: stringified json of the service account credentials file
+      title: GcpCloudStorageConnectionConfig
+      additionalProperties: false
+      description: Configuration for GCP Cloud Storage Buckets
+    mgmt.v1alpha1.GetConnectionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the connection to get
+      title: GetConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionResponse:
+      type: object
+      properties:
+        connection:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The connection
+      title: GetConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionsRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to get connections for
+      title: GetConnectionsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionsResponse:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connections
+          description: The connections
+      title: GetConnectionsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.IsConnectionNameAvailableRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the connection name for
+        connectionName:
+          type: string
+          title: connection_name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The connection name to check for availability
+      title: IsConnectionNameAvailableRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsConnectionNameAvailableResponse:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+          title: is_available
+          description: Whether or not the connection name is available
+      title: IsConnectionNameAvailableResponse
+      additionalProperties: false
+    mgmt.v1alpha1.LocalDirectoryConnectionConfig:
+      type: object
+      properties:
+        path:
+          type: string
+          title: path
+          minLength: 1
+          description: The absolute path to a directory that is available on the local file system to the API and Worker nodes
+      title: LocalDirectoryConnectionConfig
+      additionalProperties: false
+      description: Configures a connection to a directory available on the local file system
+    mgmt.v1alpha1.MongoConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - url
+            - not:
+                anyOf:
+                  - required:
+                      - url
+      anyOf:
+        - required:
+            - url
+        - not:
+            anyOf:
+              - required:
+                  - url
+      properties:
+        url:
+          type: string
+          title: url
+          description: The full mongo connection url
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
+        clientTls:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
+      title: MongoConnectionConfig
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - url
+            - required:
+                - urlFromEnv
+            - not:
+                anyOf:
+                  - required:
+                      - url
+                  - required:
+                      - urlFromEnv
+      anyOf:
+        - required:
+            - url
+        - required:
+            - urlFromEnv
+        - not:
+            anyOf:
+              - required:
+                  - url
+              - required:
+                  - urlFromEnv
+      properties:
+        url:
+          type: string
+          title: url
+          description: The URL with sqlserver scheme.
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+        connectionOptions:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+        clientTls:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
+      title: MssqlConnectionConfig
+      additionalProperties: false
+      description: Configuration for a Mssql Connection
+    mgmt.v1alpha1.MysqlConnection:
+      type: object
+      properties:
+        user:
+          type: string
+          title: user
+          description: The user to use for the connection
+        pass:
+          type: string
+          title: pass
+          description: The password to use for the connection
+        protocol:
+          type: string
+          title: protocol
+          description: The protocol to use for the connection
+        host:
+          type: string
+          title: host
+          description: The host to use for the connection
+        port:
+          type: integer
+          title: port
+          format: int32
+          description: The port to use for the connection
+        name:
+          type: string
+          title: name
+          description: The name of the database to use for the connection
+      title: MysqlConnection
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - connection
+            - required:
+                - url
+            - required:
+                - urlFromEnv
+            - not:
+                anyOf:
+                  - required:
+                      - connection
+                  - required:
+                      - url
+                  - required:
+                      - urlFromEnv
+      anyOf:
+        - required:
+            - connection
+        - required:
+            - url
+        - required:
+            - urlFromEnv
+        - not:
+            anyOf:
+              - required:
+                  - connection
+              - required:
+                  - url
+              - required:
+                  - urlFromEnv
+      properties:
+        url:
+          type: string
+          title: url
+          description: A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
+        connection:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
+          title: connection
+          description: A structured representation of the connection that will be used to construct the url
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+        connectionOptions:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
+        clientTls:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
+      title: MysqlConnectionConfig
+      additionalProperties: false
+    mgmt.v1alpha1.OpenAiConnectionConfig:
+      type: object
+      properties:
+        apiKey:
+          type: string
+          title: api_key
+          description: OpenAI Api Key
+        apiUrl:
+          type: string
+          title: api_url
+          description: OpenAI URL (if using a custom endpoint)
+      title: OpenAiConnectionConfig
+      additionalProperties: false
+      description: Configures a connection to OpenAI or OpenAI compatible API.
+    mgmt.v1alpha1.PostgresConnection:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - sslMode
+            - not:
+                anyOf:
+                  - required:
+                      - sslMode
+      anyOf:
+        - required:
+            - sslMode
+        - not:
+            anyOf:
+              - required:
+                  - sslMode
+      properties:
+        host:
+          type: string
+          title: host
+          description: The host to use for the connection
+        port:
+          type: integer
+          title: port
+          format: int32
+          description: The port to use for the connection
+        name:
+          type: string
+          title: name
+          description: The name of the database to use for the connection
+        user:
+          type: string
+          title: user
+          description: The user to use for the connection
+        pass:
+          type: string
+          title: pass
+          description: The password to use for the connection
+        sslMode:
+          type: string
+          title: ssl_mode
+          description: The SSL mode to use for the connection
+      title: PostgresConnection
+      additionalProperties: false
+    mgmt.v1alpha1.PostgresConnectionConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - connection
+            - required:
+                - url
+            - required:
+                - urlFromEnv
+            - not:
+                anyOf:
+                  - required:
+                      - connection
+                  - required:
+                      - url
+                  - required:
+                      - urlFromEnv
+      anyOf:
+        - required:
+            - connection
+        - required:
+            - url
+        - required:
+            - urlFromEnv
+        - not:
+            anyOf:
+              - required:
+                  - connection
+              - required:
+                  - url
+              - required:
+                  - urlFromEnv
+      properties:
+        url:
+          type: string
+          title: url
+          description: A raw string url that will be used to construct the connection. Must be URI format.
+        connection:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
+          title: connection
+          description: A structured representation of the connection that will be used to construct the url
+        urlFromEnv:
+          type: string
+          title: url_from_env
+          description: |-
+            Source a url from an environment variable.
+             The value is expected to be in the same format as the "url" field above.
+             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+        connectionOptions:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
+          title: connection_options
+          description: Provide connection options that can be used to further fine-tune the connection
+        clientTls:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
+          title: client_tls
+          description: Provide client-side TLS Certificates
+      title: PostgresConnectionConfig
+      additionalProperties: false
+    mgmt.v1alpha1.SSHAuthentication:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - passphrase
+            - required:
+                - privateKey
+            - not:
+                anyOf:
+                  - required:
+                      - passphrase
+                  - required:
+                      - privateKey
+      anyOf:
+        - required:
+            - passphrase
+        - required:
+            - privateKey
+        - not:
+            anyOf:
+              - required:
+                  - passphrase
+              - required:
+                  - privateKey
+      properties:
+        passphrase:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPassphrase'
+          title: passphrase
+          description: Password authentication
+        privateKey:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPrivateKey'
+          title: private_key
+          description: Private key authentication
+      title: SSHAuthentication
+      additionalProperties: false
+      description: SSH Authentication
+    mgmt.v1alpha1.SSHPassphrase:
+      type: object
+      properties:
+        value:
+          type: string
+          title: value
+          minLength: 1
+          description: The password to be used to connect to the SSH server eventually we can expand this to allow pulling from other sources.
+      title: SSHPassphrase
+      additionalProperties: false
+      description: Contains the configuration needed to retrieve the SSH passphrase for the tunnel
+    mgmt.v1alpha1.SSHPrivateKey:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - passphrase
+            - not:
+                anyOf:
+                  - required:
+                      - passphrase
+      anyOf:
+        - required:
+            - passphrase
+        - not:
+            anyOf:
+              - required:
+                  - passphrase
+      properties:
+        value:
+          type: string
+          title: value
+          minLength: 1
+          description: The private key in PEM format.
+        passphrase:
+          type: string
+          title: passphrase
+          description: If the private key is encrypted, this value should decrypt it.
+      title: SSHPrivateKey
+      additionalProperties: false
+      description: Contains the configuration needed to retrieve the SSH private key for the tunnel
+    mgmt.v1alpha1.SSHTunnel:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - knownHostPublicKey
+            - not:
+                anyOf:
+                  - required:
+                      - knownHostPublicKey
+      anyOf:
+        - required:
+            - knownHostPublicKey
+        - not:
+            anyOf:
+              - required:
+                  - knownHostPublicKey
+      properties:
+        host:
+          type: string
+          title: host
+          minLength: 1
+          description: The host of the SSH server
+        port:
+          type: integer
+          title: port
+          format: int32
+          description: The port of the SSH server, typically 22
+        user:
+          type: string
+          title: user
+          minLength: 1
+          description: The user that will be used to authenticate
+        knownHostPublicKey:
+          type: string
+          title: known_host_public_key
+          minLength: 1
+          description: |-
+            Optionally provide the public key of the known host of the SSH tunnel that we are connecting to.
+             If this is not provided, the server will blindly connect to the host with the given credentials.
+             This is not recommended for production use!
+        authentication:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHAuthentication'
+          title: authentication
+          description: Provide the authentication required to successfully connect to the SSH server for tunneling
+      title: SSHTunnel
+      additionalProperties: false
+    mgmt.v1alpha1.SqlConnectionOptions:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxConnectionLimit
+            - not:
+                anyOf:
+                  - required:
+                      - maxConnectionLimit
+        - anyOf:
+            - required:
+                - maxIdleConnections
+            - not:
+                anyOf:
+                  - required:
+                      - maxIdleConnections
+        - anyOf:
+            - required:
+                - maxIdleDuration
+            - not:
+                anyOf:
+                  - required:
+                      - maxIdleDuration
+        - anyOf:
+            - required:
+                - maxOpenDuration
+            - not:
+                anyOf:
+                  - required:
+                      - maxOpenDuration
+      properties:
+        maxConnectionLimit:
+          type: integer
+          title: max_connection_limit
+          format: int32
+          description: |-
+            Sets the maximum number of open connections
+             If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
+             If this value is less than or equal to 0, then there is no limit on the number of open connections. If not provided, the default is 0 (unlimited).
+        maxIdleConnections:
+          type: integer
+          title: max_idle_connections
+          format: int32
+          description: |-
+            Sets the maximum number of connections in the idle connection pool.
+             This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
+             If this value is less than or equal to 0, then no idle connections are maintained. If not provided, the default is 2, which may change in a future release.
+        maxIdleDuration:
+          type: string
+          title: max_idle_duration
+          description: |-
+            Sets the maximum amount of time a connection may be idle.
+             Expired connections may be closed lazily before reuse.
+             if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
+             This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
+        maxOpenDuration:
+          type: string
+          title: max_open_duration
+          description: |-
+            Sets the maximum amount of time a connection may be reused.
+             Expired connections may be closed lazily before reuse.
+             If this value is less than or equal to 0, connections may not be closed due to a connection's age.
+             This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
+      title: SqlConnectionOptions
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateConnectionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The unique identifier of the connection to update
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The friendly name of the connection
+        connectionConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
+          title: connection_config
+          description: The connection configuration to use for the connection
+      title: UpdateConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateConnectionResponse:
+      type: object
+      properties:
+        connection:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
+          title: connection
+          description: The updated connection
+      title: UpdateConnectionResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+security:
+  - BearerAuth: []
 paths:
   /mgmt.v1alpha1.ConnectionService/GetConnections:
     post:
@@ -333,1404 +1757,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryResponse'
-components:
-  schemas:
-    google.protobuf.Timestamp:
-      type: string
-      format: date-time
-      description: |-
-        A Timestamp represents a point in time independent of any time zone or local
-         calendar, encoded as a count of seconds and fractions of seconds at
-         nanosecond resolution. The count is relative to an epoch at UTC midnight on
-         January 1, 1970, in the proleptic Gregorian calendar which extends the
-         Gregorian calendar backwards to year one.
-
-         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
-         second table is needed for interpretation, using a [24-hour linear
-         smear](https://developers.google.com/time/smear).
-
-         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
-         restricting to that range, we ensure that we can convert to and from [RFC
-         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
-
-         # Examples
-
-         Example 1: Compute Timestamp from POSIX `time()`.
-
-             Timestamp timestamp;
-             timestamp.set_seconds(time(NULL));
-             timestamp.set_nanos(0);
-
-         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
-
-             struct timeval tv;
-             gettimeofday(&tv, NULL);
-
-             Timestamp timestamp;
-             timestamp.set_seconds(tv.tv_sec);
-             timestamp.set_nanos(tv.tv_usec * 1000);
-
-         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
-
-             FILETIME ft;
-             GetSystemTimeAsFileTime(&ft);
-             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
-
-             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
-             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
-             Timestamp timestamp;
-             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
-             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
-
-         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
-
-             long millis = System.currentTimeMillis();
-
-             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-                 .setNanos((int) ((millis % 1000) * 1000000)).build();
-
-         Example 5: Compute Timestamp from Java `Instant.now()`.
-
-             Instant now = Instant.now();
-
-             Timestamp timestamp =
-                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
-                     .setNanos(now.getNano()).build();
-
-         Example 6: Compute Timestamp from current time in Python.
-
-             timestamp = Timestamp()
-             timestamp.GetCurrentTime()
-
-         # JSON Mapping
-
-         In JSON format, the Timestamp type is encoded as a string in the
-         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
-         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
-         where {year} is always expressed using four digits while {month}, {day},
-         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
-         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
-         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
-         is required. A proto3 JSON serializer should always use UTC (as indicated by
-         "Z") when printing the Timestamp type and a proto3 JSON parser should be
-         able to accept both UTC and other timezones (as indicated by an offset).
-
-         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
-         01:30 UTC on January 15, 2017.
-
-         In JavaScript, one can convert a Date object to this format using the
-         standard
-         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
-         method. In Python, a standard `datetime.datetime` object can be converted
-         to this format using
-         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
-         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
-         the Joda Time's [`ISODateTimeFormat.dateTime()`](
-         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
-         ) to obtain a formatter capable of generating timestamps in this format.
-    mgmt.v1alpha1.AwsS3ConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - credentials
-            - not:
-                anyOf:
-                  - required:
-                      - credentials
-        - anyOf:
-            - required:
-                - endpoint
-            - not:
-                anyOf:
-                  - required:
-                      - endpoint
-        - anyOf:
-            - required:
-                - pathPrefix
-            - not:
-                anyOf:
-                  - required:
-                      - pathPrefix
-        - anyOf:
-            - required:
-                - region
-            - not:
-                anyOf:
-                  - required:
-                      - region
-      properties:
-        pathPrefix:
-          type: string
-          title: path_prefix
-          description: The bucket path prefix that will be appended to each file
-        credentials:
-          allOf:
-            - title: credentials
-              description: The credentials to use for the S3 bucket
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
-        region:
-          type: string
-          title: region
-          description: The region of the S3 bucket
-        endpoint:
-          type: string
-          title: endpoint
-          description: The endpoint of the S3 bucket (if using a custom endpoint like region specific endpoints or S3-compatible APIs)
-        bucket:
-          type: string
-          title: bucket
-          minLength: 1
-          description: The name of the S3 bucket
-      title: AwsS3ConnectionConfig
-      additionalProperties: false
-    mgmt.v1alpha1.AwsS3Credentials:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - accessKeyId
-            - not:
-                anyOf:
-                  - required:
-                      - accessKeyId
-        - anyOf:
-            - required:
-                - fromEc2Role
-            - not:
-                anyOf:
-                  - required:
-                      - fromEc2Role
-        - anyOf:
-            - required:
-                - profile
-            - not:
-                anyOf:
-                  - required:
-                      - profile
-        - anyOf:
-            - required:
-                - roleArn
-            - not:
-                anyOf:
-                  - required:
-                      - roleArn
-        - anyOf:
-            - required:
-                - roleExternalId
-            - not:
-                anyOf:
-                  - required:
-                      - roleExternalId
-        - anyOf:
-            - required:
-                - secretAccessKey
-            - not:
-                anyOf:
-                  - required:
-                      - secretAccessKey
-        - anyOf:
-            - required:
-                - sessionToken
-            - not:
-                anyOf:
-                  - required:
-                      - sessionToken
-      properties:
-        profile:
-          type: string
-          title: profile
-          description: The profile to use for the S3 credentials
-        accessKeyId:
-          type: string
-          title: access_key_id
-          description: The access key id to use for the S3 credentials
-        secretAccessKey:
-          type: string
-          title: secret_access_key
-          description: The secret access key to use for the S3 credentials
-        sessionToken:
-          type: string
-          title: session_token
-          description: The session token to use for the S3 credentials
-        fromEc2Role:
-          type: boolean
-          title: from_ec2_role
-          description: Whether or not the credentials are from an EC2 role
-        roleArn:
-          type: string
-          title: role_arn
-          description: The ARN of the role to use for the S3 credentials
-        roleExternalId:
-          type: string
-          title: role_external_id
-          description: The role's external ID to use for the S3 credentials
-      title: AwsS3Credentials
-      additionalProperties: false
-      description: |-
-        S3 Credentials that are used by the worker process.
-         Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
-    mgmt.v1alpha1.CheckConnectionConfigByIdRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The connection id to validate
-      title: CheckConnectionConfigByIdRequest
-      additionalProperties: false
-    mgmt.v1alpha1.CheckConnectionConfigByIdResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - connectionError
-            - not:
-                anyOf:
-                  - required:
-                      - connectionError
-      anyOf:
-        - required:
-            - connectionError
-        - not:
-            anyOf:
-              - required:
-                  - connectionError
-      properties:
-        isConnected:
-          type: boolean
-          title: is_connected
-          description: Whether or not the API was able to ping the connection
-        connectionError:
-          type: string
-          title: connection_error
-          description: This is the error that was received if the API was unable to connect
-        privileges:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionRolePrivilege'
-          title: privileges
-          description: The privileges the role has to the connection
-      title: CheckConnectionConfigByIdResponse
-      additionalProperties: false
-    mgmt.v1alpha1.CheckConnectionConfigRequest:
-      type: object
-      properties:
-        connectionConfig:
-          allOf:
-            - title: connection_config
-              description: The connection configuration to validate
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
-      title: CheckConnectionConfigRequest
-      additionalProperties: false
-    mgmt.v1alpha1.CheckConnectionConfigResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - connectionError
-            - not:
-                anyOf:
-                  - required:
-                      - connectionError
-      anyOf:
-        - required:
-            - connectionError
-        - not:
-            anyOf:
-              - required:
-                  - connectionError
-      properties:
-        isConnected:
-          type: boolean
-          title: is_connected
-          description: Whether or not the API was able to ping the connection
-        connectionError:
-          type: string
-          title: connection_error
-          description: This is the error that was received if the API was unable to connect
-        privileges:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionRolePrivilege'
-          title: privileges
-      title: CheckConnectionConfigResponse
-      additionalProperties: false
-    mgmt.v1alpha1.CheckSqlQueryRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The connection id that the query will be checked against
-        query:
-          type: string
-          title: query
-          minLength: 1
-          description: The full query that will be run through a PREPARE statement
-      title: CheckSqlQueryRequest
-      additionalProperties: false
-    mgmt.v1alpha1.CheckSqlQueryResponse:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - erorrMessage
-            - not:
-                anyOf:
-                  - required:
-                      - erorrMessage
-      anyOf:
-        - required:
-            - erorrMessage
-        - not:
-            anyOf:
-              - required:
-                  - erorrMessage
-      properties:
-        isValid:
-          type: boolean
-          title: is_valid
-          description: The query is run through PREPARE. Returns valid if it correctly compiled
-        erorrMessage:
-          type: string
-          title: erorr_message
-          description: The error message returned by the sql client if the prepare did not return successfully
-      title: CheckSqlQueryResponse
-      additionalProperties: false
-    mgmt.v1alpha1.ClientTlsConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - clientCert
-            - not:
-                anyOf:
-                  - required:
-                      - clientCert
-        - anyOf:
-            - required:
-                - clientKey
-            - not:
-                anyOf:
-                  - required:
-                      - clientKey
-        - anyOf:
-            - required:
-                - rootCert
-            - not:
-                anyOf:
-                  - required:
-                      - rootCert
-        - anyOf:
-            - required:
-                - serverName
-            - not:
-                anyOf:
-                  - required:
-                      - serverName
-      properties:
-        rootCert:
-          type: string
-          title: root_cert
-          description: Root Certificate in PEM Format
-        clientCert:
-          type: string
-          title: client_cert
-          description: Client Certificate in PEM format. Must also provide key.
-        clientKey:
-          type: string
-          title: client_key
-          description: Client Key in PEM format. Must also provide cert.
-        serverName:
-          type: string
-          title: server_name
-          description: |-
-            Provide the expected server name. Depending on the driver or encryption mode, this may be required
-             In order to fully validate the server certificate.
-      title: ClientTlsConfig
-      additionalProperties: false
-      description: Config for providing client-side TLS certificates
-    mgmt.v1alpha1.Connection:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          description: The unique identifier of the connection
-        name:
-          type: string
-          title: name
-          description: The unique, friendly name of the connection
-        connectionConfig:
-          allOf:
-            - title: connection_config
-              description: Contains the connection configuration and connection type
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
-        createdByUserId:
-          type: string
-          title: created_by_user_id
-          description: The user id of the user that created the connection
-        createdAt:
-          allOf:
-            - title: created_at
-              description: When the connection was created
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        updatedByUserId:
-          type: string
-          title: updated_by_user_id
-          description: Who last updated the connection
-        updatedAt:
-          allOf:
-            - title: updated_at
-              description: When the connection was last updated
-            - $ref: '#/components/schemas/google.protobuf.Timestamp'
-        accountId:
-          type: string
-          title: account_id
-          description: The unique account that owns this connection
-      title: Connection
-      additionalProperties: false
-    mgmt.v1alpha1.ConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - awsS3Config
-            - required:
-                - dynamodbConfig
-            - required:
-                - gcpCloudstorageConfig
-            - required:
-                - localDirConfig
-            - required:
-                - mongoConfig
-            - required:
-                - mssqlConfig
-            - required:
-                - mysqlConfig
-            - required:
-                - openaiConfig
-            - required:
-                - pgConfig
-            - not:
-                anyOf:
-                  - required:
-                      - awsS3Config
-                  - required:
-                      - dynamodbConfig
-                  - required:
-                      - gcpCloudstorageConfig
-                  - required:
-                      - localDirConfig
-                  - required:
-                      - mongoConfig
-                  - required:
-                      - mssqlConfig
-                  - required:
-                      - mysqlConfig
-                  - required:
-                      - openaiConfig
-                  - required:
-                      - pgConfig
-      anyOf:
-        - required:
-            - awsS3Config
-        - required:
-            - dynamodbConfig
-        - required:
-            - gcpCloudstorageConfig
-        - required:
-            - localDirConfig
-        - required:
-            - mongoConfig
-        - required:
-            - mssqlConfig
-        - required:
-            - mysqlConfig
-        - required:
-            - openaiConfig
-        - required:
-            - pgConfig
-        - not:
-            anyOf:
-              - required:
-                  - awsS3Config
-              - required:
-                  - dynamodbConfig
-              - required:
-                  - gcpCloudstorageConfig
-              - required:
-                  - localDirConfig
-              - required:
-                  - mongoConfig
-              - required:
-                  - mssqlConfig
-              - required:
-                  - mysqlConfig
-              - required:
-                  - openaiConfig
-              - required:
-                  - pgConfig
-      properties:
-        pgConfig:
-          allOf:
-            - title: pg_config
-              description: Configures a PostgreSQL connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnectionConfig'
-        awsS3Config:
-          allOf:
-            - title: aws_s3_config
-              description: Configures an AWS S3 Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3ConnectionConfig'
-        mysqlConfig:
-          allOf:
-            - title: mysql_config
-              description: Configures a MySQL connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnectionConfig'
-        localDirConfig:
-          allOf:
-            - title: local_dir_config
-              description: Configures a connection to a directory available on the local file system
-            - $ref: '#/components/schemas/mgmt.v1alpha1.LocalDirectoryConnectionConfig'
-        openaiConfig:
-          allOf:
-            - title: openai_config
-              description: Connection config for an OpenAI (or compatible) Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.OpenAiConnectionConfig'
-        mongoConfig:
-          allOf:
-            - title: mongo_config
-              description: Configures a MongoDB Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.MongoConnectionConfig'
-        gcpCloudstorageConfig:
-          allOf:
-            - title: gcp_cloudstorage_config
-              description: Configures a GCP Cloud Storage Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.GcpCloudStorageConnectionConfig'
-        dynamodbConfig:
-          allOf:
-            - title: dynamodb_config
-              description: Configures a DynamoDB Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.DynamoDBConnectionConfig'
-        mssqlConfig:
-          allOf:
-            - title: mssql_config
-              description: Configures a Microsoft SQL Server (mssql) Connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlConnectionConfig'
-      title: ConnectionConfig
-      additionalProperties: false
-      description: Configuration for all of the supported Neosync connection types
-    mgmt.v1alpha1.ConnectionRolePrivilege:
-      type: object
-      properties:
-        grantee:
-          type: string
-          title: grantee
-          description: The role that was given the permissions
-        schema:
-          type: string
-          title: schema
-          description: 'The database schema. Ex: public'
-        table:
-          type: string
-          title: table
-          description: The name of the table in the schema
-        privilegeType:
-          type: array
-          items:
-            type: string
-          title: privilege_type
-          description: The privileges given to that role
-      title: ConnectionRolePrivilege
-      additionalProperties: false
-    mgmt.v1alpha1.CreateConnectionRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to create the connection for
-        name:
-          type: string
-          title: name
-          pattern: ^[a-z0-9-]{3,100}$
-          description: The friendly name of the connection
-        connectionConfig:
-          allOf:
-            - title: connection_config
-              description: The connection configuration to use for the connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
-      title: CreateConnectionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.CreateConnectionResponse:
-      type: object
-      properties:
-        connection:
-          allOf:
-            - title: connection
-              description: The created connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
-      title: CreateConnectionResponse
-      additionalProperties: false
-    mgmt.v1alpha1.DeleteConnectionRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The unique identifier of the connection to delete
-      title: DeleteConnectionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.DeleteConnectionResponse:
-      type: object
-      title: DeleteConnectionResponse
-      additionalProperties: false
-    mgmt.v1alpha1.DynamoDBConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - credentials
-            - not:
-                anyOf:
-                  - required:
-                      - credentials
-        - anyOf:
-            - required:
-                - endpoint
-            - not:
-                anyOf:
-                  - required:
-                      - endpoint
-        - anyOf:
-            - required:
-                - region
-            - not:
-                anyOf:
-                  - required:
-                      - region
-      properties:
-        credentials:
-          allOf:
-            - title: credentials
-              description: |-
-                Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
-                 If self-hosting, this may be provided by the environment in lieu of specifying these here
-            - $ref: '#/components/schemas/mgmt.v1alpha1.AwsS3Credentials'
-        region:
-          type: string
-          title: region
-          description: Optionally specify the region that the dynamodb instance lives in if not provided by the environment.
-        endpoint:
-          type: string
-          title: endpoint
-          description: Optionally specify the endpoint that will be used by the AWS SDK.
-      title: DynamoDBConnectionConfig
-      additionalProperties: false
-      description: Configuration for a DynaomDB Connection
-    mgmt.v1alpha1.GcpCloudStorageConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - pathPrefix
-            - not:
-                anyOf:
-                  - required:
-                      - pathPrefix
-        - anyOf:
-            - required:
-                - serviceAccountCredentials
-            - not:
-                anyOf:
-                  - required:
-                      - serviceAccountCredentials
-      properties:
-        bucket:
-          type: string
-          title: bucket
-          minLength: 1
-          description: The GCP Cloud Storage bucket that will be accessed.
-        pathPrefix:
-          type: string
-          title: path_prefix
-          description: The path prefix that will be appended to each file
-        serviceAccountCredentials:
-          type: string
-          title: service_account_credentials
-          description: stringified json of the service account credentials file
-      title: GcpCloudStorageConnectionConfig
-      additionalProperties: false
-      description: Configuration for GCP Cloud Storage Buckets
-    mgmt.v1alpha1.GetConnectionRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The unique identifier of the connection to get
-      title: GetConnectionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionResponse:
-      type: object
-      properties:
-        connection:
-          allOf:
-            - title: connection
-              description: The connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
-      title: GetConnectionResponse
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionsRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to get connections for
-      title: GetConnectionsRequest
-      additionalProperties: false
-    mgmt.v1alpha1.GetConnectionsResponse:
-      type: object
-      properties:
-        connections:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
-          title: connections
-          description: The connections
-      title: GetConnectionsResponse
-      additionalProperties: false
-    mgmt.v1alpha1.IsConnectionNameAvailableRequest:
-      type: object
-      properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The unique identifier of the account to check the connection name for
-        connectionName:
-          type: string
-          title: connection_name
-          pattern: ^[a-z0-9-]{3,100}$
-          description: The connection name to check for availability
-      title: IsConnectionNameAvailableRequest
-      additionalProperties: false
-    mgmt.v1alpha1.IsConnectionNameAvailableResponse:
-      type: object
-      properties:
-        isAvailable:
-          type: boolean
-          title: is_available
-          description: Whether or not the connection name is available
-      title: IsConnectionNameAvailableResponse
-      additionalProperties: false
-    mgmt.v1alpha1.LocalDirectoryConnectionConfig:
-      type: object
-      properties:
-        path:
-          type: string
-          title: path
-          minLength: 1
-          description: The absolute path to a directory that is available on the local file system to the API and Worker nodes
-      title: LocalDirectoryConnectionConfig
-      additionalProperties: false
-      description: Configures a connection to a directory available on the local file system
-    mgmt.v1alpha1.MongoConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - url
-            - not:
-                anyOf:
-                  - required:
-                      - url
-      anyOf:
-        - required:
-            - url
-        - not:
-            anyOf:
-              - required:
-                  - url
-      properties:
-        url:
-          type: string
-          title: url
-          description: The full mongo connection url
-        tunnel:
-          allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
-        clientTls:
-          allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
-      title: MongoConnectionConfig
-      additionalProperties: false
-    mgmt.v1alpha1.MssqlConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - url
-            - required:
-                - urlFromEnv
-            - not:
-                anyOf:
-                  - required:
-                      - url
-                  - required:
-                      - urlFromEnv
-      anyOf:
-        - required:
-            - url
-        - required:
-            - urlFromEnv
-        - not:
-            anyOf:
-              - required:
-                  - url
-              - required:
-                  - urlFromEnv
-      properties:
-        url:
-          type: string
-          title: url
-          description: The URL with sqlserver scheme.
-        urlFromEnv:
-          type: string
-          title: url_from_env
-          description: |-
-            Source a url from an environment variable.
-             The value is expected to be in the same format as the "url" field above.
-             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
-        connectionOptions:
-          allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
-        tunnel:
-          allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
-        clientTls:
-          allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
-      title: MssqlConnectionConfig
-      additionalProperties: false
-      description: Configuration for a Mssql Connection
-    mgmt.v1alpha1.MysqlConnection:
-      type: object
-      properties:
-        user:
-          type: string
-          title: user
-          description: The user to use for the connection
-        pass:
-          type: string
-          title: pass
-          description: The password to use for the connection
-        protocol:
-          type: string
-          title: protocol
-          description: The protocol to use for the connection
-        host:
-          type: string
-          title: host
-          description: The host to use for the connection
-        port:
-          type: integer
-          title: port
-          description: The port to use for the connection
-        name:
-          type: string
-          title: name
-          description: The name of the database to use for the connection
-      title: MysqlConnection
-      additionalProperties: false
-    mgmt.v1alpha1.MysqlConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - connection
-            - required:
-                - url
-            - required:
-                - urlFromEnv
-            - not:
-                anyOf:
-                  - required:
-                      - connection
-                  - required:
-                      - url
-                  - required:
-                      - urlFromEnv
-      anyOf:
-        - required:
-            - connection
-        - required:
-            - url
-        - required:
-            - urlFromEnv
-        - not:
-            anyOf:
-              - required:
-                  - connection
-              - required:
-                  - url
-              - required:
-                  - urlFromEnv
-      properties:
-        url:
-          type: string
-          title: url
-          description: A raw string url that will be used to construct the connection. DSN format. URI format also supported but more limited.
-        connection:
-          allOf:
-            - title: connection
-              description: A structured representation of the connection that will be used to construct the url
-            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlConnection'
-        urlFromEnv:
-          type: string
-          title: url_from_env
-          description: |-
-            Source a url from an environment variable.
-             The value is expected to be in the same format as the "url" field above.
-             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
-        tunnel:
-          allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
-        connectionOptions:
-          allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
-        clientTls:
-          allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
-      title: MysqlConnectionConfig
-      additionalProperties: false
-    mgmt.v1alpha1.OpenAiConnectionConfig:
-      type: object
-      properties:
-        apiKey:
-          type: string
-          title: api_key
-          description: OpenAI Api Key
-        apiUrl:
-          type: string
-          title: api_url
-          description: OpenAI URL (if using a custom endpoint)
-      title: OpenAiConnectionConfig
-      additionalProperties: false
-      description: Configures a connection to OpenAI or OpenAI compatible API.
-    mgmt.v1alpha1.PostgresConnection:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - sslMode
-            - not:
-                anyOf:
-                  - required:
-                      - sslMode
-      anyOf:
-        - required:
-            - sslMode
-        - not:
-            anyOf:
-              - required:
-                  - sslMode
-      properties:
-        host:
-          type: string
-          title: host
-          description: The host to use for the connection
-        port:
-          type: integer
-          title: port
-          description: The port to use for the connection
-        name:
-          type: string
-          title: name
-          description: The name of the database to use for the connection
-        user:
-          type: string
-          title: user
-          description: The user to use for the connection
-        pass:
-          type: string
-          title: pass
-          description: The password to use for the connection
-        sslMode:
-          type: string
-          title: ssl_mode
-          description: The SSL mode to use for the connection
-      title: PostgresConnection
-      additionalProperties: false
-    mgmt.v1alpha1.PostgresConnectionConfig:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - connection
-            - required:
-                - url
-            - required:
-                - urlFromEnv
-            - not:
-                anyOf:
-                  - required:
-                      - connection
-                  - required:
-                      - url
-                  - required:
-                      - urlFromEnv
-      anyOf:
-        - required:
-            - connection
-        - required:
-            - url
-        - required:
-            - urlFromEnv
-        - not:
-            anyOf:
-              - required:
-                  - connection
-              - required:
-                  - url
-              - required:
-                  - urlFromEnv
-      properties:
-        url:
-          type: string
-          title: url
-          description: A raw string url that will be used to construct the connection. Must be URI format.
-        connection:
-          allOf:
-            - title: connection
-              description: A structured representation of the connection that will be used to construct the url
-            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresConnection'
-        urlFromEnv:
-          type: string
-          title: url_from_env
-          description: |-
-            Source a url from an environment variable.
-             The value is expected to be in the same format as the "url" field above.
-             The key is the name of the environment variable to source. It must contain a prefix of "USER_DEFINED_"
-        tunnel:
-          allOf:
-            - title: tunnel
-              description: Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
-        connectionOptions:
-          allOf:
-            - title: connection_options
-              description: Provide connection options that can be used to further fine-tune the connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SqlConnectionOptions'
-        clientTls:
-          allOf:
-            - title: client_tls
-              description: Provide client-side TLS Certificates
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ClientTlsConfig'
-      title: PostgresConnectionConfig
-      additionalProperties: false
-    mgmt.v1alpha1.SSHAuthentication:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - passphrase
-            - required:
-                - privateKey
-            - not:
-                anyOf:
-                  - required:
-                      - passphrase
-                  - required:
-                      - privateKey
-      anyOf:
-        - required:
-            - passphrase
-        - required:
-            - privateKey
-        - not:
-            anyOf:
-              - required:
-                  - passphrase
-              - required:
-                  - privateKey
-      properties:
-        passphrase:
-          allOf:
-            - title: passphrase
-              description: Password authentication
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPassphrase'
-        privateKey:
-          allOf:
-            - title: private_key
-              description: Private key authentication
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHPrivateKey'
-      title: SSHAuthentication
-      additionalProperties: false
-      description: SSH Authentication
-    mgmt.v1alpha1.SSHPassphrase:
-      type: object
-      properties:
-        value:
-          type: string
-          title: value
-          minLength: 1
-          description: The password to be used to connect to the SSH server eventually we can expand this to allow pulling from other sources.
-      title: SSHPassphrase
-      additionalProperties: false
-      description: Contains the configuration needed to retrieve the SSH passphrase for the tunnel
-    mgmt.v1alpha1.SSHPrivateKey:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - passphrase
-            - not:
-                anyOf:
-                  - required:
-                      - passphrase
-      anyOf:
-        - required:
-            - passphrase
-        - not:
-            anyOf:
-              - required:
-                  - passphrase
-      properties:
-        value:
-          type: string
-          title: value
-          minLength: 1
-          description: The private key in PEM format.
-        passphrase:
-          type: string
-          title: passphrase
-          description: If the private key is encrypted, this value should decrypt it.
-      title: SSHPrivateKey
-      additionalProperties: false
-      description: Contains the configuration needed to retrieve the SSH private key for the tunnel
-    mgmt.v1alpha1.SSHTunnel:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - knownHostPublicKey
-            - not:
-                anyOf:
-                  - required:
-                      - knownHostPublicKey
-      anyOf:
-        - required:
-            - knownHostPublicKey
-        - not:
-            anyOf:
-              - required:
-                  - knownHostPublicKey
-      properties:
-        host:
-          type: string
-          title: host
-          minLength: 1
-          description: The host of the SSH server
-        port:
-          type: integer
-          title: port
-          description: The port of the SSH server, typically 22
-        user:
-          type: string
-          title: user
-          minLength: 1
-          description: The user that will be used to authenticate
-        knownHostPublicKey:
-          type: string
-          title: known_host_public_key
-          minLength: 1
-          description: |-
-            Optionally provide the public key of the known host of the SSH tunnel that we are connecting to.
-             If this is not provided, the server will blindly connect to the host with the given credentials.
-             This is not recommended for production use!
-        authentication:
-          allOf:
-            - title: authentication
-              description: Provide the authentication required to successfully connect to the SSH server for tunneling
-            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHAuthentication'
-      title: SSHTunnel
-      additionalProperties: false
-    mgmt.v1alpha1.SqlConnectionOptions:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - maxConnectionLimit
-            - not:
-                anyOf:
-                  - required:
-                      - maxConnectionLimit
-        - anyOf:
-            - required:
-                - maxIdleConnections
-            - not:
-                anyOf:
-                  - required:
-                      - maxIdleConnections
-        - anyOf:
-            - required:
-                - maxIdleDuration
-            - not:
-                anyOf:
-                  - required:
-                      - maxIdleDuration
-        - anyOf:
-            - required:
-                - maxOpenDuration
-            - not:
-                anyOf:
-                  - required:
-                      - maxOpenDuration
-      properties:
-        maxConnectionLimit:
-          type: integer
-          title: max_connection_limit
-          description: |-
-            Sets the maximum number of open connections
-             If this value is greater than 0, but less than the max_idle_connections, then max_idle_connections will be reduced to match the max_connection_limit
-             If this value is less than or equal to 0, then there is no limit on the number of open connections. If not provided, the default is 0 (unlimited).
-        maxIdleConnections:
-          type: integer
-          title: max_idle_connections
-          description: |-
-            Sets the maximum number of connections in the idle connection pool.
-             This value will be reduced at runtime to match the max_connection_limit if max_connection_limit is greater than 0 but less than this value.
-             If this value is less than or equal to 0, then no idle connections are maintained. If not provided, the default is 2, which may change in a future release.
-        maxIdleDuration:
-          type: string
-          title: max_idle_duration
-          description: |-
-            Sets the maximum amount of time a connection may be idle.
-             Expired connections may be closed lazily before reuse.
-             if this value is less than or equal to 0, connections are not closed due to a connection's idle time.
-             This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
-        maxOpenDuration:
-          type: string
-          title: max_open_duration
-          description: |-
-            Sets the maximum amount of time a connection may be reused.
-             Expired connections may be closed lazily before reuse.
-             If this value is less than or equal to 0, connections may not be closed due to a connection's age.
-             This value is parsed as a Go duration string (ex: 1s, 1m, 500ms)
-      title: SqlConnectionOptions
-      additionalProperties: false
-    mgmt.v1alpha1.UpdateConnectionRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          title: id
-          format: uuid
-          description: The unique identifier of the connection to update
-        name:
-          type: string
-          title: name
-          pattern: ^[a-z0-9-]{3,100}$
-          description: The friendly name of the connection
-        connectionConfig:
-          allOf:
-            - title: connection_config
-              description: The connection configuration to use for the connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionConfig'
-      title: UpdateConnectionRequest
-      additionalProperties: false
-    mgmt.v1alpha1.UpdateConnectionResponse:
-      type: object
-      properties:
-        connection:
-          allOf:
-            - title: connection
-              description: The updated connection
-            - $ref: '#/components/schemas/mgmt.v1alpha1.Connection'
-      title: UpdateConnectionResponse
-      additionalProperties: false
-    connect-protocol-version:
-      type: number
-      title: Connect-Protocol-Version
-      enum:
-        - 1
-      description: Define the version of the Connect protocol
-      const: 1
-    connect-timeout-header:
-      type: number
-      title: Connect-Timeout-Ms
-      description: Define the timeout, in ms
-    connect.error:
-      type: object
-      properties:
-        code:
-          type: string
-          examples:
-            - CodeNotFound
-          enum:
-            - CodeCanceled
-            - CodeUnknown
-            - CodeInvalidArgument
-            - CodeDeadlineExceeded
-            - CodeNotFound
-            - CodeAlreadyExists
-            - CodePermissionDenied
-            - CodeResourceExhausted
-            - CodeFailedPrecondition
-            - CodeAborted
-            - CodeOutOfRange
-            - CodeInternal
-            - CodeUnavailable
-            - CodeDataLoss
-            - CodeUnauthenticated
-          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-        message:
-          type: string
-          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-        detail:
-          $ref: '#/components/schemas/google.protobuf.Any'
-      title: Connect Error
-      additionalProperties: true
-      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
-    google.protobuf.Any:
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-          format: binary
-        debug:
-          type: object
-          additionalProperties: true
-      additionalProperties: true
-      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-security: []
 tags:
   - name: mgmt.v1alpha1.ConnectionService
     description: |-

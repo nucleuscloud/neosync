@@ -29,9 +29,9 @@ docker run --rm -i \
 # Detect host architecture
 HOST_ARCH=$(uname -m)
 if [ "$HOST_ARCH" = "aarch64" ] || [ "$HOST_ARCH" = "arm64" ]; then
-    PLUGIN_BINARY="protoc-gen-connect-openapi_0.13.0_linux_arm64"
+    PLUGIN_BINARY="protoc-gen-connect-openapi_0.15.3_linux_arm64"
 elif [ "$HOST_ARCH" = "x86_64" ]; then
-    PLUGIN_BINARY="protoc-gen-connect-openapi_0.13.0_linux_amd64"
+    PLUGIN_BINARY="protoc-gen-connect-openapi_0.15.3_linux_amd64"
 else
     echo "Unsupported architecture: $HOST_ARCH"
     exit 1
