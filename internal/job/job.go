@@ -125,6 +125,11 @@ func GetSqlJobSourceOpts(
 			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		if jobSourceConfig.Generate == nil {
+			return nil, nil
+		}
+		return &SqlJobSourceOpts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
 	}
