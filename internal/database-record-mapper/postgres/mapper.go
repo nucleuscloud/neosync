@@ -131,7 +131,12 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) map[strin
 			}
 			jObj[col] = ba
 		case *PgxArray[any]:
-			jObj[col] = pgArrayToGoSlice(t)
+			slice, err := pgArrayToGoSlice(t)
+			if err != nil {
+				jObj[col] = t
+				continue
+			}
+			jObj[col] = slice
 		case *pgtype.Interval:
 			if !t.Valid {
 				jObj[col] = nil
@@ -228,6 +233,25 @@ func (a *PgxArray[T]) Scan(src any) error {
 				Name:  "xml",
 				OID:   142,
 				Codec: pgtype.TextCodec{},
+			},
+		},
+	})
+
+	// Register Numeric type
+	m.RegisterType(&pgtype.Type{
+		Name:  "numeric",
+		OID:   1700,
+		Codec: pgtype.Float8Codec{},
+	})
+
+	m.RegisterType(&pgtype.Type{
+		Name: "_numeric",
+		OID:  1231,
+		Codec: &pgtype.ArrayCodec{
+			ElementType: &pgtype.Type{
+				Name:  "numeric",
+				OID:   1700,
+				Codec: pgtype.Float8Codec{},
 			},
 		},
 	})
@@ -348,9 +372,9 @@ func toIntervalArray(array *PgxArray[*pgtype.Interval]) (*neosynctypes.NeosyncAr
 	return neoIntervalArray, nil
 }
 
-func pgArrayToGoSlice(array *PgxArray[any]) any {
+func pgArrayToGoSlice(array *PgxArray[any]) (any, error) {
 	if array.Elements == nil {
-		return nil
+		return nil, nil
 	}
 
 	dim := array.Dimensions()
@@ -359,10 +383,26 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		for _, d := range dim {
 			dims = append(dims, int(d.Length))
 		}
-		return createMultiDimSlice(dims, array.Elements)
+		return createMultiDimSlice(dims, array.Elements), nil
 	}
 
-	return array.Elements
+	if strings.EqualFold(array.colDataType, "timestamp") || strings.EqualFold(array.colDataType, "date") || strings.EqualFold(array.colDataType, "timestampz") {
+		timeArray := make([]time.Time, len(array.Elements))
+		for i, elem := range array.Elements {
+			if t, ok := elem.(time.Time); ok {
+				timeArray[i] = t
+			} else {
+				return nil, fmt.Errorf("expected time.Time, got %T", elem)
+			}
+		}
+		dtArray, err := neosynctypes.NewDateTimeArrayFromPgx(timeArray, []neosynctypes.NeosyncTypeOption{})
+		if err != nil {
+			return nil, err
+		}
+		return dtArray, nil
+	}
+
+	return array.Elements, nil
 }
 
 // converts flat slice to multi-dimensional slice
