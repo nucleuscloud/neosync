@@ -1,4 +1,4 @@
-package javascript
+package javascript_processor
 
 import (
 	"bytes"
@@ -7,8 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -250,87 +248,6 @@ code: |
 	assert.Equal(t, map[string]any{
 		"err": "invalid character 'o' in literal null (expecting 'u')",
 	}, allMeta)
-
-	require.NoError(t, proc.Close(bCtx))
-}
-
-func TestProcessorBasicFromFile(t *testing.T) {
-	tmpDir := t.TempDir()
-	require.NoError(t, os.WriteFile(path.Join(tmpDir, "foo.js"), []byte(`
-(() => {
-  let foo = "hello world"
-  benthos.v0_msg_set_string(benthos.v0_msg_as_string() + foo);
-})();
-`), 0o644))
-
-	conf, err := javascriptProcessorConfig().ParseYAML(fmt.Sprintf(`
-file: %v
-`, path.Join(tmpDir, "foo.js")), nil)
-	require.NoError(t, err)
-
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
-	require.NoError(t, err)
-
-	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
-	defer done()
-
-	resBatches, err := proc.ProcessBatch(bCtx, service.MessageBatch{
-		service.NewMessage([]byte("first ")),
-		service.NewMessage([]byte("second ")),
-	})
-	require.NoError(t, err)
-	require.Len(t, resBatches, 1)
-	require.Len(t, resBatches[0], 2)
-
-	resBytes, err := resBatches[0][0].AsBytes()
-	require.NoError(t, err)
-	assert.Equal(t, "first hello world", string(resBytes))
-
-	resBytes, err = resBatches[0][1].AsBytes()
-	require.NoError(t, err)
-	assert.Equal(t, "second hello world", string(resBytes))
-
-	require.NoError(t, proc.Close(bCtx))
-}
-
-func TestProcessorBasicFromModule(t *testing.T) {
-	tmpDir := t.TempDir()
-	// The file must have the .js extension and be imported without it using `require('blobber')`
-	require.NoError(t, os.WriteFile(path.Join(tmpDir, "blobber.js"), []byte(`
-function blobber() {
-	return 'blobber module';
-}
-
-module.exports = blobber;
-`), 0o644))
-
-	conf, err := javascriptProcessorConfig().ParseYAML(fmt.Sprintf(`
-code: |
-  (() => {
-    const blobber = require('blobber');
-
-    benthos.v0_msg_set_string(benthos.v0_msg_as_string() + blobber());
-  })();
-global_folders: [ "%s" ]
-`, tmpDir), nil)
-	require.NoError(t, err)
-
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
-	require.NoError(t, err)
-
-	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
-	defer done()
-
-	resBatches, err := proc.ProcessBatch(bCtx, service.MessageBatch{
-		service.NewMessage([]byte("hello ")),
-	})
-	require.NoError(t, err)
-	require.Len(t, resBatches, 1)
-	require.Len(t, resBatches[0], 1)
-
-	resBytes, err := resBatches[0][0].AsBytes()
-	require.NoError(t, err)
-	assert.Equal(t, "hello blobber module", string(resBytes))
 
 	require.NoError(t, proc.Close(bCtx))
 }

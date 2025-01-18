@@ -3,7 +3,7 @@ package neosync_benthos_defaulttransform
 import (
 	"testing"
 
-	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	transformer_executor "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformer_executor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -95,7 +95,7 @@ func Test_transformRoot(t *testing.T) {
 func createMockProcessor(mappedKeys map[string]struct{}) *defaultTransformerProcessor {
 	return &defaultTransformerProcessor{
 		mappedKeys: mappedKeys,
-		defaultTransformersInitMap: map[primitiveType]*transformer.TransformerExecutor{
+		defaultTransformersInitMap: map[primitiveType]*transformer_executor.TransformerExecutor{
 			String: {
 				Mutate: func(value any, opts any) (any, error) {
 					return "transformed_" + value.(string), nil

@@ -7,19 +7,19 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformer_executor"
 )
 
 type neosyncOperatorApi struct {
-	opts []transformer.TransformerExecutorOption
+	opts []transformer_executor.TransformerExecutorOption
 }
 
-func newNeosyncOperatorApi(executorOpts []transformer.TransformerExecutorOption) *neosyncOperatorApi {
+func newNeosyncOperatorApi(executorOpts []transformer_executor.TransformerExecutorOption) *neosyncOperatorApi {
 	return &neosyncOperatorApi{opts: executorOpts}
 }
 
 func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error) {
-	executor, err := transformer.InitializeTransformerByConfigType(config, n.opts...)
+	executor, err := transformer_executor.InitializeTransformerByConfigType(config, n.opts...)
 	if err != nil {
 		return "", err
 	}

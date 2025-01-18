@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	transformer_executor "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformer_executor"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -45,7 +45,7 @@ func ReisterDefaultTransformerProcessor(env *service.Environment) error {
 
 type defaultTransformerProcessor struct {
 	mappedKeys                 map[string]struct{}
-	defaultTransformersInitMap map[primitiveType]*transformer.TransformerExecutor
+	defaultTransformersInitMap map[primitiveType]*transformer_executor.TransformerExecutor
 	logger                     *service.Logger
 }
 
@@ -203,13 +203,13 @@ func (m *defaultTransformerProcessor) getValue(transformerKey primitiveType, val
 	return value, nil
 }
 
-func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alpha1.JobMappingTransformer) (map[primitiveType]*transformer.TransformerExecutor, error) {
-	transformersInit := map[primitiveType]*transformer.TransformerExecutor{}
+func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alpha1.JobMappingTransformer) (map[primitiveType]*transformer_executor.TransformerExecutor, error) {
+	transformersInit := map[primitiveType]*transformer_executor.TransformerExecutor{}
 	for k, t := range defaultTransformerMap {
 		if !shouldProcess(t) {
 			continue
 		}
-		init, err := transformer.InitializeTransformer(t)
+		init, err := transformer_executor.InitializeTransformer(t)
 		if err != nil {
 			return nil, err
 		}

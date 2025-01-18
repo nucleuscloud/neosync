@@ -9,6 +9,7 @@ import (
 	neosync_benthos_defaulttransform "github.com/nucleuscloud/neosync/worker/pkg/benthos/default_transform"
 	neosync_benthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
+	javascript_processor "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
 	neosync_benthos_json "github.com/nucleuscloud/neosync/worker/pkg/benthos/json"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
@@ -187,6 +188,11 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 	err = neosync_benthos_sql.RegisterNeosyncToMssqlProcessor(env)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register Neosync to MSSQL processor to benthos instance: %w", err)
+	}
+
+	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register javascript processor to benthos instance: %w", err)
 	}
 
 	if config.blobEnv != nil {

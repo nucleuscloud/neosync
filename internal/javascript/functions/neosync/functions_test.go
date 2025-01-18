@@ -1,10 +1,16 @@
-package javascript
+package neosync_functions
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestGet(t *testing.T) {
+	functions, err := Get()
+	require.NoError(t, err)
+	require.NotEmpty(t, functions)
+}
 
 func Test_setNestedProperty(t *testing.T) {
 	t.Run("Set simple property", func(t *testing.T) {

@@ -1,10 +1,11 @@
-package transformers
+package transformer_executor
 
 import (
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
@@ -1713,7 +1714,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(true)
+		originalValue := uuid.NewString()
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
 		require.NotEqual(t, originalValue, result)
@@ -1727,7 +1728,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(true)
+		originalValue := uuid.NewString()
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
 		require.NotEqual(t, originalValue, result)
