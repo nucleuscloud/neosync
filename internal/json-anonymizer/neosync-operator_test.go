@@ -6,13 +6,16 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_NeosyncOperator(t *testing.T) {
 	t.Run("Transform", func(t *testing.T) {
 		t.Run("string", func(t *testing.T) {
-			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
+			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
+				transformers.WithLogger(testutil.GetTestLogger(t)),
+			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -23,7 +26,9 @@ func Test_NeosyncOperator(t *testing.T) {
 			require.IsType(t, "", actual)
 		})
 		t.Run("default_empty_string", func(t *testing.T) {
-			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
+			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
+				transformers.WithLogger(testutil.GetTestLogger(t)),
+			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
@@ -34,7 +39,9 @@ func Test_NeosyncOperator(t *testing.T) {
 			require.IsType(t, "", actual)
 		})
 		t.Run("default_number", func(t *testing.T) {
-			operator := newNeosyncOperatorApi(testutil.GetTestLogger(t))
+			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
+				transformers.WithLogger(testutil.GetTestLogger(t)),
+			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{},

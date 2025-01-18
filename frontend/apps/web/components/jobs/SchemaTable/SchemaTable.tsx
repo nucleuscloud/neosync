@@ -35,7 +35,7 @@ import {
 } from '../JobMappingTable/AttributesCell';
 import { JobMappingRow, SQL_COLUMNS } from '../JobMappingTable/Columns';
 import JobMappingTable from '../JobMappingTable/JobMappingTable';
-import FormErrorsCard, { FormError } from './FormErrorsCard';
+import FormErrorsCard, { ErrorLevel, FormError } from './FormErrorsCard';
 import { ImportMappingsConfig } from './ImportJobMappingsButton';
 import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
 import VirtualFkPageTable from './VirtualFkPageTable';
@@ -340,6 +340,7 @@ function extractAllFormErrors(
         path: newPath,
         message: error.message,
         type: error.type,
+        level: 'error',
       });
     } else {
       messages = messages.concat(extractAllFormErrors(error, values, newPath));
@@ -362,15 +363,24 @@ export function getAllFormErrors(
     return {
       path: `${e.schema}.${e.table}.${e.column}`,
       message: e.errors.join('. '),
+      level: 'error' as ErrorLevel,
+    };
+  });
+  const colWarnings = validationErrors.columnWarnings.map((e) => {
+    return {
+      path: `${e.schema}.${e.table}.${e.column}`,
+      message: e.warnings.join('. '),
+      level: 'warning' as ErrorLevel,
     };
   });
   const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
     return {
       path: '',
       message: e,
+      level: 'error' as ErrorLevel,
     };
   });
-  messages = messages.concat(colErr, formErr);
+  messages = messages.concat(colErr, formErr, colWarnings);
   if (dbErr) {
     messages = messages.concat(dbErr);
   }

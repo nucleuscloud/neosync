@@ -13,6 +13,7 @@ type Service struct {
 	meter              metric.Meter // optional
 	userdataclient     userdata.Interface
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
+	transformerClient  mgmtv1alpha1connect.TransformersServiceClient
 	analyze            presidioapi.AnalyzeInterface
 	anonymize          presidioapi.AnonymizeInterface
 	db                 *neosyncdb.NeosyncDb
@@ -30,6 +31,7 @@ func New(
 	meter metric.Meter,
 	userdataclient userdata.Interface,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
+	transformerClient mgmtv1alpha1connect.TransformersServiceClient,
 	analyzeclient presidioapi.AnalyzeInterface,
 	anonymizeclient presidioapi.AnonymizeInterface,
 	db *neosyncdb.NeosyncDb,
@@ -39,6 +41,7 @@ func New(
 		meter:              meter,
 		userdataclient:     userdataclient,
 		useraccountService: useraccountService,
+		transformerClient:  transformerClient,
 		analyze:            analyzeclient,
 		anonymize:          anonymizeclient,
 		db:                 db,

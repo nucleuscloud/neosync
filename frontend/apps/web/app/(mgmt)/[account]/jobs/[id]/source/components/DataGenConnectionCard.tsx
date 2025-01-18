@@ -354,14 +354,17 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function validateMappings() {
+    if (!fkSourceConnectionId || form.getValues('mappings').length == 0) {
+      return;
+    }
     try {
       setIsValidatingMappings(true);
       const res = await validateJobMapping(
-        fkSourceConnectionId || '',
         fields,
         account?.id || '',
         [],
-        validateJobMappingsAsync
+        validateJobMappingsAsync,
+        toSingleTableEditGenerateJobSource(form.getValues())
       );
       setValidateMappingsResponse(res);
     } catch (error) {

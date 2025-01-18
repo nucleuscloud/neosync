@@ -9215,6 +9215,66 @@
           ]
         },
         {
+          "name": "ColumnWarning",
+          "longName": "ColumnWarning",
+          "fullName": "mgmt.v1alpha1.ColumnWarning",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "The column of the warning",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "warnings",
+              "description": "The list of warnings",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CreateJobDestination",
           "longName": "CreateJobDestination",
           "fullName": "mgmt.v1alpha1.CreateJobDestination",
@@ -14597,7 +14657,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -14647,6 +14707,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_source",
+              "description": "The source options of the job",
+              "label": "optional",
+              "type": "JobSource",
+              "longType": "JobSource",
+              "fullType": "mgmt.v1alpha1.JobSource",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_job_source",
+              "defaultValue": ""
             }
           ]
         },
@@ -14679,6 +14751,18 @@
               "type": "DatabaseError",
               "longType": "DatabaseError",
               "fullType": "mgmt.v1alpha1.DatabaseError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_warnings",
+              "description": "The list of column warnings",
+              "label": "repeated",
+              "type": "ColumnWarning",
+              "longType": "ColumnWarning",
+              "fullType": "mgmt.v1alpha1.ColumnWarning",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

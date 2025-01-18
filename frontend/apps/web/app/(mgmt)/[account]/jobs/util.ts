@@ -126,6 +126,7 @@ import {
   SubsetFormValues,
   WorkflowSettingsSchema,
 } from '../new/job/job-form-validations';
+import { getConnectionIdFromSource } from './[id]/source/components/util';
 
 type GetConnectionById = (id: string) => Connection | undefined;
 
@@ -261,7 +262,7 @@ export function toSingleTableEditAiGenerateJobSource(
   });
 }
 
-function toSingleTableGenerateJobSource(
+export function toSingleTableGenerateJobSource(
   values: Pick<CreateSingleTableGenerateJobFormValues, 'connect' | 'schema'>
 ): JobSource {
   const tableSchema =
@@ -651,7 +652,7 @@ function toSyncVirtualForeignKeys(
   );
 }
 
-function toJobSource(
+export function toJobSource(
   values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
   getConnectionById: GetConnectionById
 ): JobSource {
@@ -1723,13 +1724,13 @@ export function clearNewJobSession(storage: Storage, sessionId: string): void {
 }
 
 export async function validateJobMapping(
-  connectionId: string,
   formMappings: JobMappingFormValues[],
   accountId: string,
   virtualForeignKeys: VirtualForeignConstraintFormValues[],
   validate: (
     req: ValidateJobMappingsRequest
-  ) => Promise<ValidateJobMappingsResponse>
+  ) => Promise<ValidateJobMappingsResponse>,
+  jobSource?: JobSource
 ): Promise<ValidateJobMappingsResponse> {
   const body = create(ValidateJobMappingsRequestSchema, {
     accountId,
@@ -1764,7 +1765,8 @@ export async function validateJobMapping(
         }),
       });
     }),
-    connectionId: connectionId,
+    connectionId: getConnectionIdFromSource(jobSource),
+    jobSource: jobSource,
   });
 
   return validate(body);

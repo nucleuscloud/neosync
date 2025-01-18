@@ -154,8 +154,69 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 }
 
 func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
-	jsonStr :=
-		`{
+	t := s.T()
+
+	t.Run("user-defined-transformer", func(t *testing.T) {
+		jsonStr := `{
+  "sports": ["basketball", "golf", "swimming"]
+}`
+
+		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		categories := "A"
+		createTransformerResp, err := s.OSSUnauthenticatedLicensedClients.Transformers().CreateUserDefinedTransformer(
+			s.ctx,
+			connect.NewRequest(&mgmtv1alpha1.CreateUserDefinedTransformerRequest{
+				AccountId: accountId,
+				Source:    mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL,
+				TransformerConfig: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+						GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+							Categories: &categories,
+						},
+					},
+				},
+			}),
+		)
+		requireNoErrResp(t, createTransformerResp, err)
+		transformerId := createTransformerResp.Msg.GetTransformer().GetId()
+		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
+			s.ctx,
+			connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+				AccountId: accountId,
+				InputData: jsonStr,
+				TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+					{
+						Expression: ".sports[]",
+						Transformer: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+								UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+									Id: transformerId,
+								},
+							},
+						},
+					},
+				},
+			}),
+		)
+		requireNoErrResp(s.T(), resp, err)
+		require.NotEmpty(s.T(), resp.Msg.OutputData)
+
+		var inputObject map[string]any
+		err = json.Unmarshal([]byte(jsonStr), &inputObject)
+		require.NoError(s.T(), err)
+
+		output := resp.Msg.OutputData
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(s.T(), err)
+		for _, sport := range result["sports"].([]any) {
+			require.Equal(t, "A", sport)
+		}
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		jsonStr :=
+			`{
   "user": {
       "name": "Jane Doe",
       "age": 42,
@@ -171,58 +232,59 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
   "sports": ["basketball", "golf", "swimming"]
 }`
 
-	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
-	resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
-		s.ctx,
-		connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
-			AccountId: accountId,
-			InputData: jsonStr,
-			DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
-				N: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
-						GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-							Min: gotypeutil.ToPtr(int64(18)),
-							Max: gotypeutil.ToPtr(int64(30)),
+		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
+			s.ctx,
+			connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+				AccountId: accountId,
+				InputData: jsonStr,
+				DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+					N: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+							GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+								Min: gotypeutil.ToPtr(int64(18)),
+								Max: gotypeutil.ToPtr(int64(30)),
+							},
 						},
 					},
 				},
-			},
-			TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
-				{
-					Expression: ".details.name",
-					Transformer: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-							TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+				TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+					{
+						Expression: ".details.name",
+						Transformer: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+								TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+							},
+						},
+					},
+					{
+						Expression: ".sports[]",
+						Transformer: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+								GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+							},
 						},
 					},
 				},
-				{
-					Expression: ".sports[]",
-					Transformer: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
-							GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
-						},
-					},
-				},
-			},
-		}),
-	)
-	requireNoErrResp(s.T(), resp, err)
-	require.NotEmpty(s.T(), resp.Msg.OutputData)
+			}),
+		)
+		requireNoErrResp(s.T(), resp, err)
+		require.NotEmpty(s.T(), resp.Msg.OutputData)
 
-	var inputObject map[string]any
-	err = json.Unmarshal([]byte(jsonStr), &inputObject)
-	require.NoError(s.T(), err)
+		var inputObject map[string]any
+		err = json.Unmarshal([]byte(jsonStr), &inputObject)
+		require.NoError(s.T(), err)
 
-	output := resp.Msg.OutputData
-	var result map[string]any
-	err = json.Unmarshal([]byte(output), &result)
-	require.NoError(s.T(), err)
-	require.NotEqual(s.T(), inputObject["details"].(map[string]any)["name"], result["details"].(map[string]any)["name"])
-	require.NotEqual(s.T(), inputObject["user"].(map[string]any)["age"], result["user"].(map[string]any)["age"])
-	for j, sport := range result["sports"].([]any) {
-		require.NotEqual(s.T(), inputObject["sports"].([]any)[j], sport)
-	}
+		output := resp.Msg.OutputData
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(s.T(), err)
+		require.NotEqual(s.T(), inputObject["details"].(map[string]any)["name"], result["details"].(map[string]any)["name"])
+		require.NotEqual(s.T(), inputObject["user"].(map[string]any)["age"], result["user"].(map[string]any)["age"])
+		for j, sport := range result["sports"].([]any) {
+			require.NotEqual(s.T(), inputObject["sports"].([]any)[j], sport)
+		}
+	})
 }
 
 func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_InvalidTransformerConfig() {

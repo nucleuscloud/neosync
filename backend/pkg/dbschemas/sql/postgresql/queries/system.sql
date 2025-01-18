@@ -436,7 +436,7 @@ WITH custom_types AS (
     JOIN
         pg_catalog.pg_namespace n ON n.oid = t.typnamespace
     WHERE
-        n.nspname = sqlc.arg('schema')
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
         AND t.typtype IN ('d', 'e', 'c')
 ),
 table_columns AS (
