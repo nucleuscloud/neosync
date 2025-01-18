@@ -1,14 +1,19 @@
-package transformers
+package transformer_executor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 
+	"github.com/dop251/goja"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
+	"github.com/nucleuscloud/neosync/internal/javascript"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type TransformerExecutor struct {
@@ -85,6 +90,72 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			return nil, err
 		}
 		return InitializeTransformerByConfigType(resolvedConfig, opts...)
+	case *mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig:
+		config := typedCfg.GenerateJavascriptConfig
+		if config == nil {
+			return nil, fmt.Errorf("generate javascript config is nil")
+		}
+
+		valueApi := newAnonValueApi()
+		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		if err != nil {
+			return nil, err
+		}
+		program, err := goja.Compile("main.js", config.GetCode(), false)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TransformerExecutor{
+			Opts: nil,
+			Mutate: func(value any, opts any) (any, error) {
+				valueApi.SetMessage(service.NewMessage(nil))
+				_, err := runner.Run(context.Background(), program)
+				if err != nil {
+					return nil, err
+				}
+				updatedValue, err := valueApi.Message().AsStructuredMut()
+				if err != nil {
+					return nil, err
+				}
+				return updatedValue, nil
+			},
+		}, nil
+	case *mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig:
+		config := typedCfg.TransformJavascriptConfig
+		if config == nil {
+			return nil, fmt.Errorf("transform javascript config is nil")
+		}
+
+		valueApi := newAnonValueApi()
+		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		if err != nil {
+			return nil, err
+		}
+		program, err := goja.Compile("main.js", config.GetCode(), false)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TransformerExecutor{
+			Opts: nil,
+			Mutate: func(value any, opts any) (any, error) {
+				bits, err := json.Marshal(value)
+				if err != nil {
+					return nil, err
+				}
+				valueApi.SetMessage(service.NewMessage(bits))
+				_, err = runner.Run(context.Background(), program)
+				if err != nil {
+					return nil, err
+				}
+				updatedValue, err := valueApi.Message().AsBytes()
+				if err != nil {
+					return nil, err
+				}
+				return updatedValue, nil
+			},
+		}, nil
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
 		return &TransformerExecutor{
 			Opts: nil,
@@ -94,11 +165,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
 		config := transformerConfig.GetGenerateCategoricalConfig()
-		opts, err := NewGenerateCategoricalOptsFromConfig(config)
+		opts, err := transformers.NewGenerateCategoricalOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateCategorical().Generate
+		generate := transformers.NewGenerateCategorical().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -108,11 +179,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
 		config := transformerConfig.GetGenerateBoolConfig()
-		opts, err := NewGenerateBoolOptsFromConfig(config)
+		opts, err := transformers.NewGenerateBoolOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateBool().Generate
+		generate := transformers.NewGenerateBool().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -123,11 +194,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
 		config := transformerConfig.GetTransformStringConfig()
 		minLength := int64(3) // TODO: pull this value from the database schema
-		opts, err := NewTransformStringOptsFromConfig(config, &minLength, &maxLength)
+		opts, err := transformers.NewTransformStringOptsFromConfig(config, &minLength, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformString().Transform
+		transform := transformers.NewTransformString().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -136,11 +207,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
 		config := transformerConfig.GetTransformInt64Config()
-		opts, err := NewTransformInt64OptsFromConfig(config)
+		opts, err := transformers.NewTransformInt64OptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformInt64().Transform
+		transform := transformers.NewTransformInt64().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -150,11 +221,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
 		config := transformerConfig.GetTransformFullNameConfig()
-		opts, err := NewTransformFullNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewTransformFullNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformFullName().Transform
+		transform := transformers.NewTransformFullName().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -164,11 +235,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
 		config := transformerConfig.GetGenerateEmailConfig()
-		opts, err := NewGenerateEmailOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateEmailOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateEmail().Generate
+		generate := transformers.NewGenerateEmail().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -178,11 +249,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		config := transformerConfig.GetTransformEmailConfig()
-		opts, err := NewTransformEmailOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewTransformEmailOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformEmail().Transform
+		transform := transformers.NewTransformEmail().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -192,11 +263,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig:
 		config := transformerConfig.GetGenerateCardNumberConfig()
-		opts, err := NewGenerateCardNumberOptsFromConfig(config)
+		opts, err := transformers.NewGenerateCardNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateCardNumber().Generate
+		generate := transformers.NewGenerateCardNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -206,11 +277,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateCityConfig:
 		config := transformerConfig.GetGenerateCityConfig()
-		opts, err := NewGenerateCityOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateCityOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateCity().Generate
+		generate := transformers.NewGenerateCity().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -220,11 +291,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
 		config := transformerConfig.GetGenerateE164PhoneNumberConfig()
-		opts, err := NewGenerateInternationalPhoneNumberOptsFromConfig(config)
+		opts, err := transformers.NewGenerateInternationalPhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateInternationalPhoneNumber().Generate
+		generate := transformers.NewGenerateInternationalPhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -233,11 +304,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig:
 		config := transformerConfig.GetGenerateFirstNameConfig()
-		opts, err := NewGenerateFirstNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateFirstNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateFirstName().Generate
+		generate := transformers.NewGenerateFirstName().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -247,11 +318,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
 		config := transformerConfig.GetGenerateFloat64Config()
-		opts, err := NewGenerateFloat64OptsFromConfig(config, nil)
+		opts, err := transformers.NewGenerateFloat64OptsFromConfig(config, nil)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateFloat64().Generate
+		generate := transformers.NewGenerateFloat64().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -261,11 +332,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
 		config := transformerConfig.GetGenerateFullAddressConfig()
-		opts, err := NewGenerateFullAddressOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateFullAddressOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateFullAddress().Generate
+		generate := transformers.NewGenerateFullAddress().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -275,11 +346,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig:
 		config := transformerConfig.GetGenerateFullNameConfig()
-		opts, err := NewGenerateFullNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateFullNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateFullName().Generate
+		generate := transformers.NewGenerateFullName().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -289,11 +360,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
 		config := transformerConfig.GetGenerateGenderConfig()
-		opts, err := NewGenerateGenderOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateGenderOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateGender().Generate
+		generate := transformers.NewGenerateGender().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -303,11 +374,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig:
 		config := transformerConfig.GetGenerateInt64PhoneNumberConfig()
-		opts, err := NewGenerateInt64PhoneNumberOptsFromConfig(config)
+		opts, err := transformers.NewGenerateInt64PhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateInt64PhoneNumber().Generate
+		generate := transformers.NewGenerateInt64PhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -317,11 +388,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
 		config := transformerConfig.GetGenerateInt64Config()
-		opts, err := NewGenerateInt64OptsFromConfig(config)
+		opts, err := transformers.NewGenerateInt64OptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateInt64().Generate
+		generate := transformers.NewGenerateInt64().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -331,11 +402,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig:
 		config := transformerConfig.GetGenerateLastNameConfig()
-		opts, err := NewGenerateLastNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateLastNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateLastName().Generate
+		generate := transformers.NewGenerateLastName().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -345,11 +416,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig:
 		config := transformerConfig.GetGenerateSha256HashConfig()
-		opts, err := NewGenerateSHA256HashOptsFromConfig(config)
+		opts, err := transformers.NewGenerateSHA256HashOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateSHA256Hash().Generate
+		generate := transformers.NewGenerateSHA256Hash().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -359,11 +430,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateSsnConfig:
 		config := transformerConfig.GetGenerateSsnConfig()
-		opts, err := NewGenerateSSNOptsFromConfig(config)
+		opts, err := transformers.NewGenerateSSNOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateSSN().Generate
+		generate := transformers.NewGenerateSSN().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -373,11 +444,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStateConfig:
 		config := transformerConfig.GetGenerateStateConfig()
-		opts, err := NewGenerateStateOptsFromConfig(config)
+		opts, err := transformers.NewGenerateStateOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateState().Generate
+		generate := transformers.NewGenerateState().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -387,11 +458,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
 		config := transformerConfig.GetGenerateStreetAddressConfig()
-		opts, err := NewGenerateStreetAddressOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateStreetAddressOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateStreetAddress().Generate
+		generate := transformers.NewGenerateStreetAddress().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -401,11 +472,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
 		config := transformerConfig.GetGenerateStringPhoneNumberConfig()
-		opts, err := NewGenerateStringPhoneNumberOptsFromConfig(config)
+		opts, err := transformers.NewGenerateStringPhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateStringPhoneNumber().Generate
+		generate := transformers.NewGenerateStringPhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -415,11 +486,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		config := transformerConfig.GetGenerateStringConfig()
-		opts, err := NewGenerateRandomStringOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateRandomString().Generate
+		generate := transformers.NewGenerateRandomString().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -429,11 +500,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
 		config := transformerConfig.GetGenerateUnixtimestampConfig()
-		opts, err := NewGenerateUnixTimestampOptsFromConfig(config)
+		opts, err := transformers.NewGenerateUnixTimestampOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateUnixTimestamp().Generate
+		generate := transformers.NewGenerateUnixTimestamp().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -443,11 +514,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig:
 		config := transformerConfig.GetGenerateUsernameConfig()
-		opts, err := NewGenerateUsernameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateUsernameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateUsername().Generate
+		generate := transformers.NewGenerateUsername().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -457,11 +528,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig:
 		config := transformerConfig.GetGenerateUtctimestampConfig()
-		opts, err := NewGenerateUTCTimestampOptsFromConfig(config)
+		opts, err := transformers.NewGenerateUTCTimestampOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateUTCTimestamp().Generate
+		generate := transformers.NewGenerateUTCTimestamp().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -471,11 +542,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateUuidConfig:
 		config := transformerConfig.GetGenerateUuidConfig()
-		opts, err := NewGenerateUUIDOptsFromConfig(config)
+		opts, err := transformers.NewGenerateUUIDOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateUUID().Generate
+		generate := transformers.NewGenerateUUID().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -485,11 +556,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig:
 		config := transformerConfig.GetGenerateZipcodeConfig()
-		opts, err := NewGenerateZipcodeOptsFromConfig(config)
+		opts, err := transformers.NewGenerateZipcodeOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateZipcode().Generate
+		generate := transformers.NewGenerateZipcode().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -499,11 +570,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
 		config := transformerConfig.GetTransformE164PhoneNumberConfig()
-		opts, err := NewTransformE164PhoneNumberOptsFromConfig(config, nil)
+		opts, err := transformers.NewTransformE164PhoneNumberOptsFromConfig(config, nil)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformE164PhoneNumber().Transform
+		transform := transformers.NewTransformE164PhoneNumber().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -513,11 +584,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
 		config := transformerConfig.GetTransformFirstNameConfig()
-		opts, err := NewTransformFirstNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewTransformFirstNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformFirstName().Transform
+		transform := transformers.NewTransformFirstName().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -527,11 +598,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
 		config := transformerConfig.GetTransformFloat64Config()
-		opts, err := NewTransformFloat64OptsFromConfig(config, nil, nil)
+		opts, err := transformers.NewTransformFloat64OptsFromConfig(config, nil, nil)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformFloat64().Transform
+		transform := transformers.NewTransformFloat64().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -541,11 +612,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
 		config := transformerConfig.GetTransformInt64PhoneNumberConfig()
-		opts, err := NewTransformInt64PhoneNumberOptsFromConfig(config)
+		opts, err := transformers.NewTransformInt64PhoneNumberOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformInt64PhoneNumber().Transform
+		transform := transformers.NewTransformInt64PhoneNumber().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -555,11 +626,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
 		config := transformerConfig.GetTransformLastNameConfig()
-		opts, err := NewTransformLastNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewTransformLastNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformLastName().Transform
+		transform := transformers.NewTransformLastName().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -569,11 +640,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		config := transformerConfig.GetTransformPhoneNumberConfig()
-		opts, err := NewTransformStringPhoneNumberOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewTransformStringPhoneNumberOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformStringPhoneNumber().Transform
+		transform := transformers.NewTransformStringPhoneNumber().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -599,11 +670,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
 		config := transformerConfig.GetTransformCharacterScrambleConfig()
-		opts, err := NewTransformCharacterScrambleOptsFromConfig(config)
+		opts, err := transformers.NewTransformCharacterScrambleOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformCharacterScramble().Transform
+		transform := transformers.NewTransformCharacterScramble().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -613,11 +684,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
 		config := transformerConfig.GetGenerateCountryConfig()
-		opts, err := NewGenerateCountryOptsFromConfig(config)
+		opts, err := transformers.NewGenerateCountryOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateCountry().Generate
+		generate := transformers.NewGenerateCountry().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -656,11 +727,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig:
 		config := transformerConfig.GetGenerateBusinessNameConfig()
-		opts, err := NewGenerateBusinessNameOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateBusinessNameOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateBusinessName().Generate
+		generate := transformers.NewGenerateBusinessName().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -670,11 +741,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig:
 		config := transformerConfig.GetGenerateIpAddressConfig()
-		opts, err := NewGenerateIpAddressOptsFromConfig(config, &maxLength)
+		opts, err := transformers.NewGenerateIpAddressOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateIpAddress().Generate
+		generate := transformers.NewGenerateIpAddress().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -683,11 +754,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_TransformUuidConfig:
 		config := transformerConfig.GetTransformUuidConfig()
-		opts, err := NewTransformUuidOptsFromConfig(config)
+		opts, err := transformers.NewTransformUuidOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformUuid().Transform
+		transform := transformers.NewTransformUuid().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {

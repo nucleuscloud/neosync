@@ -6,15 +6,16 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/internal/testutil"
-	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformer_executor"
+
 	"github.com/stretchr/testify/require"
 )
 
 func Test_NeosyncOperator(t *testing.T) {
 	t.Run("Transform", func(t *testing.T) {
 		t.Run("string", func(t *testing.T) {
-			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
-				transformers.WithLogger(testutil.GetTestLogger(t)),
+			operator := newNeosyncOperatorApi([]transformer_executor.TransformerExecutorOption{
+				transformer_executor.WithLogger(testutil.GetTestLogger(t)),
 			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
@@ -26,8 +27,8 @@ func Test_NeosyncOperator(t *testing.T) {
 			require.IsType(t, "", actual)
 		})
 		t.Run("default_empty_string", func(t *testing.T) {
-			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
-				transformers.WithLogger(testutil.GetTestLogger(t)),
+			operator := newNeosyncOperatorApi([]transformer_executor.TransformerExecutorOption{
+				transformer_executor.WithLogger(testutil.GetTestLogger(t)),
 			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
@@ -39,8 +40,8 @@ func Test_NeosyncOperator(t *testing.T) {
 			require.IsType(t, "", actual)
 		})
 		t.Run("default_number", func(t *testing.T) {
-			operator := newNeosyncOperatorApi([]transformers.TransformerExecutorOption{
-				transformers.WithLogger(testutil.GetTestLogger(t)),
+			operator := newNeosyncOperatorApi([]transformer_executor.TransformerExecutorOption{
+				transformer_executor.WithLogger(testutil.GetTestLogger(t)),
 			})
 			actual, err := operator.Transform(context.Background(), &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
