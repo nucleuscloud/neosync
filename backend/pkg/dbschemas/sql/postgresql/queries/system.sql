@@ -607,10 +607,12 @@ ORDER BY
 
 -- name: GetExtensions :many
 SELECT
-    extname AS extension_name,
-    extversion AS installed_version
+    e.extname AS extension_name,
+    e.extversion AS installed_version,
+    n.nspname as schema_name
 FROM
-    pg_catalog.pg_extension
+    pg_catalog.pg_extension e
+LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
 WHERE extname != 'plpgsql'
 ORDER BY
     extname;

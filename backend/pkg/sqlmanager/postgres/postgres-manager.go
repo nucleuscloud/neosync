@@ -2,6 +2,7 @@ package sqlmanager_postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -354,10 +355,21 @@ func (p *PostgresManager) getExtensions(ctx context.Context) ([]*sqlmanager_shar
 	for _, row := range rows {
 		output = append(output, &sqlmanager_shared.ExtensionDataType{
 			Name:       row.ExtensionName,
-			Definition: fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %q VERSION %q;", row.ExtensionName, row.InstalledVersion),
+			Definition: wrapPgIdempotentExtension(row.SchemaName, row.ExtensionName, row.InstalledVersion),
 		})
 	}
 	return output, nil
+}
+
+func wrapPgIdempotentExtension(
+	schema sql.NullString,
+	extensionName,
+	version string,
+) string {
+	if schema.Valid && strings.EqualFold(schema.String, "public") {
+		return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q;`, extensionName, version)
+	}
+	return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q SCHEMA %q;`, extensionName, version, schema.String)
 }
 
 func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {

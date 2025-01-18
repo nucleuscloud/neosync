@@ -829,10 +829,12 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 
 const getExtensions = `-- name: GetExtensions :many
 SELECT
-    extname AS extension_name,
-    extversion AS installed_version
+    e.extname AS extension_name,
+    e.extversion AS installed_version,
+    n.nspname as schema_name
 FROM
-    pg_catalog.pg_extension
+    pg_catalog.pg_extension e
+LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
 WHERE extname != 'plpgsql'
 ORDER BY
     extname
@@ -841,6 +843,7 @@ ORDER BY
 type GetExtensionsRow struct {
 	ExtensionName    string
 	InstalledVersion string
+	SchemaName       sql.NullString
 }
 
 func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
@@ -852,7 +855,7 @@ func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsR
 	var items []*GetExtensionsRow
 	for rows.Next() {
 		var i GetExtensionsRow
-		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion); err != nil {
+		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion, &i.SchemaName); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
