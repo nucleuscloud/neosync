@@ -529,6 +529,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil
 	})
 
+	datatypes := &sqlmanager_shared.SchemaTableDataTypeResponse{}
 	dataTypeStmts := []string{}
 	errgrp.Go(func() error {
 		datatypeCfg, err := p.GetSchemaTableDataTypes(errctx, tables)
@@ -536,6 +537,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
 		}
 		dataTypeStmts = datatypeCfg.GetStatements()
+		datatypes = datatypeCfg
 		return nil
 	})
 
@@ -578,6 +580,9 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil, err
 	}
 
+	additionalSchemaStmts := getSchemaCreationStatementsFromDataTypes(tables, datatypes)
+	schemaStmts = append(schemaStmts, additionalSchemaStmts...)
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
@@ -587,6 +592,38 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		{Label: "table index", Statements: idxStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
 	}, nil
+}
+
+// Finds any schemas referenced in datatypes that don't exist in tables and returns the statements to create them
+func getSchemaCreationStatementsFromDataTypes(tables []*sqlmanager_shared.SchemaTable, datatypes *sqlmanager_shared.SchemaTableDataTypeResponse) []string {
+	schemaStmts := []string{}
+	schemaSet := map[string]struct{}{}
+	for _, table := range tables {
+		schemaSet[table.Schema] = struct{}{}
+	}
+
+	// Check each datatype schema against the table schemas
+	for _, composite := range datatypes.Composites {
+		if _, exists := schemaSet[composite.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", composite.Schema))
+			schemaSet[composite.Schema] = struct{}{}
+		}
+	}
+
+	for _, enum := range datatypes.Enums {
+		if _, exists := schemaSet[enum.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", enum.Schema))
+			schemaSet[enum.Schema] = struct{}{}
+		}
+	}
+
+	for _, domain := range datatypes.Domains {
+		if _, exists := schemaSet[domain.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", domain.Schema))
+			schemaSet[domain.Schema] = struct{}{}
+		}
+	}
+	return schemaStmts
 }
 
 func wrapPgIdempotentIndex(
