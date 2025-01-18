@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	SchemasLabel = "schemas"
+	SchemasLabel    = "schemas"
+	ExtensionsLabel = "extensions"
 )
 
 type PostgresManager struct {
@@ -303,16 +304,6 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 			mu.Unlock()
 			return nil
 		})
-		errgrp.Go(func() error {
-			extensions, err := p.getExtensions(errctx)
-			if err != nil {
-				return fmt.Errorf("unable to get postgres extensions: %w", err)
-			}
-			mu.Lock()
-			output.Extensions = append(output.Extensions, extensions...)
-			mu.Unlock()
-			return nil
-		})
 	}
 	err := errgrp.Wait()
 	if err != nil {
@@ -593,6 +584,18 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil
 	})
 
+	extensionStmts := []string{}
+	errgrp.Go(func() error {
+		extensions, err := p.getExtensions(errctx)
+		if err != nil {
+			return fmt.Errorf("unable to get postgres extensions: %w", err)
+		}
+		for _, extension := range extensions {
+			extensionStmts = append(extensionStmts, extension.Definition)
+		}
+		return nil
+	})
+
 	createTables := []string{}
 	nonFkAlterStmts := []string{}
 	fkAlterStmts := []string{}
@@ -625,6 +628,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
+		{Label: ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},

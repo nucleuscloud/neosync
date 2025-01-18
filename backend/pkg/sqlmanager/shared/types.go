@@ -150,9 +150,6 @@ type SchemaTableDataTypeResponse struct {
 	Composites []*DataType
 	Enums      []*DataType
 	Domains    []*DataType
-
-	// Extensions
-	Extensions []*ExtensionDataType
 }
 
 func (s *SchemaTableDataTypeResponse) GetStatements() []string {
@@ -162,9 +159,6 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 		return output
 	}
 
-	for _, ext := range s.Extensions {
-		output = append(output, ext.Definition)
-	}
 	for _, seq := range s.Sequences {
 		output = append(output, seq.Definition)
 	}
