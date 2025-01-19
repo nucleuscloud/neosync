@@ -25,7 +25,7 @@ func (b *Bits) ScanPgx(value any) error {
 	b.Bytes = bits.Bytes
 	b.Len = bits.Len
 	if bits.Len == 0 {
-		b.Len = int32(len(bits.Bytes))
+		b.Len = int32(len(bits.Bytes)) //nolint:gosec
 	}
 	return nil
 }

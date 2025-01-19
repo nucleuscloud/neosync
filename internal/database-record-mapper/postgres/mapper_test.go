@@ -41,7 +41,8 @@ func Test_parsePgRowValues(t *testing.T) {
 			"text", "integer", "boolean", "text", "json", "_integer", "bytea", "xml", "uuid",
 		}
 
-		result := parsePgRowValues(values, columnNames, columnTypes)
+		result, err := parsePgRowValues(values, columnNames, columnTypes)
+		require.NoError(t, err)
 		expected := map[string]any{
 			"text_col":  "Hello",
 			"int_col":   int64(42),
@@ -112,15 +113,42 @@ func Test_parsePgRowValues(t *testing.T) {
 		}
 
 		columnTypes := []string{
-			"_bit", "_varbit", "_bytea", "_bit[]", "_bytea[]",
+			"bit", "varbit", "bytea", "_bit", "_bytea",
 		}
 
-		result := parsePgRowValues(values, columnNames, columnTypes)
+		result, err := parsePgRowValues(values, columnNames, columnTypes)
+		require.NoError(t, err)
 
 		expected := map[string]any{
-			"bit_col":    bits,
-			"varbit_col": varbits,
-			"bytea_col":  byteaValue,
+			"bit_col": &neosynctypes.Bits{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_BIT",
+					},
+				},
+				Bytes: bits.Bytes,
+				Len:   bits.Len,
+			},
+			"varbit_col": &neosynctypes.Bits{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_BIT",
+					},
+				},
+				Bytes: varbits.Bytes,
+				Len:   varbits.Len,
+			},
+			"bytea_col": &neosynctypes.Binary{
+				BaseType: neosynctypes.BaseType{
+					Neosync: neosynctypes.Neosync{
+						Version: 1,
+						TypeId:  "NEOSYNC_BINARY",
+					},
+				},
+				Bytes: byteaValue,
+			},
 			"bit_array_col": &neosynctypes.NeosyncArray{
 				BaseType: neosynctypes.BaseType{
 					Neosync: neosynctypes.Neosync{
@@ -196,7 +224,8 @@ func Test_parsePgRowValues(t *testing.T) {
 		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
 		columnTypes := []string{"json", "json", "json", "json", "json", "_json"}
 
-		result := parsePgRowValues(values, columnNames, columnTypes)
+		result, err := parsePgRowValues(values, columnNames, columnTypes)
+		require.NoError(t, err)
 
 		expected := map[string]any{
 			"text_col":  "Hello",
@@ -266,7 +295,8 @@ func Test_parsePgRowValues(t *testing.T) {
 			"_text", "_integer", "_boolean", "_json",
 			"_bytea", "_xml", "_uuid", "_integer[]",
 		}
-		result := parsePgRowValues(values, columnNames, columnTypes)
+		result, err := parsePgRowValues(values, columnNames, columnTypes)
+		require.NoError(t, err)
 
 		expected := map[string]any{
 			"text_array": []any{"Hello", "World"},
@@ -317,7 +347,8 @@ func Test_parsePgRowValues(t *testing.T) {
 		columnNames := []string{"null_string", "null_json"}
 		columnTypes := []string{"text", "text"}
 
-		result := parsePgRowValues(values, columnNames, columnTypes)
+		result, err := parsePgRowValues(values, columnNames, columnTypes)
+		require.NoError(t, err)
 
 		expected := map[string]any{
 			"null_string": nil,

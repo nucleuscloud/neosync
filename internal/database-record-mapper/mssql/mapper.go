@@ -3,6 +3,7 @@ package mssql
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -55,10 +56,10 @@ func (m *MSSQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
-	return parseRowValues(values, columnNames, columnDbTypes), nil
+	return parseRowValues(values, columnNames, columnDbTypes)
 }
 
-func parseRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
+func parseRowValues(values []any, columnNames, columnDbTypes []string) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
@@ -67,8 +68,7 @@ func parseRowValues(values []any, columnNames, columnDbTypes []string) map[strin
 		case time.Time:
 			dt, err := neosynctypes.NewDateTimeFromMssql(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert time.Time to DateTime for column %s: %w", col, err)
 			}
 			jObj[col] = dt
 		case *mssql.UniqueIdentifier:
@@ -78,15 +78,13 @@ func parseRowValues(values []any, columnNames, columnDbTypes []string) map[strin
 			case strings.EqualFold(colType, "binary"):
 				binary, err := neosynctypes.NewBinaryFromMssql(t)
 				if err != nil {
-					jObj[col] = t
-					continue
+					return nil, fmt.Errorf("failed to convert binary data for column %s: %w", col, err)
 				}
 				jObj[col] = binary
 			case strings.EqualFold(colType, "varbinary"):
 				bits, err := neosynctypes.NewBitsFromMssql(t)
 				if err != nil {
-					jObj[col] = t
-					continue
+					return nil, fmt.Errorf("failed to convert varbinary data for column %s: %w", col, err)
 				}
 				jObj[col] = bits
 			default:
@@ -96,5 +94,5 @@ func parseRowValues(values []any, columnNames, columnDbTypes []string) map[strin
 			jObj[col] = t
 		}
 	}
-	return jObj
+	return jObj, nil
 }

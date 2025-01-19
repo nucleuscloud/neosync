@@ -27,29 +27,33 @@ func (m *MongoDBMapper) MapRecordWithKeyType(item map[string]any) (valuemap map[
 	result := make(map[string]any)
 	ktm := make(map[string]neosync_types.KeyType)
 	for k, v := range item {
-		result[k] = parsePrimitives(k, v, ktm)
+		val, err := parsePrimitives(k, v, ktm)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to parse primitive value for key %q: %w", k, err)
+		}
+		result[k] = val
 	}
 	return result, ktm, nil
 }
 
-func parsePrimitives(key string, value any, keyTypeMap map[string]neosync_types.KeyType) any {
+func parsePrimitives(key string, value any, keyTypeMap map[string]neosync_types.KeyType) (any, error) {
 	switch v := value.(type) {
 	case primitive.Decimal128:
 		keyTypeMap[key] = neosync_types.Decimal128
 		floatVal, _, err := big.ParseFloat(v.String(), 10, 128, big.ToNearestEven)
-		if err == nil {
-			return floatVal
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse decimal128 value for key %q: %w", key, err)
 		}
-		return v
+		return floatVal, nil
 	case primitive.Binary:
 		keyTypeMap[key] = neosync_types.Binary
-		return v
+		return v, nil
 	case primitive.ObjectID:
 		keyTypeMap[key] = neosync_types.ObjectID
-		return v
+		return v, nil
 	case primitive.Timestamp:
 		keyTypeMap[key] = neosync_types.Timestamp
-		return v
+		return v, nil
 	case bson.D:
 		m := make(map[string]any)
 		for _, elem := range v {
@@ -57,16 +61,25 @@ func parsePrimitives(key string, value any, keyTypeMap map[string]neosync_types.
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, elem.Key)
 			}
-			m[elem.Key] = parsePrimitives(path, elem.Value, keyTypeMap)
+			val, err := parsePrimitives(path, elem.Value, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse bson.D value for key %q: %w", path, err)
+			}
+			m[elem.Key] = val
 		}
-		return m
+		return m, nil
 	case bson.A:
 		result := make([]any, len(v))
 		for i, item := range v {
-			result[i] = parsePrimitives(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+			path := fmt.Sprintf("%s[%d]", key, i)
+			val, err := parsePrimitives(path, item, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse bson.A value at index %d for key %q: %w", i, key, err)
+			}
+			result[i] = val
 		}
-		return result
+		return result, nil
 	default:
-		return v
+		return v, nil
 	}
 }

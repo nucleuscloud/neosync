@@ -74,7 +74,7 @@ func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch servic
 		if err != nil {
 			return nil, err
 		}
-		newRoot, err := transformNeosyncToMysql(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		newRoot, err := transformNeosyncToMysql(root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,6 @@ func (m *neosyncToMysqlProcessor) Close(context.Context) error {
 }
 
 func transformNeosyncToMysql(
-	logger *service.Logger,
 	root any,
 	columns []string,
 	columnDataTypes map[string]string,
@@ -115,7 +114,7 @@ func transformNeosyncToMysql(
 		datatype := columnDataTypes[col]
 		newVal, err := getMysqlValue(val, colDefaults, datatype)
 		if err != nil {
-			logger.Warn(err.Error())
+			return nil, fmt.Errorf("failed to get MySQL value for column %s: %w", col, err)
 		}
 		newMap[col] = newVal
 	}
@@ -134,7 +133,7 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 
 	value, isNeosyncValue, err := getMysqlNeosyncValue(value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get MySQL value from neosync value: %w", err)
 	}
 	if isNeosyncValue {
 		return value, nil
