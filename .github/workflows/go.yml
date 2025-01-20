@@ -219,7 +219,7 @@ jobs:
           restore-keys: benchmarks-main
 
       - name: Run benchmark
-        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-output.txt
+        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
 
       - name: Compare benchmarks
