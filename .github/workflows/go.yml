@@ -210,10 +210,27 @@ jobs:
       - name: Install benchstat
         run: go install golang.org/x/perf/cmd/benchstat@latest
 
+      - name: Restore benchmark cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: main-benchmark.txt
+          key: benchmarks-main
+          restore-keys: benchmarks-main
+
       - name: Run benchmark
-        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee benchmark-output.txt
+        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-output.txt
+
 
       - name: Compare benchmarks
-        if: github.event_name == 'pull_request'
-        run: |
-          benchstat .benchmarks/results.txt benchmark-output.txt
+        if: steps.cache-restore.outputs.cache-hit == 'true'
+        run: benchstat main-benchmark.txt branch-benchmark.txt
+
+      # if this is main branch, cache the results
+      - name: Cache benchmark results
+        # if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: branch-benchmark.txt
+          key: benchmarks-main
+
