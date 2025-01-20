@@ -208,7 +208,7 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Run benchmark
-        run: go test -run=^$ -bench=. -benchmem | tee benchmark-output.txt
+        run: go test -run=^$ -bench=. -benchmem ./... | tee benchmark-output.txt
 
       - name: Download previous benchmark data
         uses: actions/cache@v4
