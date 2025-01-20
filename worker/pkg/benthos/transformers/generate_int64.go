@@ -30,6 +30,7 @@ So we will need to understand what type of column the user is trying to insert t
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random int64 value with a default length of 4.").
+		Category("int64").
 		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
 		Param(bloblang.NewInt64Param("min").Default(1).Description("Specifies the minimum value for the generated int.")).
 		Param(bloblang.NewInt64Param("max").Default(10000).Description("Specifies the maximum value for the generated int.")).
