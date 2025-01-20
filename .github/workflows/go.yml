@@ -206,26 +206,14 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+      
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
 
       - name: Run benchmark
-        run: go test -run=^$ -bench=. -benchmem ./... | tee benchmark-output.txt
+        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee benchmark-output.txt
 
-      - name: Download previous benchmark data
-        uses: actions/cache@v4
-        with:
-          path: ./cache
-          key: ${{ runner.os }}-benchmark
-
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Go Benchmark
-          tool: 'go'
-          output-file-path: benchmark-output.txt
-          external-data-json-path: ./cache/benchmark-data.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: '150%'
-          comment-on-alert: true
-          fail-on-alert: true
+      - name: Compare benchmarks
+        if: github.event_name == 'pull_request'
+        run: |
+          benchstat .benchmarks/results.txt benchmark-output.txt
