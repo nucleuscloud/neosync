@@ -217,18 +217,24 @@ jobs:
           path: main-benchmark.txt
           key: benchmarks-main
           restore-keys: benchmarks-main
+      
+      - name: Checkout main for benchmark if cache miss
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
+          git checkout -
 
       - name: Run benchmark
         run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
-
       - name: Compare benchmarks
-        if: steps.cache-restore.outputs.cache-hit == 'true'
         run: benchstat main-benchmark.txt branch-benchmark.txt
 
       # if this is main branch, cache the results
       - name: Cache benchmark results
-        # if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: actions/cache/save@v4
         with:
           path: branch-benchmark.txt
