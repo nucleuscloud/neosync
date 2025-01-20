@@ -250,7 +250,10 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				return err
 			}
 			for k, v := range d.conf.JSONMapColumns {
-				attr := marshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
+				attr, err := marshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
+				if err != nil {
+					return fmt.Errorf("failed to marshal JSON to DynamoDB attribute for key %s: %w", k, err)
+				}
 				if k == "" {
 					if mv, ok := attr.(*types.AttributeValueMemberM); ok {
 						for ak, av := range mv.Value {
@@ -444,25 +447,28 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 	return pConf.FieldDuration(path...)
 }
 
-func marshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
+func marshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) (types.AttributeValue, error) {
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case neosync_types.StringSet:
 			s, err := convertToStringSlice(root)
-			if err == nil {
-				return &types.AttributeValueMemberSS{
-					Value: s,
-				}
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert string set for key %s: %w", key, err)
 			}
+			return &types.AttributeValueMemberSS{
+				Value: s,
+			}, nil
 		case neosync_types.NumberSet:
 			s, err := convertToStringSlice(root)
-			if err == nil {
-				return &types.AttributeValueMemberNS{
-					Value: s,
-				}
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert number set for key %s: %w", key, err)
 			}
+			return &types.AttributeValueMemberNS{
+				Value: s,
+			}, nil
 		}
 	}
+
 	switch v := root.(type) {
 	case map[string]any:
 		m := make(map[string]types.AttributeValue, len(v))
@@ -471,58 +477,68 @@ func marshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, k)
 			}
-			m[k] = marshalToAttributeValue(path, v2, keyTypeMap)
+			av, err := marshalToAttributeValue(path, v2, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal map value for key %s: %w", path, err)
+			}
+			m[k] = av
 		}
 		return &types.AttributeValueMemberM{
 			Value: m,
-		}
+		}, nil
 	case []byte:
 		return &types.AttributeValueMemberB{
 			Value: v,
-		}
+		}, nil
 	case [][]byte:
 		return &types.AttributeValueMemberBS{
 			Value: v,
-		}
+		}, nil
 	case []any:
 		l := make([]types.AttributeValue, len(v))
 		for i, v2 := range v {
-			l[i] = marshalToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
+			path := fmt.Sprintf("%s[%d]", key, i)
+			av, err := marshalToAttributeValue(path, v2, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal array value at index %d: %w", i, err)
+			}
+			l[i] = av
 		}
 		return &types.AttributeValueMemberL{
 			Value: l,
-		}
+		}, nil
 	case string:
 		return &types.AttributeValueMemberS{
 			Value: v,
-		}
+		}, nil
 	case json.Number:
 		return &types.AttributeValueMemberS{
 			Value: v.String(),
-		}
+		}, nil
 	case float64:
 		return &types.AttributeValueMemberN{
 			Value: formatFloat(v),
-		}
+		}, nil
 	case int:
 		return &types.AttributeValueMemberN{
 			Value: strconv.Itoa(v),
-		}
+		}, nil
 	case int64:
 		return &types.AttributeValueMemberN{
 			Value: strconv.Itoa(int(v)),
-		}
+		}, nil
 	case bool:
 		return &types.AttributeValueMemberBOOL{
 			Value: v,
-		}
+		}, nil
 	case nil:
 		return &types.AttributeValueMemberNULL{
 			Value: true,
-		}
-	}
-	return &types.AttributeValueMemberS{
-		Value: fmt.Sprintf("%v", root),
+		}, nil
+	default:
+		return &types.AttributeValueMemberS{
+			Value: fmt.Sprintf("%v", root),
+		}, nil
 	}
 }
 
@@ -535,12 +551,16 @@ func formatFloat(f float64) string {
 	return s
 }
 
-func marshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
+func marshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]neosync_types.KeyType) (types.AttributeValue, error) {
 	gObj := gabs.Wrap(root)
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
-	return marshalToAttributeValue(key, gObj.Data(), keyTypeMap)
+	av, err := marshalToAttributeValue(key, gObj.Data(), keyTypeMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal JSON to DynamoDB attribute %w", err)
+	}
+	return av, nil
 }
 
 func convertToStringSlice(slice any) ([]string, error) {

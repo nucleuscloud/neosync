@@ -90,7 +90,6 @@ func Test_processPgArrayFromJson(t *testing.T) {
 }
 
 func Test_transformNeosyncToPgx(t *testing.T) {
-	logger := &service.Logger{}
 	columns := []string{"id", "name", "data"}
 	columnDataTypes := map[string]string{
 		"id":   "integer",
@@ -108,7 +107,7 @@ func Test_transformNeosyncToPgx(t *testing.T) {
 			"data": map[string]string{"foo": "bar"},
 		}
 
-		got, err := transformNeosyncToPgx(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		got, err := transformNeosyncToPgx(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 
 		// id should be DEFAULT due to HasDefaultTransformer
@@ -131,7 +130,7 @@ func Test_transformNeosyncToPgx(t *testing.T) {
 			"ignored": "value",
 		}
 
-		got, err := transformNeosyncToPgx(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		got, err := transformNeosyncToPgx(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 		require.NotContains(t, got, "ignored")
 	})
@@ -142,13 +141,13 @@ func Test_transformNeosyncToPgx(t *testing.T) {
 			"name": nil,
 		}
 
-		got, err := transformNeosyncToPgx(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		got, err := transformNeosyncToPgx(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 		require.Nil(t, got["name"])
 	})
 
 	t.Run("invalid input type", func(t *testing.T) {
-		_, err := transformNeosyncToPgx(logger, "not a map", columns, columnDataTypes, columnDefaultProperties)
+		_, err := transformNeosyncToPgx("not a map", columns, columnDataTypes, columnDefaultProperties)
 		require.Error(t, err)
 	})
 }

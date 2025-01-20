@@ -7,6 +7,7 @@ import (
 	mssql "github.com/microsoft/go-mssqldb"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_parseRowValues(t *testing.T) {
@@ -45,7 +46,8 @@ func Test_parseRowValues(t *testing.T) {
 		"INT",
 	}
 
-	result := parseRowValues(values, columnNames, columnDbTypes)
+	result, err := parseRowValues(values, columnNames, columnDbTypes)
+	require.NoError(t, err)
 
 	// Test datetime handling
 	dt, err := neosynctypes.NewDateTimeFromMssql(testTime)

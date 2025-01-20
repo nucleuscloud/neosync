@@ -31,7 +31,8 @@ func Test_parseMysqlRowValues(t *testing.T) {
 			"json",
 			"binary",
 		}
-		result := parseMysqlRowValues(values, columnNames, cTypes)
+		result, err := parseMysqlRowValues(values, columnNames, cTypes)
+		require.NoError(t, err)
 		expected := map[string]any{
 			"text_col": "Hello",
 			"int_col":  int64(42),
@@ -56,7 +57,8 @@ func Test_parseMysqlRowValues(t *testing.T) {
 		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
 		cTypes := []string{"json", "json", "json", "json", "json", "json"}
 
-		result := parseMysqlRowValues(values, columnNames, cTypes)
+		result, err := parseMysqlRowValues(values, columnNames, cTypes)
+		require.NoError(t, err)
 
 		expected := map[string]any{
 			"text_col":  "Hello",

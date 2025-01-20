@@ -10,7 +10,6 @@ import (
 )
 
 func Test_transformNeosyncToMssql(t *testing.T) {
-	logger := &service.Logger{}
 	columns := []string{"id", "name", "data", "default_col"}
 	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{
 		"default_col": {HasDefaultTransformer: true},
@@ -24,7 +23,7 @@ func Test_transformNeosyncToMssql(t *testing.T) {
 			"default_col": "should be skipped",
 		}
 
-		result, err := transformNeosyncToMssql(logger, input, columns, columnDefaultProperties)
+		result, err := transformNeosyncToMssql(input, columns, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, result["id"])
@@ -40,7 +39,7 @@ func Test_transformNeosyncToMssql(t *testing.T) {
 			"name": nil,
 		}
 
-		result, err := transformNeosyncToMssql(logger, input, columns, columnDefaultProperties)
+		result, err := transformNeosyncToMssql(input, columns, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Nil(t, result["id"])
@@ -54,7 +53,7 @@ func Test_transformNeosyncToMssql(t *testing.T) {
 			"unknown_column": "should not appear",
 		}
 
-		result, err := transformNeosyncToMssql(logger, input, columns, columnDefaultProperties)
+		result, err := transformNeosyncToMssql(input, columns, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, result["id"])
@@ -64,7 +63,7 @@ func Test_transformNeosyncToMssql(t *testing.T) {
 	})
 
 	t.Run("returns error for invalid root type", func(t *testing.T) {
-		result, err := transformNeosyncToMssql(logger, "invalid", columns, columnDefaultProperties)
+		result, err := transformNeosyncToMssql("invalid", columns, columnDefaultProperties)
 		require.Error(t, err)
 		require.Nil(t, result)
 		require.Contains(t, err.Error(), "root value must be a map[string]any")

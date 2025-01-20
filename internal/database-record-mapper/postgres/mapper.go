@@ -65,6 +65,9 @@ func (m *PostgresMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 		case strings.HasPrefix(dbTypeName, "_") || dbTypeName == "791":
 			values[i] = &PgxArray[any]{colDataType: dbTypeName}
 			scanTargets = append(scanTargets, values[i])
+		case strings.EqualFold(dbTypeName, "bit") || strings.EqualFold(dbTypeName, "varbit"):
+			values[i] = &pgtype.Bits{}
+			scanTargets = append(scanTargets, values[i])
 		default:
 			scanTargets = append(scanTargets, &values[i])
 		}
@@ -78,11 +81,14 @@ func (m *PostgresMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 		columnTypes[i] = ct.DatabaseTypeName()
 	}
 
-	jObj := parsePgRowValues(values, columnNames, columnTypes)
+	jObj, err := parsePgRowValues(values, columnNames, columnTypes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse row values: %w", err)
+	}
 	return jObj, nil
 }
 
-func parsePgRowValues(values []any, columnNames, columnTypes []string) map[string]any {
+func parsePgRowValues(values []any, columnNames, columnTypes []string) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
@@ -93,8 +99,7 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) map[strin
 		case time.Time:
 			dt, err := neosynctypes.NewDateTimeFromPgx(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert time.Time to DateTime: %w", err)
 			}
 			jObj[col] = dt
 		case *sql.NullString:
@@ -106,35 +111,31 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) map[strin
 		case *NullableJSON:
 			js, err := t.Unmarshal()
 			if err != nil {
-				js = t
+				return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 			}
 			jObj[col] = js
 		case *PgxArray[*pgtype.Interval]:
 			ia, err := toIntervalArray(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert interval array: %w", err)
 			}
 			jObj[col] = ia
 		case *PgxArray[[]byte]:
 			ba, err := toBinaryArray(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert binary array: %w", err)
 			}
 			jObj[col] = ba
 		case *PgxArray[*pgtype.Bits]:
 			ba, err := toBitsArray(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert bits array: %w", err)
 			}
 			jObj[col] = ba
 		case *PgxArray[any]:
 			slice, err := pgArrayToGoSlice(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert array: %w", err)
 			}
 			jObj[col] = slice
 		case *pgtype.Interval:
@@ -144,24 +145,25 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) map[strin
 			}
 			neoInterval, err := neosynctypes.NewIntervalFromPgx(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to convert interval: %w", err)
 			}
 			jObj[col] = neoInterval
+		case *pgtype.Bits:
+			if !t.Valid {
+				jObj[col] = nil
+				continue
+			}
+			bits, err := neosynctypes.NewBitsFromPgx(t)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert bits: %w", err)
+			}
+			jObj[col] = bits
 		default:
 			switch {
-			case strings.EqualFold(colType, "bit"), strings.EqualFold(colType, "varbit"):
-				bits, err := neosynctypes.NewBitsFromPgx(t)
-				if err != nil {
-					jObj[col] = t
-					continue
-				}
-				jObj[col] = bits
 			case strings.EqualFold(colType, "bytea"):
 				binary, err := neosynctypes.NewBinaryFromPgx(t)
 				if err != nil {
-					jObj[col] = t
-					continue
+					return nil, fmt.Errorf("failed to convert binary: %w", err)
 				}
 				jObj[col] = binary
 			default:
@@ -169,7 +171,7 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) map[strin
 			}
 		}
 	}
-	return jObj
+	return jObj, nil
 }
 
 type PgxArray[T any] struct {

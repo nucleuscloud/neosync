@@ -230,7 +230,7 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
-	if cmd.Destination.OnConflict.DoNothing && cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
+	if cmd.Destination != nil && cmd.Destination.OnConflict.DoNothing && cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
 		return errors.New("on-conflict-do-nothing and on-conflict-do-update cannot be used together")
 	}
 

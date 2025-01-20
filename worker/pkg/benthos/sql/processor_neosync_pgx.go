@@ -79,7 +79,7 @@ func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.
 		if err != nil {
 			return nil, err
 		}
-		newRoot, err := transformNeosyncToPgx(p.logger, root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		newRoot, err := transformNeosyncToPgx(root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +98,6 @@ func (m *neosyncToPgxProcessor) Close(context.Context) error {
 	return nil
 }
 func transformNeosyncToPgx(
-	logger *service.Logger,
 	root any,
 	columns []string,
 	columnDataTypes map[string]string,
@@ -119,9 +118,8 @@ func transformNeosyncToPgx(
 		datatype := columnDataTypes[col]
 		newVal, err := getPgxValue(val, colDefaults, datatype)
 		if err != nil {
-			logger.Warn(err.Error())
+			return nil, fmt.Errorf("failed to get PGX value for column %s: %w", col, err)
 		}
-
 		newMap[col] = newVal
 	}
 

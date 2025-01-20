@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -46,12 +47,15 @@ func (m *MySQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
 	}
-	jObj := parseMysqlRowValues(values, columnNames, columnDbTypes)
+	jObj, err := parseMysqlRowValues(values, columnNames, columnDbTypes)
+	if err != nil {
+		return nil, err
+	}
 
 	return jObj, nil
 }
 
-func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
+func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
@@ -60,29 +64,26 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[
 		case time.Time:
 			dt, err := neosynctypes.NewDateTimeFromMysql(t)
 			if err != nil {
-				jObj[col] = t
-				continue
+				return nil, fmt.Errorf("failed to parse datetime value: %w", err)
 			}
 			jObj[col] = dt
 		case []byte:
 			if strings.EqualFold(colDataType, "json") {
 				var js any
-				if err := json.Unmarshal(t, &js); err == nil {
-					jObj[col] = js
-					continue
+				if err := json.Unmarshal(t, &js); err != nil {
+					return nil, err
 				}
+				jObj[col] = js
 			} else if strings.EqualFold(colDataType, "binary") {
 				binary, err := neosynctypes.NewBinaryFromMysql(t)
 				if err != nil {
-					jObj[col] = t
-					continue
+					return nil, fmt.Errorf("failed to parse binary value: %w", err)
 				}
 				jObj[col] = binary
 			} else if strings.EqualFold(colDataType, "bit") || strings.EqualFold(colDataType, "varbit") {
 				bits, err := neosynctypes.NewBitsFromMysql(t)
 				if err != nil {
-					jObj[col] = t
-					continue
+					return nil, fmt.Errorf("failed to parse bit/varbit value: %w", err)
 				}
 				jObj[col] = bits
 			} else {
@@ -92,5 +93,5 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[
 			jObj[col] = t
 		}
 	}
-	return jObj
+	return jObj, nil
 }

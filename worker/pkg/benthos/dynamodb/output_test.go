@@ -553,7 +553,8 @@ func Test_MarshalToAttributeValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := marshalToAttributeValue(tt.key, tt.root, tt.keyTypeMap)
+			got, err := marshalToAttributeValue(tt.key, tt.root, tt.keyTypeMap)
+			require.NoError(t, err)
 			require.Equalf(t, tt.want, got, fmt.Sprintf("MarshalToAttributeValue() = %v, want %v", got, tt.want))
 		})
 	}

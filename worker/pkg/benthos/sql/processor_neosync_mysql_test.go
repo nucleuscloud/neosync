@@ -12,7 +12,6 @@ import (
 )
 
 func Test_transformNeosyncToMysql(t *testing.T) {
-	logger := &service.Logger{}
 	columns := []string{"id", "name", "data", "bits", "default_col"}
 	columnDataTypes := map[string]string{
 		"id":   "int",
@@ -33,7 +32,7 @@ func Test_transformNeosyncToMysql(t *testing.T) {
 			"default_col": "should be default",
 		}
 
-		result, err := transformNeosyncToMysql(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		result, err := transformNeosyncToMysql(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, result["id"])
@@ -49,7 +48,7 @@ func Test_transformNeosyncToMysql(t *testing.T) {
 			"name": nil,
 		}
 
-		result, err := transformNeosyncToMysql(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		result, err := transformNeosyncToMysql(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Nil(t, result["id"])
@@ -63,7 +62,7 @@ func Test_transformNeosyncToMysql(t *testing.T) {
 			"unknown_column": "should not appear",
 		}
 
-		result, err := transformNeosyncToMysql(logger, input, columns, columnDataTypes, columnDefaultProperties)
+		result, err := transformNeosyncToMysql(input, columns, columnDataTypes, columnDefaultProperties)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, result["id"])
@@ -73,7 +72,7 @@ func Test_transformNeosyncToMysql(t *testing.T) {
 	})
 
 	t.Run("returns error for invalid root type", func(t *testing.T) {
-		result, err := transformNeosyncToMysql(logger, "invalid", columns, columnDataTypes, columnDefaultProperties)
+		result, err := transformNeosyncToMysql("invalid", columns, columnDataTypes, columnDefaultProperties)
 		require.Error(t, err)
 		require.Nil(t, result)
 		require.Contains(t, err.Error(), "root value must be a map[string]any")
