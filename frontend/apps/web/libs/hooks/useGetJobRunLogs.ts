@@ -32,7 +32,13 @@ export function useGetJobRunLogs(
       '?',
       query.toString(),
     ],
-    queryFn: (ctx) => fetcher(ctx.queryKey.join('/')),
+    queryFn: (ctx) => {
+      const queryKey = ctx.queryKey;
+      const questionMarkIndex = queryKey.indexOf('?');
+      const baseUrl = queryKey.slice(0, questionMarkIndex).join('/');
+      const queryParams = queryKey.slice(questionMarkIndex + 1).join('');
+      return fetcher(`${baseUrl}?${queryParams}`);
+    },
     refetchInterval(query) {
       return query.state.data && refreshIntervalFn
         ? refreshIntervalFn(query.state.data)
@@ -46,7 +52,7 @@ export function useGetJobRunLogs(
           : fromJson(GetJobRunLogsStreamResponseSchema, d)
       );
     },
-    enabled: !!runId && !!accountId && !!loglevel,
+    enabled: !!runId && !!accountId,
   });
 }
 

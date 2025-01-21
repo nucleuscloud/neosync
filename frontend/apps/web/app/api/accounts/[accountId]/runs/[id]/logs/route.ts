@@ -1,9 +1,10 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import { RequestContext } from '@/shared';
-import { create } from '@bufbuild/protobuf';
+import { create, toJson } from '@bufbuild/protobuf';
 import {
   GetJobRunLogsStreamRequestSchema,
   GetJobRunLogsStreamResponse,
+  GetJobRunLogsStreamResponseSchema,
   LogLevel,
   LogWindow,
 } from '@neosync/sdk';
@@ -30,7 +31,7 @@ export async function GET(
     for await (const logRes of response) {
       logs.push(logRes);
     }
-    return logs;
+    return logs.map((log) => toJson(GetJobRunLogsStreamResponseSchema, log));
   })(req);
 }
 
