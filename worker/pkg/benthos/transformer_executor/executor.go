@@ -8,10 +8,12 @@ import (
 	"log/slog"
 
 	"github.com/dop251/goja"
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 	"github.com/nucleuscloud/neosync/internal/javascript"
+	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -101,7 +103,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		if err != nil {
 			return nil, err
 		}
-		program, err := goja.Compile("main.js", config.GetCode(), false)
+		propertyPath := uuid.NewString()
+		fn := javascript_userland.GetGenerateJavascriptFunction(config.GetCode(), propertyPath)
+		outputSetter := javascript_userland.BuildOutputSetter(propertyPath, false)
+		jsCode := javascript_userland.GetFunction([]string{fn}, []string{outputSetter})
+
+		program, err := goja.Compile("main.js", jsCode, false)
 		if err != nil {
 			return nil, err
 		}
@@ -109,14 +116,19 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
-				valueApi.SetMessage(service.NewMessage(nil))
-				_, err := runner.Run(context.Background(), program)
+				emptyMap := map[string]any{}
+				bits, err := json.Marshal(emptyMap)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to marshal empty map: %w", err)
 				}
-				updatedValue, err := valueApi.Message().AsStructuredMut()
+				valueApi.SetMessage(service.NewMessage(bits))
+				_, err = runner.Run(context.Background(), program)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to run program: %w", err)
+				}
+				updatedValue, err := valueApi.GetPropertyPathValue(propertyPath)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get property path value: %w", err)
 				}
 				return updatedValue, nil
 			},
@@ -767,6 +779,6 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
+		return nil, fmt.Errorf("unsupported transformerr: %T", typedCfg)
 	}
 }

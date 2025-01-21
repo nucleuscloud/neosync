@@ -1,6 +1,8 @@
 package transformer_executor
 
 import (
+	"fmt"
+
 	javascript_functions "github.com/nucleuscloud/neosync/internal/javascript/functions"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -45,4 +47,19 @@ func (b *anonValueApi) MetaGet(key string) (any, bool) {
 
 func (b *anonValueApi) MetaSetMut(key string, value any) {
 	b.message.MetaSetMut(key, value)
+}
+
+func (b *anonValueApi) GetPropertyPathValue(propertyPath string) (any, error) {
+	if b.message == nil {
+		return nil, fmt.Errorf("message is nil")
+	}
+	structuredValue, err := b.message.AsStructured()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get structured message: %w", err)
+	}
+	structuredValueMap, ok := structuredValue.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("structured value is not a map[string]any")
+	}
+	return structuredValueMap[propertyPath], nil
 }
