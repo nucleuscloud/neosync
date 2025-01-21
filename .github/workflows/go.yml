@@ -238,8 +238,7 @@ jobs:
 
       - name: Compare benchmarks
         run: |
-          # Run benchstat and save full output
-          benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
+          echo "### Benchstat Geomean Results" > benchstat-results.txt
 
           if grep -q "geomean" benchstat-output.txt; then
               changes=( $(grep "geomean" benchstat-output.txt | awk '{
@@ -250,26 +249,21 @@ jobs:
                       }
                   }
               }') )
-
               if [ ${#changes[@]} -ge 3 ]; then
                   result="${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op"
-                  echo "benchmark_results=$result" >> $GITHUB_OUTPUT
+                  echo -e "\n$result" >> benchstat-results.txt
               else
-                  echo "Error: Not enough metrics found in benchstat output" >> $GITHUB_OUTPUT
+                  echo -e "\nError: Not enough metrics found in benchstat output" >> benchstat-results.txt
               fi
           else
-              echo "No geomean found in benchstat output" >> $GITHUB_OUTPUT
+              echo -e "\nNo geomean found in benchstat output" >> benchstat-results.txt
           fi
 
       - name: Comment on PR
         if: github.event_name == 'pull_request' 
         uses: thollander/actions-comment-pull-request@v3
         with:
-          message: |
-            ### Benchstat Geomean Results
-            
-            ${{ steps.compare-benchmarks.outputs.benchmark_results }}
-
+          file-path: benchstat-results.txt
           comment-tag: benchmark-results
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
