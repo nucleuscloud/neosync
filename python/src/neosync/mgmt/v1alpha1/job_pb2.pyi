@@ -1108,6 +1108,33 @@ class GetJobRunLogsStreamResponse(_message.Message):
     timestamp: _timestamp_pb2.Timestamp
     def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
+class GetJobRunLogsRequest(_message.Message):
+    __slots__ = ("job_run_id", "account_id", "window", "max_log_lines", "log_levels")
+    JOB_RUN_ID_FIELD_NUMBER: _ClassVar[int]
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_FIELD_NUMBER: _ClassVar[int]
+    MAX_LOG_LINES_FIELD_NUMBER: _ClassVar[int]
+    LOG_LEVELS_FIELD_NUMBER: _ClassVar[int]
+    job_run_id: str
+    account_id: str
+    window: LogWindow
+    max_log_lines: int
+    log_levels: _containers.RepeatedScalarFieldContainer[LogLevel]
+    def __init__(self, job_run_id: _Optional[str] = ..., account_id: _Optional[str] = ..., window: _Optional[_Union[LogWindow, str]] = ..., max_log_lines: _Optional[int] = ..., log_levels: _Optional[_Iterable[_Union[LogLevel, str]]] = ...) -> None: ...
+
+class GetJobRunLogsResponse(_message.Message):
+    __slots__ = ("log_lines",)
+    class LogLine(_message.Message):
+        __slots__ = ("log_line", "timestamp")
+        LOG_LINE_FIELD_NUMBER: _ClassVar[int]
+        TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        log_line: str
+        timestamp: _timestamp_pb2.Timestamp
+        def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    LOG_LINES_FIELD_NUMBER: _ClassVar[int]
+    log_lines: _containers.RepeatedCompositeFieldContainer[GetJobRunLogsResponse.LogLine]
+    def __init__(self, log_lines: _Optional[_Iterable[_Union[GetJobRunLogsResponse.LogLine, _Mapping]]] = ...) -> None: ...
+
 class SetJobWorkflowOptionsRequest(_message.Message):
     __slots__ = ("id", "worfklow_options")
     ID_FIELD_NUMBER: _ClassVar[int]
