@@ -207,59 +207,59 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
       
-      # - name: Install benchstat
-      #   run: go install golang.org/x/perf/cmd/benchstat@latest
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
 
-      # - name: Restore benchmark cache
-      #   id: cache-restore
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: main-benchmark.txt
-      #     key: benchmarks-main
-      #     restore-keys: benchmarks-main
+      - name: Restore benchmark cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: main-benchmark.txt
+          key: benchmarks-main
+          restore-keys: benchmarks-main
       
-      # - name: Run benchmarks on main if cache miss
-      #   if: steps.cache-restore.outputs.cache-hit != 'true'
-      #   run: |
-      #     git fetch origin main
-      #     git checkout origin/main
-      #     go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
-      #     git checkout -
+      - name: Run benchmarks on main if cache miss
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
+          git checkout -
 
-      # - name: Cache benchmark results
-      #   if: steps.cache-restore.outputs.cache-hit != 'true'
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     path: main-benchmark.txt
-      #     key: benchmarks-main
+      - name: Cache benchmark results
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: main-benchmark.txt
+          key: benchmarks-main
 
-      # - name: Run benchmark
-      #   run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
+      - name: Run benchmark
+        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
-      # - name: Compare benchmarks
-      #   run: |
-      #     # Run benchstat and save full output
-      #     benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
+      - name: Compare benchmarks
+        run: |
+          # Run benchstat and save full output
+          benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
 
-      #     if grep -q "geomean" benchstat-output.txt; then
-      #         changes=( $(grep "geomean" benchstat-output.txt | awk '{
-      #             for(i=1; i<=NF; i++) {
-      #                 if($i ~ /%/) {
-      #                     gsub(/[+%]/, "", $i)
-      #                     print $i
-      #                 }
-      #             }
-      #         }') )
+          if grep -q "geomean" benchstat-output.txt; then
+              changes=( $(grep "geomean" benchstat-output.txt | awk '{
+                  for(i=1; i<=NF; i++) {
+                      if($i ~ /%/) {
+                          gsub(/[+%]/, "", $i)
+                          print $i
+                      }
+                  }
+              }') )
 
-      #         if [ ${#changes[@]} -ge 3 ]; then
-      #             result="${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op"
-      #             echo "benchmark_results=$result" >> $GITHUB_OUTPUT
-      #         else
-      #             echo "Error: Not enough metrics found in benchstat output" >> $GITHUB_OUTPUT
-      #         fi
-      #     else
-      #         echo "No geomean found in benchstat output" >> $GITHUB_OUTPUT
-      #     fi
+              if [ ${#changes[@]} -ge 3 ]; then
+                  result="${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op"
+                  echo "benchmark_results=$result" >> $GITHUB_OUTPUT
+              else
+                  echo "Error: Not enough metrics found in benchstat output" >> $GITHUB_OUTPUT
+              fi
+          else
+              echo "No geomean found in benchstat output" >> $GITHUB_OUTPUT
+          fi
 
       - name: Comment on PR
         if: github.event_name == 'pull_request' 
@@ -268,6 +268,8 @@ jobs:
           message: |
             ### Benchstat Geomean Results
             
+            ${{ steps.compare-benchmarks.outputs.benchmark_results }}
+
           comment-tag: benchmark-results
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
