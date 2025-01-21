@@ -230,7 +230,43 @@ jobs:
         run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
       - name: Compare benchmarks
-        run: benchstat main-benchmark.txt branch-benchmark.txt
+        run: |
+          # Run benchstat and save full output
+          benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
+
+          if grep -q "geomean" benchstat-output.txt; then
+              changes=( $(grep "geomean" benchstat-output.txt | awk '{
+                  for(i=1; i<=NF; i++) {
+                      if($i ~ /%/) {
+                          gsub(/[+%]/, "", $i)
+                          print $i
+                      }
+                  }
+              }') )
+
+              if [ ${#changes[@]} -ge 3 ]; then
+                  echo "${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op" >> $GITHUB_OUTPUT
+              else
+                  echo "Error: Not enough metrics found in benchstat output" >> $GITHUB_OUTPUT
+              fi
+          else
+              echo "No geomean found in benchstat output" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const output = `${{ steps.benchmark-compare.outputs.output }}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              body: '### Benchstat Geomean Results\n\n```\n' + output + '\n```'
+            });
 
       # if this is main branch, cache the results
       - name: Cache benchmark results
