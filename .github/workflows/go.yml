@@ -226,21 +226,21 @@ jobs:
           go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
           git checkout -
 
-      - name: Cache benchmark results
+      - name: Cache main branch benchmark results
         if: steps.cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: main-benchmark.txt
           key: benchmarks-main
 
-      - name: Run benchmark
+      - name: Run branch benchmark
         run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
       - name: Compare benchmarks
         run: |
           # Run benchstat and save output
           benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
-          
+
           echo "### Benchstat Geomean Results" > benchstat-results.txt
           if grep -q "geomean" benchstat-output.txt; then
               changes=( $(grep "geomean" benchstat-output.txt | awk '{
@@ -261,7 +261,7 @@ jobs:
               echo -e "\nNo geomean found in benchstat output" >> benchstat-results.txt
           fi
 
-      - name: Comment on PR
+      - name: Comment Benchstat Results on PR
         if: github.event_name == 'pull_request' 
         uses: thollander/actions-comment-pull-request@v3
         with:
@@ -270,7 +270,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # if this is main branch, cache the results
-      - name: Cache benchmark results
+      - name: Cache main branch benchmark results
         if: github.ref == 'refs/heads/main'
         uses: actions/cache/save@v4
         with:
