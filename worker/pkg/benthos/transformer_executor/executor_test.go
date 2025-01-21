@@ -1,10 +1,11 @@
-package transformers
+package transformer_executor
 
 import (
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
@@ -36,6 +37,36 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		result, err := executor.Mutate("test", executor.Opts)
 		require.NoError(t, err)
 		require.Equal(t, "A", result)
+	})
+	t.Run("TransformJavascriptConfig", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: "return value + ' world';",
+				},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate("hello", nil)
+		require.NoError(t, err)
+		require.Equal(t, "hello world", result)
+	})
+	t.Run("GenerateJavascriptConfig", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: "return 'hello world';",
+				},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, "hello world", result)
 	})
 	t.Run("PassthroughConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -1713,7 +1744,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(true)
+		originalValue := uuid.NewString()
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
 		require.NotEqual(t, originalValue, result)
@@ -1727,7 +1758,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
 		require.NotNil(t, executor)
-		originalValue := generateUuid(true)
+		originalValue := uuid.NewString()
 		result, err := executor.Mutate(originalValue, executor.Opts)
 		require.NoError(t, err)
 		require.NotEqual(t, originalValue, result)
