@@ -218,13 +218,20 @@ jobs:
           key: benchmarks-main
           restore-keys: benchmarks-main
       
-      - name: Checkout main for benchmark if cache miss
+      - name: Run benchmarks on main if cache miss
         if: steps.cache-restore.outputs.cache-hit != 'true'
         run: |
           git fetch origin main
           git checkout origin/main
           go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
           git checkout -
+
+      - name: Cache benchmark results
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: main-benchmark.txt
+          key: benchmarks-main
 
       - name: Run benchmark
         run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
@@ -245,7 +252,8 @@ jobs:
               }') )
 
               if [ ${#changes[@]} -ge 3 ]; then
-                  echo "${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op" >> $GITHUB_OUTPUT
+                  result="${changes[0]}% sec/op, ${changes[1]}% B/op, ${changes[2]}% allocs/op"
+                  echo "benchmark_results=$result" >> $GITHUB_OUTPUT
               else
                   echo "Error: Not enough metrics found in benchstat output" >> $GITHUB_OUTPUT
               fi
@@ -259,14 +267,37 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const output = `${{ steps.benchmark-compare.outputs.output }}`;
+            const newMessage = '### Benchstat Geomean Results\n\n```\n' + output + '\n```';
 
-            github.rest.issues.createComment({
+            // Get existing comments
+            const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.name,
-              body: '### Benchstat Geomean Results\n\n```\n' + output + '\n```'
             });
+
+            // Look for existing benchmark comment
+            const benchmarkComment = comments.find(comment => 
+              comment.body.includes('### Benchstat Geomean Results')
+            );
+
+            if (benchmarkComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: benchmarkComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.name,
+                body: newMessage
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.name,
+                body: newMessage
+              });
+            }
 
       # if this is main branch, cache the results
       - name: Cache benchmark results
