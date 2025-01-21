@@ -18,6 +18,7 @@ import { TiCancel } from 'react-icons/ti';
 
 import { CopyButton } from '@/components/CopyButton';
 import ResourceId from '@/components/ResourceId';
+import { TanstackQueryProvider404 } from '@/components/providers/query-provider';
 import {
   Dialog,
   DialogContent,
@@ -342,7 +343,13 @@ export default function Page({ params }: PageProps): ReactElement {
             })}
           </div>
           <div className="space-y-4">
-            <JobRunActivityErrors />
+            <TanstackQueryProvider404>
+              <JobRunActivityErrors
+                jobRunId={id}
+                jobId={jobRun?.jobId ?? ''}
+                accountId={accountId}
+              />
+            </TanstackQueryProvider404>
           </div>
           {!isSystemAppConfigDataLoading &&
             systemAppConfigData?.enableRunLogs && (

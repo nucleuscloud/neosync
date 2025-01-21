@@ -358,9 +358,9 @@ func wrapPgIdempotentExtension(
 	version string,
 ) string {
 	if schema.Valid && strings.EqualFold(schema.String, "public") {
-		return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q;`, extensionName, version)
+		return fmt.Sprintf(`CREATE EXTENSION  %q VERSION %q;`, extensionName, version)
 	}
-	return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q SCHEMA %q;`, extensionName, version, schema.String)
+	return fmt.Sprintf(`CREATE EXTENSION  %q VERSION %q SCHEMA %q;`, extensionName, version, schema.String)
 }
 
 func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {

@@ -50,3 +50,40 @@ export default function TanstackQueryProvider(props: Props): ReactElement {
     </QueryClientProvider>
   );
 }
+
+export function TanstackQueryProvider404(props: Props): ReactElement {
+  const { children } = props;
+
+  if (isServer) {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { staleTime: 60 * 1000 },
+      },
+    });
+    return (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+  }
+
+  // if (!browserQueryClient) {
+  browserQueryClient = new QueryClient({
+    queryCache: new QueryCache({
+      // good blog here: https://tkdodo.eu/blog/react-query-error-handling
+      onError(error, query) {
+        console.log('error', error);
+        // toast.error('Something went wrong', {
+        //   description: getErrorMessage(error),
+        //   id: query.queryKey.toString(),
+        // });
+      },
+    }),
+    defaultOptions: {},
+  });
+  // }
+
+  return (
+    <QueryClientProvider client={browserQueryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
