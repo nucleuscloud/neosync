@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
+import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
 
@@ -339,6 +340,9 @@ export default function Page({ params }: PageProps): ReactElement {
                 );
               }
             })}
+          </div>
+          <div className="space-y-4">
+            <JobRunActivityErrors />
           </div>
           {!isSystemAppConfigDataLoading &&
             systemAppConfigData?.enableRunLogs && (
