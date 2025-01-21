@@ -56,7 +56,7 @@ func sanitizeFunctionName(input string) string {
 func GetSingleGenerateFunction(userCode string) (code, propertyPath string) {
 	propertyPath = uuid.NewString()
 	fn := GetGenerateJavascriptFunction(userCode, propertyPath)
-	outputSetter := BuildOutputSetter(propertyPath, false)
+	outputSetter := BuildOutputSetter(propertyPath, false, false)
 	return GetFunction([]string{fn}, []string{outputSetter}), propertyPath
 }
 
@@ -65,7 +65,7 @@ func GetSingleGenerateFunction(userCode string) (code, propertyPath string) {
 func GetSingleTransformFunction(userCode string) (code, propertyPath string) {
 	propertyPath = uuid.NewString()
 	fn := GetTransformJavascriptFunction(userCode, propertyPath, false)
-	outputSetter := BuildOutputSetter(propertyPath, true)
+	outputSetter := BuildOutputSetter(propertyPath, true, false)
 	return GetFunction([]string{fn}, []string{outputSetter}), propertyPath
 }
 
@@ -86,10 +86,16 @@ neosync.patchStructuredMessage(updatedValues)
 	return jsCode
 }
 
-func BuildOutputSetter(propertyPath string, includeInput bool) string {
+func BuildOutputSetter(propertyPath string, includeInput, includeInputRecord bool) string {
 	if includeInput {
+		var strTemplate string
+		if includeInputRecord {
+			strTemplate = `updatedValues[%q] = fn_%s(%s, input)`
+		} else {
+			strTemplate = `updatedValues[%q] = fn_%s(%s)`
+		}
 		return fmt.Sprintf(
-			`updatedValues[%q] = fn_%s(%s, input)`,
+			strTemplate,
 			propertyPath,
 			sanitizeFunctionName(propertyPath),
 			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", propertyPath)),

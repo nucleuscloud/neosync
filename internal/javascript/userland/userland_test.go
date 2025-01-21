@@ -1,6 +1,12 @@
 package javascript_userland
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+
+	"github.com/dop251/goja"
+	"github.com/stretchr/testify/require"
+)
 
 func Test_sanitizeFunctionName(t *testing.T) {
 	tests := []struct {
@@ -29,4 +35,72 @@ func Test_sanitizeFunctionName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_GetSingleGenerateFunction(t *testing.T) {
+	code, propertyPath := GetSingleGenerateFunction("return 'hello world';")
+	require.NotEmpty(t, code)
+	require.NotEmpty(t, propertyPath)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({}),
+};
+const neosync = {
+  patchStructuredMessage: (val) => {
+    programOutput = val;
+  }
+};
+%s
+`, code)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap[propertyPath])
+}
+
+func Test_GetSingleTransformFunction(t *testing.T) {
+	code, propertyPath := GetSingleTransformFunction("return 'hello ' + value;")
+	require.NotEmpty(t, code)
+	require.NotEmpty(t, propertyPath)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({%q: "world"}),
+};
+const neosync = {
+  patchStructuredMessage: (val) => {
+    programOutput = val;
+  }
+};
+%s
+`, propertyPath, code)
+
+	fmt.Println(wrappedCode)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap[propertyPath])
+}
+
+func Test_convertJsObjPathToOptionalChain(t *testing.T) {
+	require.Equal(t, "address", convertJsObjPathToOptionalChain("address"))
+	require.Equal(t, "address?.['city']", convertJsObjPathToOptionalChain("address.city"))
+	require.Equal(t, "address?.['city']?.['state']", convertJsObjPathToOptionalChain("address.city.state"))
 }
