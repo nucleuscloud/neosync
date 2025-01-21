@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 // GetGenerateJavascriptFunction returns a Javascript function that takes no inputs and generates a value
@@ -47,6 +49,24 @@ func sanitizeFunctionName(input string) string {
 	}
 
 	return result.String()
+}
+
+// Takes a userland function and returns a single function that can be invoked by the JS VM
+// Returns the property key that the output will be set to
+func GetSingleGenerateFunction(userCode string) (code, propertyPath string) {
+	propertyPath = uuid.NewString()
+	fn := GetGenerateJavascriptFunction(userCode, propertyPath)
+	outputSetter := BuildOutputSetter(propertyPath, false)
+	return GetFunction([]string{fn}, []string{outputSetter}), propertyPath
+}
+
+// Takes a userland function and returns a single function that can be invoked by the JS VM
+// Returns the property key that the output will be set to
+func GetSingleTransformFunction(userCode string) (code, propertyPath string) {
+	propertyPath = uuid.NewString()
+	fn := GetTransformJavascriptFunction(userCode, propertyPath, false)
+	outputSetter := BuildOutputSetter(propertyPath, true)
+	return GetFunction([]string{fn}, []string{outputSetter}), propertyPath
 }
 
 // Takes all of the built userland functions and output setters and stuffs them into a single function that can be invoked by the JS VM

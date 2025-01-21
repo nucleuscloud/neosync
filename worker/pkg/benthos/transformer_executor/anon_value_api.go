@@ -1,6 +1,7 @@
 package transformer_executor
 
 import (
+	"encoding/json"
 	"fmt"
 
 	javascript_functions "github.com/nucleuscloud/neosync/internal/javascript/functions"
@@ -62,4 +63,12 @@ func (b *anonValueApi) GetPropertyPathValue(propertyPath string) (any, error) {
 		return nil, fmt.Errorf("structured value is not a map[string]any")
 	}
 	return structuredValueMap[propertyPath], nil
+}
+
+func NewMessage(input map[string]any) (*service.Message, error) {
+	bits, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal input map: %w", err)
+	}
+	return service.NewMessage(bits), nil
 }

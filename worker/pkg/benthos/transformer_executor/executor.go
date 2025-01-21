@@ -2,20 +2,17 @@ package transformer_executor
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/dop251/goja"
-	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 	"github.com/nucleuscloud/neosync/internal/javascript"
 	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
-	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type TransformerExecutor struct {
@@ -103,11 +100,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		if err != nil {
 			return nil, err
 		}
-		propertyPath := uuid.NewString()
-		fn := javascript_userland.GetGenerateJavascriptFunction(config.GetCode(), propertyPath)
-		outputSetter := javascript_userland.BuildOutputSetter(propertyPath, false)
-		jsCode := javascript_userland.GetFunction([]string{fn}, []string{outputSetter})
-
+		jsCode, propertyPath := javascript_userland.GetSingleGenerateFunction(config.GetCode())
 		program, err := goja.Compile("main.js", jsCode, false)
 		if err != nil {
 			return nil, err
@@ -116,12 +109,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
-				emptyMap := map[string]any{}
-				bits, err := json.Marshal(emptyMap)
+				inputMessage, err := NewMessage(map[string]any{})
 				if err != nil {
-					return nil, fmt.Errorf("failed to marshal empty map: %w", err)
+					return nil, fmt.Errorf("failed to create input message: %w", err)
 				}
-				valueApi.SetMessage(service.NewMessage(bits))
+				valueApi.SetMessage(inputMessage)
 				_, err = runner.Run(context.Background(), program)
 				if err != nil {
 					return nil, fmt.Errorf("failed to run program: %w", err)
@@ -144,11 +136,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		if err != nil {
 			return nil, err
 		}
-		propertyPath := uuid.NewString()
-		fn := javascript_userland.GetTransformJavascriptFunction(config.GetCode(), propertyPath, false)
-		outputSetter := javascript_userland.BuildOutputSetter(propertyPath, true)
-		jsCode := javascript_userland.GetFunction([]string{fn}, []string{outputSetter})
-
+		jsCode, propertyPath := javascript_userland.GetSingleTransformFunction(config.GetCode())
 		program, err := goja.Compile("main.js", jsCode, false)
 		if err != nil {
 			return nil, err
@@ -157,14 +145,13 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
-				inputMap := map[string]any{
+				inputMessage, err := NewMessage(map[string]any{
 					propertyPath: value,
-				}
-				bits, err := json.Marshal(inputMap)
+				})
 				if err != nil {
-					return nil, fmt.Errorf("failed to marshal input map: %w", err)
+					return nil, fmt.Errorf("failed to create input message: %w", err)
 				}
-				valueApi.SetMessage(service.NewMessage(bits))
+				valueApi.SetMessage(inputMessage)
 				_, err = runner.Run(context.Background(), program)
 				if err != nil {
 					return nil, fmt.Errorf("failed to run program: %w", err)
