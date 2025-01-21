@@ -267,7 +267,8 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const newMessage = '### Benchstat Geomean Results\n\n```\n' + output + '\n```';
+            const benchmarkResults = process.env.BENCHMARK_RESULTS;
+            const newMessage = '### Benchstat Geomean Results\n\n```\n' + benchmarkResults + '\n```';
 
             // Get existing comments
             const { data: comments } = await github.rest.issues.listComments({
