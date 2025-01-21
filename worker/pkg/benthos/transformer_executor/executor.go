@@ -144,7 +144,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		if err != nil {
 			return nil, err
 		}
-		program, err := goja.Compile("main.js", config.GetCode(), false)
+		propertyPath := uuid.NewString()
+		fn := javascript_userland.GetTransformJavascriptFunction(config.GetCode(), propertyPath, false)
+		outputSetter := javascript_userland.BuildOutputSetter(propertyPath, true)
+		jsCode := javascript_userland.GetFunction([]string{fn}, []string{outputSetter})
+
+		program, err := goja.Compile("main.js", jsCode, false)
 		if err != nil {
 			return nil, err
 		}
@@ -152,18 +157,21 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value any, opts any) (any, error) {
-				bits, err := json.Marshal(value)
+				inputMap := map[string]any{
+					propertyPath: value,
+				}
+				bits, err := json.Marshal(inputMap)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to marshal input map: %w", err)
 				}
 				valueApi.SetMessage(service.NewMessage(bits))
 				_, err = runner.Run(context.Background(), program)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to run program: %w", err)
 				}
-				updatedValue, err := valueApi.Message().AsBytes()
+				updatedValue, err := valueApi.GetPropertyPathValue(propertyPath)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to get property path value: %w", err)
 				}
 				return updatedValue, nil
 			},

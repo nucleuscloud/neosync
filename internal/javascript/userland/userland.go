@@ -16,9 +16,17 @@ function fn_%s(){
 }
 
 // GetTransformJavascriptFunction returns a Javascript function that takes a value and input and returns a transformed value
-func GetTransformJavascriptFunction(jsCode, fnNameSuffix string) string {
-	return fmt.Sprintf(`
+func GetTransformJavascriptFunction(jsCode, fnNameSuffix string, includeRecord bool) string {
+	if includeRecord {
+		return fmt.Sprintf(`
 function fn_%s(value, input){
+  %s
+};
+`, sanitizeFunctionName(fnNameSuffix), jsCode)
+	}
+
+	return fmt.Sprintf(`
+function fn_%s(value){
   %s
 };
 `, sanitizeFunctionName(fnNameSuffix), jsCode)
