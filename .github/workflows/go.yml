@@ -238,8 +238,10 @@ jobs:
 
       - name: Compare benchmarks
         run: |
+          # Run benchstat and save output
+          benchstat main-benchmark.txt branch-benchmark.txt | tee benchstat-output.txt
+          
           echo "### Benchstat Geomean Results" > benchstat-results.txt
-
           if grep -q "geomean" benchstat-output.txt; then
               changes=( $(grep "geomean" benchstat-output.txt | awk '{
                   for(i=1; i<=NF; i++) {
