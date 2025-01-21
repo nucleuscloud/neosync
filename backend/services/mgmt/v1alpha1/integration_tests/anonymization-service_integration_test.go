@@ -198,20 +198,72 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 				},
 			}),
 		)
-		requireNoErrResp(s.T(), resp, err)
-		require.NotEmpty(s.T(), resp.Msg.OutputData)
+		requireNoErrResp(t, resp, err)
+		require.NotEmpty(t, resp.Msg.OutputData)
 
 		var inputObject map[string]any
 		err = json.Unmarshal([]byte(jsonStr), &inputObject)
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 
 		output := resp.Msg.OutputData
 		var result map[string]any
 		err = json.Unmarshal([]byte(output), &result)
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		for _, sport := range result["sports"].([]any) {
 			require.Equal(t, "A", sport)
 		}
+	})
+
+	t.Run("javascript-transformers", func(t *testing.T) {
+		jsonStr := `{
+  "sports": ["basketball", "golf", "swimming"],
+	"name": "bill"
+}`
+
+		accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+
+		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeSingle(
+			s.ctx,
+			connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+				AccountId: accountId,
+				InputData: jsonStr,
+				TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+					{
+						Expression: ".sports",
+						Transformer: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+									Code: "return value.map(v => v + ' updated');",
+								},
+							},
+						},
+					},
+					{
+						Expression: ".name",
+						Transformer: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+								GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+									Code: "return 'jim';",
+								},
+							},
+						},
+					},
+				},
+			}),
+		)
+		requireNoErrResp(t, resp, err)
+		require.NotEmpty(t, resp.Msg.OutputData)
+
+		var inputObject map[string]any
+		err = json.Unmarshal([]byte(jsonStr), &inputObject)
+		require.NoError(t, err)
+
+		output := resp.Msg.OutputData
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+		require.Equal(t, "jim", result["name"])
+		require.Equal(t, []any{"basketball updated", "golf updated", "swimming updated"}, result["sports"])
 	})
 
 	t.Run("ok", func(t *testing.T) {
