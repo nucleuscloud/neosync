@@ -1,9 +1,9 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import { RequestContext } from '@/shared';
-import { create } from '@bufbuild/protobuf';
+import { create, JsonValue, toJson } from '@bufbuild/protobuf';
 import {
   GetJobRunLogsStreamRequestSchema,
-  GetJobRunLogsStreamResponse,
+  GetJobRunLogsStreamResponseSchema,
   LogLevel,
   LogWindow,
 } from '@neosync/sdk';
@@ -26,9 +26,9 @@ export async function GET(
         logLevels: [loglevel ? parseInt(loglevel, 10) : LogLevel.UNSPECIFIED],
       })
     );
-    const logs: GetJobRunLogsStreamResponse[] = [];
+    const logs: JsonValue[] = [];
     for await (const logRes of response) {
-      logs.push(logRes);
+      logs.push(toJson(GetJobRunLogsStreamResponseSchema, logRes));
     }
     return logs;
   })(req);
