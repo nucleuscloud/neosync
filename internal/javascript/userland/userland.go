@@ -9,6 +9,7 @@ import (
 )
 
 // GetGenerateJavascriptFunction returns a Javascript function that takes no inputs and generates a value
+// fnNameSuffix is the suffix of the function name
 func GetGenerateJavascriptFunction(jsCode, fnNameSuffix string) string {
 	return fmt.Sprintf(`
 function fn_%s(){
@@ -18,6 +19,8 @@ function fn_%s(){
 }
 
 // GetTransformJavascriptFunction returns a Javascript function that takes a value and input and returns a transformed value
+// fnNameSuffix is the suffix of the function name
+// includeRecord is true if the function should take in the input record
 func GetTransformJavascriptFunction(jsCode, fnNameSuffix string, includeRecord bool) string {
 	if includeRecord {
 		return fmt.Sprintf(`
@@ -70,6 +73,7 @@ func GetSingleTransformFunction(userCode string) (code, propertyPath string) {
 }
 
 // Takes all of the built userland functions and output setters and stuffs them into a single function that can be invoked by the JS VM
+// Calling the resulting program expects benthos.v0_msg_as_structured() and neosync.patchStructuredMessage() to be defined in the JS VM
 func GetFunction(jsFuncs, outputSetters []string) string {
 	jsFunctionStrings := strings.Join(jsFuncs, "\n")
 
@@ -86,6 +90,9 @@ neosync.patchStructuredMessage(updatedValues)
 	return jsCode
 }
 
+// BuildOutputSetter builds a string that sets the output of the function to the property path on the "updatedValues" object
+// includeInput is true if the propertyPath's value should be passed to the function
+// includeInputRecord is true if the entire "input" object should be passed to the function as the second argument
 func BuildOutputSetter(propertyPath string, includeInput, includeInputRecord bool) string {
 	if includeInput {
 		var strTemplate string
