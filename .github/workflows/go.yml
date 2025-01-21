@@ -261,44 +261,18 @@ jobs:
               echo "No geomean found in benchstat output" >> $GITHUB_OUTPUT
           fi
 
-      - name: Comment PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' 
+        uses: thollander/actions-comment-pull-request@v3
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const benchmarkResults = process.env.BENCHMARK_RESULTS;
-            const newMessage = '### Benchstat Geomean Results\n\n```\n' + benchmarkResults + '\n```';
-
-            // Get existing comments
-            const { data: comments } = await github.rest.issues.listComments({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-            });
-
-            // Look for existing benchmark comment
-            const benchmarkComment = comments.find(comment => 
-              comment.body.includes('### Benchstat Geomean Results')
-            );
-
-            if (benchmarkComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                comment_id: benchmarkComment.id,
-                owner: context.repo.owner,
-                repo: context.repo.name,
-                body: newMessage
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.name,
-                body: newMessage
-              });
-            }
+          message: |
+            ### Benchstat Geomean Results
+            
+            ```
+            ${{ steps.compare-benchmarks.outputs.benchmark_results }}
+            ```
+          comment_identifier: benchmark-results
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # if this is main branch, cache the results
       - name: Cache benchmark results
