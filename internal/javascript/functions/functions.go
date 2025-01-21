@@ -28,7 +28,6 @@ type Ctor func(r Runner) Function
 type FunctionDefinition struct {
 	namespace string
 	name      string
-	// params    []*FunctionParam
 	// ctor means "constructor"
 	ctor Ctor
 }
