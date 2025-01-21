@@ -12,6 +12,8 @@ type anonValueApi struct {
 	message *service.Message
 }
 
+var _ javascript_functions.ValueApi = (*anonValueApi)(nil)
+
 func newAnonValueApi() *anonValueApi {
 	return &anonValueApi{}
 }
@@ -23,8 +25,6 @@ func (b *anonValueApi) SetMessage(message *service.Message) {
 func (b *anonValueApi) Message() *service.Message {
 	return b.message
 }
-
-var _ javascript_functions.ValueApi = (*anonValueApi)(nil)
 
 func (b *anonValueApi) SetBytes(bytes []byte) {
 	b.message.SetBytes(bytes)
