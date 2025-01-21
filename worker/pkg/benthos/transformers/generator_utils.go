@@ -49,8 +49,9 @@ type BenthosSpec struct {
 	BloblangFuncName string
 	Description      string
 	Example          string
+	Category         string
 	Params           []*BenthosSpecParam
-	Type             string
+	Type             string // transform or generate
 	SourceFile       string
 }
 
@@ -58,6 +59,7 @@ type ParsedBenthosSpec struct {
 	Params           []*BenthosSpecParam
 	BloblangFuncName string
 	SpecDescription  string
+	Category         string
 }
 
 func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
@@ -122,6 +124,15 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		}
 	}
 
+	categoryRegex := regexp.MustCompile(`\.Category\("([^"]*)"\)`)
+	var category string
+	if categoryMatches := categoryRegex.FindStringSubmatch(benthosSpecStr); len(categoryMatches) > 0 {
+		category = categoryMatches[1]
+	}
+	if category == "" {
+		return nil, fmt.Errorf("category not found: %s", benthosSpec.SourceFile)
+	}
+
 	var specDescription string
 	parsedSpec := strings.Split(benthosSpecStr, ".Param")
 	for _, line := range parsedSpec {
@@ -165,6 +176,7 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		BloblangFuncName: bloblangFuncName,
 		Params:           params,
 		SpecDescription:  specDescription,
+		Category:         category,
 	}, nil
 }
 

@@ -15,6 +15,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Anonymizes and transforms an existing int64 value.").
+		Category("int64").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewInt64Param("randomization_range_min").Default(1).Description("Specifies the minimum value for the range of the int.")).
 		Param(bloblang.NewInt64Param("randomization_range_max").Default(10000).Description("Specifies the maximum value for the range of the int.")).

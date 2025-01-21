@@ -40,6 +40,7 @@ func isValidInvalidEmailAction(action string) bool {
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Anonymizes and transforms an existing email address.").
+		Category("email").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewBoolParam("preserve_domain").Default(false).Description("A boolean indicating whether the domain part of the email should be preserved.")).

@@ -14,6 +14,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().Description("Generates a randomly selected US zipcode.").
+		Category("string").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

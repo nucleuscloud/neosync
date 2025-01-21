@@ -14,6 +14,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random 10 digit phone number and returns it as a string with no hyphens.").
+		Category("string").
 		Param(bloblang.NewInt64Param("min").Default(9).Description("Specifies the minimum length for the generated phone number.")).
 		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum length for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))

@@ -23,6 +23,7 @@ const (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description(`Anonymizes and transforms an existing string value by scrambling the characters while maintaining the format based on a user provided regular expression. Letters will be replaced with letters, numbers with numbers and non-number or letter ASCII characters such as "!&\*" with other characters.`).
+		Category("string").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewStringParam("user_provided_regex").Optional().Description("A custom regular expression. This regex is used to manipulate input data during the transformation process.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))

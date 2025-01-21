@@ -44,6 +44,7 @@ var ipv4Ranges = map[IpType]struct {
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates IPv4 or IPv6 addresses with support for different network classes.").
+		Category("string").
 		Param(bloblang.NewInt64Param("max_length").Default(100000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewStringParam("ip_type").Default(string(IpV4_Public)).Description("IP type to generate.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("Optional seed for deterministic generation"))

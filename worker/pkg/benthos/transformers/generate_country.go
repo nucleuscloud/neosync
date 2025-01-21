@@ -14,6 +14,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().Description("Randomly selects a country and by default, returns it as a 2-letter country code.").
+		Category("string").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full country name instead of the two character country code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
