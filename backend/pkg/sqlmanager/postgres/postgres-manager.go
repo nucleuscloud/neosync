@@ -2,6 +2,7 @@ package sqlmanager_postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	SchemasLabel = "schemas"
+	SchemasLabel    = "schemas"
+	ExtensionsLabel = "extensions"
 )
 
 type PostgresManager struct {
@@ -332,6 +334,35 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 	return output, nil
 }
 
+func (p *PostgresManager) getExtensions(ctx context.Context) ([]*sqlmanager_shared.ExtensionDataType, error) {
+	rows, err := p.querier.GetExtensions(ctx, p.db)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.ExtensionDataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.ExtensionDataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.ExtensionDataType{
+			Name:       row.ExtensionName,
+			Definition: wrapPgIdempotentExtension(row.SchemaName, row.ExtensionName, row.InstalledVersion),
+		})
+	}
+	return output, nil
+}
+
+func wrapPgIdempotentExtension(
+	schema sql.NullString,
+	extensionName,
+	version string,
+) string {
+	if schema.Valid && strings.EqualFold(schema.String, "public") {
+		return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q;`, extensionName, version)
+	}
+	return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q SCHEMA %q;`, extensionName, version, schema.String)
+}
+
 func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
 		Schema: schema,
@@ -553,6 +584,18 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil
 	})
 
+	extensionStmts := []string{}
+	errgrp.Go(func() error {
+		extensions, err := p.getExtensions(errctx)
+		if err != nil {
+			return fmt.Errorf("unable to get postgres extensions: %w", err)
+		}
+		for _, extension := range extensions {
+			extensionStmts = append(extensionStmts, extension.Definition)
+		}
+		return nil
+	})
+
 	createTables := []string{}
 	nonFkAlterStmts := []string{}
 	fkAlterStmts := []string{}
@@ -585,6 +628,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
+		{Label: ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
