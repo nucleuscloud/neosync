@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -659,7 +660,22 @@ func (s *Service) streamLokiWorkerLogs(
 	if err != nil {
 		return err
 	}
-	for _, entry := range loki.GetEntriesFromStreams(streams) {
+	entries := loki.GetEntriesFromStreams(streams)
+	// Loki logs have issues with ordering, so we need to sort them manually
+	// Issue: https://github.com/grafana/loki/issues/13295
+	if direction == loki.BACKWARD {
+		sort.Slice(entries, func(i, j int) bool {
+			// sorts in descending order
+			return entries[i].Timestamp.After(entries[j].Timestamp)
+		})
+	} else {
+		sort.Slice(entries, func(i, j int) bool {
+			// sorts in ascending order
+			return entries[i].Timestamp.Before(entries[j].Timestamp)
+		})
+	}
+
+	for _, entry := range entries {
 		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
 		if err != nil {
 			return err

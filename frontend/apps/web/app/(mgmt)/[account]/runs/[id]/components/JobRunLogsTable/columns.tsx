@@ -3,15 +3,10 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
-import { GetJobRunLogsStreamResponse } from '@neosync/sdk';
+import { GetJobRunLogsResponse_LogLine } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 
-interface GetColumnsProps {}
-
-export function getColumns(
-  props: GetColumnsProps
-): ColumnDef<GetJobRunLogsStreamResponse>[] {
-  const {} = props;
+export function getColumns(): ColumnDef<GetJobRunLogsResponse_LogLine>[] {
   return [
     {
       accessorKey: 'timestamp',
