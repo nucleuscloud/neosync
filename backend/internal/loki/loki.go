@@ -110,10 +110,24 @@ func GetStreamsFromResponseData(data *QueryResponseData) (Streams, error) {
 	return streams, nil
 }
 
-func GetEntriesFromStreams(streams Streams) []Entry {
-	entries := []Entry{}
+func GetEntriesFromStreams(streams Streams) []*LabeledEntry {
+	entries := []*LabeledEntry{}
 	for _, stream := range streams {
-		entries = append(entries, stream.Entries...)
+		for _, entry := range stream.Entries {
+			entries = append(entries, &LabeledEntry{Entry: entry, Labels: getFilteredLabels(stream.Labels, allowedLabels)})
+		}
 	}
 	return entries
+}
+
+var allowedLabels = []string{"ActivityType", "Name", "Schema", "Table", "Attempt", "metadata_Schema", "metadata_Table"}
+
+func getFilteredLabels(labels LabelSet, keepLabels []string) LabelSet {
+	filteredLabels := LabelSet{}
+	for _, label := range keepLabels {
+		if value, ok := labels[label]; ok {
+			filteredLabels[label] = value
+		}
+	}
+	return filteredLabels
 }

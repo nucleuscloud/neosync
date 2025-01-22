@@ -84,12 +84,6 @@ export default function JobRunLogs({
       <DataTable
         columns={TABLE_COLUMNS}
         data={logResponses}
-        getFuzzyFilterValue={(table) =>
-          (table.getColumn('logLine')?.getFilterValue() as string) ?? ''
-        }
-        setFuzzyFilterValue={(table, newval) => {
-          table.getColumn('logLine')?.setFilterValue(newval);
-        }}
         selectedLogLevel={selectedLogLevel}
         setSelectedLogLevel={setSelectedLogLevel}
         isLoading={isLogsLoading}

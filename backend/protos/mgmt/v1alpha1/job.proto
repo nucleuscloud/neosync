@@ -1038,6 +1038,8 @@ message GetJobRunLogsStreamResponse {
   string log_line = 1;
   // The timestamp of the log line
   optional google.protobuf.Timestamp timestamp = 2;
+  // The labels associated with the log line
+  map<string, string> labels = 3;
 }
 
 message GetJobRunLogsRequest {
@@ -1061,6 +1063,8 @@ message GetJobRunLogsResponse {
     string log_line = 1;
     // The timestamp of the log line
     optional google.protobuf.Timestamp timestamp = 2;
+    // The labels associated with the log line
+    map<string, string> labels = 3;
   }
 }
 
@@ -1172,7 +1176,7 @@ message ColumnWarning {
     COLUMN_NOT_FOUND_IN_MAPPING = 2;
   }
 
-  // Column warning report 
+  // Column warning report
   message ColumnWarningReport {
     // The warning code
     ColumnWarningCode code = 1;

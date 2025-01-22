@@ -8949,6 +8949,7 @@ components:
         - VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE
         - VFK_COLUMN_DATATYPE_MISMATCH
         - VFK_SOURCE_COLUMN_NOT_UNIQUE
+      description: An enumeration of column error codes
     mgmt.v1alpha1.ColumnWarning.ColumnWarningCode:
       type: string
       title: ColumnWarningCode
@@ -8956,6 +8957,7 @@ components:
         - COLUMN_WARNING_CODE_UNSPECIFIED
         - COLUMN_NOT_FOUND_IN_SOURCE
         - COLUMN_NOT_FOUND_IN_MAPPING
+      description: An enumeration of column warning codes
     mgmt.v1alpha1.DatabaseError.DatabaseErrorCode:
       type: string
       title: DatabaseErrorCode
@@ -8968,6 +8970,7 @@ components:
         - VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING
         - VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE
         - VFK_COLUMN_MISMATCH
+      description: An enumeration of database error codes
     mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing:
       type: string
       title: Timing
@@ -9330,6 +9333,7 @@ components:
           description: The error message
       title: ColumnErrorReport
       additionalProperties: false
+      description: Column error report
     mgmt.v1alpha1.ColumnWarning:
       type: object
       properties:
@@ -9375,6 +9379,7 @@ components:
           description: The warning message
       title: ColumnWarningReport
       additionalProperties: false
+      description: Column warning report
     mgmt.v1alpha1.CreateJobDestination:
       type: object
       properties:
@@ -9580,6 +9585,7 @@ components:
           description: The error message
       title: DatabaseErrorReport
       additionalProperties: false
+      description: Database error report
     mgmt.v1alpha1.DeleteJobDestinationConnectionRequest:
       type: object
       properties:
@@ -10098,7 +10104,25 @@ components:
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
           title: timestamp
           description: The timestamp of the log line
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+          description: The labels associated with the log line
       title: LogLine
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunLogsStreamRequest:
       type: object
@@ -10183,7 +10207,25 @@ components:
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
           title: timestamp
           description: The timestamp of the log line
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+          description: The labels associated with the log line
       title: GetJobRunLogsStreamResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunRequest:
       type: object

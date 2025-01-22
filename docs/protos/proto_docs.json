@@ -8595,7 +8595,7 @@
           "name": "ColumnErrorCode",
           "longName": "ColumnError.ColumnErrorCode",
           "fullName": "mgmt.v1alpha1.ColumnError.ColumnErrorCode",
-          "description": "",
+          "description": "An enumeration of column error codes",
           "values": [
             {
               "name": "COLUMN_ERROR_CODE_UNSPECIFIED",
@@ -8663,7 +8663,7 @@
           "name": "ColumnWarningCode",
           "longName": "ColumnWarning.ColumnWarningCode",
           "fullName": "mgmt.v1alpha1.ColumnWarning.ColumnWarningCode",
-          "description": "",
+          "description": "An enumeration of column warning codes",
           "values": [
             {
               "name": "COLUMN_WARNING_CODE_UNSPECIFIED",
@@ -8686,7 +8686,7 @@
           "name": "DatabaseErrorCode",
           "longName": "DatabaseError.DatabaseErrorCode",
           "fullName": "mgmt.v1alpha1.DatabaseError.DatabaseErrorCode",
-          "description": "",
+          "description": "An enumeration of database error codes",
           "values": [
             {
               "name": "DATABASE_ERROR_CODE_UNSPECIFIED",
@@ -9372,7 +9372,7 @@
           "name": "ColumnErrorReport",
           "longName": "ColumnError.ColumnErrorReport",
           "fullName": "mgmt.v1alpha1.ColumnError.ColumnErrorReport",
-          "description": "",
+          "description": "Column error report",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -9483,7 +9483,7 @@
           "name": "ColumnWarningReport",
           "longName": "ColumnWarning.ColumnWarningReport",
           "fullName": "mgmt.v1alpha1.ColumnWarning.ColumnWarningReport",
-          "description": "",
+          "description": "Column warning report",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -9905,7 +9905,7 @@
           "name": "DatabaseErrorReport",
           "longName": "DatabaseError.DatabaseErrorReport",
           "fullName": "mgmt.v1alpha1.DatabaseError.DatabaseErrorReport",
-          "description": "",
+          "description": "Database error report",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -10949,6 +10949,54 @@
               "isoneof": true,
               "oneofdecl": "_timestamp",
               "defaultValue": ""
+            },
+            {
+              "name": "labels",
+              "description": "The labels associated with the log line",
+              "label": "repeated",
+              "type": "LabelsEntry",
+              "longType": "GetJobRunLogsResponse.LogLine.LabelsEntry",
+              "fullType": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LabelsEntry",
+          "longName": "GetJobRunLogsResponse.LogLine.LabelsEntry",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -11068,6 +11116,54 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_timestamp",
+              "defaultValue": ""
+            },
+            {
+              "name": "labels",
+              "description": "The labels associated with the log line",
+              "label": "repeated",
+              "type": "LabelsEntry",
+              "longType": "GetJobRunLogsStreamResponse.LabelsEntry",
+              "fullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LabelsEntry",
+          "longName": "GetJobRunLogsStreamResponse.LabelsEntry",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

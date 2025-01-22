@@ -1101,12 +1101,21 @@ class GetJobRunLogsStreamRequest(_message.Message):
     def __init__(self, job_run_id: _Optional[str] = ..., account_id: _Optional[str] = ..., window: _Optional[_Union[LogWindow, str]] = ..., should_tail: bool = ..., max_log_lines: _Optional[int] = ..., log_levels: _Optional[_Iterable[_Union[LogLevel, str]]] = ...) -> None: ...
 
 class GetJobRunLogsStreamResponse(_message.Message):
-    __slots__ = ("log_line", "timestamp")
+    __slots__ = ("log_line", "timestamp", "labels")
+    class LabelsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     LOG_LINE_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    LABELS_FIELD_NUMBER: _ClassVar[int]
     log_line: str
     timestamp: _timestamp_pb2.Timestamp
-    def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    labels: _containers.ScalarMap[str, str]
+    def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class GetJobRunLogsRequest(_message.Message):
     __slots__ = ("job_run_id", "account_id", "window", "max_log_lines", "log_levels")
@@ -1125,12 +1134,21 @@ class GetJobRunLogsRequest(_message.Message):
 class GetJobRunLogsResponse(_message.Message):
     __slots__ = ("log_lines",)
     class LogLine(_message.Message):
-        __slots__ = ("log_line", "timestamp")
+        __slots__ = ("log_line", "timestamp", "labels")
+        class LabelsEntry(_message.Message):
+            __slots__ = ("key", "value")
+            KEY_FIELD_NUMBER: _ClassVar[int]
+            VALUE_FIELD_NUMBER: _ClassVar[int]
+            key: str
+            value: str
+            def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
         LOG_LINE_FIELD_NUMBER: _ClassVar[int]
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        LABELS_FIELD_NUMBER: _ClassVar[int]
         log_line: str
         timestamp: _timestamp_pb2.Timestamp
-        def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+        labels: _containers.ScalarMap[str, str]
+        def __init__(self, log_line: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
     LOG_LINES_FIELD_NUMBER: _ClassVar[int]
     log_lines: _containers.RepeatedCompositeFieldContainer[GetJobRunLogsResponse.LogLine]
     def __init__(self, log_lines: _Optional[_Iterable[_Union[GetJobRunLogsResponse.LogLine, _Mapping]]] = ...) -> None: ...
