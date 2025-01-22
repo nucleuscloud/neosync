@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
@@ -16,6 +17,13 @@ func TestIsRetryableError(t *testing.T) {
 	t.Run("nil error", func(t *testing.T) {
 		if isRetryableError(nil) {
 			t.Error("expected false for nil error")
+		}
+	})
+
+	t.Run("unexpected eof error", func(t *testing.T) {
+		err := io.ErrUnexpectedEOF
+		if !isRetryableError(err) {
+			t.Error("expected true for unexpected EOF error")
 		}
 	})
 

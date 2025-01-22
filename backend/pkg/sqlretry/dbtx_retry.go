@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
@@ -108,6 +109,9 @@ func isRetryableError(err error) bool {
 		return true
 	}
 	if errors.Is(err, mysql.ErrBusyBuffer) {
+		return true
+	}
+	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
 	if pqErr, ok := err.(*pq.Error); ok {
