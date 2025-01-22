@@ -29,6 +29,15 @@ interface Props<TData> {
    * This is a trade off between performance and CPU.
    */
   rowOverscan?: number;
+
+  bodyRow?: {
+    className?: string;
+    disableTdWidth?: boolean;
+  };
+  headerRow?: {
+    className?: string;
+    disableThWidth?: boolean;
+  };
 }
 
 /**
@@ -41,7 +50,13 @@ interface Props<TData> {
  * Configuring the overscan helps smooth out scrolling, but will increase CPU. For fast systems this is very noticeable and helps with reducing white flashing during quick scrolls.
  */
 export default function FastTable<TData>(props: Props<TData>): ReactElement {
-  const { table, estimateRowSize = () => 53, rowOverscan = 50 } = props;
+  const {
+    table,
+    estimateRowSize = () => 53,
+    rowOverscan = 50,
+    bodyRow,
+    headerRow,
+  } = props;
 
   const { rows } = table.getRowModel();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -68,17 +83,22 @@ export default function FastTable<TData>(props: Props<TData>): ReactElement {
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
-              className="flex flex-row items-center justify-between"
+              className={cn(
+                'flex flex-row items-center justify-between',
+                headerRow?.className
+              )}
             >
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
                     key={header.id}
                     style={{
-                      width:
-                        header.column.columnDef.id != 'isSelected'
-                          ? '187px'
-                          : '20px',
+                      minWidth: header.column.getSize(),
+                      width: headerRow?.disableThWidth
+                        ? undefined
+                        : header.column.columnDef.id === 'isSelected'
+                          ? '20px'
+                          : '187px',
                     }}
                     colSpan={header.colSpan}
                     className="flex items-center"
@@ -107,6 +127,8 @@ export default function FastTable<TData>(props: Props<TData>): ReactElement {
                 row={row}
                 virtualRow={virtualRow}
                 selected={row.getIsSelected()} // must be memoized here since row.getIsSelected() changes in place
+                tableRowClassName={bodyRow?.className}
+                disableTdWidth={bodyRow?.disableTdWidth}
               />
             );
           })}
