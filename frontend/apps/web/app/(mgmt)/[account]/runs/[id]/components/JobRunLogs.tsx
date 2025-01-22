@@ -64,7 +64,7 @@ export default function JobRunLogs({
       )}
       {logResponses?.some((l) => l.logLine.startsWith('[ERROR]')) && (
         <Alert variant="destructive">
-          <AlertTitle>{`Log Errors: check logs for errors`}</AlertTitle>
+          <AlertTitle>{`Log Errors: check logs for errors or filter log level by error`}</AlertTitle>
         </Alert>
       )}
       <div className="flex flex-row items-center gap-8">
