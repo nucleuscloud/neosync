@@ -1561,16 +1561,18 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	dbErrors := &mgmtv1alpha1.DatabaseError{
-		Errors:       []string{},
-		ErrorReports: []*mgmtv1alpha1.ErrorReport{},
-	}
+	dbErrMsgs := []string{}
+	dbErrReports := []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport{}
 	for _, err := range result.DatabaseErrors {
-		dbErrors.Errors = append(dbErrors.Errors, err.Message)
-		dbErrors.ErrorReports = append(dbErrors.ErrorReports, &mgmtv1alpha1.ErrorReport{
-			Code:    string(err.Code),
+		dbErrMsgs = append(dbErrMsgs, err.Message)
+		dbErrReports = append(dbErrReports, &mgmtv1alpha1.DatabaseError_DatabaseErrorReport{
+			Code:    err.Code,
 			Message: err.Message,
 		})
+	}
+	dbErrors := &mgmtv1alpha1.DatabaseError{
+		Errors:       dbErrMsgs,
+		ErrorReports: dbErrReports,
 	}
 
 	colErrors := []*mgmtv1alpha1.ColumnError{}
@@ -1581,8 +1583,8 @@ func (s *Service) ValidateJobMappings(
 				Schema:       schema,
 				Table:        table,
 				Column:       col,
-				Errors:       convertErrorResponsesToMessages(errors),
-				ErrorReports: convertErrorResponsesToReports(errors),
+				Errors:       getErrorMessages(errors),
+				ErrorReports: errors,
 			})
 		}
 	}
@@ -1595,8 +1597,8 @@ func (s *Service) ValidateJobMappings(
 				Schema:         schema,
 				Table:          table,
 				Column:         col,
-				Warnings:       convertErrorResponsesToMessages(warnings),
-				WarningReports: convertErrorResponsesToReports(warnings),
+				Warnings:       getErrorMessages(warnings),
+				WarningReports: warnings,
 			})
 		}
 	}
@@ -1608,23 +1610,16 @@ func (s *Service) ValidateJobMappings(
 	}), nil
 }
 
-func convertErrorResponsesToMessages(errors []*job.ErrorResponse) []string {
-	messages := []string{}
-	for _, err := range errors {
-		messages = append(messages, err.Message)
-	}
-	return messages
+type ErrorReport interface {
+	GetMessage() string
 }
 
-func convertErrorResponsesToReports(errors []*job.ErrorResponse) []*mgmtv1alpha1.ErrorReport {
-	reports := []*mgmtv1alpha1.ErrorReport{}
-	for _, err := range errors {
-		reports = append(reports, &mgmtv1alpha1.ErrorReport{
-			Code:    string(err.Code),
-			Message: err.Message,
-		})
+func getErrorMessages[T ErrorReport](errorsReports []T) []string {
+	messages := []string{}
+	for _, err := range errorsReports {
+		messages = append(messages, err.GetMessage())
 	}
-	return reports
+	return messages
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {

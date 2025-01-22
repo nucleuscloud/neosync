@@ -8592,6 +8592,145 @@
           ]
         },
         {
+          "name": "ColumnErrorCode",
+          "longName": "ColumnError.ColumnErrorCode",
+          "fullName": "mgmt.v1alpha1.ColumnError.ColumnErrorCode",
+          "description": "",
+          "values": [
+            {
+              "name": "COLUMN_ERROR_CODE_UNSPECIFIED",
+              "number": "0",
+              "description": "Default unspecified value"
+            },
+            {
+              "name": "COLUMN_NOT_FOUND_IN_SOURCE",
+              "number": "1",
+              "description": "Column not found in source database"
+            },
+            {
+              "name": "COLUMN_NOT_FOUND_IN_MAPPING",
+              "number": "2",
+              "description": "Column not found in job mapping"
+            },
+            {
+              "name": "REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING",
+              "number": "3",
+              "description": "Required column not found in job mapping"
+            },
+            {
+              "name": "REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING",
+              "number": "4",
+              "description": "Required foreign key not found in job mapping"
+            },
+            {
+              "name": "UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
+              "number": "5",
+              "description": "Unsupported circular dependency detected"
+            },
+            {
+              "name": "VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING",
+              "number": "6",
+              "description": "Virtual foreign key source column not found in mapping"
+            },
+            {
+              "name": "VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE",
+              "number": "7",
+              "description": "Virtual foreign key source column not found in source"
+            },
+            {
+              "name": "VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING",
+              "number": "8",
+              "description": "Virtual foreign key target column not found in mapping"
+            },
+            {
+              "name": "VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE",
+              "number": "9",
+              "description": "Virtual foreign key target column not found in source"
+            },
+            {
+              "name": "VFK_COLUMN_DATATYPE_MISMATCH",
+              "number": "10",
+              "description": "Virtual foreign key column datatype mismatch"
+            },
+            {
+              "name": "VFK_SOURCE_COLUMN_NOT_UNIQUE",
+              "number": "11",
+              "description": "Virtual foreign key source column not unique"
+            }
+          ]
+        },
+        {
+          "name": "ColumnWarningCode",
+          "longName": "ColumnWarning.ColumnWarningCode",
+          "fullName": "mgmt.v1alpha1.ColumnWarning.ColumnWarningCode",
+          "description": "",
+          "values": [
+            {
+              "name": "COLUMN_WARNING_CODE_UNSPECIFIED",
+              "number": "0",
+              "description": "Default unspecified value"
+            },
+            {
+              "name": "COLUMN_NOT_FOUND_IN_SOURCE",
+              "number": "1",
+              "description": "Column not found in source database"
+            },
+            {
+              "name": "COLUMN_NOT_FOUND_IN_MAPPING",
+              "number": "2",
+              "description": "Column not found in job mapping"
+            }
+          ]
+        },
+        {
+          "name": "DatabaseErrorCode",
+          "longName": "DatabaseError.DatabaseErrorCode",
+          "fullName": "mgmt.v1alpha1.DatabaseError.DatabaseErrorCode",
+          "description": "",
+          "values": [
+            {
+              "name": "DATABASE_ERROR_CODE_UNSPECIFIED",
+              "number": "0",
+              "description": "Default unspecified value"
+            },
+            {
+              "name": "TABLE_NOT_FOUND_IN_SOURCE",
+              "number": "1",
+              "description": "Table not found in source database"
+            },
+            {
+              "name": "UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
+              "number": "2",
+              "description": "Unsupported circular dependency detected"
+            },
+            {
+              "name": "VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING",
+              "number": "3",
+              "description": "Virtual foreign key source table not found in mapping"
+            },
+            {
+              "name": "VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE",
+              "number": "4",
+              "description": "Virtual foreign key source table not found in source"
+            },
+            {
+              "name": "VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING",
+              "number": "5",
+              "description": "Virtual foreign key target table not found in mapping"
+            },
+            {
+              "name": "VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE",
+              "number": "6",
+              "description": "Virtual foreign key target table not found in source"
+            },
+            {
+              "name": "VFK_COLUMN_MISMATCH",
+              "number": "7",
+              "description": "Virtual foreign key column mismatch"
+            }
+          ]
+        },
+        {
           "name": "Timing",
           "longName": "GetActiveJobHooksByTimingRequest.Timing",
           "fullName": "mgmt.v1alpha1.GetActiveJobHooksByTimingRequest.Timing",
@@ -9210,15 +9349,54 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "error_reports",
               "description": "The list of error reports",
               "label": "repeated",
-              "type": "ErrorReport",
-              "longType": "ErrorReport",
-              "fullType": "mgmt.v1alpha1.ErrorReport",
+              "type": "ColumnErrorReport",
+              "longType": "ColumnError.ColumnErrorReport",
+              "fullType": "mgmt.v1alpha1.ColumnError.ColumnErrorReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnErrorReport",
+          "longName": "ColumnError.ColumnErrorReport",
+          "fullName": "mgmt.v1alpha1.ColumnError.ColumnErrorReport",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "The error code",
+              "label": "",
+              "type": "ColumnErrorCode",
+              "longType": "ColumnError.ColumnErrorCode",
+              "fullType": "mgmt.v1alpha1.ColumnError.ColumnErrorCode",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "message",
+              "description": "The error message",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9282,15 +9460,54 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "warning_reports",
               "description": "The list of warning reports",
               "label": "repeated",
-              "type": "ErrorReport",
-              "longType": "ErrorReport",
-              "fullType": "mgmt.v1alpha1.ErrorReport",
+              "type": "ColumnWarningReport",
+              "longType": "ColumnWarning.ColumnWarningReport",
+              "fullType": "mgmt.v1alpha1.ColumnWarning.ColumnWarningReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnWarningReport",
+          "longName": "ColumnWarning.ColumnWarningReport",
+          "fullName": "mgmt.v1alpha1.ColumnWarning.ColumnWarningReport",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "The warning code",
+              "label": "",
+              "type": "ColumnWarningCode",
+              "longType": "ColumnWarning.ColumnWarningCode",
+              "fullType": "mgmt.v1alpha1.ColumnWarning.ColumnWarningCode",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "message",
+              "description": "The warning message",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9665,15 +9882,54 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "error_reports",
               "description": "The list of error reports",
               "label": "repeated",
-              "type": "ErrorReport",
-              "longType": "ErrorReport",
-              "fullType": "mgmt.v1alpha1.ErrorReport",
+              "type": "DatabaseErrorReport",
+              "longType": "DatabaseError.DatabaseErrorReport",
+              "fullType": "mgmt.v1alpha1.DatabaseError.DatabaseErrorReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DatabaseErrorReport",
+          "longName": "DatabaseError.DatabaseErrorReport",
+          "fullName": "mgmt.v1alpha1.DatabaseError.DatabaseErrorReport",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "The error code",
+              "label": "",
+              "type": "DatabaseErrorCode",
+              "longType": "DatabaseError.DatabaseErrorCode",
+              "fullType": "mgmt.v1alpha1.DatabaseError.DatabaseErrorCode",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "message",
+              "description": "The error message",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10066,42 +10322,6 @@
               "type": "JobMappingTransformer",
               "longType": "JobMappingTransformer",
               "fullType": "mgmt.v1alpha1.JobMappingTransformer",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "ErrorReport",
-          "longName": "ErrorReport",
-          "fullName": "mgmt.v1alpha1.ErrorReport",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "code",
-              "description": "The error code",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "message",
-              "description": "The error message",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -13683,7 +13903,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "nothing",
