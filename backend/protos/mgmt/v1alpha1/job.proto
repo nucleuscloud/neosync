@@ -1040,6 +1040,30 @@ message GetJobRunLogsStreamResponse {
   optional google.protobuf.Timestamp timestamp = 2;
 }
 
+message GetJobRunLogsRequest {
+  // The unique identifier of the job run
+  string job_run_id = 1;
+  // The unique identifier of the account
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
+  // The time window in which to retrieve the logs
+  LogWindow window = 3;
+  // Optionally provide a max log limit
+  optional int64 max_log_lines = 4 [(buf.validate.field).int64.gte = 1];
+  // Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.
+  repeated LogLevel log_levels = 5;
+}
+message GetJobRunLogsResponse {
+  // The list of log lines
+  repeated LogLine log_lines = 1;
+
+  message LogLine {
+    // The log line
+    string log_line = 1;
+    // The timestamp of the log line
+    optional google.protobuf.Timestamp timestamp = 2;
+  }
+}
+
 message SetJobWorkflowOptionsRequest {
   // The unique identifier of the job
   string id = 1 [(buf.validate.field).string.uuid = true];
@@ -1441,6 +1465,9 @@ service JobService {
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
   // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
+  // Returns a list of logs from the worker nodes that pertain to a specific job run.
+  // Equivalent to the stream endpoint, but runs in a unary fashion.
+  rpc GetJobRunLogs(GetJobRunLogsRequest) returns (GetJobRunLogsResponse) {}
   // Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
   rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
   // Set the job sync options. Must provide entire object as it will fully override the previous configuration

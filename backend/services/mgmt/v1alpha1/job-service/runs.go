@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -396,13 +397,58 @@ func (s *Service) GetJobRunLogsStream(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
 
+	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
+		return stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: logline.LogLine, Timestamp: logline.Timestamp})
+	}
+	return s.streamLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
+}
+
+type logLineStreamer struct {
+	onLogLine func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error
+}
+
+func (s *logLineStreamer) Send(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
+	return s.onLogLine(logline)
+}
+
+func (s *Service) GetJobRunLogs(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobRunLogsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
+
+	loglines := []*mgmtv1alpha1.GetJobRunLogsResponse_LogLine{}
+	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
+		loglines = append(loglines, logline)
+		return nil
+	}
+
+	err := s.streamLogs(
+		ctx,
+		&unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg},
+		&logLineStreamer{onLogLine: onLogLine},
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunLogsResponse{LogLines: loglines}), nil
+}
+
+func (s *Service) streamLogs(
+	ctx context.Context,
+	req logStreamRequest,
+	stream logStreamer,
+	logger *slog.Logger,
+) error {
 	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
-		return nucleuserrors.NewNotImplemented("job run logs streaming is not enabled. please configure or contact system administrator to enable logs.")
+		return nucleuserrors.NewNotImplemented("job run logs is not enabled. please configure or contact system administrator to enable logs.")
 	}
 
 	jobRunResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
-		AccountId: req.Msg.GetAccountId(),
-		JobRunId:  req.Msg.GetJobRunId(),
+		AccountId: req.GetAccountId(),
+		JobRunId:  req.GetJobRunId(),
 	}))
 	if err != nil {
 		return err
@@ -412,30 +458,59 @@ func (s *Service) GetJobRunLogsStream(
 	if err != nil {
 		return err
 	}
-	if err := user.EnforceJob(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), jobRun.GetJobId()), rbac.JobAction_View); err != nil {
+	if err := user.EnforceJob(ctx, userdata.NewDomainEntity(req.GetAccountId(), jobRun.GetJobId()), rbac.JobAction_View); err != nil {
 		return err
 	}
 
 	switch *s.cfg.RunLogConfig.RunLogType {
 	case KubePodRunLogType:
-		return s.streamK8sWorkerPodLogs(ctx, req, stream, logger)
+		err := s.streamK8sWorkerPodLogs(ctx, req, stream, logger)
+		if err != nil {
+			return err
+		}
+		return nil
 	case LokiRunLogType:
-		return s.streamLokiWorkerLogs(ctx, req, stream, logger)
+		err := s.streamLokiWorkerLogs(ctx, req, stream, logger)
+		if err != nil {
+			return err
+		}
+		return nil
 	default:
 		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 	}
 }
 
+type logStreamer interface {
+	Send(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error
+}
+
+type logStreamRequest interface {
+	GetAccountId() string
+	GetJobRunId() string
+	GetLogLevels() []mgmtv1alpha1.LogLevel
+	GetWindow() mgmtv1alpha1.LogWindow
+	GetMaxLogLines() int64
+	GetShouldTail() bool
+}
+
+type unaryLogStreamRequest struct {
+	*mgmtv1alpha1.GetJobRunLogsRequest
+}
+
+func (r *unaryLogStreamRequest) GetShouldTail() bool {
+	return false
+}
+
 func (s *Service) streamK8sWorkerPodLogs(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
-	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+	req logStreamRequest,
+	stream logStreamer,
 	logger *slog.Logger,
 ) error {
 	if s.cfg.RunLogConfig.RunLogPodConfig == nil {
 		return nucleuserrors.NewInternalError("run logs configured but no config provided")
 	}
-	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.GetAccountId(), req.GetJobRunId(), logger)
 	if err != nil {
 		return err
 	}
@@ -462,19 +537,23 @@ func (s *Service) streamK8sWorkerPodLogs(
 		return fmt.Errorf("unable to retrieve list of pods from k8s: %w", err)
 	}
 
-	loglevels := getLogLevelFilters(req.Msg.GetLogLevels())
+	loglevels := getLogLevelFilters(req.GetLogLevels())
 	uniqueloglevels := map[string]any{}
 	for _, ll := range loglevels {
 		uniqueloglevels[ll] = struct{}{}
 	}
-
+	var maxLogLints *int64
+	if req.GetMaxLogLines() > 0 {
+		maxLines := req.GetMaxLogLines()
+		maxLogLints = &maxLines
+	}
 	for idx := range pods.Items {
 		pod := pods.Items[idx]
 		logsReq := podclient.GetLogs(pod.Name, &corev1.PodLogOptions{
 			Container: "user-container",
-			Follow:    req.Msg.ShouldTail,
-			TailLines: req.Msg.MaxLogLines,
-			SinceTime: &metav1.Time{Time: getLogFilterTime(req.Msg.GetWindow(), time.Now())},
+			Follow:    req.GetShouldTail(),
+			TailLines: maxLogLints,
+			SinceTime: &metav1.Time{Time: getLogFilterTime(req.GetWindow(), time.Now())},
 		})
 		logstream, err := logsReq.Stream(ctx)
 		if err != nil && !k8serrors.IsNotFound(err) {
@@ -502,7 +581,7 @@ func (s *Service) streamK8sWorkerPodLogs(
 				if logLine.Time != nil {
 					timestamp = timestamppb.New(*logLine.Time)
 				}
-				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt, Timestamp: timestamp}); err != nil {
+				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: txt, Timestamp: timestamp}); err != nil {
 					if err == io.EOF {
 						return nil
 					}
@@ -517,8 +596,8 @@ func (s *Service) streamK8sWorkerPodLogs(
 
 func (s *Service) streamLokiWorkerLogs(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
-	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+	req logStreamRequest,
+	stream logStreamer,
 	logger *slog.Logger,
 ) error {
 	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.LokiRunLogConfig == nil {
@@ -527,7 +606,7 @@ func (s *Service) streamLokiWorkerLogs(
 	if s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery == "" {
 		return nucleuserrors.NewInternalError("must provide a labels query for loki to filter by")
 	}
-	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.GetAccountId(), req.GetJobRunId(), logger)
 	if err != nil {
 		return err
 	}
@@ -535,16 +614,22 @@ func (s *Service) streamLokiWorkerLogs(
 	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl, http.DefaultClient)
 	direction := loki.BACKWARD
 	end := time.Now()
-	start := getLogFilterTime(req.Msg.GetWindow(), end)
+	start := getLogFilterTime(req.GetWindow(), end)
 	query := buildLokiQuery(
 		s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
 		s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
 		workflowExecution.GetExecution().GetWorkflowId(),
-		getLogLevelFilters(req.Msg.GetLogLevels()),
+		getLogLevelFilters(req.GetLogLevels()),
 	)
+
+	var maxLogLints *int64
+	if req.GetMaxLogLines() > 0 {
+		maxLines := req.GetMaxLogLines()
+		maxLogLints = &maxLines
+	}
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
 		Query: query,
-		Limit: req.Msg.MaxLogLines,
+		Limit: maxLogLints,
 
 		Direction: &direction,
 		Start:     &start,
@@ -561,8 +646,23 @@ func (s *Service) streamLokiWorkerLogs(
 	if err != nil {
 		return err
 	}
-	for _, entry := range loki.GetEntriesFromStreams(streams) {
-		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
+	entries := loki.GetEntriesFromStreams(streams)
+	// Loki logs have issues with ordering, so we need to sort them manually
+	// Issue: https://github.com/grafana/loki/issues/13295
+	if direction == loki.BACKWARD {
+		sort.Slice(entries, func(i, j int) bool {
+			// sorts in descending order
+			return entries[i].Timestamp.After(entries[j].Timestamp)
+		})
+	} else {
+		sort.Slice(entries, func(i, j int) bool {
+			// sorts in ascending order
+			return entries[i].Timestamp.Before(entries[j].Timestamp)
+		})
+	}
+
+	for _, entry := range entries {
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
 		if err != nil {
 			return err
 		}

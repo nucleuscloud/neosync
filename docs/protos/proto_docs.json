@@ -10529,6 +10529,138 @@
           ]
         },
         {
+          "name": "GetJobRunLogsRequest",
+          "longName": "GetJobRunLogsRequest",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "The unique identifier of the job run",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "window",
+              "description": "The time window in which to retrieve the logs",
+              "label": "",
+              "type": "LogWindow",
+              "longType": "LogWindow",
+              "fullType": "mgmt.v1alpha1.LogWindow",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_log_lines",
+              "description": "Optionally provide a max log limit",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_log_lines",
+              "defaultValue": ""
+            },
+            {
+              "name": "log_levels",
+              "description": "Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.",
+              "label": "repeated",
+              "type": "LogLevel",
+              "longType": "LogLevel",
+              "fullType": "mgmt.v1alpha1.LogLevel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobRunLogsResponse",
+          "longName": "GetJobRunLogsResponse",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "log_lines",
+              "description": "The list of log lines",
+              "label": "repeated",
+              "type": "LogLine",
+              "longType": "GetJobRunLogsResponse.LogLine",
+              "fullType": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LogLine",
+          "longName": "GetJobRunLogsResponse.LogLine",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "log_line",
+              "description": "The log line",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timestamp",
+              "description": "The timestamp of the log line",
+              "label": "optional",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_timestamp",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetJobRunLogsStreamRequest",
           "longName": "GetJobRunLogsStreamRequest",
           "fullName": "mgmt.v1alpha1.GetJobRunLogsStreamRequest",
@@ -15227,6 +15359,18 @@
               "responseLongType": "GetJobRunLogsStreamResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse",
               "responseStreaming": true
+            },
+            {
+              "name": "GetJobRunLogs",
+              "description": "Returns a list of logs from the worker nodes that pertain to a specific job run.\nEquivalent to the stream endpoint, but runs in a unary fashion.",
+              "requestType": "GetJobRunLogsRequest",
+              "requestLongType": "GetJobRunLogsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetJobRunLogsRequest",
+              "requestStreaming": false,
+              "responseType": "GetJobRunLogsResponse",
+              "responseLongType": "GetJobRunLogsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetJobRunLogsResponse",
+              "responseStreaming": false
             },
             {
               "name": "SetJobWorkflowOptions",

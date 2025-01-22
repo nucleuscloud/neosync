@@ -1578,6 +1578,94 @@ components:
           description: Whether the run is complete
       title: GetJobRunEventsResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsRequest:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - maxLogLines
+            - not:
+                anyOf:
+                  - required:
+                      - maxLogLines
+      anyOf:
+        - required:
+            - maxLogLines
+        - not:
+            anyOf:
+              - required:
+                  - maxLogLines
+      properties:
+        jobRunId:
+          type: string
+          title: job_run_id
+          description: The unique identifier of the job run
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account
+        window:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.LogWindow'
+          title: window
+          description: The time window in which to retrieve the logs
+        maxLogLines:
+          type:
+            - integer
+            - string
+          title: max_log_lines
+          minimum: 1
+          format: int64
+          description: Optionally provide a max log limit
+        logLevels:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.LogLevel'
+          title: log_levels
+          description: Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.
+      title: GetJobRunLogsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsResponse:
+      type: object
+      properties:
+        logLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunLogsResponse.LogLine'
+          title: log_lines
+          description: The list of log lines
+      title: GetJobRunLogsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsResponse.LogLine:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - timestamp
+            - not:
+                anyOf:
+                  - required:
+                      - timestamp
+      anyOf:
+        - required:
+            - timestamp
+        - not:
+            anyOf:
+              - required:
+                  - timestamp
+      properties:
+        logLine:
+          type: string
+          title: log_line
+          description: The log line
+        timestamp:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: timestamp
+          description: The timestamp of the log line
+      title: LogLine
+      additionalProperties: false
     mgmt.v1alpha1.GetJobRunLogsStreamRequest:
       type: object
       allOf:
@@ -6120,6 +6208,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.TerminateJobRunResponse'
   /mgmt.v1alpha1.JobService/GetJobRunLogsStream: {}
+  /mgmt.v1alpha1.JobService/GetJobRunLogs:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetJobRunLogs
+      description: |-
+        Returns a list of logs from the worker nodes that pertain to a specific job run.
+         Equivalent to the stream endpoint, but runs in a unary fashion.
+      operationId: mgmt.v1alpha1.JobService.GetJobRunLogs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunLogsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetJobRunLogsResponse'
   /mgmt.v1alpha1.JobService/SetJobWorkflowOptions:
     post:
       tags:

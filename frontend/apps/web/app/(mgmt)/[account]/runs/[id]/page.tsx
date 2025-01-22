@@ -71,6 +71,7 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   );
   const jobRun = data?.jobRun;
+  jobRun?.status;
 
   const {
     data: eventData,
@@ -343,7 +344,14 @@ export default function Page({ params }: PageProps): ReactElement {
           {!isSystemAppConfigDataLoading &&
             systemAppConfigData?.enableRunLogs && (
               <div>
-                <JobRunLogs accountId={accountId} runId={id} />
+                <JobRunLogs
+                  accountId={accountId}
+                  runId={id}
+                  isRunning={
+                    jobRun?.status === JobRunStatusEnum.RUNNING ||
+                    jobRun?.status === JobRunStatusEnum.PENDING
+                  }
+                />
               </div>
             )}
           <div className="space-y-4">
