@@ -1,3 +1,4 @@
+import { cn } from '@/libs/utils';
 import { Cell, Row } from '@tanstack/react-table';
 import { VirtualItem } from '@tanstack/react-virtual';
 import { memo, ReactNode } from 'react';
@@ -8,10 +9,12 @@ interface Props<TData> {
   row: Row<TData>;
   virtualRow: VirtualItem;
   selected: boolean;
+  tableRowClassName?: string;
+  disableTdWidth?: boolean;
 }
 
 function InnerRow<TData>(props: Props<TData>): ReactNode {
-  const { row, virtualRow } = props;
+  const { row, virtualRow, tableRowClassName, disableTdWidth } = props;
   return (
     <TableRow
       key={row.id}
@@ -19,7 +22,10 @@ function InnerRow<TData>(props: Props<TData>): ReactNode {
         transform: `translateY(${virtualRow.start}px)`,
         height: `${virtualRow.size}px`,
       }}
-      className="items-center flex absolute w-full justify-between px-2 gap-0 space-x-0"
+      className={cn(
+        'items-center flex absolute w-full justify-between px-2 gap-0 space-x-0',
+        tableRowClassName
+      )}
     >
       {row.getVisibleCells().map((cell) => (
         <td
@@ -27,7 +33,11 @@ function InnerRow<TData>(props: Props<TData>): ReactNode {
           className="py-2"
           style={{
             minWidth: cell.column.getSize(),
-            width: cell.column.columnDef.id != 'isSelected' ? '187px' : '20px',
+            width: disableTdWidth
+              ? undefined
+              : cell.column.columnDef.id === 'isSelected'
+                ? '20px'
+                : '187px',
           }}
         >
           {/* For some reason TS can't figure out how to type the incoming cell dynamically as Cell<TData, unknown>
@@ -43,6 +53,13 @@ function shouldReRender<TData>(
   prev: Props<TData>,
   next: Props<TData>
 ): boolean {
+  if (
+    prev.tableRowClassName !== next.tableRowClassName &&
+    (prev.tableRowClassName !== undefined ||
+      next.tableRowClassName !== undefined)
+  ) {
+    return false;
+  }
   // Compare virtualRow properties
   if (
     prev.virtualRow.start !== next.virtualRow.start ||

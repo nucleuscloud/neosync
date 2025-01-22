@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -40,13 +41,18 @@ func Test_GetStreamsFromResponseData(t *testing.T) {
 }
 
 func Test_GetEntriesFromStreams(t *testing.T) {
+	time := time.Now()
 	actual := GetEntriesFromStreams(Streams{
-		{Entries: []Entry{{Line: "foo-line"}}},
-		{Entries: []Entry{{Line: "bar-line"}, {Line: "baz-line"}}},
+		{Entries: []Entry{{Line: "foo-line", Timestamp: time}}, Labels: LabelSet{"Attempt": "1", "willberemoved": "true"}},
+		{Entries: []Entry{{Line: "bar-line", Timestamp: time}, {Line: "baz-line", Timestamp: time}}, Labels: LabelSet{"Attempt": "2"}},
 	})
 	require.Equal(
 		t,
-		[]Entry{{Line: "foo-line"}, {Line: "bar-line"}, {Line: "baz-line"}},
+		[]*LabeledEntry{
+			{Entry: Entry{Line: "foo-line", Timestamp: time}, Labels: LabelSet{"Attempt": "1"}},
+			{Entry: Entry{Line: "bar-line", Timestamp: time}, Labels: LabelSet{"Attempt": "2"}},
+			{Entry: Entry{Line: "baz-line", Timestamp: time}, Labels: LabelSet{"Attempt": "2"}},
+		},
 		actual,
 	)
 }

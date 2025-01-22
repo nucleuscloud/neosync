@@ -581,7 +581,7 @@ func (s *Service) streamK8sWorkerPodLogs(
 				if logLine.Time != nil {
 					timestamp = timestamppb.New(*logLine.Time)
 				}
-				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: txt, Timestamp: timestamp}); err != nil {
+				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: txt, Labels: map[string]string{}, Timestamp: timestamp}); err != nil {
 					if err == io.EOF {
 						return nil
 					}
@@ -665,7 +665,7 @@ func (s *Service) streamLokiWorkerLogs(
 	}
 
 	for _, entry := range entries {
-		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: entry.Line, Labels: entry.Labels.Map(), Timestamp: timestamppb.New(entry.Timestamp)})
 		if err != nil {
 			return err
 		}
