@@ -94,6 +94,9 @@ const (
 	// JobServiceGetJobRunLogsStreamProcedure is the fully-qualified name of the JobService's
 	// GetJobRunLogsStream RPC.
 	JobServiceGetJobRunLogsStreamProcedure = "/mgmt.v1alpha1.JobService/GetJobRunLogsStream"
+	// JobServiceGetJobRunLogsProcedure is the fully-qualified name of the JobService's GetJobRunLogs
+	// RPC.
+	JobServiceGetJobRunLogsProcedure = "/mgmt.v1alpha1.JobService/GetJobRunLogs"
 	// JobServiceSetJobWorkflowOptionsProcedure is the fully-qualified name of the JobService's
 	// SetJobWorkflowOptions RPC.
 	JobServiceSetJobWorkflowOptionsProcedure = "/mgmt.v1alpha1.JobService/SetJobWorkflowOptions"
@@ -163,6 +166,7 @@ var (
 	jobServiceCancelJobRunMethodDescriptor                     = jobServiceServiceDescriptor.Methods().ByName("CancelJobRun")
 	jobServiceTerminateJobRunMethodDescriptor                  = jobServiceServiceDescriptor.Methods().ByName("TerminateJobRun")
 	jobServiceGetJobRunLogsStreamMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("GetJobRunLogsStream")
+	jobServiceGetJobRunLogsMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("GetJobRunLogs")
 	jobServiceSetJobWorkflowOptionsMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("SetJobWorkflowOptions")
 	jobServiceSetJobSyncOptionsMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobSyncOptions")
 	jobServiceValidateJobMappingsMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("ValidateJobMappings")
@@ -229,6 +233,9 @@ type JobServiceClient interface {
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error)
+	// Returns a list of logs from the worker nodes that pertain to a specific job run.
+	// Equivalent to the stream endpoint, but runs in a unary fashion.
+	GetJobRunLogs(context.Context, *connect.Request[v1alpha1.GetJobRunLogsRequest]) (*connect.Response[v1alpha1.GetJobRunLogsResponse], error)
 	// Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
@@ -423,6 +430,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceGetJobRunLogsStreamMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getJobRunLogs: connect.NewClient[v1alpha1.GetJobRunLogsRequest, v1alpha1.GetJobRunLogsResponse](
+			httpClient,
+			baseURL+JobServiceGetJobRunLogsProcedure,
+			connect.WithSchema(jobServiceGetJobRunLogsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		setJobWorkflowOptions: connect.NewClient[v1alpha1.SetJobWorkflowOptionsRequest, v1alpha1.SetJobWorkflowOptionsResponse](
 			httpClient,
 			baseURL+JobServiceSetJobWorkflowOptionsProcedure,
@@ -539,6 +552,7 @@ type jobServiceClient struct {
 	cancelJobRun                     *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
 	terminateJobRun                  *connect.Client[v1alpha1.TerminateJobRunRequest, v1alpha1.TerminateJobRunResponse]
 	getJobRunLogsStream              *connect.Client[v1alpha1.GetJobRunLogsStreamRequest, v1alpha1.GetJobRunLogsStreamResponse]
+	getJobRunLogs                    *connect.Client[v1alpha1.GetJobRunLogsRequest, v1alpha1.GetJobRunLogsResponse]
 	setJobWorkflowOptions            *connect.Client[v1alpha1.SetJobWorkflowOptionsRequest, v1alpha1.SetJobWorkflowOptionsResponse]
 	setJobSyncOptions                *connect.Client[v1alpha1.SetJobSyncOptionsRequest, v1alpha1.SetJobSyncOptionsResponse]
 	validateJobMappings              *connect.Client[v1alpha1.ValidateJobMappingsRequest, v1alpha1.ValidateJobMappingsResponse]
@@ -675,6 +689,11 @@ func (c *jobServiceClient) GetJobRunLogsStream(ctx context.Context, req *connect
 	return c.getJobRunLogsStream.CallServerStream(ctx, req)
 }
 
+// GetJobRunLogs calls mgmt.v1alpha1.JobService.GetJobRunLogs.
+func (c *jobServiceClient) GetJobRunLogs(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunLogsRequest]) (*connect.Response[v1alpha1.GetJobRunLogsResponse], error) {
+	return c.getJobRunLogs.CallUnary(ctx, req)
+}
+
 // SetJobWorkflowOptions calls mgmt.v1alpha1.JobService.SetJobWorkflowOptions.
 func (c *jobServiceClient) SetJobWorkflowOptions(ctx context.Context, req *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error) {
 	return c.setJobWorkflowOptions.CallUnary(ctx, req)
@@ -795,6 +814,9 @@ type JobServiceHandler interface {
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error
+	// Returns a list of logs from the worker nodes that pertain to a specific job run.
+	// Equivalent to the stream endpoint, but runs in a unary fashion.
+	GetJobRunLogs(context.Context, *connect.Request[v1alpha1.GetJobRunLogsRequest]) (*connect.Response[v1alpha1.GetJobRunLogsResponse], error)
 	// Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
@@ -985,6 +1007,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceGetJobRunLogsStreamMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetJobRunLogsHandler := connect.NewUnaryHandler(
+		JobServiceGetJobRunLogsProcedure,
+		svc.GetJobRunLogs,
+		connect.WithSchema(jobServiceGetJobRunLogsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	jobServiceSetJobWorkflowOptionsHandler := connect.NewUnaryHandler(
 		JobServiceSetJobWorkflowOptionsProcedure,
 		svc.SetJobWorkflowOptions,
@@ -1122,6 +1150,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceTerminateJobRunHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunLogsStreamProcedure:
 			jobServiceGetJobRunLogsStreamHandler.ServeHTTP(w, r)
+		case JobServiceGetJobRunLogsProcedure:
+			jobServiceGetJobRunLogsHandler.ServeHTTP(w, r)
 		case JobServiceSetJobWorkflowOptionsProcedure:
 			jobServiceSetJobWorkflowOptionsHandler.ServeHTTP(w, r)
 		case JobServiceSetJobSyncOptionsProcedure:
@@ -1253,6 +1283,10 @@ func (UnimplementedJobServiceHandler) TerminateJobRun(context.Context, *connect.
 
 func (UnimplementedJobServiceHandler) GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobRunLogsStream is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobRunLogs(context.Context, *connect.Request[v1alpha1.GetJobRunLogsRequest]) (*connect.Response[v1alpha1.GetJobRunLogsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobRunLogs is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error) {

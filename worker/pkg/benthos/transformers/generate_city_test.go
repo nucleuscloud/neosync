@@ -53,18 +53,3 @@ func Test_CityTransformer_NoOptions(t *testing.T) {
 
 	assert.NotEmptyf(t, res, fmt.Sprintf("The city should be not be empty. This is the error city:%s", res))
 }
-
-func BenchmarkGenerateCity(b *testing.B) {
-	generator := NewGenerateCity()
-	opts, err := NewGenerateCityOptsFromConfig(nil, nil)
-	if err != nil {
-		b.Fatal(err)
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := generator.Generate(opts)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}

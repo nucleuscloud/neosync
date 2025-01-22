@@ -14,6 +14,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random boolean value.").
+		Category("boolean").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_bool", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"unicode"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -16,6 +15,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -242,7 +242,7 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 	}
 
 	if len(jsFunctions) > 0 {
-		return constructBenthosJsProcessor(jsFunctions, benthosOutputs), nil
+		return javascript_userland.GetFunction(jsFunctions, benthosOutputs), nil
 	} else {
 		return "", nil
 	}
@@ -385,81 +385,23 @@ func buildRedisGetBranchConfig(
 func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
-		return fmt.Sprintf(`
-function fn_%s(value, input){
-  %s
-};
-`, sanitizeJsFunctionName(col), jsCode)
+		return javascript_userland.GetTransformJavascriptFunction(jsCode, col, true)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
-		return fmt.Sprintf(`
-function fn_%s(){
-  %s
-};
-`, sanitizeJsFunctionName(col), jsCode)
+		return javascript_userland.GetGenerateJavascriptFunction(jsCode, col)
 	default:
 		return ""
 	}
-}
-
-func sanitizeJsFunctionName(input string) string {
-	var result strings.Builder
-
-	for i, r := range input {
-		if unicode.IsLetter(r) || r == '_' || r == '$' || (unicode.IsDigit(r) && i > 0) {
-			result.WriteRune(r)
-		} else if unicode.IsDigit(r) && i == 0 {
-			result.WriteRune('_')
-			result.WriteRune(r)
-		} else {
-			result.WriteRune('_')
-		}
-	}
-
-	return result.String()
-}
-
-func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
-	jsFunctionStrings := strings.Join(jsFunctions, "\n")
-
-	benthosOutputString := strings.Join(benthosOutputs, "\n")
-
-	jsCode := fmt.Sprintf(`
-(() => {
-%s
-const input = benthos.v0_msg_as_structured();
-const updatedValues = {}
-%s
-neosync.patchStructuredMessage(updatedValues)
-})();`, jsFunctionStrings, benthosOutputString)
-	return jsCode
 }
 
 func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.TransformerSource) string {
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
-		return fmt.Sprintf(
-			`updatedValues[%q] = fn_%s(%s, input)`,
-			col,
-			sanitizeJsFunctionName(col),
-			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", col)),
-		)
+		return javascript_userland.BuildOutputSetter(col, true, true)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
-		return fmt.Sprintf(
-			`updatedValues[%q] = fn_%s()`,
-			col,
-			sanitizeJsFunctionName(col),
-		)
+		return javascript_userland.BuildOutputSetter(col, false, false)
 	default:
 		return ""
 	}
-}
-
-func convertJsObjPathToOptionalChain(inputPath string) string {
-	parts := strings.Split(inputPath, ".")
-	for i := 1; i < len(parts); i++ {
-		parts[i] = fmt.Sprintf("['%s']", parts[i])
-	}
-	return strings.Join(parts, "?.")
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
@@ -478,11 +420,6 @@ func convertUserDefinedFunctionConfig(
 		Config: transformer.GetConfig(),
 	}, nil
 }
-
-/*
-function transformers
-root.{destination_col} = transformerfunction(args)
-*/
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_shared.DatabaseSchemaRow, splitColumnPath bool) (string, error) {
 	var maxLen int64 = 10000
