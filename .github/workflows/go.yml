@@ -260,7 +260,7 @@ jobs:
           else
               echo -e "\nNo geomean found in benchstat output" >> benchstat-results.txt
           fi
-          echo -e "\n<details><summary>Benchstat results</summary>\n\`\`\`$(cat benchstat-output.txt)\`\`\`</details>" >> benchstat-results.txt
+          echo -e "\n<details>\n<summary>Benchstat results</summary>\n\n\`\`\`\n$(cat benchstat-output.txt)\n\`\`\`\n</details>\n" >> benchstat-results.txt
 
       - name: Comment Benchstat Results on PR
         if: github.event_name == 'pull_request' 
