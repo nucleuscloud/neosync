@@ -53,7 +53,7 @@ func TestRunner(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				_, err = runner.Run(context.Background(), program)
+				_, err := runner.Run(context.Background(), program)
 				require.NoError(t, err)
 			}()
 		}
