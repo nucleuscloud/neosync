@@ -9,19 +9,48 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 )
 
+type JobMappingErrorCode string
+
+const (
+	TABLE_NOT_FOUND_IN_SOURCE                 JobMappingErrorCode = "TABLE_NOT_FOUND_IN_SOURCE"
+	COLUMN_NOT_FOUND_IN_SOURCE                JobMappingErrorCode = "COLUMN_NOT_FOUND_IN_SOURCE"
+	COLUMN_NOT_FOUND_IN_MAPPING               JobMappingErrorCode = "COLUMN_NOT_FOUND_IN_MAPPING"
+	REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING      JobMappingErrorCode = "REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING"
+	REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING JobMappingErrorCode = "REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING"
+	UNSUPPORTED_CIRCULAR_DEPENDENCY           JobMappingErrorCode = "UNSUPPORTED_CIRCULAR_DEPENDENCY"
+
+	// virtual foreign key errors
+	VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING  JobMappingErrorCode = "VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING"
+	VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE   JobMappingErrorCode = "VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE"
+	VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING  JobMappingErrorCode = "VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING"
+	VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE   JobMappingErrorCode = "VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE"
+	VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING JobMappingErrorCode = "VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING"
+	VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE  JobMappingErrorCode = "VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE"
+	VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING JobMappingErrorCode = "VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING"
+	VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE  JobMappingErrorCode = "VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE"
+	VFK_COLUMN_MISMATCH                    JobMappingErrorCode = "VFK_COLUMN_MISMATCH"
+	VFK_COLUMN_DATATYPE_MISMATCH           JobMappingErrorCode = "VFK_COLUMN_DATATYPE_MISMATCH"
+	VFK_SOURCE_COLUMN_NOT_UNIQUE           JobMappingErrorCode = "VFK_SOURCE_COLUMN_NOT_UNIQUE"
+)
+
 type JobMappingsValidator struct {
-	databaseErrors []string
-	columnErrors   map[string]map[string][]string // schema.table -> column -> errors
-	columnWarnings map[string]map[string][]string // schema.table -> column -> errors
+	databaseErrors []*ErrorResponse
+	columnErrors   map[string]map[string][]*ErrorResponse // schema.table -> column -> errors
+	columnWarnings map[string]map[string][]*ErrorResponse // schema.table -> column -> errors
 
 	jobSourceOptions *SqlJobSourceOpts
 	jobMappings      map[string]map[string]*mgmtv1alpha1.JobMapping // schema.table -> column -> job mapping
 }
 
+type ErrorResponse struct {
+	Code    JobMappingErrorCode
+	Message string
+}
+
 type JobMappingsValidatorResponse struct {
-	DatabaseErrors []string
-	ColumnErrors   map[string]map[string][]string
-	ColumnWarnings map[string]map[string][]string
+	DatabaseErrors []*ErrorResponse
+	ColumnErrors   map[string]map[string][]*ErrorResponse
+	ColumnWarnings map[string]map[string][]*ErrorResponse
 }
 
 type Option func(*JobMappingsValidator)
@@ -44,9 +73,9 @@ func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping, opts ...Opt
 
 	jmv := &JobMappingsValidator{
 		jobMappings:      tableToColumnMappings,
-		databaseErrors:   []string{},
-		columnErrors:     map[string]map[string][]string{},
-		columnWarnings:   map[string]map[string][]string{},
+		databaseErrors:   []*ErrorResponse{},
+		columnErrors:     map[string]map[string][]*ErrorResponse{},
+		columnWarnings:   map[string]map[string][]*ErrorResponse{},
 		jobSourceOptions: &SqlJobSourceOpts{},
 	}
 
@@ -56,34 +85,43 @@ func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping, opts ...Opt
 	return jmv
 }
 
-func (j *JobMappingsValidator) GetDatabaseErrors() []string {
+func (j *JobMappingsValidator) GetDatabaseErrors() []*ErrorResponse {
 	return j.databaseErrors
 }
 
-func (j *JobMappingsValidator) GetColumnErrors() map[string]map[string][]string {
+func (j *JobMappingsValidator) GetColumnErrors() map[string]map[string][]*ErrorResponse {
 	return j.columnErrors
 }
 
-func (j *JobMappingsValidator) GetColumnWarnings() map[string]map[string][]string {
+func (j *JobMappingsValidator) GetColumnWarnings() map[string]map[string][]*ErrorResponse {
 	return j.columnWarnings
 }
 
-func (j *JobMappingsValidator) addDatabaseError(err string) {
-	j.databaseErrors = append(j.databaseErrors, err)
+func (j *JobMappingsValidator) addDatabaseError(err string, code JobMappingErrorCode) {
+	j.databaseErrors = append(j.databaseErrors, &ErrorResponse{
+		Code:    code,
+		Message: err,
+	})
 }
 
-func (j *JobMappingsValidator) addColumnError(table, column, err string) {
+func (j *JobMappingsValidator) addColumnError(table, column, err string, code JobMappingErrorCode) {
 	if _, ok := j.columnErrors[table]; !ok {
-		j.columnErrors[table] = map[string][]string{}
+		j.columnErrors[table] = map[string][]*ErrorResponse{}
 	}
-	j.columnErrors[table][column] = append(j.columnErrors[table][column], err)
+	j.columnErrors[table][column] = append(j.columnErrors[table][column], &ErrorResponse{
+		Code:    code,
+		Message: err,
+	})
 }
 
-func (j *JobMappingsValidator) addColumnWarning(table, column, err string) {
+func (j *JobMappingsValidator) addColumnWarning(table, column, err string, code JobMappingErrorCode) {
 	if _, ok := j.columnWarnings[table]; !ok {
-		j.columnWarnings[table] = map[string][]string{}
+		j.columnWarnings[table] = map[string][]*ErrorResponse{}
 	}
-	j.columnWarnings[table][column] = append(j.columnWarnings[table][column], err)
+	j.columnWarnings[table][column] = append(j.columnWarnings[table][column], &ErrorResponse{
+		Code:    code,
+		Message: err,
+	})
 }
 
 func (j *JobMappingsValidator) Validate(
@@ -113,16 +151,16 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 	// check for job mappings that do not exist in the source
 	for table, colMappings := range j.jobMappings {
 		if _, ok := tableColumnMap[table]; !ok {
-			j.addDatabaseError(fmt.Sprintf("Table does not exist [%s] in source", table))
+			j.addDatabaseError(fmt.Sprintf("Table does not exist [%s] in source", table), TABLE_NOT_FOUND_IN_SOURCE)
 			continue
 		}
 		for col := range colMappings {
 			if _, ok := tableColumnMap[table][col]; !ok {
 				msg := fmt.Sprintf("Column does not exist in source. Remove column from job mappings: %s.%s", table, col)
 				if j.jobSourceOptions != nil && !j.jobSourceOptions.HaltOnColumnRemoval {
-					j.addColumnWarning(table, col, msg)
+					j.addColumnWarning(table, col, msg, COLUMN_NOT_FOUND_IN_SOURCE)
 				} else {
-					j.addColumnError(table, col, msg)
+					j.addColumnError(table, col, msg, COLUMN_NOT_FOUND_IN_SOURCE)
 				}
 			}
 		}
@@ -137,9 +175,9 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 			if _, ok := j.jobMappings[table][col]; !ok {
 				msg := fmt.Sprintf("Column does not exist in job mappings. Add column to job mappings: %s.%s", table, col)
 				if j.jobSourceOptions != nil && !j.jobSourceOptions.HaltOnNewColumnAddition {
-					j.addColumnWarning(table, col, msg)
+					j.addColumnWarning(table, col, msg, COLUMN_NOT_FOUND_IN_MAPPING)
 				} else {
-					j.addColumnError(table, col, msg)
+					j.addColumnError(table, col, msg, COLUMN_NOT_FOUND_IN_MAPPING)
 				}
 			}
 		}
@@ -190,7 +228,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 		for _, col := range vfk.GetColumns() {
 			colInfo, ok := tableCols[col]
 			if !ok {
-				j.addColumnError(tableName, col, "Column does not exist in source but required by virtual foreign key")
+				j.addColumnError(tableName, col, "Column does not exist in source but required by virtual foreign key", VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE)
 				return nil
 			}
 			notNullable = append(notNullable, !colInfo.IsNullable)
@@ -222,7 +260,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 
 	for _, cycle := range cycles {
 		if !slices.ContainsFunc(cycle, containsStart) {
-			j.addDatabaseError(fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
+			j.addDatabaseError(fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle), UNSUPPORTED_CIRCULAR_DEPENDENCY)
 		}
 	}
 	return nil
@@ -247,12 +285,12 @@ func (j *JobMappingsValidator) ValidateRequiredForeignKeys(
 				fkColMappings, ok := j.jobMappings[fk.ForeignKey.Table]
 				fkCol := fk.ForeignKey.Columns[idx]
 				if !ok {
-					j.addColumnError(fk.ForeignKey.Table, fkCol, fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+					j.addColumnError(fk.ForeignKey.Table, fkCol, fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol), REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING)
 					continue
 				}
 				_, ok = fkColMappings[fkCol]
 				if !ok {
-					j.addColumnError(fk.ForeignKey.Table, fkCol, fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+					j.addColumnError(fk.ForeignKey.Table, fkCol, fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol), REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING)
 				}
 			}
 		}
@@ -275,7 +313,7 @@ func (j *JobMappingsValidator) ValidateRequiredColumns(
 				continue
 			}
 			if _, ok := cm[col]; !ok {
-				j.addColumnError(table, col, fmt.Sprintf("Violates not-null constraint. Missing required column. Table: %s  Column: %s", table, col))
+				j.addColumnError(table, col, fmt.Sprintf("Violates not-null constraint. Missing required column. Table: %s  Column: %s", table, col), REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING)
 			}
 		}
 	}
@@ -294,24 +332,24 @@ func (j *JobMappingsValidator) ValidateVirtualForeignKeys(
 		// check that source table exist in job mappings
 		sourceColMappings, ok := j.jobMappings[sourceTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable))
+			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable), VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING)
 			continue
 		}
 		sourceCols, ok := tableColumnMap[sourceTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable))
+			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable), VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE)
 			return
 		}
 
 		// check that target table exist in job mappings
 		targetColMappings, ok := j.jobMappings[targetTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable))
+			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable), VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING)
 			continue
 		}
 		targetCols, ok := tableColumnMap[targetTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
+			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable), VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE)
 			continue
 		}
 
@@ -320,7 +358,7 @@ func (j *JobMappingsValidator) ValidateVirtualForeignKeys(
 		j.validateCircularVfk(sourceTable, targetTable, vfk, targetColMappings, targetCols)
 
 		if len(vfk.GetColumns()) != len(vfk.GetForeignKey().GetColumns()) {
-			j.addDatabaseError(fmt.Sprintf("length of source columns was not equal to length of foreign key cols: %d %d. SourceTable: %s SourceColumn: %+v TargetTable: %s  TargetColumn: %+v", len(vfk.GetColumns()), len(vfk.GetForeignKey().GetColumns()), sourceTable, vfk.GetColumns(), targetTable, vfk.GetForeignKey().GetColumns()))
+			j.addDatabaseError(fmt.Sprintf("length of source columns was not equal to length of foreign key cols: %d %d. SourceTable: %s SourceColumn: %+v TargetTable: %s  TargetColumn: %+v", len(vfk.GetColumns()), len(vfk.GetForeignKey().GetColumns()), sourceTable, vfk.GetColumns(), targetTable, vfk.GetForeignKey().GetColumns()), VFK_COLUMN_MISMATCH)
 			continue
 		}
 
@@ -333,7 +371,7 @@ func (j *JobMappingsValidator) ValidateVirtualForeignKeys(
 				continue
 			}
 			if srcColInfo.DataType != tarColInfo.DataType {
-				j.addColumnError(targetTable, tarCol, fmt.Sprintf("Column datatype mismatch. Source: %s.%s %s Target: %s.%s %s", sourceTable, srcCol, srcColInfo.DataType, targetTable, tarCol, tarColInfo.DataType))
+				j.addColumnError(targetTable, tarCol, fmt.Sprintf("Column datatype mismatch. Source: %s.%s %s Target: %s.%s %s", sourceTable, srcCol, srcColInfo.DataType, targetTable, tarCol, tarColInfo.DataType), VFK_COLUMN_DATATYPE_MISMATCH)
 			}
 		}
 	}
@@ -349,11 +387,11 @@ func (j *JobMappingsValidator) validateVfkTableColumnsExistInSource(
 	for _, c := range vfk.GetForeignKey().GetColumns() {
 		_, ok := colMappings[c]
 		if !ok {
-			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source column missing in job mappings. Table: %s Column: %s", table, c))
+			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source column missing in job mappings. Table: %s Column: %s", table, c), VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING)
 		}
 		_, ok = sourceCols[c]
 		if !ok {
-			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", table, c))
+			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", table, c), VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE)
 		}
 	}
 }
@@ -369,7 +407,7 @@ func (j *JobMappingsValidator) validateVfkSourceColumnHasConstraint(
 	isVfkValid := isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
 	if !isVfkValid {
 		for _, c := range vfk.GetForeignKey().GetColumns() {
-			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", table, vfk.GetForeignKey().GetColumns()))
+			j.addColumnError(table, c, fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", table, vfk.GetForeignKey().GetColumns()), VFK_SOURCE_COLUMN_NOT_UNIQUE)
 		}
 	}
 }
@@ -384,15 +422,15 @@ func (j *JobMappingsValidator) validateCircularVfk(
 	for _, c := range vfk.GetColumns() {
 		_, ok := targetColMappings[c]
 		if !ok {
-			j.addColumnError(targetTable, c, fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c))
+			j.addColumnError(targetTable, c, fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c), VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING)
 		}
 		colInfo, ok := targetCols[c]
 		if !ok {
-			j.addColumnError(targetTable, c, fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c))
+			j.addColumnError(targetTable, c, fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c), VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE)
 			continue
 		}
 		if sourceTable == targetTable && !colInfo.IsNullable {
-			j.addColumnError(targetTable, c, fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Column: %s", targetTable, c))
+			j.addColumnError(targetTable, c, fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Column: %s", targetTable, c), UNSUPPORTED_CIRCULAR_DEPENDENCY)
 		}
 	}
 }

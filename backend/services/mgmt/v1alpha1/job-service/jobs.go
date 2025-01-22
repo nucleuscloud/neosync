@@ -1562,19 +1562,27 @@ func (s *Service) ValidateJobMappings(
 	}
 
 	dbErrors := &mgmtv1alpha1.DatabaseError{
-		Errors: []string{},
+		Errors:       []string{},
+		ErrorReports: []*mgmtv1alpha1.ErrorReport{},
 	}
-	dbErrors.Errors = append(dbErrors.Errors, result.DatabaseErrors...)
+	for _, err := range result.DatabaseErrors {
+		dbErrors.Errors = append(dbErrors.Errors, err.Message)
+		dbErrors.ErrorReports = append(dbErrors.ErrorReports, &mgmtv1alpha1.ErrorReport{
+			Code:    string(err.Code),
+			Message: err.Message,
+		})
+	}
 
 	colErrors := []*mgmtv1alpha1.ColumnError{}
 	for tableName, colMap := range result.ColumnErrors {
 		for col, errors := range colMap {
 			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
-				Schema: schema,
-				Table:  table,
-				Column: col,
-				Errors: errors,
+				Schema:       schema,
+				Table:        table,
+				Column:       col,
+				Errors:       convertErrorResponsesToMessages(errors),
+				ErrorReports: convertErrorResponsesToReports(errors),
 			})
 		}
 	}
@@ -1584,10 +1592,11 @@ func (s *Service) ValidateJobMappings(
 		for col, warnings := range colMap {
 			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colWarnings = append(colWarnings, &mgmtv1alpha1.ColumnWarning{
-				Schema:   schema,
-				Table:    table,
-				Column:   col,
-				Warnings: warnings,
+				Schema:         schema,
+				Table:          table,
+				Column:         col,
+				Warnings:       convertErrorResponsesToMessages(warnings),
+				WarningReports: convertErrorResponsesToReports(warnings),
 			})
 		}
 	}
@@ -1597,6 +1606,25 @@ func (s *Service) ValidateJobMappings(
 		ColumnErrors:   colErrors,
 		ColumnWarnings: colWarnings,
 	}), nil
+}
+
+func convertErrorResponsesToMessages(errors []*job.ErrorResponse) []string {
+	messages := []string{}
+	for _, err := range errors {
+		messages = append(messages, err.Message)
+	}
+	return messages
+}
+
+func convertErrorResponsesToReports(errors []*job.ErrorResponse) []*mgmtv1alpha1.ErrorReport {
+	reports := []*mgmtv1alpha1.ErrorReport{}
+	for _, err := range errors {
+		reports = append(reports, &mgmtv1alpha1.ErrorReport{
+			Code:    string(err.Code),
+			Message: err.Message,
+		})
+	}
+	return reports
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {

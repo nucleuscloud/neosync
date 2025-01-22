@@ -1177,35 +1177,49 @@ class ValidateJobMappingsRequest(_message.Message):
     job_source: JobSource
     def __init__(self, account_id: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_source: _Optional[_Union[JobSource, _Mapping]] = ...) -> None: ...
 
+class ErrorReport(_message.Message):
+    __slots__ = ("code", "message")
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    code: str
+    message: str
+    def __init__(self, code: _Optional[str] = ..., message: _Optional[str] = ...) -> None: ...
+
 class ColumnError(_message.Message):
-    __slots__ = ("schema", "table", "column", "errors")
+    __slots__ = ("schema", "table", "column", "errors", "error_reports")
     SCHEMA_FIELD_NUMBER: _ClassVar[int]
     TABLE_FIELD_NUMBER: _ClassVar[int]
     COLUMN_FIELD_NUMBER: _ClassVar[int]
     ERRORS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_REPORTS_FIELD_NUMBER: _ClassVar[int]
     schema: str
     table: str
     column: str
     errors: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., errors: _Optional[_Iterable[str]] = ...) -> None: ...
+    error_reports: _containers.RepeatedCompositeFieldContainer[ErrorReport]
+    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., errors: _Optional[_Iterable[str]] = ..., error_reports: _Optional[_Iterable[_Union[ErrorReport, _Mapping]]] = ...) -> None: ...
 
 class ColumnWarning(_message.Message):
-    __slots__ = ("schema", "table", "column", "warnings")
+    __slots__ = ("schema", "table", "column", "warnings", "warning_reports")
     SCHEMA_FIELD_NUMBER: _ClassVar[int]
     TABLE_FIELD_NUMBER: _ClassVar[int]
     COLUMN_FIELD_NUMBER: _ClassVar[int]
     WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    WARNING_REPORTS_FIELD_NUMBER: _ClassVar[int]
     schema: str
     table: str
     column: str
     warnings: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ...) -> None: ...
+    warning_reports: _containers.RepeatedCompositeFieldContainer[ErrorReport]
+    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., column: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ..., warning_reports: _Optional[_Iterable[_Union[ErrorReport, _Mapping]]] = ...) -> None: ...
 
 class DatabaseError(_message.Message):
-    __slots__ = ("errors",)
+    __slots__ = ("errors", "error_reports")
     ERRORS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_REPORTS_FIELD_NUMBER: _ClassVar[int]
     errors: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, errors: _Optional[_Iterable[str]] = ...) -> None: ...
+    error_reports: _containers.RepeatedCompositeFieldContainer[ErrorReport]
+    def __init__(self, errors: _Optional[_Iterable[str]] = ..., error_reports: _Optional[_Iterable[_Union[ErrorReport, _Mapping]]] = ...) -> None: ...
 
 class ValidateJobMappingsResponse(_message.Message):
     __slots__ = ("column_errors", "database_errors", "column_warnings")

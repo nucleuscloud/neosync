@@ -9272,7 +9272,13 @@ components:
           items:
             type: string
           title: errors
-          description: The list of errors
+          description: '@deprecated - Use error_reports instead'
+        errorReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ErrorReport'
+          title: error_reports
+          description: The list of error reports
       title: ColumnError
       additionalProperties: false
     mgmt.v1alpha1.ColumnWarning:
@@ -9295,7 +9301,13 @@ components:
           items:
             type: string
           title: warnings
-          description: The list of warnings
+          description: '@deprecated - Use warning_reports instead'
+        warningReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ErrorReport'
+          title: warning_reports
+          description: The list of warning reports
       title: ColumnWarning
       additionalProperties: false
     mgmt.v1alpha1.CreateJobDestination:
@@ -9478,7 +9490,13 @@ components:
           items:
             type: string
           title: errors
-          description: The list of errors
+          description: '@deprecated - Use error_reports instead'
+        errorReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ErrorReport'
+          title: error_reports
+          description: The list of error reports
       title: DatabaseError
       additionalProperties: false
     mgmt.v1alpha1.DeleteJobDestinationConnectionRequest:
@@ -9672,6 +9690,19 @@ components:
           title: s
           description: String
       title: DynamoDBSourceUnmappedTransformConfig
+      additionalProperties: false
+    mgmt.v1alpha1.ErrorReport:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+          description: The error code
+        message:
+          type: string
+          title: message
+          description: The error message
+      title: ErrorReport
       additionalProperties: false
     mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions:
       type: object

@@ -1100,6 +1100,13 @@ message ValidateJobMappingsRequest {
   optional JobSource job_source = 5;
 }
 
+message ErrorReport {
+  // The error code
+  string code = 1;
+  // The error message
+  string message = 2;
+}
+
 message ColumnError {
   // The schema of the table
   string schema = 1;
@@ -1107,8 +1114,10 @@ message ColumnError {
   string table = 2;
   // The column of the error
   string column = 3;
-  // The list of errors
+  // @deprecated - Use error_reports instead
   repeated string errors = 4;
+  // The list of error reports
+  repeated ErrorReport error_reports = 5;
 }
 
 message ColumnWarning {
@@ -1118,13 +1127,17 @@ message ColumnWarning {
   string table = 2;
   // The column of the warning
   string column = 3;
-  // The list of warnings
+  // @deprecated - Use warning_reports instead
   repeated string warnings = 5;
+  // The list of warning reports
+  repeated ErrorReport warning_reports = 6;
 }
 
 message DatabaseError {
-  // The list of errors
+  // @deprecated - Use error_reports instead
   repeated string errors = 1;
+  // The list of error reports
+  repeated ErrorReport error_reports = 2;
 }
 message ValidateJobMappingsResponse {
   // The list of column errors
