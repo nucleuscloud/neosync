@@ -397,38 +397,10 @@ func (s *Service) GetJobRunLogsStream(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
 
-	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
-		return nucleuserrors.NewNotImplemented("job run logs streaming is not enabled. please configure or contact system administrator to enable logs.")
-	}
-
-	jobRunResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
-		AccountId: req.Msg.GetAccountId(),
-		JobRunId:  req.Msg.GetJobRunId(),
-	}))
-	if err != nil {
-		return err
-	}
-	jobRun := jobRunResp.Msg.GetJobRun()
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return err
-	}
-	if err := user.EnforceJob(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), jobRun.GetJobId()), rbac.JobAction_View); err != nil {
-		return err
-	}
-
 	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
 		return stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: logline.LogLine, Timestamp: logline.Timestamp})
 	}
-
-	switch *s.cfg.RunLogConfig.RunLogType {
-	case KubePodRunLogType:
-		return s.streamK8sWorkerPodLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
-	case LokiRunLogType:
-		return s.streamLokiWorkerLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
-	default:
-		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
-	}
+	return s.streamLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
 }
 
 type logLineStreamer struct {
@@ -446,47 +418,65 @@ func (s *Service) GetJobRunLogs(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
 
-	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
-		return nil, nucleuserrors.NewNotImplemented("job run logs is not enabled. please configure or contact system administrator to enable logs.")
-	}
-
-	jobRunResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
-		AccountId: req.Msg.GetAccountId(),
-		JobRunId:  req.Msg.GetJobRunId(),
-	}))
-	if err != nil {
-		return nil, err
-	}
-	jobRun := jobRunResp.Msg.GetJobRun()
-	user, err := s.userdataclient.GetUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := user.EnforceJob(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), jobRun.GetJobId()), rbac.JobAction_View); err != nil {
-		return nil, err
-	}
-
 	loglines := []*mgmtv1alpha1.GetJobRunLogsResponse_LogLine{}
 	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
 		loglines = append(loglines, logline)
 		return nil
 	}
 
+	err := s.streamLogs(
+		ctx,
+		&unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg},
+		&logLineStreamer{onLogLine: onLogLine},
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunLogsResponse{LogLines: loglines}), nil
+}
+
+func (s *Service) streamLogs(
+	ctx context.Context,
+	req logStreamRequest,
+	stream logStreamer,
+	logger *slog.Logger,
+) error {
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
+		return nucleuserrors.NewNotImplemented("job run logs is not enabled. please configure or contact system administrator to enable logs.")
+	}
+
+	jobRunResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
+		AccountId: req.GetAccountId(),
+		JobRunId:  req.GetJobRunId(),
+	}))
+	if err != nil {
+		return err
+	}
+	jobRun := jobRunResp.Msg.GetJobRun()
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return err
+	}
+	if err := user.EnforceJob(ctx, userdata.NewDomainEntity(req.GetAccountId(), jobRun.GetJobId()), rbac.JobAction_View); err != nil {
+		return err
+	}
+
 	switch *s.cfg.RunLogConfig.RunLogType {
 	case KubePodRunLogType:
-		err := s.streamK8sWorkerPodLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &logLineStreamer{onLogLine: onLogLine}, logger)
+		err := s.streamK8sWorkerPodLogs(ctx, req, stream, logger)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return connect.NewResponse(&mgmtv1alpha1.GetJobRunLogsResponse{LogLines: loglines}), nil
+		return nil
 	case LokiRunLogType:
-		err := s.streamLokiWorkerLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &logLineStreamer{onLogLine: onLogLine}, logger)
+		err := s.streamLokiWorkerLogs(ctx, req, stream, logger)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return connect.NewResponse(&mgmtv1alpha1.GetJobRunLogsResponse{LogLines: loglines}), nil
+		return nil
 	default:
-		return nil, nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 	}
 }
 
