@@ -1,5 +1,6 @@
 'use client';
 import { getErrorMessage } from '@/util/util';
+import { Code, ConnectError } from '@neosync/sdk';
 import {
   isServer,
   QueryCache,
@@ -51,7 +52,10 @@ export default function TanstackQueryProvider(props: Props): ReactElement {
   );
 }
 
-export function TanstackQueryProvider404(props: Props): ReactElement {
+// This is a query provider that ignores 404 errors.
+export function TanstackQueryProviderIgnore404Errors(
+  props: Props
+): ReactElement {
   const { children } = props;
 
   if (isServer) {
@@ -65,24 +69,23 @@ export function TanstackQueryProvider404(props: Props): ReactElement {
     );
   }
 
-  // if (!browserQueryClient) {
-  browserQueryClient = new QueryClient({
+  const browserQueryClient404 = new QueryClient({
     queryCache: new QueryCache({
       // good blog here: https://tkdodo.eu/blog/react-query-error-handling
       onError(error, query) {
-        console.log('error', error);
-        // toast.error('Something went wrong', {
-        //   description: getErrorMessage(error),
-        //   id: query.queryKey.toString(),
-        // });
+        if (error instanceof ConnectError && error.code !== Code.NotFound) {
+          toast.error('Something went wrong', {
+            description: getErrorMessage(error),
+            id: query.queryKey.toString(),
+          });
+        }
       },
     }),
     defaultOptions: {},
   });
-  // }
 
   return (
-    <QueryClientProvider client={browserQueryClient}>
+    <QueryClientProvider client={browserQueryClient404}>
       {children}
     </QueryClientProvider>
   );

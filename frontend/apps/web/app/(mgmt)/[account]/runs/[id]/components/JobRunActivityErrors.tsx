@@ -1,3 +1,4 @@
+import { TanstackQueryProviderIgnore404Errors } from '@/components/providers/query-provider';
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +18,11 @@ interface JobRunActivityErrorsProps {
   accountId: string;
 }
 
+interface InitSchemaReport {
+  ConnectionId: string;
+  Errors: { Statement: string; Error: string }[];
+}
+
 function parseUint8ArrayToRunContextJson(
   data: Uint8Array
 ):
@@ -24,11 +30,11 @@ function parseUint8ArrayToRunContextJson(
   | null {
   try {
     const jsonString = new TextDecoder().decode(data);
-    const parsedData = JSON.parse(jsonString);
+    const parsedData: InitSchemaReport[] = JSON.parse(jsonString); // Specify the type here
 
-    const result = parsedData.map((item: any) => ({
+    const result = parsedData.map((item) => ({
       connectionId: item.ConnectionId,
-      errors: item.Errors.map((error: any) => ({
+      errors: item.Errors.map((error) => ({
         statement: error.Statement,
         error: error.Error,
       })),
@@ -40,10 +46,17 @@ function parseUint8ArrayToRunContextJson(
     return null;
   }
 }
-
 export default function JobRunActivityErrors(
   props: JobRunActivityErrorsProps
 ): ReactElement {
+  return (
+    <TanstackQueryProviderIgnore404Errors>
+      <JobRunErrorViewer {...props} />
+    </TanstackQueryProviderIgnore404Errors>
+  );
+}
+
+function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
   const { jobRunId, accountId } = props;
 
   const { data: runContextData, error: runContextError } = useQuery(
