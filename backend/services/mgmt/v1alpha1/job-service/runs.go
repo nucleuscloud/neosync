@@ -608,12 +608,15 @@ func (s *Service) streamLokiWorkerLogs(
 	}
 	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.GetAccountId(), req.GetJobRunId(), logger)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to retrieve workflow execution: %w", err)
 	}
 
 	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl, http.DefaultClient)
 	direction := loki.BACKWARD
 	end := time.Now()
+	if workflowExecution.CloseTime != nil {
+		end = workflowExecution.CloseTime.AsTime()
+	}
 	start := getLogFilterTime(req.GetWindow(), end)
 	query := buildLokiQuery(
 		s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
