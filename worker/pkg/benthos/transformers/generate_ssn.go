@@ -14,6 +14,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random social security numbers including the hyphens in the format xxx-xx-xxxx.").
+		Category("string").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_ssn", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
