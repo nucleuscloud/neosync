@@ -1122,27 +1122,27 @@ message ColumnError {
     // Default unspecified value
     COLUMN_ERROR_CODE_UNSPECIFIED = 0;
     // Column not found in source database
-    COLUMN_NOT_FOUND_IN_SOURCE = 1;
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_SOURCE = 1;
     // Column not found in job mapping
-    COLUMN_NOT_FOUND_IN_MAPPING = 2;
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_MAPPING = 2;
     // Required column not found in job mapping
-    REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING = 3;
+    COLUMN_ERROR_CODE_REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING = 3;
     // Required foreign key not found in job mapping
-    REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING = 4;
+    COLUMN_ERROR_CODE_REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING = 4;
     // Unsupported circular dependency detected
-    UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 5;
+    COLUMN_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 5;
     // Virtual foreign key source column not found in mapping
-    VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING = 6;
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING = 6;
     // Virtual foreign key source column not found in source
-    VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE = 7;
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE = 7;
     // Virtual foreign key target column not found in mapping
-    VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING = 8;
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING = 8;
     // Virtual foreign key target column not found in source
-    VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE = 9;
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE = 9;
     // Virtual foreign key column datatype mismatch
-    VFK_COLUMN_DATATYPE_MISMATCH = 10;
+    COLUMN_ERROR_CODE_VFK_COLUMN_DATATYPE_MISMATCH = 10;
     // Virtual foreign key source column not unique
-    VFK_SOURCE_COLUMN_NOT_UNIQUE = 11;
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_UNIQUE = 11;
   }
 
   // Column error report
@@ -1171,9 +1171,9 @@ message ColumnWarning {
     // Default unspecified value
     COLUMN_WARNING_CODE_UNSPECIFIED = 0;
     // Column not found in source database
-    COLUMN_NOT_FOUND_IN_SOURCE = 1;
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_SOURCE = 1;
     // Column not found in job mapping
-    COLUMN_NOT_FOUND_IN_MAPPING = 2;
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_MAPPING = 2;
   }
 
   // Column warning report
@@ -1196,19 +1196,19 @@ message DatabaseError {
     // Default unspecified value
     DATABASE_ERROR_CODE_UNSPECIFIED = 0;
     // Table not found in source database
-    TABLE_NOT_FOUND_IN_SOURCE = 1;
+    DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE = 1;
     // Unsupported circular dependency detected
-    UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 2;
+    DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 2;
     // Virtual foreign key source table not found in mapping
-    VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING = 3;
+    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING = 3;
     // Virtual foreign key source table not found in source
-    VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE = 4;
+    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE = 4;
     // Virtual foreign key target table not found in mapping
-    VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING = 5;
+    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING = 5;
     // Virtual foreign key target table not found in source
-    VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE = 6;
+    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE = 6;
     // Virtual foreign key column mismatch
-    VFK_COLUMN_MISMATCH = 7;
+    DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH = 7;
   }
 
   // Database error report

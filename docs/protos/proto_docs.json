@@ -8603,57 +8603,57 @@
               "description": "Default unspecified value"
             },
             {
-              "name": "COLUMN_NOT_FOUND_IN_SOURCE",
+              "name": "COLUMN_ERROR_CODE_NOT_FOUND_IN_SOURCE",
               "number": "1",
               "description": "Column not found in source database"
             },
             {
-              "name": "COLUMN_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_ERROR_CODE_NOT_FOUND_IN_MAPPING",
               "number": "2",
               "description": "Column not found in job mapping"
             },
             {
-              "name": "REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_ERROR_CODE_REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING",
               "number": "3",
               "description": "Required column not found in job mapping"
             },
             {
-              "name": "REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_ERROR_CODE_REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING",
               "number": "4",
               "description": "Required foreign key not found in job mapping"
             },
             {
-              "name": "UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
+              "name": "COLUMN_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
               "number": "5",
               "description": "Unsupported circular dependency detected"
             },
             {
-              "name": "VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING",
               "number": "6",
               "description": "Virtual foreign key source column not found in mapping"
             },
             {
-              "name": "VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE",
+              "name": "COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE",
               "number": "7",
               "description": "Virtual foreign key source column not found in source"
             },
             {
-              "name": "VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING",
               "number": "8",
               "description": "Virtual foreign key target column not found in mapping"
             },
             {
-              "name": "VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE",
+              "name": "COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE",
               "number": "9",
               "description": "Virtual foreign key target column not found in source"
             },
             {
-              "name": "VFK_COLUMN_DATATYPE_MISMATCH",
+              "name": "COLUMN_ERROR_CODE_VFK_COLUMN_DATATYPE_MISMATCH",
               "number": "10",
               "description": "Virtual foreign key column datatype mismatch"
             },
             {
-              "name": "VFK_SOURCE_COLUMN_NOT_UNIQUE",
+              "name": "COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_UNIQUE",
               "number": "11",
               "description": "Virtual foreign key source column not unique"
             }
@@ -8671,12 +8671,12 @@
               "description": "Default unspecified value"
             },
             {
-              "name": "COLUMN_NOT_FOUND_IN_SOURCE",
+              "name": "COLUMN_WARNING_CODE_NOT_FOUND_IN_SOURCE",
               "number": "1",
               "description": "Column not found in source database"
             },
             {
-              "name": "COLUMN_NOT_FOUND_IN_MAPPING",
+              "name": "COLUMN_WARNING_CODE_NOT_FOUND_IN_MAPPING",
               "number": "2",
               "description": "Column not found in job mapping"
             }
@@ -8694,37 +8694,37 @@
               "description": "Default unspecified value"
             },
             {
-              "name": "TABLE_NOT_FOUND_IN_SOURCE",
+              "name": "DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE",
               "number": "1",
               "description": "Table not found in source database"
             },
             {
-              "name": "UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
+              "name": "DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE",
               "number": "2",
               "description": "Unsupported circular dependency detected"
             },
             {
-              "name": "VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING",
+              "name": "DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING",
               "number": "3",
               "description": "Virtual foreign key source table not found in mapping"
             },
             {
-              "name": "VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE",
+              "name": "DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE",
               "number": "4",
               "description": "Virtual foreign key source table not found in source"
             },
             {
-              "name": "VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING",
+              "name": "DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING",
               "number": "5",
               "description": "Virtual foreign key target table not found in mapping"
             },
             {
-              "name": "VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE",
+              "name": "DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE",
               "number": "6",
               "description": "Virtual foreign key target table not found in source"
             },
             {
-              "name": "VFK_COLUMN_MISMATCH",
+              "name": "DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH",
               "number": "7",
               "description": "Virtual foreign key column mismatch"
             }

@@ -1200,29 +1200,29 @@ class ColumnError(_message.Message):
     class ColumnErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         COLUMN_ERROR_CODE_UNSPECIFIED: _ClassVar[ColumnError.ColumnErrorCode]
-        COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
-        COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
-        REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
-        REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
-        UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_COLUMN_DATATYPE_MISMATCH: _ClassVar[ColumnError.ColumnErrorCode]
-        VFK_SOURCE_COLUMN_NOT_UNIQUE: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_COLUMN_DATATYPE_MISMATCH: _ClassVar[ColumnError.ColumnErrorCode]
+        COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_UNIQUE: _ClassVar[ColumnError.ColumnErrorCode]
     COLUMN_ERROR_CODE_UNSPECIFIED: ColumnError.ColumnErrorCode
-    COLUMN_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
-    COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
-    REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
-    REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
-    UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: ColumnError.ColumnErrorCode
-    VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
-    VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
-    VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
-    VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
-    VFK_COLUMN_DATATYPE_MISMATCH: ColumnError.ColumnErrorCode
-    VFK_SOURCE_COLUMN_NOT_UNIQUE: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_COLUMN_DATATYPE_MISMATCH: ColumnError.ColumnErrorCode
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_UNIQUE: ColumnError.ColumnErrorCode
     class ColumnErrorReport(_message.Message):
         __slots__ = ("code", "message")
         CODE_FIELD_NUMBER: _ClassVar[int]
@@ -1247,11 +1247,11 @@ class ColumnWarning(_message.Message):
     class ColumnWarningCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         COLUMN_WARNING_CODE_UNSPECIFIED: _ClassVar[ColumnWarning.ColumnWarningCode]
-        COLUMN_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnWarning.ColumnWarningCode]
-        COLUMN_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnWarning.ColumnWarningCode]
+        COLUMN_WARNING_CODE_NOT_FOUND_IN_SOURCE: _ClassVar[ColumnWarning.ColumnWarningCode]
+        COLUMN_WARNING_CODE_NOT_FOUND_IN_MAPPING: _ClassVar[ColumnWarning.ColumnWarningCode]
     COLUMN_WARNING_CODE_UNSPECIFIED: ColumnWarning.ColumnWarningCode
-    COLUMN_NOT_FOUND_IN_SOURCE: ColumnWarning.ColumnWarningCode
-    COLUMN_NOT_FOUND_IN_MAPPING: ColumnWarning.ColumnWarningCode
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_SOURCE: ColumnWarning.ColumnWarningCode
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_MAPPING: ColumnWarning.ColumnWarningCode
     class ColumnWarningReport(_message.Message):
         __slots__ = ("code", "message")
         CODE_FIELD_NUMBER: _ClassVar[int]
@@ -1276,21 +1276,21 @@ class DatabaseError(_message.Message):
     class DatabaseErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         DATABASE_ERROR_CODE_UNSPECIFIED: _ClassVar[DatabaseError.DatabaseErrorCode]
-        TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
-        VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
-        VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        VFK_COLUMN_MISMATCH: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
+        DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH: _ClassVar[DatabaseError.DatabaseErrorCode]
     DATABASE_ERROR_CODE_UNSPECIFIED: DatabaseError.DatabaseErrorCode
-    TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
-    UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: DatabaseError.DatabaseErrorCode
-    VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
-    VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
-    VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
-    VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
-    VFK_COLUMN_MISMATCH: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
+    DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH: DatabaseError.DatabaseErrorCode
     class DatabaseErrorReport(_message.Message):
         __slots__ = ("code", "message")
         CODE_FIELD_NUMBER: _ClassVar[int]
