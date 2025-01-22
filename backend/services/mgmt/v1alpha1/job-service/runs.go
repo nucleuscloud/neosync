@@ -417,29 +417,25 @@ func (s *Service) GetJobRunLogsStream(
 		return err
 	}
 
+	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
+		return stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: logline.LogLine, Timestamp: logline.Timestamp})
+	}
+
 	switch *s.cfg.RunLogConfig.RunLogType {
 	case KubePodRunLogType:
-		return s.streamK8sWorkerPodLogs(ctx, req.Msg, &runLogsStreamer{stream: stream}, logger)
+		return s.streamK8sWorkerPodLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
 	case LokiRunLogType:
-		return s.streamLokiWorkerLogs(ctx, req.Msg, &runLogsStreamer{stream: stream}, logger)
+		return s.streamLokiWorkerLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
 	default:
 		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 	}
 }
 
-type runLogsStreamer struct {
-	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse]
-}
-
-func (s *runLogsStreamer) Send(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
-	return s.stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: logline.LogLine, Timestamp: logline.Timestamp})
-}
-
-type unaryLogStreamer struct {
+type logLineStreamer struct {
 	onLogLine func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error
 }
 
-func (s *unaryLogStreamer) Send(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
+func (s *logLineStreamer) Send(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
 	return s.onLogLine(logline)
 }
 
@@ -478,13 +474,13 @@ func (s *Service) GetJobRunLogs(
 
 	switch *s.cfg.RunLogConfig.RunLogType {
 	case KubePodRunLogType:
-		err := s.streamK8sWorkerPodLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &unaryLogStreamer{onLogLine: onLogLine}, logger)
+		err := s.streamK8sWorkerPodLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &logLineStreamer{onLogLine: onLogLine}, logger)
 		if err != nil {
 			return nil, err
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetJobRunLogsResponse{LogLines: loglines}), nil
 	case LokiRunLogType:
-		err := s.streamLokiWorkerLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &unaryLogStreamer{onLogLine: onLogLine}, logger)
+		err := s.streamLokiWorkerLogs(ctx, &unaryLogStreamRequest{GetJobRunLogsRequest: req.Msg}, &logLineStreamer{onLogLine: onLogLine}, logger)
 		if err != nil {
 			return nil, err
 		}
