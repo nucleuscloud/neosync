@@ -49,6 +49,7 @@ func init() {
 	}
 }
 
+// opts
 func NewGenerateCityOptsFromConfig(config *mgmtv1alpha1.GenerateCity, maxLength *int64) (*GenerateCityOpts, error) {
 	if config == nil {
 		return NewGenerateCityOpts(
