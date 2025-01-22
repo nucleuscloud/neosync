@@ -223,7 +223,7 @@ jobs:
         run: |
           git fetch origin main
           git checkout origin/main
-          go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee main-benchmark.txt
+          go test -run=^$ -bench=. -benchmem -count=6 ./... | grep -E "Benchmark" | tee main-benchmark.txt
           git checkout -
 
       - name: Cache main branch benchmark results
@@ -234,7 +234,7 @@ jobs:
           key: benchmarks-main
 
       - name: Run branch benchmark
-        run: go test -run=^$ -bench=. -benchmem ./... | grep -E "Benchmark" | tee branch-benchmark.txt
+        run: go test -run=^$ -bench=. -benchmem -count=6 ./... | grep -E "Benchmark" | tee branch-benchmark.txt
 
       - name: Compare benchmarks
         run: |
