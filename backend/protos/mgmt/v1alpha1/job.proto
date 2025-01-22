@@ -1113,6 +1113,7 @@ message ColumnError {
   // The list of error reports
   repeated ColumnErrorReport error_reports = 5;
 
+  // An enumeration of column error codes
   enum ColumnErrorCode {
     // Default unspecified value
     COLUMN_ERROR_CODE_UNSPECIFIED = 0;
@@ -1140,6 +1141,7 @@ message ColumnError {
     VFK_SOURCE_COLUMN_NOT_UNIQUE = 11;
   }
 
+  // Column error report
   message ColumnErrorReport {
     // The error code
     ColumnErrorCode code = 1;
@@ -1160,6 +1162,7 @@ message ColumnWarning {
   // The list of warning reports
   repeated ColumnWarningReport warning_reports = 5;
 
+  // An enumeration of column warning codes
   enum ColumnWarningCode {
     // Default unspecified value
     COLUMN_WARNING_CODE_UNSPECIFIED = 0;
@@ -1169,6 +1172,7 @@ message ColumnWarning {
     COLUMN_NOT_FOUND_IN_MAPPING = 2;
   }
 
+  // Column warning report 
   message ColumnWarningReport {
     // The warning code
     ColumnWarningCode code = 1;
@@ -1183,6 +1187,7 @@ message DatabaseError {
   // The list of error reports
   repeated DatabaseErrorReport error_reports = 2;
 
+  // An enumeration of database error codes
   enum DatabaseErrorCode {
     // Default unspecified value
     DATABASE_ERROR_CODE_UNSPECIFIED = 0;
@@ -1202,6 +1207,7 @@ message DatabaseError {
     VFK_COLUMN_MISMATCH = 7;
   }
 
+  // Database error report
   message DatabaseErrorReport {
     // The error code
     DatabaseErrorCode code = 1;
