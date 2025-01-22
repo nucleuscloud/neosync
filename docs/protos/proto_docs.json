@@ -10657,6 +10657,54 @@
               "isoneof": true,
               "oneofdecl": "_timestamp",
               "defaultValue": ""
+            },
+            {
+              "name": "labels",
+              "description": "The labels associated with the log line",
+              "label": "repeated",
+              "type": "LabelsEntry",
+              "longType": "GetJobRunLogsResponse.LogLine.LabelsEntry",
+              "fullType": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LabelsEntry",
+          "longName": "GetJobRunLogsResponse.LogLine.LabelsEntry",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -10776,6 +10824,54 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_timestamp",
+              "defaultValue": ""
+            },
+            {
+              "name": "labels",
+              "description": "The labels associated with the log line",
+              "label": "repeated",
+              "type": "LabelsEntry",
+              "longType": "GetJobRunLogsStreamResponse.LabelsEntry",
+              "fullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LabelsEntry",
+          "longName": "GetJobRunLogsStreamResponse.LabelsEntry",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

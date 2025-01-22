@@ -1664,7 +1664,25 @@ components:
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
           title: timestamp
           description: The timestamp of the log line
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+          description: The labels associated with the log line
       title: LogLine
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsResponse.LogLine.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunLogsStreamRequest:
       type: object
@@ -1745,7 +1763,25 @@ components:
             - $ref: '#/components/schemas/google.protobuf.Timestamp'
           title: timestamp
           description: The timestamp of the log line
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+          description: The labels associated with the log line
       title: GetJobRunLogsStreamResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetJobRunLogsStreamResponse.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
       additionalProperties: false
     mgmt.v1alpha1.GetJobRunRequest:
       type: object
