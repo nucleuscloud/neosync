@@ -213,32 +213,43 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
-		Fallback: []neosync_benthos.Outputs{
-			{
-				PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-					ConnectionId:        params.DestConnection.GetId(),
-					Schema:              benthosConfig.TableSchema,
-					Table:               benthosConfig.TableName,
-					OnConflictDoNothing: destOpts.OnConflictDoNothing,
-					OnConflictDoUpdate:  destOpts.OnConflictDoUpdate,
-					TruncateOnRetry:     destOpts.Truncate,
-
-					Batching: &neosync_benthos.Batching{
-						Period: destOpts.BatchPeriod,
-						Count:  destOpts.BatchCount,
-					},
-					MaxInFlight: int(destOpts.MaxInFlight),
-				},
+		// retry processor and output several times
+		Retry: &neosync_benthos.RetryConfig{
+			InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+				MaxRetries: 1,
 			},
-			{ // kills activity depending on error
-				Error: &neosync_benthos.ErrorOutputConfig{
-					ErrorMsg: `${! meta("fallback_error")}`,
-					Batching: &neosync_benthos.Batching{
-						Period: destOpts.BatchPeriod,
-						Count:  destOpts.BatchCount,
+			Output: neosync_benthos.OutputConfig{
+				Outputs: neosync_benthos.Outputs{
+					Fallback: []neosync_benthos.Outputs{
+						{
+							PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+								ConnectionId:        params.DestConnection.GetId(),
+								Schema:              benthosConfig.TableSchema,
+								Table:               benthosConfig.TableName,
+								OnConflictDoNothing: destOpts.OnConflictDoNothing,
+								OnConflictDoUpdate:  destOpts.OnConflictDoUpdate,
+								TruncateOnRetry:     destOpts.Truncate,
+
+								Batching: &neosync_benthos.Batching{
+									Period: destOpts.BatchPeriod,
+									Count:  destOpts.BatchCount,
+								},
+								MaxInFlight: int(destOpts.MaxInFlight),
+							},
+						},
+						{ // kills activity depending on error
+							Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+								Batching: &neosync_benthos.Batching{
+									Period: destOpts.BatchPeriod,
+									Count:  destOpts.BatchCount,
+								},
+								IsGenerateJob: true,
+							}},
 					},
-					IsGenerateJob: true,
-				}},
+				},
+				Processors: processorConfigs,
+			},
 		},
 	})
 
