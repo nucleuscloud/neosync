@@ -1162,9 +1162,9 @@ message ColumnWarning {
   // The column of the warning
   string column = 3;
   // @deprecated - Use warning_reports instead
-  repeated string warnings = 4 [deprecated = true];
+  repeated string warnings = 5 [deprecated = true];
   // The list of warning reports
-  repeated ColumnWarningReport warning_reports = 5;
+  repeated ColumnWarningReport warning_reports = 6;
 
   // An enumeration of column warning codes
   enum ColumnWarningCode {
