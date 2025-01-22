@@ -23,24 +23,13 @@ interface InitSchemaReport {
   Errors: { Statement: string; Error: string }[];
 }
 
-function parseUint8ArrayToRunContextJson(
+function parseUint8ArrayToInitSchemaReport(
   data: Uint8Array
-):
-  | { connectionId: string; errors: { statement: string; error: string }[] }[]
-  | null {
+): InitSchemaReport[] | null {
   try {
     const jsonString = new TextDecoder().decode(data);
-    const parsedData: InitSchemaReport[] = JSON.parse(jsonString); // Specify the type here
-
-    const result = parsedData.map((item) => ({
-      connectionId: item.ConnectionId,
-      errors: item.Errors.map((error) => ({
-        statement: error.Statement,
-        error: error.Error,
-      })),
-    }));
-
-    return result;
+    const parsedData: InitSchemaReport[] = JSON.parse(jsonString);
+    return parsedData;
   } catch (error) {
     console.error('Error parsing JSON:', error);
     return null;
@@ -78,11 +67,11 @@ function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
   }
 
   const runContext = runContextData?.value
-    ? parseUint8ArrayToRunContextJson(runContextData.value)
+    ? parseUint8ArrayToInitSchemaReport(runContextData.value)
     : null;
 
   const filteredRunContext = runContext?.filter(
-    (item) => item.errors && item.errors.length > 0
+    (item) => item.Errors && item.Errors.length > 0
   );
 
   const connectionsMap =
@@ -99,15 +88,15 @@ function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
       {filteredRunContext && filteredRunContext.length > 0 && (
         <ScrollArea className="h-[400px] w-full rounded-md border">
           {filteredRunContext.map((connectionError) => (
-            <div key={connectionError.connectionId} className="p-4">
+            <div key={connectionError.ConnectionId} className="p-4">
               <Alert className="border-red-500">
                 <div className="flex flex-row items-center gap-2">
                   <IoAlertCircleOutline className="h-6 w-6" />
                   <AlertTitle className="text-lg">
                     Connection:{' '}
-                    {connectionsMap[connectionError.connectionId]?.name}
+                    {connectionsMap[connectionError.ConnectionId]?.name}
                     <span className="text-muted-foreground text-sm pl-4">
-                      {connectionError.connectionId}
+                      {connectionError.ConnectionId}
                     </span>
                   </AlertTitle>
                 </div>
@@ -116,17 +105,17 @@ function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
                     Schema Initialization Errors
                   </h2>
                   <Accordion type="single" collapsible className="w-full">
-                    {connectionError.errors.map((error, errorIdx) => (
+                    {connectionError.Errors.map((error, errorIdx) => (
                       <AccordionItem value={`item-${errorIdx}`} key={errorIdx}>
                         <AccordionTrigger className="text-left">
-                          <div className="font-medium">{error.error}</div>
+                          <div className="font-medium">{error.Error}</div>
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-2">
                             <div className="rounded-md bg-muted p-3">
                               <p className="font-medium">Statement:</p>
                               <pre className="mt-2 whitespace-pre-wrap text-sm">
-                                {error.statement}
+                                {error.Statement}
                               </pre>
                             </div>
                           </div>
