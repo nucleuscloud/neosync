@@ -30,10 +30,16 @@ type config struct {
 type Option func(*config)
 
 func NewDefault(dbtx sqldbtx.DBTX, logger *slog.Logger) *RetryDBTX {
+	backoffStrategy := backoff.NewExponentialBackOff()
+	backoffStrategy.InitialInterval = 200 * time.Millisecond
+	backoffStrategy.MaxInterval = 30 * time.Second
+	backoffStrategy.Multiplier = 2
+	backoffStrategy.RandomizationFactor = 0.3
+
 	return New(dbtx, WithRetryOptions(
-		backoff.WithBackOff(backoff.NewExponentialBackOff()),
-		backoff.WithMaxTries(10),
-		backoff.WithMaxElapsedTime(1*time.Minute),
+		backoff.WithBackOff(backoffStrategy),
+		backoff.WithMaxTries(25),
+		backoff.WithMaxElapsedTime(5*time.Minute),
 		backoff.WithNotify(func(err error, d time.Duration) {
 			logger.Warn(fmt.Sprintf("sql error with retry: %s, retrying in %s", err.Error(), d.String()))
 		}),
