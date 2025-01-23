@@ -3,6 +3,14 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -11,7 +19,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormMessage,
 } from '@/components/ui/form';
 import {
   Select,
@@ -19,21 +26,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
-import { useMutation } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection, JobDestination, JobService } from '@neosync/sdk';
+import {
+  Connection,
+  JobDestination,
+  JobMapping,
+  JobService,
+} from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
+import { IoAlertCircleOutline } from 'react-icons/io5';
 import { toast } from 'sonner';
 import {
   getDestinationFormValuesOrDefaultFromDestination,
   toJobDestinationOptions,
 } from '../../../util';
-
 interface Props {
   jobId: string;
   jobSourceId: string;
@@ -42,6 +55,7 @@ interface Props {
   availableConnections: Connection[];
   mutate: () => {};
   isDeleteDisabled?: boolean;
+  jobmappings?: JobMapping[];
 }
 
 export default function DestinationConnectionCard({
@@ -52,7 +66,9 @@ export default function DestinationConnectionCard({
   mutate,
   isDeleteDisabled,
   jobSourceId,
+  jobmappings,
 }: Props): ReactElement {
+  const { account } = useAccount();
   const { mutateAsync: setJobDestConnection } = useMutation(
     JobService.method.updateJobDestinationConnection
   );
@@ -64,6 +80,26 @@ export default function DestinationConnectionCard({
     resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
     values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
+
+  const {
+    data: validateMappingsResponse,
+    isLoading: isValidateMappingsLoading,
+  } = useQuery(
+    JobService.method.validateJobMappings,
+    {
+      accountId: account?.id,
+      mappings: jobmappings,
+      virtualForeignKeys: [],
+      connectionId: form.getValues('connectionId'),
+    },
+    {
+      enabled:
+        !!account?.id &&
+        !!form.getValues('connectionId') &&
+        !!jobmappings &&
+        !isInitTableSchemaEnabled(form.getValues('destinationOptions')),
+    }
+  );
 
   async function onSubmit(values: NewDestinationFormValues) {
     try {
@@ -107,6 +143,8 @@ export default function DestinationConnectionCard({
     form.control,
     jobSourceId
   );
+
+  const tableErrors = validateMappingsResponse?.tableErrors || [];
 
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(availableConnections);
@@ -159,10 +197,51 @@ export default function DestinationConnectionCard({
                     <FormDescription>
                       The location of the destination data set.
                     </FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+              {isValidateMappingsLoading && (
+                <Skeleton className="w-full h-24 rounded-lg" />
+              )}
+              {!isInitTableSchemaEnabled(
+                form.getValues('destinationOptions')
+              ) &&
+                !isValidateMappingsLoading &&
+                tableErrors.length > 0 && (
+                  <div>
+                    {isValidateMappingsLoading ? (
+                      <Skeleton className="w-full h-24 rounded-lg" />
+                    ) : (
+                      <Alert className="border-red-400">
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value={`table-error`} key={1}>
+                            <AccordionTrigger className="text-left">
+                              <div className="font-medium flex flex-row items-center gap-2">
+                                <IoAlertCircleOutline className="h-6 w-6" />
+                                This destination is missing tables found in Job
+                                Mappings. Either enable Init Table Schema or
+                                create the tables manually.
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2">
+                                <div className="rounded-md bg-muted p-3">
+                                  <pre className="mt-2 whitespace-pre-wrap text-sm">
+                                    {tableErrors.map((error, errorIdx) => (
+                                      <div key={errorIdx}>
+                                        {error.schema}.{error.table}
+                                      </div>
+                                    ))}
+                                  </pre>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </Alert>
+                    )}
+                  </div>
+                )}
               <DestinationOptionsForm
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
@@ -193,6 +272,17 @@ export default function DestinationConnectionCard({
         </form>
       </Form>
     </Card>
+  );
+}
+
+function isInitTableSchemaEnabled(
+  destinationOptions: NewDestinationFormValues['destinationOptions']
+): boolean {
+  return (
+    destinationOptions?.postgres?.initTableSchema ||
+    destinationOptions?.mssql?.initTableSchema ||
+    destinationOptions?.mysql?.initTableSchema ||
+    false
   );
 }
 
