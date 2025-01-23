@@ -4,6 +4,7 @@ description: Learn how to use Job Hooks to add further customization to your Neo
 id: job-hooks
 hide_title: false
 slug: /guides/job-hooks
+# cSpell:words POSTSYNC,PRESYNC
 ---
 
 ## Introduction
@@ -23,7 +24,7 @@ They can also be configured via the API as well as via the Neosync Terraform pro
 
 ### Getting there
 
-Job Hooks can be configured after a job itself has been created. After creation, navigate to the hooks tab for your job of choise.
+Job Hooks can be configured after a job itself has been created. After creation, navigate to the hooks tab for your job of choice.
 
 ![Job Hooks Overview](/img/hooks/job-hooks-overview.png)
 
