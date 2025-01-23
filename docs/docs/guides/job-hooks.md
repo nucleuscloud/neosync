@@ -57,7 +57,7 @@ The priority of the hook (0-100). This determines the execution order. Lower val
 Tie Breaking is determined by the following: `(priority, created_at, id)` in ascending order.
 
 This means that if two hooks have the same priority, the hook that was created first will run first.
-If the created_at timestamp is the same, which _could_ happen given the right conditions (e.g. if both hooks are created at the same time via API or script), the tie will be broken by the hook's ID.
+If the created*at timestamp is the same, which \_could* happen given the right conditions (e.g. if both hooks are created at the same time via API or script), the tie will be broken by the hook's ID.
 
 Hook IDs are uuids, so it is luck of the draw as to which UUID is ordered first (but this will always be consistent once both UUIDs have been created).
 

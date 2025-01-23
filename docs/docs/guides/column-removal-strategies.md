@@ -18,9 +18,9 @@ The `continue` strategy is the default strategy as it is the most flexible. The 
 ## Driver Support
 
 | Strategy | Description                                                                                                                                                                                          | PostgreSQL | MySQL | MS SQL Server |
-|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|-------|---------------|
-| Halt     | Stops the job run if a column is configured in the job mappings but no longer exists in the source database.                                                                                         | ✅          | ✅     | ✅             |
-| Continue | Columns are ignored from the source and are not inserted into the destination; This may fail if column still exists in the destination but does not have a default value configured. See more below. | ✅          | ✅     | ✅             |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ----- | ------------- |
+| Halt     | Stops the job run if a column is configured in the job mappings but no longer exists in the source database.                                                                                         | ✅         | ✅    | ✅            |
+| Continue | Columns are ignored from the source and are not inserted into the destination; This may fail if column still exists in the destination but does not have a default value configured. See more below. | ✅         | ✅    | ✅            |
 
 ## Halt Strategy
 
@@ -31,5 +31,5 @@ For the selected tables in the job mappings, a diff is made and if a column is f
 
 This strategy tells Neosync to ignore any difference in job mappings from the source database.
 
-Neosync is able to detect that columns were removed in the source, and  will leave them off of the insert statement.
+Neosync is able to detect that columns were removed in the source, and will leave them off of the insert statement.
 This may result in failures if any unmapped columns do not have a column default in the destination connection.

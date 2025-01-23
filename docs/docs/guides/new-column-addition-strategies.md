@@ -37,7 +37,7 @@ However, any additional columns that have a default or are a generated column wi
 
 | Example                                                                                                 | Success |
 | ------------------------------------------------------------------------------------------------------- | ------- |
-| `ALTER TABLE ADD COLUMN foo TEXT NOT NULL DEFAULT "test"`                                              | ✅      |
+| `ALTER TABLE ADD COLUMN foo TEXT NOT NULL DEFAULT "test"`                                               | ✅      |
 | `ALTER TABLE ADD COLUMN foo TEXT NULL DEFAULT NULL`                                                     | ✅      |
 | `ALTER TABLE ADD COLUMN full_name TEXT GENERATED ALWAYS AS (first_name \|\| ' ' \|\| last_name) STORED` | ✅      |
 | `ALTER TABLE ADD COLUMN foo TEXT NOT NULL`                                                              | ❌      |
