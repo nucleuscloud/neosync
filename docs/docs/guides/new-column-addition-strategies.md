@@ -27,7 +27,7 @@ This is a common occurrence for any company that is adding new columns to a data
 This strategy is plain and simple. During the job run, Neosync compares the configured job mappings with the source database.
 For the selected tables in the job mappings, a diff is made and if a column is found in the source connection that doesn't exist in the job mappings, the run is halted.
 
-## Continue
+## Continue Strategy
 
 This strategy tells Neosync to ignore any difference in job mappings from the source database.
 
@@ -37,7 +37,7 @@ However, any additional columns that have a default or are a generated column wi
 
 | Example                                                                                                 | Success |
 | ------------------------------------------------------------------------------------------------------- | ------- |
-| `ALTER TABLE ADD COLUMN foo TEXT NOT NULL DEFAULT "test" `                                              | ✅      |
+| `ALTER TABLE ADD COLUMN foo TEXT NOT NULL DEFAULT "test"`                                              | ✅      |
 | `ALTER TABLE ADD COLUMN foo TEXT NULL DEFAULT NULL`                                                     | ✅      |
 | `ALTER TABLE ADD COLUMN full_name TEXT GENERATED ALWAYS AS (first_name \|\| ' ' \|\| last_name) STORED` | ✅      |
 | `ALTER TABLE ADD COLUMN foo TEXT NOT NULL`                                                              | ❌      |

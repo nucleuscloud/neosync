@@ -261,6 +261,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/column-removal-strategies',
+      label: 'Column Removal Strategies',
+    },
+    {
+      type: 'doc',
       id: 'guides/job-hooks',
       label: 'Job Hooks',
     },
