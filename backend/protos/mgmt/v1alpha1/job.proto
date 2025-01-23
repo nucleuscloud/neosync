@@ -1195,20 +1195,10 @@ message DatabaseError {
   enum DatabaseErrorCode {
     // Default unspecified value
     DATABASE_ERROR_CODE_UNSPECIFIED = 0;
-    // Table not found in source database
-    DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE = 1;
     // Unsupported circular dependency detected
-    DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 2;
-    // Virtual foreign key source table not found in mapping
-    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING = 3;
-    // Virtual foreign key source table not found in source
-    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE = 4;
-    // Virtual foreign key target table not found in mapping
-    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING = 5;
-    // Virtual foreign key target table not found in source
-    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE = 6;
+    DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 1;
     // Virtual foreign key column mismatch
-    DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH = 7;
+    DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH = 2;
   }
 
   // Database error report
@@ -1220,13 +1210,48 @@ message DatabaseError {
   }
 }
 
+message TableError {
+  // The schema of the table
+  string schema = 1;
+  // The table of the error
+  string table = 2;
+  // The list of error reports
+  repeated TableErrorReport error_reports = 3;
+
+  // An enumeration of table error codes
+  enum TableErrorCode {
+    // Default unspecified value
+    TABLE_ERROR_CODE_UNSPECIFIED = 0;
+    // Table not found in source database
+    TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE = 1;
+    // Virtual foreign key source table not found in mapping
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING = 2;
+    // Virtual foreign key source table not found in source
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE = 3;
+    // Virtual foreign key target table not found in mapping
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING = 4;
+    // Virtual foreign key target table not found in source
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE = 5;
+  }
+
+  // Database error report
+  message TableErrorReport {
+    // The error code
+    TableErrorCode code = 1;
+    // The error message
+    string message = 2;
+  }
+}
+
 message ValidateJobMappingsResponse {
   // The list of column errors
   repeated ColumnError column_errors = 1;
-  // The database error
+  // The list of database errors
   DatabaseError database_errors = 2;
   // The list of column warnings
   repeated ColumnWarning column_warnings = 3;
+  // The list of table errors
+  repeated TableError table_errors = 4;
 }
 
 message VirtualForeignKey {

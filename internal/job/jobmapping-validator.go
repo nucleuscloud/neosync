@@ -11,6 +11,7 @@ import (
 
 type JobMappingsValidator struct {
 	databaseErrors []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport
+	tableErrors    map[string][]*mgmtv1alpha1.TableError_TableErrorReport
 	columnErrors   map[string]map[string][]*mgmtv1alpha1.ColumnError_ColumnErrorReport     // schema.table -> column -> errors
 	columnWarnings map[string]map[string][]*mgmtv1alpha1.ColumnWarning_ColumnWarningReport // schema.table -> column -> warnings
 
@@ -20,6 +21,7 @@ type JobMappingsValidator struct {
 
 type JobMappingsValidatorResponse struct {
 	DatabaseErrors []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport
+	TableErrors    map[string][]*mgmtv1alpha1.TableError_TableErrorReport
 	ColumnErrors   map[string]map[string][]*mgmtv1alpha1.ColumnError_ColumnErrorReport
 	ColumnWarnings map[string]map[string][]*mgmtv1alpha1.ColumnWarning_ColumnWarningReport
 }
@@ -45,6 +47,7 @@ func NewJobMappingsValidator(jobMappings []*mgmtv1alpha1.JobMapping, opts ...Opt
 	jmv := &JobMappingsValidator{
 		jobMappings:      tableToColumnMappings,
 		databaseErrors:   []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport{},
+		tableErrors:      map[string][]*mgmtv1alpha1.TableError_TableErrorReport{},
 		columnErrors:     map[string]map[string][]*mgmtv1alpha1.ColumnError_ColumnErrorReport{},
 		columnWarnings:   map[string]map[string][]*mgmtv1alpha1.ColumnWarning_ColumnWarningReport{},
 		jobSourceOptions: &SqlJobSourceOpts{},
@@ -60,6 +63,10 @@ func (j *JobMappingsValidator) GetDatabaseErrors() []*mgmtv1alpha1.DatabaseError
 	return j.databaseErrors
 }
 
+func (j *JobMappingsValidator) GetTableErrors() map[string][]*mgmtv1alpha1.TableError_TableErrorReport {
+	return j.tableErrors
+}
+
 func (j *JobMappingsValidator) GetColumnErrors() map[string]map[string][]*mgmtv1alpha1.ColumnError_ColumnErrorReport {
 	return j.columnErrors
 }
@@ -70,6 +77,16 @@ func (j *JobMappingsValidator) GetColumnWarnings() map[string]map[string][]*mgmt
 
 func (j *JobMappingsValidator) addDatabaseError(err string, code mgmtv1alpha1.DatabaseError_DatabaseErrorCode) {
 	j.databaseErrors = append(j.databaseErrors, &mgmtv1alpha1.DatabaseError_DatabaseErrorReport{
+		Code:    code,
+		Message: err,
+	})
+}
+
+func (j *JobMappingsValidator) addTableError(table, err string, code mgmtv1alpha1.TableError_TableErrorCode) {
+	if _, ok := j.tableErrors[table]; !ok {
+		j.tableErrors[table] = []*mgmtv1alpha1.TableError_TableErrorReport{}
+	}
+	j.tableErrors[table] = append(j.tableErrors[table], &mgmtv1alpha1.TableError_TableErrorReport{
 		Code:    code,
 		Message: err,
 	})
@@ -110,6 +127,7 @@ func (j *JobMappingsValidator) Validate(
 	j.ValidateRequiredColumns(tableColumnMap)
 	return &JobMappingsValidatorResponse{
 		DatabaseErrors: j.databaseErrors,
+		TableErrors:    j.tableErrors,
 		ColumnErrors:   j.columnErrors,
 		ColumnWarnings: j.columnWarnings,
 	}, nil
@@ -122,7 +140,7 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 	// check for job mappings that do not exist in the source
 	for table, colMappings := range j.jobMappings {
 		if _, ok := tableColumnMap[table]; !ok {
-			j.addDatabaseError(fmt.Sprintf("Table does not exist [%s] in source", table), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE)
+			j.addTableError(table, fmt.Sprintf("Table does not exist [%s] in source", table), mgmtv1alpha1.TableError_TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE)
 			continue
 		}
 		for col := range colMappings {
@@ -303,24 +321,24 @@ func (j *JobMappingsValidator) ValidateVirtualForeignKeys(
 		// check that source table exist in job mappings
 		sourceColMappings, ok := j.jobMappings[sourceTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING)
+			j.addTableError(sourceTable, fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable), mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING)
 			continue
 		}
 		sourceCols, ok := tableColumnMap[sourceTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE)
+			j.addTableError(sourceTable, fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable), mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE)
 			return
 		}
 
 		// check that target table exist in job mappings
 		targetColMappings, ok := j.jobMappings[targetTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING)
+			j.addTableError(targetTable, fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable), mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING)
 			continue
 		}
 		targetCols, ok := tableColumnMap[targetTable]
 		if !ok {
-			j.addDatabaseError(fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE)
+			j.addTableError(targetTable, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable), mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE)
 			continue
 		}
 
