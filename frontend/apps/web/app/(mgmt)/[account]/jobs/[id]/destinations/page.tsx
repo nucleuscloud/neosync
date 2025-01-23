@@ -103,6 +103,7 @@ export default function Page({ params }: PageProps): ReactElement {
                   );
                 })}
                 isDeleteDisabled={data?.job?.destinations.length === 1}
+                jobmappings={data?.job?.mappings}
               />
             );
           })}

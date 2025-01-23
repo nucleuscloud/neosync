@@ -3,6 +3,13 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -22,18 +29,25 @@ import {
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
+import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection, JobDestination, JobService } from '@neosync/sdk';
+import {
+  Connection,
+  JobDestination,
+  JobMapping,
+  JobService,
+  ValidateJobMappingsRequestSchema,
+  ValidateJobMappingsResponse,
+} from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
   getDestinationFormValuesOrDefaultFromDestination,
   toJobDestinationOptions,
 } from '../../../util';
-
 interface Props {
   jobId: string;
   jobSourceId: string;
@@ -42,6 +56,7 @@ interface Props {
   availableConnections: Connection[];
   mutate: () => {};
   isDeleteDisabled?: boolean;
+  jobmappings?: JobMapping[];
 }
 
 export default function DestinationConnectionCard({
@@ -52,7 +67,9 @@ export default function DestinationConnectionCard({
   mutate,
   isDeleteDisabled,
   jobSourceId,
+  jobmappings,
 }: Props): ReactElement {
+  const { account } = useAccount();
   const { mutateAsync: setJobDestConnection } = useMutation(
     JobService.method.updateJobDestinationConnection
   );
@@ -60,10 +77,61 @@ export default function DestinationConnectionCard({
     JobService.method.deleteJobDestinationConnection
   );
 
+  const { mutateAsync: validateJobMappingsAsync } = useMutation(
+    JobService.method.validateJobMappings
+  );
+
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
+
   const form = useForm({
     resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
     values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
+
+  async function validateMappings(connectionId: string) {
+    if (!jobmappings || jobmappings.length == 0) {
+      console.log('no jobmappings');
+      return;
+    }
+    try {
+      console.log('validating mappings');
+      setIsValidatingMappings(true);
+      const body = create(ValidateJobMappingsRequestSchema, {
+        accountId: account?.id,
+        mappings: jobmappings,
+        virtualForeignKeys: [],
+        connectionId: connectionId,
+      });
+      const res = await validateJobMappingsAsync(body);
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast.error('Unable to validate job mappings', {
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!account?.id || !destination.connectionId || !jobmappings) {
+      console.log(
+        'no accountId, or destination.connectionId',
+        account?.id,
+        destination
+      );
+      return;
+    }
+    const validateJobMappings = async () => {
+      await validateMappings(destination.connectionId);
+    };
+    validateJobMappings();
+  }, [account?.id, destination.connectionId, jobmappings]);
 
   async function onSubmit(values: NewDestinationFormValues) {
     try {
@@ -163,6 +231,42 @@ export default function DestinationConnectionCard({
                   </FormItem>
                 )}
               />
+              {validateMappingsResponse &&
+                validateMappingsResponse.databaseErrors &&
+                validateMappingsResponse.databaseErrors.errorReports.length >
+                  0 && (
+                  <div>
+                    <p>
+                      {JSON.stringify(
+                        validateMappingsResponse.databaseErrors.errorReports
+                      )}
+                    </p>
+                    <Accordion type="single" collapsible className="w-full">
+                      {validateMappingsResponse.databaseErrors.errorReports.map(
+                        (error, errorIdx) => (
+                          <AccordionItem
+                            value={`item-${errorIdx}`}
+                            key={errorIdx}
+                          >
+                            <AccordionTrigger className="text-left">
+                              <div className="font-medium">{error.Error}</div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2">
+                                <div className="rounded-md bg-muted p-3">
+                                  <p className="font-medium">Statement:</p>
+                                  <pre className="mt-2 whitespace-pre-wrap text-sm">
+                                    {error.Statement}
+                                  </pre>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        )
+                      )}
+                    </Accordion>
+                  </div>
+                )}
               <DestinationOptionsForm
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
