@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
+	"time"
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
@@ -25,6 +28,17 @@ type config struct {
 }
 
 type Option func(*config)
+
+func NewDefault(dbtx sqldbtx.DBTX, logger *slog.Logger) *RetryDBTX {
+	return New(dbtx, WithRetryOptions(
+		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithMaxTries(10),
+		backoff.WithMaxElapsedTime(1*time.Minute),
+		backoff.WithNotify(func(err error, d time.Duration) {
+			logger.Warn(fmt.Sprintf("sql error with retry: %s, retrying in %s", err.Error(), d.String()))
+		}),
+	))
+}
 
 func New(dbtx sqldbtx.DBTX, opts ...Option) *RetryDBTX {
 	cfg := &config{}
