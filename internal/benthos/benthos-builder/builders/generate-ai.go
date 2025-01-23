@@ -216,7 +216,7 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 		// retry processor and output several times
 		Retry: &neosync_benthos.RetryConfig{
 			InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-				MaxRetries: 10,
+				MaxRetries: 1,
 			},
 			Output: neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
