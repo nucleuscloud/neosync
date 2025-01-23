@@ -1276,20 +1276,10 @@ class DatabaseError(_message.Message):
     class DatabaseErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         DATABASE_ERROR_CODE_UNSPECIFIED: _ClassVar[DatabaseError.DatabaseErrorCode]
-        DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
         DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
-        DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
-        DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[DatabaseError.DatabaseErrorCode]
-        DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[DatabaseError.DatabaseErrorCode]
         DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH: _ClassVar[DatabaseError.DatabaseErrorCode]
     DATABASE_ERROR_CODE_UNSPECIFIED: DatabaseError.DatabaseErrorCode
-    DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
     DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE: DatabaseError.DatabaseErrorCode
-    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
-    DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
-    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: DatabaseError.DatabaseErrorCode
-    DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: DatabaseError.DatabaseErrorCode
     DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH: DatabaseError.DatabaseErrorCode
     class DatabaseErrorReport(_message.Message):
         __slots__ = ("code", "message")
@@ -1304,15 +1294,48 @@ class DatabaseError(_message.Message):
     error_reports: _containers.RepeatedCompositeFieldContainer[DatabaseError.DatabaseErrorReport]
     def __init__(self, errors: _Optional[_Iterable[str]] = ..., error_reports: _Optional[_Iterable[_Union[DatabaseError.DatabaseErrorReport, _Mapping]]] = ...) -> None: ...
 
+class TableError(_message.Message):
+    __slots__ = ("schema", "table", "error_reports")
+    class TableErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        TABLE_ERROR_CODE_UNSPECIFIED: _ClassVar[TableError.TableErrorCode]
+        TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[TableError.TableErrorCode]
+        TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[TableError.TableErrorCode]
+        TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[TableError.TableErrorCode]
+        TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: _ClassVar[TableError.TableErrorCode]
+        TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: _ClassVar[TableError.TableErrorCode]
+    TABLE_ERROR_CODE_UNSPECIFIED: TableError.TableErrorCode
+    TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE: TableError.TableErrorCode
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING: TableError.TableErrorCode
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE: TableError.TableErrorCode
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING: TableError.TableErrorCode
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE: TableError.TableErrorCode
+    class TableErrorReport(_message.Message):
+        __slots__ = ("code", "message")
+        CODE_FIELD_NUMBER: _ClassVar[int]
+        MESSAGE_FIELD_NUMBER: _ClassVar[int]
+        code: TableError.TableErrorCode
+        message: str
+        def __init__(self, code: _Optional[_Union[TableError.TableErrorCode, str]] = ..., message: _Optional[str] = ...) -> None: ...
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    TABLE_FIELD_NUMBER: _ClassVar[int]
+    ERROR_REPORTS_FIELD_NUMBER: _ClassVar[int]
+    schema: str
+    table: str
+    error_reports: _containers.RepeatedCompositeFieldContainer[TableError.TableErrorReport]
+    def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., error_reports: _Optional[_Iterable[_Union[TableError.TableErrorReport, _Mapping]]] = ...) -> None: ...
+
 class ValidateJobMappingsResponse(_message.Message):
-    __slots__ = ("column_errors", "database_errors", "column_warnings")
+    __slots__ = ("column_errors", "database_errors", "column_warnings", "table_errors")
     COLUMN_ERRORS_FIELD_NUMBER: _ClassVar[int]
     DATABASE_ERRORS_FIELD_NUMBER: _ClassVar[int]
     COLUMN_WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    TABLE_ERRORS_FIELD_NUMBER: _ClassVar[int]
     column_errors: _containers.RepeatedCompositeFieldContainer[ColumnError]
     database_errors: DatabaseError
     column_warnings: _containers.RepeatedCompositeFieldContainer[ColumnWarning]
-    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ...) -> None: ...
+    table_errors: _containers.RepeatedCompositeFieldContainer[TableError]
+    def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ..., table_errors: _Optional[_Iterable[_Union[TableError, _Mapping]]] = ...) -> None: ...
 
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")

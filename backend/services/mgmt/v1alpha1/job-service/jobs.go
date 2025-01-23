@@ -1575,6 +1575,16 @@ func (s *Service) ValidateJobMappings(
 		ErrorReports: dbErrReports,
 	}
 
+	tableErrors := []*mgmtv1alpha1.TableError{}
+	for tableName, errs := range result.TableErrors {
+		schema, table := sqlmanager_shared.SplitTableKey(tableName)
+		tableErrors = append(tableErrors, &mgmtv1alpha1.TableError{
+			Schema:       schema,
+			Table:        table,
+			ErrorReports: errs,
+		})
+	}
+
 	colErrors := []*mgmtv1alpha1.ColumnError{}
 	for tableName, colMap := range result.ColumnErrors {
 		for col, errors := range colMap {
@@ -1605,6 +1615,7 @@ func (s *Service) ValidateJobMappings(
 
 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{
 		DatabaseErrors: dbErrors,
+		TableErrors:    tableErrors,
 		ColumnErrors:   colErrors,
 		ColumnWarnings: colWarnings,
 	}), nil

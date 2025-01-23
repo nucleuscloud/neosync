@@ -75,12 +75,7 @@ components:
       title: DatabaseErrorCode
       enum:
         - DATABASE_ERROR_CODE_UNSPECIFIED
-        - DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE
         - DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE
-        - DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING
-        - DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE
-        - DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING
-        - DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE
         - DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH
       description: An enumeration of database error codes
     mgmt.v1alpha1.GenerateEmailType:
@@ -167,6 +162,17 @@ components:
         - HASH_TYPE_MD5
         - HASH_TYPE_SHA256
         - HASH_TYPE_SHA512
+    mgmt.v1alpha1.TableError.TableErrorCode:
+      type: string
+      title: TableErrorCode
+      enum:
+        - TABLE_ERROR_CODE_UNSPECIFIED
+        - TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE
+        - TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING
+        - TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE
+        - TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING
+        - TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE
+      description: An enumeration of table error codes
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -4141,6 +4147,40 @@ components:
       type: object
       title: SetRunContextsResponse
       additionalProperties: false
+    mgmt.v1alpha1.TableError:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The table of the error
+        errorReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.TableError.TableErrorReport'
+          title: error_reports
+          description: The list of error reports
+      title: TableError
+      additionalProperties: false
+    mgmt.v1alpha1.TableError.TableErrorReport:
+      type: object
+      properties:
+        code:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TableError.TableErrorCode'
+          title: code
+          description: The error code
+        message:
+          type: string
+          title: message
+          description: The error message
+      title: TableErrorReport
+      additionalProperties: false
+      description: Database error report
     mgmt.v1alpha1.TerminateJobRunRequest:
       type: object
       properties:
@@ -5373,13 +5413,19 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseError'
           title: database_errors
-          description: The database error
+          description: The list of database errors
         columnWarnings:
           type: array
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.ColumnWarning'
           title: column_warnings
           description: The list of column warnings
+        tableErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.TableError'
+          title: table_errors
+          description: The list of table errors
       title: ValidateJobMappingsResponse
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:

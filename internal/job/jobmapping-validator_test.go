@@ -29,14 +29,13 @@ func TestValidateJobMappingsExistInSource(t *testing.T) {
 			HaltOnNewColumnAddition: false,
 			HaltOnColumnRemoval:     false,
 		}))
-
 		jmv.ValidateJobMappingsExistInSource(sourceCols)
-		assert.Equal(t, []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport{
+		assert.Equal(t, []*mgmtv1alpha1.TableError_TableErrorReport{
 			{
-				Code:    mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE,
+				Code:    mgmtv1alpha1.TableError_TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE,
 				Message: "Table does not exist [schema1.table1] in source",
 			},
-		}, jmv.GetDatabaseErrors())
+		}, jmv.GetTableErrors()["schema1.table1"])
 	})
 
 	t.Run("should return column errors", func(t *testing.T) {
@@ -678,10 +677,10 @@ func TestValidateVirtualForeignKeys(t *testing.T) {
 		jmv := NewJobMappingsValidator(mappings)
 		jmv.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, &sqlmanager_shared.TableConstraints{})
 
-		errs := jmv.GetDatabaseErrors()
-		require.Len(t, errs, 1)
-		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Virtual foreign key source table missing in job mappings")
+		errs := jmv.GetTableErrors()
+		require.Len(t, errs["schema1.table2"], 1)
+		assert.Equal(t, mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING, errs["schema1.table2"][0].Code)
+		assert.Contains(t, errs["schema1.table2"][0].Message, "Virtual foreign key source table missing in job mappings")
 	})
 
 	t.Run("should return error when target table missing in job mappings", func(t *testing.T) {
@@ -714,10 +713,10 @@ func TestValidateVirtualForeignKeys(t *testing.T) {
 		jmv := NewJobMappingsValidator(mappings)
 		jmv.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, &sqlmanager_shared.TableConstraints{})
 
-		errs := jmv.GetDatabaseErrors()
-		require.Len(t, errs, 1)
-		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Virtual foreign key target table missing in job mappings")
+		errs := jmv.GetTableErrors()
+		require.Len(t, errs["schema1.table1"], 1)
+		assert.Equal(t, mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING, errs["schema1.table1"][0].Code)
+		assert.Contains(t, errs["schema1.table1"][0].Message, "Virtual foreign key target table missing in job mappings")
 	})
 
 	t.Run("should return error when source table missing in source database", func(t *testing.T) {
@@ -748,10 +747,10 @@ func TestValidateVirtualForeignKeys(t *testing.T) {
 		jmv := NewJobMappingsValidator(mappings)
 		jmv.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, &sqlmanager_shared.TableConstraints{})
 
-		errs := jmv.GetDatabaseErrors()
-		require.Len(t, errs, 1)
-		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Virtual foreign key source table missing in source database")
+		errs := jmv.GetTableErrors()
+		require.Len(t, errs["schema1.table2"], 1)
+		assert.Equal(t, mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE, errs["schema1.table2"][0].Code)
+		assert.Contains(t, errs["schema1.table2"][0].Message, "Virtual foreign key source table missing in source database")
 	})
 
 	t.Run("should return error when target table missing in source database", func(t *testing.T) {
@@ -782,10 +781,10 @@ func TestValidateVirtualForeignKeys(t *testing.T) {
 		jmv := NewJobMappingsValidator(mappings)
 		jmv.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, &sqlmanager_shared.TableConstraints{})
 
-		errs := jmv.GetDatabaseErrors()
-		require.Len(t, errs, 1)
-		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Virtual foreign key target table missing in source database")
+		errs := jmv.GetTableErrors()
+		require.Len(t, errs["schema1.table1"], 1)
+		assert.Equal(t, mgmtv1alpha1.TableError_TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE, errs["schema1.table1"][0].Code)
+		assert.Contains(t, errs["schema1.table1"][0].Message, "Virtual foreign key target table missing in source database")
 	})
 
 	t.Run("should return error when column datatypes don't match", func(t *testing.T) {
@@ -1206,12 +1205,12 @@ func TestValidate(t *testing.T) {
 		resp, err := jmv.Validate(tableColumnMap, nil, &sqlmanager_shared.TableConstraints{})
 
 		require.NoError(t, err)
-		require.NotEmpty(t, resp.DatabaseErrors)
-		assert.Equal(t, []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport{
+		require.NotEmpty(t, resp.TableErrors)
+		assert.Equal(t, []*mgmtv1alpha1.TableError_TableErrorReport{
 			{
-				Code:    mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE,
+				Code:    mgmtv1alpha1.TableError_TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE,
 				Message: "Table does not exist [schema1.missing_table] in source",
 			},
-		}, resp.DatabaseErrors)
+		}, resp.TableErrors["schema1.missing_table"])
 	})
 }
