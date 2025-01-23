@@ -265,6 +265,11 @@ const sidebars: SidebarsConfig = {
       label: 'Job Hooks',
     },
     {
+      type: 'doc',
+      id: 'guides/rbac',
+      label: 'RBAC',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

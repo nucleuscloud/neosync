@@ -319,3 +319,7 @@ header h2 a {
 .breadcrumbs__link {
   @apply py-1 px-2;
 }
+
+.markdown > blockquote {
+  margin-bottom: var(--ifm-leading);
+}
