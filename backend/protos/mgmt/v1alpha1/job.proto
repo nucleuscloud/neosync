@@ -346,7 +346,7 @@ message PostgresDestinationConnectionOptions {
 
 message PostgresOnConflictConfig {
   // @deprecated - Use strategy nothing instead
-  bool do_nothing = 1;
+  bool do_nothing = 1 [deprecated = true];
 
   oneof strategy {
     option (buf.validate.oneof).required = false;
@@ -1111,8 +1111,47 @@ message ColumnError {
   string table = 2;
   // The column of the error
   string column = 3;
-  // The list of errors
-  repeated string errors = 4;
+  // @deprecated - Use error_reports instead
+  repeated string errors = 4 [deprecated = true];
+
+  // The list of error reports
+  repeated ColumnErrorReport error_reports = 5;
+
+  // An enumeration of column error codes
+  enum ColumnErrorCode {
+    // Default unspecified value
+    COLUMN_ERROR_CODE_UNSPECIFIED = 0;
+    // Column not found in source database
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_SOURCE = 1;
+    // Column not found in job mapping
+    COLUMN_ERROR_CODE_NOT_FOUND_IN_MAPPING = 2;
+    // Required column not found in job mapping
+    COLUMN_ERROR_CODE_REQUIRED_COLUMN_NOT_FOUND_IN_MAPPING = 3;
+    // Required foreign key not found in job mapping
+    COLUMN_ERROR_CODE_REQUIRED_FOREIGN_KEY_NOT_FOUND_IN_MAPPING = 4;
+    // Unsupported circular dependency detected
+    COLUMN_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 5;
+    // Virtual foreign key source column not found in mapping
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_MAPPING = 6;
+    // Virtual foreign key source column not found in source
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_FOUND_IN_SOURCE = 7;
+    // Virtual foreign key target column not found in mapping
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_MAPPING = 8;
+    // Virtual foreign key target column not found in source
+    COLUMN_ERROR_CODE_VFK_TARGET_COLUMN_NOT_FOUND_IN_SOURCE = 9;
+    // Virtual foreign key column datatype mismatch
+    COLUMN_ERROR_CODE_VFK_COLUMN_DATATYPE_MISMATCH = 10;
+    // Virtual foreign key source column not unique
+    COLUMN_ERROR_CODE_VFK_SOURCE_COLUMN_NOT_UNIQUE = 11;
+  }
+
+  // Column error report
+  message ColumnErrorReport {
+    // The error code
+    ColumnErrorCode code = 1;
+    // The error message
+    string message = 2;
+  }
 }
 
 message ColumnWarning {
@@ -1122,21 +1161,97 @@ message ColumnWarning {
   string table = 2;
   // The column of the warning
   string column = 3;
-  // The list of warnings
-  repeated string warnings = 5;
+  // @deprecated - Use warning_reports instead
+  repeated string warnings = 5 [deprecated = true];
+  // The list of warning reports
+  repeated ColumnWarningReport warning_reports = 6;
+
+  // An enumeration of column warning codes
+  enum ColumnWarningCode {
+    // Default unspecified value
+    COLUMN_WARNING_CODE_UNSPECIFIED = 0;
+    // Column not found in source database
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_SOURCE = 1;
+    // Column not found in job mapping
+    COLUMN_WARNING_CODE_NOT_FOUND_IN_MAPPING = 2;
+  }
+
+  // Column warning report
+  message ColumnWarningReport {
+    // The warning code
+    ColumnWarningCode code = 1;
+    // The warning message
+    string message = 2;
+  }
 }
 
 message DatabaseError {
-  // The list of errors
-  repeated string errors = 1;
+  // @deprecated - Use error_reports instead
+  repeated string errors = 1 [deprecated = true];
+  // The list of error reports
+  repeated DatabaseErrorReport error_reports = 2;
+
+  // An enumeration of database error codes
+  enum DatabaseErrorCode {
+    // Default unspecified value
+    DATABASE_ERROR_CODE_UNSPECIFIED = 0;
+    // Unsupported circular dependency detected
+    DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE = 1;
+    // Virtual foreign key column mismatch
+    DATABASE_ERROR_CODE_VFK_COLUMN_MISMATCH = 2;
+  }
+
+  // Database error report
+  message DatabaseErrorReport {
+    // The error code
+    DatabaseErrorCode code = 1;
+    // The error message
+    string message = 2;
+  }
 }
+
+message TableError {
+  // The schema of the table
+  string schema = 1;
+  // The table of the error
+  string table = 2;
+  // The list of error reports
+  repeated TableErrorReport error_reports = 3;
+
+  // An enumeration of table error codes
+  enum TableErrorCode {
+    // Default unspecified value
+    TABLE_ERROR_CODE_UNSPECIFIED = 0;
+    // Table not found in source database
+    TABLE_ERROR_CODE_TABLE_NOT_FOUND_IN_SOURCE = 1;
+    // Virtual foreign key source table not found in mapping
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_MAPPING = 2;
+    // Virtual foreign key source table not found in source
+    TABLE_ERROR_CODE_VFK_SOURCE_TABLE_NOT_FOUND_IN_SOURCE = 3;
+    // Virtual foreign key target table not found in mapping
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING = 4;
+    // Virtual foreign key target table not found in source
+    TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE = 5;
+  }
+
+  // Database error report
+  message TableErrorReport {
+    // The error code
+    TableErrorCode code = 1;
+    // The error message
+    string message = 2;
+  }
+}
+
 message ValidateJobMappingsResponse {
   // The list of column errors
   repeated ColumnError column_errors = 1;
-  // The database error
+  // The list of database errors
   DatabaseError database_errors = 2;
   // The list of column warnings
   repeated ColumnWarning column_warnings = 3;
+  // The list of table errors
+  repeated TableError table_errors = 4;
 }
 
 message VirtualForeignKey {
