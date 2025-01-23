@@ -172,7 +172,6 @@ export default function DestinationConnectionCard({
                               shouldValidate: true,
                             }
                           );
-                          // validateMappings(value);
                         }}
                         value={field.value}
                       >
