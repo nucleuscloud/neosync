@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -128,7 +128,7 @@ func TestIsRetryableError(t *testing.T) {
 func TestRetryDBTX(t *testing.T) {
 	t.Run("ExecContext", func(t *testing.T) {
 		t.Run("succeeds first try", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedResult := &mockResult{}
 
 			mockDB.EXPECT().
@@ -148,7 +148,7 @@ func TestRetryDBTX(t *testing.T) {
 		})
 
 		t.Run("retries on deadlock and succeeds", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedResult := &mockResult{}
 
 			mockDB.EXPECT().
@@ -173,7 +173,7 @@ func TestRetryDBTX(t *testing.T) {
 		})
 
 		t.Run("does not retry on non-retryable error", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedErr := errors.New("non-retryable error")
 
 			mockDB.EXPECT().
@@ -192,7 +192,7 @@ func TestRetryDBTX(t *testing.T) {
 
 	t.Run("QueryContext", func(t *testing.T) {
 		t.Run("succeeds first try", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedRows := &sql.Rows{}
 
 			mockDB.EXPECT().
@@ -212,7 +212,7 @@ func TestRetryDBTX(t *testing.T) {
 		})
 
 		t.Run("retries on deadlock and succeeds", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedRows := &sql.Rows{}
 
 			mockDB.EXPECT().
@@ -239,7 +239,7 @@ func TestRetryDBTX(t *testing.T) {
 
 	t.Run("PrepareContext", func(t *testing.T) {
 		t.Run("succeeds first try", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedStmt := &sql.Stmt{}
 
 			mockDB.EXPECT().
@@ -261,7 +261,7 @@ func TestRetryDBTX(t *testing.T) {
 
 	t.Run("QueryRowContext", func(t *testing.T) {
 		t.Run("passes through to underlying db", func(t *testing.T) {
-			mockDB := mysql_queries.NewMockDBTX(t)
+			mockDB := sqldbtx.NewMockDBTX(t)
 			expectedRow := &sql.Row{}
 
 			mockDB.EXPECT().

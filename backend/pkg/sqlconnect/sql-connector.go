@@ -1,7 +1,6 @@
 package sqlconnect
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"database/sql"
@@ -14,9 +13,10 @@ import (
 	"sync"
 	"time"
 
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlretry"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
@@ -26,15 +26,8 @@ import (
 
 // interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunnelingff
 type SqlDbContainer interface {
-	Open() (SqlDBTX, error)
+	Open() (sqldbtx.DBTX, error)
 	Close() error
-}
-
-type SqlDBTX interface {
-	mysql_queries.DBTX
-
-	PingContext(context.Context) error
-	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
 type SqlConnectorOption func(*sqlConnectorOptions)
@@ -367,7 +360,7 @@ type stdlibConnectorContainer struct {
 	connopts *DbConnectionOptions
 }
 
-func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
+func (s *stdlibConnectorContainer) Open() (sqldbtx.DBTX, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	connector, cleanup, err := s.getter()
@@ -378,7 +371,7 @@ func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
 	db := sql.OpenDB(connector)
 	setConnectionOpts(db, s.connopts)
 	s.db = db
-	return s.db, err
+	return sqlretry.New(s.db), err
 }
 func (s *stdlibConnectorContainer) Close() error {
 	s.mu.Lock()

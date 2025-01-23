@@ -9,16 +9,16 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 )
 
 type RetryDBTX struct {
-	dbtx mysql_queries.DBTX
+	dbtx sqldbtx.DBTX
 
 	config *config
 }
 
-var _ mysql_queries.DBTX = (*RetryDBTX)(nil)
+var _ sqldbtx.DBTX = (*RetryDBTX)(nil)
 
 type config struct {
 	retryOpts []backoff.RetryOption
@@ -26,7 +26,7 @@ type config struct {
 
 type Option func(*config)
 
-func New(dbtx mysql_queries.DBTX, opts ...Option) *RetryDBTX {
+func New(dbtx sqldbtx.DBTX, opts ...Option) *RetryDBTX {
 	cfg := &config{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -63,6 +63,21 @@ func (r *RetryDBTX) QueryContext(ctx context.Context, query string, args ...any)
 
 func (r *RetryDBTX) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
 	return r.dbtx.QueryRowContext(ctx, query, args...)
+}
+
+func (r *RetryDBTX) PingContext(ctx context.Context) error {
+	operation := func() (any, error) {
+		return nil, r.dbtx.PingContext(ctx)
+	}
+	_, err := retry(ctx, operation, r.config.retryOpts...)
+	return err
+}
+
+func (r *RetryDBTX) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
+	operation := func() (*sql.Tx, error) {
+		return r.dbtx.BeginTx(ctx, opts)
+	}
+	return retry(ctx, operation, r.config.retryOpts...)
 }
 
 func retry[T any](ctx context.Context, fn func() (T, error), opts ...backoff.RetryOption) (T, error) {

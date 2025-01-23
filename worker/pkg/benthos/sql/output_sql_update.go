@@ -2,7 +2,6 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sync"
 	"time"
@@ -10,16 +9,14 @@ import (
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type SqlDbtx interface {
-	mysql_queries.DBTX
-
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+	sqldbtx.DBTX
 	Close() error
 }
 
