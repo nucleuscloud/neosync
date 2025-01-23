@@ -50,6 +50,7 @@ import {
   MdOutlineSchema,
   MdPassword,
   MdStart,
+  MdWebhook,
 } from 'react-icons/md';
 import {
   PiArrowsSplitLight,
@@ -206,6 +207,8 @@ export function IconHandler(name: string): ReactElement {
       return <DiMsqlServer />;
     case 'Python':
       return <FaPython />;
+    case 'Job Hooks':
+      return <MdWebhook />;
     default:
       return <LayersIcon />;
   }

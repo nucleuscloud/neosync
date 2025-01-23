@@ -260,6 +260,11 @@ const sidebars: SidebarsConfig = {
       label: 'New Column Addition Strategies',
     },
     {
+      type: 'doc',
+      id: 'guides/job-hooks',
+      label: 'Job Hooks',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
