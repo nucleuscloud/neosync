@@ -1,4 +1,4 @@
-package neosync_benthos_sql
+package sqlretry
 
 import (
 	"strings"

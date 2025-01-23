@@ -1,7 +1,6 @@
 package sqlconnect
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"database/sql"
@@ -14,9 +13,10 @@ import (
 	"sync"
 	"time"
 
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlretry"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
@@ -26,15 +26,8 @@ import (
 
 // interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunnelingff
 type SqlDbContainer interface {
-	Open() (SqlDBTX, error)
+	Open() (sqldbtx.DBTX, error)
 	Close() error
-}
-
-type SqlDBTX interface {
-	mysql_queries.DBTX
-
-	PingContext(context.Context) error
-	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
 type SqlConnectorOption func(*sqlConnectorOptions)
@@ -94,6 +87,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return newStdlibConnectorContainer(
 			getPgConnectorFn(dsn, config.PgConfig, logger),
 			dbconnopts,
+			logger,
 		), nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, options.connectionTimeoutSeconds, logger, options.mysqlDisableParseTime)
@@ -105,6 +99,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return newStdlibConnectorContainer(
 			getMysqlConnectorFn(dsn, config.MysqlConfig, logger),
 			dbconnopts,
+			logger,
 		), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, options.connectionTimeoutSeconds)
@@ -116,6 +111,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return newStdlibConnectorContainer(
 			getMssqlConnectorFn(dsn, config.MssqlConfig, logger),
 			dbconnopts,
+			logger,
 		), nil
 	default:
 		return nil, fmt.Errorf("unsupported connection: %T", config)
@@ -354,8 +350,12 @@ func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
 
 type stdlibConnectorGetter func() (driver.Connector, func(), error)
 
-func newStdlibConnectorContainer(getter stdlibConnectorGetter, connopts *DbConnectionOptions) *stdlibConnectorContainer {
-	return &stdlibConnectorContainer{getter: getter, connopts: connopts}
+func newStdlibConnectorContainer(
+	getter stdlibConnectorGetter,
+	connopts *DbConnectionOptions,
+	logger *slog.Logger,
+) *stdlibConnectorContainer {
+	return &stdlibConnectorContainer{getter: getter, connopts: connopts, logger: logger}
 }
 
 type stdlibConnectorContainer struct {
@@ -365,9 +365,10 @@ type stdlibConnectorContainer struct {
 
 	getter   stdlibConnectorGetter
 	connopts *DbConnectionOptions
+	logger   *slog.Logger
 }
 
-func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
+func (s *stdlibConnectorContainer) Open() (sqldbtx.DBTX, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	connector, cleanup, err := s.getter()
@@ -378,7 +379,10 @@ func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
 	db := sql.OpenDB(connector)
 	setConnectionOpts(db, s.connopts)
 	s.db = db
-	return s.db, err
+	return sqlretry.NewDefault(
+		s.db,
+		s.logger,
+	), err
 }
 func (s *stdlibConnectorContainer) Close() error {
 	s.mu.Lock()

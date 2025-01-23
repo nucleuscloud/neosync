@@ -5,6 +5,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
@@ -22,7 +23,7 @@ func NewProvider(
 var _ connectionmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
 
 type sqlDbtxWrapper struct {
-	sqlconnect.SqlDBTX
+	sqldbtx.DBTX
 	close func() error
 }
 
@@ -41,7 +42,7 @@ func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig, logger
 	if err != nil {
 		return nil, err
 	}
-	return &sqlDbtxWrapper{SqlDBTX: dbtx, close: func() error {
+	return &sqlDbtxWrapper{DBTX: dbtx, close: func() error {
 		return container.Close()
 	}}, nil
 }

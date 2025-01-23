@@ -126,3 +126,6 @@ packages:
   github.com/nucleuscloud/neosync/worker/pkg/benthos/transformer_executor:
     interfaces:
       UserDefinedTransformerResolver:
+  github.com/nucleuscloud/neosync/backend/pkg/sqldbtx:
+    interfaces:
+      DBTX:
