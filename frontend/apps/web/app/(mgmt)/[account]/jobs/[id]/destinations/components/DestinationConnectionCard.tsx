@@ -10,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -18,7 +19,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormMessage,
 } from '@/components/ui/form';
 import {
   Select,
@@ -43,6 +43,7 @@ import {
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
+import { IoAlertCircleOutline } from 'react-icons/io5';
 import { toast } from 'sonner';
 import {
   getDestinationFormValuesOrDefaultFromDestination,
@@ -85,21 +86,18 @@ export default function DestinationConnectionCard({
     ValidateJobMappingsResponse | undefined
   >();
 
-  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
-
   const form = useForm({
     resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
     values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
 
+  const jobmappingsLength = jobmappings?.length || 0;
+
   async function validateMappings(connectionId: string) {
     if (!jobmappings || jobmappings.length == 0) {
-      console.log('no jobmappings');
       return;
     }
     try {
-      console.log('validating mappings');
-      setIsValidatingMappings(true);
       const body = create(ValidateJobMappingsRequestSchema, {
         accountId: account?.id,
         mappings: jobmappings,
@@ -113,25 +111,18 @@ export default function DestinationConnectionCard({
       toast.error('Unable to validate job mappings', {
         description: getErrorMessage(error),
       });
-    } finally {
-      setIsValidatingMappings(false);
     }
   }
 
   useEffect(() => {
-    if (!account?.id || !destination.connectionId || !jobmappings) {
-      console.log(
-        'no accountId, or destination.connectionId',
-        account?.id,
-        destination
-      );
+    if (!account?.id || !destination.connectionId || jobmappingsLength === 0) {
       return;
     }
     const validateJobMappings = async () => {
       await validateMappings(destination.connectionId);
     };
     validateJobMappings();
-  }, [account?.id, destination.connectionId, jobmappings]);
+  }, [account?.id, destination.connectionId, jobmappingsLength]);
 
   async function onSubmit(values: NewDestinationFormValues) {
     try {
@@ -176,6 +167,8 @@ export default function DestinationConnectionCard({
     jobSourceId
   );
 
+  const tableErrors = validateMappingsResponse?.tableErrors;
+
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(availableConnections);
   return (
@@ -202,6 +195,7 @@ export default function DestinationConnectionCard({
                               shouldValidate: true,
                             }
                           );
+                          validateMappings(value);
                         }}
                         value={field.value}
                       >
@@ -227,45 +221,42 @@ export default function DestinationConnectionCard({
                     <FormDescription>
                       The location of the destination data set.
                     </FormDescription>
-                    <FormMessage />
+                    {/* <FormMessage /> */}
                   </FormItem>
                 )}
               />
-              {validateMappingsResponse &&
-                validateMappingsResponse.databaseErrors &&
-                validateMappingsResponse.databaseErrors.errorReports.length >
-                  0 && (
-                  <div>
-                    <p>
-                      {JSON.stringify(
-                        validateMappingsResponse.databaseErrors.errorReports
-                      )}
-                    </p>
+              {!isInitTableSchemaEnabled(
+                form.getValues('destinationOptions')
+              ) &&
+                tableErrors &&
+                tableErrors.length > 0 && (
+                  <Alert className="border-red-400">
                     <Accordion type="single" collapsible className="w-full">
-                      {validateMappingsResponse.databaseErrors.errorReports.map(
-                        (error, errorIdx) => (
-                          <AccordionItem
-                            value={`item-${errorIdx}`}
-                            key={errorIdx}
-                          >
-                            <AccordionTrigger className="text-left">
-                              <div className="font-medium">{error.Error}</div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="space-y-2">
-                                <div className="rounded-md bg-muted p-3">
-                                  <p className="font-medium">Statement:</p>
-                                  <pre className="mt-2 whitespace-pre-wrap text-sm">
-                                    {error.Statement}
-                                  </pre>
-                                </div>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        )
-                      )}
+                      <AccordionItem value={`table-error`} key={1}>
+                        <AccordionTrigger className="text-left">
+                          <div className="font-medium flex flex-row items-center gap-2">
+                            <IoAlertCircleOutline className="h-6 w-6" />
+                            This destination is missing tables found in Job
+                            Mappings. Either enable Init Table Schema or create
+                            the tables manually.
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-2">
+                            <div className="rounded-md bg-muted p-3">
+                              <pre className="mt-2 whitespace-pre-wrap text-sm">
+                                {tableErrors.map((error, errorIdx) => (
+                                  <div key={errorIdx}>
+                                    {error.schema}.{error.table}
+                                  </div>
+                                ))}
+                              </pre>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
                     </Accordion>
-                  </div>
+                  </Alert>
                 )}
               <DestinationOptionsForm
                 connection={connections.find(
@@ -297,6 +288,17 @@ export default function DestinationConnectionCard({
         </form>
       </Form>
     </Card>
+  );
+}
+
+function isInitTableSchemaEnabled(
+  destinationOptions: NewDestinationFormValues['destinationOptions']
+): boolean {
+  return (
+    destinationOptions?.postgres?.initTableSchema ||
+    destinationOptions?.mssql?.initTableSchema ||
+    destinationOptions?.mysql?.initTableSchema ||
+    false
   );
 }
 
