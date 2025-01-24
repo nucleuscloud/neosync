@@ -252,6 +252,38 @@ const newValue = neosync.transformFullName(value, {
 
 
 <!--
+source: transform_hash.go
+-->
+
+### transformHash
+
+Transforms input into a hash based on the configured algorithm
+
+**Parameters**
+
+**Value**
+Type: Any
+Description: Value that will be transformed
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| algo | string |  | true | The hashing algorithm to use. Oneof: md5, sha1, sha256, sha512. Defaults to md5.<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.transformHash(value, {
+	algo: "", 
+});
+
+```
+<br/>
+
+
+<!--
 source: transform_int64.go
 -->
 
