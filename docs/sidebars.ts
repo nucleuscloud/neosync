@@ -260,6 +260,21 @@ const sidebars: SidebarsConfig = {
       label: 'New Column Addition Strategies',
     },
     {
+      type: 'doc',
+      id: 'guides/column-removal-strategies',
+      label: 'Column Removal Strategies',
+    },
+    {
+      type: 'doc',
+      id: 'guides/job-hooks',
+      label: 'Job Hooks',
+    },
+    {
+      type: 'doc',
+      id: 'guides/rbac',
+      label: 'RBAC',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
