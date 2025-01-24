@@ -173,6 +173,15 @@ components:
         - TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_MAPPING
         - TABLE_ERROR_CODE_VFK_TARGET_TABLE_NOT_FOUND_IN_SOURCE
       description: An enumeration of table error codes
+    mgmt.v1alpha1.TransformHash.HashType:
+      type: string
+      title: HashType
+      enum:
+        - HASH_TYPE_UNSPECIFIED
+        - HASH_TYPE_MD5
+        - HASH_TYPE_SHA1
+        - HASH_TYPE_SHA256
+        - HASH_TYPE_SHA512
     google.protobuf.Timestamp:
       type: string
       format: date-time
@@ -4383,6 +4392,32 @@ components:
           description: Whether or not to preserve the original length of the full name. This causes the transformed full name to retain the original length.
       title: TransformFullName
       additionalProperties: false
+    mgmt.v1alpha1.TransformHash:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - algo
+            - not:
+                anyOf:
+                  - required:
+                      - algo
+      anyOf:
+        - required:
+            - algo
+        - not:
+            anyOf:
+              - required:
+                  - algo
+      properties:
+        algo:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash.HashType'
+          title: algo
+          description: The hashing algorithm to use.
+      title: TransformHash
+      additionalProperties: false
+      description: TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
     mgmt.v1alpha1.TransformInt64:
       type: object
       allOf:
@@ -4691,6 +4726,8 @@ components:
             - required:
                 - transformFullNameConfig
             - required:
+                - transformHashConfig
+            - required:
                 - transformInt64Config
             - required:
                 - transformInt64PhoneNumberConfig
@@ -4787,6 +4824,8 @@ components:
                   - required:
                       - transformFullNameConfig
                   - required:
+                      - transformHashConfig
+                  - required:
                       - transformInt64Config
                   - required:
                       - transformInt64PhoneNumberConfig
@@ -4881,6 +4920,8 @@ components:
             - transformFloat64Config
         - required:
             - transformFullNameConfig
+        - required:
+            - transformHashConfig
         - required:
             - transformInt64Config
         - required:
@@ -4977,6 +5018,8 @@ components:
                   - transformFloat64Config
               - required:
                   - transformFullNameConfig
+              - required:
+                  - transformHashConfig
               - required:
                   - transformInt64Config
               - required:
@@ -5185,6 +5228,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
           title: transform_uuid_config
+        transformHashConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash'
+          title: transform_hash_config
+          description: TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
       title: TransformerConfig
       additionalProperties: false
       description: The configuration for a transformer. This determines what type of transformation or generation is performed.
