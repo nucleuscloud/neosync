@@ -1,0 +1,112 @@
+name: my-job
+account_id: 123 # optional if running via cli
+source:
+  options:
+    postgres:
+      connection_id: 123
+      # connection: # define the connection information inline (no API needed)
+      new_column_addition_strategy:
+        auto_map:
+      column_removal_strategy:
+        continue_job:
+destinations:
+  - connection_id: 123
+    connection: # define the connection information inline (no api needed)
+    options:
+      postgres_options:
+        # connection info could go here too
+        truncate_table:
+          truncate_before_insert: true
+          cascade: true
+        init_table_schema: true
+        on_conflict:
+          strategy:
+            update:
+
+schema_changes:
+  default_table_handling: # oneof
+    map_all_tables: # bring over all tables found in the schema
+    map_defined_tables: # only bring over explicitly defined tables
+
+  default_column_handling: # oneof
+    map_all_columns: # relaxed?
+      on_add: # oneof
+        auto_map: # neosync determines what to do on a column by column basis
+        halt: # halt the job if a new column is detected
+        passthrough: # passthrough the column
+      on_remove: # oneof
+        continue: # continue the job if a column is removed
+        halt: # halt the job if a column is removed
+    map_defined_columns: # only bring over explicitly defined columns - This may fail and is rigid
+
+
+schema_mappings:
+  - source_schema: public
+    destination_schema: public # optional
+    table_mappings:
+      - source_table: users
+        destination_table: users # optional
+        columns:
+          - name: id
+          - name: total
+            transformer:
+              config:
+                generateRandomInt:
+                  min: 1
+                  max: 10
+
+  - source_schema: private
+
+  - source_schema: nick
+    table_handling:
+      map_defined_tables:
+    table_mappings:
+      - source_table: nick
+        column_handling:
+          map_all_columns:
+            on_add:
+              passthrough:
+            on_remove:
+              continue:
+
+# table_mappings:
+#   - source_schema: public
+#     source_table: users
+#     destination_schema: public # optional
+#     destination_table: users   # optional
+#     columns:
+#       - name: id # with no other config specified, this will be passthrough
+#       - name: total
+#         transformer:
+#           config:
+#             generateRandomInt:
+#               min: 1
+#               max: 10
+
+#   - source_schema: public
+#     source_table: accounts
+#     column_handling: # overrides the default, table specific!!
+#       map_defined_columns: # explicit
+
+#     columns:
+#       - name: id
+#       - name: total
+#         transformer:
+#           config:
+#             generateRandomInt:
+#               min: 1
+#               max: 10
+
+#   - source_schema: public
+#     source_table: pets
+#     column_handling:
+#       map_all_columns:
+#         on_add:
+#           passthrough:
+#         on_remove:
+#           continue:
+#     columns: [] # no columns specified, all will be passthrough if the default is relaxed
+
+hooks:
+  - name: my-hook
+    # hook configs that will be created automatically
