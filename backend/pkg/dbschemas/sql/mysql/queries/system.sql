@@ -52,7 +52,7 @@ LEFT JOIN information_schema.check_constraints as cc
 	AND tc.constraint_name = cc.constraint_name
 WHERE
     tc.table_schema IN (sqlc.slice('schemas'))
-GROUP BY 
+GROUP BY
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
@@ -97,7 +97,7 @@ LEFT JOIN information_schema.check_constraints as cc
 WHERE
     tc.table_schema = sqlc.arg('schema')
     AND tc.table_name IN (sqlc.slice('tables'))
-GROUP BY 
+GROUP BY
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
@@ -178,7 +178,7 @@ SELECT
     ACTION_TIMING AS timing
 FROM
     information_schema.TRIGGERS
-WHERE 
+WHERE
     EVENT_OBJECT_SCHEMA = sqlc.arg('schema') AND EVENT_OBJECT_TABLE IN (sqlc.slice('tables'));
 
 
@@ -191,9 +191,9 @@ SELECT
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED) AS character_maximum_length,
-   CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
-     IF(c.DATA_TYPE = 'smallint', 16, 
-        IF(c.DATA_TYPE = 'int', 32, 
+   CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION,
+     IF(c.DATA_TYPE = 'smallint', 16,
+        IF(c.DATA_TYPE = 'int', 32,
            IF(c.DATA_TYPE = 'bigint', 64, -1))))AS SIGNED) AS numeric_precision,
    CAST(IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0)AS SIGNED) AS numeric_scale,
    c.ORDINAL_POSITION AS ordinal_position,
@@ -211,41 +211,41 @@ ORDER BY
 
 
 -- name: GetIndicesBySchemasAndTables :many
-SELECT 
+SELECT
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
     s.COLUMN_NAME as column_name,
+    s.EXPRESSION as expression,
     s.INDEX_NAME as index_name,
     s.INDEX_TYPE as index_type,
     s.SEQ_IN_INDEX as seq_in_index,
     s.NULLABLE as nullable
-FROM 
+FROM
     INFORMATION_SCHEMA.STATISTICS s
-LEFT JOIN 
+LEFT JOIN
     INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
     ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
     AND s.TABLE_NAME = kcu.TABLE_NAME
     AND s.COLUMN_NAME = kcu.COLUMN_NAME
-WHERE 
-    -- CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables')) broken
-		s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
+WHERE
+    s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
     AND s.INDEX_NAME != 'PRIMARY'
     AND kcu.CONSTRAINT_NAME IS NULL
-ORDER BY 
+ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX;
 
 
 -- name: GetCustomFunctionsBySchemas :many
-SELECT 
-    ROUTINE_NAME as function_name, 
+SELECT
+    ROUTINE_NAME as function_name,
     ROUTINE_SCHEMA as schema_name,
     DTD_IDENTIFIER as return_data_type,
     ROUTINE_DEFINITION as definition,
     CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
-FROM 
-    INFORMATION_SCHEMA.ROUTINES 
-WHERE 
+FROM
+    INFORMATION_SCHEMA.ROUTINES
+WHERE
     ROUTINE_TYPE = 'FUNCTION'
     AND ROUTINE_SCHEMA in (sqlc.slice('schemas'));
