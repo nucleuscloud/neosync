@@ -9418,6 +9418,182 @@
           ]
         },
         {
+          "name": "ColumnStrategy",
+          "longName": "ColumnStrategy",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy",
+          "description": "The strategy used to configure how columns are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_columns",
+              "description": "When this strategy is configured, all columns are mapped",
+              "label": "",
+              "type": "MapAllColumns",
+              "longType": "ColumnStrategy.MapAllColumns",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapAllColumns",
+          "longName": "ColumnStrategy.MapAllColumns",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns",
+          "description": "Strategy that maps all columns for a table. Further configuration can be done to handle newly added columns or removed columns",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "new_column_addition_strategy",
+              "description": "The strategy to use when a new column is detected",
+              "label": "optional",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_new_column_addition_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_removal_strategy",
+              "description": "The strategy to use when a column is removed",
+              "label": "optional",
+              "type": "ColumnRemovalStrategy",
+              "longType": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_removal_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnRemovalStrategy",
+          "longName": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy",
+          "description": "Strategy to use when a column is removed",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a column is removed",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "continue_job",
+              "description": "continue job if a column is removed",
+              "label": "",
+              "type": "ContinueJob",
+              "longType": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ContinueJob",
+          "longName": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob",
+          "description": "Configuration for the ContinueJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy",
+          "description": "Strategy to use when a new column is detected",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected.",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "automatically handle unmapped columns. It handles this by using the DBs default/nullable values.\nIf this doesn't exist, will fall back to configuring generators for supported datatypes.\nIf none of the criteria above can be met, the job run will fail to prevent leaking of PII.",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap",
+          "description": "Configuration for the AutoMap strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "ColumnWarning",
           "longName": "ColumnWarning",
           "fullName": "mgmt.v1alpha1.ColumnWarning",
@@ -9740,7 +9916,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "source",
@@ -9812,6 +9991,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_mappings",
+              "description": "Specify schema mappings that will be used to map the data from the source to the destination\nThis replaces the mappings field",
+              "label": "repeated",
+              "type": "SchemaMapping",
+              "longType": "SchemaMapping",
+              "fullType": "mgmt.v1alpha1.SchemaMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_change",
+              "description": "Specify schema changes that will be used to map the data from the source to the destination\nThis acts as the default configuration for all schemas and tables unless overridden by a schema mapping",
+              "label": "optional",
+              "type": "SchemaChange",
+              "longType": "SchemaChange",
+              "fullType": "mgmt.v1alpha1.SchemaChange",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schema_change",
               "defaultValue": ""
             }
           ]
@@ -11729,7 +11932,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "cron_schedule",
@@ -11789,6 +11995,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_mappings",
+              "description": "Specify schema mappings that will be used to map the data from the source to the destination\nThis replaces the mappings field",
+              "label": "repeated",
+              "type": "SchemaMapping",
+              "longType": "SchemaMapping",
+              "fullType": "mgmt.v1alpha1.SchemaMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_change",
+              "description": "Specify schema changes that will be used to map the data from the source to the destination\nThis acts as the default configuration for all schemas and tables unless overridden by a schema mapping",
+              "label": "optional",
+              "type": "SchemaChange",
+              "longType": "SchemaChange",
+              "fullType": "mgmt.v1alpha1.SchemaChange",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schema_change",
               "defaultValue": ""
             }
           ]
@@ -14458,6 +14688,280 @@
           ]
         },
         {
+          "name": "SchemaChange",
+          "longName": "SchemaChange",
+          "fullName": "mgmt.v1alpha1.SchemaChange",
+          "description": "Configure how schemas, tables, and columns are handled during a job run.\nIf anything is not defined, a system-defined fallback will be implemented. Further information can be found in the documentation.",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_strategy",
+              "description": "Configure how schemas are handled during a job run",
+              "label": "optional",
+              "type": "SchemaStrategy",
+              "longType": "SchemaStrategy",
+              "fullType": "mgmt.v1alpha1.SchemaStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schema_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_strategy",
+              "description": "Configure how tables are handled during a job run",
+              "label": "optional",
+              "type": "TableStrategy",
+              "longType": "TableStrategy",
+              "fullType": "mgmt.v1alpha1.TableStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_table_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Configure how columns are handled during a job run",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaMapping",
+          "longName": "SchemaMapping",
+          "fullName": "mgmt.v1alpha1.SchemaMapping",
+          "description": "Configuration for a specific schema mapping",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The database schema this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "destination_schema",
+              "description": "Optionally specify a destination schema that this mapping will go to",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_destination_schema",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_mappings",
+              "description": "The list of table mappings that will be used to map the data from the source to the destination",
+              "label": "repeated",
+              "type": "TableMapping",
+              "longType": "SchemaMapping.TableMapping",
+              "fullType": "mgmt.v1alpha1.SchemaMapping.TableMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_strategy",
+              "description": "Optionally specify a table strategy. This will override the global table strategy for this schema",
+              "label": "optional",
+              "type": "TableStrategy",
+              "longType": "TableStrategy",
+              "fullType": "mgmt.v1alpha1.TableStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_table_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Optionally specify a column strategy. This will override the global column strategy for this schema",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableMapping",
+          "longName": "SchemaMapping.TableMapping",
+          "fullName": "mgmt.v1alpha1.SchemaMapping.TableMapping",
+          "description": "Configuration for a specific table mapping in a schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "The database table this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "destination_table",
+              "description": "Optionally specify a destination table that this mapping will go to",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_destination_table",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_mappings",
+              "description": "The list of column mappings that will be used to map the data from the source to the destination",
+              "label": "repeated",
+              "type": "ColumnMapping",
+              "longType": "SchemaMapping.TableMapping.ColumnMapping",
+              "fullType": "mgmt.v1alpha1.SchemaMapping.TableMapping.ColumnMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Optionally specify a column strategy. This will override the global column strategy for this table",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnMapping",
+          "longName": "SchemaMapping.TableMapping.ColumnMapping",
+          "fullName": "mgmt.v1alpha1.SchemaMapping.TableMapping.ColumnMapping",
+          "description": "Configuration for a specific column mapping in a table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column",
+              "description": "The column this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "transformer",
+              "description": "The transformer configuration that will be applied to each cell in the column",
+              "label": "optional",
+              "type": "TransformerConfig",
+              "longType": "TransformerConfig",
+              "fullType": "mgmt.v1alpha1.TransformerConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_transformer",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaStrategy",
+          "longName": "SchemaStrategy",
+          "fullName": "mgmt.v1alpha1.SchemaStrategy",
+          "description": "The strategy used to configure how schemas are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_schemas",
+              "description": "When this strategy is configured, all schemas are mapped",
+              "label": "",
+              "type": "MapAllSchemas",
+              "longType": "SchemaStrategy.MapAllSchemas",
+              "fullType": "mgmt.v1alpha1.SchemaStrategy.MapAllSchemas",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "map_defined_schemas",
+              "description": "When this strategy is configured, only the schemas that are defined are mapped",
+              "label": "",
+              "type": "MapDefinedSchemas",
+              "longType": "SchemaStrategy.MapDefinedSchemas",
+              "fullType": "mgmt.v1alpha1.SchemaStrategy.MapDefinedSchemas",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapAllSchemas",
+          "longName": "SchemaStrategy.MapAllSchemas",
+          "fullName": "mgmt.v1alpha1.SchemaStrategy.MapAllSchemas",
+          "description": "When this strategy is configured, all schemas are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MapDefinedSchemas",
+          "longName": "SchemaStrategy.MapDefinedSchemas",
+          "fullName": "mgmt.v1alpha1.SchemaStrategy.MapDefinedSchemas",
+          "description": "When this strategy is configured, only the schemas that are defined are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "SetJobHookEnabledRequest",
           "longName": "SetJobHookEnabledRequest",
           "fullName": "mgmt.v1alpha1.SetJobHookEnabledRequest",
@@ -14886,6 +15390,64 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "TableStrategy",
+          "longName": "TableStrategy",
+          "fullName": "mgmt.v1alpha1.TableStrategy",
+          "description": "The strategy used to configure how tables are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_tables",
+              "description": "When this strategy is configured, all tables are mapped",
+              "label": "",
+              "type": "MapAllTables",
+              "longType": "TableStrategy.MapAllTables",
+              "fullType": "mgmt.v1alpha1.TableStrategy.MapAllTables",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "map_defined_tables",
+              "description": "When this strategy is configured, only the tables that are defined are mapped",
+              "label": "",
+              "type": "MapDefinedTables",
+              "longType": "TableStrategy.MapDefinedTables",
+              "fullType": "mgmt.v1alpha1.TableStrategy.MapDefinedTables",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapAllTables",
+          "longName": "TableStrategy.MapAllTables",
+          "fullName": "mgmt.v1alpha1.TableStrategy.MapAllTables",
+          "description": "When this strategy is configured, all tables are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MapDefinedTables",
+          "longName": "TableStrategy.MapDefinedTables",
+          "fullName": "mgmt.v1alpha1.TableStrategy.MapDefinedTables",
+          "description": "When this strategy is configured, only the tables that are defined are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "TerminateJobRunRequest",
