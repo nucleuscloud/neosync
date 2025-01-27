@@ -13,6 +13,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	/*
+		Names that start with capital letters
+		Middle initials and abbreviated names
+		Multiple spaces between name parts
+		Dots and apostrophes in names
+		Hyphens between name parts
+		Multiple word names
+		This should handle cases like:
+		"J. Fernando Longpre"
+		"M. Trinidad Manouras"
+		"T. C. Garris"
+		"Fco. Javier Baecklund"
+		"Karin U. Andi Skogh"
+		Names with multiple spaces or special characters
+	*/
+	nameRegex = `^[A-Z][A-Za-z.']*(?:[\s-]+[A-Z][A-Za-z.']*)*$`
+)
+
 func Test_InitializeTransformerByConfigType(t *testing.T) {
 	t.Run("UserDefinedTransformerConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -501,7 +520,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateFirstNameConfig_Nil", func(t *testing.T) {
@@ -515,7 +534,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateFloat64Config", func(t *testing.T) {
@@ -612,7 +631,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateFullNameConfig_Nil", func(t *testing.T) {
@@ -626,7 +645,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateGenderConfig", func(t *testing.T) {
@@ -770,7 +789,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateLastNameConfig_Nil", func(t *testing.T) {
@@ -784,7 +803,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.IsType(t, "", result)
 		require.NotEmpty(t, result)
-		require.Regexp(t, `^[A-Z][a-z]+(?:\s[A-Z][a-z]*)*$`, result)
+		require.Regexp(t, nameRegex, result)
 	})
 
 	t.Run("GenerateSha256HashConfig_Empty", func(t *testing.T) {
