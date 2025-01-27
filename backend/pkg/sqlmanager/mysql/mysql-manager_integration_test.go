@@ -295,6 +295,7 @@ func Test_MysqlManager(t *testing.T) {
 				{Schema: schema, Table: "parent1"},
 				{Schema: schema, Table: "child1"},
 				{Schema: schema, Table: "order"},
+				{Schema: schema, Table: "test_mixed_index"},
 			},
 		)
 

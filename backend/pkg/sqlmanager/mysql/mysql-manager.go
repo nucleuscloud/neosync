@@ -368,11 +368,19 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				if _, exists := indexmap[key.String()]; !exists {
 					indexmap[key.String()] = make(map[string][]string)
 				}
-				// Group columns by index name
-				indexmap[key.String()][record.IndexName] = append(
-					indexmap[key.String()][record.IndexName],
-					record.ColumnName,
-				)
+				// Group columns/expressions by index name
+				if record.ColumnName.Valid {
+					indexmap[key.String()][record.IndexName] = append(
+						indexmap[key.String()][record.IndexName],
+						record.ColumnName.String,
+					)
+				} else if record.Expression.Valid {
+					indexmap[key.String()][record.IndexName] = append(
+						indexmap[key.String()][record.IndexName],
+						// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
+						fmt.Sprintf("(%s)", record.Expression.String),
+					)
+				}
 			}
 			return nil
 		})
@@ -793,7 +801,11 @@ func wrapIdempotentIndex(
 
 	columnInput := []string{}
 	for _, col := range cols {
-		columnInput = append(columnInput, EscapeMysqlColumn(col))
+		if strings.HasPrefix(col, "(") {
+			columnInput = append(columnInput, col)
+		} else {
+			columnInput = append(columnInput, EscapeMysqlColumn(col))
+		}
 	}
 	procedureName := fmt.Sprintf("NeosyncAddIndex_%s", hashInput(hashParams...))[:64]
 	stmt := fmt.Sprintf(`
