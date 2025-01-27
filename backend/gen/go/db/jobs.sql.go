@@ -20,7 +20,7 @@ INSERT INTO neosync_api.jobs (
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type CreateJobParams struct {
@@ -67,6 +67,8 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -187,7 +189,7 @@ func (q *Queries) GetAccountIdFromJobId(ctx context.Context, db DBTX, id pgtype.
 }
 
 const getJobById = `-- name: GetJobById :one
-SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys from neosync_api.jobs WHERE id = $1
+SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes from neosync_api.jobs WHERE id = $1
 `
 
 func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
@@ -208,12 +210,14 @@ func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
 
 const getJobByNameAndAccount = `-- name: GetJobByNameAndAccount :one
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options, j.virtual_foreign_keys from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options, j.virtual_foreign_keys, j.schema_mappings, j.schema_changes from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1 AND j.name = $2
 `
@@ -241,6 +245,8 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJo
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -333,7 +339,7 @@ func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, db D
 }
 
 const getJobsByAccount = `-- name: GetJobsByAccount :many
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options, j.virtual_foreign_keys from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options, j.virtual_foreign_keys, j.schema_mappings, j.schema_changes from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1
 ORDER BY j.created_at DESC
@@ -363,6 +369,8 @@ func (q *Queries) GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtyp
 			&i.WorkflowOptions,
 			&i.SyncOptions,
 			&i.VirtualForeignKeys,
+			&i.SchemaMappings,
+			&i.SchemaChanges,
 		); err != nil {
 			return nil, err
 		}
@@ -425,7 +433,7 @@ UPDATE neosync_api.jobs
 SET sync_options = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type SetJobSyncOptionsParams struct {
@@ -452,6 +460,8 @@ func (q *Queries) SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSync
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -461,7 +471,7 @@ UPDATE neosync_api.jobs
 SET workflow_options = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type SetJobWorkflowOptionsParams struct {
@@ -488,6 +498,8 @@ func (q *Queries) SetJobWorkflowOptions(ctx context.Context, db DBTX, arg SetJob
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -525,7 +537,7 @@ UPDATE neosync_api.jobs
 SET mappings = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type UpdateJobMappingsParams struct {
@@ -552,6 +564,8 @@ func (q *Queries) UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobM
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -561,7 +575,7 @@ UPDATE neosync_api.jobs
 SET cron_schedule = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type UpdateJobScheduleParams struct {
@@ -588,6 +602,8 @@ func (q *Queries) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobS
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -597,7 +613,7 @@ UPDATE neosync_api.jobs
 SET connection_options = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type UpdateJobSourceParams struct {
@@ -624,6 +640,8 @@ func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSou
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
@@ -633,7 +651,7 @@ UPDATE neosync_api.jobs
 SET virtual_foreign_keys = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
 
 type UpdateJobVirtualForeignKeysParams struct {
@@ -660,6 +678,8 @@ func (q *Queries) UpdateJobVirtualForeignKeys(ctx context.Context, db DBTX, arg 
 		&i.WorkflowOptions,
 		&i.SyncOptions,
 		&i.VirtualForeignKeys,
+		&i.SchemaMappings,
+		&i.SchemaChanges,
 	)
 	return i, err
 }
