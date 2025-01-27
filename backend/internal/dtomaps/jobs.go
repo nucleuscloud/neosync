@@ -1,6 +1,8 @@
 package dtomaps
 
 import (
+	"encoding/json"
+
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
@@ -11,8 +13,8 @@ import (
 func ToJobDto(
 	inputJob *db_queries.NeosyncApiJob,
 	inputDestConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation,
-) *mgmtv1alpha1.Job {
-	mappings := []*mgmtv1alpha1.JobMapping{}
+) (*mgmtv1alpha1.Job, error) {
+	mappings := make([]*mgmtv1alpha1.JobMapping, 0, len(inputJob.Mappings))
 	for _, mapping := range inputJob.Mappings {
 		mappings = append(mappings, mapping.ToDto())
 	}
@@ -38,6 +40,22 @@ func ToJobDto(
 		syncOptions = inputJob.SyncOptions.ToDto()
 	}
 
+	var schemaChange *mgmtv1alpha1.SchemaChange
+	if inputJob.SchemaChanges != nil {
+		err := json.Unmarshal(inputJob.SchemaChanges, &schemaChange)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var schemaMappings []*mgmtv1alpha1.SchemaMapping
+	if inputJob.SchemaMappings != nil {
+		err := json.Unmarshal(inputJob.SchemaMappings, &schemaMappings)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &mgmtv1alpha1.Job{
 		Id:                 neosyncdb.UUIDString(inputJob.ID),
 		Name:               inputJob.Name,
@@ -55,7 +73,10 @@ func ToJobDto(
 		AccountId:       neosyncdb.UUIDString(inputJob.AccountID),
 		SyncOptions:     syncOptions,
 		WorkflowOptions: workflowOptions,
-	}
+
+		SchemaMappings: schemaMappings,
+		SchemaChange:   schemaChange,
+	}, nil
 }
 
 func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
