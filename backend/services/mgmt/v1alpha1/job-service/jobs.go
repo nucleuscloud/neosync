@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -454,6 +455,22 @@ func (s *Service) CreateJob(
 		activitySyncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
+	var schemaMappings []byte
+	if req.Msg.GetSchemaMappings() != nil {
+		schemaMappings, err = json.Marshal(req.Msg.GetSchemaMappings())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var schemaChanges []byte
+	if req.Msg.GetSchemaChange() != nil {
+		schemaChanges, err = json.Marshal(req.Msg.GetSchemaChange())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:               req.Msg.JobName,
 		AccountID:          accountUuid,
@@ -466,6 +483,8 @@ func (s *Service) CreateJob(
 		UpdatedByID:        user.PgId(),
 		WorkflowOptions:    workflowOptions,
 		SyncOptions:        activitySyncOptions,
+		SchemaMappings:     schemaMappings,
+		SchemaChanges:      schemaChanges,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)

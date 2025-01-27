@@ -16,9 +16,9 @@ const createJob = `-- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
   name, account_id, status, connection_options, mappings,
   cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options,
-  virtual_foreign_keys
+  virtual_foreign_keys, schema_mappings, schema_changes
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 )
 RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, schema_mappings, schema_changes
 `
@@ -35,6 +35,8 @@ type CreateJobParams struct {
 	WorkflowOptions    *pg_models.WorkflowOptions
 	SyncOptions        *pg_models.ActivityOptions
 	VirtualForeignKeys []*pg_models.VirtualForeignConstraint
+	SchemaMappings     []byte
+	SchemaChanges      []byte
 }
 
 func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
@@ -50,6 +52,8 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		arg.WorkflowOptions,
 		arg.SyncOptions,
 		arg.VirtualForeignKeys,
+		arg.SchemaMappings,
+		arg.SchemaChanges,
 	)
 	var i NeosyncApiJob
 	err := row.Scan(
