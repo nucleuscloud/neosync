@@ -26,6 +26,7 @@ type Option func(*connectorConfig) error
 type connectorConfig struct {
 	dialer    sshtunnel.ContextDialer
 	tlsConfig *tls.Config
+	logger    *slog.Logger
 }
 
 // WithDialer sets a custom dialer for the connector
@@ -44,11 +45,20 @@ func WithTLSConfig(tlsConfig *tls.Config) Option {
 	}
 }
 
+func WithLogger(logger *slog.Logger) Option {
+	return func(cfg *connectorConfig) error {
+		cfg.logger = logger
+		return nil
+	}
+}
+
 func New(
 	dsn string,
 	opts ...Option,
 ) (*Connector, func(), error) {
-	cfg := &connectorConfig{}
+	cfg := &connectorConfig{
+		logger: slog.Default(),
+	}
 	for _, opt := range opts {
 		if err := opt(cfg); err != nil {
 			return nil, nil, err
@@ -70,7 +80,7 @@ func New(
 	}
 
 	pgxConfig.Tracer = &tracelog.TraceLog{
-		Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()), // todo: add in logger
+		Logger:   pgxslog.NewLogger(cfg.logger, pgxslog.GetShouldOmitArgs()),
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
 	// todo: We may need to re-enable this to support pg bouncer

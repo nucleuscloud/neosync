@@ -120,7 +120,9 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig, logger *slog.Logger) stdlibConnectorGetter {
 	return func() (driver.Connector, func(), error) {
-		connectorOpts := []postgrestunconnector.Option{}
+		connectorOpts := []postgrestunconnector.Option{
+			postgrestunconnector.WithLogger(logger),
+		}
 		closers := []func(){}
 
 		if config.GetClientTls() != nil {
