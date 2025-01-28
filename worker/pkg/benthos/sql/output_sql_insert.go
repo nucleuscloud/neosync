@@ -258,7 +258,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
-		shouldRetry := s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error())
+		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
 			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
