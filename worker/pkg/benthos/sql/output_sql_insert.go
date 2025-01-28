@@ -254,18 +254,18 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	insertQuery, args, err := s.queryBuilder.BuildInsertQuery(rows)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build insert query: %w", err)
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error())
 		if !shouldRetry {
-			return err
+			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
 
 		err = s.RetryInsertRowByRow(ctx, s.queryBuilder, rows)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
 	}
 	return nil
@@ -287,7 +287,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			fkErrorCount++
 		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			return err
+			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
 		if err == nil {
 			insertCount++

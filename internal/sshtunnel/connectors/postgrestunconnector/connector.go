@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql/driver"
+	"log/slog"
 	"net"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/tracelog"
+	pgxslog "github.com/nucleuscloud/neosync/internal/pgx-slog"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel"
 )
 
@@ -65,6 +68,12 @@ func New(
 	if cfg.tlsConfig != nil {
 		pgxConfig.TLSConfig = cfg.tlsConfig
 	}
+
+	pgxConfig.Tracer = &tracelog.TraceLog{
+		Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()), // todo: add in logger
+		LogLevel: pgxslog.GetDatabaseLogLevel(),
+	}
+	// pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 	// RegisterConnConfig returns unique connection strings, so even if the dsn is used for multiple calls to New()
 	// The unregister will not interfere with any other instances of Connector that are using the same input dsn
