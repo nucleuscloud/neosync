@@ -73,6 +73,7 @@ func New(
 		Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()), // todo: add in logger
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
+	// todo: We may need to re-enable this to support pg bouncer
 	// pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 	// RegisterConnConfig returns unique connection strings, so even if the dsn is used for multiple calls to New()
