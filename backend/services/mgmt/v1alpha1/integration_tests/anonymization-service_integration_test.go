@@ -11,7 +11,7 @@ import (
 	integrationtests_test "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/stretchr/testify/require"
-	"github.com/stripe/stripe-go/v79"
+	"github.com/stripe/stripe-go/v81"
 )
 
 func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
