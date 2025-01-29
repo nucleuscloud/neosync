@@ -38,8 +38,12 @@ func DefaultRetryInterceptor(logger *slog.Logger) *Interceptor {
 	)
 }
 
+func noRetryOptions() []backoff.RetryOption {
+	return []backoff.RetryOption{}
+}
+
 func New(opts ...Option) *Interceptor {
-	cfg := &config{}
+	cfg := &config{getRetryOptions: noRetryOptions}
 	for _, opt := range opts {
 		opt(cfg)
 	}

@@ -49,8 +49,12 @@ func NewDefault(dbtx sqldbtx.DBTX, logger *slog.Logger) *RetryDBTX {
 	))
 }
 
+func noRetryOptions() []backoff.RetryOption {
+	return []backoff.RetryOption{}
+}
+
 func New(dbtx sqldbtx.DBTX, opts ...Option) *RetryDBTX {
-	cfg := &config{}
+	cfg := &config{getRetryOpts: noRetryOptions}
 	for _, opt := range opts {
 		opt(cfg)
 	}
