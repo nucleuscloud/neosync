@@ -119,7 +119,7 @@ func test_dynamodb_alltypes(
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
-		JobName:     "all_types",
+		JobName:     "dynamodb_all_types",
 		JobMappings: mappings,
 	}, tableName, tableName)
 
