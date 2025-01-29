@@ -23,7 +23,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"github.com/nucleuscloud/neosync/internal/billing"
-	"github.com/stripe/stripe-go/v79"
+	"github.com/stripe/stripe-go/v81"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
