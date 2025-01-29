@@ -83,6 +83,12 @@ CREATE TYPE custom_type AS (
   part1 INTEGER,
   part2 TEXT
 );
+
+CREATE TYPE custom_type2 AS (
+  part1 INTEGER,
+  part2 TEXT
+);
+
 CREATE FUNCTION custom_function() RETURNS TRIGGER AS $$
 BEGIN
   NEW.id := nextval('custom_seq');
@@ -97,6 +103,9 @@ CREATE TYPE custom_enum AS ENUM (
 CREATE DOMAIN custom_domain AS TEXT
   CHECK (VALUE ~ '^[a-zA-Z]+$'); -- Only allows alphabetic characters
 
+CREATE DOMAIN custom_domain2 AS TEXT
+  CHECK (VALUE ~ '^[a-zA-Z]+$'); -- Only allows alphabetic characters
+
 CREATE TYPE custom_enum2 AS ENUM (
     'value4',
     'value5',
@@ -106,10 +115,12 @@ CREATE TYPE custom_enum2 AS ENUM (
 CREATE TABLE custom_table (
   id INTEGER NOT NULL DEFAULT nextval('custom_seq'),
   name custom_domain NOT NULL,
+  names custom_domain2[] NOT NULL, -- testing custom domain as array
   data custom_type,
+  datas custom_type2[] NOT NULL, -- testing custom composite type as array
   status custom_enum NOT NULL,
-  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-  status2 custom_enum2[] NOT NULL -- testing custom data type as array
+  statuses custom_enum2[] NOT NULL, -- testing custom data type as array
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 -- Adding a trigger to use the custom function for setting the 'id' field
 CREATE TRIGGER set_custom_id
