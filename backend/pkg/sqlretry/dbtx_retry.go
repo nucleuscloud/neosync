@@ -24,25 +24,28 @@ type RetryDBTX struct {
 var _ sqldbtx.DBTX = (*RetryDBTX)(nil)
 
 type config struct {
-	retryOpts []backoff.RetryOption
+	getRetryOpts func() []backoff.RetryOption
 }
 
 type Option func(*config)
 
 func NewDefault(dbtx sqldbtx.DBTX, logger *slog.Logger) *RetryDBTX {
-	backoffStrategy := backoff.NewExponentialBackOff()
-	backoffStrategy.InitialInterval = 200 * time.Millisecond
-	backoffStrategy.MaxInterval = 30 * time.Second
-	backoffStrategy.Multiplier = 2
-	backoffStrategy.RandomizationFactor = 0.3
-
 	return New(dbtx, WithRetryOptions(
-		backoff.WithBackOff(backoffStrategy),
-		backoff.WithMaxTries(25),
-		backoff.WithMaxElapsedTime(5*time.Minute),
-		backoff.WithNotify(func(err error, d time.Duration) {
-			logger.Warn(fmt.Sprintf("sql error with retry: %s, retrying in %s", err.Error(), d.String()))
-		}),
+		func() []backoff.RetryOption {
+			backoffStrategy := backoff.NewExponentialBackOff()
+			backoffStrategy.InitialInterval = 200 * time.Millisecond
+			backoffStrategy.MaxInterval = 30 * time.Second
+			backoffStrategy.Multiplier = 2
+			backoffStrategy.RandomizationFactor = 0.3
+			return []backoff.RetryOption{
+				backoff.WithBackOff(backoffStrategy),
+				backoff.WithMaxTries(25),
+				backoff.WithMaxElapsedTime(5 * time.Minute),
+				backoff.WithNotify(func(err error, d time.Duration) {
+					logger.Warn(fmt.Sprintf("sql error with retry: %s, retrying in %s", err.Error(), d.String()))
+				}),
+			}
+		},
 	))
 }
 
@@ -54,9 +57,9 @@ func New(dbtx sqldbtx.DBTX, opts ...Option) *RetryDBTX {
 	return &RetryDBTX{dbtx: dbtx, config: cfg}
 }
 
-func WithRetryOptions(opts ...backoff.RetryOption) Option {
+func WithRetryOptions(getRetryOpts func() []backoff.RetryOption) Option {
 	return func(cfg *config) {
-		cfg.retryOpts = opts
+		cfg.getRetryOpts = getRetryOpts
 	}
 }
 
@@ -64,21 +67,21 @@ func (r *RetryDBTX) ExecContext(ctx context.Context, query string, args ...any) 
 	operation := func() (sql.Result, error) {
 		return r.dbtx.ExecContext(ctx, query, args...)
 	}
-	return retry(ctx, operation, r.config.retryOpts...)
+	return retry(ctx, operation, r.config.getRetryOpts)
 }
 
 func (r *RetryDBTX) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	operation := func() (*sql.Stmt, error) {
 		return r.dbtx.PrepareContext(ctx, query)
 	}
-	return retry(ctx, operation, r.config.retryOpts...)
+	return retry(ctx, operation, r.config.getRetryOpts)
 }
 
 func (r *RetryDBTX) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	operation := func() (*sql.Rows, error) {
 		return r.dbtx.QueryContext(ctx, query, args...)
 	}
-	return retry(ctx, operation, r.config.retryOpts...)
+	return retry(ctx, operation, r.config.getRetryOpts)
 }
 
 func (r *RetryDBTX) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
@@ -89,7 +92,7 @@ func (r *RetryDBTX) PingContext(ctx context.Context) error {
 	operation := func() (any, error) {
 		return nil, r.dbtx.PingContext(ctx)
 	}
-	_, err := retry(ctx, operation, r.config.retryOpts...)
+	_, err := retry(ctx, operation, r.config.getRetryOpts)
 	return err
 }
 
@@ -97,10 +100,11 @@ func (r *RetryDBTX) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, 
 	operation := func() (*sql.Tx, error) {
 		return r.dbtx.BeginTx(ctx, opts)
 	}
-	return retry(ctx, operation, r.config.retryOpts...)
+	return retry(ctx, operation, r.config.getRetryOpts)
 }
 
-func retry[T any](ctx context.Context, fn func() (T, error), opts ...backoff.RetryOption) (T, error) {
+func retry[T any](ctx context.Context, fn func() (T, error), getOpts func() []backoff.RetryOption) (T, error) {
+	opts := getOpts()
 	return retryUnwrap(backoff.Retry(ctx, retryWrap(fn), opts...))
 }
 
