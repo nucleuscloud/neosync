@@ -97,12 +97,19 @@ CREATE TYPE custom_enum AS ENUM (
 CREATE DOMAIN custom_domain AS TEXT
   CHECK (VALUE ~ '^[a-zA-Z]+$'); -- Only allows alphabetic characters
 
+CREATE TYPE custom_enum2 AS ENUM (
+    'value4',
+    'value5',
+    'value6'
+);
+
 CREATE TABLE custom_table (
   id INTEGER NOT NULL DEFAULT nextval('custom_seq'),
   name custom_domain NOT NULL,
   data custom_type,
   status custom_enum NOT NULL,
-  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+  status2 custom_enum2[] NOT NULL -- testing custom data type as array
 );
 -- Adding a trigger to use the custom function for setting the 'id' field
 CREATE TRIGGER set_custom_id
@@ -140,7 +147,7 @@ CREATE TABLE IF NOT EXISTS "CaPiTaL"."BadName" (
 );
 
 INSERT INTO "CaPiTaL"."BadName" ("NAME")
-VALUES 
+VALUES
     ('Xk7pQ9nM3v'),
     ('Rt5wLjH2yB'),
     ('Zc8fAe4dN6'),
@@ -154,7 +161,7 @@ CREATE TABLE "CaPiTaL"."Bad Name 123!@#" (
 
 
 INSERT INTO "CaPiTaL"."Bad Name 123!@#" ("NAME")
-VALUES 
+VALUES
     ('Xk7pQ9nM3v'),
     ('Rt5wLjH2yB'),
     ('Zc8fAe4dN6'),
