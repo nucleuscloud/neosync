@@ -52,6 +52,8 @@ func Test_MssqlManager(t *testing.T) {
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
 		t.Parallel()
 		var expectedIdentityGeneration = "IDENTITY(1,1)"
+		var expectedIdentitySeed = 1
+		var expectedIdentityIncrement = 1
 		expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
 			{
 				TableSchema:            "sqlmanagermssql3",
@@ -66,6 +68,9 @@ func Test_MssqlManager(t *testing.T) {
 				OrdinalPosition:        1,
 				GeneratedType:          nil,
 				IdentityGeneration:     &expectedIdentityGeneration,
+				ColumnDefaultType:      nil,
+				IdentitySeed:           &expectedIdentitySeed,
+				IdentityIncrement:      &expectedIdentityIncrement,
 			},
 		}
 
@@ -347,9 +352,8 @@ func Test_MssqlManager(t *testing.T) {
 // }
 
 func containsSubset[T any](t testing.TB, array, subset []T) {
-	t.Helper()
-	for _, elem := range subset {
-		require.Contains(t, array, elem)
+	for idx, elem := range subset {
+		require.Contains(t, array, elem, "array does not contain expected subset element at index %d", idx)
 	}
 }
 
