@@ -130,6 +130,9 @@ func (c *Client) NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEven
 }
 
 func getNextMonthBillingCycleAnchor(date time.Time) int64 {
+	if date.Day() == 1 {
+		return time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location()).Unix()
+	}
 	// First set to the 1st of the current month
 	firstOfMonth := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location())
 	// Then add one month - this avoids day rollover issues
