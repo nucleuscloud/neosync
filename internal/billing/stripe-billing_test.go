@@ -28,7 +28,9 @@ func Test_getNextMonthBillingCycleAnchor(t *testing.T) {
 	})
 
 	t.Run("handles utc conversion", func(t *testing.T) {
-		date := time.Date(2025, time.January, 31, 23, 59, 59, 0, time.Local)
+		la, err := time.LoadLocation("America/Los_Angeles")
+		require.NoError(t, err)
+		date := time.Date(2025, time.January, 31, 23, 59, 59, 0, la)
 		actual := getNextMonthBillingCycleAnchor(date.UTC())
 		expected := time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC).Unix()
 		require.Equal(t, expected, actual)
