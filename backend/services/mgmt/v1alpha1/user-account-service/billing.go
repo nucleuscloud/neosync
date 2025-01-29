@@ -240,9 +240,6 @@ func (s *Service) GetAccountBillingCheckoutSession(
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 
 	// retrieve the account, creates a customer id if one doesn't already exist
 	account, err := s.db.UpsertStripeCustomerId(
