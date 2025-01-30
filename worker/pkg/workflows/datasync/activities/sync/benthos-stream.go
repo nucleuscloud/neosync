@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 type BenthosStreamClient interface {

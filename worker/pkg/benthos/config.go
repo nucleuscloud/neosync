@@ -17,13 +17,12 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
-	Logger         *LoggerConfig          `json:"logger" yaml:"logger,omitempty"`
-	Input          *InputConfig           `json:"input" yaml:"input"`
-	Buffer         *BufferConfig          `json:"buffer,omitempty" yaml:"buffer,omitempty"`
-	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
-	Output         *OutputConfig          `json:"output" yaml:"output"`
-	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
-	Metrics        *Metrics               `json:"metrics,omitempty" yaml:"metrics,omitempty"`
+	Logger   *LoggerConfig   `json:"logger" yaml:"logger,omitempty"`
+	Input    *InputConfig    `json:"input" yaml:"input"`
+	Buffer   *BufferConfig   `json:"buffer,omitempty" yaml:"buffer,omitempty"`
+	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
+	Output   *OutputConfig   `json:"output" yaml:"output"`
+	Metrics  *Metrics        `json:"metrics,omitempty" yaml:"metrics,omitempty"`
 }
 
 type LoggerConfig struct {
@@ -42,16 +41,6 @@ type MetricsStatsD struct {
 	Address     string `json:"address" yaml:"address"`
 	FlushPeriod string `json:"flush_period,omitempty" yaml:"flush_period,omitempty"`
 	TagFormat   string `json:"tag_format,omitempty" yaml:"tag_format,omitempty"`
-}
-
-type CacheResourceConfig struct {
-	Label string            `json:"label" yaml:"label"`
-	Redis *RedisCacheConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
-}
-
-type RedisCacheConfig struct {
-	Url    string  `json:"url" yaml:"url"`
-	Prefix *string `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 }
 
 type InputConfig struct {

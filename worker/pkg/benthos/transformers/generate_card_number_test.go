@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateValidLuhnCardNumber(t *testing.T) {

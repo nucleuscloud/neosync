@@ -36,13 +36,13 @@ import (
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"github.com/warpstreamlabs/bento/public/bloblang"
-	_ "github.com/warpstreamlabs/bento/public/components/aws"
-	_ "github.com/warpstreamlabs/bento/public/components/io"
-	_ "github.com/warpstreamlabs/bento/public/components/pure"
-	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
+	_ "github.com/redpanda-data/benthos/v4/public/components/io"
+	_ "github.com/redpanda-data/benthos/v4/public/components/pure"
+	_ "github.com/redpanda-data/benthos/v4/public/components/pure/extended"
+	_ "github.com/redpanda-data/connect/v4/public/components/aws"
 
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 // TODO: remove this. should use connection type
