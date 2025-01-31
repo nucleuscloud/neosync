@@ -23,7 +23,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: `return "hello " + value;`,
+					Code: `return "hello " + value + " " + input.extra;`,
 				},
 			},
 		},
@@ -51,7 +51,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	wrappedCode := fmt.Sprintf(`
 let programOutput = undefined;
 const benthos = {
-  v0_msg_as_structured: () => ({address: "world"}),
+  v0_msg_as_structured: () => ({address: "world", extra: "foobar"}),
 };
 const neosync = {
   patchStructuredMessage: (val) => {
@@ -70,7 +70,7 @@ const neosync = {
 	require.NotNil(t, programOutput)
 	outputMap, ok := programOutput.(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, "hello world", outputMap["address"])
+	require.Equal(t, "hello world foobar", outputMap["address"])
 }
 
 func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
