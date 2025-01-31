@@ -316,7 +316,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				Tables: tables,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to build mysql database table schemas by schemas and tables: %w", err)
 			}
 			colDefMapMu.Lock()
 			defer colDefMapMu.Unlock()
@@ -337,7 +337,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				Tables: tables,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to build mysql table constraints: %w", err)
 			}
 			constraintMapMu.Lock()
 			defer constraintMapMu.Unlock()
@@ -358,7 +358,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				Tables: tables,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
 			}
 
 			indexMapMu.Lock()
@@ -368,11 +368,19 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				if _, exists := indexmap[key.String()]; !exists {
 					indexmap[key.String()] = make(map[string][]string)
 				}
-				// Group columns by index name
-				indexmap[key.String()][record.IndexName] = append(
-					indexmap[key.String()][record.IndexName],
-					record.ColumnName,
-				)
+				// Group columns/expressions by index name
+				if record.ColumnName.Valid {
+					indexmap[key.String()][record.IndexName] = append(
+						indexmap[key.String()][record.IndexName],
+						record.ColumnName.String,
+					)
+				} else if record.Expression.Valid {
+					indexmap[key.String()][record.IndexName] = append(
+						indexmap[key.String()][record.IndexName],
+						// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
+						fmt.Sprintf("(%s)", record.Expression.String),
+					)
+				}
 			}
 			return nil
 		})
@@ -399,7 +407,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 
 			columnDefaultStr, err := convertUInt8ToString(record.ColumnDefault)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert column default to string: %w", err)
 			}
 			var columnDefaultType *string
 			if identityType != nil && columnDefaultStr != "" && *identityType == "" {
@@ -411,12 +419,12 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			}
 			columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to escape column default: %w", err)
 			}
 
 			genExp, err := convertUInt8ToString(record.GenerationExp)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert generation expression to string: %w", err)
 			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
 				ColumnName:          record.ColumnName,
@@ -436,7 +444,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to build alter table statement by constraint: %w", err)
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
 		}
@@ -793,7 +801,11 @@ func wrapIdempotentIndex(
 
 	columnInput := []string{}
 	for _, col := range cols {
-		columnInput = append(columnInput, EscapeMysqlColumn(col))
+		if strings.HasPrefix(col, "(") {
+			columnInput = append(columnInput, col)
+		} else {
+			columnInput = append(columnInput, EscapeMysqlColumn(col))
+		}
 	}
 	procedureName := fmt.Sprintf("NeosyncAddIndex_%s", hashInput(hashParams...))[:64]
 	stmt := fmt.Sprintf(`

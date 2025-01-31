@@ -60,7 +60,8 @@ create table information_schema.table_privileges (
 create table information_schema.statistics (
   table_schema text not null,
   table_name text not null,
-  column_name text not null,
+  column_name text null,
+  expression text null,
   index_name text not null,
   index_type text not null,
   seq_in_index bigint,

@@ -28,10 +28,12 @@ func TestInterceptor_WrapUnary(t *testing.T) {
 		mock := &mockUnaryFunc{
 			err: connect.NewError(connect.CodeUnavailable, errors.New("service unavailable")),
 		}
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 
 		wrapped := interceptor.WrapUnary(mock.Call)
 		_, err := wrapped(context.Background(), &connect.Request[any]{})
@@ -46,10 +48,12 @@ func TestInterceptor_WrapUnary(t *testing.T) {
 		mock := &mockUnaryFunc{
 			err: connect.NewError(connect.CodeInvalidArgument, errors.New("invalid argument")),
 		}
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(10*time.Millisecond),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(10 * time.Millisecond),
+			}
+		}))
 
 		wrapped := interceptor.WrapUnary(mock.Call)
 		_, err := wrapped(context.Background(), &connect.Request[any]{})
@@ -64,10 +68,12 @@ func TestInterceptor_WrapUnary(t *testing.T) {
 		mock := &mockUnaryFunc{
 			err: nil,
 		}
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(10*time.Millisecond),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(10 * time.Millisecond),
+			}
+		}))
 
 		wrapped := interceptor.WrapUnary(mock.Call)
 		_, err := wrapped(context.Background(), &connect.Request[any]{})
@@ -109,10 +115,12 @@ func TestInterceptor_WrapStreamingClient(t *testing.T) {
 			receiveErr: connect.NewError(connect.CodeUnavailable, errors.New("service unavailable")),
 		}
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 		wrapped := interceptor.WrapStreamingClient(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
 			return mock
 		})
@@ -131,10 +139,12 @@ func TestInterceptor_WrapStreamingClient(t *testing.T) {
 			receiveErr: connect.NewError(connect.CodeInvalidArgument, errors.New("invalid argument")),
 		}
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 		wrapped := interceptor.WrapStreamingClient(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
 			return mock
 		})
@@ -152,10 +162,12 @@ func TestInterceptor_WrapStreamingClient(t *testing.T) {
 			receiveErr: nil,
 		}
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(2),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(2),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 		wrapped := interceptor.WrapStreamingClient(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
 			return mock
 		})
@@ -174,10 +186,12 @@ func TestInterceptor_WrapStreamingHandler(t *testing.T) {
 		callCount := 0
 		handlerErr := connect.NewError(connect.CodeUnavailable, errors.New("unavailable"))
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(3),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(3),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 
 		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 			callCount++
@@ -196,10 +210,12 @@ func TestInterceptor_WrapStreamingHandler(t *testing.T) {
 		callCount := 0
 		handlerErr := connect.NewError(connect.CodeInvalidArgument, errors.New("invalid argument"))
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(3),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(3),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 
 		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 			callCount++
@@ -215,10 +231,12 @@ func TestInterceptor_WrapStreamingHandler(t *testing.T) {
 	t.Run("should not retry on success", func(t *testing.T) {
 		callCount := 0
 
-		interceptor := New(WithRetryOptions(
-			backoff.WithMaxTries(3),
-			backoff.WithMaxElapsedTime(30*time.Second),
-		))
+		interceptor := New(WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithMaxTries(3),
+				backoff.WithMaxElapsedTime(30 * time.Second),
+			}
+		}))
 
 		handler := interceptor.WrapStreamingHandler(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 			callCount++

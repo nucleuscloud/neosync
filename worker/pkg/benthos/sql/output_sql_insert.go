@@ -254,18 +254,19 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	insertQuery, args, err := s.queryBuilder.BuildInsertQuery(rows)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build insert query: %w", err)
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
-		shouldRetry := s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error())
+		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
-			return err
+			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
+		s.logger.Infof("received error during batch write that is retryable, proceeding with row by row insert: %s", err.Error())
 
 		err = s.RetryInsertRowByRow(ctx, s.queryBuilder, rows)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
 	}
 	return nil
@@ -277,6 +278,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	rows []map[string]any,
 ) error {
 	fkErrorCount := 0
+	otherErrorCount := 0
 	insertCount := 0
 	for _, row := range rows {
 		insertQuery, args, err := builder.BuildInsertQuery([]map[string]any{row})
@@ -284,16 +286,21 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 			return err
 		}
 		_, err = s.db.ExecContext(ctx, insertQuery, args...)
-		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			fkErrorCount++
-		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			return err
+		if err != nil {
+			if !neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations) {
+				return fmt.Errorf("failed to retry insert query: %w", err)
+			} else if neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+				fkErrorCount++
+			} else {
+				otherErrorCount++
+				s.logger.Warnf("received retryable error during row by row insert. skipping row: %s", err.Error())
+			}
 		}
 		if err == nil {
 			insertCount++
 		}
 	}
-	s.logger.Infof("Completed batch insert with %d foreign key violations. Skipped rows: %d, Successfully inserted: %d", fkErrorCount, fkErrorCount, insertCount)
+	s.logger.Infof("Completed batch insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
 	return nil
 }
 

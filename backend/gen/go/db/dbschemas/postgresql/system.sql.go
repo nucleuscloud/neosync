@@ -282,13 +282,18 @@ WITH custom_types AS (
 table_columns AS (
     SELECT
         c.oid AS table_oid,
-        a.atttypid AS type_oid
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
     FROM
         pg_catalog.pg_class c
     JOIN
         pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     JOIN
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
         n.nspname = $1
         AND c.relname = ANY($2::TEXT[])

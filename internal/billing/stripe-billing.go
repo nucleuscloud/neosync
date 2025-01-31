@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/stripe/stripe-go/v79"
-	stripeapiclient "github.com/stripe/stripe-go/v79/client"
+	"github.com/stripe/stripe-go/v81"
+	stripeapiclient "github.com/stripe/stripe-go/v81/client"
 )
 
 type SubscriptionIter interface {
@@ -130,9 +130,11 @@ func (c *Client) NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEven
 }
 
 func getNextMonthBillingCycleAnchor(date time.Time) int64 {
-	// Calculate the first day of the next month
-	nextMonth := date.AddDate(0, 1, 0)
-	firstOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, date.Location())
+	dateUtc := date.UTC()
+	// First set to the 1st of the current month
+	firstOfMonth := time.Date(dateUtc.Year(), dateUtc.Month(), 1, 0, 0, 0, 0, dateUtc.Location())
+	// Then add one month - this avoids day rollover issues
+	firstOfNextMonth := firstOfMonth.AddDate(0, 1, 0)
 	return firstOfNextMonth.Unix()
 }
 

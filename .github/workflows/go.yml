@@ -131,7 +131,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic -run TestIntegrationTestSuite ./...
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./...
         env:
           INTEGRATION_TESTS_ENABLED: 1
           S3_INTEGRATION_TESTS_ENABLED: 1
@@ -206,7 +206,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
-      
+
       - name: Install benchstat
         run: go install golang.org/x/perf/cmd/benchstat@latest
 
@@ -217,7 +217,7 @@ jobs:
           path: main-benchmark.txt
           key: benchmarks-main
           restore-keys: benchmarks-main
-      
+
       - name: Run benchmarks on main if cache miss
         if: steps.cache-restore.outputs.cache-hit != 'true'
         run: |
@@ -263,7 +263,7 @@ jobs:
           echo -e "\n<details>\n<summary>Benchstat results</summary>\n\n\`\`\`\n$(cat benchstat-output.txt)\n\`\`\`\n</details>\n" >> benchstat-results.txt
 
       - name: Comment Benchstat Results on PR
-        if: github.event_name == 'pull_request' 
+        if: github.event_name == 'pull_request'
         uses: thollander/actions-comment-pull-request@v3
         with:
           file-path: benchstat-results.txt
@@ -277,4 +277,3 @@ jobs:
         with:
           path: branch-benchmark.txt
           key: benchmarks-main
-

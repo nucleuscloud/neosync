@@ -135,6 +135,18 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 		if len(rows) == 0 {
 			return "", []any{}, errors.New("no rows to insert")
 		}
+		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 {
+			d.logger.Warn("no conflict columns specified for on conflict do update, defaulting to on conflict do nothing")
+			onConflictDoNothing := true
+			insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
+			if err != nil {
+				return "", nil, fmt.Errorf("failed to build insert query on conflict do nothing fallback: %w", err)
+			}
+			if d.options.shouldOverrideColumnDefault {
+				insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
+			}
+			return insertQuery, args, nil
+		}
 
 		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
@@ -146,12 +158,12 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
 	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to build insert query: %w", err)
 	}
 	if d.options.shouldOverrideColumnDefault {
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
-	return insertQuery, args, err
+	return insertQuery, args, nil
 }
 
 func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(

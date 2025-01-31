@@ -18,35 +18,41 @@ type Interceptor struct {
 var _ connect.Interceptor = &Interceptor{}
 
 type config struct {
-	retryOptions []backoff.RetryOption
+	getRetryOptions func() []backoff.RetryOption
 }
 
 type Option func(*config)
 
 func DefaultRetryInterceptor(logger *slog.Logger) *Interceptor {
 	return New(
-		WithRetryOptions(
-			backoff.WithBackOff(backoff.NewExponentialBackOff()),
-			backoff.WithMaxTries(10),
-			backoff.WithMaxElapsedTime(1*time.Minute),
-			backoff.WithNotify(func(err error, d time.Duration) {
-				logger.Warn(fmt.Sprintf("error with retry: %s, retrying in %s", err.Error(), d.String()))
-			}),
-		),
+		WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{
+				backoff.WithBackOff(backoff.NewExponentialBackOff()),
+				backoff.WithMaxTries(10),
+				backoff.WithMaxElapsedTime(1 * time.Minute),
+				backoff.WithNotify(func(err error, d time.Duration) {
+					logger.Warn(fmt.Sprintf("error with retry: %s, retrying in %s", err.Error(), d.String()))
+				}),
+			}
+		}),
 	)
 }
 
+func noRetryOptions() []backoff.RetryOption {
+	return []backoff.RetryOption{}
+}
+
 func New(opts ...Option) *Interceptor {
-	cfg := &config{}
+	cfg := &config{getRetryOptions: noRetryOptions}
 	for _, opt := range opts {
 		opt(cfg)
 	}
 	return &Interceptor{config: cfg}
 }
 
-func WithRetryOptions(opts ...backoff.RetryOption) Option {
+func WithRetryOptions(getRetryOptions func() []backoff.RetryOption) Option {
 	return func(cfg *config) {
-		cfg.retryOptions = opts
+		cfg.getRetryOptions = getRetryOptions
 	}
 }
 
@@ -60,7 +66,8 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 			return response, nil
 		}
 
-		res, err := backoff.Retry(ctx, operation, i.config.retryOptions...)
+		opts := i.config.getRetryOptions()
+		res, err := backoff.Retry(ctx, operation, opts...)
 		if err != nil {
 			return nil, unwrapPermanentError(err)
 		}
@@ -111,7 +118,8 @@ func (r *retryStreamingClientConn) Send(msg any) error {
 		return nil, nil
 	}
 
-	_, err := backoff.Retry(r.ctx, operation, r.config.retryOptions...)
+	opts := r.config.getRetryOptions()
+	_, err := backoff.Retry(r.ctx, operation, opts...)
 	return unwrapPermanentError(err)
 }
 
@@ -125,7 +133,8 @@ func (r *retryStreamingClientConn) Receive(msg any) error {
 		return nil, nil
 	}
 
-	_, err := backoff.Retry(r.ctx, operation, r.config.retryOptions...)
+	opts := r.config.getRetryOptions()
+	_, err := backoff.Retry(r.ctx, operation, opts...)
 	return unwrapPermanentError(err)
 }
 
@@ -139,7 +148,8 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 			return nil, nil
 		}
 
-		_, err := backoff.Retry(ctx, operation, i.config.retryOptions...)
+		opts := i.config.getRetryOptions()
+		_, err := backoff.Retry(ctx, operation, opts...)
 		return unwrapPermanentError(err)
 	}
 }
