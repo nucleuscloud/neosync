@@ -31,13 +31,17 @@ func NewMysqlDestinationDatabaseBuilderService(
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnection *mgmtv1alpha1.Connection,
 	destOpts *mgmtv1alpha1.MysqlDestinationConnectionOptions,
-	sourcedb *sqlmanager.SqlConnection,
 ) (*MysqlDestinationDatabaseBuilderService, error) {
+	sourcedb, err := sqlmanagerclient.NewSqlConnection(ctx, session, sourceConnection, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new sql db: %w", err)
+	}
+	defer sourcedb.Db().Close()
+
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer destdb.Db().Close()
 
 	return &MysqlDestinationDatabaseBuilderService{
 		logger:                logger,
@@ -113,4 +117,8 @@ func (d *MysqlDestinationDatabaseBuilderService) TruncateData(ctx context.Contex
 		return err
 	}
 	return nil
+}
+
+func (d *MysqlDestinationDatabaseBuilderService) CloseConnections() {
+	d.destdb.Db().Close()
 }

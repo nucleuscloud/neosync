@@ -36,13 +36,16 @@ func NewMssqlDestinationDatabaseBuilderService(
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnection *mgmtv1alpha1.Connection,
 	destOpts *mgmtv1alpha1.MssqlDestinationConnectionOptions,
-	sourcedb *sqlmanager.SqlConnection,
 ) (*MssqlDestinationDatabaseBuilderService, error) {
+	sourcedb, err := sqlmanagerclient.NewSqlConnection(ctx, session, sourceConnection, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new sql db: %w", err)
+	}
+
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer destdb.Db().Close()
 
 	return &MssqlDestinationDatabaseBuilderService{
 		logger:                logger,
@@ -156,4 +159,9 @@ func (d *MssqlDestinationDatabaseBuilderService) TruncateData(ctx context.Contex
 		}
 	}
 	return nil
+}
+
+func (d *MssqlDestinationDatabaseBuilderService) CloseConnections() {
+	d.destdb.Db().Close()
+	d.sourcedb.Db().Close()
 }

@@ -33,13 +33,16 @@ func NewPostgresDestinationDatabaseBuilderService(
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnection *mgmtv1alpha1.Connection,
 	destOpts *mgmtv1alpha1.PostgresDestinationConnectionOptions,
-	sourcedb *sqlmanager.SqlConnection,
 ) (*PostgresDestinationDatabaseBuilderService, error) {
+	sourcedb, err := sqlmanagerclient.NewSqlConnection(ctx, session, sourceConnection, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new sql db: %w", err)
+	}
+
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer destdb.Db().Close()
 
 	return &PostgresDestinationDatabaseBuilderService{
 		logger:                logger,
@@ -166,4 +169,9 @@ func (d *PostgresDestinationDatabaseBuilderService) TruncateData(ctx context.Con
 		}
 	}
 	return nil
+}
+
+func (d *PostgresDestinationDatabaseBuilderService) CloseConnections() {
+	d.sourcedb.Db().Close()
+	d.destdb.Db().Close()
 }

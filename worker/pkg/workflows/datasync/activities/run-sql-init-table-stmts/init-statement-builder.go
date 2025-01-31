@@ -111,7 +111,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 		}
 
-		ddbuilder := destinationdatabasebuilder.NewDestinationDatabaseBuilder(b.sqlmanager, session, sourcedb, slogger, b.eelicense)
+		ddbuilder := destinationdatabasebuilder.NewDestinationDatabaseBuilder(b.sqlmanager, session, slogger, b.eelicense)
 		ddbuilderService, err := ddbuilder.NewDestinationDatabaseBuilderService(ctx, sourceConnection, destinationConnection, destination)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new destination database builder service: %w", err)
@@ -138,6 +138,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, fmt.Errorf("unable to truncate data: %w", err)
 		}
+
+		ddbuilderService.CloseConnections()
 	}
 
 	return &RunSqlInitTableStatementsResponse{}, nil

@@ -19,6 +19,7 @@ import (
 type DestinationDatabaseBuilderService interface {
 	InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*destdb_shared.InitSchemaError, error)
 	TruncateData(ctx context.Context, uniqueTables map[string]struct{}, uniqueSchemas []string) error
+	CloseConnections()
 }
 
 type DestinationDatabaseBuilder interface {
@@ -33,7 +34,6 @@ type DestinationDatabaseBuilder interface {
 type DefaultDestinationDatabaseBuilder struct {
 	sqlmanagerclient sqlmanager.SqlManagerClient
 	session          connectionmanager.SessionInterface
-	sourceDb         *sqlmanager.SqlConnection
 	logger           *slog.Logger
 	eelicense        license.EEInterface
 }
@@ -41,11 +41,10 @@ type DefaultDestinationDatabaseBuilder struct {
 func NewDestinationDatabaseBuilder(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	session connectionmanager.SessionInterface,
-	sourceDb *sqlmanager.SqlConnection,
 	logger *slog.Logger,
 	eelicense license.EEInterface,
 ) DestinationDatabaseBuilder {
-	return &DefaultDestinationDatabaseBuilder{sqlmanagerclient: sqlmanagerclient, session: session, sourceDb: sourceDb, logger: logger, eelicense: eelicense}
+	return &DefaultDestinationDatabaseBuilder{sqlmanagerclient: sqlmanagerclient, session: session, logger: logger, eelicense: eelicense}
 }
 
 func (d *DefaultDestinationDatabaseBuilder) NewDestinationDatabaseBuilderService(
@@ -57,13 +56,13 @@ func (d *DefaultDestinationDatabaseBuilder) NewDestinationDatabaseBuilderService
 	switch cfg := destination.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		opts := cfg.PostgresOptions
-		return ddbuilder_postgres.NewPostgresDestinationDatabaseBuilderService(ctx, d.logger, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts, d.sourceDb)
+		return ddbuilder_postgres.NewPostgresDestinationDatabaseBuilderService(ctx, d.logger, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts)
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
 		opts := cfg.MysqlOptions
-		return ddbuilder_mysql.NewMysqlDestinationDatabaseBuilderService(ctx, d.logger, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts, d.sourceDb)
+		return ddbuilder_mysql.NewMysqlDestinationDatabaseBuilderService(ctx, d.logger, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts)
 	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
 		opts := cfg.MssqlOptions
-		return ddbuilder_mssql.NewMssqlDestinationDatabaseBuilderService(ctx, d.logger, d.eelicense, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts, d.sourceDb)
+		return ddbuilder_mssql.NewMssqlDestinationDatabaseBuilderService(ctx, d.logger, d.eelicense, d.session, d.sqlmanagerclient, sourceConnection, destinationConnection, opts)
 	case *mgmtv1alpha1.JobDestinationOptions_DynamodbOptions, *mgmtv1alpha1.JobDestinationOptions_MongodbOptions, *mgmtv1alpha1.JobDestinationOptions_AwsS3Options, *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:
 		// For destinations like DynamoDB, MongoDB, S3, and GCP Cloud Storage, we use a no-op implementation
 		// since schema initialization and data truncation don't apply to these data stores

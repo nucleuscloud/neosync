@@ -20,3 +20,6 @@ func (d *NotSupportedDestinationDatabaseBuilderService) InitializeSchema(ctx con
 func (d *NotSupportedDestinationDatabaseBuilderService) TruncateData(ctx context.Context, uniqueTables map[string]struct{}, uniqueSchemas []string) error {
 	return nil
 }
+
+func (d *NotSupportedDestinationDatabaseBuilderService) CloseConnections() {
+}
