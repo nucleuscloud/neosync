@@ -69,6 +69,6 @@ func (d *DefaultDestinationDatabaseBuilder) NewDestinationDatabaseBuilderService
 		// since schema initialization and data truncation don't apply to these data stores
 		return ddbuilder_notsupported.NewNotSupportedDestinationDatabaseBuilderService()
 	default:
-		return nil, fmt.Errorf("unsupported connection type: %T", sourceConnection.GetConnectionConfig().GetConfig())
+		return nil, fmt.Errorf("unsupported connection type: %T", destination.GetOptions().GetConfig())
 	}
 }
