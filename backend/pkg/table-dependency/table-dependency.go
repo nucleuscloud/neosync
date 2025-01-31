@@ -183,7 +183,7 @@ func GetRunConfigs(
 		}
 		cycleConfigs, err := processCycles(group, tableColumnsMap, primaryKeyMap, subsets, dependencyMap, d.foreignKeyCols)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to process cycles: %w", err)
 		}
 		// update table processed map
 		for _, cfg := range cycleConfigs {
@@ -336,7 +336,8 @@ func processCycles(
 			if isTableInCycles(cycles, fkTable) {
 				if len(fkCols.NullableColumns) > 0 {
 					updateConfig.appendDependsOn(fkTable, fkCols.NullableColumns)
-				} else {
+				}
+				if len(fkCols.NonNullableColumns) > 0 {
 					insertConfig.appendDependsOn(fkTable, fkCols.NonNullableColumns)
 				}
 			} else {

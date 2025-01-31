@@ -87,6 +87,99 @@ func Test_FindCircularDependencies(t *testing.T) {
 			},
 			expect: [][]string{{"public.a", "public.b", "public.c"}, {"public.b"}},
 		},
+		{
+			name: "Nested cycles",
+			dependencies: map[string][]string{
+				"public.a": {"public.b"},
+				"public.b": {"public.c"},
+				"public.c": {"public.d", "public.a"},
+				"public.d": {"public.b"},
+			},
+			expect: [][]string{
+				{"public.a", "public.b", "public.c"},
+				{"public.b", "public.c", "public.d"},
+			},
+		},
+		{
+			name: "Multiple overlapping cycles with shared nodes",
+			dependencies: map[string][]string{
+				"public.a": {"public.b", "public.d"},
+				"public.b": {"public.c"},
+				"public.c": {"public.a"},
+				"public.d": {"public.e"},
+				"public.e": {"public.f"},
+				"public.f": {"public.d", "public.a"},
+			},
+			expect: [][]string{
+				{"public.a", "public.b", "public.c"},
+				{"public.a", "public.d", "public.e", "public.f"},
+				{"public.d", "public.e", "public.f"},
+			},
+		},
+		{
+			name: "Diamond shape with multiple paths",
+			dependencies: map[string][]string{
+				"public.a": {"public.b", "public.c"},
+				"public.b": {"public.d"},
+				"public.c": {"public.d"},
+				"public.d": {"public.a"},
+			},
+			expect: [][]string{
+				{"public.a", "public.b", "public.d"},
+				{"public.a", "public.c", "public.d"},
+			},
+		},
+		{
+			name: "Complex web of dependencies",
+			dependencies: map[string][]string{
+				"public.a": {"public.b", "public.c"},
+				"public.b": {"public.d", "public.e"},
+				"public.c": {"public.e", "public.f"},
+				"public.d": {"public.g"},
+				"public.e": {"public.g", "public.h"},
+				"public.f": {"public.h"},
+				"public.g": {"public.i"},
+				"public.h": {"public.i"},
+				"public.i": {"public.a"},
+			},
+			expect: [][]string{
+				{"public.a", "public.b", "public.d", "public.g", "public.i"},
+				{"public.a", "public.b", "public.e", "public.g", "public.i"},
+				{"public.a", "public.b", "public.e", "public.h", "public.i"},
+				{"public.a", "public.c", "public.e", "public.g", "public.i"},
+				{"public.a", "public.c", "public.e", "public.h", "public.i"},
+				{"public.a", "public.c", "public.f", "public.h", "public.i"},
+			},
+		},
+		{
+			name: "Multiple self-references with shared dependencies",
+			dependencies: map[string][]string{
+				"public.a": {"public.a", "public.b"},
+				"public.b": {"public.b", "public.c"},
+				"public.c": {"public.a", "public.c"},
+			},
+			expect: [][]string{
+				{"public.a"},
+				{"public.b"},
+				{"public.c"},
+				{"public.a", "public.b", "public.c"},
+			},
+		},
+		{
+			name: "Cycle with branching paths",
+			dependencies: map[string][]string{
+				"public.root": {"public.a1", "public.a2"},
+				"public.a1":   {"public.b1"},
+				"public.a2":   {"public.b2"},
+				"public.b1":   {"public.c"},
+				"public.b2":   {"public.c"},
+				"public.c":    {"public.root"},
+			},
+			expect: [][]string{
+				{"public.root", "public.a1", "public.b1", "public.c"},
+				{"public.root", "public.a2", "public.b2", "public.c"},
+			},
+		},
 	}
 
 	for _, tt := range tests {

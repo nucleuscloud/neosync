@@ -101,14 +101,15 @@ func FindCircularDependencies(dependencies map[string][]string) [][]string {
 	var result [][]string
 
 	for node := range dependencies {
-		visited, recStack := make(map[string]bool), make(map[string]bool)
-		dfsCycles(node, node, dependencies, visited, recStack, []string{}, &result)
+		recStack := make(map[string]bool)
+		path := []string{}
+		dfsCycles(node, node, dependencies, recStack, path, &result)
 	}
 	return uniqueCycles(result)
 }
 
 // finds all possible path variations
-func dfsCycles(start, current string, dependencies map[string][]string, visited, recStack map[string]bool, path []string, result *[][]string) {
+func dfsCycles(start, current string, dependencies map[string][]string, recStack map[string]bool, path []string, result *[][]string) {
 	if recStack[current] {
 		if current == start {
 			// make copy to prevent reference issues
@@ -123,15 +124,10 @@ func dfsCycles(start, current string, dependencies map[string][]string, visited,
 	path = append(path, current)
 
 	for _, neighbor := range dependencies[current] {
-		if !visited[neighbor] {
-			dfsCycles(start, neighbor, dependencies, visited, recStack, path, result)
-		}
+		dfsCycles(start, neighbor, dependencies, recStack, path, result)
 	}
 
 	recStack[current] = false
-	if start == current {
-		visited[current] = true
-	}
 }
 
 func uniqueCycles(cycles [][]string) [][]string {
