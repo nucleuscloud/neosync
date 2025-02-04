@@ -1003,6 +1003,91 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 	}
 }
 
+func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.a": {"id"},
+		"public.b": {"id"},
+		"public.c": {"id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.a": {"id", "c_id"},
+		"public.b": {"id", "a_id", "ac_id"},
+		"public.c": {"id", "b_id", "acb_id"},
+	}
+
+	expect := []*RunConfig{
+		// First insert a with just its primary key and no foreign keys
+		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		// Then update a's nullable foreign keys after dependencies exist
+		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"c_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		// Insert b with required a_id reference
+		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "a_id", "ac_id"},
+			[]string{"id", "a_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+		// Update b's nullable ac_id after all dependencies exist
+		buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "ac_id"},
+			[]string{"ac_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+				{Table: "public.a", Columns: []string{"c_id"}},
+			}),
+		// Insert c with required b_id reference
+		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"id", "b_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+		// Update c's nullable acb_id after all dependencies exist
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "acb_id"},
+			[]string{"acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"ac_id"}},
+			}),
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
+		require.NotNil(t, actualConfig, "expected config for table %s and type %s not found", e.Table(), e.RunType())
+		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns(), "insert columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns(), "select columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn(), "depends on mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys(), "primary keys mismatch for table %s", e.Table())
+		require.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s", e.Table())
+	}
+}
+
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
