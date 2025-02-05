@@ -13,12 +13,7 @@ import (
 
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
-	_ "github.com/warpstreamlabs/bento/public/components/aws"
-	_ "github.com/warpstreamlabs/bento/public/components/io"
-	_ "github.com/warpstreamlabs/bento/public/components/pure"
-	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"

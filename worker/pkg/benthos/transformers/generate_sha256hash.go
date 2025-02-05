@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateSHA256Hash

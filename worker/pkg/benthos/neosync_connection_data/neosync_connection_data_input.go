@@ -19,7 +19,7 @@ import (
 
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func init() {

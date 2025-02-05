@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_TranformLastNameEmptyName(t *testing.T) {
