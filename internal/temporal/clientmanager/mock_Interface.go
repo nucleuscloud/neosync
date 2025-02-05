@@ -5,9 +5,8 @@ package clientmanager
 import (
 	context "context"
 
-	client "go.temporal.io/sdk/client"
-
 	mock "github.com/stretchr/testify/mock"
+	internal "go.temporal.io/sdk/client"
 
 	slog "log/slog"
 
@@ -79,7 +78,7 @@ func (_c *MockInterface_CancelWorkflow_Call) RunAndReturn(run func(context.Conte
 }
 
 // CreateSchedule provides a mock function with given fields: ctx, accountId, opts, logger
-func (_m *MockInterface) CreateSchedule(ctx context.Context, accountId string, opts *client.ScheduleOptions, logger *slog.Logger) (string, error) {
+func (_m *MockInterface) CreateSchedule(ctx context.Context, accountId string, opts *internal.ScheduleOptions, logger *slog.Logger) (string, error) {
 	ret := _m.Called(ctx, accountId, opts, logger)
 
 	if len(ret) == 0 {
@@ -88,16 +87,16 @@ func (_m *MockInterface) CreateSchedule(ctx context.Context, accountId string, o
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *client.ScheduleOptions, *slog.Logger) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, *internal.ScheduleOptions, *slog.Logger) (string, error)); ok {
 		return rf(ctx, accountId, opts, logger)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *client.ScheduleOptions, *slog.Logger) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, *internal.ScheduleOptions, *slog.Logger) string); ok {
 		r0 = rf(ctx, accountId, opts, logger)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *client.ScheduleOptions, *slog.Logger) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, *internal.ScheduleOptions, *slog.Logger) error); ok {
 		r1 = rf(ctx, accountId, opts, logger)
 	} else {
 		r1 = ret.Error(1)
@@ -114,15 +113,15 @@ type MockInterface_CreateSchedule_Call struct {
 // CreateSchedule is a helper method to define mock.On call
 //   - ctx context.Context
 //   - accountId string
-//   - opts *client.ScheduleOptions
+//   - opts *internal.ScheduleOptions
 //   - logger *slog.Logger
 func (_e *MockInterface_Expecter) CreateSchedule(ctx interface{}, accountId interface{}, opts interface{}, logger interface{}) *MockInterface_CreateSchedule_Call {
 	return &MockInterface_CreateSchedule_Call{Call: _e.mock.On("CreateSchedule", ctx, accountId, opts, logger)}
 }
 
-func (_c *MockInterface_CreateSchedule_Call) Run(run func(ctx context.Context, accountId string, opts *client.ScheduleOptions, logger *slog.Logger)) *MockInterface_CreateSchedule_Call {
+func (_c *MockInterface_CreateSchedule_Call) Run(run func(ctx context.Context, accountId string, opts *internal.ScheduleOptions, logger *slog.Logger)) *MockInterface_CreateSchedule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*client.ScheduleOptions), args[3].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(string), args[2].(*internal.ScheduleOptions), args[3].(*slog.Logger))
 	})
 	return _c
 }
@@ -132,7 +131,7 @@ func (_c *MockInterface_CreateSchedule_Call) Return(_a0 string, _a1 error) *Mock
 	return _c
 }
 
-func (_c *MockInterface_CreateSchedule_Call) RunAndReturn(run func(context.Context, string, *client.ScheduleOptions, *slog.Logger) (string, error)) *MockInterface_CreateSchedule_Call {
+func (_c *MockInterface_CreateSchedule_Call) RunAndReturn(run func(context.Context, string, *internal.ScheduleOptions, *slog.Logger) (string, error)) *MockInterface_CreateSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -236,23 +235,23 @@ func (_c *MockInterface_DeleteWorkflowExecution_Call) RunAndReturn(run func(cont
 }
 
 // DescribeSchedule provides a mock function with given fields: ctx, accountId, scheduleId, logger
-func (_m *MockInterface) DescribeSchedule(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (*client.ScheduleDescription, error) {
+func (_m *MockInterface) DescribeSchedule(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (*internal.ScheduleDescription, error) {
 	ret := _m.Called(ctx, accountId, scheduleId, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DescribeSchedule")
 	}
 
-	var r0 *client.ScheduleDescription
+	var r0 *internal.ScheduleDescription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (*client.ScheduleDescription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (*internal.ScheduleDescription, error)); ok {
 		return rf(ctx, accountId, scheduleId, logger)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) *client.ScheduleDescription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) *internal.ScheduleDescription); ok {
 		r0 = rf(ctx, accountId, scheduleId, logger)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*client.ScheduleDescription)
+			r0 = ret.Get(0).(*internal.ScheduleDescription)
 		}
 	}
 
@@ -286,12 +285,12 @@ func (_c *MockInterface_DescribeSchedule_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockInterface_DescribeSchedule_Call) Return(_a0 *client.ScheduleDescription, _a1 error) *MockInterface_DescribeSchedule_Call {
+func (_c *MockInterface_DescribeSchedule_Call) Return(_a0 *internal.ScheduleDescription, _a1 error) *MockInterface_DescribeSchedule_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockInterface_DescribeSchedule_Call) RunAndReturn(run func(context.Context, string, string, *slog.Logger) (*client.ScheduleDescription, error)) *MockInterface_DescribeSchedule_Call {
+func (_c *MockInterface_DescribeSchedule_Call) RunAndReturn(run func(context.Context, string, string, *slog.Logger) (*internal.ScheduleDescription, error)) *MockInterface_DescribeSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -657,23 +656,23 @@ func (_c *MockInterface_GetWorkflowExecutionsByScheduleIds_Call) RunAndReturn(ru
 }
 
 // GetWorkflowHistory provides a mock function with given fields: ctx, accountId, workflowId, logger
-func (_m *MockInterface) GetWorkflowHistory(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) (client.HistoryEventIterator, error) {
+func (_m *MockInterface) GetWorkflowHistory(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) (internal.HistoryEventIterator, error) {
 	ret := _m.Called(ctx, accountId, workflowId, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkflowHistory")
 	}
 
-	var r0 client.HistoryEventIterator
+	var r0 internal.HistoryEventIterator
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (client.HistoryEventIterator, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (internal.HistoryEventIterator, error)); ok {
 		return rf(ctx, accountId, workflowId, logger)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) client.HistoryEventIterator); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) internal.HistoryEventIterator); ok {
 		r0 = rf(ctx, accountId, workflowId, logger)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(client.HistoryEventIterator)
+			r0 = ret.Get(0).(internal.HistoryEventIterator)
 		}
 	}
 
@@ -707,18 +706,18 @@ func (_c *MockInterface_GetWorkflowHistory_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockInterface_GetWorkflowHistory_Call) Return(_a0 client.HistoryEventIterator, _a1 error) *MockInterface_GetWorkflowHistory_Call {
+func (_c *MockInterface_GetWorkflowHistory_Call) Return(_a0 internal.HistoryEventIterator, _a1 error) *MockInterface_GetWorkflowHistory_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockInterface_GetWorkflowHistory_Call) RunAndReturn(run func(context.Context, string, string, *slog.Logger) (client.HistoryEventIterator, error)) *MockInterface_GetWorkflowHistory_Call {
+func (_c *MockInterface_GetWorkflowHistory_Call) RunAndReturn(run func(context.Context, string, string, *slog.Logger) (internal.HistoryEventIterator, error)) *MockInterface_GetWorkflowHistory_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // PauseSchedule provides a mock function with given fields: ctx, accountId, scheduleId, opts, logger
-func (_m *MockInterface) PauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *client.SchedulePauseOptions, logger *slog.Logger) error {
+func (_m *MockInterface) PauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *internal.SchedulePauseOptions, logger *slog.Logger) error {
 	ret := _m.Called(ctx, accountId, scheduleId, opts, logger)
 
 	if len(ret) == 0 {
@@ -726,7 +725,7 @@ func (_m *MockInterface) PauseSchedule(ctx context.Context, accountId string, sc
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *client.SchedulePauseOptions, *slog.Logger) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *internal.SchedulePauseOptions, *slog.Logger) error); ok {
 		r0 = rf(ctx, accountId, scheduleId, opts, logger)
 	} else {
 		r0 = ret.Error(0)
@@ -744,15 +743,15 @@ type MockInterface_PauseSchedule_Call struct {
 //   - ctx context.Context
 //   - accountId string
 //   - scheduleId string
-//   - opts *client.SchedulePauseOptions
+//   - opts *internal.SchedulePauseOptions
 //   - logger *slog.Logger
 func (_e *MockInterface_Expecter) PauseSchedule(ctx interface{}, accountId interface{}, scheduleId interface{}, opts interface{}, logger interface{}) *MockInterface_PauseSchedule_Call {
 	return &MockInterface_PauseSchedule_Call{Call: _e.mock.On("PauseSchedule", ctx, accountId, scheduleId, opts, logger)}
 }
 
-func (_c *MockInterface_PauseSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *client.SchedulePauseOptions, logger *slog.Logger)) *MockInterface_PauseSchedule_Call {
+func (_c *MockInterface_PauseSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *internal.SchedulePauseOptions, logger *slog.Logger)) *MockInterface_PauseSchedule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*client.SchedulePauseOptions), args[4].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*internal.SchedulePauseOptions), args[4].(*slog.Logger))
 	})
 	return _c
 }
@@ -762,7 +761,7 @@ func (_c *MockInterface_PauseSchedule_Call) Return(_a0 error) *MockInterface_Pau
 	return _c
 }
 
-func (_c *MockInterface_PauseSchedule_Call) RunAndReturn(run func(context.Context, string, string, *client.SchedulePauseOptions, *slog.Logger) error) *MockInterface_PauseSchedule_Call {
+func (_c *MockInterface_PauseSchedule_Call) RunAndReturn(run func(context.Context, string, string, *internal.SchedulePauseOptions, *slog.Logger) error) *MockInterface_PauseSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -817,7 +816,7 @@ func (_c *MockInterface_TerminateWorkflow_Call) RunAndReturn(run func(context.Co
 }
 
 // TriggerSchedule provides a mock function with given fields: ctx, accountId, scheduleId, opts, logger
-func (_m *MockInterface) TriggerSchedule(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleTriggerOptions, logger *slog.Logger) error {
+func (_m *MockInterface) TriggerSchedule(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleTriggerOptions, logger *slog.Logger) error {
 	ret := _m.Called(ctx, accountId, scheduleId, opts, logger)
 
 	if len(ret) == 0 {
@@ -825,7 +824,7 @@ func (_m *MockInterface) TriggerSchedule(ctx context.Context, accountId string, 
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *client.ScheduleTriggerOptions, *slog.Logger) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *internal.ScheduleTriggerOptions, *slog.Logger) error); ok {
 		r0 = rf(ctx, accountId, scheduleId, opts, logger)
 	} else {
 		r0 = ret.Error(0)
@@ -843,15 +842,15 @@ type MockInterface_TriggerSchedule_Call struct {
 //   - ctx context.Context
 //   - accountId string
 //   - scheduleId string
-//   - opts *client.ScheduleTriggerOptions
+//   - opts *internal.ScheduleTriggerOptions
 //   - logger *slog.Logger
 func (_e *MockInterface_Expecter) TriggerSchedule(ctx interface{}, accountId interface{}, scheduleId interface{}, opts interface{}, logger interface{}) *MockInterface_TriggerSchedule_Call {
 	return &MockInterface_TriggerSchedule_Call{Call: _e.mock.On("TriggerSchedule", ctx, accountId, scheduleId, opts, logger)}
 }
 
-func (_c *MockInterface_TriggerSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleTriggerOptions, logger *slog.Logger)) *MockInterface_TriggerSchedule_Call {
+func (_c *MockInterface_TriggerSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleTriggerOptions, logger *slog.Logger)) *MockInterface_TriggerSchedule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*client.ScheduleTriggerOptions), args[4].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*internal.ScheduleTriggerOptions), args[4].(*slog.Logger))
 	})
 	return _c
 }
@@ -861,13 +860,13 @@ func (_c *MockInterface_TriggerSchedule_Call) Return(_a0 error) *MockInterface_T
 	return _c
 }
 
-func (_c *MockInterface_TriggerSchedule_Call) RunAndReturn(run func(context.Context, string, string, *client.ScheduleTriggerOptions, *slog.Logger) error) *MockInterface_TriggerSchedule_Call {
+func (_c *MockInterface_TriggerSchedule_Call) RunAndReturn(run func(context.Context, string, string, *internal.ScheduleTriggerOptions, *slog.Logger) error) *MockInterface_TriggerSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UnpauseSchedule provides a mock function with given fields: ctx, accountId, scheduleId, opts, logger
-func (_m *MockInterface) UnpauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleUnpauseOptions, logger *slog.Logger) error {
+func (_m *MockInterface) UnpauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleUnpauseOptions, logger *slog.Logger) error {
 	ret := _m.Called(ctx, accountId, scheduleId, opts, logger)
 
 	if len(ret) == 0 {
@@ -875,7 +874,7 @@ func (_m *MockInterface) UnpauseSchedule(ctx context.Context, accountId string, 
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *client.ScheduleUnpauseOptions, *slog.Logger) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *internal.ScheduleUnpauseOptions, *slog.Logger) error); ok {
 		r0 = rf(ctx, accountId, scheduleId, opts, logger)
 	} else {
 		r0 = ret.Error(0)
@@ -893,15 +892,15 @@ type MockInterface_UnpauseSchedule_Call struct {
 //   - ctx context.Context
 //   - accountId string
 //   - scheduleId string
-//   - opts *client.ScheduleUnpauseOptions
+//   - opts *internal.ScheduleUnpauseOptions
 //   - logger *slog.Logger
 func (_e *MockInterface_Expecter) UnpauseSchedule(ctx interface{}, accountId interface{}, scheduleId interface{}, opts interface{}, logger interface{}) *MockInterface_UnpauseSchedule_Call {
 	return &MockInterface_UnpauseSchedule_Call{Call: _e.mock.On("UnpauseSchedule", ctx, accountId, scheduleId, opts, logger)}
 }
 
-func (_c *MockInterface_UnpauseSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleUnpauseOptions, logger *slog.Logger)) *MockInterface_UnpauseSchedule_Call {
+func (_c *MockInterface_UnpauseSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleUnpauseOptions, logger *slog.Logger)) *MockInterface_UnpauseSchedule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*client.ScheduleUnpauseOptions), args[4].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*internal.ScheduleUnpauseOptions), args[4].(*slog.Logger))
 	})
 	return _c
 }
@@ -911,13 +910,13 @@ func (_c *MockInterface_UnpauseSchedule_Call) Return(_a0 error) *MockInterface_U
 	return _c
 }
 
-func (_c *MockInterface_UnpauseSchedule_Call) RunAndReturn(run func(context.Context, string, string, *client.ScheduleUnpauseOptions, *slog.Logger) error) *MockInterface_UnpauseSchedule_Call {
+func (_c *MockInterface_UnpauseSchedule_Call) RunAndReturn(run func(context.Context, string, string, *internal.ScheduleUnpauseOptions, *slog.Logger) error) *MockInterface_UnpauseSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateSchedule provides a mock function with given fields: ctx, accountId, scheduleId, opts, logger
-func (_m *MockInterface) UpdateSchedule(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleUpdateOptions, logger *slog.Logger) error {
+func (_m *MockInterface) UpdateSchedule(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleUpdateOptions, logger *slog.Logger) error {
 	ret := _m.Called(ctx, accountId, scheduleId, opts, logger)
 
 	if len(ret) == 0 {
@@ -925,7 +924,7 @@ func (_m *MockInterface) UpdateSchedule(ctx context.Context, accountId string, s
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *client.ScheduleUpdateOptions, *slog.Logger) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *internal.ScheduleUpdateOptions, *slog.Logger) error); ok {
 		r0 = rf(ctx, accountId, scheduleId, opts, logger)
 	} else {
 		r0 = ret.Error(0)
@@ -943,15 +942,15 @@ type MockInterface_UpdateSchedule_Call struct {
 //   - ctx context.Context
 //   - accountId string
 //   - scheduleId string
-//   - opts *client.ScheduleUpdateOptions
+//   - opts *internal.ScheduleUpdateOptions
 //   - logger *slog.Logger
 func (_e *MockInterface_Expecter) UpdateSchedule(ctx interface{}, accountId interface{}, scheduleId interface{}, opts interface{}, logger interface{}) *MockInterface_UpdateSchedule_Call {
 	return &MockInterface_UpdateSchedule_Call{Call: _e.mock.On("UpdateSchedule", ctx, accountId, scheduleId, opts, logger)}
 }
 
-func (_c *MockInterface_UpdateSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *client.ScheduleUpdateOptions, logger *slog.Logger)) *MockInterface_UpdateSchedule_Call {
+func (_c *MockInterface_UpdateSchedule_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, opts *internal.ScheduleUpdateOptions, logger *slog.Logger)) *MockInterface_UpdateSchedule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*client.ScheduleUpdateOptions), args[4].(*slog.Logger))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*internal.ScheduleUpdateOptions), args[4].(*slog.Logger))
 	})
 	return _c
 }
@@ -961,7 +960,7 @@ func (_c *MockInterface_UpdateSchedule_Call) Return(_a0 error) *MockInterface_Up
 	return _c
 }
 
-func (_c *MockInterface_UpdateSchedule_Call) RunAndReturn(run func(context.Context, string, string, *client.ScheduleUpdateOptions, *slog.Logger) error) *MockInterface_UpdateSchedule_Call {
+func (_c *MockInterface_UpdateSchedule_Call) RunAndReturn(run func(context.Context, string, string, *internal.ScheduleUpdateOptions, *slog.Logger) error) *MockInterface_UpdateSchedule_Call {
 	_c.Call.Return(run)
 	return _c
 }
