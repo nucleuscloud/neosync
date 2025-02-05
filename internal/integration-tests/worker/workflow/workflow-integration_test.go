@@ -19,7 +19,7 @@ const neosyncDbMigrationsPath = "../../../backend/sql/postgresql/schema"
 
 func Test_Workflow(t *testing.T) {
 	t.Parallel()
-	ok := testutil.ShouldRunIntegrationTest()
+	ok := testutil.ShouldRunWorkerIntegrationTest()
 	if !ok {
 		return
 	}

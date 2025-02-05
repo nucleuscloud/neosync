@@ -133,7 +133,7 @@ jobs:
         run: |
           go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./cli/...
         env:
-          INTEGRATION_TESTS_ENABLED: 1
+          CLI_INTEGRATION_TESTS_ENABLED: 1
           S3_INTEGRATION_TESTS_ENABLED: 1
           TEST_S3_REGION: ${{ env.AWS_REGION }}
           TEST_S3_BUCKET: ${{ vars.INTEGRATION_TEST_BUCKET_NAME }}
@@ -149,8 +149,6 @@ jobs:
     permissions:
       id-token: write # required for requesting JWT for use with retrieving AWS creds
       contents: read # required for actions/checkout
-    env:
-      AWS_REGION: "us-west-2"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -178,8 +176,6 @@ jobs:
     permissions:
       id-token: write # required for requesting JWT for use with retrieving AWS creds
       contents: read # required for actions/checkout
-    env:
-      AWS_REGION: "us-west-2"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -192,7 +188,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./...
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./internal/integration-tests/...
         env:
           INTEGRATION_TESTS_ENABLED: 1
 

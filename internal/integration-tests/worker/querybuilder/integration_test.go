@@ -131,7 +131,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	ok := testutil.ShouldRunIntegrationTest()
+	ok := testutil.ShouldRunWorkerIntegrationTest()
 	if !ok {
 		return
 	}
