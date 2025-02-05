@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -30,9 +29,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional()).
-		Field(service.NewStringField("max_retry_attempts").Default(3)).
-		Field(service.NewStringField("retry_attempt_delay").Default("300ms"))
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -78,9 +75,6 @@ type pooledInsertOutput struct {
 
 	shutSig *shutdown.Signaller
 	isRetry bool
-
-	maxRetryAttempts uint
-	retryDelay       time.Duration
 }
 
 func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
@@ -147,22 +141,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		suffix = &suffixStr
 	}
 
-	retryAttemptsConf, err := conf.FieldInt("max_retry_attempts")
-	if err != nil {
-		return nil, err
-	}
-	retryAttempts := uint(1)
-	if retryAttemptsConf > 1 {
-		retryAttempts = uint(retryAttemptsConf)
-	}
-	retryAttemptDelay, err := conf.FieldString("retry_attempt_delay")
-	if err != nil {
-		return nil, err
-	}
-	retryDelay, err := time.ParseDuration(retryAttemptDelay)
-	if err != nil {
-		return nil, err
-	}
 	driver, err := provider.GetDriver(connectionId)
 	if err != nil {
 		return nil, err
@@ -207,8 +185,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		skipForeignKeyViolations: skipForeignKeyViolations,
 		truncateOnRetry:          truncateOnRetry,
 		isRetry:                  isRetry,
-		maxRetryAttempts:         retryAttempts,
-		retryDelay:               retryDelay,
 	}
 	return output, nil
 }
@@ -278,18 +254,19 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	insertQuery, args, err := s.queryBuilder.BuildInsertQuery(rows)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build insert query: %w", err)
 	}
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
-		shouldRetry := isDeadlockError(err) || (s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()))
+		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
-			return err
+			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
+		s.logger.Infof("received error during batch write that is retryable, proceeding with row by row insert: %s", err.Error())
 
 		err = s.RetryInsertRowByRow(ctx, s.queryBuilder, rows)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
 	}
 	return nil
@@ -301,44 +278,30 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	rows []map[string]any,
 ) error {
 	fkErrorCount := 0
+	otherErrorCount := 0
 	insertCount := 0
 	for _, row := range rows {
 		insertQuery, args, err := builder.BuildInsertQuery([]map[string]any{row})
 		if err != nil {
 			return err
 		}
-		err = s.execWithRetry(ctx, insertQuery, args)
-		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			fkErrorCount++
-		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
-			return err
+		_, err = s.db.ExecContext(ctx, insertQuery, args...)
+		if err != nil {
+			if !neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations) {
+				return fmt.Errorf("failed to retry insert query: %w", err)
+			} else if neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+				fkErrorCount++
+			} else {
+				otherErrorCount++
+				s.logger.Warnf("received retryable error during row by row insert. skipping row: %s", err.Error())
+			}
 		}
 		if err == nil {
 			insertCount++
 		}
 	}
-	s.logger.Infof("Completed batch insert with %d foreign key violations. Skipped rows: %d, Successfully inserted: %d", fkErrorCount, fkErrorCount, insertCount)
+	s.logger.Infof("Completed batch insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
 	return nil
-}
-
-func (s *pooledInsertOutput) execWithRetry(
-	ctx context.Context,
-	query string,
-	args []any,
-) error {
-	config := &retryConfig{
-		MaxAttempts: s.maxRetryAttempts,
-		RetryDelay:  s.retryDelay,
-		Logger:      s.logger,
-		ShouldRetry: isDeadlockError,
-	}
-
-	operation := func(ctx context.Context) error {
-		_, err := s.db.ExecContext(ctx, query, args...)
-		return err
-	}
-
-	return retryWithConfig(ctx, config, operation)
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {

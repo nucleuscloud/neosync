@@ -191,7 +191,7 @@ pipeline:
   threads: 1
   processors:
     - mutation: |
-        root.name = fake("first_name")
+        root.name = generate_first_name()
 output:
   label: ""
   stdout:

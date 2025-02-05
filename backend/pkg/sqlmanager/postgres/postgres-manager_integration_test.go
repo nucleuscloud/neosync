@@ -379,9 +379,14 @@ func Test_PostgresManager(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, statements)
 
+		allStmts := []string{}
+		for _, block := range statements {
+			allStmts = append(allStmts, block.Statements...)
+		}
+		require.NotEmpty(t, allStmts)
+
 		for _, block := range statements {
 			t.Logf("executing %d statements for label %q", len(block.Statements), block.Label)
-			require.NotEmpty(t, block.Statements)
 			for _, stmt := range block.Statements {
 				_, err = target.DB.Exec(ctx, stmt)
 				require.NoError(t, err, "failed to execute %s statement %q", block.Label, stmt)

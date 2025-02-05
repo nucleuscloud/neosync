@@ -47,8 +47,6 @@ func TestDatabaseConnections(t *testing.T) {
 	}
 	dialerConfig := sshtunnel.DefaultSSHDialerConfig()
 	dialerConfig.KeepAliveInterval = 1 * time.Second
-	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
-	t.Cleanup(func() { dialer.Close() })
 
 	t.Run("postgres", func(t *testing.T) {
 		t.Parallel()
@@ -69,6 +67,9 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
+
 				connector, cleanup, err := postgrestunconnector.New(
 					container.URL,
 					postgrestunconnector.WithDialer(dialer),
@@ -102,6 +103,8 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
 				connector, cleanup, err := postgrestunconnector.New(
 					container.URL,
 					postgrestunconnector.WithDialer(dialer),
@@ -134,6 +137,8 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
 				connector, cleanup, err := mysqltunconnector.New(
 					container.URL,
 					mysqltunconnector.WithDialer(dialer),
@@ -167,6 +172,8 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
 				connector, cleanup, err := mysqltunconnector.New(
 					container.URL,
 					mysqltunconnector.WithDialer(dialer),
@@ -199,6 +206,8 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
 				connector, cleanup, err := mssqltunconnector.New(
 					container.URL,
 					mssqltunconnector.WithDialer(dialer),
@@ -232,6 +241,8 @@ func TestDatabaseConnections(t *testing.T) {
 
 			t.Run("with_dialer", func(t *testing.T) {
 				t.Parallel()
+				dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, dialerConfig, testutil.GetConcurrentTestLogger(t))
+				t.Cleanup(func() { dialer.Close() })
 				connector, cleanup, err := mssqltunconnector.New(
 					container.URL,
 					mssqltunconnector.WithDialer(dialer),

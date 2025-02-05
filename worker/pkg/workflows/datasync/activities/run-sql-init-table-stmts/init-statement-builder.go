@@ -174,13 +174,18 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					err = destdb.Db().BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
 						slogger.Error(fmt.Sprintf("unable to exec pg %s statements: %s", block.Label, err.Error()))
-						if block.Label != sqlmanager_postgres.SchemasLabel {
+						if block.Label != sqlmanager_postgres.SchemasLabel && block.Label != sqlmanager_postgres.ExtensionsLabel {
 							return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 						}
-						initErrors = append(initErrors, &InitSchemaError{
-							Statement: strings.Join(block.Statements, "\n"),
-							Error:     err.Error(),
-						})
+						for _, stmt := range block.Statements {
+							err := destdb.Db().Exec(ctx, stmt)
+							if err != nil {
+								initErrors = append(initErrors, &InitSchemaError{
+									Statement: stmt,
+									Error:     err.Error(),
+								})
+							}
+						}
 					}
 				}
 				initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
@@ -281,10 +286,15 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 							if block.Label != sqlmanager_mysql.SchemasLabel {
 								return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
 							}
-							initErrors = append(initErrors, &InitSchemaError{
-								Statement: strings.Join(block.Statements, "\n"),
-								Error:     err.Error(),
-							})
+							for _, stmt := range block.Statements {
+								err = destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+								if err != nil {
+									initErrors = append(initErrors, &InitSchemaError{
+										Statement: stmt,
+										Error:     err.Error(),
+									})
+								}
+							}
 						}
 					}
 					initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{

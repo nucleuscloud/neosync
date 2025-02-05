@@ -39,6 +39,8 @@ func IsCriticalError(errMsg string) bool {
 		"incorrect date value",
 		"incorrect time value",
 		"does not exist",
+		"syntax error at or near",
+		"ON CONFLICT DO UPDATE requires inference specification or constraint name",
 	}
 
 	for _, errStr := range criticalErrors {
@@ -62,6 +64,7 @@ func IsGenerateJobCriticalError(errMsg string) bool {
 		"incorrect date value",
 		"incorrect time value",
 		"does not exist",
+		"syntax error at or near",
 	}
 
 	for _, errStr := range criticalErrors {
@@ -84,6 +87,21 @@ func IsForeignKeyViolationError(errMsg string) bool {
 	}
 
 	for _, errStr := range foreignKeyViolationErrors {
+		if containsIgnoreCase(errMsg, errStr) {
+			return true
+		}
+	}
+	return false
+}
+
+func ShouldRetryInsert(errMsg string, shouldCheckForForeignKeyViolation bool) bool {
+	if shouldCheckForForeignKeyViolation && IsForeignKeyViolationError(errMsg) {
+		return true
+	}
+	otherErrors := []string{
+		"ON CONFLICT DO UPDATE command cannot affect row a second time",
+	}
+	for _, errStr := range otherErrors {
 		if containsIgnoreCase(errMsg, errStr) {
 			return true
 		}

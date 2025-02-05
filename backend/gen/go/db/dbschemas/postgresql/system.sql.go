@@ -45,6 +45,7 @@ column_default_functions AS (
     WHERE ad.adrelid IN (SELECT oid FROM relevant_schemas_tables)
     AND d.refclassid = 'pg_proc'::regclass
     AND d.classid = 'pg_attrdef'::regclass
+    AND p.oid NOT IN(SELECT objid FROM pg_catalog.pg_depend WHERE deptype = 'e') -- excludes extensions
 )
 SELECT
     schema_name,
@@ -275,19 +276,24 @@ WITH custom_types AS (
     JOIN
         pg_catalog.pg_namespace n ON n.oid = t.typnamespace
     WHERE
-        n.nspname = $1
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
         AND t.typtype IN ('d', 'e', 'c')
 ),
 table_columns AS (
     SELECT
         c.oid AS table_oid,
-        a.atttypid AS type_oid
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
     FROM
         pg_catalog.pg_class c
     JOIN
         pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     JOIN
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
         n.nspname = $1
         AND c.relname = ANY($2::TEXT[])
@@ -813,6 +819,48 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExtensions = `-- name: GetExtensions :many
+SELECT
+    e.extname AS extension_name,
+    e.extversion AS installed_version,
+    n.nspname as schema_name
+FROM
+    pg_catalog.pg_extension e
+LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
+WHERE extname != 'plpgsql'
+ORDER BY
+    extname
+`
+
+type GetExtensionsRow struct {
+	ExtensionName    string
+	InstalledVersion string
+	SchemaName       sql.NullString
+}
+
+func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
+	rows, err := db.QueryContext(ctx, getExtensions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetExtensionsRow
+	for rows.Next() {
+		var i GetExtensionsRow
+		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion, &i.SchemaName); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

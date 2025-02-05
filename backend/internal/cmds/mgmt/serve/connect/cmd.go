@@ -86,7 +86,7 @@ import (
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	promconfig "github.com/prometheus/common/config"
 
-	stripeapiclient "github.com/stripe/stripe-go/v79/client"
+	stripeapiclient "github.com/stripe/stripe-go/v81/client"
 )
 
 func NewCmd() *cobra.Command {

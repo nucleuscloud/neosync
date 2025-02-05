@@ -153,7 +153,7 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 
 		for range t.C {
 			s.clientmu.Lock()
-			if s.client != client {
+			if s.client != client || s.client == nil {
 				s.clientmu.Unlock()
 				return
 			}
@@ -184,10 +184,6 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 
 			cancel()
 			s.clientmu.Unlock()
-
-			if s.client == nil {
-				return
-			}
 		}
 	}()
 }

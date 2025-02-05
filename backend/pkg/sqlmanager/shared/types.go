@@ -133,6 +133,11 @@ type DataType struct {
 	Definition string
 }
 
+type ExtensionDataType struct {
+	Name       string
+	Definition string
+}
+
 // These are all items that live at the schema level, but are used by tables
 type SchemaTableDataTypeResponse struct {
 	// Custom Sequences not tied to the SERIAL data type

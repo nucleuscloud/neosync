@@ -380,6 +380,65 @@ func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndRetu
 	return _c
 }
 
+// GetExtensions provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
+	ret := _m.Called(ctx, db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExtensions")
+	}
+
+	var r0 []*GetExtensionsRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetExtensionsRow, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetExtensionsRow); ok {
+		r0 = rf(ctx, db)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetExtensionsRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetExtensions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExtensions'
+type MockQuerier_GetExtensions_Call struct {
+	*mock.Call
+}
+
+// GetExtensions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) GetExtensions(ctx interface{}, db interface{}) *MockQuerier_GetExtensions_Call {
+	return &MockQuerier_GetExtensions_Call{Call: _e.mock.On("GetExtensions", ctx, db)}
+}
+
+func (_c *MockQuerier_GetExtensions_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetExtensions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetExtensions_Call) Return(_a0 []*GetExtensionsRow, _a1 error) *MockQuerier_GetExtensions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetExtensions_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetExtensionsRow, error)) *MockQuerier_GetExtensions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetIndicesBySchemasAndTables provides a mock function with given fields: ctx, db, schematables
 func (_m *MockQuerier) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
 	ret := _m.Called(ctx, db, schematables)

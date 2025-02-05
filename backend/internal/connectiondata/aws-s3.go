@@ -328,6 +328,9 @@ func (s *AwsS3ConnectionDataService) getLastestJobRunFromAwsS3(
 		if err != nil {
 			return "", fmt.Errorf("unable to list job run directories from s3: %w", err)
 		}
+		if output == nil {
+			break
+		}
 		continuationToken = output.NextContinuationToken
 		done = !*output.IsTruncated
 		for _, cp := range output.CommonPrefixes {

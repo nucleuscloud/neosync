@@ -17,6 +17,7 @@ var defaultPhoneNumberLength = int64(10)
 
 func init() {
 	spec := bloblang.NewPluginSpec().Description("Generates a new int64 phone number with a default length of 10.").
+		Category("int64").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

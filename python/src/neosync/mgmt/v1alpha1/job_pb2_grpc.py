@@ -135,6 +135,11 @@ class JobServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamResponse.FromString,
                 _registered_method=True)
+        self.GetJobRunLogs = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/GetJobRunLogs',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsResponse.FromString,
+                _registered_method=True)
         self.SetJobWorkflowOptions = channel.unary_unary(
                 '/mgmt.v1alpha1.JobService/SetJobWorkflowOptions',
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.SetJobWorkflowOptionsRequest.SerializeToString,
@@ -379,6 +384,14 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetJobRunLogs(self, request, context):
+        """Returns a list of logs from the worker nodes that pertain to a specific job run.
+        Equivalent to the stream endpoint, but runs in a unary fashion.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SetJobWorkflowOptions(self, request, context):
         """Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
         """
@@ -599,6 +612,11 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.GetJobRunLogsStream,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamResponse.SerializeToString,
+            ),
+            'GetJobRunLogs': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetJobRunLogs,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsResponse.SerializeToString,
             ),
             'SetJobWorkflowOptions': grpc.unary_unary_rpc_method_handler(
                     servicer.SetJobWorkflowOptions,
@@ -1320,6 +1338,33 @@ class JobService(object):
             '/mgmt.v1alpha1.JobService/GetJobRunLogsStream',
             mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsStreamResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetJobRunLogs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/GetJobRunLogs',
+            mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.GetJobRunLogsResponse.FromString,
             options,
             channel_credentials,
             insecure,

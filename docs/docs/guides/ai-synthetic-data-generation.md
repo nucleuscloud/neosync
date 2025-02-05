@@ -6,7 +6,7 @@ hide_title: false
 slug: /guides/ai-synthetic-data-generation
 ---
 
-# Intro
+## Intro
 
 Now you can use any model that is hosted on an endpoint to be able to generate synthetic data.
 

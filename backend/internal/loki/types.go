@@ -159,6 +159,11 @@ type Entry struct {
 	Line      string
 }
 
+type LabeledEntry struct {
+	Entry
+	Labels LabelSet
+}
+
 func (e *Entry) MarshalJSON() ([]byte, error) {
 	l, err := json.Marshal(e.Line)
 	if err != nil {

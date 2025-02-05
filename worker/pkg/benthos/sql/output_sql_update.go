@@ -2,24 +2,20 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type SqlDbtx interface {
-	mysql_queries.DBTX
-
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+	sqldbtx.DBTX
 	Close() error
 }
 
@@ -41,9 +37,7 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringListField("where_columns")).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching")).
-		Field(service.NewStringField("max_retry_attempts").Default(3)).
-		Field(service.NewStringField("retry_attempt_delay").Default("300ms"))
+		Field(service.NewBatchPolicyField("batching"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -86,9 +80,6 @@ type pooledUpdateOutput struct {
 	skipForeignKeyViolations bool
 
 	shutSig *shutdown.Signaller
-
-	maxRetryAttempts uint
-	retryDelay       time.Duration
 }
 
 func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider) (*pooledUpdateOutput, error) {
@@ -122,23 +113,6 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
-	retryAttemptsConf, err := conf.FieldInt("max_retry_attempts")
-	if err != nil {
-		return nil, err
-	}
-	retryAttempts := uint(1)
-	if retryAttemptsConf > 1 {
-		retryAttempts = uint(retryAttemptsConf)
-	}
-	retryAttemptDelay, err := conf.FieldString("retry_attempt_delay")
-	if err != nil {
-		return nil, err
-	}
-	retryDelay, err := time.ParseDuration(retryAttemptDelay)
-	if err != nil {
-		return nil, err
-	}
-
 	driver, err := provider.GetDriver(connectionId)
 	if err != nil {
 		return nil, err
@@ -155,8 +129,6 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		columns:                  columns,
 		whereCols:                whereCols,
 		skipForeignKeyViolations: skipForeignKeyViolations,
-		maxRetryAttempts:         retryAttempts,
-		retryDelay:               retryDelay,
 	}
 	return output, nil
 }
@@ -210,7 +182,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if err != nil {
 			return err
 		}
-		if err := s.execWithRetry(ctx, query); err != nil {
+		if _, err := s.db.ExecContext(ctx, query); err != nil {
 			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				return err
 			}
@@ -234,23 +206,4 @@ func (s *pooledUpdateOutput) Close(ctx context.Context) error {
 		return ctx.Err()
 	}
 	return nil
-}
-
-func (s *pooledUpdateOutput) execWithRetry(
-	ctx context.Context,
-	query string,
-) error {
-	config := &retryConfig{
-		MaxAttempts: s.maxRetryAttempts,
-		RetryDelay:  s.retryDelay,
-		Logger:      s.logger,
-		ShouldRetry: isDeadlockError,
-	}
-
-	operation := func(ctx context.Context) error {
-		_, err := s.db.ExecContext(ctx, query)
-		return err
-	}
-
-	return retryWithConfig(ctx, config, operation)
 }

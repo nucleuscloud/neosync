@@ -14,6 +14,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().Description("Randomly generates a UTC timestamp.").
+		Category("int64").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_utctimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

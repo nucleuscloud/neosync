@@ -242,8 +242,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	require.True(t, ok, "job mappings are missing database schema mappings")
-	require.ElementsMatch(t, []string{"neosync_api.accounts.id", "neosync_api.accounts.name"}, newCols)
+	require.False(t, ok, "valid subset of job mappings")
 
 	newCols, ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{

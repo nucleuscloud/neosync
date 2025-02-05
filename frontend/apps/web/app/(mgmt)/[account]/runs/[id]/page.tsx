@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
+import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
 
@@ -71,6 +72,7 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   );
   const jobRun = data?.jobRun;
+  jobRun?.status;
 
   const {
     data: eventData,
@@ -340,10 +342,24 @@ export default function Page({ params }: PageProps): ReactElement {
               }
             })}
           </div>
+          <div className="space-y-4">
+            <JobRunActivityErrors
+              jobRunId={id}
+              jobId={jobRun?.jobId ?? ''}
+              accountId={accountId}
+            />
+          </div>
           {!isSystemAppConfigDataLoading &&
             systemAppConfigData?.enableRunLogs && (
               <div>
-                <JobRunLogs accountId={accountId} runId={id} />
+                <JobRunLogs
+                  accountId={accountId}
+                  runId={id}
+                  isRunning={
+                    jobRun?.status === JobRunStatusEnum.RUNNING ||
+                    jobRun?.status === JobRunStatusEnum.PENDING
+                  }
+                />
               </div>
             )}
           <div className="space-y-4">

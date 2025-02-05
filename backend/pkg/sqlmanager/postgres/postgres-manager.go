@@ -2,6 +2,7 @@ package sqlmanager_postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	SchemasLabel = "schemas"
+	SchemasLabel    = "schemas"
+	ExtensionsLabel = "extensions"
 )
 
 type PostgresManager struct {
@@ -332,6 +334,35 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 	return output, nil
 }
 
+func (p *PostgresManager) getExtensions(ctx context.Context) ([]*sqlmanager_shared.ExtensionDataType, error) {
+	rows, err := p.querier.GetExtensions(ctx, p.db)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return []*sqlmanager_shared.ExtensionDataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.ExtensionDataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.ExtensionDataType{
+			Name:       row.ExtensionName,
+			Definition: wrapPgIdempotentExtension(row.SchemaName, row.ExtensionName, row.InstalledVersion),
+		})
+	}
+	return output, nil
+}
+
+func wrapPgIdempotentExtension(
+	schema sql.NullString,
+	extensionName,
+	version string,
+) string {
+	if schema.Valid && strings.EqualFold(schema.String, "public") {
+		return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q;`, extensionName, version)
+	}
+	return fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %q VERSION %q SCHEMA %q;`, extensionName, version, schema.String)
+}
+
 func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
 		Schema: schema,
@@ -529,6 +560,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil
 	})
 
+	datatypes := &sqlmanager_shared.SchemaTableDataTypeResponse{}
 	dataTypeStmts := []string{}
 	errgrp.Go(func() error {
 		datatypeCfg, err := p.GetSchemaTableDataTypes(errctx, tables)
@@ -536,6 +568,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
 		}
 		dataTypeStmts = datatypeCfg.GetStatements()
+		datatypes = datatypeCfg
 		return nil
 	})
 
@@ -547,6 +580,18 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		}
 		for _, ttrig := range tableTriggers {
 			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+		}
+		return nil
+	})
+
+	extensionStmts := []string{}
+	errgrp.Go(func() error {
+		extensions, err := p.getExtensions(errctx)
+		if err != nil {
+			return fmt.Errorf("unable to get postgres extensions: %w", err)
+		}
+		for _, extension := range extensions {
+			extensionStmts = append(extensionStmts, extension.Definition)
 		}
 		return nil
 	})
@@ -578,8 +623,12 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		return nil, err
 	}
 
+	additionalSchemaStmts := getSchemaCreationStatementsFromDataTypes(tables, datatypes)
+	schemaStmts = append(schemaStmts, additionalSchemaStmts...)
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
+		{Label: ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
@@ -587,6 +636,38 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		{Label: "table index", Statements: idxStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
 	}, nil
+}
+
+// Finds any schemas referenced in datatypes that don't exist in tables and returns the statements to create them
+func getSchemaCreationStatementsFromDataTypes(tables []*sqlmanager_shared.SchemaTable, datatypes *sqlmanager_shared.SchemaTableDataTypeResponse) []string {
+	schemaStmts := []string{}
+	schemaSet := map[string]struct{}{}
+	for _, table := range tables {
+		schemaSet[table.Schema] = struct{}{}
+	}
+
+	// Check each datatype schema against the table schemas
+	for _, composite := range datatypes.Composites {
+		if _, exists := schemaSet[composite.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", composite.Schema))
+			schemaSet[composite.Schema] = struct{}{}
+		}
+	}
+
+	for _, enum := range datatypes.Enums {
+		if _, exists := schemaSet[enum.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", enum.Schema))
+			schemaSet[enum.Schema] = struct{}{}
+		}
+	}
+
+	for _, domain := range datatypes.Domains {
+		if _, exists := schemaSet[domain.Schema]; !exists {
+			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", domain.Schema))
+			schemaSet[domain.Schema] = struct{}{}
+		}
+	}
+	return schemaStmts
 }
 
 func wrapPgIdempotentIndex(

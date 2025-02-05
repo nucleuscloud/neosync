@@ -1561,20 +1561,40 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	dbErrors := &mgmtv1alpha1.DatabaseError{
-		Errors: []string{},
+	dbErrMsgs := []string{}
+	dbErrReports := []*mgmtv1alpha1.DatabaseError_DatabaseErrorReport{}
+	for _, err := range result.DatabaseErrors {
+		dbErrMsgs = append(dbErrMsgs, err.Message)
+		dbErrReports = append(dbErrReports, &mgmtv1alpha1.DatabaseError_DatabaseErrorReport{
+			Code:    err.Code,
+			Message: err.Message,
+		})
 	}
-	dbErrors.Errors = append(dbErrors.Errors, result.DatabaseErrors...)
+	dbErrors := &mgmtv1alpha1.DatabaseError{
+		Errors:       dbErrMsgs,
+		ErrorReports: dbErrReports,
+	}
+
+	tableErrors := []*mgmtv1alpha1.TableError{}
+	for tableName, errs := range result.TableErrors {
+		schema, table := sqlmanager_shared.SplitTableKey(tableName)
+		tableErrors = append(tableErrors, &mgmtv1alpha1.TableError{
+			Schema:       schema,
+			Table:        table,
+			ErrorReports: errs,
+		})
+	}
 
 	colErrors := []*mgmtv1alpha1.ColumnError{}
 	for tableName, colMap := range result.ColumnErrors {
 		for col, errors := range colMap {
 			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
-				Schema: schema,
-				Table:  table,
-				Column: col,
-				Errors: errors,
+				Schema:       schema,
+				Table:        table,
+				Column:       col,
+				Errors:       getErrorMessages(errors),
+				ErrorReports: errors,
 			})
 		}
 	}
@@ -1584,19 +1604,33 @@ func (s *Service) ValidateJobMappings(
 		for col, warnings := range colMap {
 			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colWarnings = append(colWarnings, &mgmtv1alpha1.ColumnWarning{
-				Schema:   schema,
-				Table:    table,
-				Column:   col,
-				Warnings: warnings,
+				Schema:         schema,
+				Table:          table,
+				Column:         col,
+				Warnings:       getErrorMessages(warnings),
+				WarningReports: warnings,
 			})
 		}
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{
 		DatabaseErrors: dbErrors,
+		TableErrors:    tableErrors,
 		ColumnErrors:   colErrors,
 		ColumnWarnings: colWarnings,
 	}), nil
+}
+
+type ErrorReport interface {
+	GetMessage() string
+}
+
+func getErrorMessages[T ErrorReport](errorsReports []T) []string {
+	messages := []string{}
+	for _, err := range errorsReports {
+		messages = append(messages, err.GetMessage())
+	}
+	return messages
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {

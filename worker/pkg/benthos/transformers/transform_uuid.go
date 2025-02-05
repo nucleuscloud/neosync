@@ -17,6 +17,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Transforms an existing UUID to a UUID v5").
+		Category("string").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 

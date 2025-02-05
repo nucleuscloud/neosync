@@ -30,7 +30,7 @@ func NewMssqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Optio
 	errgrp.Go(func() error {
 		m, err := NewMssqlTestContainer(ctx, sourceOpts...)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to create source mssql test container: %w", err)
 		}
 		tc.Source = m
 		return nil
@@ -39,7 +39,7 @@ func NewMssqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Optio
 	errgrp.Go(func() error {
 		m, err := NewMssqlTestContainer(ctx, destOpts...)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to create dest mssql test container: %w", err)
 		}
 		tc.Target = m
 		return nil
