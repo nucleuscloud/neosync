@@ -484,7 +484,7 @@ func Test_determineSingleCycleMultipleStarts_Complicated(t *testing.T) {
 			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
 		},
 	}
-	expected := []string{"public.a", "public.a"}
+	expected := []string{"public.a", "public.c"}
 
 	actual, err := DetermineCycleInsertUpdateTables(cycles, subsets, dependencyMap)
 	require.NoError(t, err)
