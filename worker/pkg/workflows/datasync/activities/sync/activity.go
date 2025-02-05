@@ -137,6 +137,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				return
 			case <-ctx.Done():
 				logger.Info("received context done, cleaning up...")
+				resultChan <- fmt.Errorf("received context done signal")
+
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
