@@ -163,7 +163,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./internal/worker/...
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./internal/integration-tests/worker/...
         env:
           WORKER_INTEGRATION_TESTS_ENABLED: 1
 
