@@ -139,9 +139,10 @@ func handleErrorForRetry(err error) error {
 }
 
 const (
-	pqSerializationFailure = "40001"
+	pqSerializationFailure = "40001" // also means recovery conflict
 	pqLockNotAvailable     = "55P03"
 	pqObjectInUse          = "55006"
+	pqTooManyConnections   = "53300"
 )
 
 func isRetryableError(err error) bool {
@@ -161,7 +162,8 @@ func isRetryableError(err error) bool {
 		switch pqErr.Code {
 		case pqSerializationFailure,
 			pqLockNotAvailable,
-			pqObjectInUse:
+			pqObjectInUse,
+			pqTooManyConnections:
 			return true
 		}
 	}
