@@ -93,9 +93,13 @@ func NewFromMysqlConnection(
 			}
 			cfg.MultiStatements = true
 			cfg.ParseTime = parseTime
-			for k, values := range uriConfig.Query() {
-				for _, value := range values {
-					cfg.Params[k] = value
+
+			if uriConfig.RawQuery != "" {
+				cfg.Params = make(map[string]string)
+				for k, values := range uriConfig.Query() {
+					for _, value := range values {
+						cfg.Params[k] = value
+					}
 				}
 			}
 			return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
