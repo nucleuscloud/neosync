@@ -1,9 +1,9 @@
 package v1alpha1_transformersservice
 
 import (
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 )
 
 type Service struct {

@@ -12,8 +12,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	neosyncgob "github.com/nucleuscloud/neosync/internal/gob"
 
 	"golang.org/x/sync/errgroup"

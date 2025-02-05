@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 )
 
 func FilterSlice[T any](slice []T, filterFn func(T) bool) []T {

@@ -13,8 +13,8 @@ import (
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 // BenthosConfigResponse represents a complete Benthos data pipeline configuration for a specific table,
@@ -103,7 +103,7 @@ func (b *BuilderProvider) registerStandardBuilders(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) error {
 	sourceConnectionType, err := bb_shared.GetConnectionType(sourceConnection)
@@ -218,7 +218,7 @@ type WorkerBenthosConfig struct {
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
 	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
 	Connectionclient       mgmtv1alpha1connect.ConnectionServiceClient
-	RedisConfig            *shared.RedisConfig
+	RedisConfig            *neosync_redis.RedisConfig
 	MetricsEnabled         bool
 	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
 }
@@ -269,7 +269,7 @@ type CliBenthosConfig struct {
 	Sqlmanagerclient      sqlmanager.SqlManagerClient
 	Transformerclient     mgmtv1alpha1connect.TransformersServiceClient
 	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
-	RedisConfig           *shared.RedisConfig
+	RedisConfig           *neosync_redis.RedisConfig
 	MetricsEnabled        bool
 }
 

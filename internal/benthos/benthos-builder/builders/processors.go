@@ -16,6 +16,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -30,7 +31,7 @@ func buildProcessorConfigsByRunType(
 	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
@@ -72,7 +73,7 @@ func buildProcessorConfigsByRunType(
 
 func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	jobId, runId string,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -127,7 +128,7 @@ func buildProcessorConfigs(
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	runconfig *tabledependency.RunConfig,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
@@ -329,7 +330,7 @@ func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
@@ -359,7 +360,7 @@ func buildBranchCacheConfigs(
 func buildRedisGetBranchConfig(
 	resultMap, argsMapping string,
 	requestMap *string,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 ) (*neosync_benthos.BranchConfig, error) {
 	if redisConfig == nil {
 		return nil, fmt.Errorf("missing redis config. this operation requires redis")
