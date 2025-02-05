@@ -8,16 +8,11 @@ import (
 
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 
-	_ "github.com/redpanda-data/benthos/v4/public/components/io"
-	_ "github.com/redpanda-data/benthos/v4/public/components/pure"
-	_ "github.com/redpanda-data/benthos/v4/public/components/pure/extended"
-
-	_ "github.com/redpanda-data/connect/v4/public/components/aws"
-	_ "github.com/redpanda-data/connect/v4/public/components/gcp"
-
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+
+	_ "github.com/nucleuscloud/neosync/internal/benthos/imports"
 
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
@@ -25,8 +20,6 @@ import (
 	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"

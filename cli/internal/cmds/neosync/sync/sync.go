@@ -37,10 +37,8 @@ import (
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
-	_ "github.com/redpanda-data/benthos/v4/public/components/io"
-	_ "github.com/redpanda-data/benthos/v4/public/components/pure"
-	_ "github.com/redpanda-data/benthos/v4/public/components/pure/extended"
-	_ "github.com/redpanda-data/connect/v4/public/components/aws"
+
+	_ "github.com/nucleuscloud/neosync/internal/benthos/imports"
 
 	"github.com/redpanda-data/benthos/v4/public/service"
 )
