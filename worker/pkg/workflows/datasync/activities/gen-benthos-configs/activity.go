@@ -70,8 +70,6 @@ func (a *Activity) GenerateBenthosConfigs(
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
-			case <-activity.GetWorkerStopChannel(ctx):
-				return
 			case <-ctx.Done():
 				return
 			}
