@@ -238,7 +238,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 	}
 
 	cycles := tabledependency.FindCircularDependencies(validForeignKeyDependencies)
-	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, allForeignKeys)
+	startTables, err := tabledependency.DetermineCycleInsertUpdateTables(cycles, map[string]string{}, allForeignKeys)
 	if err != nil {
 		return err
 	}
