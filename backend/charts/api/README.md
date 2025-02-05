@@ -22,6 +22,7 @@ A Helm chart for the Neosync Backend API
 | auth.cliClientId | string | `nil` | The client id that the CLI will use to communicate with the backend for authentication (if auth is enabled) |
 | auth.clientMap | string | `nil` | A map of clientId->clientSecret of allowed clients |
 | auth.enabled | bool | `false` | Enable/Disable authentication |
+| autoscaling.behavior | string | `nil` | The behavior of the HPA autoscaler |
 | autoscaling.enabled | bool | `false` | Whether or not to install the HPA autoscaler |
 | autoscaling.maxReplicas | int | `4` | The maximum number of replicas to scale to |
 | autoscaling.minReplicas | int | `1` | The minimum amount of replicas to have running |

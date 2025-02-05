@@ -33,6 +33,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.auth.cliClientId | string | `nil` | The client id that the CLI will use to communicate with the backend for authentication (if auth is enabled) |
 | api.auth.clientMap | string | `nil` | A map of clientId->clientSecret of allowed clients |
 | api.auth.enabled | bool | `false` | Enable/Disable authentication |
+| api.autoscaling.behavior | string | `nil` | The behavior of the HPA autoscaler |
 | api.autoscaling.enabled | bool | `false` | Whether or not to install the HPA autoscaler |
 | api.autoscaling.maxReplicas | int | `4` | The maximum number of replicas to scale to |
 | api.autoscaling.minReplicas | int | `1` | The minimum amount of replicas to have running |
@@ -164,6 +165,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
 | app.unify.key | string | `nil` | Unify Key |
 | app.updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
+| worker.autoscaling.behavior | string | `nil` | The behavior of the HPA autoscaler |
 | worker.autoscaling.enabled | bool | `false` | Whether or not to install the HPA autoscaler |
 | worker.autoscaling.maxReplicas | int | `4` | The maximum number of replicas to scale to |
 | worker.autoscaling.minReplicas | int | `1` | The minimum amount of replicas to have running |

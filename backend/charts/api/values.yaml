@@ -111,6 +111,8 @@ autoscaling:
   maxReplicas: 4
   # -- The CPU % utilization to begin a scale up
   targetCPUUtilizationPercentage: 80
+  # -- The behavior of the HPA autoscaler
+  behavior:
 
 # Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details. This may be omitted and applied manually via the deployment's annotations and labels
 istio:
