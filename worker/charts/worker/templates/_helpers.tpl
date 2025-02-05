@@ -77,9 +77,6 @@ OTEL_EXPORTER_OTLP_PORT: {{ .Values.otel.otlpPort | quote }} # sends to gRPC rec
 {{- if .Values.nucleusEnv }}
 NUCLEUS_ENV: {{ .Values.nucleusEnv }}
 {{- end }}
-{{- if .Values.shutdownTimeoutSeconds }}
-SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
-{{- end }}
 {{- if .Values.temporal.url }}
 TEMPORAL_URL: {{ .Values.temporal.url }}
 {{- end }}

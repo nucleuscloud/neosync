@@ -70,8 +70,8 @@ spec:
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ include "neosync-worker.serviceAccountName" . }}
       {{- end }}
-      {{- if .Values.terminationGracePeriod }}
-      terminationGracePeriod: {{ .Values.terminationGracePeriod }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
       {{- if .Values.tolerations }}
       tolerations:
