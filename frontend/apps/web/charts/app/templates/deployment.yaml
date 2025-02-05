@@ -59,7 +59,7 @@ spec:
       serviceAccountName: {{ include "neosync-app.serviceAccountName" . }}
       {{- end }}
       {{- if .Values.terminationGracePeriodSeconds }}
-      terminationGracePeriod: {{ .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
       {{- if .Values.tolerations }}
       tolerations:
