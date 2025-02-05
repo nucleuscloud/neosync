@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 var _ slog.Handler = (*benthosLogHandler)(nil)

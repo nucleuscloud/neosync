@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/nucleuscloud/neosync/internal/testutil"
+	"github.com/redpanda-data/benthos/v4/public/service"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func Test_SqlInsertOutputEmptyShutdown(t *testing.T) {

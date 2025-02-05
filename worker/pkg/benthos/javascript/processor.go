@@ -11,7 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/javascript"
 	javascript_vm "github.com/nucleuscloud/neosync/internal/javascript/vm"
 
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 const (

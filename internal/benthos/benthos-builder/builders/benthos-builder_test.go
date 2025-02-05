@@ -15,9 +15,9 @@ import (
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
