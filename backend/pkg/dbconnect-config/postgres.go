@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/spf13/viper"
 )
 

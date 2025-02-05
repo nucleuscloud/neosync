@@ -8,7 +8,7 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 )
 
 func (s *Service) GetAuthStatus(
