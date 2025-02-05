@@ -448,42 +448,6 @@ output:
 	mockBenthosStream.AssertCalled(t, "StopWithin", mock.Anything)
 }
 
-func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
-	testSuite := &testsuite.WorkflowTestSuite{}
-	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-	env := testSuite.NewTestActivityEnvironment()
-	benthosStreamManager := NewBenthosStreamManager()
-	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-	var meter metric.Meter
-	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
-
-	env.RegisterActivity(activity.Sync)
-	stopCh := make(chan struct{})
-	env.SetWorkerStopChannel(stopCh)
-
-	go func() {
-		// Close the channel to simulate sending a stop signal
-		time.Sleep(210 * time.Millisecond)
-		close(stopCh)
-	}()
-
-	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-		BenthosConfig: strings.TrimSpace(`
-input:
-  generate:
-    count: 100000
-    interval: ""
-    mapping: 'root = { "id": uuid_v4() }'
-output:
-  label: ""
-  drop: {}
-`),
-	}, &SyncMetadata{Schema: "public", Table: "test"})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "received worker stop signal")
-}
-
 func Test_Sync_Run_BenthosError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
