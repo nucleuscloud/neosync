@@ -135,20 +135,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				}
 				benthosStreamMutex.Unlock()
 				return
-			case <-activity.GetWorkerStopChannel(ctx):
-				logger.Info("received worker stop, cleaning up...")
-				resultChan <- fmt.Errorf("received worker stop signal")
-				benthosStreamMutex.Lock()
-				if benthosStream != nil {
-					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
-					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-					err := benthosStream.StopWithin(1 * time.Millisecond)
-					if err != nil {
-						logger.Error(err.Error())
-					}
-				}
-				benthosStreamMutex.Unlock()
-				return
 			case <-ctx.Done():
 				logger.Info("received context done, cleaning up...")
 				benthosStreamMutex.Lock()
