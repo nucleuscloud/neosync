@@ -39,7 +39,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.pgcontainer = pgcontainer
 
-	s.migrationsDir = "../../sql/postgresql/schema"
+	s.migrationsDir = "../../../backend/sql/postgresql/schema"
 
 	s.db = neosyncdb.New(s.pgcontainer.DB, db_queries.New())
 }

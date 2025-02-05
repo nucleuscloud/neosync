@@ -12,6 +12,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -48,7 +49,7 @@ func Test_PostgresManager(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	manager := NewManager(pg_queries.New(), sourceDB, func() {})
+	manager := postgres.NewManager(pg_queries.New(), sourceDB, func() {})
 
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
 		t.Parallel()
@@ -361,7 +362,7 @@ func Test_PostgresManager(t *testing.T) {
 		}
 
 		for col, colInfo := range testDefaultTable {
-			needsOverride, needsReset := GetPostgresColumnOverrideAndResetProperties(colInfo)
+			needsOverride, needsReset := postgres.GetPostgresColumnOverrideAndResetProperties(colInfo)
 			expected, ok := expectedProperties[col]
 			require.Truef(t, ok, "Missing expected column %q", col)
 			require.Equalf(t, expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
@@ -398,7 +399,7 @@ func Test_PostgresManager(t *testing.T) {
 		t.Parallel()
 		table := "BadName"
 
-		sql := BuildPgIdentityColumnResetCurrentSql(capitalSchema, table, "ID")
+		sql := postgres.BuildPgIdentityColumnResetCurrentSql(capitalSchema, table, "ID")
 		require.NoError(t, err)
 		_, err = source.DB.Exec(ctx, sql)
 		require.NoError(t, err, "failed to execute statement %q", sql)
@@ -418,7 +419,7 @@ func Test_PostgresManager(t *testing.T) {
 	})
 }
 
-func getSchemaTables(ctx context.Context, manager *PostgresManager) ([]*sqlmanager_shared.SchemaTable, error) {
+func getSchemaTables(ctx context.Context, manager *postgres.PostgresManager) ([]*sqlmanager_shared.SchemaTable, error) {
 	cols, err := manager.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err

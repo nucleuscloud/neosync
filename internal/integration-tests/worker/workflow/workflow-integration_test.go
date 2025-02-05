@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const neosyncDbMigrationsPath = "../../../backend/sql/postgresql/schema"
+const neosyncDbMigrationsPath = "../../../../backend/sql/postgresql/schema"
 
 func Test_Workflow(t *testing.T) {
 	t.Parallel()

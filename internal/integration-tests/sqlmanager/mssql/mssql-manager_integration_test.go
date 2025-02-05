@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/microsoft/go-mssqldb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
+	mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcmssql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/sqlserver"
@@ -47,7 +48,7 @@ func Test_MssqlManager(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("Successfully setup source and target databases")
-	manager := NewManager(mssql_queries.New(), source.DB, func() {})
+	manager := mssql.NewManager(mssql_queries.New(), source.DB, func() {})
 
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
 		t.Parallel()
@@ -173,7 +174,7 @@ func Test_MssqlManager(t *testing.T) {
 		}
 
 		for col, colInfo := range testDefaultTable {
-			needsOverride, needsReset := GetMssqlColumnOverrideAndResetProperties(colInfo)
+			needsOverride, needsReset := mssql.GetMssqlColumnOverrideAndResetProperties(colInfo)
 			expected, ok := expectedProperties[col]
 			require.Truef(t, ok, "Missing expected column %q", col)
 			require.Equalf(t, expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)

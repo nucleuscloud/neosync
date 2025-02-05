@@ -27,7 +27,7 @@ func TestRbac(t *testing.T) {
 	container, err := testcontainers_postgres.NewPostgresTestContainer(ctx)
 	require.NoError(t, err)
 
-	err = neomigrate.Up(ctx, container.URL, "../../../sql/postgresql/schema", testutil.GetTestLogger(t))
+	err = neomigrate.Up(ctx, container.URL, "../../../backend/sql/postgresql/schema", testutil.GetTestLogger(t))
 	require.NoError(t, err)
 
 	rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stdlib.OpenDBFromPool(container.DB), "neosync_api.casbin_rule")

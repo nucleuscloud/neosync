@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	mysqlTestdataFolder string = "../../../internal/testutil/testdata/mysql"
+	mysqlTestdataFolder string = "../../../testutil/testdata/mysql"
 )
 
 func createMysqlSyncJob(

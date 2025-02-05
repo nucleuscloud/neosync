@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	mssqlTestdataFolder string = "../../../internal/testutil/testdata/mssql"
+	mssqlTestdataFolder string = "../../../testutil/testdata/mssql"
 )
 
 func createMssqlSyncJob(

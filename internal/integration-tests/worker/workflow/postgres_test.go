@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	testdataFolder string = "../../../internal/testutil/testdata/postgres"
+	testdataFolder string = "../../../testutil/testdata/postgres"
 )
 
 type createJobConfig struct {
