@@ -6,7 +6,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 )
 
 type Interceptor struct {

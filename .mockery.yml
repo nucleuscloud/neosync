@@ -13,7 +13,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/client:
     interfaces:
       Interface:
-  github.com/nucleuscloud/neosync/backend/internal/authmgmt:
+  github.com/nucleuscloud/neosync/internal/authmgmt:
     interfaces:
       Interface:
   github.com/nucleuscloud/neosync/backend/internal/auth/clientcred_token_provider:
@@ -22,7 +22,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
-  github.com/nucleuscloud/neosync/backend/internal/neosyncdb:
+  github.com/nucleuscloud/neosync/internal/neosyncdb:
     # config:
     interfaces:
       DBTX:
@@ -40,7 +40,7 @@ packages:
       ConnectionServiceClient:
       AuthServiceClient:
       TransformersServiceClient:
-  github.com/nucleuscloud/neosync/backend/internal/temporal/clientmanager:
+  github.com/nucleuscloud/neosync/internal/temporal/clientmanager:
     interfaces:
       DB:
       Interface:

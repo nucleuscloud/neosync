@@ -10,8 +10,8 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 type mongodbSyncBuilder struct {
@@ -74,7 +74,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
 			params.WorkflowId,
-			&shared.RedisConfig{},
+			&neosync_redis.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),

@@ -11,8 +11,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 )
 
 type ClientConfig struct {

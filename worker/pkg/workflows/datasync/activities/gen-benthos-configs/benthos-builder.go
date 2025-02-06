@@ -16,6 +16,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
@@ -33,7 +34,7 @@ type benthosBuilder struct {
 	workflowId string
 	runId      string
 
-	redisConfig *shared.RedisConfig
+	redisConfig *neosync_redis.RedisConfig
 
 	metricsEnabled bool
 }
@@ -47,7 +48,7 @@ func newBenthosBuilder(
 
 	jobId, workflowId string, runId string,
 
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 
 	metricsEnabled bool,
 ) *benthosBuilder {

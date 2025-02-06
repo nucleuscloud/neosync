@@ -5,7 +5,7 @@ package userdata
 import (
 	context "context"
 
-	rbac "github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
+	rbac "github.com/nucleuscloud/neosync/internal/ee/rbac"
 	mock "github.com/stretchr/testify/mock"
 )
 

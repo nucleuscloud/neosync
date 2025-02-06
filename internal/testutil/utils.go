@@ -28,6 +28,26 @@ func ShouldRunIntegrationTest() bool {
 	return true
 }
 
+func ShouldRunWorkerIntegrationTest() bool {
+	evkey := "WORKER_INTEGRATION_TESTS_ENABLED"
+	shouldRun := os.Getenv(evkey)
+	if shouldRun != "1" {
+		slog.Warn(fmt.Sprintf("skipping worker integration tests, set %s=1 to enable", evkey))
+		return false
+	}
+	return true
+}
+
+func ShouldRunCLIIntegrationTest() bool {
+	evkey := "CLI_INTEGRATION_TESTS_ENABLED"
+	shouldRun := os.Getenv(evkey)
+	if shouldRun != "1" {
+		slog.Warn(fmt.Sprintf("skipping CLI integration tests, set %s=1 to enable", evkey))
+		return false
+	}
+	return true
+}
+
 func ShouldRunS3IntegrationTest() bool {
 	evkey := "S3_INTEGRATION_TESTS_ENABLED"
 	shouldRun := os.Getenv(evkey)

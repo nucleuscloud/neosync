@@ -13,6 +13,7 @@ import (
 
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/spf13/viper"
 )
 
@@ -143,22 +144,7 @@ func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 	return filteredTables
 }
 
-type RedisConfig struct {
-	Url    string
-	Kind   string
-	Master *string
-	Tls    *RedisTlsConfig
-}
-
-type RedisTlsConfig struct {
-	Enabled               bool
-	SkipCertVerify        bool
-	EnableRenegotiation   bool
-	RootCertAuthority     *string
-	RootCertAuthorityFile *string
-}
-
-func GetRedisConfig() *RedisConfig {
+func GetRedisConfig() *neosync_redis.RedisConfig {
 	redisUrl := viper.GetString("REDIS_URL")
 	if redisUrl == "" {
 		return nil
@@ -178,11 +164,11 @@ func GetRedisConfig() *RedisConfig {
 	if masterEv != "" {
 		master = &masterEv
 	}
-	return &RedisConfig{
+	return &neosync_redis.RedisConfig{
 		Url:    redisUrl,
 		Kind:   kind,
 		Master: master,
-		Tls: &RedisTlsConfig{
+		Tls: &neosync_redis.RedisTlsConfig{
 			Enabled:               viper.GetBool("REDIS_TLS_ENABLED"),
 			SkipCertVerify:        viper.GetBool("REDIS_TLS_SKIP_CERT_VERIFY"),
 			EnableRenegotiation:   viper.GetBool("REDIS_TLS_ENABLE_RENEGOTIATION"),
@@ -192,7 +178,7 @@ func GetRedisConfig() *RedisConfig {
 	}
 }
 
-func BuildBenthosRedisTlsConfig(redisConfig *RedisConfig) *neosync_benthos.RedisTlsConfig {
+func BuildBenthosRedisTlsConfig(redisConfig *neosync_redis.RedisConfig) *neosync_benthos.RedisTlsConfig {
 	var tls *neosync_benthos.RedisTlsConfig
 	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
 		tls = &neosync_benthos.RedisTlsConfig{

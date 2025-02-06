@@ -6,13 +6,13 @@ import (
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
-	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
+	"github.com/nucleuscloud/neosync/internal/apikey"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 )
 
 func (s *Service) GetAccountApiKeys(

@@ -10,8 +10,6 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
@@ -19,6 +17,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 )
 
