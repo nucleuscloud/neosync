@@ -146,9 +146,6 @@ jobs:
   worker-integration-tests:
     name: Worker Integration Tests
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write # required for requesting JWT for use with retrieving AWS creds
-      contents: read # required for actions/checkout
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -173,9 +170,6 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write # required for requesting JWT for use with retrieving AWS creds
-      contents: read # required for actions/checkout
     steps:
       - name: Checkout
         uses: actions/checkout@v4
