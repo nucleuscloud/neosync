@@ -20,7 +20,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 	return false
 }
 
-// DetermineCycleInsertUpdateTables examines one or more cycles of tables and returns a set (as a slice)
+// DetermineCycleInsertUpdateTables examines one or more cycles of tables and returns a set
 // of "starting" tables. A table qualifies if it has (at least one) foreign key referencing another
 // table in the cycle that is nullable. Among those qualifying tables the function “ranks” each table;
 // tables that occur in more than one cycle get extra points and those with subsets get an extra bonus.
@@ -50,12 +50,13 @@ func DetermineCycleInsertUpdateTables(
 	}
 
 	// Rank each table.
-	// Each table gets a base rank of 1. If it appears in more than one cycle (i.e. is seen already)
+	// Each table gets a base rank of 1. If it appears in more than one cycle (i.e. is seen already) but not a self referencing cycle
 	// then add 1. If the table is in the subsets map, add 2.
 	for _, cycle := range possibleStarts {
 		for _, table := range cycle {
 			rank := 1
-			if currRank, seen := tableRankMap[table]; seen {
+			currRank, seen := tableRankMap[table]
+			if len(cycle) > 1 && seen {
 				rank++ // extra point for appearing in more than one cycle
 				tableRankMap[table] = currRank + rank
 			} else {
@@ -91,7 +92,7 @@ func DetermineCycleInsertUpdateTables(
 	return results, nil
 }
 
-// areAllFkColsNullable returns true if the given table has at least one foreign–key constraint
+// isCycleStartEligible returns true if the given table has at least one foreign–key constraint
 // (whose target table is in the given cycle) for which all columns are nullable. If there is no
 // dependency in the cycle, the table qualifies (returns true).
 func isCycleStartEligible(constraints []*sqlmanager_shared.ForeignConstraint, cycle []string) bool {
@@ -126,86 +127,6 @@ func isCycleStartEligible(constraints []*sqlmanager_shared.ForeignConstraint, cy
 	// If no dependency in the cycle was found, consider the table valid.
 	return !foundDependency
 }
-
-// func areAllFkColsNullable(dependencies []*sqlmanager_shared.ForeignConstraint, cycle []string) bool {
-// 	for _, dep := range dependencies {
-// 		if !slices.Contains(cycle, dep.ForeignKey.Table) {
-// 			continue
-// 		}
-// 		for _, notNullable := range dep.NotNullable {
-// 			if notNullable {
-// 				return false
-// 			}
-// 		}
-// 	}
-// 	return true
-// }
-
-// func DetermineCycleStarts(
-// 	cycles [][]string,
-// 	subsets map[string]string,
-// 	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
-// ) ([]string, error) {
-// 	tableRankMap := map[string]int{}
-// 	possibleStarts := [][]string{}
-
-// 	// FK columns must be nullable to be a starting point
-// 	// filters out tables where foreign keys are not nullable
-// 	for _, cycle := range cycles {
-// 		filteredCycle := []string{}
-// 		for _, table := range cycle {
-// 			dependencies, ok := dependencyMap[table]
-// 			if !ok {
-// 				return nil, fmt.Errorf("missing dependencies for table: %s", table)
-// 			}
-// 			// FK columns must be nullable to be a starting point
-// 			if areAllFkColsNullable(dependencies, cycle) {
-// 				filteredCycle = append(filteredCycle, table)
-// 			}
-// 		}
-// 		possibleStarts = append(possibleStarts, filteredCycle)
-// 	}
-
-// 	// rank each table
-// 	for _, cycle := range possibleStarts {
-// 		for _, table := range cycle {
-// 			rank := 1
-// 			currRank, seen := tableRankMap[table]
-// 			if seen {
-// 				// intersect table
-// 				rank++
-// 			}
-// 			_, hasSubset := subsets[table]
-// 			if hasSubset {
-// 				rank += 2
-// 			}
-// 			tableRankMap[table] = rank + currRank
-// 		}
-// 	}
-
-// 	startingTables := map[string]struct{}{}
-// 	// for each cycle choose highest rank
-// 	for _, cycle := range possibleStarts {
-// 		var start *string
-// 		rank := 0
-// 		for _, table := range cycle {
-// 			table := table
-// 			tableRank := tableRankMap[table]
-// 			if tableRank > rank {
-// 				start = &table
-// 				rank = tableRank
-// 			}
-// 		}
-// 		if start != nil && *start != "" {
-// 			startingTables[*start] = struct{}{}
-// 		}
-// 	}
-// 	results := []string{}
-// 	for t := range startingTables {
-// 		results = append(results, t)
-// 	}
-// 	return results, nil
-// }
 
 // returns all cycles table is in
 func getTableCirularDependencies(table string, circularDeps [][]string) [][]string {
