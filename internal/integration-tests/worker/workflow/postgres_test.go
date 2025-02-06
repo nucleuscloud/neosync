@@ -325,6 +325,8 @@ func test_postgres_edgecases(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "CaPiTaL"
+	_, err := postgres.Source.DB.Exec(ctx, fmt.Sprintf(`CREATE SCHEMA %q; CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA %q;`, schema, schema))
+	require.NoError(t, err)
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
 		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"edgecases/create-tables.sql"}, schema)
@@ -332,7 +334,7 @@ func test_postgres_edgecases(
 	errgrp.Go(func() error {
 		return postgres.Target.CreateSchemas(errctx, []string{schema})
 	})
-	err := errgrp.Wait()
+	err = errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 

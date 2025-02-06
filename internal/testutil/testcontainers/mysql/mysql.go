@@ -286,7 +286,7 @@ func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folde
 		setSchemaSql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`; \n USE `%s`; \n", database, database)
 		_, err = m.DB.ExecContext(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
-			return fmt.Errorf("unable to exec sql when running postgres sql files: %w", err)
+			return fmt.Errorf("unable to exec sql when running mysql sql files: %w", err)
 		}
 	}
 	return nil
