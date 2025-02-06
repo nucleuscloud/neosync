@@ -108,7 +108,8 @@ func Test_ParsePrimitives(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ktm := make(map[string]neosync_types.KeyType)
-			result := parsePrimitives(tc.key, tc.value, ktm)
+			result, err := parsePrimitives(tc.key, tc.value, ktm)
+			require.NoError(t, err)
 			require.Equal(t, tc.expectedKTM, ktm)
 			require.Equal(t, tc.expected, result)
 		})

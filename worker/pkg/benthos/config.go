@@ -37,6 +37,7 @@ type Inputs struct {
 	PooledMongoDB         *InputMongoDb          `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
 	AwsDynamoDB           *InputAwsDynamoDB      `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
 	NeosyncConnectionData *NeosyncConnectionData `json:"neosync_connection_data,omitempty" yaml:"neosync_connection_data,omitempty"`
+	Broker                *InputBrokerConfig     `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
 type NeosyncConnectionData struct {
@@ -359,4 +360,9 @@ type CompressProcessor struct {
 type OutputBrokerConfig struct {
 	Pattern string    `json:"pattern" yaml:"pattern"`
 	Outputs []Outputs `json:"outputs" yaml:"outputs"`
+}
+
+type InputBrokerConfig struct {
+	Pattern string   `json:"pattern" yaml:"pattern"`
+	Inputs  []Inputs `json:"inputs" yaml:"inputs"`
 }

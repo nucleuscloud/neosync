@@ -126,7 +126,8 @@ func Test_ParseAttributeValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ktm := map[string]neosync_types.KeyType{}
-			actual := parseAttributeValue(tt.name, tt.input, ktm)
+			actual, err := parseAttributeValue(tt.name, tt.input, ktm)
+			require.NoError(t, err)
 			require.True(t, reflect.DeepEqual(actual, tt.expected), fmt.Sprintf("expected %v %v, got %v %v", tt.expected, reflect.TypeOf(tt.expected), actual, reflect.TypeOf(actual)))
 		})
 	}

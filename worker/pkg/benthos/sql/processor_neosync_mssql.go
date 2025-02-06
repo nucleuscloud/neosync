@@ -74,7 +74,7 @@ func (p *neosyncToMssqlProcessor) ProcessBatch(ctx context.Context, batch servic
 		if err != nil {
 			return nil, err
 		}
-		newRoot, err := transformNeosyncToMssql(p.logger, root, p.columns, p.columnDefaultProperties)
+		newRoot, err := transformNeosyncToMssql(root, p.columns, p.columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,6 @@ func (m *neosyncToMssqlProcessor) Close(context.Context) error {
 }
 
 func transformNeosyncToMssql(
-	logger *service.Logger,
 	root any,
 	columns []string,
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
@@ -119,7 +118,7 @@ func transformNeosyncToMssql(
 
 		newVal, err := getMssqlValue(val)
 		if err != nil {
-			logger.Warn(err.Error())
+			return nil, fmt.Errorf("failed to get MSSQL value for column %s: %w", col, err)
 		}
 		newMap[col] = newVal
 	}

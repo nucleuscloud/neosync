@@ -356,8 +356,7 @@ func extJSONFromMap(b service.MessageBatch, i int, m *bloblang.Executor) (any, e
 	if err != nil {
 		return nil, err
 	}
-	bsonmap := marshalJSONToBSONDocument(root, keyTypeMap)
-	return bsonmap, nil
+	return marshalJSONToBSONDocument(root, keyTypeMap)
 }
 
 func getKeyTypMap(p *service.Message) (map[string]neosync_types.KeyType, error) {
@@ -388,16 +387,16 @@ func convertToMapStringKeyType(i any) (map[string]neosync_types.KeyType, error) 
 	return nil, errors.New("input is not of type map[string]KeyType")
 }
 
-func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) any {
+func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) (any, error) {
 	if root == nil {
-		return nil
+		return nil, nil
 	}
 
 	// Handle pointers
 	val := reflect.ValueOf(root)
 	for val.Kind() == reflect.Ptr {
 		if val.IsNil() {
-			return nil
+			return nil, nil
 		}
 		val = val.Elem()
 	}
@@ -405,55 +404,54 @@ func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_type
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case neosync_types.Decimal128:
-			_, ok := root.(primitive.Decimal128)
-			if ok {
-				return root
+			if d, ok := root.(primitive.Decimal128); ok {
+				return d, nil
 			}
-			vStr, ok := root.(string)
-			if ok {
+			if vStr, ok := root.(string); ok {
 				d, err := primitive.ParseDecimal128(vStr)
-				if err == nil {
-					return d
+				if err != nil {
+					return nil, fmt.Errorf("invalid Decimal128 string: %w", err)
 				}
+				return d, nil
 			}
-			vFloat, ok := root.(float64)
-			if ok {
+			if vFloat, ok := root.(float64); ok {
 				d, err := primitive.ParseDecimal128(strconv.FormatFloat(vFloat, 'f', 4, 64))
-				if err == nil {
-					return d
+				if err != nil {
+					return nil, fmt.Errorf("invalid Decimal128 string: %w", err)
 				}
+				return d, nil
 			}
-			vBigFloat, ok := root.(big.Float)
-			if ok {
+			if vBigFloat, ok := root.(big.Float); ok {
 				d, err := primitive.ParseDecimal128(vBigFloat.String())
-				if err == nil {
-					return d
+				if err != nil {
+					return nil, fmt.Errorf("invalid Decimal128 string: %w", err)
 				}
+				return d, nil
 			}
+			return nil, fmt.Errorf("could not convert %v to Decimal128", root)
+
 		case neosync_types.Timestamp:
-			_, ok := root.(primitive.Timestamp)
-			if ok {
-				return root
+			if ts, ok := root.(primitive.Timestamp); ok {
+				return ts, nil
 			}
 			t, err := toUint32(root)
-			if err == nil {
-				return primitive.Timestamp{
-					T: t,
-					I: 1,
-				}
+			if err != nil {
+				return nil, fmt.Errorf("could not convert %v to Timestamp: %w", root, err)
 			}
+			return primitive.Timestamp{T: t, I: 1}, nil
 
 		case neosync_types.ObjectID:
-			_, ok := root.(primitive.ObjectID)
-			if ok {
-				return root
+			if oid, ok := root.(primitive.ObjectID); ok {
+				return oid, nil
 			}
-			vStr, ok := root.(string)
-			if ok {
-				if objectID, err := primitive.ObjectIDFromHex(vStr); err == nil {
-					return objectID
+			if vStr, ok := root.(string); ok {
+				objectID, err := primitive.ObjectIDFromHex(vStr)
+				if err != nil {
+					return nil, fmt.Errorf("invalid ObjectID hex string: %w", err)
 				}
+				return objectID, nil
 			}
+			return nil, fmt.Errorf("could not convert %v to ObjectID", root)
 		}
 	}
 
@@ -469,53 +467,65 @@ func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_type
 				// don't set _id
 				continue
 			}
-			doc = append(doc, bson.E{Key: k, Value: marshalToBSONValue(path, v2, keyTypeMap)})
+			val, err := marshalToBSONValue(path, v2, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("error marshaling map key %s: %w", k, err)
+			}
+			doc = append(doc, bson.E{Key: k, Value: val})
 		}
-		return doc
+		return doc, nil
 
 	case []byte:
-		return primitive.Binary{Data: v}
+		return primitive.Binary{Data: v}, nil
 
 	case []any:
 		a := bson.A{}
 		for i, v2 := range v {
-			a = append(a, marshalToBSONValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap))
+			val, err := marshalToBSONValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
+			if err != nil {
+				return nil, fmt.Errorf("error marshaling array index %d: %w", i, err)
+			}
+			a = append(a, val)
 		}
-		return a
+		return a, nil
 
 	case json.Number:
 		n, err := v.Int64()
 		if err == nil {
-			return n
+			return n, nil
 		}
 		f, err := v.Float64()
 		if err == nil {
-			return f
+			return f, nil
 		}
-		return v.String()
+		return v.String(), nil
 
 	case time.Time:
-		return primitive.NewDateTimeFromTime(v)
+		return primitive.NewDateTimeFromTime(v), nil
 
 	case nil:
-		return primitive.Null{}
+		return primitive.Null{}, nil
 
 	default:
-		return v
+		return v, nil
 	}
 }
 
-func marshalJSONToBSONDocument(root any, keyTypeMap map[string]neosync_types.KeyType) bson.D {
+func marshalJSONToBSONDocument(root any, keyTypeMap map[string]neosync_types.KeyType) (bson.D, error) {
 	m, ok := root.(map[string]any)
 	if !ok {
-		return bson.D{}
+		return bson.D{}, fmt.Errorf("expected map[string]any, got %T", root)
 	}
 
 	doc := bson.D{}
 	for k, v := range m {
-		doc = append(doc, bson.E{Key: k, Value: marshalToBSONValue(k, v, keyTypeMap)})
+		val, err := marshalToBSONValue(k, v, keyTypeMap)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling map key %s: %w", k, err)
+		}
+		doc = append(doc, bson.E{Key: k, Value: val})
 	}
-	return doc
+	return doc, nil
 }
 
 func toUint32(value any) (uint32, error) {

@@ -49,8 +49,9 @@ func Test_MarshalToBSONValue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := marshalToBSONValue(tc.key, tc.value, tc.keyTypeMap)
+			result, err := marshalToBSONValue(tc.key, tc.value, tc.keyTypeMap)
 			require.Equal(t, tc.expected, result)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -103,7 +104,8 @@ func Test_MarshalJSONToBSONDocument(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := marshalJSONToBSONDocument(tc.input, tc.keyTypeMap)
+			result, err := marshalJSONToBSONDocument(tc.input, tc.keyTypeMap)
+			require.NoError(t, err)
 
 			require.Len(t, result, len(tc.expected))
 			for _, elem := range result {
