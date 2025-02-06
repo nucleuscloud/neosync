@@ -1109,12 +1109,10 @@ func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 	}
 
 	expect := []*RunConfig{
-		// First insert a with just its primary key and no foreign keys
 		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
 			[]string{"id", "c_id"},
 			[]string{"id"},
 			[]*DependsOn{}),
-		// Then update a's nullable foreign keys after dependencies exist
 		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
 			[]string{"id", "c_id"},
 			[]string{"c_id"},
@@ -1122,19 +1120,16 @@ func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 				{Table: "public.a", Columns: []string{"id"}},
 				{Table: "public.c", Columns: []string{"id"}},
 			}),
-		// Insert b with required a_id reference
 		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
 			[]string{"id", "a_id", "ac_id"},
 			[]string{"id", "a_id", "ac_id"},
 			[]*DependsOn{
 				{Table: "public.a", Columns: []string{"id", "c_id"}},
 			}),
-		// Insert c with required b_id reference
 		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
 			[]string{"id", "b_id", "acb_id"},
 			[]string{"id"},
 			[]*DependsOn{}),
-		// Update c's nullable acb_id after all dependencies exist
 		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
 			[]string{"id", "b_id", "acb_id"},
 			[]string{"b_id", "acb_id"},
