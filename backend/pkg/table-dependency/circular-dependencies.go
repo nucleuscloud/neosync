@@ -32,6 +32,7 @@ func DetermineCycleInsertUpdateTables(
 ) ([]string, error) {
 	tableRankMap := map[string]int{}
 	possibleStarts := [][]string{}
+	selfReferenceTables := map[string]struct{}{}
 
 	// For each cycle filter out tables whose FK (to a table in the same cycle)
 	// are not nullable.
@@ -44,6 +45,9 @@ func DetermineCycleInsertUpdateTables(
 			}
 			if isCycleStartEligible(dependencies, cycle) {
 				filteredCycle = append(filteredCycle, table)
+				if len(cycle) == 1 {
+					selfReferenceTables[table] = struct{}{}
+				}
 			}
 		}
 		possibleStarts = append(possibleStarts, filteredCycle)
@@ -56,7 +60,10 @@ func DetermineCycleInsertUpdateTables(
 		for _, table := range cycle {
 			rank := 1
 			currRank, seen := tableRankMap[table]
-			if len(cycle) > 1 && seen {
+			_, isSelfReferencing := selfReferenceTables[table]
+
+			// table is NOT a single self-referencing table and in other cycles
+			if !(len(cycle) == 1 && isSelfReferencing) && seen {
 				rank++ // extra point for appearing in more than one cycle
 				tableRankMap[table] = currRank + rank
 			} else {
