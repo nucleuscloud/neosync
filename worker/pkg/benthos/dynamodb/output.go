@@ -19,7 +19,7 @@ import (
 
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 const (

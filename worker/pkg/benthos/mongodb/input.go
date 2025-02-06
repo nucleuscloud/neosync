@@ -13,7 +13,7 @@ import (
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	mongodbmapper "github.com/nucleuscloud/neosync/internal/database-record-mapper/mongodb"
 	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 // mongodb input component allowed operations.

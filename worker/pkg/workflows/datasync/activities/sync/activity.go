@@ -6,19 +6,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/warpstreamlabs/bento/public/bloblang"
-	_ "github.com/warpstreamlabs/bento/public/components/gcp"
-	_ "github.com/warpstreamlabs/bento/public/components/io"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
-	_ "github.com/warpstreamlabs/bento/public/components/aws"
-	_ "github.com/warpstreamlabs/bento/public/components/mongodb"
-	_ "github.com/warpstreamlabs/bento/public/components/pure"
-	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
-	_ "github.com/warpstreamlabs/bento/public/components/redis"
+
+	_ "github.com/nucleuscloud/neosync/internal/benthos/imports"
 
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
@@ -26,8 +20,6 @@ import (
 	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -135,22 +127,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				}
 				benthosStreamMutex.Unlock()
 				return
-			case <-activity.GetWorkerStopChannel(ctx):
-				logger.Info("received worker stop, cleaning up...")
-				resultChan <- fmt.Errorf("received worker stop signal")
-				benthosStreamMutex.Lock()
-				if benthosStream != nil {
-					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
-					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-					err := benthosStream.StopWithin(1 * time.Millisecond)
-					if err != nil {
-						logger.Error(err.Error())
-					}
-				}
-				benthosStreamMutex.Unlock()
-				return
 			case <-ctx.Done():
 				logger.Info("received context done, cleaning up...")
+				resultChan <- fmt.Errorf("received context done signal")
+
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when

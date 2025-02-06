@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateRandomFirstName(t *testing.T) {

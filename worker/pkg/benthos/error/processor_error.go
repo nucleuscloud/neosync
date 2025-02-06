@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func errorProcessorSpec() *service.ConfigSpec {

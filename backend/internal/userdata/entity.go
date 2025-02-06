@@ -2,8 +2,8 @@ package userdata
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nucleuscloud/neosync/backend/internal/ee/rbac"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/ee/rbac"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 )
 
 // Domain entity interface that mimics the domain model of the mgmt service

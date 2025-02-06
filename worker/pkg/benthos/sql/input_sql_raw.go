@@ -12,8 +12,8 @@ import (
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/warpstreamlabs/bento/public/bloblang"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func sqlRawInputSpec() *service.ConfigSpec {

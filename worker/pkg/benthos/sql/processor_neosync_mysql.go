@@ -8,7 +8,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func neosyncToMysqlProcessorConfig() *service.ConfigSpec {

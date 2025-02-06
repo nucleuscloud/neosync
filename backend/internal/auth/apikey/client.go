@@ -9,11 +9,11 @@ import (
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	"github.com/nucleuscloud/neosync/backend/internal/apikey"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
+	"github.com/nucleuscloud/neosync/internal/apikey"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 )
 
 type TokenContextKey struct{}

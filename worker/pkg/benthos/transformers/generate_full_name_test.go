@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateRandomFullName(t *testing.T) {

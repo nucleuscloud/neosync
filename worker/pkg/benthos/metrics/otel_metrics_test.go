@@ -3,8 +3,8 @@ package benthos_metrics
 import (
 	"testing"
 
+	"github.com/redpanda-data/benthos/v4/public/service"
 	"github.com/stretchr/testify/assert"
-	"github.com/warpstreamlabs/bento/public/service"
 	"go.opentelemetry.io/otel/metric"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 )

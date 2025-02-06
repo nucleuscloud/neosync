@@ -3,7 +3,7 @@ package dtomaps
 import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

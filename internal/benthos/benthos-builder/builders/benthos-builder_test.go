@@ -13,11 +13,12 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
@@ -1261,7 +1262,7 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 			},
 		},
 	}
-	redisConfig := &shared.RedisConfig{
+	redisConfig := &neosync_redis.RedisConfig{
 		Url:  "redis://localhost:6379",
 		Kind: "simple",
 	}
@@ -1291,7 +1292,7 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 			},
 		},
 	}
-	redisConfig := &shared.RedisConfig{
+	redisConfig := &neosync_redis.RedisConfig{
 		Url:  "redis://localhost:6379",
 		Kind: "simple",
 	}

@@ -7,8 +7,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	"github.com/redpanda-data/benthos/v4/public/service"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func Test_transformNeosyncToMysql(t *testing.T) {

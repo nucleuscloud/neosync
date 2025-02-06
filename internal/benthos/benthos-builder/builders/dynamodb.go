@@ -13,8 +13,8 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 type dyanmodbSyncBuilder struct {
@@ -105,7 +105,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
 			params.WorkflowId,
-			&shared.RedisConfig{},
+			&neosync_redis.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),
