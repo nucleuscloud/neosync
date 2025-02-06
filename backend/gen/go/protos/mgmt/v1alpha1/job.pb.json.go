@@ -1438,6 +1438,36 @@ func (msg *ValidateJobMappingsResponse) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
+func (msg *ValidateDestinationSchemaRequest) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *ValidateDestinationSchemaRequest) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *ValidateDestinationSchemaResponse) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *ValidateDestinationSchemaResponse) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *ValidateDestinationSchemaResponse_Table) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *ValidateDestinationSchemaResponse_Table) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
 func (msg *VirtualForeignKey) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }

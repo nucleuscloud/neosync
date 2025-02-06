@@ -4,6 +4,7 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
+import "mgmt/v1alpha1/connection_data.proto";
 import "mgmt/v1alpha1/transformer.proto";
 
 message GetJobsRequest {
@@ -1254,6 +1255,31 @@ message ValidateJobMappingsResponse {
   repeated TableError table_errors = 4;
 }
 
+message ValidateDestinationSchemaRequest {
+  // The unique identifier of the job
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the destination connection to validate
+  string connection_id = 2 [(buf.validate.field).string.uuid = true];
+}
+
+message ValidateDestinationSchemaResponse {
+  // The list columns missing in destination
+  repeated DatabaseColumn missing_columns = 1;
+  // The list of extra columns in destination and not in source
+  repeated DatabaseColumn extra_columns = 2;
+  // The list of tables missing in destination
+  repeated Table missing_tables = 3;
+  // The list of schemas missing in destination
+  repeated string missing_schemas = 4;
+
+  message Table {
+    // The schema of the table
+    string schema = 1;
+    // The table
+    string table = 2;
+  }
+}
+
 message VirtualForeignKey {
   // The schema of the table
   string schema = 1;
@@ -1593,6 +1619,8 @@ service JobService {
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
   // Validates that the jobmapping configured can run with table constraints
   rpc ValidateJobMappings(ValidateJobMappingsRequest) returns (ValidateJobMappingsResponse) {}
+  // Validates that the destination schema is compatible with the job mappings
+  rpc ValidateDestinationSchema(ValidateDestinationSchemaRequest) returns (ValidateDestinationSchemaResponse) {}
 
   // Gets a run context to be used by a workflow run
   rpc GetRunContext(GetRunContextRequest) returns (GetRunContextResponse) {}

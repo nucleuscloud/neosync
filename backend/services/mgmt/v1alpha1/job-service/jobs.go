@@ -22,6 +22,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/job"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	schema_diff "github.com/nucleuscloud/neosync/internal/schema-diff"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -1633,6 +1634,108 @@ func getErrorMessages[T ErrorReport](errorsReports []T) []string {
 	return messages
 }
 
+// ValidateDestinationSchema validates that the destination schema is compatible with the job mappings
+func (s *Service) ValidateDestinationSchema(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.ValidateDestinationSchemaRequest],
+) (*connect.Response[mgmtv1alpha1.ValidateDestinationSchemaResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.GetJobId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("accountId", job.Msg.GetJob().GetAccountId(), "jobId", job.Msg.GetJob().GetId())
+
+	sourceConnId, err := getJobSourceConnectionId(job.Msg.GetJob().GetSource())
+	if err != nil {
+		return nil, err
+	}
+
+	sourceConn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: *sourceConnId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	destConn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.GetConnectionId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	source, err := s.connectiondatabuilder.NewDataConnection(logger, sourceConn.Msg.GetConnection())
+	if err != nil {
+		return nil, err
+	}
+
+	destination, err := s.connectiondatabuilder.NewDataConnection(logger, destConn.Msg.GetConnection())
+	if err != nil {
+		return nil, err
+	}
+
+	sourceCfg, err := getConnectionSchemaConfigByConnectionType(sourceConn.Msg.GetConnection(), job.Msg.GetJob().GetId())
+	if err != nil {
+		return nil, err
+	}
+	sourceSchemas, err := source.GetSchema(ctx, sourceCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	destCfg, err := getConnectionSchemaConfigByConnectionType(destConn.Msg.GetConnection(), job.Msg.GetJob().GetId())
+	if err != nil {
+		return nil, err
+	}
+	destSchemas, err := destination.GetSchema(ctx, destCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	jm := job.Msg.GetJob().GetMappings()
+	mappings := make(map[string]*mgmtv1alpha1.JobMapping)
+	for _, mapping := range jm {
+		key := sqlmanager_shared.BuildTable(mapping.Schema, mapping.Table)
+		mappings[key] = mapping
+	}
+
+	filteredSourceSchemas := []*mgmtv1alpha1.DatabaseColumn{}
+	for _, col := range sourceSchemas {
+		key := sqlmanager_shared.BuildTable(col.Schema, col.Table)
+		if _, ok := mappings[key]; ok {
+			filteredSourceSchemas = append(filteredSourceSchemas, col)
+		}
+	}
+
+	diff := schema_diff.DiffSchemas(filteredSourceSchemas, destSchemas)
+
+	// Compute the differences between source and destination schemas using the schema_diff package.
+	// Construct the response by converting the diff results into the corresponding proto fields.
+	resp := &mgmtv1alpha1.ValidateDestinationSchemaResponse{
+		MissingColumns: diff.MissingColumns,
+		ExtraColumns:   diff.ExtraColumns,
+		MissingTables:  convertSchemaTables(diff.MissingTables),
+		MissingSchemas: diff.MissingSchemas,
+	}
+	return connect.NewResponse(resp), nil
+}
+
+// convertSchemaTables converts a slice of sqlmanager_shared.SchemaTable
+// into a slice of proto SchemaTable messages.
+func convertSchemaTables(tables []*sqlmanager_shared.SchemaTable) []*mgmtv1alpha1.ValidateDestinationSchemaResponse_Table {
+	var protoTables []*mgmtv1alpha1.ValidateDestinationSchemaResponse_Table
+	for _, table := range tables {
+		protoTables = append(protoTables, &mgmtv1alpha1.ValidateDestinationSchemaResponse_Table{
+			Schema: table.Schema,
+			Table:  table.Table,
+		})
+	}
+	return protoTables
+}
+
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
 	var connectionIdToVerify *string
 	switch config := jobSource.Options.Config.(type) {
@@ -1664,4 +1767,41 @@ func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error
 		return nil, fmt.Errorf("unsupported source option config type: %T", config)
 	}
 	return connectionIdToVerify, nil
+}
+
+func getConnectionSchemaConfigByConnectionType(connection *mgmtv1alpha1.Connection, jobId string) (*mgmtv1alpha1.ConnectionSchemaConfig, error) {
+	switch conn := connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
+				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: jobId}},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
+				AwsS3Config: &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: jobId}},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
 }

@@ -2229,6 +2229,48 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.JobService/ValidateDestinationSchema:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: ValidateDestinationSchema
+      description: >-
+        Validates that the destination schema is compatible with the job
+        mappings
+      operationId: mgmt.v1alpha1.JobService.ValidateDestinationSchema
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetRunContext:
     post:
       tags:
@@ -12595,6 +12637,64 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.Job'
           title: job
       title: UpdateJobSourceConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateDestinationSchemaRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          title: job_id
+          format: uuid
+          description: The unique identifier of the job
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: The unique identifier of the destination connection to validate
+      title: ValidateDestinationSchemaRequest
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateDestinationSchemaResponse:
+      type: object
+      properties:
+        missingColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: missing_columns
+          description: The list columns missing in destination
+        extraColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: extra_columns
+          description: The list of extra columns in destination and not in source
+        missingTables:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaResponse.Table
+          title: missing_tables
+          description: The list of tables missing in destination
+        missingSchemas:
+          type: array
+          items:
+            type: string
+          title: missing_schemas
+          description: The list of schemas missing in destination
+      title: ValidateDestinationSchemaResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateDestinationSchemaResponse.Table:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The table
+      title: Table
       additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsRequest:
       type: object
