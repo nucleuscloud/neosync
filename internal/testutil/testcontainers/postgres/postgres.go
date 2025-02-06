@@ -290,7 +290,7 @@ func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, fold
 		setSchemaSql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q; \n SET search_path TO %q; \n", schema, schema)
 		_, err = p.DB.Exec(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
-			return fmt.Errorf("unable to exec sql when running postgres sql files: %w", err)
+			return fmt.Errorf("unable to exec postgres create stmts in schema: %w", err)
 		}
 	}
 	return nil

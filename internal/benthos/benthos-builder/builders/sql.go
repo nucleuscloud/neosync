@@ -18,6 +18,7 @@ import (
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -25,7 +26,7 @@ import (
 type sqlSyncBuilder struct {
 	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient   sqlmanager.SqlManagerClient
-	redisConfig        *shared.RedisConfig
+	redisConfig        *neosync_redis.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
 
@@ -42,7 +43,7 @@ type sqlSyncBuilder struct {
 func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) bb_internal.BenthosBuilder {
@@ -182,7 +183,7 @@ func buildBenthosSqlSourceConfigResponses(
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
-	redisConfig *shared.RedisConfig,
+	redisConfig *neosync_redis.RedisConfig,
 	primaryKeyToForeignKeysMap map[string]map[string][]*bb_internal.ReferenceKey,
 ) ([]*bb_internal.BenthosSourceConfig, error) {
 	configs := []*bb_internal.BenthosSourceConfig{}

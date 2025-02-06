@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/spf13/viper"
 )
 
@@ -93,9 +93,13 @@ func NewFromMysqlConnection(
 			}
 			cfg.MultiStatements = true
 			cfg.ParseTime = parseTime
-			for k, values := range uriConfig.Query() {
-				for _, value := range values {
-					cfg.Params[k] = value
+
+			if uriConfig.RawQuery != "" {
+				cfg.Params = make(map[string]string)
+				for k, values := range uriConfig.Query() {
+					for _, value := range values {
+						cfg.Params[k] = value
+					}
 				}
 			}
 			return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil

@@ -12,9 +12,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	"github.com/nucleuscloud/neosync/backend/internal/apikey"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
+	"github.com/nucleuscloud/neosync/internal/apikey"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"github.com/stretchr/testify/mock"
 	"github.com/zeebo/assert"
 )

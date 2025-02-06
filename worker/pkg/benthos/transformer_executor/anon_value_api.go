@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	javascript_functions "github.com/nucleuscloud/neosync/internal/javascript/functions"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 type anonValueApi struct {

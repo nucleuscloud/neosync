@@ -104,8 +104,8 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  integration-tests:
-    name: Integration Tests
+  cli-integration-tests:
+    name: CLI Integration Tests
     runs-on: ubuntu-latest
     permissions:
       id-token: write # required for requesting JWT for use with retrieving AWS creds
@@ -131,12 +131,60 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./...
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./cli/...
         env:
-          INTEGRATION_TESTS_ENABLED: 1
+          CLI_INTEGRATION_TESTS_ENABLED: 1
           S3_INTEGRATION_TESTS_ENABLED: 1
           TEST_S3_REGION: ${{ env.AWS_REGION }}
           TEST_S3_BUCKET: ${{ vars.INTEGRATION_TEST_BUCKET_NAME }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  worker-integration-tests:
+    name: Worker Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Run Integration Tests
+        run: |
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./internal/integration-tests/worker/...
+        env:
+          WORKER_INTEGRATION_TESTS_ENABLED: 1
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}        
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Run Integration Tests
+        run: |
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic ./internal/integration-tests/...
+        env:
+          INTEGRATION_TESTS_ENABLED: 1
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

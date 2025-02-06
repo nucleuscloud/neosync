@@ -5,7 +5,7 @@ import (
 
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 )
 
 type TokenCtxResponse struct {

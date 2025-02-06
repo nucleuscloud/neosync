@@ -12,7 +12,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func sqlInsertOutputSpec() *service.ConfigSpec {

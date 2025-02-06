@@ -28,7 +28,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
-	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"

@@ -2,9 +2,9 @@ package v1alpha_anonymizationservice
 
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"go.opentelemetry.io/otel/metric"
 )
 

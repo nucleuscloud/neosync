@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/warpstreamlabs/bento/public/service"
+	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
 func errorOutputSpec() *service.ConfigSpec {

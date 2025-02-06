@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 var name = "evis"

@@ -186,6 +186,28 @@ func Test_NewFromMysqlConnection(t *testing.T) {
 			)
 			assert.Equal(t, "test-user", actual.GetUser())
 		})
+		t.Run("ok_with_attributes", func(t *testing.T) {
+			actual, err := NewFromMysqlConnection(
+				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "mysql://test-user:testpass@localhost:3309/mydb?ssl-mode=preferred",
+						},
+					},
+				},
+				&testConnectionTimeout,
+				testutil.GetTestLogger(t),
+				false,
+			)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(
+				t,
+				"test-user:testpass@tcp(localhost:3309)/mydb?multiStatements=true&parseTime=true&timeout=5s&ssl-mode=preferred",
+				actual.String(),
+			)
+			assert.Equal(t, "test-user", actual.GetUser())
+		})
 		t.Run("ok_no_timeout", func(t *testing.T) {
 			actual, err := NewFromMysqlConnection(
 				&mgmtv1alpha1.ConnectionConfig_MysqlConfig{

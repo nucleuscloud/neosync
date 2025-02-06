@@ -1,7 +1,7 @@
 package benthos_environment
 
 import (
-	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 )
 
 type BlobConfig struct {

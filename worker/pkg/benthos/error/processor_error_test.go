@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/redpanda-data/benthos/v4/public/service"
 	"github.com/stretchr/testify/require"
-	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func Test_ErrorProcessorEmptyShutdown(t *testing.T) {
