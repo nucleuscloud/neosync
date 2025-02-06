@@ -1,7 +1,6 @@
 package tabledependency
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -223,11 +222,6 @@ func GetRunConfigs(
 		}
 	}
 
-	for _, config := range configs {
-		jsonF, _ := json.MarshalIndent(config.DependsOn(), "", " ")
-		fmt.Println(config.Table(), config.RunType(), config.InsertColumns(), string(jsonF))
-	}
-
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
@@ -309,7 +303,6 @@ func processCycles(
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(insertUpdateTables)
 
 	if len(insertUpdateTables) == 0 {
 		return nil, fmt.Errorf("unable to determine start of multi circular dependency: %+v", cycles)
