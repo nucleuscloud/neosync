@@ -130,11 +130,11 @@ WHERE account_id = $1
 
 type GetActiveAccountHooksByEventParams struct {
 	AccountID pgtype.UUID
-	Column2   []int32
+	Events    []int32
 }
 
 func (q *Queries) GetActiveAccountHooksByEvent(ctx context.Context, db DBTX, arg GetActiveAccountHooksByEventParams) ([]NeosyncApiAccountHook, error) {
-	rows, err := db.Query(ctx, getActiveAccountHooksByEvent, arg.AccountID, arg.Column2)
+	rows, err := db.Query(ctx, getActiveAccountHooksByEvent, arg.AccountID, arg.Events)
 	if err != nil {
 		return nil, err
 	}

@@ -44,4 +44,4 @@ RETURNING *;
 SELECT * from neosync_api.account_hooks
 WHERE account_id = $1
   AND enabled = true
-  AND events @> ARRAY[$2]::int[];
+  AND events @> ARRAY[sqlc.arg('events')]::int[];
