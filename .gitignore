@@ -8,6 +8,7 @@ bin
 .env.stage.secrets
 .env.prod.secrets
 .env.*.secrets
+.env.*.local
 
 *.log
 

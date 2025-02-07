@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -539,12 +540,12 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-				require.NotNil(t, acutalConfig)
-				require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-				require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-				require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-				require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-				require.Equal(t, e.WhereClause(), e.WhereClause())
+				require.NotNil(t, acutalConfig, "expected config for table %s and type %s to exist", e.Table(), e.RunType())
+				assert.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns(), "select columns mismatch for table %s and type %s", e.Table(), e.RunType())
+				assert.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns(), "insert columns mismatch for table %s and type %s", e.Table(), e.RunType())
+				assert.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn(), "depends on mismatch for table %s and type %s", e.Table(), e.RunType())
+				assert.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys(), "primary keys mismatch for table %s and type %s", e.Table(), e.RunType())
+				assert.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s and type %s", e.Table(), e.RunType())
 			}
 		})
 	}
@@ -1000,6 +1001,155 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn())
 		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys())
 		require.Equal(t, e.WhereClause(), e.WhereClause())
+	}
+}
+
+func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.a": {"id"},
+		"public.b": {"id"},
+		"public.c": {"id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.a": {"id", "c_id"},
+		"public.b": {"id", "a_id", "ac_id"},
+		"public.c": {"id", "b_id", "acb_id"},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"c_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "a_id", "ac_id"},
+			[]string{"id", "a_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "ac_id"},
+			[]string{"ac_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+				{Table: "public.a", Columns: []string{"c_id"}},
+			}),
+		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"id", "b_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "acb_id"},
+			[]string{"acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"ac_id"}},
+			}),
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
+		require.NotNil(t, actualConfig, "expected config for table %s and type %s not found", e.Table(), e.RunType())
+		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns(), "insert columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns(), "select columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn(), "depends on mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys(), "primary keys mismatch for table %s", e.Table())
+		require.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s", e.Table())
+	}
+}
+
+func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.a": {"id"},
+		"public.b": {"id"},
+		"public.c": {"id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.a": {"id", "c_id"},
+		"public.b": {"id", "a_id", "ac_id"},
+		"public.c": {"id", "b_id", "acb_id"},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"c_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "a_id", "ac_id"},
+			[]string{"id", "a_id", "ac_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id", "c_id"}},
+			}),
+		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"b_id", "acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"id", "ac_id"}},
+			}),
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
+		require.NotNil(t, actualConfig, "expected config for table %s and type %s not found", e.Table(), e.RunType())
+		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns(), "insert columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns(), "select columns mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn(), "depends on mismatch for table %s", e.Table())
+		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys(), "primary keys mismatch for table %s", e.Table())
+		require.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s", e.Table())
 	}
 }
 

@@ -27,6 +27,7 @@ type ClientInterface interface {
 		prefix string,
 		onRecord func(record map[string][]byte) error,
 	) error
+	ListObjectPrefixes(ctx context.Context, bucketName, prefix, delimiter string) ([]string, error)
 }
 
 type Client struct {
@@ -151,6 +152,25 @@ func (c *Client) GetRecordStreamFromPrefix(
 		})
 	}
 	return errgrp.Wait()
+}
+
+func (c *Client) ListObjectPrefixes(ctx context.Context, bucketName, prefix, delimiter string) ([]string, error) {
+	prefixes := []string{}
+	it := c.client.Bucket(bucketName).Objects(ctx, &storage.Query{
+		Prefix:    prefix,
+		Delimiter: delimiter,
+	})
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to list objects from bucket %q: %w", bucketName, err)
+		}
+		prefixes = append(prefixes, attrs.Prefix)
+	}
+	return prefixes, nil
 }
 
 func (c *Client) getTableColumnsFromFile(
