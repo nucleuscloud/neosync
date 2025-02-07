@@ -39,7 +39,8 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
-
+	hooks_by_event_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/hooks-by-event"
+	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -294,7 +295,7 @@ func serve(ctx context.Context) error {
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-
+	accounthookclient := mgmtv1alpha1connect.NewAccountHookServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
 	go sqlconnmanager.Reaper(logger)
 	defer sqlconnmanager.Shutdown(logger)
@@ -345,8 +346,13 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
+	hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
+
+	w.RegisterWorkflow(accounthook_workflow.AccountHookWorkflow)
+	w.RegisterActivity(hooksByEventActivity.GetHooksByEvent)
+
 	if err := w.Start(); err != nil {
-		return fmt.Errorf("unable to start temporal worker: %w", err)
+		return fmt.Errorf("unable to start temporal workerr: %w", err)
 	}
 	logger.Debug("temporal worker started successfully")
 
