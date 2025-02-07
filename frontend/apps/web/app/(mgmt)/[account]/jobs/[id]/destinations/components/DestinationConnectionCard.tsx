@@ -101,6 +101,22 @@ export default function DestinationConnectionCard({
     }
   );
 
+  const {
+    data: validateDestinationSchemaResponse,
+    // isLoading: isValidatingDestinationSchema,
+  } = useQuery(
+    JobService.method.validateDestinationSchema,
+    {
+      connectionId: form.getValues('connectionId'),
+      jobId,
+    },
+    {
+      enabled: !!jobId && !!form.getValues('connectionId'),
+    }
+  );
+
+  console.log(JSON.stringify(validateDestinationSchemaResponse, null, 2));
+
   async function onSubmit(values: NewDestinationFormValues) {
     try {
       const connection = connections.find((c) => c.id === values.connectionId);

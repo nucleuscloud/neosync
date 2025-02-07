@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -132,12 +134,56 @@ func (s *GcpConnectionDataService) getLatestJobRunFromGcs(
 	pathPrefix *string,
 ) (string, error) {
 	// TODO: this should find lastest run from GCP not jobservice
-	jobRunsResp, err := s.jobservice.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
-		JobId: jobId,
-	}))
-	if err != nil {
-		return "", err
+	{
+		// Build the prefix for listing job run directories from GCS
+		var prefixPieces []string
+		if pathPrefix != nil && *pathPrefix != "" {
+			prefixPieces = append(prefixPieces, strings.Trim(*pathPrefix, "/"))
+		}
+		prefixPieces = append(prefixPieces, "workflows", jobId)
+		prefixStr := strings.Join(prefixPieces, "/")
+
+		var continuationToken string
+		var commonPrefixes []string
+		for {
+			output, err := client.ListObjects(ctx, bucket, prefixStr, "/", continuationToken)
+			if err != nil {
+				return "", fmt.Errorf("unable to list job run directories from gcs: %w", err)
+			}
+			if output == nil {
+				break
+			}
+			// Accumulate directory prefixes returned from GCS
+			commonPrefixes = append(commonPrefixes, output.CommonPrefixes...)
+			if output.NextPageToken == "" {
+				break
+			}
+			continuationToken = output.NextPageToken
+		}
+
+		s.logger.Debug(fmt.Sprintf("found %d common prefixes for job in gcs", len(commonPrefixes)))
+
+		var runIDs []string
+		for _, cp := range commonPrefixes {
+			parts := strings.Split(strings.TrimSuffix(cp, "/"), "/")
+			if len(parts) >= 2 {
+				runIDs = append(runIDs, parts[len(parts)-1])
+			}
+		}
+		sort.Sort(sort.Reverse(sort.StringSlice(runIDs)))
+
+		if len(runIDs) == 0 {
+			return "", nucleuserrors.NewNotFound(fmt.Sprintf("unable to find latest job run for job in gcs after processing common prefixes: %s", jobId))
+		}
+		s.logger.Debug(fmt.Sprintf("found %d run ids for job in gcs", len(runIDs)))
+		return runIDs[0], nil
 	}
+	// jobRunsResp, err := s.jobservice.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
+	// 	JobId: jobId,
+	// }))
+	// if err != nil {
+	// 	return "", err
+	// }
 	jobRuns := jobRunsResp.Msg.GetRecentRuns()
 	for i := len(jobRuns) - 1; i >= 0; i-- {
 		runId := jobRuns[i].GetJobRunId()

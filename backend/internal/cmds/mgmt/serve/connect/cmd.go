@@ -586,6 +586,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		jobhookService,
 		userdataclient,
+		connectiondatabuilder,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -663,6 +664,7 @@ func serve(ctx context.Context) error {
 		neosynctyperegistry,
 		jobService,
 	)
+
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
