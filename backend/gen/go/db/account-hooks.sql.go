@@ -125,7 +125,7 @@ const getActiveAccountHooksByEvent = `-- name: GetActiveAccountHooksByEvent :man
 SELECT id, name, description, account_id, events, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, hook_type from neosync_api.account_hooks
 WHERE account_id = $1
   AND enabled = true
-  AND events @> ARRAY[$2]::int[]
+  AND events && $2::int[]
 `
 
 type GetActiveAccountHooksByEventParams struct {
