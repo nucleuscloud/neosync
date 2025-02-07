@@ -40,13 +40,14 @@ type NeosyncApiAccountHook struct {
 	Name            string
 	Description     string
 	AccountID       pgtype.UUID
+	Events          []int32
 	Config          []byte
 	CreatedByUserID pgtype.UUID
 	CreatedAt       pgtype.Timestamptz
 	UpdatedByUserID pgtype.UUID
 	UpdatedAt       pgtype.Timestamptz
 	Enabled         bool
-	Priority        int32
+	HookType        pgtype.Text
 }
 
 type NeosyncApiAccountInvite struct {
