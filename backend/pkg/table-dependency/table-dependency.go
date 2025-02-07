@@ -297,40 +297,41 @@ func processCycles(
 			processed[table] = false
 		}
 	}
-	// determine start table
-	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
+
+	// determines tables that should be inserted and updated
+	insertUpdateTables, err := DetermineCycleInsertUpdateTables(cycles, subsets, dependencyMap)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(startTables) == 0 {
+	if len(insertUpdateTables) == 0 {
 		return nil, fmt.Errorf("unable to determine start of multi circular dependency: %+v", cycles)
 	}
 
-	for _, startTable := range startTables {
-		if processed[startTable] {
+	for _, table := range insertUpdateTables {
+		if processed[table] {
 			continue
 		}
 		// create insert and update configs for each start table
-		cols, colsOk := tableColumnsMap[startTable]
+		cols, colsOk := tableColumnsMap[table]
 		if !colsOk {
-			return nil, fmt.Errorf("missing column mappings for table: %s", startTable)
+			return nil, fmt.Errorf("missing column mappings for table: %s", table)
 		}
-		pks := primaryKeyMap[startTable]
-		where := subsets[startTable]
-		dependencies, dependencyOk := dependencyMap[startTable]
+		pks := primaryKeyMap[table]
+		where := subsets[table]
+		dependencies, dependencyOk := dependencyMap[table]
 		if !dependencyOk {
-			return nil, fmt.Errorf("missing dependencies for table: %s", startTable)
+			return nil, fmt.Errorf("missing dependencies for table: %s", table)
 		}
 
-		insertConfig := newRunConfig(startTable, RunTypeInsert, pks, &where)
-		updateConfig := newRunConfig(startTable, RunTypeUpdate, pks, &where)
-		updateConfig.appendDependsOn(startTable, pks)
+		insertConfig := newRunConfig(table, RunTypeInsert, pks, &where)
+		updateConfig := newRunConfig(table, RunTypeUpdate, pks, &where)
+		updateConfig.appendDependsOn(table, pks)
 		updateConfig.appendSelectColumns(pks...)
-		deps := foreignKeyColsMap[startTable]
+		deps := foreignKeyColsMap[table]
 		// builds depends on slice
 		for fkTable, fkCols := range deps {
-			if fkTable == startTable {
+			if fkTable == table {
 				continue
 			}
 			if isTableInCycles(cycles, fkTable) {
@@ -364,7 +365,7 @@ func processCycles(
 			insertConfig.appendSelectColumns(col)
 		}
 
-		processed[startTable] = true
+		processed[table] = true
 		configs = append(configs, insertConfig, updateConfig)
 	}
 
@@ -394,20 +395,6 @@ func checkTableHasCols(tables []string, tablesColMap map[string][]string) bool {
 	for _, t := range tables {
 		if _, ok := tablesColMap[t]; !ok {
 			return false
-		}
-	}
-	return true
-}
-
-func areAllFkColsNullable(dependencies []*sqlmanager_shared.ForeignConstraint, cycle []string) bool {
-	for _, dep := range dependencies {
-		if !slices.Contains(cycle, dep.ForeignKey.Table) {
-			continue
-		}
-		for _, notNullable := range dep.NotNullable {
-			if notNullable {
-				return false
-			}
 		}
 	}
 	return true

@@ -222,7 +222,7 @@ func Test_uniqueCycles(t *testing.T) {
 	}
 }
 
-func Test_determineCycleStart(t *testing.T) {
+func Test_DetermineCycleInsertUpdateTables(t *testing.T) {
 	tests := []struct {
 		name          string
 		cycle         []string
@@ -308,7 +308,7 @@ func Test_determineCycleStart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cycles := [][]string{tt.cycle}
-			actual, err := DetermineCycleStarts(cycles, tt.subsets, tt.dependencyMap)
+			actual, err := DetermineCycleInsertUpdateTables(cycles, tt.subsets, tt.dependencyMap)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {
@@ -319,7 +319,7 @@ func Test_determineCycleStart(t *testing.T) {
 	}
 }
 
-func Test_determineMultiCycleStart(t *testing.T) {
+func Test_DetermineCycleInsertUpdateTables_Many(t *testing.T) {
 	tests := []struct {
 		name          string
 		cycles        [][]string
@@ -430,11 +430,30 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			expected:    []string{"a", "b"},
 			expectError: false,
 		},
+		{
+			name:    "multi cycle with self reference",
+			cycles:  [][]string{{"public.a", "public.b", "public.c"}, {"public.b"}},
+			subsets: map[string]string{},
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.c": {
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+				},
+			},
+			expected:    []string{"public.a", "public.b"},
+			expectError: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := DetermineCycleStarts(tt.cycles, tt.subsets, tt.dependencyMap)
+			actual, err := DetermineCycleInsertUpdateTables(tt.cycles, tt.subsets, tt.dependencyMap)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {
@@ -443,6 +462,52 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_DetermineCycleInsertUpdateTables_SplitNullable(t *testing.T) {
+	cycles := [][]string{{"public.a", "public.b", "public.c"}}
+	subsets := map[string]string{}
+	dependencyMap := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	expected := []string{"public.a", "public.b", "public.c"}
+
+	actual, err := DetermineCycleInsertUpdateTables(cycles, subsets, dependencyMap)
+	require.NoError(t, err)
+	require.ElementsMatch(t, expected, actual)
+}
+
+func Test_determineSingleCycleMultipleStarts_Complicated(t *testing.T) {
+	cycles := [][]string{{"public.a", "public.b", "public.c"}}
+	subsets := map[string]string{}
+	dependencyMap := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	expected := []string{"public.a", "public.c"}
+
+	actual, err := DetermineCycleInsertUpdateTables(cycles, subsets, dependencyMap)
+	require.NoError(t, err)
+	require.ElementsMatch(t, expected, actual)
 }
 
 func Test_CycleOrder(t *testing.T) {
