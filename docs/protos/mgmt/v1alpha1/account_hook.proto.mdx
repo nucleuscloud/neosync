@@ -1,0 +1,150 @@
+---
+title: account_hook.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `account_hook.proto`
+_**path** mgmt/v1alpha1/account_hook.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `AccountHook`
+<ProtoMessage key={0} message={{"name":"AccountHook","longName":"AccountHook","fullName":"mgmt.v1alpha1.AccountHook","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The unique identifier of this hook.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"Name of the hook for display/reference.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"description","description":"Description of what this hook does.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"account_id","description":"The unique identifier of the account this hook belongs to.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"events","description":"The events that will trigger this hook.","label":"repeated","type":"AccountHookEvent","longType":"AccountHookEvent","fullType":"mgmt.v1alpha1.AccountHookEvent","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookevent"},{"name":"config","description":"Hook-type specific configuration.","label":"","type":"AccountHookConfig","longType":"AccountHookConfig","fullType":"mgmt.v1alpha1.AccountHookConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookconfig"},{"name":"created_by_user_id","description":"The user that created this hook.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"created_at","description":"The time this hook was created.","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"updated_by_user_id","description":"The user that last updated this hook.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"updated_at","description":"The last time this hook was updated.","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"enabled","description":"Whether or not the hook is enabled.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AccountHookConfig`
+<ProtoMessage key={1} message={{"name":"AccountHookConfig","longName":"AccountHookConfig","fullName":"mgmt.v1alpha1.AccountHookConfig","description":"Hook-specific configuration","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"webhook","description":"Webhook-based hooks\n\nSlack-based hooks\nSlackHook slack = 2;\nFuture: Discord, Teams, etc.","label":"","type":"WebHook","longType":"AccountHookConfig.WebHook","fullType":"mgmt.v1alpha1.AccountHookConfig.WebHook","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookconfigwebhook"}]}} />
+
+
+### `AccountHookConfig.WebHook`
+<ProtoMessage key={2} message={{"name":"WebHook","longName":"AccountHookConfig.WebHook","fullName":"mgmt.v1alpha1.AccountHookConfig.WebHook","description":"Webhook-specific configuration","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"url","description":"The webhook URL to send the event to.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"secret","description":"The secret to use for the webhook.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"disable_ssl_verification","description":"Whether to disable SSL verification for the webhook.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `CreateAccountHookRequest`
+<ProtoMessage key={3} message={{"name":"CreateAccountHookRequest","longName":"CreateAccountHookRequest","fullName":"mgmt.v1alpha1.CreateAccountHookRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The account ID to create the hook for.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"hook","description":"The new account hook configuration.","label":"","type":"NewAccountHook","longType":"NewAccountHook","fullType":"mgmt.v1alpha1.NewAccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#newaccounthook"}]}} />
+
+
+### `CreateAccountHookResponse`
+<ProtoMessage key={4} message={{"name":"CreateAccountHookResponse","longName":"CreateAccountHookResponse","fullName":"mgmt.v1alpha1.CreateAccountHookResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hook","description":"The newly created account hook.","label":"","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `DeleteAccountHookRequest`
+<ProtoMessage key={5} message={{"name":"DeleteAccountHookRequest","longName":"DeleteAccountHookRequest","fullName":"mgmt.v1alpha1.DeleteAccountHookRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The ID of the hook to delete.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `DeleteAccountHookResponse`
+<ProtoMessage key={6} message={{"name":"DeleteAccountHookResponse","longName":"DeleteAccountHookResponse","fullName":"mgmt.v1alpha1.DeleteAccountHookResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hook","description":"The deleted account hook.","label":"","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `GetAccountHookRequest`
+<ProtoMessage key={7} message={{"name":"GetAccountHookRequest","longName":"GetAccountHookRequest","fullName":"mgmt.v1alpha1.GetAccountHookRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The ID of the hook to retrieve.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetAccountHookResponse`
+<ProtoMessage key={8} message={{"name":"GetAccountHookResponse","longName":"GetAccountHookResponse","fullName":"mgmt.v1alpha1.GetAccountHookResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hook","description":"The account hook.","label":"","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `GetAccountHooksRequest`
+<ProtoMessage key={9} message={{"name":"GetAccountHooksRequest","longName":"GetAccountHooksRequest","fullName":"mgmt.v1alpha1.GetAccountHooksRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The account ID to retrieve hooks for.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetAccountHooksResponse`
+<ProtoMessage key={10} message={{"name":"GetAccountHooksResponse","longName":"GetAccountHooksResponse","fullName":"mgmt.v1alpha1.GetAccountHooksResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hooks","description":"The list of account hooks.","label":"repeated","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `GetActiveAccountHooksByEventRequest`
+<ProtoMessage key={11} message={{"name":"GetActiveAccountHooksByEventRequest","longName":"GetActiveAccountHooksByEventRequest","fullName":"mgmt.v1alpha1.GetActiveAccountHooksByEventRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The account ID to retrieve hooks for.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"event","description":"The event to retrieve hooks for.","label":"","type":"AccountHookEvent","longType":"AccountHookEvent","fullType":"mgmt.v1alpha1.AccountHookEvent","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookevent"}]}} />
+
+
+### `GetActiveAccountHooksByEventResponse`
+<ProtoMessage key={12} message={{"name":"GetActiveAccountHooksByEventResponse","longName":"GetActiveAccountHooksByEventResponse","fullName":"mgmt.v1alpha1.GetActiveAccountHooksByEventResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hooks","description":"The list of active account hooks.","label":"repeated","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `IsAccountHookNameAvailableRequest`
+<ProtoMessage key={13} message={{"name":"IsAccountHookNameAvailableRequest","longName":"IsAccountHookNameAvailableRequest","fullName":"mgmt.v1alpha1.IsAccountHookNameAvailableRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The account ID to check the name for.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"The name to check.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `IsAccountHookNameAvailableResponse`
+<ProtoMessage key={14} message={{"name":"IsAccountHookNameAvailableResponse","longName":"IsAccountHookNameAvailableResponse","fullName":"mgmt.v1alpha1.IsAccountHookNameAvailableResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"is_available","description":"Whether the name is available.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `NewAccountHook`
+<ProtoMessage key={15} message={{"name":"NewAccountHook","longName":"NewAccountHook","fullName":"mgmt.v1alpha1.NewAccountHook","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"name","description":"Name of the hook for display/reference.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"description","description":"Description of what this hook does.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"events","description":"The events that will trigger this hook.","label":"repeated","type":"AccountHookEvent","longType":"AccountHookEvent","fullType":"mgmt.v1alpha1.AccountHookEvent","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookevent"},{"name":"config","description":"Hook-type specific configuration.","label":"","type":"AccountHookConfig","longType":"AccountHookConfig","fullType":"mgmt.v1alpha1.AccountHookConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookconfig"},{"name":"enabled","description":"Whether or not the hook is enabled.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `SetAccountHookEnabledRequest`
+<ProtoMessage key={16} message={{"name":"SetAccountHookEnabledRequest","longName":"SetAccountHookEnabledRequest","fullName":"mgmt.v1alpha1.SetAccountHookEnabledRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The ID of the hook to enable/disable.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"enabled","description":"Whether to enable or disable the hook.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `SetAccountHookEnabledResponse`
+<ProtoMessage key={17} message={{"name":"SetAccountHookEnabledResponse","longName":"SetAccountHookEnabledResponse","fullName":"mgmt.v1alpha1.SetAccountHookEnabledResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hook","description":"The updated account hook.","label":"","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+
+### `UpdateAccountHookRequest`
+<ProtoMessage key={18} message={{"name":"UpdateAccountHookRequest","longName":"UpdateAccountHookRequest","fullName":"mgmt.v1alpha1.UpdateAccountHookRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The ID of the hook to update.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"Name of the hook for display/reference.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"description","description":"Description of what this hook does.","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"events","description":"The events that will trigger this hook.","label":"repeated","type":"AccountHookEvent","longType":"AccountHookEvent","fullType":"mgmt.v1alpha1.AccountHookEvent","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookevent"},{"name":"config","description":"Hook-type specific configuration.","label":"","type":"AccountHookConfig","longType":"AccountHookConfig","fullType":"mgmt.v1alpha1.AccountHookConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthookconfig"},{"name":"enabled","description":"Whether or not the hook is enabled.","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `UpdateAccountHookResponse`
+<ProtoMessage key={19} message={{"name":"UpdateAccountHookResponse","longName":"UpdateAccountHookResponse","fullName":"mgmt.v1alpha1.UpdateAccountHookResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"hook","description":"The updated account hook.","label":"","type":"AccountHook","longType":"AccountHook","fullType":"mgmt.v1alpha1.AccountHook","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/account_hook.proto#accounthook"}]}} />
+
+---
+## Enums
+
+
+### `AccountHookEvent`
+<ProtoEnum key={0} enumb={{"name":"AccountHookEvent","longName":"AccountHookEvent","fullName":"mgmt.v1alpha1.AccountHookEvent","description":"Enum of all possible events that can trigger an account hook.","values":[{"name":"ACCOUNT_HOOK_EVENT_UNSPECIFIED","number":"0","description":"If unspecified, hook will be triggered for all events."},{"name":"ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED","number":"1","description":"Triggered when a job run is created."},{"name":"ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED","number":"2","description":"Triggered when a job run fails."},{"name":"ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED","number":"3","description":"Triggered when a job run succeeds."}]}} />
+
+---
+## Services
+
+
+### `AccountHookService`
+
+
+
+
+#### `GetAccountHooks`
+<ProtoServiceMethod key={'GetAccountHooks-0'} method={{"name":"GetAccountHooks","description":"Retrieves all account hooks.","requestType":"GetAccountHooksRequest","requestLongType":"GetAccountHooksRequest","requestFullType":"mgmt.v1alpha1.GetAccountHooksRequest","requestStreaming":false,"responseType":"GetAccountHooksResponse","responseLongType":"GetAccountHooksResponse","responseFullType":"mgmt.v1alpha1.GetAccountHooksResponse","responseStreaming":false,"options":{"idempotency_level":"NO_SIDE_EFFECTS"},"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getaccounthooksrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getaccounthooksresponse"}} />
+
+
+#### `GetAccountHook`
+<ProtoServiceMethod key={'GetAccountHook-1'} method={{"name":"GetAccountHook","description":"Retrieves a specific account hook.","requestType":"GetAccountHookRequest","requestLongType":"GetAccountHookRequest","requestFullType":"mgmt.v1alpha1.GetAccountHookRequest","requestStreaming":false,"responseType":"GetAccountHookResponse","responseLongType":"GetAccountHookResponse","responseFullType":"mgmt.v1alpha1.GetAccountHookResponse","responseStreaming":false,"options":{"idempotency_level":"NO_SIDE_EFFECTS"},"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getaccounthookrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getaccounthookresponse"}} />
+
+
+#### `CreateAccountHook`
+<ProtoServiceMethod key={'CreateAccountHook-2'} method={{"name":"CreateAccountHook","description":"Creates a new account hook.","requestType":"CreateAccountHookRequest","requestLongType":"CreateAccountHookRequest","requestFullType":"mgmt.v1alpha1.CreateAccountHookRequest","requestStreaming":false,"responseType":"CreateAccountHookResponse","responseLongType":"CreateAccountHookResponse","responseFullType":"mgmt.v1alpha1.CreateAccountHookResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#createaccounthookrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#createaccounthookresponse"}} />
+
+
+#### `UpdateAccountHook`
+<ProtoServiceMethod key={'UpdateAccountHook-3'} method={{"name":"UpdateAccountHook","description":"Updates an existing account hook.","requestType":"UpdateAccountHookRequest","requestLongType":"UpdateAccountHookRequest","requestFullType":"mgmt.v1alpha1.UpdateAccountHookRequest","requestStreaming":false,"responseType":"UpdateAccountHookResponse","responseLongType":"UpdateAccountHookResponse","responseFullType":"mgmt.v1alpha1.UpdateAccountHookResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#updateaccounthookrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#updateaccounthookresponse"}} />
+
+
+#### `DeleteAccountHook`
+<ProtoServiceMethod key={'DeleteAccountHook-4'} method={{"name":"DeleteAccountHook","description":"Deletes an account hook.","requestType":"DeleteAccountHookRequest","requestLongType":"DeleteAccountHookRequest","requestFullType":"mgmt.v1alpha1.DeleteAccountHookRequest","requestStreaming":false,"responseType":"DeleteAccountHookResponse","responseLongType":"DeleteAccountHookResponse","responseFullType":"mgmt.v1alpha1.DeleteAccountHookResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#deleteaccounthookrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#deleteaccounthookresponse"}} />
+
+
+#### `IsAccountHookNameAvailable`
+<ProtoServiceMethod key={'IsAccountHookNameAvailable-5'} method={{"name":"IsAccountHookNameAvailable","description":"Checks if an account hook name is available.","requestType":"IsAccountHookNameAvailableRequest","requestLongType":"IsAccountHookNameAvailableRequest","requestFullType":"mgmt.v1alpha1.IsAccountHookNameAvailableRequest","requestStreaming":false,"responseType":"IsAccountHookNameAvailableResponse","responseLongType":"IsAccountHookNameAvailableResponse","responseFullType":"mgmt.v1alpha1.IsAccountHookNameAvailableResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#isaccounthooknameavailablerequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#isaccounthooknameavailableresponse"}} />
+
+
+#### `SetAccountHookEnabled`
+<ProtoServiceMethod key={'SetAccountHookEnabled-6'} method={{"name":"SetAccountHookEnabled","description":"Enables or disables an account hook.","requestType":"SetAccountHookEnabledRequest","requestLongType":"SetAccountHookEnabledRequest","requestFullType":"mgmt.v1alpha1.SetAccountHookEnabledRequest","requestStreaming":false,"responseType":"SetAccountHookEnabledResponse","responseLongType":"SetAccountHookEnabledResponse","responseFullType":"mgmt.v1alpha1.SetAccountHookEnabledResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#setaccounthookenabledrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#setaccounthookenabledresponse"}} />
+
+
+#### `GetActiveAccountHooksByEvent`
+<ProtoServiceMethod key={'GetActiveAccountHooksByEvent-7'} method={{"name":"GetActiveAccountHooksByEvent","description":"Retrieves all active account hooks for a specific event.","requestType":"GetActiveAccountHooksByEventRequest","requestLongType":"GetActiveAccountHooksByEventRequest","requestFullType":"mgmt.v1alpha1.GetActiveAccountHooksByEventRequest","requestStreaming":false,"responseType":"GetActiveAccountHooksByEventResponse","responseLongType":"GetActiveAccountHooksByEventResponse","responseFullType":"mgmt.v1alpha1.GetActiveAccountHooksByEventResponse","responseStreaming":false,"options":{"idempotency_level":"NO_SIDE_EFFECTS"},"requestTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getactiveaccounthooksbyeventrequest","responseTypeLink":"/api/mgmt/v1alpha1/account_hook.proto#getactiveaccounthooksbyeventresponse"}} />
+
+
+---
+
+
+  

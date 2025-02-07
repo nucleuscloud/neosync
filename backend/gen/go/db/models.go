@@ -34,6 +34,21 @@ type NeosyncApiAccountApiKey struct {
 	UserID      pgtype.UUID
 }
 
+// Stores hooks that can be configured to run as part of an account
+type NeosyncApiAccountHook struct {
+	ID              pgtype.UUID
+	Name            string
+	Description     string
+	AccountID       pgtype.UUID
+	Config          []byte
+	CreatedByUserID pgtype.UUID
+	CreatedAt       pgtype.Timestamptz
+	UpdatedByUserID pgtype.UUID
+	UpdatedAt       pgtype.Timestamptz
+	Enabled         bool
+	Priority        int32
+}
+
 type NeosyncApiAccountInvite struct {
 	ID           pgtype.UUID
 	AccountID    pgtype.UUID
