@@ -2,7 +2,6 @@ package v1alpha1_jobservice
 
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -19,8 +18,7 @@ type Service struct {
 
 	temporalmgr clientmanager.Interface
 
-	hookService           jobhooks.Interface
-	connectiondatabuilder connectiondata.ConnectionDataBuilder
+	hookService jobhooks.Interface
 }
 
 type RunLogType string
@@ -65,16 +63,14 @@ func New(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobhookService jobhooks.Interface,
 	userdataclient userdata.Interface,
-	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) *Service {
 	return &Service{
-		cfg:                   cfg,
-		db:                    db,
-		temporalmgr:           temporalWfManager,
-		connectionService:     connectionService,
-		sqlmanager:            sqlmanager,
-		hookService:           jobhookService,
-		userdataclient:        userdataclient,
-		connectiondatabuilder: connectiondatabuilder,
+		cfg:               cfg,
+		db:                db,
+		temporalmgr:       temporalWfManager,
+		connectionService: connectionService,
+		sqlmanager:        sqlmanager,
+		hookService:       jobhookService,
+		userdataclient:    userdataclient,
 	}
 }
