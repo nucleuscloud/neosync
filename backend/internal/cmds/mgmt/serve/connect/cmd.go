@@ -44,6 +44,7 @@ import (
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
+	accounthooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/accounts"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
@@ -52,6 +53,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha1_accounthookservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/account-hooks-service"
 	v1alpha1_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
@@ -167,6 +169,10 @@ func serve(ctx context.Context) error {
 
 	if shouldEnableMetricsService() {
 		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
+	}
+
+	if cascadelicense.IsValid() {
+		services = append(services, mgmtv1alpha1connect.AccountHookServiceName)
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -507,6 +513,21 @@ func serve(ctx context.Context) error {
 		),
 	)
 	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
+
+	if cascadelicense.IsValid() {
+		slogger.Debug("enabling account hooks service")
+		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient))
+
+		api.Handle(
+			mgmtv1alpha1connect.NewAccountHookServiceHandler(
+				accountHookService,
+				connect.WithInterceptors(stdInterceptors...),
+				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
+				connect.WithRecover(recoverHandler),
+			),
+		)
+	}
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,

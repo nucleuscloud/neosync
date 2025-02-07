@@ -7,7 +7,6 @@ import (
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
@@ -36,7 +35,6 @@ type Interface interface {
 }
 
 type config struct {
-	isEnabled bool
 }
 
 type Option func(*config)
@@ -55,10 +53,6 @@ func New(
 }
 
 func (s *Service) GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAccountHooksRequest) (*mgmtv1alpha1.GetAccountHooksResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetAccountHooksProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
@@ -96,10 +90,6 @@ func (s *Service) GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAcco
 }
 
 func (s *Service) GetAccountHook(ctx context.Context, req *mgmtv1alpha1.GetAccountHookRequest) (*mgmtv1alpha1.GetAccountHookResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookId", req.GetId())
 
@@ -136,10 +126,6 @@ func (s *Service) GetAccountHook(ctx context.Context, req *mgmtv1alpha1.GetAccou
 }
 
 func (s *Service) DeleteAccountHook(ctx context.Context, req *mgmtv1alpha1.DeleteAccountHookRequest) (*mgmtv1alpha1.DeleteAccountHookResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceDeleteAccountHookProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookId", req.GetId())
 
@@ -173,10 +159,6 @@ func (s *Service) DeleteAccountHook(ctx context.Context, req *mgmtv1alpha1.Delet
 }
 
 func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsAccountHookNameAvailableRequest) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceIsAccountHookNameAvailableProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookName", req.GetName(), "accountId", req.GetAccountId())
 
@@ -256,10 +238,6 @@ func (s *Service) SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.S
 }
 
 func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("event", req.GetEvent())
 
@@ -307,10 +285,6 @@ func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1a
 }
 
 func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.CreateAccountHookRequest) (*mgmtv1alpha1.CreateAccountHookResponse, error) {
-	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceCreateAccountHookProcedure)
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
