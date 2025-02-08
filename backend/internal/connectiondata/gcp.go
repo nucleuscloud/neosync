@@ -7,10 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
@@ -21,23 +22,18 @@ type GcpConnectionDataService struct {
 	gcpmanager neosync_gcp.ManagerInterface
 	connection *mgmtv1alpha1.Connection
 	connconfig *mgmtv1alpha1.GcpCloudStorageConnectionConfig
-	jobservice mgmtv1alpha1connect.JobServiceHandler
 }
 
 func NewGcpConnectionDataService(
 	logger *slog.Logger,
 	gcpmanager neosync_gcp.ManagerInterface,
 	connection *mgmtv1alpha1.Connection,
-
-	jobservice mgmtv1alpha1connect.JobServiceHandler,
 ) *GcpConnectionDataService {
 	return &GcpConnectionDataService{
 		logger:     logger,
 		gcpmanager: gcpmanager,
 		connection: connection,
 		connconfig: connection.GetConnectionConfig().GetGcpCloudstorageConfig(),
-
-		jobservice: jobservice,
 	}
 }
 
@@ -131,20 +127,38 @@ func (s *GcpConnectionDataService) getLatestJobRunFromGcs(
 	bucket string,
 	pathPrefix *string,
 ) (string, error) {
-	// TODO: this should find lastest run from GCP not jobservice
-	jobRunsResp, err := s.jobservice.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
-		JobId: jobId,
-	}))
-	if err != nil {
-		return "", err
+	// Build a base prefix for listing job run directories.
+	var gcsPathPieces []string
+	if pathPrefix != nil && *pathPrefix != "" {
+		trimmed := strings.Trim(*pathPrefix, "/")
+		gcsPathPieces = append(gcsPathPieces, trimmed)
 	}
-	jobRuns := jobRunsResp.Msg.GetRecentRuns()
-	for i := len(jobRuns) - 1; i >= 0; i-- {
-		runId := jobRuns[i].GetJobRunId()
-		prefix := neosync_gcp.GetWorkflowActivityPrefix(
-			runId,
-			pathPrefix,
-		)
+	gcsPathPieces = append(gcsPathPieces, "workflows", jobId)
+	basePrefix := strings.Join(gcsPathPieces, "/")
+
+	prefixes, err := client.ListObjectPrefixes(ctx, bucket, basePrefix, "/")
+	if err != nil {
+		return "", fmt.Errorf("unable to list job run directories from GCS: %w", err)
+	}
+
+	// Extract run IDs from the directory names.
+	runIDs := make([]string, 0, len(prefixes))
+	for _, cp := range prefixes {
+		trimmedPrefix := strings.TrimSuffix(cp, "/")
+		parts := strings.Split(trimmedPrefix, "/")
+		if len(parts) > 0 {
+			runIDs = append(runIDs, parts[len(parts)-1])
+		}
+	}
+
+	if len(runIDs) == 0 {
+		return "", fmt.Errorf("unable to find any job runs for job: %s", jobId)
+	}
+
+	sort.Sort(sort.Reverse(sort.StringSlice(runIDs)))
+
+	for _, runId := range runIDs {
+		prefix := neosync_gcp.GetWorkflowActivityPrefix(runId, pathPrefix)
 		ok, err := client.DoesPrefixContainTables(ctx, bucket, prefix)
 		if err != nil {
 			return "", fmt.Errorf("unable to check if prefix contains tables: %w", err)

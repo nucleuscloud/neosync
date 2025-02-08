@@ -29,7 +29,7 @@ func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context,
 	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
 		return config, nil
 	}
-	destinationOpts := params.DestinationOpts.GetAwsS3Options()
+	destinationOpts := params.DestinationOpts.GetGcpCloudstorageOptions()
 	gcpCloudStorageConfig := params.DestConnection.GetConnectionConfig().GetGcpCloudstorageConfig()
 
 	if destinationOpts == nil {

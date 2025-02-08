@@ -24,6 +24,7 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -72,7 +73,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
-	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	"github.com/nucleuscloud/neosync/internal/temporal/clientmanager"
@@ -534,6 +534,18 @@ func serve(ctx context.Context) error {
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 	mongoconnector := mongoconnect.NewConnector()
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
+	gcpmanager := neosync_gcp.NewManager()
+	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
+		sqlConnector,
+		sqlmanager,
+		pgquerier,
+		mysqlquerier,
+		awsManager,
+		gcpmanager,
+		mongoconnector,
+		neosynctyperegistry,
+	)
 
 	connectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{IsNeosyncCloud: ncloudlicense.IsValid()},
@@ -650,19 +662,6 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
-	gcpmanager := neosync_gcp.NewManager()
-	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
-		sqlConnector,
-		sqlmanager,
-		pgquerier,
-		mysqlquerier,
-		awsManager,
-		gcpmanager,
-		mongoconnector,
-		neosynctyperegistry,
-		jobService,
-	)
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,

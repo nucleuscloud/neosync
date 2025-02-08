@@ -9,7 +9,6 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -45,7 +44,6 @@ type DefaultConnectionDataBuilder struct {
 	gcpmanager          neosync_gcp.ManagerInterface
 	mongoconnector      mongoconnect.Interface
 	neosynctyperegistry neosynctypes.NeosyncTypeRegistry
-	jobservice          mgmtv1alpha1connect.JobServiceHandler // TODO: remove this dependency
 }
 
 func NewConnectionDataBuilder(
@@ -57,7 +55,6 @@ func NewConnectionDataBuilder(
 	gcpmanager neosync_gcp.ManagerInterface,
 	mongoconnector mongoconnect.Interface,
 	neosynctyperegistry neosynctypes.NeosyncTypeRegistry,
-	jobservice mgmtv1alpha1connect.JobServiceHandler,
 ) ConnectionDataBuilder {
 	return &DefaultConnectionDataBuilder{
 		sqlconnector:        sqlconnector,
@@ -68,7 +65,6 @@ func NewConnectionDataBuilder(
 		gcpmanager:          gcpmanager,
 		mongoconnector:      mongoconnector,
 		neosynctyperegistry: neosynctyperegistry,
-		jobservice:          jobservice,
 	}
 }
 
@@ -83,7 +79,7 @@ func (b *DefaultConnectionDataBuilder) NewDataConnection(
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		return NewAwsS3ConnectionDataService(logger, b.awsmanager, b.neosynctyperegistry, connection), nil
 	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
-		return NewGcpConnectionDataService(logger, b.gcpmanager, connection, b.jobservice), nil
+		return NewGcpConnectionDataService(logger, b.gcpmanager, connection), nil
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 		return NewAwsDynamodbConnectionDataService(logger, b.awsmanager, connection), nil
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
