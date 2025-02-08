@@ -44,6 +44,9 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-source", postgres.Source.URL)
 		destConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-dest", postgres.Target.URL)
 
+		_, err = postgres.Source.DB.Exec(ctx, `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)
+		require.NoError(t, err)
+
 		// Sync workflow tests
 		t.Run("types", func(t *testing.T) {
 			t.Parallel()
