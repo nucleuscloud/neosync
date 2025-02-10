@@ -193,6 +193,8 @@ message GetActiveAccountHooksByEventRequest {
   // The account ID to retrieve hooks for.
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The event to retrieve hooks for.
+  // A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+  // If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
   AccountHookEvent event = 2;
 }
 

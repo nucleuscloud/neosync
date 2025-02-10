@@ -284,10 +284,18 @@ func (s *NeosyncApiTestClient) setupMux(
 		connectionDataService,
 		connect.WithInterceptors(interceptors...),
 	))
-	mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
-		accountHookService,
-		connect.WithInterceptors(interceptors...),
-	))
+
+	if isLicensed {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			accountHookService,
+			connect.WithInterceptors(interceptors...),
+		))
+	} else {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			mgmtv1alpha1connect.UnimplementedAccountHookServiceHandler{},
+			connect.WithInterceptors(interceptors...),
+		))
+	}
 
 	return mux, nil
 }

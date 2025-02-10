@@ -552,6 +552,8 @@ export type GetActiveAccountHooksByEventRequest = Message<"mgmt.v1alpha1.GetActi
 
   /**
    * The event to retrieve hooks for.
+   * A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+   * If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
    *
    * @generated from field: mgmt.v1alpha1.AccountHookEvent event = 2;
    */

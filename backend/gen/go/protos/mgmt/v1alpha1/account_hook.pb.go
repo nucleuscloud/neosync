@@ -1088,6 +1088,8 @@ type GetActiveAccountHooksByEventRequest struct {
 	// The account ID to retrieve hooks for.
 	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	// The event to retrieve hooks for.
+	// A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+	// If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
 	Event AccountHookEvent `protobuf:"varint,2,opt,name=event,proto3,enum=mgmt.v1alpha1.AccountHookEvent" json:"event,omitempty"`
 }
 

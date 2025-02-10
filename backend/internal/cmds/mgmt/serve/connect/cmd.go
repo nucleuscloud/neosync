@@ -529,6 +529,16 @@ func serve(ctx context.Context) error {
 				connect.WithRecover(recoverHandler),
 			),
 		)
+	} else {
+		api.Handle(
+			mgmtv1alpha1connect.NewAccountHookServiceHandler(
+				mgmtv1alpha1connect.UnimplementedAccountHookServiceHandler{},
+				connect.WithInterceptors(stdInterceptors...),
+				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
+				connect.WithRecover(recoverHandler),
+			),
+		)
 	}
 
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{

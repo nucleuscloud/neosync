@@ -484,7 +484,7 @@
             },
             {
               "name": "event",
-              "description": "The event to retrieve hooks for.",
+              "description": "The event to retrieve hooks for.\nA specific event will return hooks that are listening to that specific event as well as wildcard hooks.\nIf you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.",
               "label": "",
               "type": "AccountHookEvent",
               "longType": "AccountHookEvent",
