@@ -225,14 +225,16 @@ export default function DestinationConnectionCard({
                                     missingColumns &&
                                     missingColumns.length > 0
                                   ) {
-                                    output += 'Missing Columns:\n';
+                                    output +=
+                                      'Columns Missing in Destination:\n';
                                     missingColumns.forEach((col) => {
                                       output += ` - ${col.schema}.${col.table}.${col.column}\n`;
                                     });
                                     output += '\n';
                                   }
                                   if (extraColumns && extraColumns.length > 0) {
-                                    output += 'Extra Columns:\n';
+                                    output +=
+                                      'Columns Not Found in Job Mappings:\n';
                                     extraColumns.forEach((col) => {
                                       output += ` - ${col.schema}.${col.table}.${col.column}\n`;
                                     });
@@ -277,7 +279,8 @@ export default function DestinationConnectionCard({
                                       missingSchemas &&
                                       missingSchemas.length > 0
                                     ) {
-                                      output += 'Missing Schemas:\n';
+                                      output +=
+                                        'Schemas Missing in Destination:\n';
                                       missingSchemas.forEach((schema) => {
                                         output += ` - ${schema}\n`;
                                       });
@@ -287,7 +290,8 @@ export default function DestinationConnectionCard({
                                       missingTables &&
                                       missingTables.length > 0
                                     ) {
-                                      output += 'Missing Tables:\n';
+                                      output +=
+                                        'Tables Missing in Destination:\n';
                                       missingTables.forEach((table) => {
                                         output += ` - ${table.schema}.${table.table}\n`;
                                       });
