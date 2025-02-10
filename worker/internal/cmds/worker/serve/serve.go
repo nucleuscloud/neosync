@@ -352,7 +352,7 @@ func serve(ctx context.Context) error {
 		hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
 		executeHookActivity := execute_hook_activity.New(accounthookclient)
 
-		w.RegisterWorkflow(accounthook_workflow.AccountHookWorkflow)
+		w.RegisterWorkflow(accounthook_workflow.ProcessAccountHook)
 		w.RegisterActivity(hooksByEventActivity.GetAccountHooksByEvent)
 		w.RegisterActivity(executeHookActivity.ExecuteAccountHook)
 	}

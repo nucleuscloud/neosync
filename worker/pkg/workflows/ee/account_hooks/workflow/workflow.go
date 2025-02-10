@@ -17,7 +17,7 @@ type AccountHookWorkflowRequest struct {
 
 type AccountHookWorkflowResponse struct{}
 
-func AccountHookWorkflow(wfctx workflow.Context, req *AccountHookWorkflowRequest) (*AccountHookWorkflowResponse, error) {
+func ProcessAccountHook(wfctx workflow.Context, req *AccountHookWorkflowRequest) (*AccountHookWorkflowResponse, error) {
 	var hooksByEventActivity *hooks_by_event_activity.Activity
 	var resp *hooks_by_event_activity.RunHooksByEventResponse
 	err := workflow.ExecuteActivity(
