@@ -3,7 +3,6 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
-import { useAccount } from '@/components/providers/account-provider';
 import {
   Accordion,
   AccordionContent,
@@ -68,7 +67,6 @@ export default function DestinationConnectionCard({
   jobSourceId,
   jobmappings,
 }: Props): ReactElement {
-  const { account } = useAccount();
   const { mutateAsync: setJobDestConnection } = useMutation(
     JobService.method.updateJobDestinationConnection
   );
