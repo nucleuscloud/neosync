@@ -29,7 +29,7 @@ func AccountHookWorkflow(wfctx workflow.Context, req *AccountHookWorkflowRequest
 			HeartbeatTimeout: 1 * time.Minute,
 			Summary:          "Retrieves the configured account hooks for the given event",
 		}),
-		hooksByEventActivity.GetHooksByEvent,
+		hooksByEventActivity.GetAccountHooksByEvent,
 		&hooks_by_event_activity.RunHooksByEventRequest{
 			AccountId: req.Event.JobRunCreated.AccountId,
 			EventName: req.Event.Name,
@@ -52,7 +52,7 @@ func AccountHookWorkflow(wfctx workflow.Context, req *AccountHookWorkflowRequest
 				Summary:          "Runs the configured account hook",
 				HeartbeatTimeout: 1 * time.Minute,
 			}),
-			executeHookActivity.ExecuteHook,
+			executeHookActivity.ExecuteAccountHook,
 			&execute_hook_activity.ExecuteHookRequest{
 				HookId: hookId,
 				Event:  req.Event,

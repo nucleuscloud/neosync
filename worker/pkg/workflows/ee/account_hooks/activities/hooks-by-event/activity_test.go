@@ -50,7 +50,7 @@ func Test_Activity_Success(t *testing.T) {
 
 	env.RegisterActivity(activity)
 
-	val, err := env.ExecuteActivity(activity.GetHooksByEvent, &RunHooksByEventRequest{
+	val, err := env.ExecuteActivity(activity.GetAccountHooksByEvent, &RunHooksByEventRequest{
 		AccountId: accountId,
 		EventName: mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED,
 	})

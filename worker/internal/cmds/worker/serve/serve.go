@@ -347,12 +347,16 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
-	hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
-	executeHookActivity := execute_hook_activity.New(accounthookclient)
+	if cascadelicense.IsValid() {
+		logger.Debug("ee license is valid, registering account hook activities")
+		hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
+		executeHookActivity := execute_hook_activity.New(accounthookclient)
 
-	w.RegisterWorkflow(accounthook_workflow.AccountHookWorkflow)
-	w.RegisterActivity(hooksByEventActivity.GetHooksByEvent)
-	w.RegisterActivity(executeHookActivity.ExecuteHook)
+		w.RegisterWorkflow(accounthook_workflow.AccountHookWorkflow)
+		w.RegisterActivity(hooksByEventActivity.GetAccountHooksByEvent)
+		w.RegisterActivity(executeHookActivity.ExecuteAccountHook)
+	}
+
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal workerr: %w", err)
 	}

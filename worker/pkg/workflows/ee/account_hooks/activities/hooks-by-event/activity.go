@@ -32,7 +32,7 @@ type RunHooksByEventResponse struct {
 	HookIds []string
 }
 
-func (a *Activity) GetHooksByEvent(
+func (a *Activity) GetAccountHooksByEvent(
 	ctx context.Context,
 	req *RunHooksByEventRequest,
 ) (*RunHooksByEventResponse, error) {

@@ -90,7 +90,7 @@ func Test_Activity_Success(t *testing.T) {
 
 	env.RegisterActivity(activity)
 
-	val, err := env.ExecuteActivity(activity.ExecuteHook, &ExecuteHookRequest{
+	val, err := env.ExecuteActivity(activity.ExecuteAccountHook, &ExecuteHookRequest{
 		HookId: hookId,
 		Event:  accounthook_events.NewEvent_JobRunSucceeded(accountId, "test-job-id", "test-run-id"),
 	})

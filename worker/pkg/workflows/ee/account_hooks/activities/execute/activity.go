@@ -40,7 +40,7 @@ type ExecuteHookRequest struct {
 
 type ExecuteHookResponse struct{}
 
-func (a *Activity) ExecuteHook(
+func (a *Activity) ExecuteAccountHook(
 	ctx context.Context,
 	req *ExecuteHookRequest,
 ) (*ExecuteHookResponse, error) {
