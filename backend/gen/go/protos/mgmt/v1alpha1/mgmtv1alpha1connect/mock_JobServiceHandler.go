@@ -2314,6 +2314,65 @@ func (_c *MockJobServiceHandler_ValidateJobMappings_Call) RunAndReturn(run func(
 	return _c
 }
 
+// ValidateSchema provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) ValidateSchema(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]) (*connect.Response[mgmtv1alpha1.ValidateSchemaResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateSchema")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.ValidateSchemaResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]) (*connect.Response[mgmtv1alpha1.ValidateSchemaResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]) *connect.Response[mgmtv1alpha1.ValidateSchemaResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.ValidateSchemaResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_ValidateSchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateSchema'
+type MockJobServiceHandler_ValidateSchema_Call struct {
+	*mock.Call
+}
+
+// ValidateSchema is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]
+func (_e *MockJobServiceHandler_Expecter) ValidateSchema(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_ValidateSchema_Call {
+	return &MockJobServiceHandler_ValidateSchema_Call{Call: _e.mock.On("ValidateSchema", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_ValidateSchema_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ValidateSchemaRequest])) *MockJobServiceHandler_ValidateSchema_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.ValidateSchemaRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_ValidateSchema_Call) Return(_a0 *connect.Response[mgmtv1alpha1.ValidateSchemaResponse], _a1 error) *MockJobServiceHandler_ValidateSchema_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_ValidateSchema_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.ValidateSchemaRequest]) (*connect.Response[mgmtv1alpha1.ValidateSchemaResponse], error)) *MockJobServiceHandler_ValidateSchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockJobServiceHandler creates a new instance of MockJobServiceHandler. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockJobServiceHandler(t interface {

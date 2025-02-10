@@ -30,7 +30,10 @@ func getJobMappingKey(mapping *mgmtv1alpha1.JobMapping) string {
 // - missing: columns defined in the job mappings but not found in the schema (excluding those whose schema or table are missing).
 // - extra: columns present in the schema but not defined in the job mappings.
 // This function takes into account missing schemas and missing tables (passed in as arguments) to avoid duplicate missing column errors.
-func diffColumnsAgainstMappings(schema []*mgmtv1alpha1.DatabaseColumn, mappings []*mgmtv1alpha1.JobMapping, missingSchemaSet, missingTableSet map[string]bool) (missing, extra []*mgmtv1alpha1.DatabaseColumn) {
+func diffColumnsAgainstMappings(schema []*mgmtv1alpha1.DatabaseColumn, mappings []*mgmtv1alpha1.JobMapping, missingSchemaSet, missingTableSet map[string]bool) (missingCols, extraCols []*mgmtv1alpha1.DatabaseColumn) {
+	extra := []*mgmtv1alpha1.DatabaseColumn{}
+	missing := []*mgmtv1alpha1.DatabaseColumn{}
+
 	// Build a set of tables from the job mappings.
 	tablesInMappings := make(map[string]bool)
 	for _, mappingItem := range mappings {
@@ -76,7 +79,7 @@ func diffColumnsAgainstMappings(schema []*mgmtv1alpha1.DatabaseColumn, mappings 
 		}
 	}
 
-	return
+	return missing, extra
 }
 
 // diffTablesAgainstMappings compares tables from job mappings against the schema tables.

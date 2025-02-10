@@ -189,6 +189,67 @@ func (_c *MockClientInterface_GetRecordStreamFromPrefix_Call) RunAndReturn(run f
 	return _c
 }
 
+// ListObjectPrefixes provides a mock function with given fields: ctx, bucketName, prefix, delimiter
+func (_m *MockClientInterface) ListObjectPrefixes(ctx context.Context, bucketName string, prefix string, delimiter string) ([]string, error) {
+	ret := _m.Called(ctx, bucketName, prefix, delimiter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListObjectPrefixes")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) ([]string, error)); ok {
+		return rf(ctx, bucketName, prefix, delimiter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []string); ok {
+		r0 = rf(ctx, bucketName, prefix, delimiter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, bucketName, prefix, delimiter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClientInterface_ListObjectPrefixes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListObjectPrefixes'
+type MockClientInterface_ListObjectPrefixes_Call struct {
+	*mock.Call
+}
+
+// ListObjectPrefixes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - bucketName string
+//   - prefix string
+//   - delimiter string
+func (_e *MockClientInterface_Expecter) ListObjectPrefixes(ctx interface{}, bucketName interface{}, prefix interface{}, delimiter interface{}) *MockClientInterface_ListObjectPrefixes_Call {
+	return &MockClientInterface_ListObjectPrefixes_Call{Call: _e.mock.On("ListObjectPrefixes", ctx, bucketName, prefix, delimiter)}
+}
+
+func (_c *MockClientInterface_ListObjectPrefixes_Call) Run(run func(ctx context.Context, bucketName string, prefix string, delimiter string)) *MockClientInterface_ListObjectPrefixes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *MockClientInterface_ListObjectPrefixes_Call) Return(_a0 []string, _a1 error) *MockClientInterface_ListObjectPrefixes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClientInterface_ListObjectPrefixes_Call) RunAndReturn(run func(context.Context, string, string, string) ([]string, error)) *MockClientInterface_ListObjectPrefixes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockClientInterface creates a new instance of MockClientInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockClientInterface(t interface {
