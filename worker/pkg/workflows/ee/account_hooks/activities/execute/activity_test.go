@@ -112,8 +112,8 @@ func Test_Activity_Success(t *testing.T) {
 	eventData, ok := webhookPayload.EventData.(map[string]any)
 	require.True(t, ok)
 	jobRunSucceededEvent, ok := eventData["jobRunSucceeded"].(map[string]any)
+	require.Equal(t, eventData["accountId"], accountId)
 	require.True(t, ok)
-	require.Equal(t, jobRunSucceededEvent["accountId"], accountId)
 	require.Equal(t, jobRunSucceededEvent["jobId"], "test-job-id")
 	require.Equal(t, jobRunSucceededEvent["jobRunId"], "test-run-id")
 }

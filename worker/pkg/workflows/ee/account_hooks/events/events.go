@@ -5,27 +5,25 @@ import (
 )
 
 type Event struct {
-	Name mgmtv1alpha1.AccountHookEvent `json:"name"`
+	Name      mgmtv1alpha1.AccountHookEvent `json:"name"`
+	AccountId string                        `json:"accountId"`
 
 	JobRunCreated   *Event_JobRunCreated   `json:"jobRunCreated,omitempty"`
 	JobRunSucceeded *Event_JobRunSucceeded `json:"jobRunSucceeded,omitempty"`
 	JobRunFailed    *Event_JobRunFailed    `json:"jobRunFailed,omitempty"`
 }
 type Event_BaseJobRun struct {
-	AccountId string `json:"accountId"`
-	JobId     string `json:"jobId"`
-	JobRunId  string `json:"jobRunId"`
+	JobId    string `json:"jobId"`
+	JobRunId string `json:"jobRunId"`
 }
 
 func newEvent_BaseJobRun(
-	accountId string,
 	jobId string,
 	jobRunId string,
 ) *Event_BaseJobRun {
 	return &Event_BaseJobRun{
-		AccountId: accountId,
-		JobId:     jobId,
-		JobRunId:  jobRunId,
+		JobId:    jobId,
+		JobRunId: jobRunId,
 	}
 }
 
@@ -39,9 +37,10 @@ func NewEvent_JobRunCreated(
 	jobRunId string,
 ) *Event {
 	return &Event{
-		Name: mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED,
+		Name:      mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED,
+		AccountId: accountId,
 		JobRunCreated: &Event_JobRunCreated{
-			Event_BaseJobRun: newEvent_BaseJobRun(accountId, jobId, jobRunId),
+			Event_BaseJobRun: newEvent_BaseJobRun(jobId, jobRunId),
 		},
 	}
 }
@@ -56,9 +55,10 @@ func NewEvent_JobRunSucceeded(
 	jobRunId string,
 ) *Event {
 	return &Event{
-		Name: mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED,
+		Name:      mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED,
+		AccountId: accountId,
 		JobRunSucceeded: &Event_JobRunSucceeded{
-			Event_BaseJobRun: newEvent_BaseJobRun(accountId, jobId, jobRunId),
+			Event_BaseJobRun: newEvent_BaseJobRun(jobId, jobRunId),
 		},
 	}
 }
@@ -73,9 +73,10 @@ func NewEvent_JobRunFailed(
 	jobRunId string,
 ) *Event {
 	return &Event{
-		Name: mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED,
+		Name:      mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED,
+		AccountId: accountId,
 		JobRunFailed: &Event_JobRunFailed{
-			Event_BaseJobRun: newEvent_BaseJobRun(accountId, jobId, jobRunId),
+			Event_BaseJobRun: newEvent_BaseJobRun(jobId, jobRunId),
 		},
 	}
 }

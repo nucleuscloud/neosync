@@ -39,9 +39,7 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
-	execute_hook_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/execute"
-	hooks_by_event_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/hooks-by-event"
-	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
+	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -349,12 +347,7 @@ func serve(ctx context.Context) error {
 
 	if cascadelicense.IsValid() {
 		logger.Debug("ee license is valid, registering account hook activities")
-		hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
-		executeHookActivity := execute_hook_activity.New(accounthookclient)
-
-		w.RegisterWorkflow(accounthook_workflow.ProcessAccountHook)
-		w.RegisterActivity(hooksByEventActivity.GetAccountHooksByEvent)
-		w.RegisterActivity(executeHookActivity.ExecuteAccountHook)
+		accounthook_workflow_register.Register(w, accounthookclient)
 	}
 
 	if err := w.Start(); err != nil {
