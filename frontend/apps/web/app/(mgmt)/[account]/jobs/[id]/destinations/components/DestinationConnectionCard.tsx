@@ -81,26 +81,6 @@ export default function DestinationConnectionCard({
     values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
 
-  // const {
-  //   data: validateMappingsResponse,
-  //   isLoading: isValidateMappingsLoading,
-  // } = useQuery(
-  //   JobService.method.validateJobMappings,
-  //   {
-  //     accountId: account?.id,
-  //     mappings: jobmappings,
-  //     virtualForeignKeys: [],
-  //     connectionId: form.getValues('connectionId'),
-  //   },
-  //   {
-  //     enabled:
-  //       !!account?.id &&
-  //       !!form.getValues('connectionId') &&
-  //       !!jobmappings &&
-  //       !isInitTableSchemaEnabled(form.getValues('destinationOptions')),
-  //   }
-  // );
-
   const { data: validateSchemaResponse, isLoading: isValidatingSchema } =
     useQuery(
       JobService.method.validateSchema,
@@ -112,8 +92,6 @@ export default function DestinationConnectionCard({
         enabled: !!jobmappings && !!form.getValues('connectionId'),
       }
     );
-
-  console.log(JSON.stringify(validateSchemaResponse, null, 2));
 
   async function onSubmit(values: NewDestinationFormValues) {
     try {
