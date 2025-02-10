@@ -44,6 +44,9 @@ func (a *Activity) ExecuteHook(
 	ctx context.Context,
 	req *ExecuteHookRequest,
 ) (*ExecuteHookResponse, error) {
+	if req.Event == nil {
+		return nil, errors.New("event is required")
+	}
 	activityInfo := activity.GetInfo(ctx)
 	loggerKeyVals := []any{
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
