@@ -106,9 +106,9 @@ const (
 	// JobServiceValidateJobMappingsProcedure is the fully-qualified name of the JobService's
 	// ValidateJobMappings RPC.
 	JobServiceValidateJobMappingsProcedure = "/mgmt.v1alpha1.JobService/ValidateJobMappings"
-	// JobServiceValidateDestinationSchemaProcedure is the fully-qualified name of the JobService's
-	// ValidateDestinationSchema RPC.
-	JobServiceValidateDestinationSchemaProcedure = "/mgmt.v1alpha1.JobService/ValidateDestinationSchema"
+	// JobServiceValidateSchemaProcedure is the fully-qualified name of the JobService's ValidateSchema
+	// RPC.
+	JobServiceValidateSchemaProcedure = "/mgmt.v1alpha1.JobService/ValidateSchema"
 	// JobServiceGetRunContextProcedure is the fully-qualified name of the JobService's GetRunContext
 	// RPC.
 	JobServiceGetRunContextProcedure = "/mgmt.v1alpha1.JobService/GetRunContext"
@@ -173,7 +173,7 @@ var (
 	jobServiceSetJobWorkflowOptionsMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("SetJobWorkflowOptions")
 	jobServiceSetJobSyncOptionsMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobSyncOptions")
 	jobServiceValidateJobMappingsMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("ValidateJobMappings")
-	jobServiceValidateDestinationSchemaMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("ValidateDestinationSchema")
+	jobServiceValidateSchemaMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("ValidateSchema")
 	jobServiceGetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("GetRunContext")
 	jobServiceSetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("SetRunContext")
 	jobServiceSetRunContextsMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("SetRunContexts")
@@ -246,8 +246,8 @@ type JobServiceClient interface {
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
-	// Validates that the destination schema is compatible with the job mappings
-	ValidateDestinationSchema(context.Context, *connect.Request[v1alpha1.ValidateDestinationSchemaRequest]) (*connect.Response[v1alpha1.ValidateDestinationSchemaResponse], error)
+	// Validates that the schema is compatible with the job mappings
+	ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
 	// Sets a run context to be used by a workflow run
@@ -460,10 +460,10 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		validateDestinationSchema: connect.NewClient[v1alpha1.ValidateDestinationSchemaRequest, v1alpha1.ValidateDestinationSchemaResponse](
+		validateSchema: connect.NewClient[v1alpha1.ValidateSchemaRequest, v1alpha1.ValidateSchemaResponse](
 			httpClient,
-			baseURL+JobServiceValidateDestinationSchemaProcedure,
-			connect.WithSchema(jobServiceValidateDestinationSchemaMethodDescriptor),
+			baseURL+JobServiceValidateSchemaProcedure,
+			connect.WithSchema(jobServiceValidateSchemaMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		getRunContext: connect.NewClient[v1alpha1.GetRunContextRequest, v1alpha1.GetRunContextResponse](
@@ -568,7 +568,7 @@ type jobServiceClient struct {
 	setJobWorkflowOptions            *connect.Client[v1alpha1.SetJobWorkflowOptionsRequest, v1alpha1.SetJobWorkflowOptionsResponse]
 	setJobSyncOptions                *connect.Client[v1alpha1.SetJobSyncOptionsRequest, v1alpha1.SetJobSyncOptionsResponse]
 	validateJobMappings              *connect.Client[v1alpha1.ValidateJobMappingsRequest, v1alpha1.ValidateJobMappingsResponse]
-	validateDestinationSchema        *connect.Client[v1alpha1.ValidateDestinationSchemaRequest, v1alpha1.ValidateDestinationSchemaResponse]
+	validateSchema                   *connect.Client[v1alpha1.ValidateSchemaRequest, v1alpha1.ValidateSchemaResponse]
 	getRunContext                    *connect.Client[v1alpha1.GetRunContextRequest, v1alpha1.GetRunContextResponse]
 	setRunContext                    *connect.Client[v1alpha1.SetRunContextRequest, v1alpha1.SetRunContextResponse]
 	setRunContexts                   *connect.Client[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
@@ -722,9 +722,9 @@ func (c *jobServiceClient) ValidateJobMappings(ctx context.Context, req *connect
 	return c.validateJobMappings.CallUnary(ctx, req)
 }
 
-// ValidateDestinationSchema calls mgmt.v1alpha1.JobService.ValidateDestinationSchema.
-func (c *jobServiceClient) ValidateDestinationSchema(ctx context.Context, req *connect.Request[v1alpha1.ValidateDestinationSchemaRequest]) (*connect.Response[v1alpha1.ValidateDestinationSchemaResponse], error) {
-	return c.validateDestinationSchema.CallUnary(ctx, req)
+// ValidateSchema calls mgmt.v1alpha1.JobService.ValidateSchema.
+func (c *jobServiceClient) ValidateSchema(ctx context.Context, req *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error) {
+	return c.validateSchema.CallUnary(ctx, req)
 }
 
 // GetRunContext calls mgmt.v1alpha1.JobService.GetRunContext.
@@ -841,8 +841,8 @@ type JobServiceHandler interface {
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
-	// Validates that the destination schema is compatible with the job mappings
-	ValidateDestinationSchema(context.Context, *connect.Request[v1alpha1.ValidateDestinationSchemaRequest]) (*connect.Response[v1alpha1.ValidateDestinationSchemaResponse], error)
+	// Validates that the schema is compatible with the job mappings
+	ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
 	// Sets a run context to be used by a workflow run
@@ -1051,10 +1051,10 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	jobServiceValidateDestinationSchemaHandler := connect.NewUnaryHandler(
-		JobServiceValidateDestinationSchemaProcedure,
-		svc.ValidateDestinationSchema,
-		connect.WithSchema(jobServiceValidateDestinationSchemaMethodDescriptor),
+	jobServiceValidateSchemaHandler := connect.NewUnaryHandler(
+		JobServiceValidateSchemaProcedure,
+		svc.ValidateSchema,
+		connect.WithSchema(jobServiceValidateSchemaMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetRunContextHandler := connect.NewUnaryHandler(
@@ -1184,8 +1184,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetJobSyncOptionsHandler.ServeHTTP(w, r)
 		case JobServiceValidateJobMappingsProcedure:
 			jobServiceValidateJobMappingsHandler.ServeHTTP(w, r)
-		case JobServiceValidateDestinationSchemaProcedure:
-			jobServiceValidateDestinationSchemaHandler.ServeHTTP(w, r)
+		case JobServiceValidateSchemaProcedure:
+			jobServiceValidateSchemaHandler.ServeHTTP(w, r)
 		case JobServiceGetRunContextProcedure:
 			jobServiceGetRunContextHandler.ServeHTTP(w, r)
 		case JobServiceSetRunContextProcedure:
@@ -1329,8 +1329,8 @@ func (UnimplementedJobServiceHandler) ValidateJobMappings(context.Context, *conn
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateJobMappings is not implemented"))
 }
 
-func (UnimplementedJobServiceHandler) ValidateDestinationSchema(context.Context, *connect.Request[v1alpha1.ValidateDestinationSchemaRequest]) (*connect.Response[v1alpha1.ValidateDestinationSchemaResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateDestinationSchema is not implemented"))
+func (UnimplementedJobServiceHandler) ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateSchema is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error) {

@@ -5414,63 +5414,6 @@ components:
           description: The id of the user defined transformer. When used in a job mapping, this will be used to reference the underlying system transformer along with it's configuration that was chosen.
       title: UserDefinedTransformerConfig
       additionalProperties: false
-    mgmt.v1alpha1.ValidateDestinationSchemaRequest:
-      type: object
-      properties:
-        jobId:
-          type: string
-          title: job_id
-          format: uuid
-          description: The unique identifier of the job
-        connectionId:
-          type: string
-          title: connection_id
-          format: uuid
-          description: The unique identifier of the destination connection to validate
-      title: ValidateDestinationSchemaRequest
-      additionalProperties: false
-    mgmt.v1alpha1.ValidateDestinationSchemaResponse:
-      type: object
-      properties:
-        missingColumns:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
-          title: missing_columns
-          description: The list columns missing in destination
-        extraColumns:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
-          title: extra_columns
-          description: The list of extra columns in destination and not in source
-        missingTables:
-          type: array
-          items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaResponse.Table'
-          title: missing_tables
-          description: The list of tables missing in destination
-        missingSchemas:
-          type: array
-          items:
-            type: string
-          title: missing_schemas
-          description: The list of schemas missing in destination
-      title: ValidateDestinationSchemaResponse
-      additionalProperties: false
-    mgmt.v1alpha1.ValidateDestinationSchemaResponse.Table:
-      type: object
-      properties:
-        schema:
-          type: string
-          title: schema
-          description: The schema of the table
-        table:
-          type: string
-          title: table
-          description: The table
-      title: Table
-      additionalProperties: false
     mgmt.v1alpha1.ValidateJobMappingsRequest:
       type: object
       allOf:
@@ -5545,6 +5488,64 @@ components:
           title: table_errors
           description: The list of table errors
       title: ValidateJobMappingsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaRequest:
+      type: object
+      properties:
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
+          title: mappings
+          description: The list of mappings to validate
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to validate
+      title: ValidateSchemaRequest
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaResponse:
+      type: object
+      properties:
+        missingColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: missing_columns
+          description: The list columns missing in destination
+        extraColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: extra_columns
+          description: The list of extra columns in destination and not in source
+        missingTables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaResponse.Table'
+          title: missing_tables
+          description: The list of tables missing in destination
+        missingSchemas:
+          type: array
+          items:
+            type: string
+          title: missing_schemas
+          description: The list of schemas missing in destination
+      title: ValidateSchemaResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaResponse.Table:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The table
+      title: Table
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:
       type: object
@@ -6655,13 +6656,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.ValidateJobMappingsResponse'
-  /mgmt.v1alpha1.JobService/ValidateDestinationSchema:
+  /mgmt.v1alpha1.JobService/ValidateSchema:
     post:
       tags:
         - mgmt.v1alpha1.JobService
-      summary: ValidateDestinationSchema
-      description: Validates that the destination schema is compatible with the job mappings
-      operationId: mgmt.v1alpha1.JobService.ValidateDestinationSchema
+      summary: ValidateSchema
+      description: Validates that the schema is compatible with the job mappings
+      operationId: mgmt.v1alpha1.JobService.ValidateSchema
       parameters:
         - name: Connect-Protocol-Version
           in: header
@@ -6676,7 +6677,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaRequest'
+              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaRequest'
         required: true
       responses:
         default:
@@ -6690,7 +6691,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateDestinationSchemaResponse'
+                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaResponse'
   /mgmt.v1alpha1.JobService/GetRunContext:
     post:
       tags:

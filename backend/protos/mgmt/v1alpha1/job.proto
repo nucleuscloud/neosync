@@ -1255,14 +1255,14 @@ message ValidateJobMappingsResponse {
   repeated TableError table_errors = 4;
 }
 
-message ValidateDestinationSchemaRequest {
-  // The unique identifier of the job
-  string job_id = 1 [(buf.validate.field).string.uuid = true];
-  // The unique identifier of the destination connection to validate
+message ValidateSchemaRequest {
+  // The list of mappings to validate
+  repeated JobMapping mappings = 1;
+  // The unique identifier of the connection to validate
   string connection_id = 2 [(buf.validate.field).string.uuid = true];
 }
 
-message ValidateDestinationSchemaResponse {
+message ValidateSchemaResponse {
   // The list columns missing in destination
   repeated DatabaseColumn missing_columns = 1;
   // The list of extra columns in destination and not in source
@@ -1619,8 +1619,8 @@ service JobService {
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
   // Validates that the jobmapping configured can run with table constraints
   rpc ValidateJobMappings(ValidateJobMappingsRequest) returns (ValidateJobMappingsResponse) {}
-  // Validates that the destination schema is compatible with the job mappings
-  rpc ValidateDestinationSchema(ValidateDestinationSchemaRequest) returns (ValidateDestinationSchemaResponse) {}
+  // Validates that the schema is compatible with the job mappings
+  rpc ValidateSchema(ValidateSchemaRequest) returns (ValidateSchemaResponse) {}
 
   // Gets a run context to be used by a workflow run
   rpc GetRunContext(GetRunContextRequest) returns (GetRunContextResponse) {}

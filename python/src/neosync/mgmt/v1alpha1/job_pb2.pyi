@@ -1338,15 +1338,15 @@ class ValidateJobMappingsResponse(_message.Message):
     table_errors: _containers.RepeatedCompositeFieldContainer[TableError]
     def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ..., table_errors: _Optional[_Iterable[_Union[TableError, _Mapping]]] = ...) -> None: ...
 
-class ValidateDestinationSchemaRequest(_message.Message):
-    __slots__ = ("job_id", "connection_id")
-    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+class ValidateSchemaRequest(_message.Message):
+    __slots__ = ("mappings", "connection_id")
+    MAPPINGS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
-    job_id: str
+    mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
     connection_id: str
-    def __init__(self, job_id: _Optional[str] = ..., connection_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ...) -> None: ...
 
-class ValidateDestinationSchemaResponse(_message.Message):
+class ValidateSchemaResponse(_message.Message):
     __slots__ = ("missing_columns", "extra_columns", "missing_tables", "missing_schemas")
     class Table(_message.Message):
         __slots__ = ("schema", "table")
@@ -1361,9 +1361,9 @@ class ValidateDestinationSchemaResponse(_message.Message):
     MISSING_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     missing_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
     extra_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
-    missing_tables: _containers.RepeatedCompositeFieldContainer[ValidateDestinationSchemaResponse.Table]
+    missing_tables: _containers.RepeatedCompositeFieldContainer[ValidateSchemaResponse.Table]
     missing_schemas: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, missing_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., extra_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., missing_tables: _Optional[_Iterable[_Union[ValidateDestinationSchemaResponse.Table, _Mapping]]] = ..., missing_schemas: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, missing_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., extra_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., missing_tables: _Optional[_Iterable[_Union[ValidateSchemaResponse.Table, _Mapping]]] = ..., missing_schemas: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")
