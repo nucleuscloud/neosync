@@ -92,7 +92,7 @@ func Test_Activity_Success(t *testing.T) {
 
 	val, err := env.ExecuteActivity(activity.ExecuteHook, &ExecuteHookRequest{
 		HookId: hookId,
-		Event:  accounthook_events.NewEvent_JobRunSucceeded("test-account-id", "test-job-id", "test-run-id"),
+		Event:  accounthook_events.NewEvent_JobRunSucceeded(accountId, "test-job-id", "test-run-id"),
 	})
 	require.NoError(t, err)
 	res := &ExecuteHookResponse{}
@@ -113,7 +113,7 @@ func Test_Activity_Success(t *testing.T) {
 	require.True(t, ok)
 	jobRunSucceededEvent, ok := eventData["jobRunSucceeded"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, jobRunSucceededEvent["accountId"], "test-account-id")
+	require.Equal(t, jobRunSucceededEvent["accountId"], accountId)
 	require.Equal(t, jobRunSucceededEvent["jobId"], "test-job-id")
 	require.Equal(t, jobRunSucceededEvent["jobRunId"], "test-run-id")
 }
