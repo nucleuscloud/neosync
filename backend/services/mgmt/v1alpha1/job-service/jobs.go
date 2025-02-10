@@ -22,7 +22,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/job"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
-	validate_schema "github.com/nucleuscloud/neosync/internal/validate-schema"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	temporalclient "go.temporal.io/sdk/client"
@@ -1665,7 +1664,7 @@ func (s *Service) ValidateSchema(
 		return nil, err
 	}
 
-	results := validate_schema.ValidateSchemaAgainstJobMappings(schema, req.Msg.GetMappings())
+	results := job_util.ValidateSchemaAgainstJobMappings(schema, req.Msg.GetMappings())
 
 	resp := &mgmtv1alpha1.ValidateSchemaResponse{
 		MissingColumns: results.MissingColumns,

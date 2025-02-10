@@ -1,4 +1,4 @@
-package validate_schema
+package job
 
 import (
 	"testing"
