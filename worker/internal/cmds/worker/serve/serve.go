@@ -351,7 +351,7 @@ func serve(ctx context.Context) error {
 	}
 
 	if err := w.Start(); err != nil {
-		return fmt.Errorf("unable to start temporal workerr: %w", err)
+		return fmt.Errorf("unable to start temporal worker: %w", err)
 	}
 	logger.Debug("temporal worker started successfully")
 
