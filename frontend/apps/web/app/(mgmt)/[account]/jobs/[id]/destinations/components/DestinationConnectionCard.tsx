@@ -3,13 +3,6 @@ import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/Conn
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -25,11 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -40,12 +32,12 @@ import {
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
-import { IoAlertCircleOutline } from 'react-icons/io5';
 import { toast } from 'sonner';
 import {
   getDestinationFormValuesOrDefaultFromDestination,
   toJobDestinationOptions,
 } from '../../../util';
+import DestinationAlerts from './DestinationAlerts';
 interface Props {
   jobId: string;
   jobSourceId: string;
@@ -78,18 +70,6 @@ export default function DestinationConnectionCard({
     resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
     values: getDestinationFormValuesOrDefaultFromDestination(destination),
   });
-
-  const { data: validateSchemaResponse, isLoading: isValidatingSchema } =
-    useQuery(
-      JobService.method.validateSchema,
-      {
-        connectionId: form.getValues('connectionId'),
-        mappings: jobmappings,
-      },
-      {
-        enabled: !!jobmappings && !!form.getValues('connectionId'),
-      }
-    );
 
   async function onSubmit(values: NewDestinationFormValues) {
     try {
@@ -133,14 +113,6 @@ export default function DestinationConnectionCard({
     form.control,
     jobSourceId
   );
-
-  const columnErrors =
-    !!validateSchemaResponse?.missingColumns?.length ||
-    !!validateSchemaResponse?.extraColumns?.length;
-
-  const tableErrors =
-    !!validateSchemaResponse?.missingTables?.length ||
-    !!validateSchemaResponse?.missingSchemas?.length;
 
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(availableConnections);
@@ -196,117 +168,13 @@ export default function DestinationConnectionCard({
                   </FormItem>
                 )}
               />
-              {isValidatingSchema && (
-                <Skeleton className="w-full h-24 rounded-lg" />
-              )}
-              {!isValidatingSchema && columnErrors && (
-                <div>
-                  <Alert className="border-red-400">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value={`table-error`} key={1}>
-                        <AccordionTrigger className="text-left">
-                          <div className="font-medium flex flex-row items-center gap-2">
-                            <IoAlertCircleOutline className="h-6 w-6" />
-                            Found issues with columns in schema. Please resolve
-                            before next job run.
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-2">
-                            <div className="rounded-md bg-muted p-3">
-                              <pre className="mt-2 whitespace-pre-wrap text-sm">
-                                {(() => {
-                                  const { missingColumns, extraColumns } =
-                                    validateSchemaResponse || {};
-                                  let output = '';
-                                  if (
-                                    missingColumns &&
-                                    missingColumns.length > 0
-                                  ) {
-                                    output +=
-                                      'Columns Missing in Destination:\n';
-                                    missingColumns.forEach((col) => {
-                                      output += ` - ${col.schema}.${col.table}.${col.column}\n`;
-                                    });
-                                    output += '\n';
-                                  }
-                                  if (extraColumns && extraColumns.length > 0) {
-                                    output +=
-                                      'Columns Not Found in Job Mappings:\n';
-                                    extraColumns.forEach((col) => {
-                                      output += ` - ${col.schema}.${col.table}.${col.column}\n`;
-                                    });
-                                  }
-                                  return output || 'No differences found.';
-                                })()}
-                              </pre>
-                            </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </Alert>
-                </div>
-              )}
-              {!isInitTableSchemaEnabled(
-                form.getValues('destinationOptions')
-              ) &&
-                !isValidatingSchema &&
-                tableErrors && (
-                  <div>
-                    <Alert className="border-red-400">
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value={`table-error`} key={1}>
-                          <AccordionTrigger className="text-left">
-                            <div className="font-medium flex flex-row items-center gap-2">
-                              <IoAlertCircleOutline className="h-6 w-6" />
-                              This destination is missing tables found in Job
-                              Mappings. Either enable Init Table Schema or
-                              create the tables manually.
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-2">
-                              <div className="rounded-md bg-muted p-3">
-                                <pre className="mt-2 whitespace-pre-wrap text-sm">
-                                  {(() => {
-                                    const { missingSchemas, missingTables } =
-                                      validateSchemaResponse || {};
-                                    let output = '';
-                                    if (
-                                      missingSchemas &&
-                                      missingSchemas.length > 0
-                                    ) {
-                                      output +=
-                                        'Schemas Missing in Destination:\n';
-                                      missingSchemas.forEach((schema) => {
-                                        output += ` - ${schema}\n`;
-                                      });
-                                      output += '\n';
-                                    }
-                                    if (
-                                      missingTables &&
-                                      missingTables.length > 0
-                                    ) {
-                                      output +=
-                                        'Tables Missing in Destination:\n';
-                                      missingTables.forEach((table) => {
-                                        output += ` - ${table.schema}.${table.table}\n`;
-                                      });
-                                      output += '\n';
-                                    }
-                                    return output || 'No differences found.';
-                                  })()}
-                                </pre>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </Alert>
-                  </div>
+              <DestinationAlerts
+                connectionId={form.getValues('connectionId')}
+                jobmappings={jobmappings}
+                initTableSchemaEnabled={isInitTableSchemaEnabled(
+                  form.getValues('destinationOptions')
                 )}
-
+              />
               <DestinationOptionsForm
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId

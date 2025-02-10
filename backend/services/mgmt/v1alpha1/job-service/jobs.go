@@ -1737,10 +1737,10 @@ func getConnectionSchemaConfigByConnectionType(connection *mgmtv1alpha1.Connecti
 				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
 			},
 		}, nil
-	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		return &mgmtv1alpha1.ConnectionSchemaConfig{
-			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
-				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlSchemaConfig{},
 			},
 		}, nil
 	default:
