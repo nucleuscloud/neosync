@@ -39,6 +39,7 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	execute_hook_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/execute"
 	hooks_by_event_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/hooks-by-event"
 	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -347,10 +348,11 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
 	hooksByEventActivity := hooks_by_event_activity.New(accounthookclient)
+	executeHookActivity := execute_hook_activity.New(accounthookclient)
 
 	w.RegisterWorkflow(accounthook_workflow.AccountHookWorkflow)
 	w.RegisterActivity(hooksByEventActivity.GetHooksByEvent)
-
+	w.RegisterActivity(executeHookActivity.ExecuteHook)
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal workerr: %w", err)
 	}
