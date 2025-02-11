@@ -12,6 +12,7 @@ import (
 	"github.com/Jeffail/shutdown"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -124,16 +125,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
 
-	tx, err := db.BeginTx(ctx, &sql.TxOptions{
-		ReadOnly: true,
-	})
-	if err != nil {
-		return err
-	}
-	s.tx = tx
-
-	s.logger.Debug("transaction started")
-
 	var args []any
 	if s.argsMapping != nil {
 		iargs, err := s.argsMapping.Query(nil)
@@ -146,27 +137,45 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	cursorStmt := fmt.Sprintf("DECLARE %s CURSOR FOR %s", s.cursorName, s.queryStatic)
-	_, err = s.tx.ExecContext(ctx, cursorStmt, args...)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+	switch s.driver {
+	case sqlmanager_shared.PostgresDriver:
+		tx, err := db.BeginTx(ctx, &sql.TxOptions{
+			ReadOnly: true,
+		})
+		if err != nil {
+			return err
 		}
-		return err
-	}
+		s.tx = tx
+		s.logger.Debug("transaction started")
+		cursorStmt := fmt.Sprintf("DECLARE %s CURSOR FOR %s", s.cursorName, s.queryStatic)
+		_, err = s.tx.ExecContext(ctx, cursorStmt, args...)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+			}
+			return err
+		}
 
-	s.logger.Debug("cursor declared")
+		s.logger.Debug("cursor declared")
 
-	err = s.fetchNextBatch(ctx)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+		err = s.fetchNextBatchFromCursor(ctx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+			}
+			return err
 		}
-		if neosync_benthos.IsCriticalError(err.Error()) {
-			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-			s.stopActivityChannel <- err
+	default:
+		rows, err := db.QueryContext(ctx, s.queryStatic, args...)
+		if err != nil {
+			if neosync_benthos.IsCriticalError(err.Error()) {
+				s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+				s.stopActivityChannel <- err
+			}
+			return err
 		}
-		return err
+
+		s.rows = rows
 	}
 
 	go func() {
@@ -186,11 +195,15 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	return nil
 }
 
-// fetchNextBatch issues a FETCH command to retrieve the next batch of rows from the cursor.
-func (s *pooledInput) fetchNextBatch(ctx context.Context) error {
+// fetchNextBatchFromCursor issues a FETCH command to retrieve the next batch of rows from the cursor.
+func (s *pooledInput) fetchNextBatchFromCursor(ctx context.Context) error {
 	fetchStmt := fmt.Sprintf("FETCH FORWARD %d FROM %s", 100, s.cursorName) //nolint:gosec // cursor name is hashed and sanitized
 	rows, err := s.tx.QueryContext(ctx, fetchStmt)
 	if err != nil {
+		if neosync_benthos.IsCriticalError(err.Error()) {
+			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.stopActivityChannel <- err
+		}
 		return err
 	}
 	// If no rows are returned, rows.Next() will be false.
@@ -226,7 +239,7 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db == nil || s.tx == nil {
+	if s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil) {
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
@@ -239,22 +252,25 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 			s.rows = nil
 			return nil, nil, err
 		}
-		_ = s.rows.Close()
-		// Fetch next batch.
-		if err := s.fetchNextBatch(ctx); err != nil {
-			if neosync_benthos.IsCriticalError(err.Error()) {
-				s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-				s.stopActivityChannel <- err
+		if s.driver == sqlmanager_shared.PostgresDriver {
+			_ = s.rows.Close()
+			// Fetch next batch for Postgres
+			if err := s.fetchNextBatchFromCursor(ctx); err != nil {
+				return nil, nil, err
 			}
-			return nil, nil, err
-		}
-		// Check if the new batch has rows.
-		if s.rows == nil || !s.rows.Next() {
-			// No more rows; close cursor and commit/rollback transaction.
+			// Check if the new batch has rows
+			if s.rows == nil || !s.rows.Next() {
+				// No more rows; close cursor and commit transaction
+				_ = s.rows.Close()
+				s.rows = nil
+				_ = s.tx.Commit()
+				s.tx = nil
+				return nil, nil, service.ErrEndOfInput
+			}
+		} else {
+			// For non-Postgres drivers, simply close and return EndOfInput
 			_ = s.rows.Close()
 			s.rows = nil
-			_ = s.tx.Commit()
-			s.tx = nil
 			return nil, nil, service.ErrEndOfInput
 		}
 	}
@@ -280,7 +296,7 @@ func emptyAck(ctx context.Context, err error) error {
 func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
-	isNil := s.db == nil || s.tx == nil
+	isNil := s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil)
 	s.dbMut.Unlock()
 	if isNil {
 		return nil
