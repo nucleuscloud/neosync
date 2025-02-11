@@ -16,12 +16,14 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
+	accounthooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/accounts"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	v1alpha1_accounthookservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/account-hooks-service"
 	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
@@ -242,6 +244,13 @@ func (s *NeosyncApiTestClient) setupMux(
 		connectiondatabuilder,
 	)
 
+	accountHookService := v1alpha1_accounthookservice.New(
+		accounthooks.New(
+			neosyncDb,
+			userclient,
+		),
+	)
+
 	mux := http.NewServeMux()
 
 	interceptors := []connect.Interceptor{}
@@ -274,6 +283,18 @@ func (s *NeosyncApiTestClient) setupMux(
 		connectionDataService,
 		connect.WithInterceptors(interceptors...),
 	))
+
+	if isLicensed {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			accountHookService,
+			connect.WithInterceptors(interceptors...),
+		))
+	} else {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			mgmtv1alpha1connect.UnimplementedAccountHookServiceHandler{},
+			connect.WithInterceptors(interceptors...),
+		))
+	}
 
 	return mux, nil
 }

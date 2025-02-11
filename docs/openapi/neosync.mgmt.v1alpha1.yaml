@@ -20,6 +20,8 @@ servers:
         default: '8080'
         description: The port to use for the development server
 tags:
+  - name: mgmt.v1alpha1.AccountHookService
+    x-displayName: mgmt.v1alpha1.AccountHookService
   - name: mgmt.v1alpha1.AnonymizationService
     description: >-
       Service that transactionally anonymizes data, regardless of the connection
@@ -61,6 +63,315 @@ externalDocs:
   description: API and SDK Documentation
   url: https://docs.neosync.dev/api
 paths:
+  /mgmt.v1alpha1.AccountHookService/GetAccountHooks:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetAccountHooks
+      description: Retrieves all account hooks.
+      operationId: mgmt.v1alpha1.AccountHookService.GetAccountHooks
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHooksRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHooksResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/GetAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetAccountHook
+      description: Retrieves a specific account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.GetAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/CreateAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: CreateAccountHook
+      description: Creates a new account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.CreateAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/UpdateAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: UpdateAccountHook
+      description: Updates an existing account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.UpdateAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/DeleteAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: DeleteAccountHook
+      description: Deletes an account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.DeleteAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/IsAccountHookNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: IsAccountHookNameAvailable
+      description: Checks if an account hook name is available.
+      operationId: mgmt.v1alpha1.AccountHookService.IsAccountHookNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.IsAccountHookNameAvailableRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.IsAccountHookNameAvailableResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/SetAccountHookEnabled:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: SetAccountHookEnabled
+      description: Enables or disables an account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.SetAccountHookEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountHookEnabledRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.SetAccountHookEnabledResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/GetActiveAccountHooksByEvent:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetActiveAccountHooksByEvent
+      description: Retrieves all active account hooks for a specific event.
+      operationId: mgmt.v1alpha1.AccountHookService.GetActiveAccountHooksByEvent
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
     post:
       tags:
@@ -4120,6 +4431,521 @@ paths:
         - BearerAuth: []
 components:
   schemas:
+    mgmt.v1alpha1.AccountHookEvent:
+      type: string
+      title: AccountHookEvent
+      enum:
+        - ACCOUNT_HOOK_EVENT_UNSPECIFIED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED
+      description: Enum of all possible events that can trigger an account hook.
+    google.protobuf.Timestamp:
+      type: string
+      format: date-time
+      description: >-
+        A Timestamp represents a point in time independent of any time zone or
+        local
+         calendar, encoded as a count of seconds and fractions of seconds at
+         nanosecond resolution. The count is relative to an epoch at UTC midnight on
+         January 1, 1970, in the proleptic Gregorian calendar which extends the
+         Gregorian calendar backwards to year one.
+
+         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
+         second table is needed for interpretation, using a [24-hour linear
+         smear](https://developers.google.com/time/smear).
+
+         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
+         restricting to that range, we ensure that we can convert to and from [RFC
+         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+
+         # Examples
+
+         Example 1: Compute Timestamp from POSIX `time()`.
+
+             Timestamp timestamp;
+             timestamp.set_seconds(time(NULL));
+             timestamp.set_nanos(0);
+
+         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
+
+             struct timeval tv;
+             gettimeofday(&tv, NULL);
+
+             Timestamp timestamp;
+             timestamp.set_seconds(tv.tv_sec);
+             timestamp.set_nanos(tv.tv_usec * 1000);
+
+         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
+
+             FILETIME ft;
+             GetSystemTimeAsFileTime(&ft);
+             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+
+             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
+             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
+             Timestamp timestamp;
+             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
+             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
+
+         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
+
+             long millis = System.currentTimeMillis();
+
+             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+                 .setNanos((int) ((millis % 1000) * 1000000)).build();
+
+         Example 5: Compute Timestamp from Java `Instant.now()`.
+
+             Instant now = Instant.now();
+
+             Timestamp timestamp =
+                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
+                     .setNanos(now.getNano()).build();
+
+         Example 6: Compute Timestamp from current time in Python.
+
+             timestamp = Timestamp()
+             timestamp.GetCurrentTime()
+
+         # JSON Mapping
+
+         In JSON format, the Timestamp type is encoded as a string in the
+         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
+         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
+         where {year} is always expressed using four digits while {month}, {day},
+         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
+         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
+         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
+         is required. A proto3 JSON serializer should always use UTC (as indicated by
+         "Z") when printing the Timestamp type and a proto3 JSON parser should be
+         able to accept both UTC and other timezones (as indicated by an offset).
+
+         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
+         01:30 UTC on January 15, 2017.
+
+         In JavaScript, one can convert a Date object to this format using the
+         standard
+         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
+         method. In Python, a standard `datetime.datetime` object can be converted
+         to this format using
+         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
+         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
+         the Joda Time's [`ISODateTimeFormat.dateTime()`](
+         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
+         ) to obtain a formatter capable of generating timestamps in this format.
+    mgmt.v1alpha1.AccountHook:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of this hook.
+        name:
+          type: string
+          title: name
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          description: Description of what this hook does.
+        accountId:
+          type: string
+          title: account_id
+          description: The unique identifier of the account this hook belongs to.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        createdByUserId:
+          type: string
+          title: created_by_user_id
+          description: The user that created this hook.
+        createdAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The time this hook was created.
+        updatedByUserId:
+          type: string
+          title: updated_by_user_id
+          description: The user that last updated this hook.
+        updatedAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The last time this hook was updated.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: AccountHook
+      additionalProperties: false
+    mgmt.v1alpha1.AccountHookConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - webhook
+            - not:
+                anyOf:
+                  - required:
+                      - webhook
+      anyOf:
+        - required:
+            - webhook
+        - not:
+            anyOf:
+              - required:
+                  - webhook
+      properties:
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.WebHook'
+          title: webhook
+          description: |-
+            Webhook-based hooks Slack-based hooks
+             SlackHook slack = 2;
+             Future: Discord, Teams, etc.
+      title: AccountHookConfig
+      additionalProperties: false
+      description: Hook-specific configuration
+    mgmt.v1alpha1.AccountHookConfig.WebHook:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          format: uri
+          description: The webhook URL to send the event to.
+        secret:
+          type: string
+          title: secret
+          minLength: 1
+          description: The secret to use for the webhook.
+        disableSslVerification:
+          type: boolean
+          title: disable_ssl_verification
+          description: Whether to disable SSL verification for the webhook.
+      title: WebHook
+      additionalProperties: false
+      description: Webhook-specific configuration
+    mgmt.v1alpha1.CreateAccountHookRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to create the hook for.
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.NewAccountHook'
+          title: hook
+          description: The new account hook configuration.
+      title: CreateAccountHookRequest
+      required:
+        - hook
+      additionalProperties: false
+    mgmt.v1alpha1.CreateAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The newly created account hook.
+      title: CreateAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to delete.
+      title: DeleteAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The deleted account hook.
+      title: DeleteAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to retrieve.
+      title: GetAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The account hook.
+      title: GetAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHooksRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve hooks for.
+      title: GetAccountHooksRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHooksResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hooks
+          description: The list of account hooks.
+      title: GetAccountHooksResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveAccountHooksByEventRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve hooks for.
+        event:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: event
+          description: |-
+            The event to retrieve hooks for.
+             A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+             If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
+      title: GetActiveAccountHooksByEventRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveAccountHooksByEventResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hooks
+          description: The list of active account hooks.
+      title: GetActiveAccountHooksByEventResponse
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountHookNameAvailableRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to check the name for.
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The name to check.
+      title: IsAccountHookNameAvailableRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountHookNameAvailableResponse:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+          title: is_available
+          description: Whether the name is available.
+      title: IsAccountHookNameAvailableResponse
+      additionalProperties: false
+    mgmt.v1alpha1.NewAccountHook:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          minItems: 1
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: NewAccountHook
+      required:
+        - config
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountHookEnabledRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to enable/disable.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether to enable or disable the hook.
+      title: SetAccountHookEnabledRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountHookEnabledResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The updated account hook.
+      title: SetAccountHookEnabledResponse
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to update.
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: UpdateAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The updated account hook.
+      title: UpdateAccountHookResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: >-
+            The status code, which should be an enum value of
+            [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: >-
+            A developer-facing error message, which should be in English. Any
+            user-facing error message should be localized and sent in the
+            [google.rpc.Status.details][google.rpc.Status.details] field, or
+            localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: >-
+        Error type returned by Connect:
+        https://connectrpc.com/docs/go/errors/#http-representation
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: >-
+        Contains an arbitrary serialized message along with a @type that
+        describes the type of the serialized message.
     mgmt.v1alpha1.GenerateEmailType:
       type: string
       title: GenerateEmailType
@@ -6079,166 +6905,6 @@ components:
             along with it's configuration that was chosen.
       title: UserDefinedTransformerConfig
       additionalProperties: false
-    connect-protocol-version:
-      type: number
-      title: Connect-Protocol-Version
-      enum:
-        - 1
-      description: Define the version of the Connect protocol
-      const: 1
-    connect-timeout-header:
-      type: number
-      title: Connect-Timeout-Ms
-      description: Define the timeout, in ms
-    connect.error:
-      type: object
-      properties:
-        code:
-          type: string
-          examples:
-            - CodeNotFound
-          enum:
-            - CodeCanceled
-            - CodeUnknown
-            - CodeInvalidArgument
-            - CodeDeadlineExceeded
-            - CodeNotFound
-            - CodeAlreadyExists
-            - CodePermissionDenied
-            - CodeResourceExhausted
-            - CodeFailedPrecondition
-            - CodeAborted
-            - CodeOutOfRange
-            - CodeInternal
-            - CodeUnavailable
-            - CodeDataLoss
-            - CodeUnauthenticated
-          description: >-
-            The status code, which should be an enum value of
-            [google.rpc.Code][google.rpc.Code].
-        message:
-          type: string
-          description: >-
-            A developer-facing error message, which should be in English. Any
-            user-facing error message should be localized and sent in the
-            [google.rpc.Status.details][google.rpc.Status.details] field, or
-            localized by the client.
-        detail:
-          $ref: '#/components/schemas/google.protobuf.Any'
-      title: Connect Error
-      additionalProperties: true
-      description: >-
-        Error type returned by Connect:
-        https://connectrpc.com/docs/go/errors/#http-representation
-    google.protobuf.Any:
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-          format: binary
-        debug:
-          type: object
-          additionalProperties: true
-      additionalProperties: true
-      description: >-
-        Contains an arbitrary serialized message along with a @type that
-        describes the type of the serialized message.
-    google.protobuf.Timestamp:
-      type: string
-      format: date-time
-      description: >-
-        A Timestamp represents a point in time independent of any time zone or
-        local
-         calendar, encoded as a count of seconds and fractions of seconds at
-         nanosecond resolution. The count is relative to an epoch at UTC midnight on
-         January 1, 1970, in the proleptic Gregorian calendar which extends the
-         Gregorian calendar backwards to year one.
-
-         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
-         second table is needed for interpretation, using a [24-hour linear
-         smear](https://developers.google.com/time/smear).
-
-         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
-         restricting to that range, we ensure that we can convert to and from [RFC
-         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
-
-         # Examples
-
-         Example 1: Compute Timestamp from POSIX `time()`.
-
-             Timestamp timestamp;
-             timestamp.set_seconds(time(NULL));
-             timestamp.set_nanos(0);
-
-         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
-
-             struct timeval tv;
-             gettimeofday(&tv, NULL);
-
-             Timestamp timestamp;
-             timestamp.set_seconds(tv.tv_sec);
-             timestamp.set_nanos(tv.tv_usec * 1000);
-
-         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
-
-             FILETIME ft;
-             GetSystemTimeAsFileTime(&ft);
-             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
-
-             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
-             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
-             Timestamp timestamp;
-             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
-             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
-
-         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
-
-             long millis = System.currentTimeMillis();
-
-             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-                 .setNanos((int) ((millis % 1000) * 1000000)).build();
-
-         Example 5: Compute Timestamp from Java `Instant.now()`.
-
-             Instant now = Instant.now();
-
-             Timestamp timestamp =
-                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
-                     .setNanos(now.getNano()).build();
-
-         Example 6: Compute Timestamp from current time in Python.
-
-             timestamp = Timestamp()
-             timestamp.GetCurrentTime()
-
-         # JSON Mapping
-
-         In JSON format, the Timestamp type is encoded as a string in the
-         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
-         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
-         where {year} is always expressed using four digits while {month}, {day},
-         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
-         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
-         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
-         is required. A proto3 JSON serializer should always use UTC (as indicated by
-         "Z") when printing the Timestamp type and a proto3 JSON parser should be
-         able to accept both UTC and other timezones (as indicated by an offset).
-
-         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
-         01:30 UTC on January 15, 2017.
-
-         In JavaScript, one can convert a Date object to this format using the
-         standard
-         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
-         method. In Python, a standard `datetime.datetime` object can be converted
-         to this format using
-         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
-         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
-         the Joda Time's [`ISODateTimeFormat.dateTime()`](
-         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
-         ) to obtain a formatter capable of generating timestamps in this format.
     mgmt.v1alpha1.AccountApiKey:
       type: object
       allOf:
@@ -14298,6 +14964,7 @@ components:
 x-tagGroups:
   - name: mgmt.v1alpha1
     tags:
+      - mgmt.v1alpha1.AccountHookService
       - mgmt.v1alpha1.AnonymizationService
       - mgmt.v1alpha1.ApiKeyService
       - mgmt.v1alpha1.AuthService

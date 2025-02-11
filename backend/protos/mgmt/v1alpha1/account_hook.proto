@@ -1,0 +1,229 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message AccountHook {
+  // The unique identifier of this hook.
+  string id = 1;
+  // Name of the hook for display/reference.
+  string name = 2;
+  // Description of what this hook does.
+  string description = 3;
+  // The unique identifier of the account this hook belongs to.
+  string account_id = 4;
+
+  // The events that will trigger this hook.
+  repeated AccountHookEvent events = 5;
+
+  // Hook-type specific configuration.
+  AccountHookConfig config = 6;
+
+  // The user that created this hook.
+  string created_by_user_id = 7;
+  // The time this hook was created.
+  google.protobuf.Timestamp created_at = 8;
+
+  // The user that last updated this hook.
+  string updated_by_user_id = 9;
+  // The last time this hook was updated.
+  google.protobuf.Timestamp updated_at = 10;
+
+  // Whether or not the hook is enabled.
+  bool enabled = 11;
+}
+
+message NewAccountHook {
+  // Name of the hook for display/reference.
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Description of what this hook does.
+  string description = 2 [(buf.validate.field).string.min_len = 1];
+
+  // The events that will trigger this hook.
+  repeated AccountHookEvent events = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // Hook-type specific configuration.
+  AccountHookConfig config = 4 [(buf.validate.field).required = true];
+
+  // Whether or not the hook is enabled.
+  bool enabled = 5;
+}
+
+// Enum of all possible events that can trigger an account hook.
+enum AccountHookEvent {
+  // If unspecified, hook will be triggered for all events.
+  ACCOUNT_HOOK_EVENT_UNSPECIFIED = 0;
+  // Triggered when a job run is created.
+  ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED = 1;
+  // Triggered when a job run fails.
+  ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED = 2;
+  // Triggered when a job run succeeds.
+  ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED = 3;
+}
+
+// Hook-specific configuration
+message AccountHookConfig {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+    // Webhook-based hooks
+    WebHook webhook = 1;
+    // Slack-based hooks
+    // SlackHook slack = 2;
+    // Future: Discord, Teams, etc.
+  }
+
+  // Webhook-specific configuration
+  message WebHook {
+    // The webhook URL to send the event to.
+    string url = 1 [(buf.validate.field).string.uri = true];
+
+    // The secret to use for the webhook.
+    string secret = 2 [(buf.validate.field).string.min_len = 1];
+
+    // Whether to disable SSL verification for the webhook.
+    bool disable_ssl_verification = 3;
+  }
+
+  // Slack hook configuration
+  // message SlackHook {
+  //   // The Slack webhook URL.
+  //   string webhook_url = 1 [(buf.validate.field).string.uri = true];
+
+  //   // The Slack channel to post messages to.
+  //   string channel = 2 [(buf.validate.field).string.min_len = 1];
+
+  //   // The message template to use.
+  //   string message_template = 3 [(buf.validate.field).string.min_len = 1];
+  // }
+}
+
+message GetAccountHooksRequest {
+  // The account ID to retrieve hooks for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountHooksResponse {
+  // The list of account hooks.
+  repeated AccountHook hooks = 1;
+}
+
+message GetAccountHookRequest {
+  // The ID of the hook to retrieve.
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountHookResponse {
+  // The account hook.
+  AccountHook hook = 1;
+}
+
+message CreateAccountHookRequest {
+  // The account ID to create the hook for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The new account hook configuration.
+  NewAccountHook hook = 2 [(buf.validate.field).required = true];
+}
+
+message CreateAccountHookResponse {
+  // The newly created account hook.
+  AccountHook hook = 1;
+}
+
+message UpdateAccountHookRequest {
+  // The ID of the hook to update.
+  string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Name of the hook for display/reference.
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Description of what this hook does.
+  string description = 3 [(buf.validate.field).string.min_len = 1];
+
+  // The events that will trigger this hook.
+  repeated AccountHookEvent events = 4;
+
+  // Hook-type specific configuration.
+  AccountHookConfig config = 5;
+
+  // Whether or not the hook is enabled.
+  bool enabled = 6;
+}
+
+message UpdateAccountHookResponse {
+  // The updated account hook.
+  AccountHook hook = 1;
+}
+
+message DeleteAccountHookRequest {
+  // The ID of the hook to delete.
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteAccountHookResponse {
+  // The deleted account hook.
+  AccountHook hook = 1;
+}
+
+message IsAccountHookNameAvailableRequest {
+  // The account ID to check the name for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The name to check.
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+}
+
+message IsAccountHookNameAvailableResponse {
+  // Whether the name is available.
+  bool is_available = 1;
+}
+
+message SetAccountHookEnabledRequest {
+  // The ID of the hook to enable/disable.
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // Whether to enable or disable the hook.
+  bool enabled = 2;
+}
+
+message SetAccountHookEnabledResponse {
+  // The updated account hook.
+  AccountHook hook = 1;
+}
+
+message GetActiveAccountHooksByEventRequest {
+  // The account ID to retrieve hooks for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The event to retrieve hooks for.
+  // A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+  // If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
+  AccountHookEvent event = 2;
+}
+
+message GetActiveAccountHooksByEventResponse {
+  // The list of active account hooks.
+  repeated AccountHook hooks = 1;
+}
+
+service AccountHookService {
+  // Retrieves all account hooks.
+  rpc GetAccountHooks(GetAccountHooksRequest) returns (GetAccountHooksResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Retrieves a specific account hook.
+  rpc GetAccountHook(GetAccountHookRequest) returns (GetAccountHookResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Creates a new account hook.
+  rpc CreateAccountHook(CreateAccountHookRequest) returns (CreateAccountHookResponse) {}
+  // Updates an existing account hook.
+  rpc UpdateAccountHook(UpdateAccountHookRequest) returns (UpdateAccountHookResponse) {}
+  // Deletes an account hook.
+  rpc DeleteAccountHook(DeleteAccountHookRequest) returns (DeleteAccountHookResponse) {}
+  // Checks if an account hook name is available.
+  rpc IsAccountHookNameAvailable(IsAccountHookNameAvailableRequest) returns (IsAccountHookNameAvailableResponse) {}
+  // Enables or disables an account hook.
+  rpc SetAccountHookEnabled(SetAccountHookEnabledRequest) returns (SetAccountHookEnabledResponse) {}
+  // Retrieves all active account hooks for a specific event.
+  rpc GetActiveAccountHooksByEvent(GetActiveAccountHooksByEventRequest) returns (GetActiveAccountHooksByEventResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}

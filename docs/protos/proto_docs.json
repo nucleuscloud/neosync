@@ -1,6 +1,943 @@
 {
   "files": [
     {
+      "name": "mgmt/v1alpha1/account_hook.proto",
+      "description": "",
+      "package": "mgmt.v1alpha1",
+      "hasEnums": true,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [
+        {
+          "name": "AccountHookEvent",
+          "longName": "AccountHookEvent",
+          "fullName": "mgmt.v1alpha1.AccountHookEvent",
+          "description": "Enum of all possible events that can trigger an account hook.",
+          "values": [
+            {
+              "name": "ACCOUNT_HOOK_EVENT_UNSPECIFIED",
+              "number": "0",
+              "description": "If unspecified, hook will be triggered for all events."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED",
+              "number": "1",
+              "description": "Triggered when a job run is created."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED",
+              "number": "2",
+              "description": "Triggered when a job run fails."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED",
+              "number": "3",
+              "description": "Triggered when a job run succeeds."
+            }
+          ]
+        }
+      ],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "AccountHook",
+          "longName": "AccountHook",
+          "fullName": "mgmt.v1alpha1.AccountHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account this hook belongs to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_by_user_id",
+              "description": "The user that created this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_at",
+              "description": "The time this hook was created.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_by_user_id",
+              "description": "The user that last updated this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_at",
+              "description": "The last time this hook was updated.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AccountHookConfig",
+          "longName": "AccountHookConfig",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig",
+          "description": "Hook-specific configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "webhook",
+              "description": "Webhook-based hooks\n\nSlack-based hooks\nSlackHook slack = 2;\nFuture: Discord, Teams, etc.",
+              "label": "",
+              "type": "WebHook",
+              "longType": "AccountHookConfig.WebHook",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig.WebHook",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WebHook",
+          "longName": "AccountHookConfig.WebHook",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig.WebHook",
+          "description": "Webhook-specific configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The webhook URL to send the event to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "secret",
+              "description": "The secret to use for the webhook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "disable_ssl_verification",
+              "description": "Whether to disable SSL verification for the webhook.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CreateAccountHookRequest",
+          "longName": "CreateAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.CreateAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to create the hook for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "hook",
+              "description": "The new account hook configuration.",
+              "label": "",
+              "type": "NewAccountHook",
+              "longType": "NewAccountHook",
+              "fullType": "mgmt.v1alpha1.NewAccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CreateAccountHookResponse",
+          "longName": "CreateAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.CreateAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The newly created account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DeleteAccountHookRequest",
+          "longName": "DeleteAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.DeleteAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to delete.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DeleteAccountHookResponse",
+          "longName": "DeleteAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.DeleteAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The deleted account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHookRequest",
+          "longName": "GetAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to retrieve.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHookResponse",
+          "longName": "GetAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHooksRequest",
+          "longName": "GetAccountHooksRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountHooksRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve hooks for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHooksResponse",
+          "longName": "GetAccountHooksResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountHooksResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The list of account hooks.",
+              "label": "repeated",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveAccountHooksByEventRequest",
+          "longName": "GetActiveAccountHooksByEventRequest",
+          "fullName": "mgmt.v1alpha1.GetActiveAccountHooksByEventRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve hooks for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event",
+              "description": "The event to retrieve hooks for.\nA specific event will return hooks that are listening to that specific event as well as wildcard hooks.\nIf you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.",
+              "label": "",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveAccountHooksByEventResponse",
+          "longName": "GetActiveAccountHooksByEventResponse",
+          "fullName": "mgmt.v1alpha1.GetActiveAccountHooksByEventResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The list of active account hooks.",
+              "label": "repeated",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsAccountHookNameAvailableRequest",
+          "longName": "IsAccountHookNameAvailableRequest",
+          "fullName": "mgmt.v1alpha1.IsAccountHookNameAvailableRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to check the name for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "The name to check.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsAccountHookNameAvailableResponse",
+          "longName": "IsAccountHookNameAvailableResponse",
+          "fullName": "mgmt.v1alpha1.IsAccountHookNameAvailableResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_available",
+              "description": "Whether the name is available.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "NewAccountHook",
+          "longName": "NewAccountHook",
+          "fullName": "mgmt.v1alpha1.NewAccountHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetAccountHookEnabledRequest",
+          "longName": "SetAccountHookEnabledRequest",
+          "fullName": "mgmt.v1alpha1.SetAccountHookEnabledRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to enable/disable.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether to enable or disable the hook.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetAccountHookEnabledResponse",
+          "longName": "SetAccountHookEnabledResponse",
+          "fullName": "mgmt.v1alpha1.SetAccountHookEnabledResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateAccountHookRequest",
+          "longName": "UpdateAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.UpdateAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to update.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateAccountHookResponse",
+          "longName": "UpdateAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.UpdateAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "AccountHookService",
+          "longName": "AccountHookService",
+          "fullName": "mgmt.v1alpha1.AccountHookService",
+          "description": "",
+          "methods": [
+            {
+              "name": "GetAccountHooks",
+              "description": "Retrieves all account hooks.",
+              "requestType": "GetAccountHooksRequest",
+              "requestLongType": "GetAccountHooksRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountHooksRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountHooksResponse",
+              "responseLongType": "GetAccountHooksResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountHooksResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetAccountHook",
+              "description": "Retrieves a specific account hook.",
+              "requestType": "GetAccountHookRequest",
+              "requestLongType": "GetAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountHookResponse",
+              "responseLongType": "GetAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountHookResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "CreateAccountHook",
+              "description": "Creates a new account hook.",
+              "requestType": "CreateAccountHookRequest",
+              "requestLongType": "CreateAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.CreateAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "CreateAccountHookResponse",
+              "responseLongType": "CreateAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.CreateAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "UpdateAccountHook",
+              "description": "Updates an existing account hook.",
+              "requestType": "UpdateAccountHookRequest",
+              "requestLongType": "UpdateAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.UpdateAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "UpdateAccountHookResponse",
+              "responseLongType": "UpdateAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.UpdateAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "DeleteAccountHook",
+              "description": "Deletes an account hook.",
+              "requestType": "DeleteAccountHookRequest",
+              "requestLongType": "DeleteAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.DeleteAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "DeleteAccountHookResponse",
+              "responseLongType": "DeleteAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.DeleteAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "IsAccountHookNameAvailable",
+              "description": "Checks if an account hook name is available.",
+              "requestType": "IsAccountHookNameAvailableRequest",
+              "requestLongType": "IsAccountHookNameAvailableRequest",
+              "requestFullType": "mgmt.v1alpha1.IsAccountHookNameAvailableRequest",
+              "requestStreaming": false,
+              "responseType": "IsAccountHookNameAvailableResponse",
+              "responseLongType": "IsAccountHookNameAvailableResponse",
+              "responseFullType": "mgmt.v1alpha1.IsAccountHookNameAvailableResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetAccountHookEnabled",
+              "description": "Enables or disables an account hook.",
+              "requestType": "SetAccountHookEnabledRequest",
+              "requestLongType": "SetAccountHookEnabledRequest",
+              "requestFullType": "mgmt.v1alpha1.SetAccountHookEnabledRequest",
+              "requestStreaming": false,
+              "responseType": "SetAccountHookEnabledResponse",
+              "responseLongType": "SetAccountHookEnabledResponse",
+              "responseFullType": "mgmt.v1alpha1.SetAccountHookEnabledResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetActiveAccountHooksByEvent",
+              "description": "Retrieves all active account hooks for a specific event.",
+              "requestType": "GetActiveAccountHooksByEventRequest",
+              "requestLongType": "GetActiveAccountHooksByEventRequest",
+              "requestFullType": "mgmt.v1alpha1.GetActiveAccountHooksByEventRequest",
+              "requestStreaming": false,
+              "responseType": "GetActiveAccountHooksByEventResponse",
+              "responseLongType": "GetActiveAccountHooksByEventResponse",
+              "responseFullType": "mgmt.v1alpha1.GetActiveAccountHooksByEventResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "mgmt/v1alpha1/transformer.proto",
       "description": "",
       "package": "mgmt.v1alpha1",

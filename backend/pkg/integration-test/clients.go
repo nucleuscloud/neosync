@@ -59,6 +59,11 @@ func (s *NeosyncClients) ConnectionData(opts ...ClientConfigOption) mgmtv1alpha1
 	return mgmtv1alpha1connect.NewConnectionDataServiceClient(getHttpClient(config), s.httpUrl)
 }
 
+func (s *NeosyncClients) AccountHooks(opts ...ClientConfigOption) mgmtv1alpha1connect.AccountHookServiceClient {
+	config := getHydratedClientConfig(opts...)
+	return mgmtv1alpha1connect.NewAccountHookServiceClient(getHttpClient(config), s.httpUrl)
+}
+
 func getHydratedClientConfig(opts ...ClientConfigOption) *clientConfig {
 	config := &clientConfig{}
 	for _, opt := range opts {
