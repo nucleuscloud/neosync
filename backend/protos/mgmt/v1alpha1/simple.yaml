@@ -1,0 +1,76 @@
+# simple job that syncs the public schema from one connection to another
+name: my-job
+account_id: 123
+
+source:
+  options:
+    postgres:
+      # connection_id: 123
+      connection:
+        url: postgres://localhost:5432/mydb
+destinations:
+  - connection_id: 123
+    options:
+      postgres_options:
+        on_conflict:
+          strategy:
+            update:
+
+# schema_mappings:
+#   - source_schema: public
+
+---
+# simple job that syncs the public schema from one connection to another
+# more explicit about what the defaults do
+name: my-job
+
+source:
+  options:
+    postgres:
+      connection:
+        url: postgres://localhost:5432/mydb
+  subsets:
+  - schema: public
+    tables:
+      - name: users
+        where: created_at > now() - interval '1 day'
+destinations:
+  - connection:
+      url: postgres://localhost:5433/mydb
+    options:
+      postgres_options:
+        on_conflict:
+          strategy:
+            update:
+
+schema_changes:
+  default_schema_strategy:
+    map_all_schemas:
+    map_defined_schemas:
+  # these are the defaults, but are defined to be explicit
+  default_table_strategy:
+    map_all_tables:
+    map_defined_tables:
+
+  default_column_strategy:
+    map_all_columns:
+      on_add:
+        auto_map:
+      on_remove:
+        continue:
+
+schema_mappings:
+  - schema: public
+    destination_schema: public2
+    table_mappings:
+      - table: users
+        columns:
+          - name: email
+            transformer:
+              config:
+                transformEmail:
+                  preserveDomains:
+                    - gmail.com
+
+# subsets are separate from the schema_mappings
+

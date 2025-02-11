@@ -564,6 +564,164 @@ components:
       title: ColumnErrorReport
       additionalProperties: false
       description: Column error report
+    mgmt.v1alpha1.ColumnStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllColumns
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllColumns
+      anyOf:
+        - required:
+            - mapAllColumns
+        - not:
+            anyOf:
+              - required:
+                  - mapAllColumns
+      properties:
+        mapAllColumns:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns'
+          title: map_all_columns
+          description: When this strategy is configured, all columns are mapped
+      title: ColumnStrategy
+      additionalProperties: false
+      description: The strategy used to configure how columns are handled during a job run
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnRemovalStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnRemovalStrategy
+        - anyOf:
+            - required:
+                - newColumnAdditionStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - newColumnAdditionStrategy
+      properties:
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy'
+          title: new_column_addition_strategy
+          description: The strategy to use when a new column is detected
+        columnRemovalStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy'
+          title: column_removal_strategy
+          description: The strategy to use when a column is removed
+      title: MapAllColumns
+      additionalProperties: false
+      description: Strategy that maps all columns for a table. Further configuration can be done to handle newly added columns or removed columns
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - continueJob
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - continueJob
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - continueJob
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - continueJob
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a column is removed
+        continueJob:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob'
+          title: continue_job
+          description: continue job if a column is removed
+      title: ColumnRemovalStrategy
+      additionalProperties: false
+      description: Strategy to use when a column is removed
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob:
+      type: object
+      title: ContinueJob
+      additionalProperties: false
+      description: Configuration for the ContinueJob strategy
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a new column is detected.
+        autoMap:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap'
+          title: auto_map
+          description: |-
+            automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+             If this doesn't exist, will fall back to configuring generators for supported datatypes.
+             If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+      description: Strategy to use when a new column is detected
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
     mgmt.v1alpha1.ColumnWarning:
       type: object
       properties:
@@ -683,13 +841,13 @@ components:
                 anyOf:
                   - required:
                       - cronSchedule
-      anyOf:
-        - required:
-            - cronSchedule
-        - not:
-            anyOf:
-              - required:
-                  - cronSchedule
+        - anyOf:
+            - required:
+                - schemaChange
+            - not:
+                anyOf:
+                  - required:
+                      - schemaChange
       properties:
         accountId:
           type: string
@@ -745,6 +903,21 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
+        schemaMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.SchemaMapping'
+          title: schema_mappings
+          description: |-
+            Specify schema mappings that will be used to map the data from the source to the destination
+             This replaces the mappings field
+        schemaChange:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SchemaChange'
+          title: schema_change
+          description: |-
+            Specify schema changes that will be used to map the data from the source to the destination
+             This acts as the default configuration for all schemas and tables unless overridden by a schema mapping
       title: CreateJobRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobResponse:
@@ -2101,13 +2274,13 @@ components:
                 anyOf:
                   - required:
                       - cronSchedule
-      anyOf:
-        - required:
-            - cronSchedule
-        - not:
-            anyOf:
-              - required:
-                  - cronSchedule
+        - anyOf:
+            - required:
+                - schemaChange
+            - not:
+                anyOf:
+                  - required:
+                      - schemaChange
       properties:
         id:
           type: string
@@ -2175,6 +2348,21 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: Any virtual foreign keys that are configured as a part of this job
+        schemaMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.SchemaMapping'
+          title: schema_mappings
+          description: |-
+            Specify schema mappings that will be used to map the data from the source to the destination
+             This replaces the mappings field
+        schemaChange:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SchemaChange'
+          title: schema_change
+          description: |-
+            Specify schema changes that will be used to map the data from the source to the destination
+             This acts as the default configuration for all schemas and tables unless overridden by a schema mapping
       title: Job
       additionalProperties: false
     mgmt.v1alpha1.JobDestination:
@@ -4006,6 +4194,222 @@ components:
           description: The Neosync Account ID
       title: RunContextKey
       additionalProperties: false
+    mgmt.v1alpha1.SchemaChange:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - schemaStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - schemaStrategy
+        - anyOf:
+            - required:
+                - tableStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - tableStrategy
+      properties:
+        schemaStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SchemaStrategy'
+          title: schema_strategy
+          description: Configure how schemas are handled during a job run
+        tableStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TableStrategy'
+          title: table_strategy
+          description: Configure how tables are handled during a job run
+        columnStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy'
+          title: column_strategy
+          description: Configure how columns are handled during a job run
+      title: SchemaChange
+      additionalProperties: false
+      description: |-
+        Configure how schemas, tables, and columns are handled during a job run.
+         If anything is not defined, a system-defined fallback will be implemented. Further information can be found in the documentation.
+    mgmt.v1alpha1.SchemaMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - destinationSchema
+            - not:
+                anyOf:
+                  - required:
+                      - destinationSchema
+        - anyOf:
+            - required:
+                - tableStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - tableStrategy
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The database schema this mapping belongs to
+        destinationSchema:
+          type: string
+          title: destination_schema
+          description: Optionally specify a destination schema that this mapping will go to
+        tableMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.SchemaMapping.TableMapping'
+          title: table_mappings
+          description: The list of table mappings that will be used to map the data from the source to the destination
+        tableStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TableStrategy'
+          title: table_strategy
+          description: Optionally specify a table strategy. This will override the global table strategy for this schema
+        columnStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy'
+          title: column_strategy
+          description: Optionally specify a column strategy. This will override the global column strategy for this schema
+      title: SchemaMapping
+      additionalProperties: false
+      description: Configuration for a specific schema mapping
+    mgmt.v1alpha1.SchemaMapping.TableMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - destinationTable
+            - not:
+                anyOf:
+                  - required:
+                      - destinationTable
+      properties:
+        table:
+          type: string
+          title: table
+          description: The database table this mapping belongs to
+        destinationTable:
+          type: string
+          title: destination_table
+          description: Optionally specify a destination table that this mapping will go to
+        columnMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.SchemaMapping.TableMapping.ColumnMapping'
+          title: column_mappings
+          description: The list of column mappings that will be used to map the data from the source to the destination
+        columnStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ColumnStrategy'
+          title: column_strategy
+          description: Optionally specify a column strategy. This will override the global column strategy for this table
+      title: TableMapping
+      additionalProperties: false
+      description: Configuration for a specific table mapping in a schema
+    mgmt.v1alpha1.SchemaMapping.TableMapping.ColumnMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - transformer
+            - not:
+                anyOf:
+                  - required:
+                      - transformer
+      anyOf:
+        - required:
+            - transformer
+        - not:
+            anyOf:
+              - required:
+                  - transformer
+      properties:
+        column:
+          type: string
+          title: column
+          description: The column this mapping belongs to
+        transformer:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+          title: transformer
+          description: The transformer configuration that will be applied to each cell in the column
+      title: ColumnMapping
+      additionalProperties: false
+      description: Configuration for a specific column mapping in a table
+    mgmt.v1alpha1.SchemaStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllSchemas
+            - required:
+                - mapDefinedSchemas
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllSchemas
+                  - required:
+                      - mapDefinedSchemas
+      anyOf:
+        - required:
+            - mapAllSchemas
+        - required:
+            - mapDefinedSchemas
+        - not:
+            anyOf:
+              - required:
+                  - mapAllSchemas
+              - required:
+                  - mapDefinedSchemas
+      properties:
+        mapAllSchemas:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SchemaStrategy.MapAllSchemas'
+          title: map_all_schemas
+          description: When this strategy is configured, all schemas are mapped
+        mapDefinedSchemas:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SchemaStrategy.MapDefinedSchemas'
+          title: map_defined_schemas
+          description: When this strategy is configured, only the schemas that are defined are mapped
+      title: SchemaStrategy
+      additionalProperties: false
+      description: The strategy used to configure how schemas are handled during a job run
+    mgmt.v1alpha1.SchemaStrategy.MapAllSchemas:
+      type: object
+      title: MapAllSchemas
+      additionalProperties: false
+      description: When this strategy is configured, all schemas are mapped
+    mgmt.v1alpha1.SchemaStrategy.MapDefinedSchemas:
+      type: object
+      title: MapDefinedSchemas
+      additionalProperties: false
+      description: When this strategy is configured, only the schemas that are defined are mapped
     mgmt.v1alpha1.SetJobHookEnabledRequest:
       type: object
       properties:
@@ -4181,6 +4585,55 @@ components:
       title: TableErrorReport
       additionalProperties: false
       description: Database error report
+    mgmt.v1alpha1.TableStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllTables
+            - required:
+                - mapDefinedTables
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllTables
+                  - required:
+                      - mapDefinedTables
+      anyOf:
+        - required:
+            - mapAllTables
+        - required:
+            - mapDefinedTables
+        - not:
+            anyOf:
+              - required:
+                  - mapAllTables
+              - required:
+                  - mapDefinedTables
+      properties:
+        mapAllTables:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TableStrategy.MapAllTables'
+          title: map_all_tables
+          description: When this strategy is configured, all tables are mapped
+        mapDefinedTables:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TableStrategy.MapDefinedTables'
+          title: map_defined_tables
+          description: When this strategy is configured, only the tables that are defined are mapped
+      title: TableStrategy
+      additionalProperties: false
+      description: The strategy used to configure how tables are handled during a job run
+    mgmt.v1alpha1.TableStrategy.MapAllTables:
+      type: object
+      title: MapAllTables
+      additionalProperties: false
+      description: When this strategy is configured, all tables are mapped
+    mgmt.v1alpha1.TableStrategy.MapDefinedTables:
+      type: object
+      title: MapDefinedTables
+      additionalProperties: false
+      description: When this strategy is configured, only the tables that are defined are mapped
     mgmt.v1alpha1.TerminateJobRunRequest:
       type: object
       properties:

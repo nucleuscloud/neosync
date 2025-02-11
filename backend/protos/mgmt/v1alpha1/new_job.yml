@@ -1,0 +1,75 @@
+name: my-job
+account_id: 123
+source:
+  options:
+    postgres:
+      connection_id: 123
+      new_column_addition_strategy:
+        auto_map:
+      column_removal_strategy:
+        continue_job:
+destinations:
+  - connection_id: 123
+    options:
+      postgres_options:
+        truncate_table:
+          truncate_before_insert: true
+          cascade: true
+        init_table_schema: true
+        on_conflict:
+          strategy:
+            update:
+
+schema_changes:
+  default_column_handling:
+    map_all_columns: # relaxed?
+      on_add:
+        auto_map:
+        # halt:
+        # passthrough:
+      on_remove:
+        continue:
+        # halt:
+    # map_defined_columns: # strict?
+
+table_mappings:
+  - source_schema: public
+    source_table: users
+    destination_schema: public # optional
+    destination_table: users   # optional
+    columns:
+      - name: id # with no other config specified, this will be passthrough
+      - name: total
+        transformer:
+          config:
+            generateRandomInt:
+              min: 1
+              max: 10
+
+  - source_schema: public
+    source_table: accounts
+    column_handling: # overrides the default, table specific!!
+      map_defined_columns: # explicit
+
+    columns:
+      - name: id
+      - name: total
+        transformer:
+          config:
+            generateRandomInt:
+              min: 1
+              max: 10
+
+  - source_schema: public
+    source_table: pets
+    column_handling:
+      map_all_columns:
+        on_add:
+          passthrough:
+        on_remove:
+          continue:
+    columns: [] # no columns specified, all will be passthrough if the default is relaxed
+
+hooks:
+  - name: my-hook
+    # hook configs that will be created automatically

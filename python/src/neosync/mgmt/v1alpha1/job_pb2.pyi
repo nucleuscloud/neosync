@@ -561,7 +561,7 @@ class BatchConfig(_message.Message):
     def __init__(self, count: _Optional[int] = ..., period: _Optional[str] = ...) -> None: ...
 
 class CreateJobRequest(_message.Message):
-    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys")
+    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys", "schema_mappings", "schema_change")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     JOB_NAME_FIELD_NUMBER: _ClassVar[int]
     CRON_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
@@ -572,6 +572,8 @@ class CreateJobRequest(_message.Message):
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_CHANGE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     job_name: str
     cron_schedule: str
@@ -582,7 +584,118 @@ class CreateJobRequest(_message.Message):
     workflow_options: WorkflowOptions
     sync_options: ActivityOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    schema_mappings: _containers.RepeatedCompositeFieldContainer[SchemaMapping]
+    schema_change: SchemaChange
+    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., schema_mappings: _Optional[_Iterable[_Union[SchemaMapping, _Mapping]]] = ..., schema_change: _Optional[_Union[SchemaChange, _Mapping]] = ...) -> None: ...
+
+class SchemaChange(_message.Message):
+    __slots__ = ("schema_strategy", "table_strategy", "column_strategy")
+    SCHEMA_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    TABLE_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    schema_strategy: SchemaStrategy
+    table_strategy: TableStrategy
+    column_strategy: ColumnStrategy
+    def __init__(self, schema_strategy: _Optional[_Union[SchemaStrategy, _Mapping]] = ..., table_strategy: _Optional[_Union[TableStrategy, _Mapping]] = ..., column_strategy: _Optional[_Union[ColumnStrategy, _Mapping]] = ...) -> None: ...
+
+class SchemaStrategy(_message.Message):
+    __slots__ = ("map_all_schemas", "map_defined_schemas")
+    class MapAllSchemas(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class MapDefinedSchemas(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    MAP_ALL_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    MAP_DEFINED_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    map_all_schemas: SchemaStrategy.MapAllSchemas
+    map_defined_schemas: SchemaStrategy.MapDefinedSchemas
+    def __init__(self, map_all_schemas: _Optional[_Union[SchemaStrategy.MapAllSchemas, _Mapping]] = ..., map_defined_schemas: _Optional[_Union[SchemaStrategy.MapDefinedSchemas, _Mapping]] = ...) -> None: ...
+
+class TableStrategy(_message.Message):
+    __slots__ = ("map_all_tables", "map_defined_tables")
+    class MapAllTables(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class MapDefinedTables(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    MAP_ALL_TABLES_FIELD_NUMBER: _ClassVar[int]
+    MAP_DEFINED_TABLES_FIELD_NUMBER: _ClassVar[int]
+    map_all_tables: TableStrategy.MapAllTables
+    map_defined_tables: TableStrategy.MapDefinedTables
+    def __init__(self, map_all_tables: _Optional[_Union[TableStrategy.MapAllTables, _Mapping]] = ..., map_defined_tables: _Optional[_Union[TableStrategy.MapDefinedTables, _Mapping]] = ...) -> None: ...
+
+class ColumnStrategy(_message.Message):
+    __slots__ = ("map_all_columns",)
+    class MapAllColumns(_message.Message):
+        __slots__ = ("new_column_addition_strategy", "column_removal_strategy")
+        class NewColumnAdditionStrategy(_message.Message):
+            __slots__ = ("halt_job", "auto_map")
+            class HaltJob(_message.Message):
+                __slots__ = ()
+                def __init__(self) -> None: ...
+            class AutoMap(_message.Message):
+                __slots__ = ()
+                def __init__(self) -> None: ...
+            HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+            AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+            halt_job: ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob
+            auto_map: ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap
+            def __init__(self, halt_job: _Optional[_Union[ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+        class ColumnRemovalStrategy(_message.Message):
+            __slots__ = ("halt_job", "continue_job")
+            class HaltJob(_message.Message):
+                __slots__ = ()
+                def __init__(self) -> None: ...
+            class ContinueJob(_message.Message):
+                __slots__ = ()
+                def __init__(self) -> None: ...
+            HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+            CONTINUE_JOB_FIELD_NUMBER: _ClassVar[int]
+            halt_job: ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob
+            continue_job: ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob
+            def __init__(self, halt_job: _Optional[_Union[ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
+        NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+        COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+        new_column_addition_strategy: ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy
+        column_removal_strategy: ColumnStrategy.MapAllColumns.ColumnRemovalStrategy
+        def __init__(self, new_column_addition_strategy: _Optional[_Union[ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy, _Mapping]] = ..., column_removal_strategy: _Optional[_Union[ColumnStrategy.MapAllColumns.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
+    MAP_ALL_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    map_all_columns: ColumnStrategy.MapAllColumns
+    def __init__(self, map_all_columns: _Optional[_Union[ColumnStrategy.MapAllColumns, _Mapping]] = ...) -> None: ...
+
+class SchemaMapping(_message.Message):
+    __slots__ = ("schema", "destination_schema", "table_mappings", "table_strategy", "column_strategy")
+    class TableMapping(_message.Message):
+        __slots__ = ("table", "destination_table", "column_mappings", "column_strategy")
+        class ColumnMapping(_message.Message):
+            __slots__ = ("column", "transformer")
+            COLUMN_FIELD_NUMBER: _ClassVar[int]
+            TRANSFORMER_FIELD_NUMBER: _ClassVar[int]
+            column: str
+            transformer: _transformer_pb2.TransformerConfig
+            def __init__(self, column: _Optional[str] = ..., transformer: _Optional[_Union[_transformer_pb2.TransformerConfig, _Mapping]] = ...) -> None: ...
+        TABLE_FIELD_NUMBER: _ClassVar[int]
+        DESTINATION_TABLE_FIELD_NUMBER: _ClassVar[int]
+        COLUMN_MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+        COLUMN_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+        table: str
+        destination_table: str
+        column_mappings: _containers.RepeatedCompositeFieldContainer[SchemaMapping.TableMapping.ColumnMapping]
+        column_strategy: ColumnStrategy
+        def __init__(self, table: _Optional[str] = ..., destination_table: _Optional[str] = ..., column_mappings: _Optional[_Iterable[_Union[SchemaMapping.TableMapping.ColumnMapping, _Mapping]]] = ..., column_strategy: _Optional[_Union[ColumnStrategy, _Mapping]] = ...) -> None: ...
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    DESTINATION_SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    TABLE_MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+    TABLE_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    COLUMN_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    schema: str
+    destination_schema: str
+    table_mappings: _containers.RepeatedCompositeFieldContainer[SchemaMapping.TableMapping]
+    table_strategy: TableStrategy
+    column_strategy: ColumnStrategy
+    def __init__(self, schema: _Optional[str] = ..., destination_schema: _Optional[str] = ..., table_mappings: _Optional[_Iterable[_Union[SchemaMapping.TableMapping, _Mapping]]] = ..., table_strategy: _Optional[_Union[TableStrategy, _Mapping]] = ..., column_strategy: _Optional[_Union[ColumnStrategy, _Mapping]] = ...) -> None: ...
 
 class WorkflowOptions(_message.Message):
     __slots__ = ("run_timeout",)
@@ -859,7 +972,7 @@ class CancelJobRunResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class Job(_message.Message):
-    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys")
+    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys", "schema_mappings", "schema_change")
     ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_BY_USER_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -874,6 +987,8 @@ class Job(_message.Message):
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_CHANGE_FIELD_NUMBER: _ClassVar[int]
     id: str
     created_by_user_id: str
     created_at: _timestamp_pb2.Timestamp
@@ -888,7 +1003,9 @@ class Job(_message.Message):
     sync_options: ActivityOptions
     workflow_options: WorkflowOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    schema_mappings: _containers.RepeatedCompositeFieldContainer[SchemaMapping]
+    schema_change: SchemaChange
+    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., schema_mappings: _Optional[_Iterable[_Union[SchemaMapping, _Mapping]]] = ..., schema_change: _Optional[_Union[SchemaChange, _Mapping]] = ...) -> None: ...
 
 class JobRecentRun(_message.Message):
     __slots__ = ("start_time", "job_run_id")

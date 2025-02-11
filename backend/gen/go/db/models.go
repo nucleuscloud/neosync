@@ -93,6 +93,8 @@ type NeosyncApiJob struct {
 	WorkflowOptions    *pg_models.WorkflowOptions
 	SyncOptions        *pg_models.ActivityOptions
 	VirtualForeignKeys []*pg_models.VirtualForeignConstraint
+	SchemaMappings     []byte
+	SchemaChanges      []byte
 }
 
 type NeosyncApiJobDestinationConnectionAssociation struct {

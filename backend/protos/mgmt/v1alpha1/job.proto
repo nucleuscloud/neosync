@@ -502,7 +502,7 @@ message CreateJobRequest {
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   // The list of mappings that will be used to transform the data
-  repeated JobMapping mappings = 4;
+  repeated JobMapping mappings = 4 [deprecated = true];
   // The source connection configuration
   JobSource source = 5;
   // The list of destinations that will be used to store the data
@@ -522,6 +522,141 @@ message CreateJobRequest {
 
   // Specify and job hooks that should be created
   // repeated NewJobHook hooks = 11;
+
+  // Specify schema mappings that will be used to map the data from the source to the destination
+  // This replaces the mappings field
+  repeated SchemaMapping schema_mappings = 12;
+
+  // Specify schema changes that will be used to map the data from the source to the destination
+  // This acts as the default configuration for all schemas and tables unless overridden by a schema mapping
+  optional SchemaChange schema_change = 13;
+}
+
+// Configure how schemas, tables, and columns are handled during a job run.
+// If anything is not defined, a system-defined fallback will be implemented. Further information can be found in the documentation.
+message SchemaChange {
+  // Configure how schemas are handled during a job run
+  optional SchemaStrategy schema_strategy = 1;
+  // Configure how tables are handled during a job run
+  optional TableStrategy table_strategy = 2;
+  // Configure how columns are handled during a job run
+  optional ColumnStrategy column_strategy = 3;
+}
+
+// The strategy used to configure how schemas are handled during a job run
+message SchemaStrategy {
+  oneof strategy {
+    // When this strategy is configured, all schemas are mapped
+    MapAllSchemas map_all_schemas = 1;
+    // When this strategy is configured, only the schemas that are defined are mapped
+    MapDefinedSchemas map_defined_schemas = 2;
+  }
+
+  // When this strategy is configured, all schemas are mapped
+  message MapAllSchemas {}
+  // When this strategy is configured, only the schemas that are defined are mapped
+  message MapDefinedSchemas {}
+}
+
+// The strategy used to configure how tables are handled during a job run
+message TableStrategy {
+  oneof strategy {
+    // When this strategy is configured, all tables are mapped
+    MapAllTables map_all_tables = 1;
+    // When this strategy is configured, only the tables that are defined are mapped
+    MapDefinedTables map_defined_tables = 2;
+  }
+
+  // When this strategy is configured, all tables are mapped
+  message MapAllTables {}
+  // When this strategy is configured, only the tables that are defined are mapped
+  message MapDefinedTables {}
+}
+
+// The strategy used to configure how columns are handled during a job run
+message ColumnStrategy {
+  oneof strategy {
+    // When this strategy is configured, all columns are mapped
+    MapAllColumns map_all_columns = 1;
+  }
+  // Strategy that maps all columns for a table. Further configuration can be done to handle newly added columns or removed columns
+  message MapAllColumns {
+    // The strategy to use when a new column is detected
+    optional NewColumnAdditionStrategy new_column_addition_strategy = 1;
+    // The strategy to use when a column is removed
+    optional ColumnRemovalStrategy column_removal_strategy = 2;
+
+    // Strategy to use when a new column is detected
+    message NewColumnAdditionStrategy {
+      oneof strategy {
+        // halt job if a new column is detected.
+        HaltJob halt_job = 1;
+        // automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+        // If this doesn't exist, will fall back to configuring generators for supported datatypes.
+        // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        AutoMap auto_map = 2;
+      }
+      // Configuration for the HaltJob strategy
+      message HaltJob {}
+      // Configuration for the AutoMap strategy
+      message AutoMap {}
+    }
+
+    // Strategy to use when a column is removed
+    message ColumnRemovalStrategy {
+      oneof strategy {
+        // halt job if a column is removed
+        HaltJob halt_job = 1;
+
+        // continue job if a column is removed
+        ContinueJob continue_job = 2;
+      }
+      // Configuration for the HaltJob strategy
+      message HaltJob {}
+
+      // Configuration for the ContinueJob strategy
+      message ContinueJob {}
+    }
+  }
+}
+
+// Configuration for a specific schema mapping
+message SchemaMapping {
+  // The database schema this mapping belongs to
+  string schema = 1;
+  // Optionally specify a destination schema that this mapping will go to
+  optional string destination_schema = 2;
+
+  // The list of table mappings that will be used to map the data from the source to the destination
+  repeated TableMapping table_mappings = 3;
+
+  // Optionally specify a table strategy. This will override the global table strategy for this schema
+  optional TableStrategy table_strategy = 4;
+
+  // Optionally specify a column strategy. This will override the global column strategy for this schema
+  optional ColumnStrategy column_strategy = 5;
+
+  // Configuration for a specific table mapping in a schema
+  message TableMapping {
+    // The database table this mapping belongs to
+    string table = 1;
+    // Optionally specify a destination table that this mapping will go to
+    optional string destination_table = 2;
+
+    // The list of column mappings that will be used to map the data from the source to the destination
+    repeated ColumnMapping column_mappings = 3;
+
+    // Optionally specify a column strategy. This will override the global column strategy for this table
+    optional ColumnStrategy column_strategy = 4;
+
+    // Configuration for a specific column mapping in a table
+    message ColumnMapping {
+      // The column this mapping belongs to
+      string column = 1;
+      // The transformer configuration that will be applied to each cell in the column
+      optional TransformerConfig transformer = 2;
+    }
+  }
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow
@@ -790,7 +925,7 @@ message Job {
   // The list of destinations that will be used to store the data
   repeated JobDestination destinations = 8;
   // The list of mappings that will be used to transform the data
-  repeated JobMapping mappings = 9;
+  repeated JobMapping mappings = 9 [deprecated = true];
   // The cron schedule that will be used to trigger the job
   optional string cron_schedule = 10;
 
@@ -807,6 +942,14 @@ message Job {
 
   // Any virtual foreign keys that are configured as a part of this job
   repeated VirtualForeignConstraint virtual_foreign_keys = 14;
+
+  // Specify schema mappings that will be used to map the data from the source to the destination
+  // This replaces the mappings field
+  repeated SchemaMapping schema_mappings = 15;
+
+  // Specify schema changes that will be used to map the data from the source to the destination
+  // This acts as the default configuration for all schemas and tables unless overridden by a schema mapping
+  optional SchemaChange schema_change = 16;
 }
 
 message JobRecentRun {
