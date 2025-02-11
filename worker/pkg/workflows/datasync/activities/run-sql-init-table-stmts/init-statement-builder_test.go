@@ -671,8 +671,8 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 		{Label: "data types", Statements: []string{}},
 		{Label: "create table", Statements: []string{"test-create-statement"}},
 		{Label: "non-fk alter table", Statements: []string{"test-pk-statement"}},
-		{Label: "fk alter table", Statements: []string{"test-fk-statement"}},
 		{Label: "table index", Statements: []string{"test-idx-statement"}},
+		{Label: "fk alter table", Statements: []string{"test-fk-statement"}},
 		{Label: "table triggers", Statements: []string{"test-trigger-statement"}},
 	}, nil)
 
