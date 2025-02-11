@@ -2,9 +2,12 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"sync"
+	"time"
 
 	"github.com/Jeffail/shutdown"
 
@@ -48,7 +51,10 @@ type pooledInput struct {
 
 	db    mysql_queries.DBTX
 	dbMut sync.Mutex
+	tx    *sql.Tx
 	rows  *sql.Rows
+
+	cursorName string
 
 	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
 
@@ -96,6 +102,7 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		recordMapper:        mapper,
+		cursorName:          generateCursorName(connectionId, queryStatic),
 	}, nil
 }
 
@@ -114,7 +121,18 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	if err != nil {
 		return nil
 	}
+	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
+
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{
+		ReadOnly: true,
+	})
+	if err != nil {
+		return err
+	}
+	s.tx = tx
+
+	s.logger.Debug("transaction started")
 
 	var args []any
 	if s.argsMapping != nil {
@@ -128,8 +146,18 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	rows, err := db.QueryContext(ctx, s.queryStatic, args...)
+	cursorStmt := fmt.Sprintf("DECLARE %s CURSOR FOR %s", s.cursorName, s.queryStatic)
+	_, err = s.tx.ExecContext(ctx, cursorStmt, args...)
 	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	s.logger.Debug("cursor declared")
+
+	err = s.fetchNextBatch(ctx)
+	if err != nil {
+		tx.Rollback()
 		if neosync_benthos.IsCriticalError(err.Error()) {
 			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 			s.stopActivityChannel <- err
@@ -137,7 +165,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		return err
 	}
 
-	s.rows = rows
 	go func() {
 		<-s.shutSig.HardStopChan()
 
@@ -155,24 +182,73 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	return nil
 }
 
+// fetchNextBatch issues a FETCH command to retrieve the next batch of rows from the cursor.
+func (s *pooledInput) fetchNextBatch(ctx context.Context) error {
+	fetchStmt := fmt.Sprintf("FETCH FORWARD %d FROM %s", 100, s.cursorName) //nolint:gosec // cursor name is hashed and sanitized
+	rows, err := s.tx.QueryContext(ctx, fetchStmt)
+	if err != nil {
+		return err
+	}
+	// If no rows are returned, rows.Next() will be false.
+	s.rows = rows
+	return nil
+}
+
+// allow only letters, numbers, and underscores.
+var cursorNameRegex = regexp.MustCompile(`[^a-zA-Z0-9_]`)
+
+func sanitizeCursorName(s string) string {
+	return cursorNameRegex.ReplaceAllString(s, "")
+}
+
+// generateCursorName generates a unique cursor name using the provided schema and table names.
+// It also sanitizes the input to allow only alphanumeric characters and underscores.
+func generateCursorName(connectionId, query string) string {
+	// Sanitize the connectionID for safe use in SQL identifiers.
+	safeConnID := sanitizeCursorName(connectionId)
+
+	// Create a short hash (first 8 hex digits) from the query string.
+	hash := sha256.Sum256([]byte(query))
+	shortHash := fmt.Sprintf("%x", hash)[:8]
+
+	// Use current timestamp in nanoseconds.
+	timestamp := time.Now().UnixNano()
+
+	// Construct the cursor name.
+	return fmt.Sprintf("cursor_%s_%s_%d", safeConnID, shortHash, timestamp)
+}
+
 func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFunc, error) {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db == nil && s.rows == nil {
+	if s.db == nil || s.tx == nil {
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
 		return nil, nil, service.ErrEndOfInput
 	}
 	if !s.rows.Next() {
-		err := s.rows.Err()
-		if err == nil {
-			err = service.ErrEndOfInput
+		// Check if any error occurred.
+		if err := s.rows.Err(); err != nil {
+			_ = s.rows.Close()
+			s.rows = nil
+			return nil, nil, err
 		}
 		_ = s.rows.Close()
-		s.rows = nil
-		return nil, nil, err
+		// Fetch next batch.
+		if err := s.fetchNextBatch(ctx); err != nil {
+			return nil, nil, err
+		}
+		// Check if the new batch has rows.
+		if s.rows == nil || !s.rows.Next() {
+			// No more rows; close cursor and commit/rollback transaction.
+			_ = s.rows.Close()
+			s.rows = nil
+			_ = s.tx.Commit()
+			s.tx = nil
+			return nil, nil, service.ErrEndOfInput
+		}
 	}
 
 	obj, err := s.recordMapper.MapRecord(s.rows)
@@ -196,7 +272,7 @@ func emptyAck(ctx context.Context, err error) error {
 func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
-	isNil := s.db == nil
+	isNil := s.db == nil || s.tx == nil
 	s.dbMut.Unlock()
 	if isNil {
 		return nil
