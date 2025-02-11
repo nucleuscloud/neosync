@@ -713,8 +713,8 @@ func (m *MysqlManager) GetSchemaInitStatements(
 		{Label: "data types"},
 		{Label: "create table", Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
-		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
 	}, nil
 }

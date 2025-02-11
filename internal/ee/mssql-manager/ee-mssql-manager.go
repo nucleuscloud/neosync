@@ -227,8 +227,8 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 		{Label: "create table", Statements: createTables},
 		{Label: ViewsFunctionsLabel, Statements: viewAndFuncStmts},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
-		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: TableIndexLabel, Statements: idxStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
 	}, nil
 }

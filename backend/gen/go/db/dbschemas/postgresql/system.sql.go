@@ -887,8 +887,7 @@ FROM
     JOIN pg_catalog.pg_namespace ns ON t.relnamespace = ns.oid
 LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
 WHERE
-    con.conindid IS NULL -- Excludes indexes created as part of constraints
-    AND (ns.nspname || '.' || t.relname) = ANY($1::TEXT[])
+    (ns.nspname || '.' || t.relname) = ANY($1::TEXT[])
 GROUP BY
     ns.nspname, t.relname, i.relname, ix.indexrelid
 ORDER BY
