@@ -66,7 +66,7 @@ func Register(
 	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, eelicense)
 	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 
-	wf := &datasync_workflow.Workflow{}
+	wf := datasync_workflow.New(eelicense)
 
 	w.RegisterWorkflow(wf.Workflow)
 	w.RegisterActivity(syncActivity.Sync)

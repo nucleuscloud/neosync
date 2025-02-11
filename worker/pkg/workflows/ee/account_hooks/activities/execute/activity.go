@@ -17,8 +17,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
-	accounthook_events "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/events"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
