@@ -482,3 +482,68 @@ func (s *IntegrationTestSuite) createPostgresConnection(
 	requireNoErrResp(s.T(), resp, err)
 	return resp.Msg.GetConnection()
 }
+
+func (s *IntegrationTestSuite) Test_ValidateSchema() {
+	accountId := s.createPersonalAccount(s.ctx, s.OSSUnauthenticatedLicensedClients.Users())
+	destconn := s.createPostgresConnection(s.OSSUnauthenticatedLicensedClients.Connections(), accountId, "dest", s.Pgcontainer.URL)
+
+	s.T().Run("MissingTables", func(t *testing.T) {
+		Mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public",
+				Table:  "addresses",
+				Column: "order_id",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Config: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+				},
+			},
+			{
+				Schema: "public",
+				Table:  "customers",
+				Column: "id",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Config: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+				},
+			},
+		}
+
+		resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().ValidateSchema(s.ctx, connect.NewRequest(&mgmtv1alpha1.ValidateSchemaRequest{
+			ConnectionId: destconn.GetId(),
+			Mappings:     Mappings,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.Len(t, resp.Msg.MissingTables, 2)
+	})
+
+	s.T().Run("Ok", func(t *testing.T) {
+		Mappings := []*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "neosync_api",
+				Table:  "users",
+				Column: "id",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Config: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+				},
+			},
+		}
+
+		resp, err := s.OSSUnauthenticatedLicensedClients.Jobs().ValidateSchema(s.ctx, connect.NewRequest(&mgmtv1alpha1.ValidateSchemaRequest{
+			ConnectionId: destconn.GetId(),
+			Mappings:     Mappings,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.Len(t, resp.Msg.MissingTables, 0)
+	})
+}
