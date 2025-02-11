@@ -16,7 +16,7 @@ WITH linked_to_serial AS (
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%' AND cl.relkind = 'S'
 ),
 column_defaults AS (
     SELECT
@@ -146,7 +146,7 @@ WITH linked_to_serial AS (
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%' AND cl.relkind = 'S'
 ),
 column_defaults AS (
     SELECT
