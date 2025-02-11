@@ -149,7 +149,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	cursorStmt := fmt.Sprintf("DECLARE %s CURSOR FOR %s", s.cursorName, s.queryStatic)
 	_, err = s.tx.ExecContext(ctx, cursorStmt, args...)
 	if err != nil {
-		tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+		}
 		return err
 	}
 
@@ -157,7 +159,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	err = s.fetchNextBatch(ctx)
 	if err != nil {
-		tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
+		}
 		if neosync_benthos.IsCriticalError(err.Error()) {
 			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 			s.stopActivityChannel <- err
@@ -238,6 +242,10 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		_ = s.rows.Close()
 		// Fetch next batch.
 		if err := s.fetchNextBatch(ctx); err != nil {
+			if neosync_benthos.IsCriticalError(err.Error()) {
+				s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+				s.stopActivityChannel <- err
+			}
 			return nil, nil, err
 		}
 		// Check if the new batch has rows.
