@@ -631,6 +631,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		jobhookService,
 		userdataclient,
+		connectiondatabuilder,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(

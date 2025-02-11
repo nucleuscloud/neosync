@@ -1,5 +1,6 @@
 from buf.validate import validate_pb2 as _validate_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from mgmt.v1alpha1 import connection_data_pb2 as _connection_data_pb2
 from mgmt.v1alpha1 import transformer_pb2 as _transformer_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -1336,6 +1337,33 @@ class ValidateJobMappingsResponse(_message.Message):
     column_warnings: _containers.RepeatedCompositeFieldContainer[ColumnWarning]
     table_errors: _containers.RepeatedCompositeFieldContainer[TableError]
     def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ..., table_errors: _Optional[_Iterable[_Union[TableError, _Mapping]]] = ...) -> None: ...
+
+class ValidateSchemaRequest(_message.Message):
+    __slots__ = ("mappings", "connection_id")
+    MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
+    mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
+    connection_id: str
+    def __init__(self, mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ...) -> None: ...
+
+class ValidateSchemaResponse(_message.Message):
+    __slots__ = ("missing_columns", "extra_columns", "missing_tables", "missing_schemas")
+    class Table(_message.Message):
+        __slots__ = ("schema", "table")
+        SCHEMA_FIELD_NUMBER: _ClassVar[int]
+        TABLE_FIELD_NUMBER: _ClassVar[int]
+        schema: str
+        table: str
+        def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
+    MISSING_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    EXTRA_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    MISSING_TABLES_FIELD_NUMBER: _ClassVar[int]
+    MISSING_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    missing_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
+    extra_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
+    missing_tables: _containers.RepeatedCompositeFieldContainer[ValidateSchemaResponse.Table]
+    missing_schemas: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, missing_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., extra_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., missing_tables: _Optional[_Iterable[_Union[ValidateSchemaResponse.Table, _Mapping]]] = ..., missing_schemas: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")

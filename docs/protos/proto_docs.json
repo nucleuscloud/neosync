@@ -16340,6 +16340,138 @@
           ]
         },
         {
+          "name": "ValidateSchemaRequest",
+          "longName": "ValidateSchemaRequest",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "mappings",
+              "description": "The list of mappings to validate",
+              "label": "repeated",
+              "type": "JobMapping",
+              "longType": "JobMapping",
+              "fullType": "mgmt.v1alpha1.JobMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "The unique identifier of the connection to validate",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateSchemaResponse",
+          "longName": "ValidateSchemaResponse",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "missing_columns",
+              "description": "The list columns missing in destination",
+              "label": "repeated",
+              "type": "DatabaseColumn",
+              "longType": "DatabaseColumn",
+              "fullType": "mgmt.v1alpha1.DatabaseColumn",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "extra_columns",
+              "description": "The list of extra columns in destination and not in source",
+              "label": "repeated",
+              "type": "DatabaseColumn",
+              "longType": "DatabaseColumn",
+              "fullType": "mgmt.v1alpha1.DatabaseColumn",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "missing_tables",
+              "description": "The list of tables missing in destination",
+              "label": "repeated",
+              "type": "Table",
+              "longType": "ValidateSchemaResponse.Table",
+              "fullType": "mgmt.v1alpha1.ValidateSchemaResponse.Table",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "missing_schemas",
+              "description": "The list of schemas missing in destination",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Table",
+          "longName": "ValidateSchemaResponse.Table",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaResponse.Table",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "VirtualForeignConstraint",
           "longName": "VirtualForeignConstraint",
           "fullName": "mgmt.v1alpha1.VirtualForeignConstraint",
@@ -16843,6 +16975,18 @@
               "responseType": "ValidateJobMappingsResponse",
               "responseLongType": "ValidateJobMappingsResponse",
               "responseFullType": "mgmt.v1alpha1.ValidateJobMappingsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ValidateSchema",
+              "description": "Validates that the schema is compatible with the job mappings",
+              "requestType": "ValidateSchemaRequest",
+              "requestLongType": "ValidateSchemaRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateSchemaRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateSchemaResponse",
+              "responseLongType": "ValidateSchemaResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateSchemaResponse",
               "responseStreaming": false
             },
             {

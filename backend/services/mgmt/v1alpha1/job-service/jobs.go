@@ -1633,6 +1633,63 @@ func getErrorMessages[T ErrorReport](errorsReports []T) []string {
 	return messages
 }
 
+func (s *Service) ValidateSchema(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.ValidateSchemaRequest],
+) (*connect.Response[mgmtv1alpha1.ValidateSchemaResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	schemaConn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.GetConnectionId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("accountId", schemaConn.Msg.GetConnection().GetAccountId())
+	connection := schemaConn.Msg.GetConnection()
+	if !isConnectionSQLType(connection) {
+		return connect.NewResponse(&mgmtv1alpha1.ValidateSchemaResponse{}), nil
+	}
+
+	databuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection)
+	if err != nil {
+		return nil, err
+	}
+
+	destCfg, err := getConnectionSchemaConfigByConnectionType(connection)
+	if err != nil {
+		return nil, err
+	}
+	schema, err := databuilder.GetSchema(ctx, destCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	results := job_util.ValidateSchemaAgainstJobMappings(schema, req.Msg.GetMappings())
+
+	resp := &mgmtv1alpha1.ValidateSchemaResponse{
+		MissingColumns: results.MissingColumns,
+		ExtraColumns:   results.ExtraColumns,
+		MissingTables:  convertSchemaTables(results.MissingTables),
+		MissingSchemas: results.MissingSchemas,
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func convertSchemaTables(tables []*sqlmanager_shared.SchemaTable) []*mgmtv1alpha1.ValidateSchemaResponse_Table {
+	var protoTables []*mgmtv1alpha1.ValidateSchemaResponse_Table
+	for _, table := range tables {
+		protoTables = append(protoTables, &mgmtv1alpha1.ValidateSchemaResponse_Table{
+			Schema: table.Schema,
+			Table:  table.Table,
+		})
+	}
+	return protoTables
+}
+
+func isConnectionSQLType(connection *mgmtv1alpha1.Connection) bool {
+	return connection.GetConnectionConfig().GetPgConfig() != nil || connection.GetConnectionConfig().GetMysqlConfig() != nil || connection.GetConnectionConfig().GetMssqlConfig() != nil
+}
+
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
 	var connectionIdToVerify *string
 	switch config := jobSource.Options.Config.(type) {
@@ -1664,4 +1721,29 @@ func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error
 		return nil, fmt.Errorf("unsupported source option config type: %T", config)
 	}
 	return connectionIdToVerify, nil
+}
+
+func getConnectionSchemaConfigByConnectionType(connection *mgmtv1alpha1.Connection) (*mgmtv1alpha1.ConnectionSchemaConfig, error) {
+	switch conn := connection.GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+			},
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlSchemaConfig{},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unable to build connection schema config: unsupported connection type (%T)", conn)
+	}
 }

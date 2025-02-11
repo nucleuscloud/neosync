@@ -196,29 +196,6 @@ func (s *NeosyncApiTestClient) setupMux(
 		)
 	}
 
-	jobService := v1alpha1_jobservice.New(
-		&v1alpha1_jobservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
-		neosyncDb,
-		s.Mocks.TemporalClientManager,
-		connectionService,
-		sqlmanagerclient,
-		jobhookService,
-		userclient,
-	)
-
-	var presAnalyzeClient presidioapi.AnalyzeInterface
-	var presAnonClient presidioapi.AnonymizeInterface
-
-	anonymizationService := v1alpha_anonymizationservice.New(
-		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: isPresidioEnabled, IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
-		nil, // meter
-		userclient,
-		userService,
-		transformerService,
-		presAnalyzeClient, presAnonClient,
-		neosyncDb,
-	)
-
 	awsManager := awsmanager.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	pgquerier := pg_queries.New()
@@ -238,6 +215,31 @@ func (s *NeosyncApiTestClient) setupMux(
 		mongoconnector,
 		neosynctyperegistry,
 	)
+
+	jobService := v1alpha1_jobservice.New(
+		&v1alpha1_jobservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
+		neosyncDb,
+		s.Mocks.TemporalClientManager,
+		connectionService,
+		sqlmanagerclient,
+		jobhookService,
+		userclient,
+		connectiondatabuilder,
+	)
+
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+
+	anonymizationService := v1alpha_anonymizationservice.New(
+		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: isPresidioEnabled, IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
+		nil, // meter
+		userclient,
+		userService,
+		transformerService,
+		presAnalyzeClient, presAnonClient,
+		neosyncDb,
+	)
+
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,

@@ -155,6 +155,11 @@ class JobServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsResponse.FromString,
                 _registered_method=True)
+        self.ValidateSchema = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/ValidateSchema',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.FromString,
+                _registered_method=True)
         self.GetRunContext = channel.unary_unary(
                 '/mgmt.v1alpha1.JobService/GetRunContext',
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetRunContextRequest.SerializeToString,
@@ -413,6 +418,13 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateSchema(self, request, context):
+        """Validates that the schema is compatible with the job mappings
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetRunContext(self, request, context):
         """Gets a run context to be used by a workflow run
         """
@@ -632,6 +644,11 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.ValidateJobMappings,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsResponse.SerializeToString,
+            ),
+            'ValidateSchema': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateSchema,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.SerializeToString,
             ),
             'GetRunContext': grpc.unary_unary_rpc_method_handler(
                     servicer.GetRunContext,
@@ -1446,6 +1463,33 @@ class JobService(object):
             '/mgmt.v1alpha1.JobService/ValidateJobMappings',
             mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ValidateSchema(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/ValidateSchema',
+            mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.FromString,
             options,
             channel_credentials,
             insecure,
