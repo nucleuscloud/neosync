@@ -29,16 +29,9 @@ import (
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
-	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
-	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
-	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
-	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
-	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
-	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
-	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
-	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	datasync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/register"
 	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -311,39 +304,13 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("unable to get redis client: %w", err)
 	}
 
-	genbenthosActivity := genbenthosconfigs_activity.New(
-		jobclient,
-		connclient,
-		transformerclient,
-		sqlmanager,
-		redisconfig,
-		otelconfig.IsEnabled,
+	datasync_workflow_register.Register(
+		w,
+		userclient, jobclient, connclient, transformerclient,
+		sqlmanager, redisconfig, cascadelicense, redisclient,
+		sqlconnmanager, mongoconnmanager, syncActivityMeter,
+		sync_activity.NewBenthosStreamManager(), otelconfig.IsEnabled,
 	)
-
-	syncActivity := sync_activity.New(
-		connclient,
-		jobclient,
-		sqlconnmanager,
-		mongoconnmanager,
-		syncActivityMeter,
-		sync_activity.NewBenthosStreamManager(),
-	)
-	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
-	accountStatusActivity := accountstatus_activity.New(userclient)
-	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
-	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
-	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
-
-	w.RegisterWorkflow(datasync_workflow.Workflow)
-	w.RegisterActivity(syncActivity.Sync)
-	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
-	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	w.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
-	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
-	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
-	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
 	if cascadelicense.IsValid() {
 		logger.Debug("ee license is valid, registering account hook activities")

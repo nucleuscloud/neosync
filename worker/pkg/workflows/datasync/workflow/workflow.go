@@ -34,6 +34,8 @@ type WorkflowRequest struct {
 
 type WorkflowResponse struct{}
 
+type Workflow struct{}
+
 var (
 	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
 )
@@ -68,7 +70,16 @@ func withJobHookTimingActivityOptions(ctx workflow.Context) workflow.Context {
 	})
 }
 
-func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+func (w *Workflow) Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+
+	return executeWorkflow(ctx, req)
+}
+
+func (w *Workflow) handleEventLifecycle(ctx workflow.Context, logger log.Logger) {
+
+}
+
+func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
 	ctx, cancelHandler := workflow.WithCancel(wfctx)
 	logger := workflow.GetLogger(ctx)
 
