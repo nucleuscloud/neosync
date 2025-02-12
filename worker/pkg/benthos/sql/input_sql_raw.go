@@ -312,10 +312,10 @@ func emptyAck(ctx context.Context, err error) error {
 func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
-	defer s.dbMut.Unlock()
 
 	isNil := s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil)
 	if isNil {
+		s.dbMut.Unlock()
 		return nil
 	}
 
@@ -334,6 +334,8 @@ func (s *pooledInput) Close(ctx context.Context) error {
 	}
 
 	s.db = nil // not closing here since it's managed by the pool
+
+	s.dbMut.Unlock()
 
 	select {
 	case <-s.shutSig.HasStoppedChan():
