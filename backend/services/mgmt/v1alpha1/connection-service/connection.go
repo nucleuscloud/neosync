@@ -275,6 +275,11 @@ func (s *Service) GetConnections(
 	if err := user.EnforceConnection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
+	canViewSensitive, err := user.Connection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_ViewSensitive)
+	if err != nil {
+		return nil, err
+	}
+
 	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
@@ -288,7 +293,7 @@ func (s *Service) GetConnections(
 	dtoConns := []*mgmtv1alpha1.Connection{}
 	for idx := range connections {
 		connection := connections[idx]
-		dto, err := dtomaps.ToConnectionDto(&connection)
+		dto, err := dtomaps.ToConnectionDto(&connection, canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -316,22 +321,24 @@ func (s *Service) GetConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	dto, err := dtomaps.ToConnectionDto(&connection)
-	if err != nil {
-		return nil, err
-	}
-
 	user, err := s.userclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
-
-	if err := user.EnforceConnection(ctx, dto, rbac.ConnectionAction_View); err != nil {
+	canViewSensitive, err := user.Connection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_ViewSensitive)
+	if err != nil {
 		return nil, err
 	}
+
+	dto, err := dtomaps.ToConnectionDto(&connection, canViewSensitive)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: dto,
 	}), nil
@@ -388,7 +395,7 @@ func (s *Service) CreateConnection(
 	if err != nil {
 		return nil, err
 	}
-	dto, err := dtomaps.ToConnectionDto(&connection)
+	dto, err := dtomaps.ToConnectionDto(&connection, true)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +460,7 @@ func (s *Service) UpdateConnection(
 	if err != nil {
 		return nil, err
 	}
-	dto, err := dtomaps.ToConnectionDto(&connection)
+	dto, err := dtomaps.ToConnectionDto(&connection, true)
 	if err != nil {
 		return nil, err
 	}
