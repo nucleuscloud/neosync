@@ -59,7 +59,7 @@ func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context,
 			{
 				GcpCloudStorage: &neosync_benthos.GcpCloudStorageOutput{
 					Bucket:          gcpCloudStorageConfig.GetBucket(),
-					MaxInFlight:     64,
+					MaxInFlight:     10,
 					Path:            strings.Join(pathpieces, "/"),
 					ContentType:     shared.Ptr("txt/plain"),
 					ContentEncoding: shared.Ptr("gzip"),
