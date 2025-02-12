@@ -3,7 +3,6 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
-import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 message GetConnectionsRequest {
@@ -54,9 +53,6 @@ message UpdateConnectionRequest {
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // The connection configuration to use for the connection
   ConnectionConfig connection_config = 3;
-
-  // The field mask to update
-  optional google.protobuf.FieldMask update_mask = 4;
 }
 message UpdateConnectionResponse {
   // The updated connection
