@@ -508,15 +508,22 @@ func (m *ClientManager) createScheduleClient(
 	ctx context.Context,
 	accountId string,
 	logger *slog.Logger,
-) (temporalclient.ScheduleClient, func(), error) {
+) (
+	scheduleClient temporalclient.ScheduleClient,
+	release func(),
+	err error,
+) {
 	clients, err := m.getClients(ctx, accountId, logger)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return clients.client.scheduleClient, func() {
+	scheduleClient = clients.client.scheduleClient
+	release = func() {
 		clients.Release()
-	}, nil
+	}
+
+	return scheduleClient, release, nil
 }
 
 func isGrpcNotFoundError(err error) bool {
