@@ -126,4 +126,5 @@ NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
 {{- if and .Values.ee .Values.ee.license }}
 EE_LICENSE: {{ .Values.ee.license | quote }}
 {{- end }}
+TABLESYNC_MAX_CONCURRENCY: {{ .Values.tableSync.maxConcurrency }}
 {{- end -}}

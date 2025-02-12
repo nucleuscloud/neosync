@@ -32,4 +32,7 @@ releases:
         redis:
           url: redis://default:foofar@redis-master.redis.svc.cluster.local:6379
 
+        tableSync:
+          maxConcurrency: 3
+
         containerPort: 8080
