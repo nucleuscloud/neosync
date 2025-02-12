@@ -626,7 +626,7 @@ func getAccountStatusTimerDuration() time.Duration {
 
 func getTableSyncMaxConcurrency() int {
 	maxConcurrency := viper.GetInt("TABLESYNC_MAX_CONCURRENCY")
-	if maxConcurrency == 0 {
+	if maxConcurrency <= 0 {
 		return 3 // default max concurrency
 	}
 	return maxConcurrency
