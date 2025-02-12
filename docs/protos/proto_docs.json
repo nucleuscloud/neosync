@@ -7513,7 +7513,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": true,
+          "hasOneofs": false,
           "extensions": [],
           "fields": [
             {
@@ -7550,18 +7550,6 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "update_mask",
-              "description": "The field mask to update",
-              "label": "optional",
-              "type": "FieldMask",
-              "longType": "google.protobuf.FieldMask",
-              "fullType": "google.protobuf.FieldMask",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_update_mask",
               "defaultValue": ""
             }
           ]
