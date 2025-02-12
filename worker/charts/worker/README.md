@@ -68,3 +68,4 @@ A Helm chart for the Neosync Temporal Worker
 | updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
 | volumeMounts | list | `[]` | Volumes that will be mounted to the deployment |
 | volumes | list | `[]` | Volumes that will be attached to the deployment |
+| tableSync.maxConcurrency | int | `3` | The number of tables to sync concurrently |

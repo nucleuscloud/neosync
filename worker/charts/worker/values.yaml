@@ -162,3 +162,7 @@ extraEnvVars: []
 
 # -- Provide sidecars that will be appended directly to the deployment next to the user-container
 sidecarContainers: []
+
+tableSync:
+  # -- The number of tables to sync concurrently
+  maxConcurrency: 3

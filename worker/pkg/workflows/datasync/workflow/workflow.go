@@ -228,7 +228,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, fmt.Errorf("root config not found. unable to process configs")
 	}
 
-	maxConcurrency := 3
+	maxConcurrency := getTableSyncMaxConcurrency()
 	inFlight := 0
 	completedCount := 0
 	started := sync.Map{}
@@ -622,4 +622,12 @@ func getAccountStatusTimerDuration() time.Duration {
 		return 5 * time.Second
 	}
 	return time.Duration(envtime) * time.Second
+}
+
+func getTableSyncMaxConcurrency() int {
+	maxConcurrency := viper.GetInt("TABLESYNC_MAX_CONCURRENCY")
+	if maxConcurrency == 0 {
+		return 3 // default max concurrency
+	}
+	return maxConcurrency
 }
