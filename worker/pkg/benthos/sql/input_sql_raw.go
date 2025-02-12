@@ -156,7 +156,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 			return err
 		}
 
-		s.logger.Debug("cursor declared")
+		s.logger.Debug(fmt.Sprintf("cursor declared: %s", s.cursorName))
 
 		err = s.fetchNextBatchFromCursor(ctx)
 		if err != nil {
