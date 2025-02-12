@@ -228,14 +228,20 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, fmt.Errorf("root config not found. unable to process configs")
 	}
 
+	maxConcurrency := 3
+	inFlight := 0
+	completedCount := 0
 	started := sync.Map{}
 	completed := sync.Map{}
 
 	executeSyncActivity := func(bc *benthosbuilder.BenthosConfigResponse, logger log.Logger) {
 		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
+		inFlight++
 		workselector.AddFuture(future, func(f workflow.Future) {
 			var result sync_activity.SyncResponse
 			err := f.Get(ctx, &result)
+			inFlight--
+			completedCount++
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
 				activityErr = err
@@ -262,6 +268,20 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	for _, bc := range splitConfigs.Root {
+		// Ensures concurrency limits are respected.
+		for inFlight >= maxConcurrency {
+			logger.Debug("max concurrency reached; blocking until one sync finishes")
+			workselector.Select(ctx)
+			if activityErr != nil {
+				return nil, activityErr
+			}
+			if ctx.Err() != nil {
+				if errors.Is(ctx.Err(), context.Canceled) {
+					return nil, fmt.Errorf("workflow canceled due to error/stop: %w", ctx.Err())
+				}
+				return nil, ctx.Err()
+			}
+		}
 		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 		executeSyncActivity(bc, logger)
 
@@ -275,6 +295,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	logger.Info("all root tables spawned, moving on to children")
 	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
+		// Ensures that the select statement below does not block indefinitely
+		if len(bcResp.BenthosConfigs) == completedCount {
+			break
+		}
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {
@@ -308,6 +332,21 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 			if !isReady {
 				continue
+			}
+
+			// Ensures concurrency limits are respected.
+			if inFlight >= maxConcurrency {
+				logger.Debug("max concurrency reached; blocking until one sync finishes for a dependent")
+				workselector.Select(ctx)
+				if activityErr != nil {
+					return nil, activityErr
+				}
+				if ctx.Err() != nil {
+					if errors.Is(ctx.Err(), context.Canceled) {
+						return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+					}
+					return nil, fmt.Errorf("exiting workflow in dependent sync due to err: %w", ctx.Err())
+				}
 			}
 
 			executeSyncActivity(bc, log.With(logger, withBenthosConfigResponseLoggerTags(bc)...))
