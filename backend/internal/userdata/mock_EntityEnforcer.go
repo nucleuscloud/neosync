@@ -22,6 +22,64 @@ func (_m *MockEntityEnforcer) EXPECT() *MockEntityEnforcer_Expecter {
 	return &MockEntityEnforcer_Expecter{mock: &_m.Mock}
 }
 
+// Connection provides a mock function with given fields: ctx, connection, action
+func (_m *MockEntityEnforcer) Connection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) (bool, error) {
+	ret := _m.Called(ctx, connection, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Connection")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DomainEntity, rbac.ConnectionAction) (bool, error)); ok {
+		return rf(ctx, connection, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DomainEntity, rbac.ConnectionAction) bool); ok {
+		r0 = rf(ctx, connection, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DomainEntity, rbac.ConnectionAction) error); ok {
+		r1 = rf(ctx, connection, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockEntityEnforcer_Connection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Connection'
+type MockEntityEnforcer_Connection_Call struct {
+	*mock.Call
+}
+
+// Connection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - connection DomainEntity
+//   - action rbac.ConnectionAction
+func (_e *MockEntityEnforcer_Expecter) Connection(ctx interface{}, connection interface{}, action interface{}) *MockEntityEnforcer_Connection_Call {
+	return &MockEntityEnforcer_Connection_Call{Call: _e.mock.On("Connection", ctx, connection, action)}
+}
+
+func (_c *MockEntityEnforcer_Connection_Call) Run(run func(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction)) *MockEntityEnforcer_Connection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DomainEntity), args[2].(rbac.ConnectionAction))
+	})
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Connection_Call) Return(_a0 bool, _a1 error) *MockEntityEnforcer_Connection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Connection_Call) RunAndReturn(run func(context.Context, DomainEntity, rbac.ConnectionAction) (bool, error)) *MockEntityEnforcer_Connection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnforceAccount provides a mock function with given fields: ctx, account, action
 func (_m *MockEntityEnforcer) EnforceAccount(ctx context.Context, account Identifier, action rbac.AccountAction) error {
 	ret := _m.Called(ctx, account, action)

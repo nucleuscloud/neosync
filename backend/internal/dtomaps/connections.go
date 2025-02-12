@@ -9,8 +9,9 @@ import (
 
 func ToConnectionDto(
 	input *db_queries.NeosyncApiConnection,
+	canViewSensitive bool,
 ) (*mgmtv1alpha1.Connection, error) {
-	ccDto, err := input.ConnectionConfig.ToDto()
+	ccDto, err := input.ConnectionConfig.ToDto(canViewSensitive)
 	if err != nil {
 		return nil, err
 	}
