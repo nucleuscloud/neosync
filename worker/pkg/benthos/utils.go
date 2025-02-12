@@ -41,6 +41,7 @@ func IsCriticalError(errMsg string) bool {
 		"does not exist",
 		"syntax error at or near",
 		"ON CONFLICT DO UPDATE requires inference specification or constraint name",
+		"transaction has already been committed or rolled back",
 	}
 
 	for _, errStr := range criticalErrors {
