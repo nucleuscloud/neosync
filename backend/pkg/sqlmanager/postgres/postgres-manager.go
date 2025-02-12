@@ -998,12 +998,12 @@ func (p *PostgresManager) GetTableRowCount(
 	if whereClause != nil && *whereClause != "" {
 		query = query.Where(goqu.L(*whereClause))
 	}
-	sql, _, err := query.ToSQL()
+	compiledSql, _, err := query.ToSQL()
 	if err != nil {
 		return 0, err
 	}
 	var count int64
-	err = p.db.QueryRowContext(ctx, sql).Scan(&count)
+	err = p.db.QueryRowContext(ctx, compiledSql).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

@@ -186,6 +186,10 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 			_ = s.rows.Close()
 			s.rows = nil
 		}
+		if s.tx != nil {
+			_ = s.tx.Rollback()
+			s.tx = nil
+		}
 		// not closing the connection here as that is managed by an outside force
 		s.db = nil
 		s.dbMut.Unlock()
@@ -252,10 +256,11 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 			s.rows = nil
 			return nil, nil, err
 		}
-		if s.driver == sqlmanager_shared.PostgresDriver {
+		if s.driver == sqlmanager_shared.PostgresDriver && s.tx != nil {
 			_ = s.rows.Close()
 			// Fetch next batch for Postgres
 			if err := s.fetchNextBatchFromCursor(ctx); err != nil {
+				_ = s.tx.Rollback()
 				return nil, nil, err
 			}
 			// Check if the new batch has rows
@@ -279,6 +284,10 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	if err != nil {
 		_ = s.rows.Close()
 		s.rows = nil
+		if s.tx != nil {
+			_ = s.tx.Rollback()
+			s.tx = nil
+		}
 		return nil, nil, err
 	}
 
@@ -296,11 +305,29 @@ func emptyAck(ctx context.Context, err error) error {
 func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
+	defer s.dbMut.Unlock()
+
 	isNil := s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil)
-	s.dbMut.Unlock()
 	if isNil {
 		return nil
 	}
+
+	if s.rows != nil {
+		_ = s.rows.Close()
+		s.rows = nil
+	}
+
+	if s.tx != nil {
+		// Rollback the transaction to clean up resources if it's still active.
+		// For a read-only transaction, rollback is a safe way to end it.
+		if err := s.tx.Rollback(); err != nil {
+			s.logger.Error(fmt.Sprintf("error rolling back transaction on close: %s", err.Error()))
+		}
+		s.tx = nil
+	}
+
+	s.db = nil // not closing here since it's managed by the pool
+
 	select {
 	case <-s.shutSig.HasStoppedChan():
 	case <-ctx.Done():
