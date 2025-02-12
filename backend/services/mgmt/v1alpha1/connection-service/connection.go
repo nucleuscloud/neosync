@@ -280,6 +280,10 @@ func (s *Service) GetConnections(
 		return nil, err
 	}
 
+	if req.Msg.GetExcludeSensitive() {
+		canViewSensitive = false
+	}
+
 	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
@@ -332,6 +336,10 @@ func (s *Service) GetConnection(
 	canViewSensitive, err := user.Connection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_ViewSensitive)
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Msg.GetExcludeSensitive() {
+		canViewSensitive = false
 	}
 
 	dto, err := dtomaps.ToConnectionDto(&connection, canViewSensitive)
