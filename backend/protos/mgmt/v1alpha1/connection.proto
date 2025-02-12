@@ -8,6 +8,11 @@ import "google/protobuf/timestamp.proto";
 message GetConnectionsRequest {
   // The unique identifier of the account to get connections for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Whether or not to exclude sensitive data from the connection
+  // If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+  // This behavior exists to preserve backwards compatibility that originally always returned sensitive data
+  bool exclude_sensitive = 2;
 }
 message GetConnectionsResponse {
   // The connections
@@ -17,6 +22,11 @@ message GetConnectionsResponse {
 message GetConnectionRequest {
   // The unique identifier of the connection to get
   string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Whether or not to exclude sensitive data from the connection
+  // If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+  // This behavior exists to preserve backwards compatibility that originally always returned sensitive data
+  bool exclude_sensitive = 2;
 }
 message GetConnectionResponse {
   // The connection
