@@ -209,6 +209,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.servicePort | int | `80` | The K8s service port |
 | worker.shutdownTimeoutSeconds | string | `nil` | Not currently used |
 | worker.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
+| worker.tableSync.maxConcurrency | int | `3` | The number of tables to sync concurrently |
 | worker.temporal.certificate.certContents | string | `nil` | The full contents of the certificate. Provide this or the certFilePath, not both. |
 | worker.temporal.certificate.certFilePath | string | `nil` | The location of the certificate file |
 | worker.temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |
