@@ -1460,7 +1460,7 @@ export function getSingleTableGenerateNumRows(
   return 0;
 }
 
-const DEFAULT_MAX_FLIGHT = 20;
+const DEFAULT_MAX_FLIGHT = 10;
 const DEFAULT_BATCH_COUNT = 100;
 const DEFAULT_BATCH_PERIOD = '5s';
 
