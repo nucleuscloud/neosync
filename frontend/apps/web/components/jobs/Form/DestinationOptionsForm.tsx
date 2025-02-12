@@ -1,4 +1,10 @@
 'use client';
+import {
+  getDefaultAwsS3DestinationFormValueOptions,
+  getDefaultMssqlDestinationFormValueOptions,
+  getDefaultMysqlDestinationFormValueOptions,
+  getDefaultPostgresDestinationFormValueOptions,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
@@ -46,16 +52,7 @@ export default function DestinationOptionsForm(
       return (
         <PostgresDBDestinationOptionsForm
           value={
-            value.postgres ?? {
-              initTableSchema: false,
-              conflictStrategy: {
-                onConflictDoNothing: false,
-                onConflictDoUpdate: false,
-              },
-              skipForeignKeyViolations: false,
-              truncateBeforeInsert: false,
-              truncateCascade: false,
-            }
+            value.postgres ?? getDefaultPostgresDestinationFormValueOptions()
           }
           setValue={(val) => setValue({ ...value, postgres: { ...val } })}
           hideInitTableSchema={hideInitTableSchema}
@@ -67,17 +64,7 @@ export default function DestinationOptionsForm(
     case 'mysqlConfig': {
       return (
         <MysqlDBDestinationOptionsForm
-          value={
-            value.mysql ?? {
-              initTableSchema: false,
-              conflictStrategy: {
-                onConflictDoNothing: false,
-                onConflictDoUpdate: false,
-              },
-              skipForeignKeyViolations: false,
-              truncateBeforeInsert: false,
-            }
-          }
+          value={value.mysql ?? getDefaultMysqlDestinationFormValueOptions()}
           setValue={(val) => setValue({ ...value, mysql: { ...val } })}
           hideInitTableSchema={hideInitTableSchema}
           errors={errors?.mysql}
@@ -88,7 +75,7 @@ export default function DestinationOptionsForm(
     case 'awsS3Config': {
       return (
         <AwsS3DestinationOptionsForm
-          value={value.awss3 ?? {}}
+          value={value.awss3 ?? getDefaultAwsS3DestinationFormValueOptions()}
           setValue={(val) => setValue({ ...value, awss3: { ...val } })}
           errors={errors?.awss3}
         />
@@ -140,14 +127,7 @@ export default function DestinationOptionsForm(
     case 'mssqlConfig': {
       return (
         <MssqlDBDestinationOptionsForm
-          value={
-            value.mssql ?? {
-              initTableSchema: false,
-              onConflictDoNothing: false,
-              skipForeignKeyViolations: false,
-              truncateBeforeInsert: false,
-            }
-          }
+          value={value.mssql ?? getDefaultMssqlDestinationFormValueOptions()}
           setValue={(val) => setValue({ ...value, mssql: { ...val } })}
           hideInitTableSchema={hideInitTableSchema}
           errors={errors?.mssql}

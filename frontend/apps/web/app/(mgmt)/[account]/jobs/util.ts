@@ -4,12 +4,16 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  AwsS3DestinationOptionsFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
   DestinationOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
+  MssqlDbDestinationOptionsFormValues,
+  MysqlDbDestinationOptionsFormValues,
   NewDestinationFormValues,
+  PostgresDbDestinationOptionsFormValues,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
   toColumnRemovalStrategy,
@@ -1456,6 +1460,71 @@ export function getSingleTableGenerateNumRows(
   return 0;
 }
 
+const DEFAULT_MAX_FLIGHT = 20;
+const DEFAULT_BATCH_COUNT = 100;
+const DEFAULT_BATCH_PERIOD = '5s';
+
+export function getDefaultPostgresDestinationFormValueOptions(): PostgresDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    conflictStrategy: {
+      onConflictDoNothing: false,
+      onConflictDoUpdate: false,
+    },
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    truncateCascade: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultMysqlDestinationFormValueOptions(): MysqlDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    conflictStrategy: {
+      onConflictDoNothing: false,
+      onConflictDoUpdate: false,
+    },
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultMssqlDestinationFormValueOptions(): MssqlDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    onConflictDoNothing: false,
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultAwsS3DestinationFormValueOptions(): AwsS3DestinationOptionsFormValues {
+  return {
+    storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+    timeout: '5s',
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
 export function getDefaultDestinationFormValueOptionsFromConnectionCase(
   destCase: ConnectionConfigCase | null | undefined,
   getUniqueTables: () => Set<string>
@@ -1463,67 +1532,22 @@ export function getDefaultDestinationFormValueOptionsFromConnectionCase(
   switch (destCase) {
     case 'pgConfig': {
       return {
-        postgres: {
-          initTableSchema: false,
-          conflictStrategy: {
-            onConflictDoNothing: false,
-            onConflictDoUpdate: false,
-          },
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          truncateCascade: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        postgres: getDefaultPostgresDestinationFormValueOptions(),
       };
     }
     case 'mysqlConfig': {
       return {
-        mysql: {
-          initTableSchema: false,
-          conflictStrategy: {
-            onConflictDoNothing: false,
-            onConflictDoUpdate: false,
-          },
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        mysql: getDefaultMysqlDestinationFormValueOptions(),
       };
     }
     case 'mssqlConfig': {
       return {
-        mssql: {
-          initTableSchema: false,
-          onConflictDoNothing: false,
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        mssql: getDefaultMssqlDestinationFormValueOptions(),
       };
     }
     case 'awsS3Config': {
       return {
-        awss3: {
-          storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
-          timeout: '5s',
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        awss3: getDefaultAwsS3DestinationFormValueOptions(),
       };
     }
     case 'dynamodbConfig': {
