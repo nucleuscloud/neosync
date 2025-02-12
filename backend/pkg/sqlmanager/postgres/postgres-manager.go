@@ -828,6 +828,13 @@ func buildAlterStatementByConstraint(
 	if constraint == nil {
 		return "", errors.New("unable to build alter statement as constraint is nil")
 	}
+	if strings.EqualFold(constraint.ConstraintType, "f") {
+		return fmt.Sprintf(
+			"ALTER TABLE %q.%q ADD CONSTRAINT %q FOREIGN KEY (%s) REFERENCES %q.%q (%s);",
+			constraint.SchemaName, constraint.TableName, constraint.ConstraintName, strings.Join(EscapePgColumns(constraint.ConstraintColumns), ", "),
+			constraint.ForeignSchemaName, constraint.ForeignTableName, strings.Join(EscapePgColumns(constraint.ForeignColumnNames), ", "),
+		), nil
+	}
 	return fmt.Sprintf(
 		"ALTER TABLE %q.%q ADD CONSTRAINT %q %s;",
 		constraint.SchemaName, constraint.TableName, constraint.ConstraintName, constraint.ConstraintDefinition,
