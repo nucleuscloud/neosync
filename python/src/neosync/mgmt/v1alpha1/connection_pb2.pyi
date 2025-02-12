@@ -1,4 +1,5 @@
 from buf.validate import validate_pb2 as _validate_pb2
+from google.protobuf import field_mask_pb2 as _field_mask_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
@@ -52,14 +53,16 @@ class CreateConnectionResponse(_message.Message):
     def __init__(self, connection: _Optional[_Union[Connection, _Mapping]] = ...) -> None: ...
 
 class UpdateConnectionRequest(_message.Message):
-    __slots__ = ("id", "name", "connection_config")
+    __slots__ = ("id", "name", "connection_config", "update_mask")
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    UPDATE_MASK_FIELD_NUMBER: _ClassVar[int]
     id: str
     name: str
     connection_config: ConnectionConfig
-    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., connection_config: _Optional[_Union[ConnectionConfig, _Mapping]] = ...) -> None: ...
+    update_mask: _field_mask_pb2.FieldMask
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., connection_config: _Optional[_Union[ConnectionConfig, _Mapping]] = ..., update_mask: _Optional[_Union[_field_mask_pb2.FieldMask, _Mapping]] = ...) -> None: ...
 
 class UpdateConnectionResponse(_message.Message):
     __slots__ = ("connection",)
