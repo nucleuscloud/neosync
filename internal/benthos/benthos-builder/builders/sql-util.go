@@ -542,7 +542,7 @@ type batchDestinationOption interface {
 
 func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, error) {
 	output := batchingConfig{
-		MaxInFlight: 64,
+		MaxInFlight: 10,
 		BatchPeriod: "5s",
 		BatchCount:  100,
 	}
