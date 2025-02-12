@@ -226,6 +226,7 @@ func sanitizeCursorName(s string) string {
 // It also sanitizes the input to allow only alphanumeric characters and underscores.
 func generateCursorName(connectionId, query string) string {
 	// Sanitize the connectionID for safe use in SQL identifiers.
+	// Remove hyphens from the UUID for compactness.
 	safeConnID := sanitizeCursorName(connectionId)
 
 	// Create a short hash (first 8 hex digits) from the query string.
@@ -235,8 +236,14 @@ func generateCursorName(connectionId, query string) string {
 	// Use current timestamp in nanoseconds.
 	timestamp := time.Now().UnixNano()
 
-	// Construct the cursor name.
-	return fmt.Sprintf("cursor_%s_%s_%d", safeConnID, shortHash, timestamp)
+	// Construct a candidate cursor name.
+	candidate := fmt.Sprintf("cur_%s_%s_%d", safeConnID, shortHash, timestamp)
+
+	// PostgreSQL identifier limit is 63 characters. If candidate is longer, truncate.
+	if len(candidate) > 63 {
+		candidate = candidate[:63]
+	}
+	return candidate
 }
 
 func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFunc, error) {
