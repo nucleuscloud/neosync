@@ -122,45 +122,68 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	if len(schemas) == 0 {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.db, schemas)
-	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return &sqlmanager_shared.TableConstraints{}, nil
-	}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	nonFkConstraints := []*pg_queries.GetNonForeignKeyTableConstraintsBySchemaRow{}
+	errgrp.Go(func() error {
+		rows, err := p.querier.GetNonForeignKeyTableConstraintsBySchema(ctx, p.db, schemas)
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return err
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nil
+		}
+		nonFkConstraints = rows
+		return nil
+	})
 
-	foreignKeyMap := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	fkConstraints := []*pg_queries.GetForeignKeyConstraintsBySchemasRow{}
+	errgrp.Go(func() error {
+		fks, err := p.querier.GetForeignKeyConstraintsBySchemas(errctx, p.db, schemas)
+		if err != nil {
+			return err
+		}
+		fkConstraints = fks
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
 	primaryKeyMap := map[string][]string{}
 	uniqueConstraintsMap := map[string][][]string{}
-	for _, row := range rows {
+	for _, row := range nonFkConstraints {
 		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
 		switch row.ConstraintType {
-		case "f":
-			if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
-			}
-			if len(row.ConstraintColumns) != len(row.Notnullable) {
-				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
-			}
-
-			foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
-				Columns:     row.ConstraintColumns,
-				NotNullable: row.Notnullable,
-				ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-					Columns: row.ForeignColumnNames,
-				},
-			})
-		case "p":
+		case "PRIMARY KEY":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
 			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(row.ConstraintColumns)...)
-		case "u":
+		case "UNIQUE":
 			columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
 		}
 	}
+
+	foreignKeyMap := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	for _, row := range fkConstraints {
+		tableName := sqlmanager_shared.BuildTable(row.ReferencingSchema, row.ReferencingTable)
+		if len(row.ReferencingColumns) != len(row.ReferencedColumns) {
+			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ReferencingColumns), len(row.ReferencedColumns))
+		}
+		if len(row.ReferencingColumns) != len(row.NotNullable) {
+			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ReferencingColumns), len(row.NotNullable))
+		}
+
+		foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
+			Columns:     row.ReferencingColumns,
+			NotNullable: row.NotNullable,
+			ForeignKey: &sqlmanager_shared.ForeignKey{
+				Table:   sqlmanager_shared.BuildTable(row.ReferencedSchema, row.ReferencedTable),
+				Columns: row.ReferencedColumns,
+			},
+		})
+	}
+
 	return &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: foreignKeyMap,
 		PrimaryKeyConstraints: primaryKeyMap,
@@ -182,44 +205,6 @@ func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context) (map[string
 		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err
-}
-
-func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	errgrp, errctx := errgroup.WithContext(ctx)
-
-	schematable := sqlmanager_shared.SchemaTable{Schema: schema, Table: table}
-
-	var tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow
-	errgrp.Go(func() error {
-		result, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.db, []string{schematable.String()})
-		if err != nil {
-			return fmt.Errorf("unable to generate database table schema: %w", err)
-		}
-		tableSchemas = result
-		return nil
-	})
-	var tableConstraints []*pg_queries.GetTableConstraintsRow
-	errgrp.Go(func() error {
-		result, err := p.querier.GetTableConstraints(errctx, p.db, &pg_queries.GetTableConstraintsParams{
-			Schema: schema,
-			Table:  table,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to generate table constraints: %w", err)
-		}
-		tableConstraints = result
-		return nil
-	})
-	if err := errgrp.Wait(); err != nil {
-		return "", err
-	}
-
-	return generateCreateTableStatement(
-		schema,
-		table,
-		tableSchemas,
-		tableConstraints,
-	), nil
 }
 
 func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
@@ -453,15 +438,28 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		return nil
 	})
 
-	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
+	constraintmap := map[string][]*pg_queries.GetNonForeignKeyTableConstraintsBySchemaRow{}
 	errgrp.Go(func() error {
-		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		constraints, err := p.querier.GetNonForeignKeyTableConstraintsBySchema(errctx, p.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
 		if err != nil {
 			return err
 		}
 		for _, constraint := range constraints {
 			key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
 			constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
+		}
+		return nil
+	})
+
+	fkConstraintMap := map[string][]*pg_queries.GetForeignKeyConstraintsBySchemasRow{}
+	errgrp.Go(func() error {
+		fkConstraints, err := p.querier.GetForeignKeyConstraintsBySchemas(errctx, p.db, schemas)
+		if err != nil {
+			return err
+		}
+		for _, constraint := range fkConstraints {
+			key := sqlmanager_shared.SchemaTable{Schema: constraint.ReferencingSchema, Table: constraint.ReferencingTable}
+			fkConstraintMap[key.String()] = append(fkConstraintMap[key.String()], constraint)
 		}
 		return nil
 	})
@@ -528,15 +526,26 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			if err != nil {
 				return nil, err
 			}
-			constraintType, err := sqlmanager_shared.ToConstraintType(constraint.ConstraintType)
+			constraintType, err := ToConstraintType(constraint.ConstraintType)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert constraint type '%s': %w", constraint.ConstraintType, err)
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, &sqlmanager_shared.AlterTableStatement{
 				Statement:      wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt),
 				ConstraintType: constraintType,
 			})
 		}
+		for _, constraint := range fkConstraintMap[key] {
+			stmt, err := buildAlterStatementByForeignKeyConstraint(constraint)
+			if err != nil {
+				return nil, err
+			}
+			info.AlterTableStatements = append(info.AlterTableStatements, &sqlmanager_shared.AlterTableStatement{
+				Statement:      wrapPgIdempotentConstraint(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName, stmt),
+				ConstraintType: sqlmanager_shared.ForeignConstraintType,
+			})
+		}
+
 		output = append(output, info)
 	}
 	return output, nil
@@ -822,8 +831,21 @@ func addSuffixIfNotExist(input, suffix string) string {
 	return input
 }
 
+func buildAlterStatementByForeignKeyConstraint(
+	constraint *pg_queries.GetForeignKeyConstraintsBySchemasRow,
+) (string, error) {
+	if constraint == nil {
+		return "", errors.New("unable to build alter statement as constraint is nil")
+	}
+	return fmt.Sprintf(
+		"ALTER TABLE %q.%q ADD CONSTRAINT %q FOREIGN KEY (%s) REFERENCES %q.%q (%s);",
+		constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName, strings.Join(EscapePgColumns(constraint.ReferencingColumns), ", "),
+		constraint.ReferencedSchema, constraint.ReferencedTable, strings.Join(EscapePgColumns(constraint.ReferencedColumns), ", "),
+	), nil
+}
+
 func buildAlterStatementByConstraint(
-	constraint *pg_queries.GetTableConstraintsBySchemaRow,
+	constraint *pg_queries.GetNonForeignKeyTableConstraintsBySchemaRow,
 ) (string, error) {
 	if constraint == nil {
 		return "", errors.New("unable to build alter statement as constraint is nil")
@@ -832,49 +854,6 @@ func buildAlterStatementByConstraint(
 		"ALTER TABLE %q.%q ADD CONSTRAINT %q %s;",
 		constraint.SchemaName, constraint.TableName, constraint.ConstraintName, constraint.ConstraintDefinition,
 	), nil
-}
-
-// This assumes that the schemas and constraints as for a single table, not an entire db schema
-func generateCreateTableStatement(
-	schema string,
-	table string,
-	tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow,
-	tableConstraints []*pg_queries.GetTableConstraintsRow,
-) string {
-	columns := make([]string, len(tableSchemas))
-	for idx := range tableSchemas {
-		record := tableSchemas[idx]
-		var seqConfig *SequenceConfiguration
-		if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
-			record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
-			seqConfig = &SequenceConfiguration{
-				StartValue:  record.SeqStartValue.Int64,
-				MinValue:    record.SeqMinValue.Int64,
-				MaxValue:    record.SeqMaxValue.Int64,
-				IncrementBy: record.SeqIncrementBy.Int64,
-				CycleOption: record.SeqCycleOption.Bool,
-				CacheValue:  record.SeqCacheValue.Int64,
-			}
-		}
-		columns[idx] = buildTableCol(&buildTableColRequest{
-			ColumnName:    record.ColumnName,
-			ColumnDefault: record.ColumnDefault,
-			DataType:      record.DataType,
-			IsNullable:    record.IsNullable == "YES",
-			GeneratedType: record.GeneratedType,
-			IsSerial:      record.SequenceType == "SERIAL",
-			Sequence:      seqConfig,
-			IdentityType:  &record.IdentityGeneration,
-		})
-	}
-
-	constraints := make([]string, len(tableConstraints))
-	for idx := range tableConstraints {
-		constraint := tableConstraints[idx]
-		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
-	}
-	tableDefs := append(columns, constraints...) //nolint:gocritic
-	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %q.%q (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
 type buildTableColRequest struct {
@@ -1094,4 +1073,18 @@ func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.D
 	}
 
 	return
+}
+
+func ToConstraintType(constraintType string) (sqlmanager_shared.ConstraintType, error) {
+	switch constraintType {
+	case "PRIMARY KEY":
+		return sqlmanager_shared.PrimaryConstraintType, nil
+	case "UNIQUE":
+		return sqlmanager_shared.UniqueConstraintType, nil
+	case "FOREIGN KEY":
+		return sqlmanager_shared.ForeignConstraintType, nil
+	case "CHECK":
+		return sqlmanager_shared.CheckConstraintType, nil
+	}
+	return -1, errors.ErrUnsupported
 }

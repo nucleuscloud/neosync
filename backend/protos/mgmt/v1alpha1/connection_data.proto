@@ -195,8 +195,8 @@ message SchemaInitStatements {
 
 // Init statement for a specific table
 message GetConnectionInitStatementsResponse {
-  // The key here is <schema>.<table> and value is the table init statement.
-  map<string, string> table_init_statements = 1;
+  // @deprecated - Use schema_init_statements instead
+  map<string, string> table_init_statements = 1 [deprecated = true];
   // The key here is <schema>.<table> and value is the table truncate statement.
   map<string, string> table_truncate_statements = 2;
   // A list of schema initialization statements

@@ -275,17 +275,6 @@ func Test_MysqlManager(t *testing.T) {
 		require.Contains(t, usersRecord, "TRIGGER")
 	})
 
-	t.Run("GetCreateTableStatement", func(t *testing.T) {
-		t.Parallel()
-		schema := "sqlmanagermysql3"
-
-		actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
-		require.NoError(t, err)
-		require.NotEmpty(t, actual)
-		_, err = target.DB.ExecContext(context.Background(), actual)
-		require.NoError(t, err)
-	})
-
 	t.Run("GetTableInitStatements", func(t *testing.T) {
 		t.Parallel()
 		schema := "sqlmanagermysql4"

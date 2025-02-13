@@ -282,15 +282,6 @@ func Test_PostgresManager(t *testing.T) {
 		}, usersRecord)
 	})
 
-	t.Run("GetCreateTableStatement", func(t *testing.T) {
-		t.Parallel()
-		actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
-		require.NoError(t, err)
-		require.NotEmpty(t, actual)
-		_, err = target.DB.Exec(ctx, actual)
-		require.NoError(t, err)
-	})
-
 	t.Run("Exec", func(t *testing.T) {
 		t.Parallel()
 		sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(schema)).ToSQL()

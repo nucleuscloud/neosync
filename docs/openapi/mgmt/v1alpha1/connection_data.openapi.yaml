@@ -673,7 +673,7 @@ components:
           additionalProperties:
             type: string
             title: value
-          description: The key here is <schema>.<table> and value is the table init statement.
+          description: '@deprecated - Use schema_init_statements instead'
         tableTruncateStatements:
           type: object
           title: table_truncate_statements
