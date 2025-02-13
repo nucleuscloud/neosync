@@ -2,7 +2,6 @@ package sync_cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -731,36 +730,15 @@ func (c *clisync) runDestinationInitStatements(
 	}
 	defer db.Db().Close()
 	if c.cmd.Destination.InitSchema {
-		if len(schemaConfig.InitSchemaStatements) != 0 {
-			for _, block := range schemaConfig.InitSchemaStatements {
-				c.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
-				if len(block.Statements) == 0 {
-					continue
-				}
-				err = db.Db().BatchExec(c.ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
-				if err != nil {
-					c.logger.Error(fmt.Sprintf("Error creating tables: %v", err))
-					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
-				}
+		for _, block := range schemaConfig.InitSchemaStatements {
+			c.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+			if len(block.Statements) == 0 {
+				continue
 			}
-		} else if len(schemaConfig.InitTableStatementsMap) != 0 {
-			// @deprecated mysql init table statements
-			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
-			if err != nil {
-				return err
-			}
-			if orderedTablesResp.HasCycles {
-				return errors.New("init schema: unable to handle circular dependencies")
-			}
-			orderedInitStatements := []string{}
-			for _, t := range orderedTablesResp.OrderedTables {
-				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t.String()])
-			}
-
-			err = db.Db().BatchExec(c.ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
+			err = db.Db().BatchExec(c.ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error creating tables: %v", err))
-				return err
+				return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 			}
 		}
 	}
@@ -871,7 +849,6 @@ type schemaConfig struct {
 	Schemas                    []*mgmtv1alpha1.DatabaseColumn
 	TableConstraints           map[string][]*sql_manager.ForeignConstraint
 	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
-	InitTableStatementsMap     map[string]string
 	TruncateTableStatementsMap map[string]string
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
@@ -917,7 +894,6 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 	var schemas []*mgmtv1alpha1.DatabaseColumn
 	var tableConstraints map[string]*mgmtv1alpha1.ForeignConstraintTables
 	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
-	var initTableStatementsMap map[string]string
 	var truncateTableStatementsMap map[string]string
 	var initSchemaStatements []*mgmtv1alpha1.SchemaInitStatements
 	errgrp, errctx := errgroup.WithContext(c.ctx)
@@ -949,7 +925,6 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 			if err != nil {
 				return err
 			}
-			initTableStatementsMap = initStatementsResp.GetTableInitStatements()
 			truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
 			initSchemaStatements = initStatementsResp.GetSchemaInitStatements()
 			return nil
@@ -982,7 +957,6 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 		Schemas:                    schemas,
 		TableConstraints:           tc,
 		TablePrimaryKeys:           tablePrimaryKeys,
-		InitTableStatementsMap:     initTableStatementsMap,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
 		InitSchemaStatements:       initSchemaStatements,
 	}, nil
