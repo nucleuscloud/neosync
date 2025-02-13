@@ -596,7 +596,6 @@ FROM information_schema.table_constraints AS tc
     JOIN pg_catalog.pg_constraint AS pgcon
         ON  pgcon.conname     = tc.constraint_name
         AND pgcon.connamespace = pn.oid
-
 WHERE
     tc.table_schema =  ANY(sqlc.arg('schema')::TEXT[])
     /* Exclude foreign keys */
@@ -680,3 +679,27 @@ GROUP BY
     referenced_schema.nspname,
     referenced_tbl.relname,
     ref_columns.foreign_column_names;
+
+
+-- name: GetUniqueIndexesBySchema :many
+SELECT
+  idx.relname AS index_name,
+  string_agg(col.attname, ', ' ORDER BY key_info.ordinality) AS index_columns
+FROM pg_catalog.pg_class AS tbl
+  -- Join to get the schema information for the table
+  JOIN pg_catalog.pg_namespace AS ns ON tbl.relnamespace = ns.oid
+  -- Join to retrieve index metadata for the table
+  JOIN pg_catalog.pg_index AS idx_meta ON tbl.oid = idx_meta.indrelid
+  -- Join to get the index object details
+  JOIN pg_catalog.pg_class AS idx ON idx_meta.indexrelid = idx.oid
+  -- Unnest the index key attribute numbers along with their ordinal positions
+  JOIN unnest(idx_meta.indkey) WITH ORDINALITY AS key_info(attnum, ordinality) ON true
+  -- Join to get the column attributes corresponding to the index keys
+  JOIN pg_catalog.pg_attribute AS col ON col.attrelid = tbl.oid AND col.attnum = key_info.attnum
+WHERE ns.nspname = ANY(sqlc.arg('schema')::TEXT[])
+  AND idx_meta.indisunique = true
+  -- Exclude indexes automatically created by constraints
+  AND NOT EXISTS (
+       SELECT 1 FROM pg_catalog.pg_constraint AS cons WHERE cons.conindid = idx.oid
+  )
+GROUP BY idx.relname;

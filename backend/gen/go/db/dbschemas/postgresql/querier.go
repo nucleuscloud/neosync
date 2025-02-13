@@ -20,6 +20,7 @@ type Querier interface {
 	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)
 	GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error)
+	GetUniqueIndexesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetUniqueIndexesBySchemaRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
