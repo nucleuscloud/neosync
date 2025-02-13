@@ -259,47 +259,6 @@ ORDER BY
     cd.ordinal_position;
 
 
--- name: GetNonForeignKeyTableConstraintsBySchema :many
-SELECT
-    tc.constraint_name,
-    tc.constraint_type::TEXT AS constraint_type,
-    tc.table_schema AS schema_name,
-    tc.table_name,
-    /* Collect all columns associated with this constraint, if any */
-    ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position)
-        FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT[]  AS constraint_columns,
-    /* Pull the actual definition from pg_get_constraintdef for completeness */
-    pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
-FROM information_schema.table_constraints AS tc
-    /* LEFT JOIN so that constraints without specific columns (e.g. some CHECKs) aren’t lost */
-    LEFT JOIN information_schema.key_column_usage AS kcu
-        ON  tc.constraint_name = kcu.constraint_name
-        AND tc.table_schema = kcu.table_schema
-        AND tc.table_name   = kcu.table_name
-
-    /* Map the info_schema schema name to pg_namespace for use in pg_constraint */
-    JOIN pg_catalog.pg_namespace AS pn
-        ON pn.nspname = tc.table_schema
-
-    /* Retrieve the constraint definition from pg_get_constraintdef() */
-    JOIN pg_catalog.pg_constraint AS pgcon
-        ON  pgcon.conname     = tc.constraint_name
-        AND pgcon.connamespace = pn.oid
-
-WHERE
-    tc.table_schema =  ANY(sqlc.arg('schema')::TEXT[])
-    /* Exclude foreign keys */
-    AND tc.constraint_type <> 'FOREIGN KEY'
-GROUP BY
-    tc.constraint_name,
-    tc.constraint_type,
-    tc.table_schema,
-    tc.table_name,
-    pgcon.oid
-ORDER BY
-    tc.table_name,
-    tc.constraint_name;
-
 -- name: GetPostgresRolePermissions :many
 SELECT
     tp.table_schema::text as table_schema,
@@ -611,54 +570,113 @@ ORDER BY
     rst.table_name,
     cws.column_name;
 
+-- name: GetNonForeignKeyTableConstraintsBySchema :many
+SELECT
+    tc.constraint_name,
+    tc.constraint_type::TEXT AS constraint_type,
+    tc.table_schema AS schema_name,
+    tc.table_name,
+    /* Collect all columns associated with this constraint, if any */
+    ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position)
+        FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT[]  AS constraint_columns,
+    /* Pull the actual definition from pg_get_constraintdef for completeness */
+    pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM information_schema.table_constraints AS tc
+    /* LEFT JOIN so that constraints without specific columns (e.g. some CHECKs) aren’t lost */
+    LEFT JOIN information_schema.key_column_usage AS kcu
+        ON  tc.constraint_name = kcu.constraint_name
+        AND tc.table_schema = kcu.table_schema
+        AND tc.table_name   = kcu.table_name
+
+    /* Map the info_schema schema name to pg_namespace for use in pg_constraint */
+    JOIN pg_catalog.pg_namespace AS pn
+        ON pn.nspname = tc.table_schema
+
+    /* Retrieve the constraint definition from pg_get_constraintdef() */
+    JOIN pg_catalog.pg_constraint AS pgcon
+        ON  pgcon.conname     = tc.constraint_name
+        AND pgcon.connamespace = pn.oid
+
+WHERE
+    tc.table_schema =  ANY(sqlc.arg('schema')::TEXT[])
+    /* Exclude foreign keys */
+    AND tc.constraint_type <> 'FOREIGN KEY'
+GROUP BY
+    tc.constraint_name,
+    tc.constraint_type,
+    tc.table_schema,
+    tc.table_name,
+    pgcon.oid
+ORDER BY
+    tc.table_name,
+    tc.constraint_name;
+
 -- name: GetForeignKeyConstraintsBySchemas :many
 SELECT
-    con.conname AS constraint_name,
-    nsp.nspname AS referencing_schema,
-    cls.relname AS referencing_table,
-    array_agg(att.attname)::TEXT[] AS referencing_columns,
-    array_agg(att.attnotnull)::BOOL[] AS not_nullable,
-    fk_nsp.nspname::TEXT AS referenced_schema,
-    fn_cl.relname::TEXT referenced_table,
-    fk_columns.foreign_column_names::TEXT[]  as referenced_columns
+    -- Name of the foreign key constraint
+    constraint_def.conname AS constraint_name,
+    
+    -- Schema of the table that contains the foreign key constraint
+    referencing_schema.nspname AS referencing_schema,
+    
+    -- Name of the table that holds the foreign key constraint
+    referencing_tbl.relname AS referencing_table,
+    
+    -- Array of column names in the referencing table involved in the constraint,
+    -- ordered by the column's ordinal position (attnum) to maintain the defined column order.
+    array_agg(referencing_attr.attname ORDER BY referencing_attr.attnum)::TEXT[] AS referencing_columns,
+    
+    -- Array of boolean values indicating whether each referencing column is NOT NULL,
+    -- ordered to correspond with the column names.
+    array_agg(referencing_attr.attnotnull ORDER BY referencing_attr.attnum)::BOOL[] AS not_nullable,
+    
+    -- Schema of the referenced table (the table that the foreign key points to)
+    referenced_schema.nspname::TEXT AS referenced_schema,
+    
+    -- Name of the referenced table
+    referenced_tbl.relname::TEXT AS referenced_table,
+    
+    -- Array of column names in the referenced table involved in the foreign key constraint
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
 FROM
-    pg_catalog.pg_constraint con
-JOIN
-    pg_catalog.pg_attribute att ON
-    att.attrelid = con.conrelid
-    AND att.attnum = ANY(con.conkey)
-JOIN
-    pg_catalog.pg_class cls ON
-    con.conrelid = cls.oid
-JOIN
-    pg_catalog.pg_namespace nsp ON
-    cls.relnamespace = nsp.oid
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON
-    fn_cl.oid = con.confrelid
-LEFT JOIN
-    pg_catalog.pg_namespace fk_nsp ON
-    fn_cl.relnamespace = fk_nsp.oid
-LEFT JOIN LATERAL (
+    pg_catalog.pg_constraint AS constraint_def
+    -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition
+    JOIN pg_catalog.pg_attribute AS referencing_attr
+      ON referencing_attr.attrelid = constraint_def.conrelid
+     AND referencing_attr.attnum = ANY(constraint_def.conkey)
+    -- Join to retrieve the referencing table details
+    JOIN pg_catalog.pg_class AS referencing_tbl
+      ON constraint_def.conrelid = referencing_tbl.oid
+    -- Join to retrieve the schema details of the referencing table
+    JOIN pg_catalog.pg_namespace AS referencing_schema
+      ON referencing_tbl.relnamespace = referencing_schema.oid
+    -- Left join to retrieve the referenced table details (if the constraint is a foreign key)
+    LEFT JOIN pg_catalog.pg_class AS referenced_tbl
+      ON referenced_tbl.oid = constraint_def.confrelid
+    -- Left join to retrieve the schema details of the referenced table
+    LEFT JOIN pg_catalog.pg_namespace AS referenced_schema
+      ON referenced_tbl.relnamespace = referenced_schema.oid
+    -- Lateral join to aggregate the names of the columns in the referenced table
+    LEFT JOIN LATERAL (
         SELECT
-            array_agg(fk_att.attname) AS foreign_column_names
+            array_agg(referenced_attr.attname) AS foreign_column_names
         FROM
-            pg_catalog.pg_attribute fk_att
+            pg_catalog.pg_attribute AS referenced_attr
         WHERE
-            fk_att.attrelid = con.confrelid
-            AND fk_att.attnum = ANY(con.confkey)
-    ) AS fk_columns ON
-    TRUE
+            referenced_attr.attrelid = constraint_def.confrelid
+            AND referenced_attr.attnum = ANY(constraint_def.confkey)
+    ) AS ref_columns ON TRUE
 WHERE
-    nsp.nspname = ANY(sqlc.arg('schemas')::TEXT[]) 
-    /* Limit to FOREIGN KEY constraints */
-    AND con.contype = 'f'
+    -- Filter to include only constraints from the provided schemas
+    referencing_schema.nspname = ANY(sqlc.arg('schemas')::TEXT[])
+    -- Limit results to FOREIGN KEY constraints
+    AND constraint_def.contype = 'f'
 GROUP BY
-    con.oid,
-    nsp.nspname,
-    con.conname,
-    cls.relname,
-    con.contype,
-    fk_nsp.nspname,
-    fn_cl.relname,
-    fk_columns.foreign_column_names;
+    constraint_def.oid,
+    referencing_schema.nspname,
+    constraint_def.conname,
+    referencing_tbl.relname,
+    constraint_def.contype,
+    referenced_schema.nspname,
+    referenced_tbl.relname,
+    ref_columns.foreign_column_names;

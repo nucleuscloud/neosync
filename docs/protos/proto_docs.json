@@ -8517,7 +8517,7 @@
           "fields": [
             {
               "name": "table_init_statements",
-              "description": "The key here is \u003cschema\u003e.\u003ctable\u003e and value is the table init statement.",
+              "description": "@deprecated - Use schema_init_statements instead",
               "label": "repeated",
               "type": "TableInitStatementsEntry",
               "longType": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
@@ -8525,7 +8525,10 @@
               "ismap": true,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "table_truncate_statements",
