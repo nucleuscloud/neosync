@@ -23,10 +23,7 @@ export function CloneConnectionButton(
       href={`/${account?.name}/new/connection/${getConnectionUrlSlugName(connectionConfig)}?sourceId=${id}`}
     >
       <Button>
-        <ButtonText
-          text="Clone Connection"
-          leftIcon={<GrClone className="mr-1" />}
-        />
+        <ButtonText text="Clone" leftIcon={<GrClone className="mr-1" />} />
       </Button>
     </NextLink>
   );

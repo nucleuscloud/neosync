@@ -1,5 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import ViewOpenAiForm from '@/components/connections/forms/openai/ViewOpenAiForm';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   Connection,
@@ -17,7 +18,6 @@ import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MssqlForm from './MssqlForm';
 import MysqlForm from './MysqlForm';
-import OpenAiForm from './OpenAiForm';
 import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
@@ -297,18 +297,27 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <OpenAiForm
-            connectionId={connection.id}
-            defaultValues={{
+          <ViewOpenAiForm
+            values={{
               connectionName: connection.name,
               sdk: {
                 url: connection.connectionConfig.config.value.apiUrl,
                 apiKey: connection.connectionConfig.config.value.apiKey,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
           />
+          // <OpenAiForm
+          //   connectionId={connection.id}
+          //   defaultValues={{
+          //     connectionName: connection.name,
+          //     sdk: {
+          //       url: connection.connectionConfig.config.value.apiUrl,
+          //       apiKey: connection.connectionConfig.config.value.apiKey,
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved(resp)}
+          //   onSaveFailed={onSaveFailed}
+          // />
         ),
       };
     case 'mongoConfig':

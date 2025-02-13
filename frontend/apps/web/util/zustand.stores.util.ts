@@ -10,3 +10,5 @@ export interface BaseHookStore<T extends FieldValues = FieldValues> {
   setSubmitting(isSubmitting: boolean): void;
   resetForm(): void;
 }
+
+export type BaseStore<T extends FieldValues = FieldValues> = BaseHookStore<T>;
