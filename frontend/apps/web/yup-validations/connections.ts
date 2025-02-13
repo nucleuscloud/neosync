@@ -12,7 +12,7 @@ import { getDurationValidateFn } from './number';
 /* This is the standard regular expression we assign to all or most "name" fields on the backend. */
 export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,100}$/;
 
-const connectionNameSchema = Yup.string()
+const connectionNameSchema = Yup.string<string, EditConnectionFormContext>()
   .required('Connection Name is a required field.')
   .min(3, 'The Connection name must be longer than 3 characters.')
   .max(100, 'The Connection name must be less than or equal to 100 characters.')
@@ -352,7 +352,9 @@ export interface MssqlEditConnectionFormContext
   activeTab: MssqlActiveConnectionTab;
 }
 
-export const OpenAiFormValues = Yup.object({
+export const OpenAiFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   sdk: Yup.object({
     url: Yup.string().required('A URL must be provided.'),
