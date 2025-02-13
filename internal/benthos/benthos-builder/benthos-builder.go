@@ -228,6 +228,18 @@ func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
 ) (*BenthosConfigManager, error) {
 	provider := NewBuilderProvider(config.Logger)
+	if config.SourceConnection == nil {
+		return nil, fmt.Errorf("job must have a source connection")
+	}
+	if len(config.DestinationConnections) == 0 {
+		return nil, fmt.Errorf("job must have at least one destination connection")
+	}
+	if len(config.Job.GetDestinations()) == 0 {
+		return nil, fmt.Errorf("job must have at least one destination")
+	}
+	if config.Job.GetSource() == nil {
+		return nil, fmt.Errorf("job must have a source")
+	}
 	err := provider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
