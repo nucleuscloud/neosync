@@ -197,6 +197,7 @@ CREATE TABLE customers (
 CREATE TABLE orders (
   id BIGINT NOT NULL PRIMARY KEY,
     customer_id BIGINT,
+     -- This tests non unique constraint names
     CONSTRAINT fk_customer
         FOREIGN KEY (customer_id) 
         REFERENCES customers (id)
@@ -205,6 +206,7 @@ CREATE TABLE orders (
 CREATE TABLE payments (
   id BIGINT NOT NULL PRIMARY KEY,
     customer_id BIGINT,
+     -- This tests non unique constraint names
     CONSTRAINT fk_customer
         FOREIGN KEY (customer_id) 
         REFERENCES customers (id)
