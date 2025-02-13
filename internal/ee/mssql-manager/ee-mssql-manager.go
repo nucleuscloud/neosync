@@ -233,10 +233,6 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	}, nil
 }
 
-func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	return "", errors.ErrUnsupported
-}
-
 func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	if len(tables) == 0 {
 		return &sqlmanager_shared.SchemaTableDataTypeResponse{}, nil

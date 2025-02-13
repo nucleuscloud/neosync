@@ -16,10 +16,10 @@ type Querier interface {
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
 	GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error)
+	GetForeignKeyConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetForeignKeyConstraintsBySchemasRow, error)
 	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error)
+	GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)
 	GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error)
-	GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error)
-	GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

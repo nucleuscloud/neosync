@@ -24,7 +24,6 @@ type SqlDatabase interface {
 	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
 	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
-	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context) (map[string][]string, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)

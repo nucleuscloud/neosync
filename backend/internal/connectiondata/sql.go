@@ -171,17 +171,11 @@ func (s *SQLConnectionDataService) GetInitStatements(
 	}
 	defer db.Db().Close()
 
-	createStmtsMap := map[string]string{}
 	truncateStmtsMap := map[string]string{}
 	initSchemaStmts := []*mgmtv1alpha1.SchemaInitStatements{}
 	if options.GetInitSchema() {
 		tables := []*sqlmanager_shared.SchemaTable{}
-		for k, v := range schemaTableMap {
-			stmt, err := db.Db().GetCreateTableStatement(ctx, v.Schema, v.Table)
-			if err != nil {
-				return nil, err
-			}
-			createStmtsMap[k] = stmt
+		for _, v := range schemaTableMap {
 			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
 		}
 		initBlocks, err := db.Db().GetSchemaInitStatements(ctx, tables)
@@ -226,7 +220,7 @@ func (s *SQLConnectionDataService) GetInitStatements(
 	}
 
 	return &mgmtv1alpha1.GetConnectionInitStatementsResponse{
-		TableInitStatements:     createStmtsMap,
+		TableInitStatements:     map[string]string{},
 		TableTruncateStatements: truncateStmtsMap,
 		SchemaInitStatements:    initSchemaStmts,
 	}, nil

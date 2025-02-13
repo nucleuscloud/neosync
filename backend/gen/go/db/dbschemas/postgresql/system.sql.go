@@ -874,6 +874,102 @@ func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsR
 	return items, nil
 }
 
+const getForeignKeyConstraintsBySchemas = `-- name: GetForeignKeyConstraintsBySchemas :many
+SELECT
+    con.conname AS constraint_name,
+    nsp.nspname AS referencing_schema,
+    cls.relname AS referencing_table,
+    array_agg(att.attname)::TEXT[] AS referencing_columns,
+    array_agg(att.attnotnull)::BOOL[] AS not_nullable,
+    fk_nsp.nspname::TEXT AS referenced_schema,
+    fn_cl.relname::TEXT referenced_table,
+    fk_columns.foreign_column_names::TEXT[]  as referenced_columns
+FROM
+    pg_catalog.pg_constraint con
+JOIN
+    pg_catalog.pg_attribute att ON
+    att.attrelid = con.conrelid
+    AND att.attnum = ANY(con.conkey)
+JOIN
+    pg_catalog.pg_class cls ON
+    con.conrelid = cls.oid
+JOIN
+    pg_catalog.pg_namespace nsp ON
+    cls.relnamespace = nsp.oid
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON
+    fn_cl.oid = con.confrelid
+LEFT JOIN
+    pg_catalog.pg_namespace fk_nsp ON
+    fn_cl.relnamespace = fk_nsp.oid
+LEFT JOIN LATERAL (
+        SELECT
+            array_agg(fk_att.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute fk_att
+        WHERE
+            fk_att.attrelid = con.confrelid
+            AND fk_att.attnum = ANY(con.confkey)
+    ) AS fk_columns ON
+    TRUE
+WHERE
+    nsp.nspname = ANY($1::TEXT[]) 
+    /* Limit to FOREIGN KEY constraints */
+    AND con.contype = 'f'
+GROUP BY
+    con.oid,
+    nsp.nspname,
+    con.conname,
+    cls.relname,
+    con.contype,
+    fk_nsp.nspname,
+    fn_cl.relname,
+    fk_columns.foreign_column_names
+`
+
+type GetForeignKeyConstraintsBySchemasRow struct {
+	ConstraintName     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	NotNullable        []bool
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+}
+
+func (q *Queries) GetForeignKeyConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetForeignKeyConstraintsBySchemasRow, error) {
+	rows, err := db.QueryContext(ctx, getForeignKeyConstraintsBySchemas, pq.Array(schemas))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetForeignKeyConstraintsBySchemasRow
+	for rows.Next() {
+		var i GetForeignKeyConstraintsBySchemasRow
+		if err := rows.Scan(
+			&i.ConstraintName,
+			&i.ReferencingSchema,
+			&i.ReferencingTable,
+			pq.Array(&i.ReferencingColumns),
+			pq.Array(&i.NotNullable),
+			&i.ReferencedSchema,
+			&i.ReferencedTable,
+			pq.Array(&i.ReferencedColumns),
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
 SELECT
     ns.nspname AS schema_name,
@@ -931,6 +1027,87 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 	return items, nil
 }
 
+const getNonForeignKeyTableConstraintsBySchema = `-- name: GetNonForeignKeyTableConstraintsBySchema :many
+SELECT
+    tc.constraint_name,
+    tc.constraint_type::TEXT AS constraint_type,
+    tc.table_schema AS schema_name,
+    tc.table_name,
+    /* Collect all columns associated with this constraint, if any */
+    ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position)
+        FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT[]  AS constraint_columns,
+    /* Pull the actual definition from pg_get_constraintdef for completeness */
+    pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM information_schema.table_constraints AS tc
+    /* LEFT JOIN so that constraints without specific columns (e.g. some CHECKs) aren’t lost */
+    LEFT JOIN information_schema.key_column_usage AS kcu
+        ON  tc.constraint_name = kcu.constraint_name
+        AND tc.table_schema = kcu.table_schema
+        AND tc.table_name   = kcu.table_name
+
+    /* Map the info_schema schema name to pg_namespace for use in pg_constraint */
+    JOIN pg_catalog.pg_namespace AS pn
+        ON pn.nspname = tc.table_schema
+
+    /* Retrieve the constraint definition from pg_get_constraintdef() */
+    JOIN pg_catalog.pg_constraint AS pgcon
+        ON  pgcon.conname     = tc.constraint_name
+        AND pgcon.connamespace = pn.oid
+
+WHERE
+    tc.table_schema =  ANY($1::TEXT[])
+    /* Exclude foreign keys */
+    AND tc.constraint_type <> 'FOREIGN KEY'
+GROUP BY
+    tc.constraint_name,
+    tc.constraint_type,
+    tc.table_schema,
+    tc.table_name,
+    pgcon.oid
+ORDER BY
+    tc.table_name,
+    tc.constraint_name
+`
+
+type GetNonForeignKeyTableConstraintsBySchemaRow struct {
+	ConstraintName       string
+	ConstraintType       string
+	SchemaName           string
+	TableName            string
+	ConstraintColumns    []string
+	ConstraintDefinition string
+}
+
+func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchema, pq.Array(schema))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetNonForeignKeyTableConstraintsBySchemaRow
+	for rows.Next() {
+		var i GetNonForeignKeyTableConstraintsBySchemaRow
+		if err := rows.Scan(
+			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.SchemaName,
+			&i.TableName,
+			pq.Array(&i.ConstraintColumns),
+			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
 SELECT
     tp.table_schema::text as table_schema,
@@ -962,232 +1139,6 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*G
 	for rows.Next() {
 		var i GetPostgresRolePermissionsRow
 		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getTableConstraints = `-- name: GetTableConstraints :many
-SELECT
-    con.conname AS constraint_name,
-    con.contype::TEXT AS constraint_type,
-    nsp.nspname AS schema_name,
-    cls.relname AS table_name,
-    array_agg(att.attname)::TEXT[] AS constraint_columns,
-    array_agg(att.attnotnull)::BOOL[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fk_nsp.nspname
-        ELSE ''
-    END AS foreign_schema_name,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relname
-        ELSE ''
-    END AS foreign_table_name,
-    CASE
-        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
-        ELSE NULL::text[]
-    END as foreign_column_names,
-    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
-FROM
-    pg_catalog.pg_constraint con
-JOIN
-    pg_catalog.pg_attribute att ON
-    att.attrelid = con.conrelid
-    AND att.attnum = ANY(con.conkey)
-JOIN
-    pg_catalog.pg_class cls ON
-    con.conrelid = cls.oid
-JOIN
-    pg_catalog.pg_namespace nsp ON
-    cls.relnamespace = nsp.oid
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON
-    fn_cl.oid = con.confrelid
-LEFT JOIN
-    pg_catalog.pg_namespace fk_nsp ON
-    fn_cl.relnamespace = fk_nsp.oid
-LEFT JOIN LATERAL (
-        SELECT
-            array_agg(fk_att.attname) AS foreign_column_names
-        FROM
-            pg_catalog.pg_attribute fk_att
-        WHERE
-            fk_att.attrelid = con.confrelid
-            AND fk_att.attnum = ANY(con.confkey)
-    ) AS fk_columns ON
-    TRUE
-WHERE
-    nsp.nspname = $1
-    AND cls.relname = $2
-GROUP BY
-    con.oid,
-    nsp.nspname,
-    con.conname,
-    cls.relname,
-    con.contype,
-    fk_nsp.nspname,
-    fn_cl.relname,
-    fk_columns.foreign_column_names
-`
-
-type GetTableConstraintsParams struct {
-	Schema string
-	Table  string
-}
-
-type GetTableConstraintsRow struct {
-	ConstraintName       string
-	ConstraintType       string
-	SchemaName           string
-	TableName            string
-	ConstraintColumns    []string
-	Notnullable          []bool
-	ForeignSchemaName    string
-	ForeignTableName     string
-	ForeignColumnNames   []string
-	ConstraintDefinition string
-}
-
-func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraints, arg.Schema, arg.Table)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetTableConstraintsRow
-	for rows.Next() {
-		var i GetTableConstraintsRow
-		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.ConstraintType,
-			&i.SchemaName,
-			&i.TableName,
-			pq.Array(&i.ConstraintColumns),
-			pq.Array(&i.Notnullable),
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			pq.Array(&i.ForeignColumnNames),
-			&i.ConstraintDefinition,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
-SELECT
-    con.conname AS constraint_name,
-    con.contype::TEXT AS constraint_type,
-    nsp.nspname AS schema_name,
-    cls.relname AS table_name,
-    array_agg(att.attname)::TEXT[] AS constraint_columns,
-    array_agg(att.attnotnull)::BOOL[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fk_nsp.nspname
-        ELSE ''
-    END AS foreign_schema_name,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relname
-        ELSE ''
-    END AS foreign_table_name,
-    CASE
-        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
-        ELSE NULL::text[]
-    END as foreign_column_names,
-    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
-FROM
-    pg_catalog.pg_constraint con
-JOIN
-    pg_catalog.pg_attribute att ON
-    att.attrelid = con.conrelid
-    AND att.attnum = ANY(con.conkey)
-JOIN
-    pg_catalog.pg_class cls ON
-    con.conrelid = cls.oid
-JOIN
-    pg_catalog.pg_namespace nsp ON
-    cls.relnamespace = nsp.oid
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON
-    fn_cl.oid = con.confrelid
-LEFT JOIN
-    pg_catalog.pg_namespace fk_nsp ON
-    fn_cl.relnamespace = fk_nsp.oid
-LEFT JOIN LATERAL (
-        SELECT
-            array_agg(fk_att.attname) AS foreign_column_names
-        FROM
-            pg_catalog.pg_attribute fk_att
-        WHERE
-            fk_att.attrelid = con.confrelid
-            AND fk_att.attnum = ANY(con.confkey)
-    ) AS fk_columns ON
-    TRUE
-WHERE
-    nsp.nspname = ANY(
-        $1::TEXT[]
-    )
-GROUP BY
-    con.oid,
-    nsp.nspname,
-    con.conname,
-    cls.relname,
-    con.contype,
-    fk_nsp.nspname,
-    fn_cl.relname,
-    fk_columns.foreign_column_names
-`
-
-type GetTableConstraintsBySchemaRow struct {
-	ConstraintName       string
-	ConstraintType       string
-	SchemaName           string
-	TableName            string
-	ConstraintColumns    []string
-	Notnullable          []bool
-	ForeignSchemaName    string
-	ForeignTableName     string
-	ForeignColumnNames   []string
-	ConstraintDefinition string
-}
-
-func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraintsBySchema, pq.Array(schema))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetTableConstraintsBySchemaRow
-	for rows.Next() {
-		var i GetTableConstraintsBySchemaRow
-		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.ConstraintType,
-			&i.SchemaName,
-			&i.TableName,
-			pq.Array(&i.ConstraintColumns),
-			pq.Array(&i.Notnullable),
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			pq.Array(&i.ForeignColumnNames),
-			&i.ConstraintDefinition,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

@@ -719,21 +719,6 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}, nil
 }
 
-func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
-	result, err := getShowTableCreate(ctx, m.pool, schema, table)
-	if err != nil {
-		return "", fmt.Errorf("unable to get table create statement: %w", err)
-	}
-	result.CreateTable = strings.Replace(
-		result.CreateTable,
-		fmt.Sprintf("CREATE TABLE `%s`", table),
-		fmt.Sprintf("CREATE TABLE `%s`.`%s`", schema, table),
-		1, // do it once
-	)
-	split := strings.Split(result.CreateTable, "CREATE TABLE")
-	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s;", split[1]), nil
-}
-
 func (m *MysqlManager) getFunctionsByTables(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.pool, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
@@ -866,30 +851,6 @@ FOR EACH %s
 %s;
 `, triggerSchema, triggerName, timing, event_type, EscapeMysqlColumn(schema), EscapeMysqlColumn(tableName), orientation, actionStmt)
 	return strings.TrimSpace(stmt)
-}
-
-type databaseTableShowCreate struct {
-	Table       string `db:"Table"`
-	CreateTable string `db:"Create Table"`
-}
-
-func getShowTableCreate(
-	ctx context.Context,
-	conn mysql_queries.DBTX,
-	schema string,
-	table string,
-) (*databaseTableShowCreate, error) {
-	getShowTableCreateSql := fmt.Sprintf("SHOW CREATE TABLE `%s`.`%s`;", schema, table)
-	row := conn.QueryRowContext(ctx, getShowTableCreateSql)
-	var output databaseTableShowCreate
-	err := row.Scan(
-		&output.Table,
-		&output.CreateTable,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &output, nil
 }
 
 func (m *MysqlManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {

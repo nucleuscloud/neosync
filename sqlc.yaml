@@ -134,12 +134,12 @@ sql:
           #   go_type: string
           # - column: information_schema.key_column_usage.column_name
           #   go_type: string
-          # - column: information_schema.table_constraints.table_schema
-          #   go_type: string
-          # - column: information_schema.table_constraints.table_name
-          #   go_type: string
-          # - column: information_schema.table_constraints.constraint_name
-          #   go_type: string
+          - column: information_schema.table_constraints.table_schema
+            go_type: string
+          - column: information_schema.table_constraints.table_name
+            go_type: string
+          - column: information_schema.table_constraints.constraint_name
+            go_type: string
           # - column: information_schema.constraint_column_usage.table_schema
           #   go_type: string
           # - column: information_schema.constraint_column_usage.table_name

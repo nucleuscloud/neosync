@@ -150,64 +150,6 @@ func (_c *MockSqlDatabase_Exec_Call) RunAndReturn(run func(context.Context, stri
 	return _c
 }
 
-// GetCreateTableStatement provides a mock function with given fields: ctx, schema, table
-func (_m *MockSqlDatabase) GetCreateTableStatement(ctx context.Context, schema string, table string) (string, error) {
-	ret := _m.Called(ctx, schema, table)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCreateTableStatement")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return rf(ctx, schema, table)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = rf(ctx, schema, table)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, schema, table)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockSqlDatabase_GetCreateTableStatement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCreateTableStatement'
-type MockSqlDatabase_GetCreateTableStatement_Call struct {
-	*mock.Call
-}
-
-// GetCreateTableStatement is a helper method to define mock.On call
-//   - ctx context.Context
-//   - schema string
-//   - table string
-func (_e *MockSqlDatabase_Expecter) GetCreateTableStatement(ctx interface{}, schema interface{}, table interface{}) *MockSqlDatabase_GetCreateTableStatement_Call {
-	return &MockSqlDatabase_GetCreateTableStatement_Call{Call: _e.mock.On("GetCreateTableStatement", ctx, schema, table)}
-}
-
-func (_c *MockSqlDatabase_GetCreateTableStatement_Call) Run(run func(ctx context.Context, schema string, table string)) *MockSqlDatabase_GetCreateTableStatement_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *MockSqlDatabase_GetCreateTableStatement_Call) Return(_a0 string, _a1 error) *MockSqlDatabase_GetCreateTableStatement_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockSqlDatabase_GetCreateTableStatement_Call) RunAndReturn(run func(context.Context, string, string) (string, error)) *MockSqlDatabase_GetCreateTableStatement_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetDatabaseSchema provides a mock function with given fields: ctx
 func (_m *MockSqlDatabase) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	ret := _m.Called(ctx)
