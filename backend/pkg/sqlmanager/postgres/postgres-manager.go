@@ -153,12 +153,12 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	for _, row := range nonFkConstraints {
 		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
 		switch row.ConstraintType {
-		case "p":
+		case "PRIMARY KEY":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
 			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(row.ConstraintColumns)...)
-		case "u":
+		case "UNIQUE":
 			columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
 		}
