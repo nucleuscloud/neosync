@@ -125,6 +125,7 @@ type TableConstraints struct {
 	ForeignKeyConstraints map[string][]*ForeignConstraint
 	PrimaryKeyConstraints map[string][]string
 	UniqueConstraints     map[string][][]string
+	UniqueIndexes         map[string][][]string
 }
 
 type DataType struct {

@@ -683,8 +683,10 @@ GROUP BY
 
 -- name: GetUniqueIndexesBySchema :many
 SELECT
-  idx.relname AS index_name,
-  string_agg(col.attname, ', ' ORDER BY key_info.ordinality) AS index_columns
+  ns.nspname AS table_schema,                      -- Schema name for the table
+  tbl.relname AS table_name,                         -- Name of the table the index belongs to
+  idx.relname AS index_name,                         -- Name of the index
+  array_agg(col.attname ORDER BY key_info.ordinality)::TEXT[] AS index_columns  -- Comma-separated list of index columns
 FROM pg_catalog.pg_class AS tbl
   -- Join to get the schema information for the table
   JOIN pg_catalog.pg_namespace AS ns ON tbl.relnamespace = ns.oid
@@ -702,4 +704,4 @@ WHERE ns.nspname = ANY(sqlc.arg('schema')::TEXT[])
   AND NOT EXISTS (
        SELECT 1 FROM pg_catalog.pg_constraint AS cons WHERE cons.conindid = idx.oid
   )
-GROUP BY idx.relname;
+GROUP BY ns.nspname, tbl.relname, idx.relname;
