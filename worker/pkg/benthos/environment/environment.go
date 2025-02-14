@@ -70,8 +70,9 @@ func WithBlobEnv(b *bloblang.Environment) Option {
 }
 
 type SqlConfig struct {
-	Provider neosync_benthos_sql.ConnectionProvider
-	IsRetry  bool
+	Provider          neosync_benthos_sql.ConnectionProvider
+	IsRetry           bool
+	InputHasMorePages func(ok bool)
 }
 
 type MongoConfig struct {
@@ -116,7 +117,7 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_update output to benthos instance: %w", err)
 		}
-		err = neosync_benthos_sql.RegisterPooledSqlRawInput(env, config.sqlConfig.Provider, config.stopChannel)
+		err = neosync_benthos_sql.RegisterPooledSqlRawInput(env, config.sqlConfig.Provider, config.stopChannel, config.sqlConfig.InputHasMorePages)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 		}

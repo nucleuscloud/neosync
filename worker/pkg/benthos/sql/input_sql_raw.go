@@ -20,15 +20,22 @@ func sqlRawInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("query")).
-		Field(service.NewBloblangField("args_mapping").Optional())
+		Field(service.NewBloblangField("args_mapping").Optional()).
+		Field(service.NewBloblangField("expected_total_rows").Optional())
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider ConnectionProvider, stopActivityChannel chan<- error) error {
+func RegisterPooledSqlRawInput(
+	env *service.Environment,
+	dbprovider ConnectionProvider,
+	stopActivityChannel chan<- error,
+	onHasMorePages func(ok bool),
+) error {
 	return env.RegisterInput(
-		"pooled_sql_raw", sqlRawInputSpec(),
+		"pooled_sql_raw",
+		sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel)
+			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel, onHasMorePages)
 			if err != nil {
 				return nil, err
 			}
@@ -56,9 +63,18 @@ type pooledInput struct {
 	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
+	onHasMorePages      func(ok bool)
+	expectedTotalRows   *int
+	rowsRead            int
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider ConnectionProvider, channel chan<- error) (*pooledInput, error) {
+func newInput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	dbprovider ConnectionProvider,
+	channel chan<- error,
+	onHasMoreResults func(ok bool),
+) (*pooledInput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -75,6 +91,15 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	var expectedTotalRows *int
+	if conf.Contains("expected_total_rows") {
+		totalRows, err := conf.FieldInt("expected_total_rows")
+		if err != nil {
+			return nil, err
+		}
+		expectedTotalRows = &totalRows
 	}
 
 	driver, err := dbprovider.GetDriver(connectionId)
@@ -97,6 +122,8 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		recordMapper:        mapper,
+		onHasMorePages:      onHasMoreResults,
+		expectedTotalRows:   expectedTotalRows,
 	}, nil
 }
 
@@ -140,7 +167,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	}
 
 	s.rows = rows
-
+	s.rowsRead = 0
 	go func() {
 		<-s.shutSig.HardStopChan()
 
@@ -166,6 +193,9 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil {
+			s.onHasMorePages(s.rowsRead >= *s.expectedTotalRows)
+		}
 		return nil, nil, service.ErrEndOfInput
 	}
 	if !s.rows.Next() {
@@ -178,6 +208,9 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		// For non-Postgres drivers, simply close and return EndOfInput
 		_ = s.rows.Close()
 		s.rows = nil
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil {
+			s.onHasMorePages(s.rowsRead >= *s.expectedTotalRows)
+		}
 		return nil, nil, service.ErrEndOfInput
 	}
 
@@ -187,6 +220,8 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		s.rows = nil
 		return nil, nil, err
 	}
+
+	s.rowsRead++
 
 	msg := service.NewMessage(nil)
 	msg.SetStructured(obj)

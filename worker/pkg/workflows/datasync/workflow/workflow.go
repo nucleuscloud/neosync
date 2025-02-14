@@ -20,12 +20,12 @@ import (
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
 	"go.temporal.io/sdk/workflow"
-	"gopkg.in/yaml.v3"
 )
 
 type WorkflowRequest struct {
@@ -238,8 +238,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
 		inFlight++
 		workselector.AddFuture(future, func(f workflow.Future) {
-			var result sync_activity.SyncResponse
-			err := f.Get(ctx, &result)
+			var wfResult tablesync_workflow.TableSyncResponse
+			err := f.Get(ctx, &wfResult)
 			inFlight--
 			completedCount++
 			if err != nil {
@@ -514,40 +514,33 @@ func invokeSync(
 	syncActivityOptions *workflow.ActivityOptions,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
+	_ = metadata
 	future, settable := workflow.NewFuture(ctx)
 	logger.Debug("triggering config sync")
 	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
-		var benthosConfig string
 		var accId string
 		if accountId != nil && *accountId != "" {
 			accId = *accountId
-		} else if config.Config != nil {
-			configbits, err := yaml.Marshal(config.Config)
-			if err != nil {
-				logger.Error("unable to marshal benthos config", "err", err)
-				settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
-				return
-			}
-			benthosConfig = string(configbits)
 		}
-
 		logger.Info("scheduling Sync for execution.")
 
-		var result sync_activity.SyncResponse
-		activity := sync_activity.Activity{}
-		err := workflow.ExecuteActivity(
-			workflow.WithActivityOptions(ctx, *syncActivityOptions),
-			activity.Sync,
-			&sync_activity.SyncRequest{BenthosConfig: benthosConfig, AccountId: accId, Name: config.Name, BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
+		tsWf := &tablesync_workflow.Workflow{}
+		var wfResult tablesync_workflow.TableSyncResponse
+		err := workflow.ExecuteChildWorkflow(ctx, tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
+			AccountId:           accId,
+			Id:                  config.Name,
+			SyncActivityOptions: syncActivityOptions,
+			ContinuationToken:   nil,
+		}).Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)
 			if err != nil {
-				settable.Set(result, err)
+				settable.Set(wfResult, err)
 			}
 		}
-		settable.Set(result, err)
+		settable.Set(wfResult, err)
 	})
 	return future
 }

@@ -9,8 +9,6 @@ import (
 	"maps"
 	"time"
 
-	"sync"
-
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -76,7 +74,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 
 	stopActivityChan := make(chan error, 3)
 	syncResultChan := make(chan error, 1)
-	streamMu := sync.Mutex{}
 	metadata := &SyncMetadata{
 		Schema: "todo",
 		Table:  "todo",
@@ -87,7 +84,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 	var benthosStream benthosstream.BenthosStreamClient
 
 	go monitorActivityHeartbeat(ctx, stopActivityChan, func(logMessage string, err error) {
-		handleStreamStop(&streamMu, benthosStream, syncResultChan, err, logMessage, logger)
+		handleStreamStop(benthosStream, syncResultChan, err, logMessage, logger)
 	}, logger)
 
 	benthosConfig, err := a.getBenthosConfig(ctx, &mgmtv1alpha1.RunContextKey{
@@ -114,20 +111,27 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 		return nil, err
 	}
 
+	shouldContinue := false
+	// todo: this needs to be the continuation token or something
+	hasMorePages := func(ok bool) {
+		shouldContinue = ok
+	}
+	_ = shouldContinue
+
 	bstream, err := a.getBenthosStream(
 		&info,
 		benthosConfig,
 		session,
 		stopActivityChan,
 		getConnectionById,
+		hasMorePages,
 		logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get benthos stream: %w", err)
 	}
-	streamMu.Lock()
+
 	benthosStream = bstream
-	streamMu.Unlock()
 
 	go runStream(benthosStream, ctx, syncResultChan, logger)
 
@@ -135,12 +139,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 	if err != nil {
 		return nil, fmt.Errorf("could not successfully complete sync activity: %w", err)
 	}
-	streamMu.Lock()
-	benthosStream = nil
-	streamMu.Unlock()
 
 	logger.Info("sync complete")
-	return &SyncResponse{}, nil
+	return &SyncResponse{
+		ContinuationToken: nil,
+	}, nil
 }
 
 func (a *Activity) getConnectionByIdFn(
@@ -193,7 +196,6 @@ func monitorActivityHeartbeat(
 }
 
 func handleStreamStop(
-	streamMu *sync.Mutex,
 	benthosStream benthosstream.BenthosStreamClient,
 	syncResultChan chan<- error,
 	err error,
@@ -202,9 +204,6 @@ func handleStreamStop(
 ) {
 	logger.Info(logMessage + ", cleaning up...")
 	syncResultChan <- err
-
-	streamMu.Lock()
-	defer streamMu.Unlock()
 
 	if benthosStream != nil {
 		// Stop stream explicitly since stream.Run(ctx) doesn't fully obey canceled context when sink is in error state
@@ -244,9 +243,10 @@ func (a *Activity) getBenthosStream(
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
+	hasMorePages func(ok bool),
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
-	benenv, err := a.getBenthosEnvironment(logger, info.Attempt > 1, getConnectionById, session, stopActivityChan)
+	benenv, err := a.getBenthosEnvironment(logger, info.Attempt > 1, getConnectionById, session, stopActivityChan, hasMorePages)
 	if err != nil {
 		return nil, err
 	}
@@ -283,13 +283,15 @@ func (a *Activity) getBenthosEnvironment(
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
+	hasMorePages func(ok bool),
 ) (*service.Environment, error) {
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider: pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, logger),
-			IsRetry:  isRetry,
+			Provider:          pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, logger),
+			IsRetry:           isRetry,
+			InputHasMorePages: hasMorePages,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
 			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, logger),
