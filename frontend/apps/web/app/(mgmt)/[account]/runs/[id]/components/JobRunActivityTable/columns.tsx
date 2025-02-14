@@ -35,7 +35,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       ),
       cell: ({ row }) => {
         const scheduledTime = row.original.tasks.find(
-          (item) => item.type == 'ActivityTaskScheduled'
+          (item) =>
+            item.type == 'ActivityTaskScheduled' ||
+            item.type == 'StartChildWorkflowExecutionInitiated'
         )?.eventTime;
         return (
           <div className="flex space-x-2">
@@ -71,7 +73,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       ),
       cell: ({ row }) => {
         const closeTime = row.original.tasks.find(
-          (item) => item.type == 'ActivityTaskCompleted'
+          (item) =>
+            item.type == 'ActivityTaskCompleted' ||
+            item.type == 'ChildWorkflowExecutionCompleted'
         )?.eventTime;
 
         return (

@@ -48,7 +48,7 @@ interface Props {
 const expandedRowHeight = 165;
 const defaultRowHeight = 40;
 
-type RunStatus = 'running' | 'completed' | 'failed' | 'canceled';
+type RunStatus = 'running' | 'completed' | 'failed' | 'canceled' | 'terminated';
 
 export default function RunTimeline(props: Props): ReactElement {
   const { tasks, jobStatus } = props;
@@ -58,6 +58,7 @@ export default function RunTimeline(props: Props): ReactElement {
     'completed',
     'failed',
     'canceled',
+    'terminated',
   ]);
 
   const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
@@ -67,7 +68,9 @@ export default function RunTimeline(props: Props): ReactElement {
 
     tasks.forEach((t) => {
       const scheduled = t.tasks.find(
-        (st) => st.type == 'ActivityTaskScheduled'
+        (st) =>
+          st.type === 'ActivityTaskScheduled' ||
+          st.type === 'StartChildWorkflowExecutionInitiated'
       )?.eventTime;
       startTime = Math.min(
         startTime,
@@ -226,7 +229,7 @@ function LeftActivityBar(props: LeftActivityBarProps): ReactElement {
             >
               <ActivityLabel
                 task={task}
-                getStatus={() => getTaskStatus(task, jobStatus)}
+                status={getTaskStatus(task, jobStatus)}
               />
             </div>
           );
@@ -262,7 +265,9 @@ function TimelineBar(props: TimelineBarProps) {
   } = props;
 
   const scheduled = task.tasks.find(
-    (st) => st.type == 'ActivityTaskScheduled'
+    (st) =>
+      st.type == 'ActivityTaskScheduled' ||
+      st.type == 'StartChildWorkflowExecutionInitiated'
   )?.eventTime;
 
   const failedTask = task.tasks.find((item) => item.error);
@@ -285,7 +290,7 @@ function TimelineBar(props: TimelineBarProps) {
               className={cn(
                 status === 'failed'
                   ? 'bg-red-400 dark:bg-red-700'
-                  : status === 'canceled'
+                  : status === 'canceled' || status === 'terminated'
                     ? 'bg-yellow-400 dark:bg-yellow-700'
                     : 'bg-blue-500',
                 'absolute h-8 rounded hover:bg-opacity-80 cursor-pointer mx-6 flex items-center '
@@ -336,7 +341,9 @@ function TimelineBar(props: TimelineBarProps) {
           <div className="flex flex-row gap-2 items-center justify-between w-full">
             <strong>Finish:</strong>{' '}
             <Badge variant="default" className="w-[180px]">
-              {status == 'failed' || status == 'canceled'
+              {status == 'failed' ||
+              status == 'canceled' ||
+              status == 'terminated'
                 ? 'N/A'
                 : formatFullDate(endTime)}
             </Badge>
@@ -407,7 +414,12 @@ function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
   const errorTask = task.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
   const cancelTime = task.tasks.find(
-    (t) => t.type === 'ActivityTaskCancelRequested'
+    (t) =>
+      t.type === 'ActivityTaskCancelRequested' ||
+      t.type === 'ActivityTaskCanceled' ||
+      t.type === 'ChildWorkflowExecutionCanceled' ||
+      t.type === 'ChildWorkflowExecutionTerminated' ||
+      t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
   return errorTime
     ? convertTimestampToDate(errorTime)
@@ -434,13 +446,11 @@ function isSyncActivity(task: JobRunEvent): boolean {
 
 interface ActivityLabelProps {
   task: JobRunEvent;
-  getStatus: () => RunStatus;
+  status: RunStatus;
 }
 
 // generates the activity label that we see on the left hand activity column
-function ActivityLabel({ task, getStatus }: ActivityLabelProps) {
-  const status = getStatus();
-
+function ActivityLabel({ task, status }: ActivityLabelProps) {
   return (
     <div className="flex flex-row items-center gap-2 overflow-hidden">
       {task.id.toString()}.
@@ -461,6 +471,8 @@ function ActivityStatus({ status }: { status: RunStatus }) {
       return <MinusCircledIcon className="text-yellow-500" />;
     case 'running':
       return <Spinner />;
+    case 'terminated':
+      return <CrossCircledIcon className="text-gray-500" />;
     default:
       return null;
   }
@@ -508,6 +520,12 @@ function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
           onCheckedChange={(checked) => onStatusChange('canceled', checked)}
         >
           Canceled
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={uniqueSelectedStatuses.has('terminated')}
+          onCheckedChange={(checked) => onStatusChange('terminated', checked)}
+        >
+          Terminated
         </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -567,10 +585,17 @@ function getTaskStatus(
   for (const t of task.tasks) {
     switch (t.type) {
       case 'ActivityTaskCompleted':
+      case 'ChildWorkflowExecutionCompleted':
         isCompleted = true;
         break;
       case 'ActivityTaskFailed':
       case 'ActivityTaskTimedOut':
+      case 'ActivityTaskCanceled':
+      case 'ActivityTaskTerminated':
+      case 'ChildWorkflowExecutionFailed':
+      case 'ChildWorkflowExecutionTimedOut':
+      case 'ChildWorkflowExecutionTerminated':
+      case 'StartChildWorkflowExecutionFailed':
         isFailed = true;
         break;
       case 'ActivityTaskCancelRequested':
@@ -578,6 +603,7 @@ function getTaskStatus(
         break;
       case 'ActivityTaskStarted':
       case 'ActivityTaskScheduled':
+      case 'StartChildWorkflowExecutionInitiated':
         break;
     }
 
@@ -592,8 +618,9 @@ function getTaskStatus(
   if (isFailed) return 'failed';
 
   const isJobTerminated = jobStatus === JobRunStatus.TERMINATED;
+  if (isJobTerminated) return 'terminated';
 
-  if (isCanceled || (isJobTerminated && !isCompleted)) return 'canceled';
+  if (isCanceled || !isCompleted) return 'canceled';
   return 'running';
 }
 
@@ -654,17 +681,26 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
   const getLabel = (type: string) => {
     switch (type) {
       case 'ActivityTaskScheduled':
+      case 'StartChildWorkflowExecutionInitiated':
         return 'Scheduled';
       case 'ActivityTaskStarted':
+      case 'ChildWorkflowExecutionStarted':
         return 'Started';
       case 'ActivityTaskCompleted':
+      case 'ChildWorkflowExecutionCompleted':
         return 'Completed';
       case 'ActivityTaskFailed':
+      case 'ChildWorkflowExecutionFailed':
+      case 'StartChildWorkflowExecutionFailed':
         return 'Failed';
       case 'ActivityTaskTimedOut':
+      case 'ChildWorkflowExecutionTimedOut':
         return 'Timed Out';
       case 'ActivityTaskCancelRequested':
         return 'Cancel Requested';
+      case 'ActivityTaskTerminated':
+      case 'ChildWorkflowExecutionTerminated':
+        return 'Terminated';
       default:
         return type;
     }
