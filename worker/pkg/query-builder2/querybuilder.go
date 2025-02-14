@@ -17,6 +17,7 @@ import (
 
 const (
 	mysqlDialect = "custom-mysql-dialect"
+	pageLimit    = 50000
 )
 
 func init() {
@@ -74,6 +75,7 @@ func (s set) contains(key string) bool {
 type QueryBuilder struct {
 	tables          map[string]*TableInfo
 	whereConditions map[string][]WhereCondition
+	orderBy         map[string][]string
 	// schema.table -> column -> { column info }
 	columnInfo                    map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
 	defaultSchema                 string
@@ -88,6 +90,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
+		orderBy:                       make(map[string][]string),
 		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
@@ -101,6 +104,11 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 func (qb *QueryBuilder) AddTable(table *TableInfo) {
 	key := qb.getTableKey(table.Schema, table.Name)
 	qb.tables[key] = table
+}
+
+func (qb *QueryBuilder) AddOrderBy(schema, tableName string, orderBy []string) {
+	key := qb.getTableKey(schema, tableName)
+	qb.orderBy[key] = orderBy
 }
 
 func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
@@ -122,24 +130,45 @@ func (qb *QueryBuilder) clearPathCache() {
 	qb.pathCache = make(set)
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pageQuery string, isNotForeignKeySafeSubset bool, err error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, false, fmt.Errorf("table not found: %s", key)
+		return "", nil, "", false, fmt.Errorf("table not found: %s", key)
 	}
 	query, notFkSafe, err := qb.buildFlattenedQuery(table)
 	if query == nil {
-		return "", nil, false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+		return "", nil, "", false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
 	if err != nil {
-		return "", nil, false, err
+		return "", nil, "", false, err
 	}
-	sql, args, err := query.ToSQL()
+	sql, args, err := query.Limit(pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
-	return sql, args, notFkSafe, nil
+	pageSql, err := qb.buildPageQuery(key, query)
+	if err != nil {
+		return "", nil, "", false, fmt.Errorf("unable to build page query for %s.%s: %w", schema, tableName, err)
+	}
+	return sql, args, pageSql, notFkSafe, nil
+}
+
+func (qb *QueryBuilder) buildPageQuery(key string, query *goqu.SelectDataset) (sqlstatement string, err error) {
+	orderBy := qb.orderBy[key]
+	if len(orderBy) > 0 {
+		// Add where clause using order by columns directly with goqu
+		conditions := make([]exp.Expression, len(orderBy))
+		for i, col := range orderBy {
+			conditions[i] = goqu.C(col).Gt(0)
+		}
+		query = query.Where(goqu.And(conditions...))
+	}
+	sql, _, err := query.Prepared(true).Limit(pageLimit).ToSQL()
+	if err != nil {
+		return "", fmt.Errorf("unable to convery structured query to string for %s: %w", key, err)
+	}
+	return sql, nil
 }
 
 func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
@@ -160,6 +189,15 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.Sel
 		for _, cond := range conditions {
 			query = query.Where(goqu.L(cond.Condition, cond.Args...))
 		}
+	}
+
+	// Add order by
+	if orderBy, ok := qb.orderBy[qb.getTableKey(rootTable.Schema, rootTable.Name)]; ok {
+		orderByExpressions := make([]exp.OrderedExpression, len(orderBy))
+		for i, col := range orderBy {
+			orderByExpressions[i] = goqu.C(col).Asc()
+		}
+		query = query.Order(orderByExpressions...)
 	}
 
 	// Flatten and add necessary joins

@@ -184,7 +184,10 @@ type InitSchemaStatements struct {
 }
 
 type SelectQuery struct {
+	// Query is the query used to get all data
 	Query string
+	// PageQuery is the query used to get a page of data based on a unique identifier like a primary key in the WHERE clause
+	PageQuery string
 
 	// If true, this query could return rows that violate foreign key constraints
 	IsNotForeignKeySafeSubset bool

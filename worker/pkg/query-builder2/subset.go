@@ -45,15 +45,22 @@ func BuildSelectQueryMap(
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
 
 	for _, cfg := range runConfigs {
-		if cfg.RunType() != tabledependency.RunTypeInsert || cfg.WhereClause() == nil || *cfg.WhereClause() == "" {
+		if cfg.RunType() != tabledependency.RunTypeInsert {
 			continue
 		}
+		// add order by to query builder
 		schema, table := splitTable(cfg.Table())
-		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(nil, table, *cfg.WhereClause())
-		if err != nil {
-			return nil, err
+		if len(cfg.OrderBy()) > 0 {
+			qb.AddOrderBy(schema, table, cfg.OrderBy())
 		}
-		qb.AddWhereCondition(schema, table, qualifiedWhereCaluse)
+		// add where clause to query builder
+		if cfg.WhereClause() != nil && *cfg.WhereClause() != "" {
+			qualifiedWhereCaluse, err := qb.qualifyWhereCondition(nil, table, *cfg.WhereClause())
+			if err != nil {
+				return nil, err
+			}
+			qb.AddWhereCondition(schema, table, qualifiedWhereCaluse)
+		}
 	}
 
 	querymap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
@@ -62,12 +69,13 @@ func BuildSelectQueryMap(
 			querymap[cfg.Table()] = map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
 		}
 		schema, table := splitTable(cfg.Table())
-		query, _, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
+		query, _, pageQuery, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
 		querymap[cfg.Table()][cfg.RunType()] = &sqlmanager_shared.SelectQuery{
 			Query:                     query,
+			PageQuery:                 pageQuery,
 			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
 		}
 	}

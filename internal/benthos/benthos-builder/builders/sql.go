@@ -200,6 +200,7 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table(), config.RunType())
 		}
+
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -207,7 +208,8 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							ConnectionId: dsnConnectionId,
 
-							Query: query.Query,
+							Query:     query.Query,
+							PageQuery: query.PageQuery,
 						},
 					},
 				},
