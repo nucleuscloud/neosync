@@ -963,3 +963,66 @@ func createSchemaTableParams(values []string) (argPlaceholders string, arguments
 
 	return strings.Join(placeholders, ","), args
 }
+
+const getUniqueIndexesBySchema = `-- name: getUniqueIndexesBySchema :many
+SELECT
+    SCHEMA_NAME(t.schema_id) AS table_schema,
+    t.name AS table_name,
+    i.name AS index_name,
+    index_columns = (
+        SELECT STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY ic.key_ordinal)
+        FROM sys.index_columns ic
+        JOIN sys.columns c
+            ON ic.object_id = c.object_id
+           AND ic.column_id = c.column_id
+        WHERE ic.object_id = i.object_id
+          AND ic.index_id = i.index_id
+          AND ic.is_included_column = 0
+    )
+FROM sys.indexes i
+JOIN sys.tables t
+    ON i.object_id = t.object_id
+WHERE i.type > 0                     -- valid index types only
+  AND i.is_unique = 1                -- only unique indexes
+  AND i.is_unique_constraint = 0     -- exclude UNIQUE constraints
+  AND i.is_primary_key = 0           -- exclude primary keys
+  AND SCHEMA_NAME(t.schema_id)  IN (%s)
+ORDER BY i.index_id;
+`
+
+type GetUniqueIndexesBySchemaRow struct {
+	TableSchema  string
+	TableName    string
+	IndexName    string
+	IndexColumns string
+}
+
+func (q *Queries) GetUniqueIndexesBySchema(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetUniqueIndexesBySchemaRow, error) {
+	placeholders, args := createSchemaTableParams(schemas)
+	query := fmt.Sprintf(getUniqueIndexesBySchema, placeholders)
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetUniqueIndexesBySchemaRow
+	for rows.Next() {
+		var i GetUniqueIndexesBySchemaRow
+		if err := rows.Scan(
+			&i.TableSchema,
+			&i.TableName,
+			&i.IndexName,
+			&i.IndexColumns,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
