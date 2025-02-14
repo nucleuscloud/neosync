@@ -234,6 +234,83 @@ func (s *Service) GetJobRunEvents(
 			isRunComplete = true
 		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT:
 			isRunComplete = true
+
+		case enums.EVENT_TYPE_START_CHILD_WORKFLOW_EXECUTION_FAILED:
+			isRunComplete = true
+		case enums.EVENT_TYPE_START_CHILD_WORKFLOW_EXECUTION_INITIATED:
+			activityOrder = append(activityOrder, event.GetEventId())
+			attributes := event.GetStartChildWorkflowExecutionInitiatedEventAttributes()
+			jobRunEvent := &mgmtv1alpha1.JobRunEvent{
+				Id:        event.EventId,
+				Type:      attributes.GetWorkflowType().GetName(),
+				StartTime: event.EventTime,
+				Tasks: []*mgmtv1alpha1.JobRunEventTask{
+					dtomaps.ToJobRunEventTaskDto(event, nil),
+				},
+			}
+			if len(attributes.Input.Payloads) > 1 {
+				var rawMap map[string]string
+				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &rawMap)
+				if err != nil {
+					logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+				}
+
+				schema, schemaExists := rawMap["Schema"]
+				table, tableExists := rawMap["Table"]
+
+				metadata := &mgmtv1alpha1.JobRunEventMetadata{}
+
+				if schemaExists && tableExists {
+					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
+						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
+							Schema: schema,
+							Table:  table,
+						},
+					}
+				}
+
+				jobRunEvent.Metadata = metadata
+			}
+			activityMap[event.EventId] = jobRunEvent
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_STARTED:
+			attributes := event.GetChildWorkflowExecutionStartedEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED:
+			attributes := event.GetChildWorkflowExecutionCompletedEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.CloseTime = event.EventTime
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_FAILED:
+			attributes := event.GetChildWorkflowExecutionFailedEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.CloseTime = event.EventTime
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+			isRunComplete = true
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT:
+			attributes := event.GetChildWorkflowExecutionTimedOutEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.CloseTime = event.EventTime
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+			isRunComplete = true
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED:
+			attributes := event.GetChildWorkflowExecutionCanceledEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.CloseTime = event.EventTime
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+			isRunComplete = true
+
+		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TERMINATED:
+			attributes := event.GetChildWorkflowExecutionTerminatedEventAttributes()
+			activity := activityMap[attributes.InitiatedEventId]
+			activity.CloseTime = event.EventTime
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+			isRunComplete = true
 		default:
 		}
 	}
