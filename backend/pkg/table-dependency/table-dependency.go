@@ -49,6 +49,7 @@ type RunConfig struct {
 	runType          RunType
 	primaryKeys      []string
 	whereClause      *string
+	orderBy          []string
 	selectQuery      *string
 	splitColumnPaths bool
 }
@@ -149,6 +150,10 @@ func (rc *RunConfig) appendForeignKey(fk *ForeignKey) {
 	rc.foreignKeys = append(rc.foreignKeys, fk)
 }
 
+func (rc *RunConfig) setOrderBy(orderBy []string) {
+	rc.orderBy = orderBy
+}
+
 func (rc *RunConfig) SetSelectQuery(query *string) {
 	rc.selectQuery = query
 }
@@ -158,6 +163,7 @@ func GetRunConfigs(
 	subsets map[string]string,
 	primaryKeyMap map[string][]string,
 	tableColumnsMap map[string][]string,
+	uniqueIndexesMap map[string][][]string,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
 
@@ -222,12 +228,40 @@ func GetRunConfigs(
 		}
 	}
 
+	setOrderBy(configs, primaryKeyMap, uniqueIndexesMap)
+
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
 	}
 
 	return configs, nil
+}
+
+func setOrderBy(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes map[string][][]string) {
+	for _, config := range configs {
+		cols := getOrderByColumns(config, primaryKeyMap, uniqueIndexes)
+		config.setOrderBy(cols)
+	}
+}
+
+// getOrderByColumns returns order by columns for a table, prioritizing primary keys,
+// then unique indexes, and finally falling back to sorted select columns.
+func getOrderByColumns(config *RunConfig, primaryKeyMap map[string][]string, uniqueIndexes map[string][][]string) []string {
+	table := config.Table()
+	cols, ok := primaryKeyMap[table]
+	if ok {
+		return cols
+	}
+
+	indexes := uniqueIndexes[table]
+	if len(indexes) > 0 {
+		return indexes[0]
+	}
+
+	selectCols := config.SelectColumns()
+	slices.Sort(selectCols)
+	return selectCols
 }
 
 // removes update configs that have where clause
