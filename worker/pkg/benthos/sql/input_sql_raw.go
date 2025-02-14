@@ -9,10 +9,10 @@ import (
 	"github.com/Jeffail/shutdown"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
@@ -20,7 +20,7 @@ func sqlRawInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("query")).
-		Field(service.NewBloblangField("args_mapping").Optional()).
+		Field(service.NewStringField("paged_query").Optional()).
 		Field(service.NewIntField("expected_total_rows").Optional()).
 		Field(service.NewStringListField("order_by_columns").Default([]string{}))
 }
@@ -31,12 +31,13 @@ func RegisterPooledSqlRawInput(
 	dbprovider ConnectionProvider,
 	stopActivityChannel chan<- error,
 	onHasMorePages OnHasMorePagesFn,
+	continuationToken *continuation_token.ContinuationToken,
 ) error {
 	return env.RegisterInput(
 		"pooled_sql_raw",
 		sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel, onHasMorePages)
+			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel, onHasMorePages, continuationToken)
 			if err != nil {
 				return nil, err
 			}
@@ -53,11 +54,10 @@ type pooledInput struct {
 	connectionId string
 	driver       string
 
-	argsMapping *bloblang.Executor
-	queryStatic string
-
-	db    mysql_queries.DBTX
-	dbMut sync.Mutex
+	queryStatic      string
+	pagedQueryStatic *string
+	db               mysql_queries.DBTX
+	dbMut            sync.Mutex
 
 	rows *sql.Rows
 
@@ -71,6 +71,7 @@ type pooledInput struct {
 	rowsRead            int
 	orderByColumns      []string
 	lastReadOrderValues []any
+	continuationToken   *continuation_token.ContinuationToken
 }
 
 func newInput(
@@ -79,6 +80,7 @@ func newInput(
 	dbprovider ConnectionProvider,
 	channel chan<- error,
 	onHasMorePages OnHasMorePagesFn,
+	continuationToken *continuation_token.ContinuationToken,
 ) (*pooledInput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
@@ -90,12 +92,13 @@ func newInput(
 		return nil, err
 	}
 
-	var argsMapping *bloblang.Executor
-	if conf.Contains("args_mapping") {
-		argsMapping, err = conf.FieldBloblang("args_mapping")
+	var pagedQueryStatic *string
+	if conf.Contains("paged_query") {
+		pquery, err := conf.FieldString("paged_query")
 		if err != nil {
 			return nil, err
 		}
+		pagedQueryStatic = &pquery
 	}
 
 	var expectedTotalRows *int
@@ -128,7 +131,7 @@ func newInput(
 		connectionId:        connectionId,
 		driver:              driver,
 		queryStatic:         queryStatic,
-		argsMapping:         argsMapping,
+		pagedQueryStatic:    pagedQueryStatic,
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		recordMapper:        mapper,
@@ -136,6 +139,7 @@ func newInput(
 		expectedTotalRows:   expectedTotalRows,
 		orderByColumns:      orderByColumns,
 		lastReadOrderValues: []any{},
+		continuationToken:   continuationToken,
 	}, nil
 }
 
@@ -157,19 +161,14 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
 
+	query := s.queryStatic
 	var args []any
-	if s.argsMapping != nil {
-		iargs, err := s.argsMapping.Query(nil)
-		if err != nil {
-			return err
-		}
-		var ok bool
-		if args, ok = iargs.([]any); !ok {
-			return fmt.Errorf("mapping returned non-array result: %T", iargs)
-		}
+	if s.pagedQueryStatic != nil && s.continuationToken != nil {
+		query = *s.pagedQueryStatic
+		args = append(args, s.continuationToken.Contents.LastReadOrderValues...)
 	}
 
-	rows, err := db.QueryContext(ctx, s.queryStatic, args...)
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		if neosync_benthos.IsCriticalError(err.Error()) {
 			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
