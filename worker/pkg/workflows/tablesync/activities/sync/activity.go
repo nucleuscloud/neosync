@@ -29,6 +29,8 @@ import (
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
+
+	_ "github.com/nucleuscloud/neosync/internal/benthos/imports"
 )
 
 type Activity struct {
