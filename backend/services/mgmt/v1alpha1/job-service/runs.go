@@ -285,7 +285,9 @@ func (s *Service) GetJobRunEvents(
 			attributes := event.GetChildWorkflowExecutionFailedEventAttributes()
 			activity := activityMap[attributes.InitiatedEventId]
 			activity.CloseTime = event.EventTime
-			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+			errorDto := dtomaps.ToJobRunEventTaskErrorDto(attributes.Failure, attributes.RetryState)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, errorDto))
+
 			isRunComplete = true
 
 		case enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT:
