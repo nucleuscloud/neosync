@@ -2,8 +2,8 @@ package tablesync_workflow_register
 
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	benthosstream "github.com/nucleuscloud/neosync/internal/benthos-stream"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-	benthosstream "github.com/nucleuscloud/neosync/worker/internal/benthos-stream"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
