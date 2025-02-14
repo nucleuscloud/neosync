@@ -130,48 +130,47 @@ func (qb *QueryBuilder) clearPathCache() {
 	qb.pathCache = make(set)
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pageQuery string, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
 		return "", nil, "", false, fmt.Errorf("table not found: %s", key)
 	}
-	query, notFkSafe, err := qb.buildFlattenedQuery(table)
+	query, pageQuery, notFkSafe, err := qb.buildFlattenedQuery(table)
 	if query == nil {
 		return "", nil, "", false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
 	if err != nil {
 		return "", nil, "", false, err
 	}
+
 	sql, args, err := query.Limit(pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
-	pageSql, err := qb.buildPageQuery(key, query)
+
+	pageSql, args, err := pageQuery.Limit(pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, "", false, fmt.Errorf("unable to build page query for %s.%s: %w", schema, tableName, err)
+		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
 	}
 	return sql, args, pageSql, notFkSafe, nil
 }
 
-func (qb *QueryBuilder) buildPageQuery(key string, query *goqu.SelectDataset) (sqlstatement string, err error) {
+func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.SelectDataset, rootAlias string) *goqu.SelectDataset {
+	key := qb.getTableKey(schema, tableName)
 	orderBy := qb.orderBy[key]
 	if len(orderBy) > 0 {
 		// Add where clause using order by columns directly with goqu
 		conditions := make([]exp.Expression, len(orderBy))
 		for i, col := range orderBy {
-			conditions[i] = goqu.C(col).Gt(0)
+			conditions[i] = goqu.T(rootAlias).Col(col).Gt(0)
 		}
 		query = query.Where(goqu.And(conditions...))
 	}
-	sql, _, err := query.Prepared(true).Limit(pageLimit).ToSQL()
-	if err != nil {
-		return "", fmt.Errorf("unable to convery structured query to string for %s: %w", key, err)
-	}
-	return sql, nil
+	return query.Prepared(true)
 }
 
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.Name
 	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)
@@ -195,7 +194,7 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.Sel
 	if orderBy, ok := qb.orderBy[qb.getTableKey(rootTable.Schema, rootTable.Name)]; ok {
 		orderByExpressions := make([]exp.OrderedExpression, len(orderBy))
 		for i, col := range orderBy {
-			orderByExpressions[i] = goqu.C(col).Asc()
+			orderByExpressions[i] = rootAliasExpression.Col(col).Asc()
 		}
 		query = query.Order(orderByExpressions...)
 	}
@@ -207,11 +206,14 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.Sel
 		var err error
 		query, notFkSafe, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", false)
 		if err != nil {
-			return nil, false, err
+			return nil, nil, false, err
 		}
 	}
 
-	return query, notFkSafe, nil
+	// build page query
+	pageQuery := qb.buildPageQuery(rootTable.Schema, rootTable.Name, query, rootAlias)
+
+	return query, pageQuery, notFkSafe, nil
 }
 
 func (qb *QueryBuilder) addFlattenedJoins(

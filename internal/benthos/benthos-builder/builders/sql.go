@@ -210,8 +210,8 @@ func buildBenthosSqlSourceConfigResponses(
 
 							Query:             query.Query,
 							PagedQuery:        query.PageQuery,
-							OrderByColumns:    []string{}, // todo
-							ExpectedTotalRows: nil,        // todo
+							OrderByColumns:    config.OrderByColumns(),
+							ExpectedTotalRows: nil, // todo
 						},
 					},
 				},

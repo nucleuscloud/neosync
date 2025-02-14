@@ -49,7 +49,7 @@ type RunConfig struct {
 	runType          RunType
 	primaryKeys      []string
 	whereClause      *string
-	orderBy          []string // columns to order by
+	orderByColumns   []string // columns to order by
 	selectQuery      *string
 	splitColumnPaths bool
 }
@@ -123,8 +123,8 @@ func (rc *RunConfig) SelectQuery() *string {
 	return rc.selectQuery
 }
 
-func (rc *RunConfig) OrderBy() []string {
-	return rc.orderBy
+func (rc *RunConfig) OrderByColumns() []string {
+	return rc.orderByColumns
 }
 
 func (rc *RunConfig) SplitColumnPaths() bool {
@@ -154,8 +154,8 @@ func (rc *RunConfig) appendForeignKey(fk *ForeignKey) {
 	rc.foreignKeys = append(rc.foreignKeys, fk)
 }
 
-func (rc *RunConfig) setOrderBy(orderBy []string) {
-	rc.orderBy = orderBy
+func (rc *RunConfig) setOrderByColumns(orderBy []string) {
+	rc.orderByColumns = orderBy
 }
 
 func (rc *RunConfig) SetSelectQuery(query *string) {
@@ -233,7 +233,7 @@ func GetRunConfigs(
 		}
 	}
 
-	setOrderBy(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
+	setOrderByColumns(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
 
 	// check run path
 	if !isValidRunOrder(configs) {
@@ -243,10 +243,10 @@ func GetRunConfigs(
 	return configs, nil
 }
 
-func setOrderBy(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) {
+func setOrderByColumns(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) {
 	for _, config := range configs {
 		cols := getOrderByColumns(config, primaryKeyMap, uniqueIndexes, uniqueConstraints)
-		config.setOrderBy(cols)
+		config.setOrderByColumns(cols)
 	}
 }
 
