@@ -131,15 +131,6 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 		return nil, err
 	}
 
-	queryContext, err := a.getQueryContext(ctx, &mgmtv1alpha1.RunContextKey{
-		JobRunId:   req.JobRunId,
-		ExternalId: shared.GetQueryContextExternalId(req.Id),
-		AccountId:  req.AccountId,
-	}, metadata)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get query context: %w", err)
-	}
-
 	var continuationTokenToReturn *string
 	hasMorePages := func(lastReadOrderValues []any) {
 		token := continuation_token.NewFromContents(continuation_token.NewContents(lastReadOrderValues))
@@ -162,7 +153,6 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 		stopActivityChan,
 		getConnectionById,
 		hasMorePages,
-		queryContext,
 		continuationToken,
 		logger,
 	)
@@ -283,7 +273,6 @@ func (a *Activity) getBenthosStream(
 	stopActivityChan chan error,
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
-	queryContext *QueryContext,
 	continuationToken *continuation_token.ContinuationToken,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
@@ -296,14 +285,6 @@ func (a *Activity) getBenthosStream(
 	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
 	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
 	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
-
-	if continuationToken != nil {
-		envKeyMap["QUERY_KEY"] = queryContext.PagedQuery
-		envKeyMap["QUERY_ARGS"] = fmt.Sprintf("%v", continuationToken.Contents.LastReadOrderValues) // todo: this will most likley need babying
-	} else {
-		envKeyMap["QUERY_KEY"] = queryContext.Query
-		envKeyMap["QUERY_ARGS"] = "[]"
-	}
 
 	streambldr := benenv.NewStreamBuilder()
 	streambldr.SetLogger(logger.With(
@@ -368,35 +349,6 @@ func getDtoSeq[T DtoSeq](dtos []T) iter.Seq2[string, T] {
 			}
 		}
 	}
-}
-
-type QueryContext struct {
-	Query      string
-	PagedQuery string
-}
-
-func (a *Activity) getQueryContext(
-	ctx context.Context,
-	req *mgmtv1alpha1.RunContextKey,
-	metadata *SyncMetadata,
-) (*QueryContext, error) {
-	return &QueryContext{
-		Query:      "TODO",
-		PagedQuery: "TODO",
-	}, nil
-	// rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
-	// 	Id: req,
-	// }))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to retrieve benthosconfig runcontext for %s.%s: %w", metadata.Schema, metadata.Table, err)
-	// }
-
-	// var queryContext *QueryContext
-	// err = json.Unmarshal(rcResp.Msg.GetValue(), &queryContext)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to unmarshal query context: %w", err)
-	// }
-	// return queryContext, nil
 }
 
 func (a *Activity) getBenthosConfig(
