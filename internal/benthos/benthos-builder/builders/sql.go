@@ -132,7 +132,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap, tableConstraints.UniqueIndexes, tableConstraints.UniqueConstraints)
 	if err != nil {
 		return nil, err
 	}

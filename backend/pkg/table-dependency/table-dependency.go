@@ -49,7 +49,7 @@ type RunConfig struct {
 	runType          RunType
 	primaryKeys      []string
 	whereClause      *string
-	orderBy          []string
+	orderBy          []string // columns to order by
 	selectQuery      *string
 	splitColumnPaths bool
 }
@@ -123,6 +123,10 @@ func (rc *RunConfig) SelectQuery() *string {
 	return rc.selectQuery
 }
 
+func (rc *RunConfig) OrderBy() []string {
+	return rc.orderBy
+}
+
 func (rc *RunConfig) SplitColumnPaths() bool {
 	return rc.splitColumnPaths
 }
@@ -164,6 +168,7 @@ func GetRunConfigs(
 	primaryKeyMap map[string][]string,
 	tableColumnsMap map[string][]string,
 	uniqueIndexesMap map[string][][]string,
+	uniqueConstraintsMap map[string][][]string,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
 
@@ -228,7 +233,7 @@ func GetRunConfigs(
 		}
 	}
 
-	setOrderBy(configs, primaryKeyMap, uniqueIndexesMap)
+	setOrderBy(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
 
 	// check run path
 	if !isValidRunOrder(configs) {
@@ -238,20 +243,25 @@ func GetRunConfigs(
 	return configs, nil
 }
 
-func setOrderBy(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes map[string][][]string) {
+func setOrderBy(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) {
 	for _, config := range configs {
-		cols := getOrderByColumns(config, primaryKeyMap, uniqueIndexes)
+		cols := getOrderByColumns(config, primaryKeyMap, uniqueIndexes, uniqueConstraints)
 		config.setOrderBy(cols)
 	}
 }
 
 // getOrderByColumns returns order by columns for a table, prioritizing primary keys,
 // then unique indexes, and finally falling back to sorted select columns.
-func getOrderByColumns(config *RunConfig, primaryKeyMap map[string][]string, uniqueIndexes map[string][][]string) []string {
+func getOrderByColumns(config *RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) []string {
 	table := config.Table()
 	cols, ok := primaryKeyMap[table]
 	if ok {
 		return cols
+	}
+
+	constraints := uniqueConstraints[table]
+	if len(constraints) > 0 {
+		return constraints[0]
 	}
 
 	indexes := uniqueIndexes[table]

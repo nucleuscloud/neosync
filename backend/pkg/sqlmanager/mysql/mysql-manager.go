@@ -264,6 +264,8 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		ForeignKeyConstraints: foreignKeyMap,
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
+		// there is no real distinction between unique indexes and unique constraints in mysql
+		UniqueIndexes: map[string][][]string{},
 	}, nil
 }
 
