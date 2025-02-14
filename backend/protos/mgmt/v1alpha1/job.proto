@@ -503,11 +503,11 @@ message CreateJobRequest {
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   // The list of mappings that will be used to transform the data
-  repeated JobMapping mappings = 4;
+  repeated JobMapping mappings = 4 [(buf.validate.field).repeated.min_items = 1];
   // The source connection configuration
   JobSource source = 5;
   // The list of destinations that will be used to store the data
-  repeated CreateJobDestination destinations = 6;
+  repeated CreateJobDestination destinations = 6 [(buf.validate.field).repeated.min_items = 1];
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 
@@ -712,7 +712,7 @@ message CreateJobDestinationConnectionsRequest {
   // The unique identifier of the job
   string job_id = 1 [(buf.validate.field).string.uuid = true];
   // The list of destinations to create and associate with the job
-  repeated CreateJobDestination destinations = 2;
+  repeated CreateJobDestination destinations = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message CreateJobDestinationConnectionsResponse {
   // The job that was updated

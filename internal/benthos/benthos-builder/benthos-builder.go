@@ -228,7 +228,15 @@ func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
 ) (*BenthosConfigManager, error) {
 	provider := NewBuilderProvider(config.Logger)
-	err := provider.registerStandardBuilders(
+	err := validateBenthosConfig(
+		config.Job,
+		config.SourceConnection,
+		config.DestinationConnections,
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = provider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		config.DestinationConnections,
@@ -255,6 +263,26 @@ func NewWorkerBenthosConfigManager(
 	}, nil
 }
 
+func validateBenthosConfig(
+	job *mgmtv1alpha1.Job,
+	sourceConnection *mgmtv1alpha1.Connection,
+	destinationConnections []*mgmtv1alpha1.Connection,
+) error {
+	if sourceConnection == nil {
+		return fmt.Errorf("data sync job must have a source connection")
+	}
+	if len(destinationConnections) == 0 {
+		return fmt.Errorf("data sync job must have at least one destination connection")
+	}
+	if len(job.GetDestinations()) == 0 {
+		return fmt.Errorf("data sync job must have at least one destination")
+	}
+	if job.GetSource() == nil {
+		return fmt.Errorf("data sync job must have a source")
+	}
+	return nil
+}
+
 // Manages all necessary configuration parameters for creating
 // a CLI-based Benthos configuration manager
 type CliBenthosConfig struct {
@@ -277,8 +305,16 @@ type CliBenthosConfig struct {
 func NewCliBenthosConfigManager(
 	config *CliBenthosConfig,
 ) (*BenthosConfigManager, error) {
+	err := validateBenthosConfig(
+		config.Job,
+		config.SourceConnection,
+		[]*mgmtv1alpha1.Connection{config.DestinationConnection},
+	)
+	if err != nil {
+		return nil, err
+	}
 	destinationProvider := NewBuilderProvider(config.Logger)
-	err := destinationProvider.registerStandardBuilders(
+	err = destinationProvider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		[]*mgmtv1alpha1.Connection{config.DestinationConnection},
