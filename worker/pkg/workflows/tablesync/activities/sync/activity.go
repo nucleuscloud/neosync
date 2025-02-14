@@ -2,6 +2,7 @@ package sync_activity
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"iter"
@@ -98,8 +99,6 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 	stopActivityChan := make(chan error, 3)
 	syncResultChan := make(chan error, 1)
 
-	// todo: handle continuation token
-
 	var benthosStream benthosstream.BenthosStreamClient
 
 	go monitorActivityHeartbeat(ctx, stopActivityChan, func(logMessage string, err error) {
@@ -130,12 +129,30 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 		return nil, err
 	}
 
-	shouldContinue := false
-	// todo: this needs to be the continuation token or something
-	hasMorePages := func(ok bool) {
-		shouldContinue = ok
+	queryContext, err := a.getQueryContext(ctx, &mgmtv1alpha1.RunContextKey{
+		JobRunId:   req.JobRunId,
+		ExternalId: shared.GetQueryContextExternalId(req.Id),
+		AccountId:  req.AccountId,
+	}, metadata)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get query context: %w", err)
 	}
-	_ = shouldContinue
+
+	var continuationTokenToReturn *string
+	// todo: this needs to be the continuation token or something
+	hasMorePages := func(lastReadOrderValues []any) {
+		token := newContinuationToken(lastReadOrderValues)
+		tokenStr := token.String()
+		continuationTokenToReturn = &tokenStr
+	}
+
+	var continuationToken *ContinuationToken
+	if req.ContinuationToken != nil {
+		continuationToken, err = loadContinuationToken(*req.ContinuationToken)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load continuation token: %w", err)
+		}
+	}
 
 	bstream, err := a.getBenthosStream(
 		&info,
@@ -144,6 +161,8 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 		stopActivityChan,
 		getConnectionById,
 		hasMorePages,
+		queryContext,
+		continuationToken,
 		logger,
 	)
 	if err != nil {
@@ -161,8 +180,49 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 
 	logger.Info("sync complete")
 	return &SyncResponse{
-		ContinuationToken: nil,
+		ContinuationToken: continuationTokenToReturn,
 	}, nil
+}
+
+func loadContinuationToken(tokenStr string) (*ContinuationToken, error) {
+	if tokenStr == "" {
+		return nil, nil
+	}
+
+	bytes, err := base64.StdEncoding.DecodeString(tokenStr)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode continuation token: %w", err)
+	}
+
+	var token ContinuationToken
+	if err := json.Unmarshal(bytes, &token); err != nil {
+		return nil, fmt.Errorf("unable to unmarshal continuation token: %w", err)
+	}
+
+	return &token, nil
+}
+
+type ContinuationToken struct {
+	Contents ContinuationTokenContents `json:"contents"`
+}
+type ContinuationTokenContents struct {
+	LastReadOrderValues []any `json:"lastReadOrderValues"`
+}
+
+func newContinuationToken(lastReadOrderValues []any) *ContinuationToken {
+	return &ContinuationToken{
+		Contents: ContinuationTokenContents{
+			LastReadOrderValues: lastReadOrderValues,
+		},
+	}
+}
+
+func (c *ContinuationToken) String() string {
+	bytes, err := json.Marshal(c)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(bytes)
 }
 
 func (a *Activity) getConnectionByIdFn(
@@ -262,7 +322,9 @@ func (a *Activity) getBenthosStream(
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
-	hasMorePages func(ok bool),
+	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
+	queryContext *QueryContext,
+	continuationToken *ContinuationToken,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
 	benenv, err := a.getBenthosEnvironment(logger, info.Attempt > 1, getConnectionById, session, stopActivityChan, hasMorePages)
@@ -274,6 +336,14 @@ func (a *Activity) getBenthosStream(
 	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
 	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
 	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
+
+	if continuationToken != nil {
+		envKeyMap["QUERY_KEY"] = queryContext.PagedQuery
+		envKeyMap["QUERY_ARGS"] = fmt.Sprintf("%v", continuationToken.Contents.LastReadOrderValues) // todo: this will most likley need babying
+	} else {
+		envKeyMap["QUERY_KEY"] = queryContext.Query
+		envKeyMap["QUERY_ARGS"] = "[]"
+	}
 
 	streambldr := benenv.NewStreamBuilder()
 	streambldr.SetLogger(logger.With(
@@ -302,7 +372,7 @@ func (a *Activity) getBenthosEnvironment(
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
-	hasMorePages func(ok bool),
+	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 ) (*service.Environment, error) {
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
@@ -336,6 +406,31 @@ func getDtoSeq[T DtoSeq](dtos []T) iter.Seq2[string, T] {
 			}
 		}
 	}
+}
+
+type QueryContext struct {
+	Query      string
+	PagedQuery string
+}
+
+func (a *Activity) getQueryContext(
+	ctx context.Context,
+	req *mgmtv1alpha1.RunContextKey,
+	metadata *SyncMetadata,
+) (*QueryContext, error) {
+	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+		Id: req,
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve benthosconfig runcontext for %s.%s: %w", metadata.Schema, metadata.Table, err)
+	}
+
+	var queryContext *QueryContext
+	err = json.Unmarshal(rcResp.Msg.GetValue(), &queryContext)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal query context: %w", err)
+	}
+	return queryContext, nil
 }
 
 func (a *Activity) getBenthosConfig(

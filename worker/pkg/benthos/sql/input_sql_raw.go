@@ -21,7 +21,8 @@ func sqlRawInputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("query")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
-		Field(service.NewBloblangField("expected_total_rows").Optional())
+		Field(service.NewIntField("expected_total_rows").Optional()).
+		Field(service.NewStringListField("order_by_columns").Default([]string{}))
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
@@ -29,7 +30,7 @@ func RegisterPooledSqlRawInput(
 	env *service.Environment,
 	dbprovider ConnectionProvider,
 	stopActivityChannel chan<- error,
-	onHasMorePages func(ok bool),
+	onHasMorePages OnHasMorePagesFn,
 ) error {
 	return env.RegisterInput(
 		"pooled_sql_raw",
@@ -43,6 +44,8 @@ func RegisterPooledSqlRawInput(
 		},
 	)
 }
+
+type OnHasMorePagesFn func(lastReadOrderValues []any)
 
 type pooledInput struct {
 	provider     ConnectionProvider
@@ -63,9 +66,11 @@ type pooledInput struct {
 	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
-	onHasMorePages      func(ok bool)
+	onHasMorePages      OnHasMorePagesFn
 	expectedTotalRows   *int
 	rowsRead            int
+	orderByColumns      []string
+	lastReadOrderValues []any
 }
 
 func newInput(
@@ -73,7 +78,7 @@ func newInput(
 	mgr *service.Resources,
 	dbprovider ConnectionProvider,
 	channel chan<- error,
-	onHasMoreResults func(ok bool),
+	onHasMorePages OnHasMorePagesFn,
 ) (*pooledInput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
@@ -102,6 +107,11 @@ func newInput(
 		expectedTotalRows = &totalRows
 	}
 
+	orderByColumns, err := conf.FieldStringList("order_by_columns")
+	if err != nil {
+		return nil, err
+	}
+
 	driver, err := dbprovider.GetDriver(connectionId)
 	if err != nil {
 		return nil, err
@@ -122,8 +132,10 @@ func newInput(
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		recordMapper:        mapper,
-		onHasMorePages:      onHasMoreResults,
+		onHasMorePages:      onHasMorePages,
 		expectedTotalRows:   expectedTotalRows,
+		orderByColumns:      orderByColumns,
+		lastReadOrderValues: []any{},
 	}, nil
 }
 
@@ -193,8 +205,11 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
-		if s.expectedTotalRows != nil && s.onHasMorePages != nil {
-			s.onHasMorePages(s.rowsRead >= *s.expectedTotalRows)
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
+			// emit order by column values if ok
+			if s.rowsRead >= *s.expectedTotalRows {
+				s.onHasMorePages(s.lastReadOrderValues)
+			}
 		}
 		return nil, nil, service.ErrEndOfInput
 	}
@@ -208,8 +223,11 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		// For non-Postgres drivers, simply close and return EndOfInput
 		_ = s.rows.Close()
 		s.rows = nil
-		if s.expectedTotalRows != nil && s.onHasMorePages != nil {
-			s.onHasMorePages(s.rowsRead >= *s.expectedTotalRows)
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
+			// emit order by column values if ok
+			if s.rowsRead >= *s.expectedTotalRows {
+				s.onHasMorePages(s.lastReadOrderValues)
+			}
 		}
 		return nil, nil, service.ErrEndOfInput
 	}
@@ -219,6 +237,18 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		_ = s.rows.Close()
 		s.rows = nil
 		return nil, nil, err
+	}
+
+	// store last order by columns values
+	lastReadOrderValues := make([]any, len(s.orderByColumns))
+	for i, col := range s.orderByColumns {
+		val, ok := obj[col]
+		if !ok {
+			_ = s.rows.Close()
+			s.rows = nil
+			return nil, nil, fmt.Errorf("order by column %s not found", col)
+		}
+		lastReadOrderValues[i] = val
 	}
 
 	s.rowsRead++

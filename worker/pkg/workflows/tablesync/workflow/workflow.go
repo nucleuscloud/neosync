@@ -41,7 +41,7 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 
 	var syncActivity *sync_activity.Activity
 
-	var continuationToken *string
+	continuationToken := req.ContinuationToken
 	var iterations int
 
 	logger.Debug("starting table sync")
