@@ -29,7 +29,7 @@ func New() *Workflow {
 	return &Workflow{}
 }
 
-const MAX_ITERATIONS = 10
+const MAX_ITERATIONS = 100
 
 func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableSyncResponse, error) {
 	logger := log.With(
