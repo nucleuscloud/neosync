@@ -13,9 +13,14 @@ type TableSyncRequest struct {
 	ContinuationToken *string
 
 	SyncActivityOptions *workflow.ActivityOptions
+	TableSchema         string
+	TableName           string
 }
 
 type TableSyncResponse struct {
+	// Here to make it easier to see in UI and logs
+	Schema string
+	Table  string
 }
 
 type Workflow struct{}
@@ -54,6 +59,10 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 				JobRunId:          req.JobRunId,
 				ContinuationToken: continuationToken,
 			},
+			&sync_activity.SyncMetadata{
+				Schema: req.TableSchema,
+				Table:  req.TableName,
+			},
 		).
 			Get(ctx, &resp)
 		if err != nil {
@@ -76,5 +85,8 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 		}
 		logger.Debug("continuing")
 	}
-	return &TableSyncResponse{}, nil
+	return &TableSyncResponse{
+		Schema: req.TableSchema,
+		Table:  req.TableName,
+	}, nil
 }

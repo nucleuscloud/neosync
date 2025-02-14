@@ -74,11 +74,12 @@ type SyncMetadata struct {
 	Table  string
 }
 
-func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
+func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	info := activity.GetInfo(ctx)
 
 	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(req.JobRunId))
 	loggerKeyVals := []any{
+		"metadata", metadata,
 		"JobRunId", req.JobRunId,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
@@ -96,10 +97,6 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest) (*SyncRespon
 
 	stopActivityChan := make(chan error, 3)
 	syncResultChan := make(chan error, 1)
-	metadata := &SyncMetadata{
-		Schema: "todo",
-		Table:  "todo",
-	}
 
 	// todo: handle continuation token
 
