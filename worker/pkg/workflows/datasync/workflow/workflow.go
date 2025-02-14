@@ -532,7 +532,7 @@ func invokeSync(
 		var wfResult tablesync_workflow.TableSyncResponse
 
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: getChildWorkflowId(info.WorkflowExecution.ID, config.Name),
+			WorkflowID: getChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
 		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
 			AccountId:           accId,
 			Id:                  config.Name,
@@ -552,8 +552,8 @@ func invokeSync(
 	return future
 }
 
-func getChildWorkflowId(jobRunId, configName string) string {
-	id := fmt.Sprintf("%s-%s-%d", jobRunId, sanitizeWorkflowID(strings.ToLower(configName)), time.Now().UnixNano())
+func getChildWorkflowId(jobRunId, configName string, now time.Time) string {
+	id := fmt.Sprintf("%s-%s-%d", jobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
 	if len(id) > 1000 {
 		id = id[:1000]
 	}
