@@ -318,7 +318,7 @@ func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]strin
 	return schemaTablePrivsMap, err
 }
 
-func splitAndStrip(input, delim string) []string {
+func splitAndStrip(input, delim string) []string { //nolint:unparam
 	output := []string{}
 
 	for _, piece := range strings.Split(input, delim) {

@@ -149,7 +149,7 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
 
-	pageSql, args, err := pageQuery.Limit(pageLimit).ToSQL()
+	pageSql, _, err := pageQuery.Limit(pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
 	}
@@ -170,7 +170,7 @@ func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.Sel
 	return query.Prepared(true)
 }
 
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.Name
 	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)

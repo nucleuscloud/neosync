@@ -318,8 +318,20 @@ class UniqueConstraints(_message.Message):
     constraints: _containers.RepeatedCompositeFieldContainer[UniqueConstraint]
     def __init__(self, constraints: _Optional[_Iterable[_Union[UniqueConstraint, _Mapping]]] = ...) -> None: ...
 
+class UniqueIndexes(_message.Message):
+    __slots__ = ("indexes",)
+    INDEXES_FIELD_NUMBER: _ClassVar[int]
+    indexes: _containers.RepeatedCompositeFieldContainer[UniqueIndex]
+    def __init__(self, indexes: _Optional[_Iterable[_Union[UniqueIndex, _Mapping]]] = ...) -> None: ...
+
+class UniqueIndex(_message.Message):
+    __slots__ = ("columns",)
+    COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    columns: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, columns: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class GetConnectionTableConstraintsResponse(_message.Message):
-    __slots__ = ("foreign_key_constraints", "primary_key_constraints", "unique_constraints")
+    __slots__ = ("foreign_key_constraints", "primary_key_constraints", "unique_constraints", "unique_indexes")
     class ForeignKeyConstraintsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -341,13 +353,22 @@ class GetConnectionTableConstraintsResponse(_message.Message):
         key: str
         value: UniqueConstraints
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[UniqueConstraints, _Mapping]] = ...) -> None: ...
+    class UniqueIndexesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: UniqueIndexes
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[UniqueIndexes, _Mapping]] = ...) -> None: ...
     FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     PRIMARY_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     UNIQUE_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    UNIQUE_INDEXES_FIELD_NUMBER: _ClassVar[int]
     foreign_key_constraints: _containers.MessageMap[str, ForeignConstraintTables]
     primary_key_constraints: _containers.MessageMap[str, PrimaryConstraint]
     unique_constraints: _containers.MessageMap[str, UniqueConstraints]
-    def __init__(self, foreign_key_constraints: _Optional[_Mapping[str, ForeignConstraintTables]] = ..., primary_key_constraints: _Optional[_Mapping[str, PrimaryConstraint]] = ..., unique_constraints: _Optional[_Mapping[str, UniqueConstraints]] = ...) -> None: ...
+    unique_indexes: _containers.MessageMap[str, UniqueIndexes]
+    def __init__(self, foreign_key_constraints: _Optional[_Mapping[str, ForeignConstraintTables]] = ..., primary_key_constraints: _Optional[_Mapping[str, PrimaryConstraint]] = ..., unique_constraints: _Optional[_Mapping[str, UniqueConstraints]] = ..., unique_indexes: _Optional[_Mapping[str, UniqueIndexes]] = ...) -> None: ...
 
 class GetTableRowCountRequest(_message.Message):
     __slots__ = ("connection_id", "schema", "table", "where_clause")

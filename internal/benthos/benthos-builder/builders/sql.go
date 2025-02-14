@@ -211,7 +211,7 @@ func buildBenthosSqlSourceConfigResponses(
 							Query:             query.Query,
 							PagedQuery:        query.PageQuery,
 							OrderByColumns:    config.OrderByColumns(),
-							ExpectedTotalRows: nil, // todo
+							ExpectedTotalRows: &query.PageLimit,
 						},
 					},
 				},

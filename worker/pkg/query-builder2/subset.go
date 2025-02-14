@@ -50,8 +50,8 @@ func BuildSelectQueryMap(
 		}
 		// add order by to query builder
 		schema, table := splitTable(cfg.Table())
-		if len(cfg.OrderBy()) > 0 {
-			qb.AddOrderBy(schema, table, cfg.OrderBy())
+		if len(cfg.OrderByColumns()) > 0 {
+			qb.AddOrderBy(schema, table, cfg.OrderByColumns())
 		}
 		// add where clause to query builder
 		if cfg.WhereClause() != nil && *cfg.WhereClause() != "" {
@@ -76,6 +76,7 @@ func BuildSelectQueryMap(
 		querymap[cfg.Table()][cfg.RunType()] = &sqlmanager_shared.SelectQuery{
 			Query:                     query,
 			PageQuery:                 pageQuery,
+			PageLimit:                 pageLimit,
 			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
 		}
 	}

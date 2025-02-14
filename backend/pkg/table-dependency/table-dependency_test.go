@@ -255,7 +255,7 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -353,7 +353,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -536,7 +536,7 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -646,7 +646,7 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -721,7 +721,7 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 
 	require.NoError(t, err)
 	for _, e := range expect {
@@ -839,7 +839,7 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	for _, e := range expect {
 		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -904,7 +904,7 @@ func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	for _, e := range expect {
 		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -991,7 +991,7 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	for _, e := range expect {
 		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual) // Adjust getConfigByTableAndType according to your actual utility functions
@@ -1070,7 +1070,7 @@ func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	for _, e := range expect {
 		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -1140,7 +1140,7 @@ func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	for _, e := range expect {
 		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
@@ -1162,7 +1162,7 @@ func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
-	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}})
+	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}}, map[string][][]string{}, map[string][][]string{})
 	require.Error(t, err)
 }
 

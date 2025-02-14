@@ -287,10 +287,23 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 		}
 	}
 
+	uniqueIndexesMap := map[string]*mgmtv1alpha1.UniqueIndexes{}
+	for table, uniqueIndexes := range tableConstraints.UniqueIndexes {
+		uniqueIndexesMap[table] = &mgmtv1alpha1.UniqueIndexes{
+			Indexes: []*mgmtv1alpha1.UniqueIndex{},
+		}
+		for _, ui := range uniqueIndexes {
+			uniqueIndexesMap[table].Indexes = append(uniqueIndexesMap[table].Indexes, &mgmtv1alpha1.UniqueIndex{
+				Columns: ui,
+			})
+		}
+	}
+
 	return &mgmtv1alpha1.GetConnectionTableConstraintsResponse{
 		ForeignKeyConstraints: fkConstraintsMap,
 		PrimaryKeyConstraints: pkConstraintsMap,
 		UniqueConstraints:     uniqueConstraintsMap,
+		UniqueIndexes:         uniqueIndexesMap,
 	}, nil
 }
 

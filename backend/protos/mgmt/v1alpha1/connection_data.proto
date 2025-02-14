@@ -253,6 +253,16 @@ message UniqueConstraints {
   repeated UniqueConstraint constraints = 1;
 }
 
+message UniqueIndexes {
+  // The unique indexes found for the table
+  repeated UniqueIndex indexes = 1;
+}
+
+message UniqueIndex {
+  // The columns that are part of the unique index
+  repeated string columns = 1;
+}
+
 message GetConnectionTableConstraintsResponse {
   // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
   map<string, ForeignConstraintTables> foreign_key_constraints = 1;
@@ -260,6 +270,8 @@ message GetConnectionTableConstraintsResponse {
   map<string, PrimaryConstraint> primary_key_constraints = 2;
   // the key here is <schema>.<table> and value is the unique constraint
   map<string, UniqueConstraints> unique_constraints = 3;
+  // the key here is <schema>.<table> and value is the unique index
+  map<string, UniqueIndexes> unique_indexes = 4;
 }
 
 message GetTableRowCountRequest {

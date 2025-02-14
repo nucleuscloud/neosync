@@ -188,6 +188,7 @@ type SelectQuery struct {
 	Query string
 	// PageQuery is the query used to get a page of data based on a unique identifier like a primary key in the WHERE clause
 	PageQuery string
+	PageLimit int
 
 	// If true, this query could return rows that violate foreign key constraints
 	IsNotForeignKeySafeSubset bool
