@@ -339,14 +339,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   useEffect(() => {
-    if (!connectFormValues.sourceId || !account?.id) {
+    if (
+      !connectFormValues.sourceId ||
+      !account?.id ||
+      Object.keys(connectionsRecord).length === 0
+    ) {
       return;
     }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables, connectFormValues.sourceId, account?.id]);
+  }, [
+    selectedTables,
+    connectFormValues.sourceId,
+    account?.id,
+    Object.keys(connectionsRecord).length,
+  ]);
 
   useEffect(() => {
     if (

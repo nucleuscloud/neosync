@@ -74,7 +74,8 @@ func (b *DefaultConnectionDataBuilder) NewDataConnection(
 ) (ConnectionDataService, error) {
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig,
-		*mgmtv1alpha1.ConnectionConfig_PgConfig:
+		*mgmtv1alpha1.ConnectionConfig_PgConfig,
+		*mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		return NewSQLConnectionDataService(logger, b.sqlconnector, b.sqlmanager, connection), nil
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		return NewAwsS3ConnectionDataService(logger, b.awsmanager, b.neosynctyperegistry, connection), nil
