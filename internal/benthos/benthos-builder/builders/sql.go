@@ -208,8 +208,10 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							ConnectionId: dsnConnectionId,
 
-							Query:     query.Query,
-							PageQuery: query.PageQuery,
+							Query:             query.Query,
+							PagedQuery:        query.PageQuery,
+							OrderByColumns:    []string{}, // todo
+							ExpectedTotalRows: nil,        // todo
 						},
 					},
 				},
