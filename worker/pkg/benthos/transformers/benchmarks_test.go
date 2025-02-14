@@ -553,6 +553,22 @@ func BenchmarkTransformFullName(b *testing.B) {
 }
 
 
+func BenchmarkTransformHash(b *testing.B) {
+	transformer := NewTransformHash()
+	opts, err := NewTransformHashOpts(nil,)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := transformer.Transform("test", opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+
 func BenchmarkTransformInt64(b *testing.B) {
 	transformer := NewTransformInt64()
 	opts, err := NewTransformInt64Opts(nil,nil,nil,)
