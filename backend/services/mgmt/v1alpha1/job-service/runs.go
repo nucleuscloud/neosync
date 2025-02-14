@@ -22,6 +22,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.temporal.io/api/enums/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
@@ -248,28 +249,24 @@ func (s *Service) GetJobRunEvents(
 					dtomaps.ToJobRunEventTaskDto(event, nil),
 				},
 			}
-			if len(attributes.Input.Payloads) > 1 {
-				var rawMap map[string]string
-				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &rawMap)
-				if err != nil {
-					logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
-				}
+			if len(attributes.Input.Payloads) > 0 {
+				if attributes.GetWorkflowType().GetName() == "TableSync" {
+					var tableSyncRequest tablesync_workflow.TableSyncRequest
+					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &tableSyncRequest)
+					if err != nil {
+						logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+					}
 
-				schema, schemaExists := rawMap["Schema"]
-				table, tableExists := rawMap["Table"]
-
-				metadata := &mgmtv1alpha1.JobRunEventMetadata{}
-
-				if schemaExists && tableExists {
+					metadata := &mgmtv1alpha1.JobRunEventMetadata{}
 					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
 						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
-							Schema: schema,
-							Table:  table,
+							Schema: tableSyncRequest.TableSchema,
+							Table:  tableSyncRequest.TableName,
 						},
 					}
-				}
 
-				jobRunEvent.Metadata = metadata
+					jobRunEvent.Metadata = metadata
+				}
 			}
 			activityMap[event.EventId] = jobRunEvent
 
