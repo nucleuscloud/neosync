@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -528,7 +530,10 @@ func invokeSync(
 
 		tsWf := &tablesync_workflow.Workflow{}
 		var wfResult tablesync_workflow.TableSyncResponse
-		err := workflow.ExecuteChildWorkflow(ctx, tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
+
+		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			WorkflowID: getChildWorkflowId(info.WorkflowExecution.ID, config.Name),
+		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
 			AccountId:           accId,
 			Id:                  config.Name,
 			SyncActivityOptions: syncActivityOptions,
@@ -545,6 +550,20 @@ func invokeSync(
 		settable.Set(wfResult, err)
 	})
 	return future
+}
+
+func getChildWorkflowId(jobRunId, configName string) string {
+	id := fmt.Sprintf("%s-%s-%d", jobRunId, sanitizeWorkflowID(strings.ToLower(configName)), time.Now().UnixNano())
+	if len(id) > 1000 {
+		id = id[:1000]
+	}
+	return id
+}
+
+var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
+
+func sanitizeWorkflowID(id string) string {
+	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
 }
 
 func updateCompletedMap(tableName string, completed *sync.Map, columns []string) error {
