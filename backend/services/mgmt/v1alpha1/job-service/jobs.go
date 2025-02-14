@@ -565,7 +565,7 @@ func (s *Service) DeleteJob(
 		logger,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to remove schedule when deleting job")
+		return nil, fmt.Errorf("unable to remove schedule when deleting job: %w", err)
 	}
 
 	logger.Debug("deleting job")
