@@ -23,10 +23,15 @@ const (
 
 	runContext_ExternalId_BenthosConfig       = "benthosconfig"
 	runContext_ExternalId_PostTableSyncConfig = "posttablesync"
+	runContext_ExternalId_ConnectionIds       = "tablesync-connectionids"
 )
 
 func GetBenthosConfigExternalId(identifier string) string {
 	return fmt.Sprintf("%s-%s", runContext_ExternalId_BenthosConfig, identifier)
+}
+
+func GetConnectionIdsExternalId() string {
+	return runContext_ExternalId_ConnectionIds
 }
 
 func GetPostTableSyncConfigExternalId(identifier string) string {

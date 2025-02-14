@@ -21,6 +21,7 @@ import (
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -38,9 +39,28 @@ type Activity struct {
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 }
 
+func New(
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	sqlconnmanager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx],
+	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
+	meter metric.Meter,
+	benthosStreamManager benthosstream.BenthosStreamManagerClient,
+) *Activity {
+	return &Activity{
+		connclient:           connclient,
+		jobclient:            jobclient,
+		sqlconnmanager:       sqlconnmanager,
+		mongoconnmanager:     mongoconnmanager,
+		meter:                meter,
+		benthosStreamManager: benthosStreamManager,
+	}
+}
+
 type SyncRequest struct {
 	Id        string
 	AccountId string
+	JobRunId  string
 
 	ContinuationToken *string
 }
@@ -54,16 +74,18 @@ type SyncMetadata struct {
 	Table  string
 }
 
-func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
+func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
 	info := activity.GetInfo(ctx)
 
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.ID))
+	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(req.JobRunId))
 	loggerKeyVals := []any{
+		"JobRunId", req.JobRunId,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 		"activitySession", session.String(),
 		"accountId", req.AccountId,
 		"hasContinuationToken", req.ContinuationToken != nil,
+		"id", req.Id,
 	}
 	logger := temporallogger.NewSlogger(
 		log.With(
@@ -88,8 +110,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 	}, logger)
 
 	benthosConfig, err := a.getBenthosConfig(ctx, &mgmtv1alpha1.RunContextKey{
-		JobRunId:   info.WorkflowExecution.ID,
-		ExternalId: req.Id,
+		JobRunId:   req.JobRunId,
+		ExternalId: shared.GetBenthosConfigExternalId(req.Id),
 		AccountId:  req.AccountId,
 	}, metadata)
 	if err != nil {
@@ -103,8 +125,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, e
 	}()
 
 	getConnectionById, err := a.getConnectionByIdFn(ctx, &mgmtv1alpha1.RunContextKey{
-		JobRunId:   info.WorkflowExecution.ID,
-		ExternalId: fmt.Sprintf("%s-connection-ids", req.Id),
+		JobRunId:   req.JobRunId,
+		ExternalId: shared.GetConnectionIdsExternalId(),
 		AccountId:  req.AccountId,
 	}, metadata)
 	if err != nil {

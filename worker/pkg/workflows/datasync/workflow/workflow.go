@@ -513,6 +513,7 @@ func invokeSync(
 	accountId *string,
 	syncActivityOptions *workflow.ActivityOptions,
 ) workflow.Future {
+	info := workflow.GetInfo(ctx)
 	metadata := getSyncMetadata(config)
 	_ = metadata
 	future, settable := workflow.NewFuture(ctx)
@@ -532,6 +533,7 @@ func invokeSync(
 			Id:                  config.Name,
 			SyncActivityOptions: syncActivityOptions,
 			ContinuationToken:   nil,
+			JobRunId:            info.WorkflowExecution.ID,
 		}).Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)

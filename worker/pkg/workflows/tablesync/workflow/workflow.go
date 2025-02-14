@@ -7,9 +7,9 @@ import (
 )
 
 type TableSyncRequest struct {
-	AccountId string
-	Id        string
-
+	AccountId         string
+	Id                string
+	JobRunId          string
 	ContinuationToken *string
 
 	SyncActivityOptions *workflow.ActivityOptions
@@ -19,6 +19,10 @@ type TableSyncResponse struct {
 }
 
 type Workflow struct{}
+
+func New() *Workflow {
+	return &Workflow{}
+}
 
 const MAX_ITERATIONS = 10
 
@@ -43,10 +47,11 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 		var resp *sync_activity.SyncResponse
 		err := workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, *req.SyncActivityOptions), // todo: check sync activity options nil
-			syncActivity.Sync,
+			syncActivity.SyncTable,
 			sync_activity.SyncRequest{
 				Id:                req.Id,
 				AccountId:         req.AccountId,
+				JobRunId:          req.JobRunId,
 				ContinuationToken: continuationToken,
 			},
 		).
@@ -64,6 +69,7 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 			newReq := &TableSyncRequest{
 				AccountId:         req.AccountId,
 				Id:                req.Id,
+				JobRunId:          req.JobRunId,
 				ContinuationToken: continuationToken,
 			}
 			return nil, workflow.NewContinueAsNewError(ctx, newReq)

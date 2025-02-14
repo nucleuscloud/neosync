@@ -29,17 +29,18 @@ import (
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	benthosstream "github.com/nucleuscloud/neosync/worker/internal/benthos-stream"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
+	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -320,14 +321,6 @@ func serve(ctx context.Context) error {
 		otelconfig.IsEnabled,
 	)
 
-	syncActivity := sync_activity.New(
-		connclient,
-		jobclient,
-		sqlconnmanager,
-		mongoconnmanager,
-		syncActivityMeter,
-		sync_activity.NewBenthosStreamManager(),
-	)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, cascadelicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
@@ -336,7 +329,6 @@ func serve(ctx context.Context) error {
 	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
-	w.RegisterActivity(syncActivity.Sync)
 	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	w.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
@@ -344,6 +336,16 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
+
+	tablesync_workflow_register.Register(
+		w,
+		connclient,
+		jobclient,
+		sqlconnmanager,
+		mongoconnmanager,
+		syncActivityMeter,
+		benthosstream.NewBenthosStreamManager(),
+	)
 
 	if cascadelicense.IsValid() {
 		logger.Debug("ee license is valid, registering account hook activities")
