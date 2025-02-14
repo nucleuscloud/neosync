@@ -1,7 +1,9 @@
-package sync_activity
+package benthosstream
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/redpanda-data/benthos/v4/public/service"
@@ -32,23 +34,48 @@ func (b *BenthosStreamManager) NewBenthosStreamFromBuilder(streambldr *service.S
 }
 
 type BenthosStreamAdapter struct {
+	mu     *sync.RWMutex
 	Stream *service.Stream
 }
 
 func NewBenthosStreamAdapter(stream *service.Stream) *BenthosStreamAdapter {
 	return &BenthosStreamAdapter{
 		Stream: stream,
+		mu:     &sync.RWMutex{},
 	}
 }
 
 func (b *BenthosStreamAdapter) Run(ctx context.Context) error {
-	return b.Stream.Run(ctx)
+	b.mu.RLock()
+	stream := b.Stream
+	b.mu.RUnlock()
+
+	if stream == nil {
+		return fmt.Errorf("benthos stream is nil during Run")
+	}
+	return stream.Run(ctx)
 }
 
 func (b *BenthosStreamAdapter) Stop(ctx context.Context) error {
-	return b.Stream.Stop(ctx)
+	b.mu.Lock()
+	stream := b.Stream
+	b.Stream = nil
+	b.mu.Unlock()
+
+	if stream == nil {
+		return nil
+	}
+	return stream.Stop(ctx)
 }
 
 func (b *BenthosStreamAdapter) StopWithin(d time.Duration) error {
-	return b.Stream.StopWithin(d)
+	b.mu.Lock()
+	stream := b.Stream
+	b.Stream = nil
+	b.mu.Unlock()
+
+	if stream == nil {
+		return nil
+	}
+	return stream.StopWithin(d)
 }

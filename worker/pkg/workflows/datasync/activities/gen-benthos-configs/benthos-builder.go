@@ -120,6 +120,11 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		return nil, err
 	}
 
+	err = b.setConnectionIdsRunContext(ctx, responses, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set connection ids run context: %w", err)
+	}
+
 	// TODO move run context logic into benthos builder
 	postTableSyncRunCtx := buildPostTableSyncRunCtx(responses, job.Destinations)
 	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
@@ -135,6 +140,39 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		AccountId:      job.AccountId,
 		BenthosConfigs: outputConfigs,
 	}, nil
+}
+
+func (b *benthosBuilder) setConnectionIdsRunContext(
+	ctx context.Context,
+	responses []*benthosbuilder.BenthosConfigResponse,
+	accountId string,
+) error {
+	connectionIds := map[string]struct{}{}
+	for _, config := range responses {
+		for _, dsn := range config.BenthosDsns {
+			connectionIds[dsn.ConnectionId] = struct{}{}
+		}
+	}
+	connectionIdsList := []string{}
+	for id := range connectionIds {
+		connectionIdsList = append(connectionIdsList, id)
+	}
+	bits, err := json.Marshal(connectionIdsList)
+	if err != nil {
+		return fmt.Errorf("failed to marshal connection ids: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   b.workflowId,
+			ExternalId: shared.GetConnectionIdsExternalId(),
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to send connection ids run context: %w", err)
+	}
+	return nil
 }
 
 // this method modifies the input responses by nilling out the benthos config. it returns the same slice for convenience

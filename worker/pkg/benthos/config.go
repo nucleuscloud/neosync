@@ -132,7 +132,10 @@ type Generate struct {
 type InputPooledSqlRaw struct {
 	ConnectionId string `json:"connection_id" yaml:"connection_id"`
 	Query        string `json:"query" yaml:"query"`
-	ArgsMapping  string `json:"args_mapping,omitempty" yaml:"args_mapping,omitempty"`
+	PagedQuery   string `json:"paged_query,omitempty" yaml:"paged_query,omitempty"`
+
+	ExpectedTotalRows *int     `json:"expected_total_rows,omitempty" yaml:"expected_total_rows,omitempty"`
+	OrderByColumns    []string `json:"order_by_columns,omitempty" yaml:"order_by_columns,omitempty"`
 }
 
 type PipelineConfig struct {

@@ -2,21 +2,17 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"fmt"
-	"regexp"
 	"sync"
-	"time"
 
 	"github.com/Jeffail/shutdown"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 )
 
@@ -24,15 +20,24 @@ func sqlRawInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("connection_id")).
 		Field(service.NewStringField("query")).
-		Field(service.NewBloblangField("args_mapping").Optional())
+		Field(service.NewStringField("paged_query").Optional()).
+		Field(service.NewIntField("expected_total_rows").Optional()).
+		Field(service.NewStringListField("order_by_columns").Default([]string{}))
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider ConnectionProvider, stopActivityChannel chan<- error) error {
+func RegisterPooledSqlRawInput(
+	env *service.Environment,
+	dbprovider ConnectionProvider,
+	stopActivityChannel chan<- error,
+	onHasMorePages OnHasMorePagesFn,
+	continuationToken *continuation_token.ContinuationToken,
+) error {
 	return env.RegisterInput(
-		"pooled_sql_raw", sqlRawInputSpec(),
+		"pooled_sql_raw",
+		sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel)
+			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel, onHasMorePages, continuationToken)
 			if err != nil {
 				return nil, err
 			}
@@ -41,30 +46,42 @@ func RegisterPooledSqlRawInput(env *service.Environment, dbprovider ConnectionPr
 	)
 }
 
+type OnHasMorePagesFn func(lastReadOrderValues []any)
+
 type pooledInput struct {
 	provider     ConnectionProvider
 	logger       *service.Logger
 	connectionId string
 	driver       string
 
-	argsMapping *bloblang.Executor
-	queryStatic string
+	queryStatic      string
+	pagedQueryStatic *string
+	db               mysql_queries.DBTX
+	dbMut            sync.Mutex
 
-	db    mysql_queries.DBTX
-	dbMut sync.Mutex
-	tx    *sql.Tx
-	rows  *sql.Rows
-
-	cursorName string
+	rows *sql.Rows
 
 	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
 
 	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
+	onHasMorePages      OnHasMorePagesFn
+	expectedTotalRows   *int
+	rowsRead            int
+	orderByColumns      []string
+	lastReadOrderValues []any
+	continuationToken   *continuation_token.ContinuationToken
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider ConnectionProvider, channel chan<- error) (*pooledInput, error) {
+func newInput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	dbprovider ConnectionProvider,
+	channel chan<- error,
+	onHasMorePages OnHasMorePagesFn,
+	continuationToken *continuation_token.ContinuationToken,
+) (*pooledInput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -75,12 +92,27 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		return nil, err
 	}
 
-	var argsMapping *bloblang.Executor
-	if conf.Contains("args_mapping") {
-		argsMapping, err = conf.FieldBloblang("args_mapping")
+	var pagedQueryStatic *string
+	if conf.Contains("paged_query") {
+		pquery, err := conf.FieldString("paged_query")
 		if err != nil {
 			return nil, err
 		}
+		pagedQueryStatic = &pquery
+	}
+
+	var expectedTotalRows *int
+	if conf.Contains("expected_total_rows") {
+		totalRows, err := conf.FieldInt("expected_total_rows")
+		if err != nil {
+			return nil, err
+		}
+		expectedTotalRows = &totalRows
+	}
+
+	orderByColumns, err := conf.FieldStringList("order_by_columns")
+	if err != nil {
+		return nil, err
 	}
 
 	driver, err := dbprovider.GetDriver(connectionId)
@@ -99,11 +131,15 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider Con
 		connectionId:        connectionId,
 		driver:              driver,
 		queryStatic:         queryStatic,
-		argsMapping:         argsMapping,
+		pagedQueryStatic:    pagedQueryStatic,
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		recordMapper:        mapper,
-		cursorName:          generateCursorName(connectionId, queryStatic),
+		onHasMorePages:      onHasMorePages,
+		expectedTotalRows:   expectedTotalRows,
+		orderByColumns:      orderByColumns,
+		lastReadOrderValues: []any{},
+		continuationToken:   continuationToken,
 	}, nil
 }
 
@@ -125,59 +161,24 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
 
+	query := s.queryStatic
 	var args []any
-	if s.argsMapping != nil {
-		iargs, err := s.argsMapping.Query(nil)
-		if err != nil {
-			return err
-		}
-		var ok bool
-		if args, ok = iargs.([]any); !ok {
-			return fmt.Errorf("mapping returned non-array result: %T", iargs)
-		}
+	if s.pagedQueryStatic != nil && s.continuationToken != nil {
+		query = *s.pagedQueryStatic
+		args = append(args, s.continuationToken.Contents.LastReadOrderValues...)
 	}
 
-	switch s.driver {
-	case sqlmanager_shared.PostgresDriver:
-		tx, err := db.BeginTx(ctx, &sql.TxOptions{
-			ReadOnly: true,
-		})
-		if err != nil {
-			return err
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		if neosync_benthos.IsCriticalError(err.Error()) {
+			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.stopActivityChannel <- err
 		}
-		s.tx = tx
-		s.logger.Debug("transaction started")
-		cursorStmt := fmt.Sprintf("DECLARE %s CURSOR FOR %s", s.cursorName, s.queryStatic)
-		_, err = s.tx.ExecContext(ctx, cursorStmt, args...)
-		if err != nil {
-			if err := tx.Rollback(); err != nil {
-				s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
-			}
-			return err
-		}
-
-		s.logger.Debug(fmt.Sprintf("cursor declared: %s", s.cursorName))
-
-		err = s.fetchNextBatchFromCursor(ctx)
-		if err != nil {
-			if err := tx.Rollback(); err != nil {
-				s.logger.Error(fmt.Sprintf("error rolling back transaction: %s", err.Error()))
-			}
-			return err
-		}
-	default:
-		rows, err := db.QueryContext(ctx, s.queryStatic, args...)
-		if err != nil {
-			if neosync_benthos.IsCriticalError(err.Error()) {
-				s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-				s.stopActivityChannel <- err
-			}
-			return err
-		}
-
-		s.rows = rows
+		return err
 	}
 
+	s.rows = rows
+	s.rowsRead = 0
 	go func() {
 		<-s.shutSig.HardStopChan()
 
@@ -185,10 +186,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		if s.rows != nil {
 			_ = s.rows.Close()
 			s.rows = nil
-		}
-		if s.tx != nil {
-			_ = s.tx.Rollback()
-			s.tx = nil
 		}
 		// not closing the connection here as that is managed by an outside force
 		s.db = nil
@@ -199,61 +196,20 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	return nil
 }
 
-// fetchNextBatchFromCursor issues a FETCH command to retrieve the next batch of rows from the cursor.
-func (s *pooledInput) fetchNextBatchFromCursor(ctx context.Context) error {
-	fetchStmt := fmt.Sprintf("FETCH FORWARD %d FROM %s", 100, s.cursorName) //nolint:gosec // cursor name is hashed and sanitized
-	rows, err := s.tx.QueryContext(ctx, fetchStmt)
-	if err != nil {
-		if neosync_benthos.IsCriticalError(err.Error()) {
-			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-			s.stopActivityChannel <- err
-		}
-		return err
-	}
-	// If no rows are returned, rows.Next() will be false.
-	s.rows = rows
-	return nil
-}
-
-// allow only letters, numbers, and underscores.
-var cursorNameRegex = regexp.MustCompile(`[^a-zA-Z0-9_]`)
-
-func sanitizeCursorName(s string) string {
-	return cursorNameRegex.ReplaceAllString(s, "")
-}
-
-// generateCursorName generates a unique cursor name using the provided schema and table names.
-// It also sanitizes the input to allow only alphanumeric characters and underscores.
-func generateCursorName(connectionId, query string) string {
-	// Sanitize the connectionID for safe use in SQL identifiers.
-	// Remove hyphens from the UUID for compactness.
-	safeConnID := sanitizeCursorName(connectionId)
-
-	// Create a short hash (first 8 hex digits) from the query string.
-	hash := sha256.Sum256([]byte(query))
-	shortHash := fmt.Sprintf("%x", hash)[:8]
-
-	// Use current timestamp in nanoseconds.
-	timestamp := time.Now().UnixNano()
-
-	// Construct a candidate cursor name.
-	candidate := fmt.Sprintf("cur_%s_%s_%d", safeConnID, shortHash, timestamp)
-
-	// PostgreSQL identifier limit is 63 characters. If candidate is longer, truncate.
-	if len(candidate) > 63 {
-		candidate = candidate[:63]
-	}
-	return candidate
-}
-
 func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFunc, error) {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil) {
+	if s.db == nil {
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
+			// emit order by column values if ok
+			if s.rowsRead >= *s.expectedTotalRows {
+				s.onHasMorePages(s.lastReadOrderValues)
+			}
+		}
 		return nil, nil, service.ErrEndOfInput
 	}
 	if !s.rows.Next() {
@@ -263,40 +219,38 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 			s.rows = nil
 			return nil, nil, err
 		}
-		if s.driver == sqlmanager_shared.PostgresDriver && s.tx != nil {
-			_ = s.rows.Close()
-			// Fetch next batch for Postgres
-			if err := s.fetchNextBatchFromCursor(ctx); err != nil {
-				_ = s.tx.Rollback()
-				return nil, nil, err
+		// For non-Postgres drivers, simply close and return EndOfInput
+		_ = s.rows.Close()
+		s.rows = nil
+		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
+			// emit order by column values if ok
+			if s.rowsRead >= *s.expectedTotalRows {
+				s.onHasMorePages(s.lastReadOrderValues)
 			}
-			// Check if the new batch has rows
-			if s.rows == nil || !s.rows.Next() {
-				// No more rows; close cursor and commit transaction
-				_ = s.rows.Close()
-				s.rows = nil
-				_ = s.tx.Commit()
-				s.tx = nil
-				return nil, nil, service.ErrEndOfInput
-			}
-		} else {
-			// For non-Postgres drivers, simply close and return EndOfInput
-			_ = s.rows.Close()
-			s.rows = nil
-			return nil, nil, service.ErrEndOfInput
 		}
+		return nil, nil, service.ErrEndOfInput
 	}
 
 	obj, err := s.recordMapper.MapRecord(s.rows)
 	if err != nil {
 		_ = s.rows.Close()
 		s.rows = nil
-		if s.tx != nil {
-			_ = s.tx.Rollback()
-			s.tx = nil
-		}
 		return nil, nil, err
 	}
+
+	// store last order by columns values
+	lastReadOrderValues := make([]any, len(s.orderByColumns))
+	for i, col := range s.orderByColumns {
+		val, ok := obj[col]
+		if !ok {
+			_ = s.rows.Close()
+			s.rows = nil
+			return nil, nil, fmt.Errorf("order by column %s not found", col)
+		}
+		lastReadOrderValues[i] = val
+	}
+
+	s.rowsRead++
 
 	msg := service.NewMessage(nil)
 	msg.SetStructured(obj)
@@ -313,7 +267,7 @@ func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
 
-	isNil := s.db == nil || (s.driver == sqlmanager_shared.PostgresDriver && s.tx == nil)
+	isNil := s.db == nil
 	if isNil {
 		s.dbMut.Unlock()
 		return nil
@@ -322,15 +276,6 @@ func (s *pooledInput) Close(ctx context.Context) error {
 	if s.rows != nil {
 		_ = s.rows.Close()
 		s.rows = nil
-	}
-
-	if s.tx != nil {
-		// Rollback the transaction to clean up resources if it's still active.
-		// For a read-only transaction, rollback is a safe way to end it.
-		if err := s.tx.Rollback(); err != nil {
-			s.logger.Error(fmt.Sprintf("error rolling back transaction on close: %s", err.Error()))
-		}
-		s.tx = nil
 	}
 
 	s.db = nil // not closing here since it's managed by the pool
