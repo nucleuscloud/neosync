@@ -532,7 +532,12 @@ func invokeSync(
 		var wfResult tablesync_workflow.TableSyncResponse
 
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: getChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			WorkflowID:    getChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			StaticSummary: fmt.Sprintf("Syncing %s.%s", config.TableSchema, config.TableName),
+			Memo: map[string]any{
+				"table_schema": config.TableSchema,
+				"table_name":   config.TableName,
+			},
 		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
 			AccountId:           accId,
 			Id:                  config.Name,
