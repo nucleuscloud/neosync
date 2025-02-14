@@ -7,6 +7,9 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -17,7 +20,7 @@ import (
 
 const (
 	mysqlDialect = "custom-mysql-dialect"
-	pageLimit    = 50000
+	pageLimit    = 50_000
 )
 
 func init() {
@@ -115,6 +118,8 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
 		return goqu.Dialect(mysqlDialect)
+	case sqlmanager_shared.PostgresDriver:
+		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	default:
 		return goqu.Dialect(qb.driver)
 	}

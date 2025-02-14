@@ -163,9 +163,17 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	query := s.queryStatic
 	var args []any
-	if s.pagedQueryStatic != nil && s.continuationToken != nil {
+	if s.pagedQueryStatic != nil && s.continuationToken != nil && s.expectedTotalRows != nil {
+		if len(s.orderByColumns) != len(s.continuationToken.Contents.LastReadOrderValues) {
+			columnMisMatchErr := fmt.Errorf("order by columns and last read order values must be the same length")
+			s.logger.Error(columnMisMatchErr.Error())
+			s.stopActivityChannel <- columnMisMatchErr
+			return columnMisMatchErr
+		}
+		s.logger.Debug("using paged query")
 		query = *s.pagedQueryStatic
 		args = append(args, s.continuationToken.Contents.LastReadOrderValues...)
+		args = append(args, *s.expectedTotalRows)
 	}
 
 	rows, err := db.QueryContext(ctx, query, args...)
@@ -206,7 +214,9 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	if s.rows == nil {
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
+			s.logger.Debug(fmt.Sprintf("rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
 			if s.rowsRead >= *s.expectedTotalRows {
+				s.logger.Debug("emitting order by column values")
 				s.onHasMorePages(s.lastReadOrderValues)
 			}
 		}
@@ -224,7 +234,9 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		s.rows = nil
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
+			s.logger.Debug(fmt.Sprintf("[ROW END] rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
 			if s.rowsRead >= *s.expectedTotalRows {
+				s.logger.Debug("[ROW END] emitting order by column values")
 				s.onHasMorePages(s.lastReadOrderValues)
 			}
 		}
@@ -248,6 +260,10 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 			return nil, nil, fmt.Errorf("order by column %s not found", col)
 		}
 		lastReadOrderValues[i] = val
+	}
+	if len(lastReadOrderValues) > 0 {
+		s.logger.Debug(fmt.Sprintf("last read order values: %v", lastReadOrderValues))
+		s.lastReadOrderValues = lastReadOrderValues
 	}
 
 	s.rowsRead++
