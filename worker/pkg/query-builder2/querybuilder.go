@@ -165,12 +165,19 @@ func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.Sel
 	key := qb.getTableKey(schema, tableName)
 	orderBy := qb.orderBy[key]
 	if len(orderBy) > 0 {
-		// Add where clause using order by columns directly with goqu
-		conditions := make([]exp.Expression, len(orderBy))
-		for i, col := range orderBy {
-			conditions[i] = goqu.T(rootAlias).Col(col).Gt(0)
+		// Build lexicographical ordering conditions
+		var conditions []exp.Expression
+		for i := 0; i < len(orderBy); i++ {
+			var subConditions []exp.Expression
+			// Add equality conditions for all columns before current
+			for j := 0; j < i; j++ {
+				subConditions = append(subConditions, goqu.T(rootAlias).Col(orderBy[j]).Eq(goqu.L("?", 0)))
+			}
+			// Add greater than condition for current column
+			subConditions = append(subConditions, goqu.T(rootAlias).Col(orderBy[i]).Gt(goqu.L("?", 0)))
+			conditions = append(conditions, goqu.And(subConditions...))
 		}
-		query = query.Where(goqu.And(conditions...))
+		query = query.Where(goqu.Or(conditions...))
 	}
 	return query.Prepared(true)
 }

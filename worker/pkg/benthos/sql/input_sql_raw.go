@@ -172,7 +172,15 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 		s.logger.Debug("using paged query")
 		query = *s.pagedQueryStatic
-		args = append(args, s.continuationToken.Contents.LastReadOrderValues...)
+
+		// Build arguments for lexicographical ordering
+		lastValues := s.continuationToken.Contents.LastReadOrderValues
+		for i := 0; i < len(s.orderByColumns); i++ {
+			// For each OR condition, add values up to and including current position
+			for j := 0; j <= i; j++ {
+				args = append(args, lastValues[j])
+			}
+		}
 		args = append(args, *s.expectedTotalRows)
 	}
 
