@@ -30,9 +30,9 @@ type benthosBuilder struct {
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 
-	jobId      string
-	workflowId string
-	runId      string
+	jobId    string
+	jobRunId string
+	runId    string
 
 	redisConfig *neosync_redis.RedisConfig
 
@@ -46,7 +46,7 @@ func newBenthosBuilder(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 
-	jobId, workflowId string, runId string,
+	jobId, jobRunId string, runId string,
 
 	redisConfig *neosync_redis.RedisConfig,
 
@@ -58,7 +58,7 @@ func newBenthosBuilder(
 		connclient:        connclient,
 		transformerclient: transformerclient,
 		jobId:             jobId,
-		workflowId:        workflowId,
+		jobRunId:          jobRunId,
 		runId:             runId,
 		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
@@ -98,7 +98,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Job:                    job,
 		SourceConnection:       sourceConnection,
 		DestinationConnections: destConnections,
-		WorkflowId:             wfmetadata.WorkflowId,
+		JobRunId:               b.jobRunId,
 		Logger:                 slogger,
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
@@ -163,7 +163,7 @@ func (b *benthosBuilder) setConnectionIdsRunContext(
 	}
 	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   b.workflowId,
+			JobRunId:   b.jobRunId,
 			ExternalId: shared.GetConnectionIdsExternalId(),
 			AccountId:  accountId,
 		},
@@ -190,7 +190,7 @@ func (b *benthosBuilder) setRunContexts(
 		}
 		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
 			Id: &mgmtv1alpha1.RunContextKey{
-				JobRunId:   b.workflowId,
+				JobRunId:   b.jobRunId,
 				ExternalId: shared.GetBenthosConfigExternalId(config.Name),
 				AccountId:  accountId,
 			},
@@ -223,7 +223,7 @@ func (b *benthosBuilder) setPostTableSyncRunCtx(
 		}
 		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
 			Id: &mgmtv1alpha1.RunContextKey{
-				JobRunId:   b.workflowId,
+				JobRunId:   b.jobRunId,
 				ExternalId: shared.GetPostTableSyncConfigExternalId(name),
 				AccountId:  accountId,
 			},

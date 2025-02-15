@@ -111,6 +111,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, invalidAccountStatusError)
 	}
 
+	info := workflow.GetInfo(ctx)
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
@@ -118,7 +119,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		withGenerateBenthosConfigsActivityOptions(ctx),
 		genbenthosactivity.GenerateBenthosConfigs,
 		&genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
-			JobId: req.JobId,
+			JobId:    req.JobId,
+			JobRunId: info.WorkflowExecution.ID,
 		}).
 		Get(ctx, &bcResp)
 	if err != nil {
