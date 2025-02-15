@@ -75,13 +75,10 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 		}
 		if iterations >= MAX_ITERATIONS {
 			logger.Debug("max iterations reached, continuing as new")
-			newReq := &TableSyncRequest{
-				AccountId:         req.AccountId,
-				Id:                req.Id,
-				JobRunId:          req.JobRunId,
-				ContinuationToken: continuationToken,
-			}
-			return nil, workflow.NewContinueAsNewError(ctx, newReq)
+			newReq := *req
+			newReq.ContinuationToken = continuationToken
+			var wf *Workflow
+			return nil, workflow.NewContinueAsNewError(ctx, wf.TableSync, &newReq)
 		}
 		logger.Debug("continuing")
 	}
