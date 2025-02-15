@@ -171,6 +171,8 @@ func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.Sel
 			var subConditions []exp.Expression
 			// Add equality conditions for all columns before current
 			for j := 0; j < i; j++ {
+				// Hard coding the "?" = 0 here. Using prepared statements we just want goqu to correct calculate
+				// The parameter number as we fill in the real args later.
 				subConditions = append(subConditions, goqu.T(rootAlias).Col(orderBy[j]).Eq(goqu.L("?", 0)))
 			}
 			// Add greater than condition for current column
