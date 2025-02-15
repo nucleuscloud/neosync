@@ -410,6 +410,7 @@ function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
 }
 
 // calculates the last time if the job is not successful so we can give the timeline an end date
+// TODO: this should be revisited
 function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
   const errorTask = task.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
@@ -417,7 +418,9 @@ function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
     (t) =>
       t.type === 'ActivityTaskCancelRequested' ||
       t.type === 'ActivityTaskCanceled' ||
-      // t.type === 'ChildWorkflowExecutionCanceled' ||
+      t.type === 'ActivityTaskTimedOut' ||
+      t.type === 'ActivityTaskTerminated' ||
+      // t.type === 'ChildWorkflowExecutionCanceled' || // has issues with close with new?
       t.type === 'ChildWorkflowExecutionTerminated' ||
       t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
