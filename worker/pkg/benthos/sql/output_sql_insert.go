@@ -24,7 +24,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("on_conflict_do_update").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
-		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
+		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false).Deprecated()).
 		Field(service.NewBoolField("should_override_column_default").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
@@ -70,7 +70,6 @@ type pooledInsertOutput struct {
 	table                    string
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
-	truncateOnRetry          bool
 	queryBuilder             querybuilder.InsertQueryBuilder
 
 	shutSig *shutdown.Signaller
@@ -113,11 +112,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
-	truncateOnRetry, err := conf.FieldBool("truncate_on_retry")
-	if err != nil {
-		return nil, err
-	}
-
 	shouldOverrideColumnDefault, err := conf.FieldBool("should_override_column_default")
 	if err != nil {
 		return nil, err
@@ -151,7 +145,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		querybuilder.WithSuffix(suffix),
 	}
 
-	if onConflictDoNothing {
+	if onConflictDoNothing || isRetry {
 		options = append(options, querybuilder.WithOnConflictDoNothing())
 	}
 	if onConflictDoUpdate {
@@ -183,7 +177,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		onConflictDoNothing:      onConflictDoNothing,
 		queryBuilder:             builder,
 		skipForeignKeyViolations: skipForeignKeyViolations,
-		truncateOnRetry:          truncateOnRetry,
 		isRetry:                  isRetry,
 	}
 	return output, nil
@@ -202,18 +195,6 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 		return err
 	}
 	s.db = db
-
-	// truncate table on retry
-	if s.isRetry && s.truncateOnRetry && !s.onConflictDoNothing {
-		s.logger.Info("retry: truncating table before inserting")
-		query, err := querybuilder.BuildTruncateQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table))
-		if err != nil {
-			return err
-		}
-		if _, err := s.db.ExecContext(ctx, query); err != nil {
-			return err
-		}
-	}
 
 	go func() {
 		<-s.shutSig.HardStopChan()
