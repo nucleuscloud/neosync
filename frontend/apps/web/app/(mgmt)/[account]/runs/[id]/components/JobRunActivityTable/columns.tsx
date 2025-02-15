@@ -74,8 +74,16 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       cell: ({ row }) => {
         const closeTime = row.original.tasks.find(
           (item) =>
-            item.type == 'ActivityTaskCompleted' ||
-            item.type == 'ChildWorkflowExecutionCompleted'
+            item.type === 'ActivityTaskCompleted' ||
+            item.type === 'ActivityTaskFailed' ||
+            item.type === 'ActivityTaskTerminated' ||
+            item.type === 'ActivityTaskCanceled' ||
+            item.type === 'ActivityTaskTimedOut' ||
+            item.type === 'ChildWorkflowExecutionCompleted' ||
+            item.type === 'ChildWorkflowExecutionFailed' ||
+            item.type === 'ChildWorkflowExecutionTerminated' ||
+            item.type === 'ChildWorkflowExecutionCanceled' ||
+            item.type === 'ChildWorkflowExecutionTimedOut'
         )?.eventTime;
 
         return (

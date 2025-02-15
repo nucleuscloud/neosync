@@ -172,7 +172,22 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 		s.logger.Debug("using paged query")
 		query = *s.pagedQueryStatic
-		args = append(args, s.continuationToken.Contents.LastReadOrderValues...)
+
+		// Build arguments for lexicographical ordering
+		// To retain this ordering, we need to build the args in a way that match the OR'd statements from the prepared query
+		// For lexi ordering the total number of args follows the algorithm: (n (n + 1)) / 2 where n is the number of order by columns
+		// For example, if we have 2 order by columns, we need 3 args:
+		// First OR condition: [id_value]
+		// Second OR condition: [id_value, name_value]
+		// Third OR condition: [id_value, name_value, email_value]
+		// And so on...
+		lastValues := s.continuationToken.Contents.LastReadOrderValues
+		for i := 0; i < len(s.orderByColumns); i++ {
+			// For each OR condition, add values up to and including current position
+			for j := 0; j <= i; j++ {
+				args = append(args, lastValues[j])
+			}
+		}
 		args = append(args, *s.expectedTotalRows)
 	}
 

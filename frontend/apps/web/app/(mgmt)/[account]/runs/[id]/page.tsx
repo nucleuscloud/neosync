@@ -511,7 +511,7 @@ function getDuration(completedAt?: Date, startedAt?: Date): string {
 
   const duration = intervalToDuration({ start: startedAt, end: completedAt });
 
-  return formatDuration(duration, { format: ['minutes', 'seconds'] });
+  return formatDuration(duration, { format: ['hours', 'minutes', 'seconds'] });
 }
 interface AlertProps {
   title: string;
