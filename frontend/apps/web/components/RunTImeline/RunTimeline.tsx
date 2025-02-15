@@ -417,7 +417,7 @@ function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
     (t) =>
       t.type === 'ActivityTaskCancelRequested' ||
       t.type === 'ActivityTaskCanceled' ||
-      t.type === 'ChildWorkflowExecutionCanceled' ||
+      // t.type === 'ChildWorkflowExecutionCanceled' ||
       t.type === 'ChildWorkflowExecutionTerminated' ||
       t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
@@ -619,8 +619,8 @@ function getTaskStatus(
 
   const isJobTerminated = jobStatus === JobRunStatus.TERMINATED;
   if (isJobTerminated) return 'terminated';
+  if (isCanceled) return 'canceled';
 
-  if (isCanceled || !isCompleted) return 'canceled';
   return 'running';
 }
 
