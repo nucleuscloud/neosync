@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nucleuscloud/neosync,4132,3380
+/nucleuscloud/neosync/pulls,78,14
+/nucleuscloud/neosync/issues,58,24
+/nucleuscloud/neosync/tree/main,29,12
+/nucleuscloud/neosync/blob/main/compose.yml,27,19
+/nucleuscloud/neosync/tree/main/backend,20,12
+/nucleuscloud/neosync/issues/3227,16,6
+/nucleuscloud/neosync/tree/main/charts/neosync,16,6
+/nucleuscloud/neosync/pull/3242,13,4
+/nucleuscloud/neosync/pull/3249,11,3
