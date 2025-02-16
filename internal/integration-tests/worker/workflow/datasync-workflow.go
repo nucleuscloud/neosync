@@ -8,6 +8,7 @@ import (
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	benthosstream "github.com/nucleuscloud/neosync/internal/benthos-stream"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
@@ -20,10 +21,10 @@ import (
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
@@ -108,7 +109,6 @@ func NewTestDataSyncWorkflowEnv(
 	)
 
 	var activityMeter metric.Meter
-	syncActivity := sync_activity.New(connclient, jobclient, dbManagers.SqlConnManager, dbManagers.MongoConnManager, activityMeter, sync_activity.NewBenthosStreamManager())
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, dbManagers.SqlManager, workflowEnv.fakeEELicense)
 	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, dbManagers.SqlManager, workflowEnv.fakeEELicense)
@@ -117,7 +117,6 @@ func NewTestDataSyncWorkflowEnv(
 	redisCleanUpActivity := syncrediscleanup_activity.New(workflowEnv.Redisclient)
 
 	env.RegisterWorkflow(datasync_workflow.Workflow)
-	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	env.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
@@ -125,6 +124,17 @@ func NewTestDataSyncWorkflowEnv(
 	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
 	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
+
+	tablesync_workflow_register.Register(
+		env,
+		connclient,
+		jobclient,
+		dbManagers.SqlConnManager,
+		dbManagers.MongoConnManager,
+		activityMeter,
+		benthosstream.NewBenthosStreamManager(),
+	)
+
 	env.SetTestTimeout(600 * time.Second)
 
 	workflowEnv.TestEnv = env

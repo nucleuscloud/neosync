@@ -843,6 +843,14 @@ components:
               - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
             title: value
           description: the key here is <schema>.<table> and value is the unique constraint
+        uniqueIndexes:
+          type: object
+          title: unique_indexes
+          additionalProperties:
+            allOf:
+              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+            title: value
+          description: the key here is <schema>.<table> and value is the unique index
       title: GetConnectionTableConstraintsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry:
@@ -880,6 +888,18 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
           title: value
       title: UniqueConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+          title: value
+      title: UniqueIndexesEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
       type: object
@@ -1020,6 +1040,28 @@ components:
           title: constraints
           description: The unique constraints found for the table
       title: UniqueConstraints
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndex:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+          description: The columns that are part of the unique index
+      title: UniqueIndex
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndexes:
+      type: object
+      properties:
+        indexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndex'
+          title: indexes
+          description: The unique indexes found for the table
+      title: UniqueIndexes
       additionalProperties: false
     connect-protocol-version:
       type: number

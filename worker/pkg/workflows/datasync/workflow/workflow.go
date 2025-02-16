@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,15 +19,15 @@ import (
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
+	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
 	"go.temporal.io/sdk/workflow"
-	"gopkg.in/yaml.v3"
 )
 
 type WorkflowRequest struct {
@@ -109,6 +111,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, invalidAccountStatusError)
 	}
 
+	info := workflow.GetInfo(ctx)
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
@@ -116,7 +119,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		withGenerateBenthosConfigsActivityOptions(ctx),
 		genbenthosactivity.GenerateBenthosConfigs,
 		&genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
-			JobId: req.JobId,
+			JobId:    req.JobId,
+			JobRunId: info.WorkflowExecution.ID,
 		}).
 		Get(ctx, &bcResp)
 	if err != nil {
@@ -238,8 +242,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
 		inFlight++
 		workselector.AddFuture(future, func(f workflow.Future) {
-			var result sync_activity.SyncResponse
-			err := f.Get(ctx, &result)
+			var wfResult tablesync_workflow.TableSyncResponse
+			err := f.Get(ctx, &wfResult)
 			inFlight--
 			completedCount++
 			if err != nil {
@@ -513,43 +517,61 @@ func invokeSync(
 	accountId *string,
 	syncActivityOptions *workflow.ActivityOptions,
 ) workflow.Future {
+	info := workflow.GetInfo(ctx)
 	metadata := getSyncMetadata(config)
+	_ = metadata
 	future, settable := workflow.NewFuture(ctx)
 	logger.Debug("triggering config sync")
 	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
-		var benthosConfig string
 		var accId string
 		if accountId != nil && *accountId != "" {
 			accId = *accountId
-		} else if config.Config != nil {
-			configbits, err := yaml.Marshal(config.Config)
-			if err != nil {
-				logger.Error("unable to marshal benthos config", "err", err)
-				settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
-				return
-			}
-			benthosConfig = string(configbits)
 		}
-
 		logger.Info("scheduling Sync for execution.")
 
-		var result sync_activity.SyncResponse
-		activity := sync_activity.Activity{}
-		err := workflow.ExecuteActivity(
-			workflow.WithActivityOptions(ctx, *syncActivityOptions),
-			activity.Sync,
-			&sync_activity.SyncRequest{BenthosConfig: benthosConfig, AccountId: accId, Name: config.Name, BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
+		tsWf := &tablesync_workflow.Workflow{}
+		var wfResult tablesync_workflow.TableSyncResponse
+
+		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			WorkflowID:    getChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			StaticSummary: fmt.Sprintf("Syncing %s.%s", config.TableSchema, config.TableName),
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 1,
+			},
+		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
+			AccountId:           accId,
+			Id:                  config.Name,
+			SyncActivityOptions: syncActivityOptions,
+			ContinuationToken:   nil,
+			JobRunId:            info.WorkflowExecution.ID,
+			TableSchema:         config.TableSchema,
+			TableName:           config.TableName,
+		}).Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)
 			if err != nil {
-				settable.Set(result, err)
+				settable.Set(wfResult, err)
 			}
 		}
-		settable.Set(result, err)
+		settable.Set(wfResult, err)
 	})
 	return future
+}
+
+func getChildWorkflowId(jobRunId, configName string, now time.Time) string {
+	id := fmt.Sprintf("%s-%s-%d", jobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
+	if len(id) > 1000 {
+		id = id[:1000]
+	}
+	return id
+}
+
+var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
+
+func sanitizeWorkflowID(id string) string {
+	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
 }
 
 func updateCompletedMap(tableName string, completed *sync.Map, columns []string) error {

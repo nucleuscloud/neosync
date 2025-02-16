@@ -14,7 +14,8 @@ import (
 )
 
 type GenerateBenthosConfigsRequest struct {
-	JobId string
+	JobId    string
+	JobRunId string
 }
 type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*benthosbuilder.BenthosConfigResponse
@@ -82,7 +83,7 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.connclient,
 		a.transformerclient,
 		req.JobId,
-		info.WorkflowExecution.ID,
+		req.JobRunId,
 		info.WorkflowExecution.RunID,
 		a.redisConfig,
 		a.metricsEnabled,

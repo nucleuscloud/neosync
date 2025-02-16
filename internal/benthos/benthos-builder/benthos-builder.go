@@ -203,7 +203,7 @@ type BenthosConfigManager struct {
 	job                    *mgmtv1alpha1.Job
 	sourceConnection       *mgmtv1alpha1.Connection
 	destinationConnections []*mgmtv1alpha1.Connection
-	workflowId             string
+	jobRunId               string
 }
 
 // Manages all necessary configuration parameters for creating
@@ -212,7 +212,7 @@ type WorkerBenthosConfig struct {
 	Job                    *mgmtv1alpha1.Job
 	SourceConnection       *mgmtv1alpha1.Connection
 	DestinationConnections []*mgmtv1alpha1.Connection
-	WorkflowId             string
+	JobRunId               string
 	MetricLabelKeyVals     map[string]string
 	Logger                 *slog.Logger
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
@@ -259,7 +259,7 @@ func NewWorkerBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: config.DestinationConnections,
-		workflowId:             config.WorkflowId,
+		jobRunId:               config.JobRunId,
 	}, nil
 }
 
@@ -291,7 +291,7 @@ type CliBenthosConfig struct {
 	DestinationConnection *mgmtv1alpha1.Connection
 	SourceJobRunId        *string // for use when AWS S3 is the source
 	SyncConfigs           []*tabledependency.RunConfig
-	WorkflowId            string
+	JobRunId              string
 	MetricLabelKeyVals    map[string]string
 	Logger                *slog.Logger
 	Sqlmanagerclient      sqlmanager.SqlManagerClient
@@ -342,7 +342,7 @@ func NewCliBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: []*mgmtv1alpha1.Connection{config.DestinationConnection},
-		workflowId:             config.WorkflowId,
+		jobRunId:               config.JobRunId,
 	}, nil
 }
 

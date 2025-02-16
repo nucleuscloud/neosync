@@ -145,6 +145,16 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 		return nil
 	})
 
+	uniqueIndexes := []*pg_queries.GetUniqueIndexesBySchemaRow{}
+	errgrp.Go(func() error {
+		indexes, err := p.querier.GetUniqueIndexesBySchema(errctx, p.db, schemas)
+		if err != nil {
+			return err
+		}
+		uniqueIndexes = indexes
+		return nil
+	})
+
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
@@ -184,10 +194,17 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 		})
 	}
 
+	uniqueIndexesMap := map[string][][]string{}
+	for _, row := range uniqueIndexes {
+		tableName := sqlmanager_shared.BuildTable(row.TableSchema, row.TableName)
+		uniqueIndexesMap[tableName] = append(uniqueIndexesMap[tableName], row.IndexColumns)
+	}
+
 	return &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: foreignKeyMap,
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
+		UniqueIndexes:         uniqueIndexesMap,
 	}, nil
 }
 

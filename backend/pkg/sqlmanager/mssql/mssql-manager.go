@@ -13,6 +13,7 @@ import (
 	ee_sqlmanager_mssql "github.com/nucleuscloud/neosync/internal/ee/mssql-manager"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	"golang.org/x/sync/errgroup"
 )
 
 type Manager struct {
@@ -188,18 +189,40 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 	if len(schemas) == 0 {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
-	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.db, schemas)
-	if err != nil && !neosyncdb.IsNoRows(err) {
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	constraints := []*mssql_queries.GetTableConstraintsBySchemasRow{}
+	errgrp.Go(func() error {
+		rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.db, schemas)
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return err
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nil
+		}
+		constraints = rows
+		return nil
+	})
+
+	uniqueIndexes := []*mssql_queries.GetUniqueIndexesBySchemaRow{}
+	errgrp.Go(func() error {
+		indexes, err := m.querier.GetUniqueIndexesBySchema(errctx, m.db, schemas)
+		if err != nil {
+			return err
+		}
+		uniqueIndexes = indexes
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
 		return nil, err
-	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
 	foreignKeyMap := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	primaryKeyMap := map[string][]string{}
 	uniqueConstraintsMap := map[string][][]string{}
+	uniqueIndexesMap := map[string][][]string{}
 
-	for _, row := range rows {
+	for _, row := range constraints {
 		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
 		constraintCols := splitAndStrip(row.ConstraintColumns, ", ")
 
@@ -245,10 +268,16 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 		}
 	}
 
+	for _, row := range uniqueIndexes {
+		tableName := sqlmanager_shared.BuildTable(row.TableSchema, row.TableName)
+		uniqueIndexesMap[tableName] = append(uniqueIndexesMap[tableName], splitAndStrip(row.IndexColumns, ", "))
+	}
+
 	return &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: foreignKeyMap,
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
+		UniqueIndexes:         uniqueIndexesMap,
 	}, nil
 }
 
@@ -289,7 +318,7 @@ func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]strin
 	return schemaTablePrivsMap, err
 }
 
-func splitAndStrip(input, delim string) []string {
+func splitAndStrip(input, delim string) []string { //nolint:unparam
 	output := []string{}
 
 	for _, piece := range strings.Split(input, delim) {

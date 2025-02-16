@@ -8913,6 +8913,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "unique_indexes",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique index",
+              "label": "repeated",
+              "type": "UniqueIndexesEntry",
+              "longType": "GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -9017,6 +9029,42 @@
               "type": "UniqueConstraints",
               "longType": "UniqueConstraints",
               "fullType": "mgmt.v1alpha1.UniqueConstraints",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueIndexesEntry",
+          "longName": "GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "UniqueIndexes",
+              "longType": "UniqueIndexes",
+              "fullType": "mgmt.v1alpha1.UniqueIndexes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9323,6 +9371,54 @@
               "type": "UniqueConstraint",
               "longType": "UniqueConstraint",
               "fullType": "mgmt.v1alpha1.UniqueConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueIndex",
+          "longName": "UniqueIndex",
+          "fullName": "mgmt.v1alpha1.UniqueIndex",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "columns",
+              "description": "The columns that are part of the unique index",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueIndexes",
+          "longName": "UniqueIndexes",
+          "fullName": "mgmt.v1alpha1.UniqueIndexes",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "indexes",
+              "description": "The unique indexes found for the table",
+              "label": "repeated",
+              "type": "UniqueIndex",
+              "longType": "UniqueIndex",
+              "fullType": "mgmt.v1alpha1.UniqueIndex",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

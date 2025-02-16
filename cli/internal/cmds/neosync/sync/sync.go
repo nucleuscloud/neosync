@@ -385,7 +385,7 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 		SourceJobRunId:        jobRunId,
 		DestinationConnection: c.destinationConnection,
 		SyncConfigs:           syncConfigs,
-		WorkflowId:            job.Id,
+		JobRunId:              job.Id,
 		Logger:                c.logger,
 		Sqlmanagerclient:      c.sqlmanagerclient,
 		Transformerclient:     c.transformerclient,
@@ -803,7 +803,22 @@ func buildSyncConfigs(
 		primaryKeysMap[table] = constraints.GetColumns()
 	}
 
-	runConfigs, err := tabledependency.GetRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap)
+	uniqueIndexesMap := map[string][][]string{}
+	uniqueConstraintsMap := map[string][][]string{}
+
+	for table, uniqueIndexes := range schemaConfig.TableUniqueIndexes {
+		for _, ui := range uniqueIndexes.GetIndexes() {
+			uniqueIndexesMap[table] = append(uniqueIndexesMap[table], ui.GetColumns())
+		}
+	}
+
+	for table, uniqueConstraints := range schemaConfig.TableUniqueConstraints {
+		for _, uc := range uniqueConstraints.GetConstraints() {
+			uniqueConstraintsMap[table] = append(uniqueConstraintsMap[table], uc.GetColumns())
+		}
+	}
+
+	runConfigs, err := tabledependency.GetRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap, uniqueIndexesMap, uniqueConstraintsMap)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil
@@ -851,6 +866,8 @@ type schemaConfig struct {
 	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
 	TruncateTableStatementsMap map[string]string
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
+	TableUniqueIndexes         map[string]*mgmtv1alpha1.UniqueIndexes
+	TableUniqueConstraints     map[string]*mgmtv1alpha1.UniqueConstraints
 }
 
 func (c *clisync) getConnectionSchemaConfig() (*schemaConfig, error) {
@@ -893,6 +910,8 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 ) (*schemaConfig, error) {
 	var schemas []*mgmtv1alpha1.DatabaseColumn
 	var tableConstraints map[string]*mgmtv1alpha1.ForeignConstraintTables
+	var tableUniqueIndexes map[string]*mgmtv1alpha1.UniqueIndexes
+	var tableUniqueConstraints map[string]*mgmtv1alpha1.UniqueConstraints
 	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
 	var truncateTableStatementsMap map[string]string
 	var initSchemaStatements []*mgmtv1alpha1.SchemaInitStatements
@@ -916,6 +935,8 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 		}
 		tableConstraints = constraintConnectionResp.Msg.GetForeignKeyConstraints()
 		tablePrimaryKeys = constraintConnectionResp.Msg.GetPrimaryKeyConstraints()
+		tableUniqueIndexes = constraintConnectionResp.Msg.GetUniqueIndexes()
+		tableUniqueConstraints = constraintConnectionResp.Msg.GetUniqueConstraints()
 		return nil
 	})
 
@@ -956,9 +977,11 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 	return &schemaConfig{
 		Schemas:                    schemas,
 		TableConstraints:           tc,
+		TableUniqueIndexes:         tableUniqueIndexes,
 		TablePrimaryKeys:           tablePrimaryKeys,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
 		InitSchemaStatements:       initSchemaStatements,
+		TableUniqueConstraints:     tableUniqueConstraints,
 	}, nil
 }
 

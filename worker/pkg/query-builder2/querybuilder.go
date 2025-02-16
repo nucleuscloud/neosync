@@ -7,6 +7,9 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -17,6 +20,7 @@ import (
 
 const (
 	mysqlDialect = "custom-mysql-dialect"
+	pageLimit    = 100_000
 )
 
 func init() {
@@ -74,6 +78,7 @@ func (s set) contains(key string) bool {
 type QueryBuilder struct {
 	tables          map[string]*TableInfo
 	whereConditions map[string][]WhereCondition
+	orderBy         map[string][]string
 	// schema.table -> column -> { column info }
 	columnInfo                    map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
 	defaultSchema                 string
@@ -88,6 +93,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
+		orderBy:                       make(map[string][]string),
 		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
@@ -103,10 +109,17 @@ func (qb *QueryBuilder) AddTable(table *TableInfo) {
 	qb.tables[key] = table
 }
 
+func (qb *QueryBuilder) AddOrderBy(schema, tableName string, orderBy []string) {
+	key := qb.getTableKey(schema, tableName)
+	qb.orderBy[key] = orderBy
+}
+
 func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
 		return goqu.Dialect(mysqlDialect)
+	case sqlmanager_shared.PostgresDriver:
+		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	default:
 		return goqu.Dialect(qb.driver)
 	}
@@ -122,27 +135,56 @@ func (qb *QueryBuilder) clearPathCache() {
 	qb.pathCache = make(set)
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, false, fmt.Errorf("table not found: %s", key)
+		return "", nil, "", false, fmt.Errorf("table not found: %s", key)
 	}
-	query, notFkSafe, err := qb.buildFlattenedQuery(table)
+	query, pageQuery, notFkSafe, err := qb.buildFlattenedQuery(table)
 	if query == nil {
-		return "", nil, false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+		return "", nil, "", false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
 	if err != nil {
-		return "", nil, false, err
+		return "", nil, "", false, err
 	}
-	sql, args, err := query.ToSQL()
+
+	sql, args, err := query.Limit(pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
-	return sql, args, notFkSafe, nil
+
+	pageSql, _, err := pageQuery.Limit(pageLimit).ToSQL()
+	if err != nil {
+		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
+	}
+	return sql, args, pageSql, notFkSafe, nil
 }
 
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.SelectDataset, rootAlias string) *goqu.SelectDataset {
+	key := qb.getTableKey(schema, tableName)
+	orderBy := qb.orderBy[key]
+	if len(orderBy) > 0 {
+		// Build lexicographical ordering conditions
+		var conditions []exp.Expression
+		for i := 0; i < len(orderBy); i++ {
+			var subConditions []exp.Expression
+			// Add equality conditions for all columns before current
+			for j := 0; j < i; j++ {
+				// Hard coding the "?" = 0 here. Using prepared statements we just want goqu to correct calculate
+				// The parameter number as we fill in the real args later.
+				subConditions = append(subConditions, goqu.T(rootAlias).Col(orderBy[j]).Eq(goqu.L("?", 0)))
+			}
+			// Add greater than condition for current column
+			subConditions = append(subConditions, goqu.T(rootAlias).Col(orderBy[i]).Gt(goqu.L("?", 0)))
+			conditions = append(conditions, goqu.And(subConditions...))
+		}
+		query = query.Where(goqu.Or(conditions...))
+	}
+	return query.Prepared(true)
+}
+
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.Name
 	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)
@@ -162,6 +204,15 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.Sel
 		}
 	}
 
+	// Add order by
+	if orderBy, ok := qb.orderBy[qb.getTableKey(rootTable.Schema, rootTable.Name)]; ok {
+		orderByExpressions := make([]exp.OrderedExpression, len(orderBy))
+		for i, col := range orderBy {
+			orderByExpressions[i] = rootAliasExpression.Col(col).Asc()
+		}
+		query = query.Order(orderByExpressions...)
+	}
+
 	// Flatten and add necessary joins
 	var notFkSafe bool
 	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
@@ -169,11 +220,14 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql *goqu.Sel
 		var err error
 		query, notFkSafe, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", false)
 		if err != nil {
-			return nil, false, err
+			return nil, nil, false, err
 		}
 	}
 
-	return query, notFkSafe, nil
+	// build page query
+	pageQuery := qb.buildPageQuery(rootTable.Schema, rootTable.Name, query, rootAlias)
+
+	return query, pageQuery, notFkSafe, nil
 }
 
 func (qb *QueryBuilder) addFlattenedJoins(

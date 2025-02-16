@@ -71,7 +71,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)), sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -132,7 +132,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap, tableConstraints.UniqueIndexes, tableConstraints.UniqueConstraints)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		}
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.WorkflowId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -200,6 +200,7 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table(), config.RunType())
 		}
+
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -207,7 +208,10 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							ConnectionId: dsnConnectionId,
 
-							Query: query.Query,
+							Query:             query.Query,
+							PagedQuery:        query.PageQuery,
+							OrderByColumns:    config.OrderByColumns(),
+							ExpectedTotalRows: &query.PageLimit,
 						},
 					},
 				},
@@ -285,7 +289,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 
 	// lazy load
 	if len(b.mergedSchemaColumnMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
 		b.mergedSchemaColumnMap = sqlSchemaColMap
 	}
 	if len(b.mergedSchemaColumnMap) == 0 {
@@ -371,7 +375,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				if b.redisConfig == nil {
 					return nil, fmt.Errorf("missing redis config. this operation requires redis")
 				}
-				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.WorkflowId, tableKey, col)
+				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.JobRunId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 						Url:            b.redisConfig.Url,
