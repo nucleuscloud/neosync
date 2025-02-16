@@ -24,6 +24,7 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	"github.com/spf13/viper"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -119,25 +120,37 @@ func (w *Workflow) handleEventLifecycle(
 	if err != nil {
 		return nil, err
 	}
+	eventChildOpts := workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
 
-	createdFuture := workflow.ExecuteChildWorkflow(ctx, accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+	eventFutures := []workflow.Future{}
+	defer func() {
+		for _, future := range eventFutures {
+			if waitErr := future.Get(ctx, nil); waitErr != nil {
+				logger.Error("failed to process event", "error", waitErr)
+			}
+		}
+	}()
+
+	createdFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 		Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
 	})
-	_ = createdFuture
+	eventFutures = append(eventFutures, createdFuture)
 
 	resp, err := fn(ctx, logger)
 	if err != nil {
-		failedFuture := workflow.ExecuteChildWorkflow(ctx, accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+		failedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 			Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
 		})
-		_ = failedFuture
+		eventFutures = append(eventFutures, failedFuture)
 		return nil, err
 	}
 
-	completedFuture := workflow.ExecuteChildWorkflow(ctx, accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+	completedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 		Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
 	})
-	_ = completedFuture
+	eventFutures = append(eventFutures, completedFuture)
 
 	return resp, nil
 }

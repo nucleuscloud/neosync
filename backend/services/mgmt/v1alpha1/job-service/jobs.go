@@ -476,8 +476,9 @@ func (s *Service) CreateJob(
 			paused = false
 		}
 	}
+	wf := &datasync_workflow.Workflow{}
 	action := &temporalclient.ScheduleWorkflowAction{
-		Workflow:  datasync_workflow.Workflow,
+		Workflow:  wf.Workflow,
 		TaskQueue: taskQueue,
 		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
 		ID:        neosyncdb.UUIDString(cj.ID),

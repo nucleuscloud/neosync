@@ -116,7 +116,8 @@ func NewTestDataSyncWorkflowEnv(
 	posttableSyncActivity := posttablesync_activity.New(jobclient, dbManagers.SqlManager, connclient)
 	redisCleanUpActivity := syncrediscleanup_activity.New(workflowEnv.Redisclient)
 
-	env.RegisterWorkflow(datasync_workflow.Workflow)
+	datasyncWorkflow := datasync_workflow.New(workflowEnv.fakeEELicense)
+	env.RegisterWorkflow(datasyncWorkflow.Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
@@ -135,7 +136,8 @@ func NewTestDataSyncWorkflowEnv(
 // ExecuteTestDataSyncWorkflow starts the test workflow with the given job ID
 func (w *TestWorkflowEnv) ExecuteTestDataSyncWorkflow(jobId string) {
 	w.TestEnv.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
-	w.TestEnv.ExecuteWorkflow(datasync_workflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
+	datasyncWorkflow := &datasync_workflow.Workflow{}
+	w.TestEnv.ExecuteWorkflow(datasyncWorkflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
 }
 
 // RequireActivitiesCompletedSuccessfully verifies all activities completed without errors
