@@ -20,7 +20,7 @@ import (
 
 const (
 	mysqlDialect = "custom-mysql-dialect"
-	pageLimit    = 50_000
+	pageLimit    = 100_000
 )
 
 func init() {
