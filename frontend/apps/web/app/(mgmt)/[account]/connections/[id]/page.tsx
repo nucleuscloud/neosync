@@ -8,22 +8,16 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
-import { getErrorMessage } from '@/util/util';
 import { create } from '@bufbuild/protobuf';
-import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import {
-  ConnectionConfigSchema,
-  ConnectionService,
-  GetConnectionResponseSchema,
-} from '@neosync/sdk';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@connectrpc/connect-query';
+import { ConnectionConfigSchema, ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { ReactElement } from 'react';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
-import { getConnectionComponentDetails } from './components/connection-component';
+import { useGetConnectionComponentDetails } from './components/connection-component';
 
-export default function ConnectionPage({ params }: PageProps) {
+export default function ConnectionPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
 
@@ -33,38 +27,10 @@ export default function ConnectionPage({ params }: PageProps) {
     { enabled: !!id }
   );
   const router = useRouter();
-  const queryclient = useQueryClient();
-  if (!id) {
-    return <Error statusCode={404} />;
-  }
-  if (isLoading) {
-    return (
-      <div className="mt-10">
-        <SkeletonForm />
-      </div>
-    );
-  }
-  if (!isLoading && !data?.connection) {
-    return <Error statusCode={404} />;
-  }
-  const connectionComponent = getConnectionComponentDetails({
+
+  const connectionComponent = useGetConnectionComponentDetails({
     connection: data?.connection!,
-    onSaved: (resp) => {
-      const key = createConnectQueryKey({
-        schema: ConnectionService.method.getConnection,
-        input: { id },
-        cardinality: undefined,
-      });
-      queryclient.setQueryData(
-        key,
-        create(GetConnectionResponseSchema, { connection: resp.connection })
-      );
-      toast.success('Successfully updated connection!');
-    },
-    onSaveFailed: (err) =>
-      toast.error('Unable to update connection', {
-        description: getErrorMessage(err),
-      }),
+    mode: 'view',
     extraPageHeading: (
       <div className="flex flex-row items-center gap-4">
         {data?.connection?.connectionConfig?.config.case &&
@@ -96,6 +62,19 @@ export default function ConnectionPage({ params }: PageProps) {
       />
     ),
   });
+  if (!id) {
+    return <Error statusCode={404} />;
+  }
+  if (isLoading) {
+    return (
+      <div className="mt-10">
+        <SkeletonForm />
+      </div>
+    );
+  }
+  if (!isLoading && !data?.connection) {
+    return <Error statusCode={404} />;
+  }
 
   const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
 

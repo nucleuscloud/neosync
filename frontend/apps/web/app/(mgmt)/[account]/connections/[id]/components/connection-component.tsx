@@ -1,11 +1,15 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
-import ViewOpenAiForm from '@/components/connections/forms/openai/ViewOpenAiForm';
+import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
+import { OpenAiFormValues } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import {
   Connection,
+  ConnectionService,
   PostgresConnectionConfig,
   SSHAuthentication,
+  UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
@@ -27,13 +31,25 @@ interface ConnectionComponent {
   header: ReactElement;
 }
 
-interface GetConnectionComponentDetailsProps {
+type BaseConnectionComponentDetailsProps = {
   connection?: Connection;
-  onSaved(updatedConnResp: UpdateConnectionResponse): void;
-  onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
   subHeading?: ReactElement;
-}
+};
+
+type ViewModeProps = BaseConnectionComponentDetailsProps & {
+  mode?: 'view';
+  onSaved?: never;
+  onSaveFailed?: never;
+};
+
+type EditModeProps = BaseConnectionComponentDetailsProps & {
+  mode: 'edit';
+  onSaved: (updatedConnResp: UpdateConnectionResponse) => void;
+  onSaveFailed: (err: unknown) => void;
+};
+
+type GetConnectionComponentDetailsProps = ViewModeProps | EditModeProps;
 
 function getPgHeaderType(
   connection: PostgresConnectionConfig
@@ -56,11 +72,43 @@ function getPgHeaderType(
   }
 }
 
-export function getConnectionComponentDetails(
+interface ModeViewProps {
+  mode: 'view' | 'edit';
+  view(): ReactElement;
+  edit(): ReactElement;
+}
+function ModeView(props: ModeViewProps): ReactElement {
+  const { mode, view, edit } = props;
+
+  if (mode === 'view') {
+    return view();
+  }
+
+  return edit();
+}
+
+export function useGetConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
-  const { connection, onSaved, extraPageHeading, onSaveFailed, subHeading } =
-    props;
+  const {
+    connection,
+    onSaved,
+    extraPageHeading,
+    onSaveFailed,
+    subHeading,
+    mode = 'view',
+  } = props;
+
+  const { mutateAsync: updateConnection } = useMutation(
+    ConnectionService.method.updateConnection
+  );
+
+  async function onSubmit(values: UpdateConnectionRequest): Promise<void> {
+    const resp = await updateConnection(values);
+    if (onSaved) {
+      onSaved(resp);
+    }
+  }
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig': {
@@ -275,12 +323,19 @@ export function getConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
+            onSaved={(resp) => onSaved?.(resp)}
             onSaveFailed={onSaveFailed}
           />
         ),
       };
     case 'openaiConfig':
+      const values: OpenAiFormValues = {
+        connectionName: connection.name,
+        sdk: {
+          url: connection.connectionConfig.config.value.apiUrl,
+          apiKey: connection.connectionConfig.config.value.apiKey,
+        },
+      };
       return {
         name: connection.name,
         summary: (
@@ -297,27 +352,20 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <ViewOpenAiForm
-            values={{
-              connectionName: connection.name,
-              sdk: {
-                url: connection.connectionConfig.config.value.apiUrl,
-                apiKey: connection.connectionConfig.config.value.apiKey,
-              },
-            }}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <OpenAiConnectionForm mode="view" initialValues={values} />
+            )}
+            edit={() => (
+              <OpenAiConnectionForm
+                mode="edit"
+                connectionId={connection.id}
+                onSubmit={onSubmit}
+                initialValues={values}
+              />
+            )}
           />
-          // <OpenAiForm
-          //   connectionId={connection.id}
-          //   defaultValues={{
-          //     connectionName: connection.name,
-          //     sdk: {
-          //       url: connection.connectionConfig.config.value.apiUrl,
-          //       apiKey: connection.connectionConfig.config.value.apiKey,
-          //     },
-          //   }}
-          //   onSaved={(resp) => onSaved(resp)}
-          //   onSaveFailed={onSaveFailed}
-          // />
         ),
       };
     case 'mongoConfig':

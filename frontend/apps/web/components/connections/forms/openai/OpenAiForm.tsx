@@ -1,24 +1,20 @@
-import { buildConnectionConfigOpenAi } from '@/app/(mgmt)/[account]/connections/util';
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
 import { BaseStore } from '@/util/zustand.stores.util';
 import { OpenAiFormValues } from '@/yup-validations/connections';
-import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import {
-  ConnectionService,
-  CreateConnectionRequest,
-  CreateConnectionRequestSchema,
-} from '@neosync/sdk';
-import { FormEvent, ReactElement } from 'react';
+import { ConnectionService } from '@neosync/sdk';
+import { FormEvent, ReactElement, useEffect } from 'react';
 import { ValidationError } from 'yup';
 import { create } from 'zustand';
 import { Name } from '../SharedFormInputs';
 import Sdk from './Sdk';
 
-interface NewOpenAiConnectionStore extends BaseStore<OpenAiFormValues> {}
+interface OpenAiFormStore extends BaseStore<OpenAiFormValues> {
+  init?(values: OpenAiFormValues): void;
+}
 
-function getInitialNewFormState(): OpenAiFormValues {
+function getInitialFormState(): OpenAiFormValues {
   return {
     connectionName: 'my-connection',
     sdk: {
@@ -28,8 +24,8 @@ function getInitialNewFormState(): OpenAiFormValues {
   };
 }
 
-const useNewHookStore = create<NewOpenAiConnectionStore>((set) => ({
-  formData: getInitialNewFormState(),
+const useFormStore = create<OpenAiFormStore>((set) => ({
+  formData: getInitialFormState(),
   errors: {},
   isSubmitting: false,
   setFormData: (data) =>
@@ -38,18 +34,23 @@ const useNewHookStore = create<NewOpenAiConnectionStore>((set) => ({
   setSubmitting: (isSubmitting) => set({ isSubmitting }),
   resetForm: () =>
     set({
-      formData: getInitialNewFormState(),
+      formData: getInitialFormState(),
       errors: {},
       isSubmitting: false,
     }),
+  init: (values: OpenAiFormValues) => set({ formData: values }),
 }));
 
+type Mode = 'create' | 'edit' | 'view';
+
 interface Props {
-  onSubmit(values: CreateConnectionRequest): Promise<void>;
+  mode: Mode;
+  initialValues?: OpenAiFormValues;
+  onSubmit?(values: OpenAiFormValues): Promise<void>;
 }
 
-export default function NewOpenAiForm(props: Props): ReactElement {
-  const { onSubmit } = props;
+export default function OpenAiForm(props: Props): ReactElement {
+  const { mode, initialValues, onSubmit } = props;
   const { account } = useAccount();
   const {
     formData,
@@ -58,14 +59,22 @@ export default function NewOpenAiForm(props: Props): ReactElement {
     setErrors,
     setSubmitting,
     isSubmitting,
-  } = useNewHookStore();
+    init,
+  } = useFormStore();
+
   const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
     ConnectionService.method.isConnectionNameAvailable
   );
 
+  useEffect(() => {
+    if (initialValues) {
+      init?.(initialValues);
+    }
+  }, []);
+
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
-    if (isSubmitting) {
+    if (isSubmitting || !onSubmit) {
       return;
     }
 
@@ -80,13 +89,8 @@ export default function NewOpenAiForm(props: Props): ReactElement {
           isConnectionNameAvailable: isConnectionNameAvailableAsync,
         },
       });
-      await onSubmit(
-        createMessage(CreateConnectionRequestSchema, {
-          accountId: account?.id ?? '',
-          name: validatedData.connectionName,
-          connectionConfig: buildConnectionConfigOpenAi(validatedData),
-        })
-      );
+
+      await onSubmit(validatedData);
     } catch (err) {
       if (err instanceof ValidationError) {
         const validationErrors: Record<string, string> = {};
@@ -102,20 +106,39 @@ export default function NewOpenAiForm(props: Props): ReactElement {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+  const isViewMode = mode === 'view';
+  const submitText = mode === 'create' ? 'Create' : 'Update';
+
+  const formContent = (
+    <>
       <Name
         error={errors.connectionName}
         value={formData.connectionName}
-        onChange={(value) => setFormData({ connectionName: value })}
+        onChange={
+          isViewMode
+            ? () => {}
+            : (value) => setFormData({ connectionName: value })
+        }
       />
       <Sdk
         errors={errors}
         value={formData.sdk}
-        onChange={(value) => setFormData({ sdk: value })}
+        onChange={
+          isViewMode ? () => {} : (value) => setFormData({ sdk: value })
+        }
       />
 
-      <Submit isSubmitting={isSubmitting} text="Create" />
+      {!isViewMode && <Submit isSubmitting={isSubmitting} text={submitText} />}
+    </>
+  );
+
+  if (isViewMode) {
+    return <div className="space-y-6">{formContent}</div>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {formContent}
     </form>
   );
 }

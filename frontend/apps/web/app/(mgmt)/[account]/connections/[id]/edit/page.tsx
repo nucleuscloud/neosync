@@ -11,7 +11,7 @@ import { ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getConnectionComponentDetails } from '../components/connection-component';
+import { useGetConnectionComponentDetails } from '../components/connection-component';
 
 export default function EditConnectionPage({ params }: PageProps) {
   const id = params?.id ?? '';
@@ -20,13 +20,40 @@ export default function EditConnectionPage({ params }: PageProps) {
   // todo: add check to ensure user has permission to edit connection
   // if not, do not render component or load query
 
-  const { data, isLoading } = useQuery(
+  const {
+    data,
+    isLoading,
+    refetch: mutateGetConnection,
+  } = useQuery(
     ConnectionService.method.getConnection,
     { id: id, excludeSensitive: true },
     { enabled: !!id }
   );
 
   const router = useRouter();
+
+  const connectionComponent = useGetConnectionComponentDetails({
+    mode: 'edit',
+    connection: data?.connection!,
+    onSaved: (resp) => {
+      toast.success('Successfully updated connection!');
+      // maybe use the query cache here for faster round trip and navigation
+      mutateGetConnection().finally(() => {
+        router.push(`/${account?.name}/connections/${resp.connection?.id}`);
+      });
+    },
+    onSaveFailed: (err) =>
+      toast.error('Unable to update connection', {
+        description: getErrorMessage(err),
+      }),
+    subHeading: (
+      <ResourceId
+        labelText={data?.connection?.id ?? ''}
+        copyText={data?.connection?.id ?? ''}
+        onHoverText="Copy the connection id"
+      />
+    ),
+  });
 
   if (!id) {
     return <Error statusCode={404} />;
@@ -42,25 +69,6 @@ export default function EditConnectionPage({ params }: PageProps) {
   if (!isLoading && !data?.connection) {
     return <Error statusCode={404} />;
   }
-  const connectionComponent = getConnectionComponentDetails({
-    connection: data?.connection!,
-    onSaved: (resp) => {
-      toast.success('Successfully updated connection!');
-      router.push(`/${account?.name}/connections/${resp.connection?.id}`);
-    },
-    onSaveFailed: (err) =>
-      toast.error('Unable to update connection', {
-        description: getErrorMessage(err),
-      }),
-    subHeading: (
-      <ResourceId
-        labelText={data?.connection?.id ?? ''}
-        copyText={data?.connection?.id ?? ''}
-        onHoverText="Copy the connection id"
-      />
-    ),
-  });
-
   const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
 
   const subnav = [

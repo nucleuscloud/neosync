@@ -1,5 +1,5 @@
 'use client';
-import NewOpenAiForm from '@/components/connections/forms/openai/NewOpenAiForm';
+import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -21,6 +21,7 @@ export default function OpenAi(): ReactElement {
   );
 
   const onSubmit = useOnSubmit();
+  const { account } = useAccount();
 
   return (
     <OverviewContainer
@@ -33,7 +34,11 @@ export default function OpenAi(): ReactElement {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <NewOpenAiForm onSubmit={onSubmit} />
+      <OpenAiConnectionForm
+        mode="create"
+        accountId={account?.id ?? ''}
+        onSubmit={onSubmit}
+      />
     </OverviewContainer>
   );
 }

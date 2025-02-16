@@ -32,7 +32,7 @@ import Error from 'next/error';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
-import { getConnectionComponentDetails } from '../components/connection-component';
+import { useGetConnectionComponentDetails } from '../components/connection-component';
 
 function getPermissionColumnType(
   connConfig: ConnectionConfig
@@ -80,21 +80,7 @@ export default function PermissionsPage({ params }: PageProps) {
     [isLoading]
   );
 
-  if (!id) {
-    return <Error statusCode={404} />;
-  }
-  if (isLoading || isCheckConnLoading) {
-    return (
-      <div className="mt-10">
-        <SkeletonForm />
-      </div>
-    );
-  }
-  if (!isLoading && !data?.connection) {
-    return <Error statusCode={404} />;
-  }
-
-  const connectionComponent = getConnectionComponentDetails({
+  const connectionComponent = useGetConnectionComponentDetails({
     connection: data?.connection!,
     onSaved: (resp) => {
       queryclient.setQueryData(
@@ -136,6 +122,20 @@ export default function PermissionsPage({ params }: PageProps) {
       />
     ),
   });
+
+  if (!id) {
+    return <Error statusCode={404} />;
+  }
+  if (isLoading || isCheckConnLoading) {
+    return (
+      <div className="mt-10">
+        <SkeletonForm />
+      </div>
+    );
+  }
+  if (!isLoading && !data?.connection) {
+    return <Error statusCode={404} />;
+  }
 
   const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
 
