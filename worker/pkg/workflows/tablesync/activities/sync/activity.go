@@ -30,6 +30,7 @@ import (
 	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
 
+	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	_ "github.com/nucleuscloud/neosync/internal/benthos/imports"
 )
 
@@ -60,7 +61,7 @@ func New(
 	}
 }
 
-type SyncRequest struct {
+type SyncTableRequest struct {
 	Id        string
 	AccountId string
 	JobRunId  string
@@ -68,7 +69,7 @@ type SyncRequest struct {
 	ContinuationToken *string
 }
 
-type SyncResponse struct {
+type SyncTableResponse struct {
 	ContinuationToken *string
 }
 
@@ -77,7 +78,40 @@ type SyncMetadata struct {
 	Table  string
 }
 
-func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
+type SyncRequest struct {
+	// Deprecated
+	BenthosConfig string
+	BenthosDsns   []*benthosbuilder_shared.BenthosDsn
+	// Identifier that is used in combination with the AccountId to retrieve the benthos config
+	Name      string
+	AccountId string
+}
+
+type SyncResponse struct {
+	Schema string
+	Table  string
+}
+
+// Deprecated
+func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
+	info := activity.GetInfo(ctx)
+
+	_, err := a.SyncTable(ctx, &SyncTableRequest{
+		Id:        req.Name,
+		AccountId: req.AccountId,
+		JobRunId:  info.WorkflowExecution.ID,
+	}, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SyncResponse{
+		Schema: metadata.Schema,
+		Table:  metadata.Table,
+	}, nil
+}
+
+func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadata *SyncMetadata) (*SyncTableResponse, error) {
 	info := activity.GetInfo(ctx)
 
 	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(req.JobRunId))
@@ -170,7 +204,7 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncRequest, metadata *Sy
 	}
 
 	logger.Info("sync complete")
-	return &SyncResponse{
+	return &SyncTableResponse{
 		ContinuationToken: continuationTokenToReturn,
 	}, nil
 }

@@ -38,5 +38,6 @@ func Register(
 		benthosStreamManager,
 	)
 
+	w.RegisterActivity(syncActivity.Sync)
 	w.RegisterActivity(syncActivity.SyncTable)
 }

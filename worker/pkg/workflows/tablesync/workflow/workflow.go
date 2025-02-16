@@ -49,11 +49,11 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 	for {
 		iterations++
 
-		var resp *sync_activity.SyncResponse
+		var resp *sync_activity.SyncTableResponse
 		err := workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, *req.SyncActivityOptions), // todo: check sync activity options nil
 			syncActivity.SyncTable,
-			sync_activity.SyncRequest{
+			sync_activity.SyncTableRequest{
 				Id:                req.Id,
 				AccountId:         req.AccountId,
 				JobRunId:          req.JobRunId,
