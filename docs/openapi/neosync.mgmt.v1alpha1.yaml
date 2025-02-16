@@ -10160,6 +10160,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
+          minItems: 1
           description: The list of destinations to create and associate with the job
       title: CreateJobDestinationConnectionsRequest
       additionalProperties: false
@@ -10236,6 +10237,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
+          minItems: 1
           description: The list of mappings that will be used to transform the data
         source:
           allOf:
@@ -10247,6 +10249,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
+          minItems: 1
           description: The list of destinations that will be used to store the data
         initiateJobRun:
           type: boolean

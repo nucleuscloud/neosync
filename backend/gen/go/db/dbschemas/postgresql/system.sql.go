@@ -1188,10 +1188,6 @@ FROM pg_catalog.pg_class AS tbl
   JOIN pg_catalog.pg_attribute AS col ON col.attrelid = tbl.oid AND col.attnum = key_info.attnum
 WHERE ns.nspname = ANY($1::TEXT[])
   AND idx_meta.indisunique = true
-  -- Exclude indexes automatically created by constraints
-  AND NOT EXISTS (
-       SELECT 1 FROM pg_catalog.pg_constraint AS cons WHERE cons.conindid = idx.oid
-  )
 GROUP BY ns.nspname, tbl.relname, idx.relname
 `
 
