@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Jeffail/shutdown"
-
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
@@ -62,8 +60,6 @@ type pooledInput struct {
 	rows *sql.Rows
 
 	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
-
-	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
 	onHasMorePages      OnHasMorePagesFn
@@ -127,7 +123,6 @@ func newInput(
 
 	return &pooledInput{
 		logger:              mgr.Logger(),
-		shutSig:             shutdown.NewSignaller(),
 		connectionId:        connectionId,
 		driver:              driver,
 		queryStatic:         queryStatic,
@@ -150,13 +145,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db != nil {
-		return nil
-	}
-
 	db, err := s.provider.GetDb(ctx, s.connectionId)
 	if err != nil {
-		return nil
+		return err
 	}
 	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
@@ -202,20 +193,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	s.rows = rows
 	s.rowsRead = 0
-	go func() {
-		<-s.shutSig.HardStopChan()
-
-		s.dbMut.Lock()
-		if s.rows != nil {
-			_ = s.rows.Close()
-			s.rows = nil
-		}
-		// not closing the connection here as that is managed by an outside force
-		s.db = nil
-		s.dbMut.Unlock()
-
-		s.shutSig.TriggerHasStopped()
-	}()
 	return nil
 }
 
@@ -295,28 +272,16 @@ func emptyAck(ctx context.Context, err error) error {
 }
 
 func (s *pooledInput) Close(ctx context.Context) error {
-	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
-
-	isNil := s.db == nil
-	if isNil {
-		s.dbMut.Unlock()
-		return nil
-	}
+	defer s.dbMut.Unlock()
 
 	if s.rows != nil {
 		_ = s.rows.Close()
 		s.rows = nil
 	}
 
-	s.db = nil // not closing here since it's managed by the pool
-
-	s.dbMut.Unlock()
-
-	select {
-	case <-s.shutSig.HasStoppedChan():
-	case <-ctx.Done():
-		return ctx.Err()
+	if s.db != nil {
+		s.db = nil // not closing here since it's managed by the pool
 	}
 	return nil
 }

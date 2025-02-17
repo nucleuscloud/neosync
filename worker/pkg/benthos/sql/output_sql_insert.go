@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -71,9 +70,7 @@ type pooledInsertOutput struct {
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
 	queryBuilder             querybuilder.InsertQueryBuilder
-
-	shutSig *shutdown.Signaller
-	isRetry bool
+	isRetry                  bool
 }
 
 func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
@@ -169,7 +166,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		driver:                   driver,
 		logger:                   mgr.Logger(),
 		slogger:                  logger,
-		shutSig:                  shutdown.NewSignaller(),
 		provider:                 provider,
 		schema:                   schema,
 		table:                    table,
@@ -194,22 +190,17 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 		return err
 	}
 	s.db = db
-
-	go func() {
-		<-s.shutSig.HardStopChan()
-
-		s.dbMut.Lock()
-		// not closing the connection here as that is managed by an outside force
-		s.db = nil
-		s.dbMut.Unlock()
-
-		s.shutSig.TriggerHasStopped()
-	}()
 	return nil
 }
 
 func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
+	if s.db == nil {
+		s.dbMut.RUnlock()
+		s.logger.Warn("no connection to database when writing batch")
+		return nil
+	}
+	db := s.db
 	defer s.dbMut.RUnlock()
 
 	batchLen := len(batch)
@@ -237,14 +228,14 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return fmt.Errorf("failed to build insert query: %w", err)
 	}
 
-	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
+	if _, err := db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
 			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
 		s.logger.Infof("received error during batch write that is retryable, proceeding with row by row insert: %s", err.Error())
 
-		err = s.RetryInsertRowByRow(ctx, s.queryBuilder, rows)
+		err = retryInsertRowByRow(ctx, db, s.queryBuilder, rows, s.skipForeignKeyViolations, s.logger)
 		if err != nil {
 			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
@@ -252,10 +243,13 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	return nil
 }
 
-func (s *pooledInsertOutput) RetryInsertRowByRow(
+func retryInsertRowByRow(
 	ctx context.Context,
+	db mysql_queries.DBTX,
 	builder querybuilder.InsertQueryBuilder,
 	rows []map[string]any,
+	skipForeignKeyViolations bool,
+	logger *service.Logger,
 ) error {
 	fkErrorCount := 0
 	otherErrorCount := 0
@@ -265,37 +259,36 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 		if err != nil {
 			return err
 		}
-		_, err = s.db.ExecContext(ctx, insertQuery, args...)
+		_, err = db.ExecContext(ctx, insertQuery, args...)
 		if err != nil {
-			if !neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations) {
+			if !neosync_benthos.ShouldRetryInsert(err.Error(), skipForeignKeyViolations) {
 				return fmt.Errorf("failed to retry insert query: %w", err)
 			} else if neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				fkErrorCount++
 			} else {
 				otherErrorCount++
-				s.logger.Warnf("received retryable error during row by row insert. skipping row: %s", err.Error())
+				logger.Warnf("received retryable error during row by row insert. skipping row: %s", err.Error())
 			}
 		}
 		if err == nil {
 			insertCount++
 		}
 	}
-	s.logger.Infof("Completed batch insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
+	logger.Infof("Completed batch insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
 	return nil
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {
-	s.shutSig.TriggerHardStop()
 	s.dbMut.RLock()
-	isNil := s.db == nil
-	s.dbMut.RUnlock()
-	if isNil {
+	if s.db == nil {
+		s.dbMut.RUnlock()
 		return nil
 	}
-	select {
-	case <-s.shutSig.HasStoppedChan():
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	s.dbMut.RUnlock()
+
+	// Take write lock to null out the connection
+	s.dbMut.Lock()
+	s.db = nil
+	s.dbMut.Unlock()
 	return nil
 }
