@@ -124,7 +124,7 @@ export default function MysqlDBDestinationOptionsForm(
         <FormItemContainer>
           <FormHeader
             title="Batch Count"
-            description="The max allowed per batch before flushing to S3. 0 to disable count-based batching."
+            description="The max allowed per batch before flushing to the database. 0 to disable count-based batching."
             isErrored={!!errors?.batch?.count}
           />
           <FormInputContainer>
