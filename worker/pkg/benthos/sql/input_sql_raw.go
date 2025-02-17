@@ -39,7 +39,6 @@ func RegisterPooledSqlRawInput(
 			if err != nil {
 				return nil, err
 			}
-			// return service.AutoRetryNacksToggled(conf, input)
 			return input, nil
 		},
 	)
@@ -264,6 +263,12 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	return msg, emptyAck, nil
 }
 
+// emptyAck is a no-op ack function
+// Original benthos input returns this, which causes downstream messages to continually be retried.
+// Not sure we really want to ever enable this though because it's not clear how to handle the case in our system today.
+// Also our broker will retry messages endlessly until we enable the escape hatch (critical errors).
+//
+//	// return service.AutoRetryNacksToggled(conf, input)
 func emptyAck(ctx context.Context, err error) error {
 	// Nacks are handled by AutoRetryNacks because we don't have an explicit
 	// ack mechanism right now.
