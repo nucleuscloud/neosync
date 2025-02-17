@@ -155,7 +155,7 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   }
 
-  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(availableConnections);
 
   return (
@@ -228,6 +228,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                     <ConnectionSelectContent
                                       postgres={postgres}
                                       mysql={mysql}
+                                      mssql={mssql}
                                       s3={s3}
                                       mongodb={mongodb}
                                       gcpcs={gcpcs}
