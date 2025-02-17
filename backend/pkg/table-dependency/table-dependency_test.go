@@ -1436,6 +1436,49 @@ func TestFilterConfigsWithWhereClause(t *testing.T) {
 	})
 }
 
+func Test_OrderByColumns(t *testing.T) {
+	// Create RunConfigs for different order by scenarios.
+
+	// Scenario 1: Table with a primary key mapping.
+	// Even if the select columns are set, the primaryKeyMap should take precedence.
+	configPK := buildRunConfig("tablePK", RunTypeInsert, nil, nil, []string{"unused1", "unused2"}, nil, nil)
+
+	// Scenario 2: Table without a primary key but with a unique constraint.
+	configUC := buildRunConfig("tableUC", RunTypeInsert, nil, nil, []string{"dummy"}, nil, nil)
+
+	// Scenario 3: Table without a primary key or unique constraint, but with a unique index.
+	configUI := buildRunConfig("tableUI", RunTypeInsert, nil, nil, []string{"dummy"}, nil, nil)
+
+	// Scenario 4: Table without primary key, unique constraints, or unique indexes.
+	// The order by should be derived from sorting the select columns.
+	// Provide unsorted select columns.
+	configSC := buildRunConfig("tableSC", RunTypeInsert, nil, nil, []string{"d", "b", "c", "a"}, nil, nil)
+
+	configs := []*RunConfig{configPK, configUC, configUI, configSC}
+
+	// Define maps for primary keys, unique constraints, and unique indexes.
+	primaryKeyMap := map[string][]string{
+		"tablePK": {"id"},
+	}
+
+	uniqueConstraintsMap := map[string][][]string{
+		"tableUC": {{"uc1", "uc2"}},
+	}
+
+	uniqueIndexesMap := map[string][][]string{
+		"tableUI": {{"ui1", "ui2"}},
+	}
+
+	// Invoke setOrderByColumns to set the order by columns for each config.
+	setOrderByColumns(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
+
+	// Assert the expected order by results.
+	require.Equal(t, []string{"id"}, configPK.OrderByColumns(), "Expected orderByColumns for tablePK to come from the primary key mapping")
+	require.Equal(t, []string{"uc1", "uc2"}, configUC.OrderByColumns(), "Expected orderByColumns for tableUC to come from unique constraints")
+	require.Equal(t, []string{"ui1", "ui2"}, configUI.OrderByColumns(), "Expected orderByColumns for tableUI to come from unique indexes")
+	require.Equal(t, []string{"a", "b", "c", "d"}, configSC.OrderByColumns(), "Expected orderByColumns for tableSC to be a sorted version of its select columns")
+}
+
 func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {
 	for _, c := range configs {
 		if c.Table() == table && c.RunType() == runtype {
