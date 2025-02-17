@@ -147,7 +147,7 @@ const generateInt64Config = Yup.object().shape({
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
   min: getBigIntValidator({
-    range: [8, 12],
+    range: [8, 14],
   }).test(
     'is-less-than-or-equal-to-max',
     'Min must be less than or equal to Max',
@@ -158,7 +158,7 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
     }
   ),
   max: getBigIntValidator({
-    range: [8, 12],
+    range: [8, 14],
   }).test(
     'is-greater-than-or-equal-to-min',
     'Max must be greater than or equal to Min',
