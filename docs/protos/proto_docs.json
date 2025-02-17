@@ -17733,6 +17733,39 @@
           ]
         },
         {
+          "name": "Permission",
+          "longName": "HasPermissionRequest.Permission",
+          "fullName": "mgmt.v1alpha1.HasPermissionRequest.Permission",
+          "description": "",
+          "values": [
+            {
+              "name": "PERMISSION_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "PERMISSION_CREATE",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "PERMISSION_READ",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "PERMISSION_UPDATE",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "PERMISSION_DELETE",
+              "number": "4",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "UserAccountType",
           "longName": "UserAccountType",
           "fullName": "mgmt.v1alpha1.UserAccountType",
@@ -18797,6 +18830,78 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionRequest",
+          "longName": "HasPermissionRequest",
+          "fullName": "mgmt.v1alpha1.HasPermissionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "resource_id",
+              "description": "The unique identifier of the resource to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "permission",
+              "description": "The permission to check for.",
+              "label": "",
+              "type": "Permission",
+              "longType": "HasPermissionRequest.Permission",
+              "fullType": "mgmt.v1alpha1.HasPermissionRequest.Permission",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionResponse",
+          "longName": "HasPermissionResponse",
+          "fullName": "mgmt.v1alpha1.HasPermissionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "has_permission",
+              "description": "Whether or not the user has the given permission.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -19896,6 +20001,18 @@
               "responseType": "SetUserRoleResponse",
               "responseLongType": "SetUserRoleResponse",
               "responseFullType": "mgmt.v1alpha1.SetUserRoleResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "HasPermission",
+              "description": "Checks if the user has the given permission",
+              "requestType": "HasPermissionRequest",
+              "requestLongType": "HasPermissionRequest",
+              "requestFullType": "mgmt.v1alpha1.HasPermissionRequest",
+              "requestStreaming": false,
+              "responseType": "HasPermissionResponse",
+              "responseLongType": "HasPermissionResponse",
+              "responseFullType": "mgmt.v1alpha1.HasPermissionResponse",
               "responseStreaming": false
             }
           ]

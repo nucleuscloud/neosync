@@ -4467,6 +4467,44 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.UserAccountService/HasPermission:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: HasPermission
+      description: Checks if the user has the given permission
+      operationId: mgmt.v1alpha1.UserAccountService.HasPermission
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
 components:
   schemas:
     mgmt.v1alpha1.AccountHookEvent:
@@ -14239,6 +14277,15 @@ components:
         - BILLING_STATUS_EXPIRED
         - BILLING_STATUS_TRIAL_ACTIVE
         - BILLING_STATUS_TRIAL_EXPIRED
+    mgmt.v1alpha1.HasPermissionRequest.Permission:
+      type: string
+      title: Permission
+      enum:
+        - PERMISSION_UNSPECIFIED
+        - PERMISSION_CREATE
+        - PERMISSION_READ
+        - PERMISSION_UPDATE
+        - PERMISSION_DELETE
     mgmt.v1alpha1.UserAccountType:
       type: string
       title: UserAccountType
@@ -14743,6 +14790,36 @@ components:
           title: user_id
           description: The unique identifier of the user that was retrieved.
       title: GetUserResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the permission for.
+        resourceId:
+          type: string
+          title: resource_id
+          minLength: 1
+          description: The unique identifier of the resource to check the permission for.
+        permission:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.HasPermissionRequest.Permission
+          title: permission
+          description: The permission to check for.
+      title: HasPermissionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionResponse:
+      type: object
+      properties:
+        hasPermission:
+          type: boolean
+          title: has_permission
+          description: Whether or not the user has the given permission.
+      title: HasPermissionResponse
       additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object

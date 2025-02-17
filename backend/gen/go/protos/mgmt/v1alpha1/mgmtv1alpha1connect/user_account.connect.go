@@ -108,6 +108,9 @@ const (
 	// UserAccountServiceSetUserRoleProcedure is the fully-qualified name of the UserAccountService's
 	// SetUserRole RPC.
 	UserAccountServiceSetUserRoleProcedure = "/mgmt.v1alpha1.UserAccountService/SetUserRole"
+	// UserAccountServiceHasPermissionProcedure is the fully-qualified name of the UserAccountService's
+	// HasPermission RPC.
+	UserAccountServiceHasPermissionProcedure = "/mgmt.v1alpha1.UserAccountService/HasPermission"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -138,6 +141,7 @@ var (
 	userAccountServiceGetBillingAccountsMethodDescriptor               = userAccountServiceServiceDescriptor.Methods().ByName("GetBillingAccounts")
 	userAccountServiceSetBillingMeterEventMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("SetBillingMeterEvent")
 	userAccountServiceSetUserRoleMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("SetUserRole")
+	userAccountServiceHasPermissionMethodDescriptor                    = userAccountServiceServiceDescriptor.Methods().ByName("HasPermission")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -192,6 +196,8 @@ type UserAccountServiceClient interface {
 	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 	// Sets the users role
 	SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error)
+	// Checks if the user has the given permission
+	HasPermission(context.Context, *connect.Request[v1alpha1.HasPermissionRequest]) (*connect.Response[v1alpha1.HasPermissionResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -366,6 +372,12 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(userAccountServiceSetUserRoleMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		hasPermission: connect.NewClient[v1alpha1.HasPermissionRequest, v1alpha1.HasPermissionResponse](
+			httpClient,
+			baseURL+UserAccountServiceHasPermissionProcedure,
+			connect.WithSchema(userAccountServiceHasPermissionMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -396,6 +408,7 @@ type userAccountServiceClient struct {
 	getBillingAccounts               *connect.Client[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse]
 	setBillingMeterEvent             *connect.Client[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse]
 	setUserRole                      *connect.Client[v1alpha1.SetUserRoleRequest, v1alpha1.SetUserRoleResponse]
+	hasPermission                    *connect.Client[v1alpha1.HasPermissionRequest, v1alpha1.HasPermissionResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -525,6 +538,11 @@ func (c *userAccountServiceClient) SetUserRole(ctx context.Context, req *connect
 	return c.setUserRole.CallUnary(ctx, req)
 }
 
+// HasPermission calls mgmt.v1alpha1.UserAccountService.HasPermission.
+func (c *userAccountServiceClient) HasPermission(ctx context.Context, req *connect.Request[v1alpha1.HasPermissionRequest]) (*connect.Response[v1alpha1.HasPermissionResponse], error) {
+	return c.hasPermission.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	// Retrieves the current user.
@@ -577,6 +595,8 @@ type UserAccountServiceHandler interface {
 	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 	// Sets the users role
 	SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error)
+	// Checks if the user has the given permission
+	HasPermission(context.Context, *connect.Request[v1alpha1.HasPermissionRequest]) (*connect.Response[v1alpha1.HasPermissionResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -747,6 +767,12 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		connect.WithSchema(userAccountServiceSetUserRoleMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	userAccountServiceHasPermissionHandler := connect.NewUnaryHandler(
+		UserAccountServiceHasPermissionProcedure,
+		svc.HasPermission,
+		connect.WithSchema(userAccountServiceHasPermissionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -799,6 +825,8 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceSetBillingMeterEventHandler.ServeHTTP(w, r)
 		case UserAccountServiceSetUserRoleProcedure:
 			userAccountServiceSetUserRoleHandler.ServeHTTP(w, r)
+		case UserAccountServiceHasPermissionProcedure:
+			userAccountServiceHasPermissionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -906,4 +934,8 @@ func (UnimplementedUserAccountServiceHandler) SetBillingMeterEvent(context.Conte
 
 func (UnimplementedUserAccountServiceHandler) SetUserRole(context.Context, *connect.Request[v1alpha1.SetUserRoleRequest]) (*connect.Response[v1alpha1.SetUserRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetUserRole is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) HasPermission(context.Context, *connect.Request[v1alpha1.HasPermissionRequest]) (*connect.Response[v1alpha1.HasPermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.HasPermission is not implemented"))
 }

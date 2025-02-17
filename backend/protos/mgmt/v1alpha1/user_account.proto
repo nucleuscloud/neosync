@@ -396,6 +396,28 @@ enum AccountRole {
 
 message SetUserRoleResponse {}
 
+message HasPermissionRequest {
+  // The unique identifier of the account to check the permission for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the resource to check the permission for.
+  string resource_id = 2 [(buf.validate.field).string.min_len = 1];
+  // The permission to check for.
+  Permission permission = 3;
+
+  enum Permission {
+    PERMISSION_UNSPECIFIED = 0;
+    PERMISSION_CREATE = 1;
+    PERMISSION_READ = 2;
+    PERMISSION_UPDATE = 3;
+    PERMISSION_DELETE = 4;
+  }
+}
+
+message HasPermissionResponse {
+  // Whether or not the user has the given permission.
+  bool has_permission = 1;
+}
+
 // Service that manages users, accounts, and billing
 service UserAccountService {
   // Retrieves the current user.
@@ -485,4 +507,7 @@ service UserAccountService {
 
   // Sets the users role
   rpc SetUserRole(SetUserRoleRequest) returns (SetUserRoleResponse) {}
+
+  // Checks if the user has the given permission
+  rpc HasPermission(HasPermissionRequest) returns (HasPermissionResponse) {}
 }
