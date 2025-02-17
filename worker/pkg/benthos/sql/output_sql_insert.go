@@ -145,11 +145,10 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		querybuilder.WithSuffix(suffix),
 	}
 
-	if onConflictDoNothing || isRetry {
-		options = append(options, querybuilder.WithOnConflictDoNothing())
-	}
 	if onConflictDoUpdate {
 		options = append(options, querybuilder.WithOnConflictDoUpdate(primaryKeyColumns))
+	} else if onConflictDoNothing || isRetry {
+		options = append(options, querybuilder.WithOnConflictDoNothing())
 	}
 	if shouldOverrideColumnDefault {
 		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
