@@ -128,7 +128,7 @@ func (s *SqlManager) NewSqlConnection(
 		db := sqlmanager_mysql.NewManager(s.config.mysqlQuerier, connclient, closer)
 		return NewMysqlSqlConnection(db), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		db := sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer)
+		db := sqlmanager_mssql.NewManager(s.config.mssqlQuerier, connclient, closer, slogger)
 		return NewMssqlSqlConnection(db), nil
 	default:
 		closer()

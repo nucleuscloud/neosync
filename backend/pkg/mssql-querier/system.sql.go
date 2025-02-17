@@ -823,7 +823,7 @@ type GetCustomTriggersBySchemasAndTablesRow struct {
 	SchemaName  string
 	TableName   string
 	TriggerName string
-	Definition  string
+	Definition  sql.NullString
 }
 
 func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
