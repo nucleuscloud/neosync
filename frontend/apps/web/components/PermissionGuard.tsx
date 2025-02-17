@@ -25,6 +25,9 @@ interface DisableProps extends BaseProps {
 interface HideProps extends BaseProps {
   mode: 'hide';
   children: ReactNode;
+  // Optionally provide a fallback to render when the user does not have permission
+  // Defaults to null, which will hide the child component
+  fallback?: ReactNode;
 }
 
 type Props = DisableProps | HideProps;
@@ -63,5 +66,6 @@ export default function PermissionGuard(props: Props): ReactNode {
         });
   }
 
-  return data?.hasPermission ? children : null;
+  const fallback = props.fallback ?? null;
+  return data?.hasPermission ? children : fallback;
 }
