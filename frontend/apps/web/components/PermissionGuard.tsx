@@ -1,3 +1,4 @@
+import { cn } from '@/libs/utils';
 import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
 import {
@@ -13,6 +14,8 @@ interface BaseProps {
   accountId: string;
   resourceId: string;
   permission: HasPermissionRequest_Permission;
+
+  skeletonClassName?: string;
 }
 
 interface DisableProps extends BaseProps {
@@ -37,7 +40,14 @@ interface ChildProps {
 }
 
 export default function PermissionGuard(props: Props): ReactNode {
-  const { mode, accountId, resourceId, permission, children } = props;
+  const {
+    mode,
+    accountId,
+    resourceId,
+    permission,
+    children,
+    skeletonClassName,
+  } = props;
 
   const { data, isLoading } = useQuery(
     UserAccountService.method.hasPermission,
@@ -52,7 +62,7 @@ export default function PermissionGuard(props: Props): ReactNode {
   );
 
   if (isLoading) {
-    return <Skeleton className="h-4 w-full" />;
+    return <Skeleton className={cn('h-4 w-full', skeletonClassName)} />;
   }
 
   if (mode === 'disable') {
