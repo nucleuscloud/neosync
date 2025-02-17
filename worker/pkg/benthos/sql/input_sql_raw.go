@@ -217,19 +217,17 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	}
 	if !s.rows.Next() {
 		// Check if any error occurred.
-		if err := s.rows.Err(); err != nil {
-			_ = s.rows.Close()
-			s.rows = nil
-			return nil, nil, err
-		}
-		// For non-Postgres drivers, simply close and return EndOfInput
 		_ = s.rows.Close()
 		s.rows = nil
+		if err := s.rows.Err(); err != nil {
+			return nil, nil, err
+		}
+
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
 			s.logger.Debug(fmt.Sprintf("[ROW END] rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
 			if s.rowsRead >= *s.expectedTotalRows {
-				s.logger.Debug("[ROW END] emitting order by column values")
+				s.logger.Debug("[ROW END] emitting onHasMorePages as rows read >= expected total rows")
 				s.onHasMorePages(s.lastReadOrderValues)
 			}
 		}
