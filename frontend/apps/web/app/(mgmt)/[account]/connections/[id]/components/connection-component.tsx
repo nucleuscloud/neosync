@@ -355,7 +355,11 @@ export function useGetConnectionComponentDetails(
           <ModeView
             mode={mode}
             view={() => (
-              <OpenAiConnectionForm mode="view" initialValues={values} />
+              <OpenAiConnectionForm
+                mode="view"
+                connectionId={connection.id}
+                initialValues={values}
+              />
             )}
             edit={() => (
               <OpenAiConnectionForm

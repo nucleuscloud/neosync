@@ -10,10 +10,11 @@ import { ComponentType, ReactElement } from 'react';
 
 export interface BaseProps<T> {
   initialValues?: T;
-  ConnectionForm: ComponentType<{
+  Form: ComponentType<{
     mode: 'create' | 'edit' | 'view';
     initialValues?: T;
     onSubmit?(values: T): Promise<void>;
+    canViewSecrets?: boolean;
   }>;
 }
 
@@ -33,6 +34,9 @@ export interface EditProps<T> extends BaseProps<T> {
 
 export interface ViewProps<T> extends BaseProps<T> {
   mode: 'view';
+  connectionId: string;
+
+  canViewSecrets?: boolean;
 }
 
 type Props<T> = CreateProps<T> | EditProps<T> | ViewProps<T>;
@@ -40,7 +44,7 @@ type Props<T> = CreateProps<T> | EditProps<T> | ViewProps<T>;
 export default function ConnectionForm<T extends { connectionName: string }>(
   props: Props<T>
 ): ReactElement {
-  const { mode, initialValues, ConnectionForm } = props;
+  const { mode, initialValues, Form: ConnectionForm } = props;
 
   async function handleSubmit(values: T): Promise<void> {
     if (mode === 'view') {
@@ -66,11 +70,21 @@ export default function ConnectionForm<T extends { connectionName: string }>(
     }
   }
 
+  if (mode === 'view') {
+    return (
+      <ConnectionForm
+        mode={mode}
+        initialValues={initialValues}
+        canViewSecrets={props.canViewSecrets}
+      />
+    );
+  }
+
   return (
     <ConnectionForm
       mode={mode}
       initialValues={initialValues}
-      onSubmit={mode !== 'view' ? handleSubmit : undefined}
+      onSubmit={handleSubmit}
     />
   );
 }

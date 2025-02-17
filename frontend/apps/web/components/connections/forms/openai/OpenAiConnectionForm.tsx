@@ -29,14 +29,15 @@ export default function OpenAiConnectionForm(props: Props): ReactElement {
     return (
       <ConnectionForm<OpenAiFormValues>
         {...props}
-        ConnectionForm={OpenAiForm}
+        Form={OpenAiForm}
+        canViewSecrets={true}
       />
     );
   }
   return (
     <ConnectionForm<OpenAiFormValues>
       {...props}
-      ConnectionForm={OpenAiForm}
+      Form={OpenAiForm}
       buildConnectionConfig={buildConnectionConfigOpenAi}
     />
   );
