@@ -216,9 +216,10 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	}
 	if !s.rows.Next() {
 		// Check if any error occurred.
-		_ = s.rows.Close()
+		rows := s.rows
 		s.rows = nil
-		if err := s.rows.Err(); err != nil {
+		_ = rows.Close()
+		if err := rows.Err(); err != nil {
 			return nil, nil, err
 		}
 
