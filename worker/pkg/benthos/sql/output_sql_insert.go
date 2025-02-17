@@ -197,8 +197,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	s.dbMut.RLock()
 	if s.db == nil {
 		s.dbMut.RUnlock()
-		s.logger.Warn("no connection to database when writing batch")
-		return nil
+		return service.ErrNotConnected
 	}
 	db := s.db
 	defer s.dbMut.RUnlock()
@@ -227,7 +226,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return fmt.Errorf("failed to build insert query: %w", err)
 	}
-
 	if _, err := db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
@@ -274,7 +272,7 @@ func retryInsertRowByRow(
 			insertCount++
 		}
 	}
-	logger.Infof("Completed batch insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
+	logger.Infof("Completed row-by-row insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
 	return nil
 }
 

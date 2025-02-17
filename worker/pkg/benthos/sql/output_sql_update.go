@@ -149,8 +149,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 	s.dbMut.RLock()
 	if s.db == nil {
 		s.dbMut.RUnlock()
-		s.logger.Warn("no connection to database when writing batch")
-		return nil
+		return service.ErrNotConnected
 	}
 	db := s.db
 	defer s.dbMut.RUnlock()
