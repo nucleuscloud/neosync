@@ -3,6 +3,7 @@ package sqlmanager_mssql
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strings"
 
@@ -20,12 +21,13 @@ type Manager struct {
 	querier mssql_queries.Querier
 	db      mysql_queries.DBTX
 	close   func()
+	logger  *slog.Logger
 
 	ee_sqlmanager_mssql.Manager
 }
 
-func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func()) *Manager {
-	return &Manager{querier: querier, db: db, close: closer, Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer)}
+func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func(), logger *slog.Logger) *Manager {
+	return &Manager{querier: querier, db: db, close: closer, logger: logger, Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer, logger)}
 }
 
 const defaultIdentity string = "IDENTITY(1,1)"

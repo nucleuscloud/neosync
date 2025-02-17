@@ -48,7 +48,8 @@ func Test_MssqlManager(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("Successfully setup source and target databases")
-	manager := mssql.NewManager(mssql_queries.New(), source.DB, func() {})
+	testlogger := testutil.GetTestLogger(t)
+	manager := mssql.NewManager(mssql_queries.New(), source.DB, func() {}, testlogger)
 
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
 		t.Parallel()
@@ -185,7 +186,7 @@ func Test_MssqlManager(t *testing.T) {
 	t.Run("GetSchemaInitStatements", func(t *testing.T) {
 		t.Parallel()
 		schema := "mssqlinit"
-		tables := []string{"Invoices", "Customers", "Orders", "Products", "OrderItems"}
+		tables := []string{"Invoices", "Customers", "Orders", "Products", "OrderItems", "TestTable"}
 
 		schematables := []*sqlmanager_shared.SchemaTable{}
 		for _, t := range tables {

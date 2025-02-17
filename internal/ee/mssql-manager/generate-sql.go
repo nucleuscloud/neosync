@@ -155,10 +155,9 @@ END`, record.IndexName, record.SchemaName, record.TableName, record.IndexDefinit
 }
 
 // Creates idempotent create trigger statement
-func generateCreateTriggerStatement(record *mssql_queries.GetCustomTriggersBySchemasAndTablesRow) string {
+func generateCreateTriggerStatement(triggerName, schemaName, definition string) string {
 	var sb strings.Builder
-	def := strings.ReplaceAll(record.Definition, "'", "''")
-
+	def := strings.ReplaceAll(definition, "'", "''")
 	sb.WriteString(fmt.Sprintf(`
 IF NOT EXISTS (
 	SELECT *
@@ -169,7 +168,7 @@ IF NOT EXISTS (
 )
 BEGIN
 	Exec('%s')
-END`, record.TriggerName, record.SchemaName, def))
+END`, triggerName, schemaName, def))
 
 	return sb.String()
 }

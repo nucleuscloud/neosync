@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -23,10 +24,11 @@ type Manager struct {
 	querier mssql_queries.Querier
 	db      mysql_queries.DBTX
 	close   func()
+	logger  *slog.Logger
 }
 
-func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func()) *Manager {
-	return &Manager{querier: querier, db: db, close: closer}
+func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func(), logger *slog.Logger) *Manager {
+	return &Manager{querier: querier, db: db, close: closer, logger: logger}
 }
 
 func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
@@ -154,7 +156,7 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	schemaStmts := []string{}
 	errgrp.Go(func() error {
 		for schema := range schemasMap {
-			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", schema))
+			schemaStmts = append(schemaStmts, fmt.Sprintf("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '%s')\nBEGIN\n    EXEC('CREATE SCHEMA [%s]')\nEND;", schema, schema))
 		}
 		return nil
 	})
@@ -295,11 +297,16 @@ func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanag
 
 	output := make([]*sqlmanager_shared.TableTrigger, 0, len(rows))
 	for _, row := range rows {
+		if !row.Definition.Valid {
+			// This may occur if the trigger is encrypted or implemented as a CLR trigger (i.e., not written in T-SQL).
+			m.logger.Warn("mssql trigger definition is missing", "schema", row.SchemaName, "table", row.TableName, "trigger", row.TriggerName)
+			continue
+		}
 		output = append(output, &sqlmanager_shared.TableTrigger{
 			Schema:      row.SchemaName,
 			Table:       row.TableName,
 			TriggerName: row.TriggerName,
-			Definition:  generateCreateTriggerStatement(row),
+			Definition:  generateCreateTriggerStatement(row.TriggerName, row.SchemaName, row.Definition.String),
 		})
 	}
 	return output, nil
