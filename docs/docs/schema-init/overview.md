@@ -5,7 +5,9 @@ id: schema-initialization-overview
 hide_title: false
 slug: /schema-init/overview
 ---
+
 ## Introduction
+
 Before launching a data sync, it's essential that your destination database is prepared to handle and mirror the structure of your source. Proper schema initialization lays the foundation by establishing all necessary tables, data types, constraints, indexes, views, sequences, and triggers, ensuring a smooth and consistent data migration process.
 
 ## SQL Server Considerations
