@@ -39,6 +39,7 @@ func RegisterPooledSqlRawInput(
 			if err != nil {
 				return nil, err
 			}
+			// return service.AutoRetryNacksToggled(conf, input)
 			return input, nil
 		},
 	)
