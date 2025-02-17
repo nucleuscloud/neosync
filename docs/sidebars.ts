@@ -369,6 +369,16 @@ const sidebars: SidebarsConfig = {
       id: 'table-constraints/subsetting',
       label: 'Subsetting',
     },
+    {
+      type: 'html',
+      value: '<div>Schema Initialization</div>',
+      className: 'sidebarcategory',
+    },
+    {
+      type: 'doc',
+      id: 'schema-init/schema-initialization-overview',
+      label: 'Schema Initialization Overview',
+    },
   ],
 };
 
