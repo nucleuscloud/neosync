@@ -382,12 +382,16 @@ export const OpenAiFormValues = Yup.object<
 
 export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
 
-export const MongoDbFormValues = Yup.object({
-  connectionName: connectionNameSchema,
+export const MongoDbFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>()
+  .shape({
+    connectionName: connectionNameSchema,
 
-  url: Yup.string().required('The Url is required.'),
+    url: Yup.string().required('The Url is required.'),
 
-  clientTls: ClientTlsFormValues,
-}).required('The MongoDB form fields are required.');
+    clientTls: ClientTlsFormValues,
+  })
+  .required('The MongoDB form fields are required.');
 
 export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

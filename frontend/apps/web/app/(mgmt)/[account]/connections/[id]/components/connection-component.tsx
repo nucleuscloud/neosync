@@ -1,5 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import MongoDbConnectionForm from '@/components/connections/forms/mongodb/MongoDbConnectionForm';
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
@@ -10,7 +11,6 @@ import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
-import MongoDbForm from './MongoDbForm';
 
 interface ConnectionComponent {
   name: string;
@@ -412,36 +412,18 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <MongoDbForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              url: connection.connectionConfig.config.value.connectionConfig
-                .value,
-
-              clientTls: {
-                rootCert: connection.connectionConfig.config.value.clientTls
-                  ?.rootCert
-                  ? connection.connectionConfig.config.value.clientTls.rootCert
-                  : '',
-                clientCert: connection.connectionConfig.config.value.clientTls
-                  ?.clientCert
-                  ? connection.connectionConfig.config.value.clientTls
-                      .clientCert
-                  : '',
-                clientKey: connection.connectionConfig.config.value.clientTls
-                  ?.clientKey
-                  ? connection.connectionConfig.config.value.clientTls.clientKey
-                  : '',
-                serverName: connection.connectionConfig.config.value.clientTls
-                  ?.serverName
-                  ? connection.connectionConfig.config.value.clientTls
-                      .serverName
-                  : '',
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <MongoDbConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <MongoDbConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
         ),
       };
