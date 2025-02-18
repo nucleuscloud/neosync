@@ -782,7 +782,7 @@ func logLevelToString(loglevel mgmtv1alpha1.LogLevel) string {
 
 func buildLokiQuery(lokiLables string, keep []string, workflowId string, loglevels []string) string {
 	query := fmt.Sprintf("{%s} | json", lokiLables)
-	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
+	query = fmt.Sprintf("%s | JobRunId=%q", query, workflowId)
 
 	if len(loglevels) > 0 {
 		query = fmt.Sprintf("%s | level=~%q", query, strings.Join(loglevels, "|"))
