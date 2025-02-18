@@ -168,6 +168,8 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
   TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
   TRANSFORMER_SOURCE_TRANSFORM_UUID = 50;
+  // TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
+  TRANSFORMER_SOURCE_TRANSFORM_HASH = 51;
 }
 
 enum TransformerDataType {
@@ -261,6 +263,8 @@ message TransformerConfig {
     GenerateBusinessName generate_business_name_config = 45;
     GenerateIpAddress generate_ip_address_config = 46;
     TransformUuid transform_uuid_config = 47;
+    // TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
+    TransformHash transform_hash_config = 48;
   }
 }
 
@@ -634,6 +638,25 @@ message GenerateIpAddress {
 }
 
 message TransformUuid {}
+
+// TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
+message TransformHash {
+  // The hashing algorithm to use.
+  optional HashType algo = 1;
+
+  enum HashType {
+    // If unspecified, defaults to md5
+    HASH_TYPE_UNSPECIFIED = 0;
+    // The MD5 Hash Algorithm
+    HASH_TYPE_MD5 = 1;
+    // The SHA1 Hash Algorithm
+    HASH_TYPE_SHA1 = 2;
+    // The SHA256 Hash Algorithm
+    HASH_TYPE_SHA256 = 3;
+    // The SHA512 Hash Algorithm
+    HASH_TYPE_SHA512 = 4;
+  }
+}
 
 // Service that manages system and user defined transformers
 service TransformersService {
