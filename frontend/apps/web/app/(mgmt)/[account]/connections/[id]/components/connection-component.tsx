@@ -3,19 +3,14 @@ import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
+import SqlServerConnectionForm from '@/components/connections/forms/sql-server/SqlServerConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  Connection,
-  PostgresConnectionConfig,
-  SSHAuthentication,
-} from '@neosync/sdk';
+import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
-import MssqlForm from './MssqlForm';
 
 interface ConnectionComponent {
   name: string;
@@ -538,11 +533,6 @@ export function useGetConnectionComponentDetails(
       };
     }
     case 'mssqlConfig': {
-      const mssqlValue = connection.connectionConfig.config.value;
-      const { url, envVar } = getMssqlConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
-
       return {
         name: connection.name,
         summary: (
@@ -559,55 +549,64 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <MssqlForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit:
-                  mssqlValue.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
-              },
-              tunnel: {
-                host: mssqlValue.tunnel?.host ?? '',
-                port: mssqlValue.tunnel?.port ?? 22,
-                knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
-                user: mssqlValue.tunnel?.user ?? '',
-                passphrase:
-                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        mssqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        mssqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-              clientTls: {
-                rootCert: mssqlValue.clientTls?.rootCert
-                  ? mssqlValue.clientTls.rootCert
-                  : '',
-                clientCert: mssqlValue.clientTls?.clientCert
-                  ? mssqlValue.clientTls.clientCert
-                  : '',
-                clientKey: mssqlValue.clientTls?.clientKey
-                  ? mssqlValue.clientTls.clientKey
-                  : '',
-                serverName: mssqlValue.clientTls?.serverName
-                  ? mssqlValue.clientTls.serverName
-                  : '',
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <SqlServerConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <SqlServerConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit:
+          //         mssqlValue.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
+          //     },
+          //     tunnel: {
+          //       host: mssqlValue.tunnel?.host ?? '',
+          //       port: mssqlValue.tunnel?.port ?? 22,
+          //       knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
+          //       user: mssqlValue.tunnel?.user ?? '',
+          //       passphrase:
+          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               mssqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               mssqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //     clientTls: {
+          //       rootCert: mssqlValue.clientTls?.rootCert
+          //         ? mssqlValue.clientTls.rootCert
+          //         : '',
+          //       clientCert: mssqlValue.clientTls?.clientCert
+          //         ? mssqlValue.clientTls.clientCert
+          //         : '',
+          //       clientKey: mssqlValue.clientTls?.clientKey
+          //         ? mssqlValue.clientTls.clientKey
+          //         : '',
+          //       serverName: mssqlValue.clientTls?.serverName
+          //         ? mssqlValue.clientTls.serverName
+          //         : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          // />
         ),
       };
     }
@@ -627,29 +626,5 @@ export function useGetConnectionComponentDetails(
           </div>
         ),
       };
-  }
-}
-
-function getPassphraseFromSshAuthentication(
-  sshauth: SSHAuthentication
-): string | undefined {
-  switch (sshauth.authConfig.case) {
-    case 'passphrase':
-      return sshauth.authConfig.value.value;
-    case 'privateKey':
-      return sshauth.authConfig.value.passphrase;
-    default:
-      return undefined;
-  }
-}
-
-function getPrivateKeyFromSshAuthentication(
-  sshauth: SSHAuthentication
-): string | undefined {
-  switch (sshauth.authConfig.case) {
-    case 'privateKey':
-      return sshauth.authConfig.value.value;
-    default:
-      return undefined;
   }
 }

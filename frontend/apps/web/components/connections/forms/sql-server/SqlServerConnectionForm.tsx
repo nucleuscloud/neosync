@@ -1,8 +1,8 @@
-import { buildConnectionConfigPostgres } from '@/app/(mgmt)/[account]/connections/util';
-import { PostgresFormValues } from '@/yup-validations/connections';
+import { buildConnectionConfigMssql } from '@/app/(mgmt)/[account]/connections/util';
+import { MssqlFormValues } from '@/yup-validations/connections';
 
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
-import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
+import { Connection, MssqlConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useConnection } from '../useConnection';
 import {
@@ -10,7 +10,7 @@ import {
   getSqlOptionsFormValues,
   getSshTunnelFormValues,
 } from '../util';
-import PostgresForm from './PostgresForm';
+import SqlServerForm from './SqlServerForm';
 
 interface CreateProps {
   mode: 'create';
@@ -36,24 +36,24 @@ interface CloneProps {
 
 type Props = CreateProps | EditProps | ViewProps | CloneProps;
 
-export default function PostgresConnectionForm(props: Props): ReactElement {
+export default function SqlServerConnectionForm(props: Props): ReactElement {
   const { mode } = props;
 
   const connectionProps = {
     ...props,
-    buildConnectionConfig: buildConnectionConfigPostgres,
+    buildConnectionConfig: buildConnectionConfigMssql,
     toFormValues,
   };
 
   const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<PostgresFormValues>(connectionProps);
+    useConnection<MssqlFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
   }
 
   return (
-    <PostgresForm
+    <SqlServerForm
       mode={mode === 'clone' ? 'create' : mode}
       initialValues={initialValues}
       onSubmit={handleSubmit}
@@ -63,15 +63,15 @@ export default function PostgresConnectionForm(props: Props): ReactElement {
   );
 }
 
-function toFormValues(connection: Connection): PostgresFormValues | undefined {
+function toFormValues(connection: Connection): MssqlFormValues | undefined {
   if (
-    connection.connectionConfig?.config.case !== 'pgConfig' ||
+    connection.connectionConfig?.config.case !== 'mssqlConfig' ||
     !connection.connectionConfig?.config.value
   ) {
     return undefined;
   }
 
-  const connValues = getPgConnectionFormValues(
+  const connValues = getMssqlConnectionFormValues(
     connection.connectionConfig.config.value
   );
 
@@ -91,34 +91,24 @@ function toFormValues(connection: Connection): PostgresFormValues | undefined {
 }
 
 // extracts the connection config and returns the values for the form
-function getPgConnectionFormValues(
-  connection: PostgresConnectionConfig
-): Pick<PostgresFormValues, 'db' | 'url' | 'envVar' | 'activeTab'> {
+function getMssqlConnectionFormValues(
+  connection: MssqlConnectionConfig
+): Pick<MssqlFormValues, 'url' | 'envVar' | 'activeTab'> {
   switch (connection.connectionConfig.case) {
-    case 'connection':
-      return {
-        db: connection.connectionConfig.value,
-        url: undefined,
-        envVar: undefined,
-        activeTab: 'host',
-      };
     case 'url':
       return {
-        db: {},
         url: connection.connectionConfig.value,
         envVar: undefined,
         activeTab: 'url',
       };
     case 'urlFromEnv':
       return {
-        db: {},
         url: undefined,
         envVar: connection.connectionConfig.value,
         activeTab: 'url-env',
       };
     default:
       return {
-        db: {},
         url: '',
         envVar: '',
         activeTab: 'url',

@@ -298,13 +298,17 @@ export const DynamoDbFormValues = Yup.object({
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
 
-export const MssqlFormValues = Yup.object({
+export const MssqlFormValues = Yup.object<
+  MssqlCreateConnectionFormContext | MssqlEditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   url: UrlFormValue,
   envVar: UrlEnvVarFormValue,
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<MssqlActiveConnectionTab>(['url', 'url-env']),
 });
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
