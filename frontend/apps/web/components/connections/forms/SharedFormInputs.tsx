@@ -1,12 +1,18 @@
+import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
+import { PermissionConnectionType } from '@/components/permissions/columns';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { SecurePasswordInput } from '@/components/SecurePasswordInput';
+import Spinner from '@/components/Spinner';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -14,7 +20,16 @@ import {
   SqlOptionsFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
-import { ReactElement } from 'react';
+import { create as createMessage } from '@bufbuild/protobuf';
+import { useMutation } from '@connectrpc/connect-query';
+import {
+  CheckConnectionConfigRequest,
+  CheckConnectionConfigResponse,
+  CheckConnectionConfigResponseSchema,
+  ConnectionService,
+} from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { ReactElement, useState } from 'react';
 
 export interface SecretRevealProps<T> {
   isViewMode: boolean;
@@ -438,5 +453,94 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
         <FormErrorMessage message={errors['tunnel.knownHostPublicKey']} />
       </div>
     </>
+  );
+}
+
+interface CheckConnectionButtonProps {
+  isValid: boolean;
+
+  getRequest(): CheckConnectionConfigRequest;
+  connectionName: string;
+  connectionType: PermissionConnectionType;
+}
+
+export function CheckConnectionButton(
+  props: CheckConnectionButtonProps
+): ReactElement {
+  const { isValid, getRequest, connectionName, connectionType } = props;
+  const [isChecking, setIsChecking] = useState(false);
+  const [validationResponse, setValidationResponse] = useState<
+    CheckConnectionConfigResponse | undefined
+  >();
+  const [openPermissionDialog, setOpenPermissionDialog] = useState(false);
+  const { mutateAsync: checkConnectionConfig } = useMutation(
+    ConnectionService.method.checkConnectionConfig
+  );
+
+  async function onClick(): Promise<void> {
+    try {
+      setIsChecking(true);
+      const res = await checkConnectionConfig(getRequest());
+      setValidationResponse(res);
+    } catch (err) {
+      setValidationResponse(
+        createMessage(CheckConnectionConfigResponseSchema, {
+          isConnected: false,
+          connectionError: err instanceof Error ? err.message : 'unknown error',
+        })
+      );
+    } finally {
+      setIsChecking(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <PermissionsDialog
+        checkResponse={
+          validationResponse ??
+          createMessage(CheckConnectionConfigResponseSchema, {})
+        }
+        openPermissionDialog={openPermissionDialog}
+        setOpenPermissionDialog={setOpenPermissionDialog}
+        isValidating={isChecking}
+        connectionName={connectionName}
+        connectionType={connectionType}
+      />
+      <div className="flex justify-end">
+        <Button variant="outline" disabled={!isValid} onClick={onClick}>
+          <ButtonText
+            leftIcon={isChecking ? <Spinner /> : undefined}
+            text="Test Connection"
+          />
+        </Button>
+      </div>
+      {validationResponse && !validationResponse.isConnected && (
+        <div>
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ErrorAlertProps {
+  title: string;
+  description: string;
+}
+
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { title, description } = props;
+  return (
+    <Alert variant="destructive">
+      <ExclamationTriangleIcon className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
   );
 }

@@ -1,13 +1,19 @@
+import { buildConnectionConfigMysql } from '@/app/(mgmt)/[account]/connections/util';
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
 import { BaseStore } from '@/util/zustand.stores.util';
 import { MysqlFormValues } from '@/yup-validations/connections';
+import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import { ConnectionService } from '@neosync/sdk';
+import {
+  CheckConnectionConfigRequestSchema,
+  ConnectionService,
+} from '@neosync/sdk';
 import { FormEvent, ReactElement, useEffect } from 'react';
 import { ValidationError } from 'yup';
 import { create } from 'zustand';
 import {
+  CheckConnectionButton,
   ClientTlsAccordion,
   Name,
   SqlConnectionOptions,
@@ -215,7 +221,29 @@ export default function MysqlForm(props: Props): ReactElement {
         }}
       />
 
-      {!isViewMode && <Submit isSubmitting={isSubmitting} text={submitText} />}
+      <div className="flex justify-end gap-3">
+        <CheckConnectionButton
+          isValid={Object.keys(errors).length === 0}
+          getRequest={() => {
+            return createMessage(CheckConnectionConfigRequestSchema, {
+              connectionConfig: buildConnectionConfigMysql({
+                ...formData,
+                url: formData.activeTab === 'url' ? formData.url : undefined,
+                db: formData.db,
+                envVar:
+                  formData.activeTab === 'url-env'
+                    ? formData.envVar
+                    : undefined,
+              }),
+            });
+          }}
+          connectionName={formData.connectionName}
+          connectionType="mysql"
+        />
+        {!isViewMode && (
+          <Submit isSubmitting={isSubmitting} text={submitText} />
+        )}
+      </div>
     </>
   );
 

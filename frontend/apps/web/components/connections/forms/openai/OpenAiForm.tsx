@@ -144,7 +144,11 @@ export default function OpenAiForm(props: Props): ReactElement {
         onRevealPassword={onRevealPassword}
       />
 
-      {!isViewMode && <Submit isSubmitting={isSubmitting} text={submitText} />}
+      {!isViewMode && (
+        <div className="flex justify-end gap-3">
+          <Submit isSubmitting={isSubmitting} text={submitText} />
+        </div>
+      )}
     </>
   );
 
