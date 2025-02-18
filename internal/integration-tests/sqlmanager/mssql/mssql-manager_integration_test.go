@@ -2,7 +2,6 @@ package sqlmanager_mssql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -188,8 +187,6 @@ func Test_MssqlManager(t *testing.T) {
 		t.Parallel()
 		schema := "mssqlinit"
 		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
-		jsonF, _ := json.MarshalIndent(actual, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
 		require.NoError(t, err)
 		require.NotEmpty(t, actual)
 

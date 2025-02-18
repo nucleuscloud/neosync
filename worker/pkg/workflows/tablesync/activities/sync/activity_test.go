@@ -3,7 +3,6 @@ package sync_activity
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,7 +54,6 @@ output:
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			fmt.Println(r.Msg.GetId().GetExternalId())
 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
 					Value: []byte(benthosConfig),
@@ -243,7 +241,6 @@ metrics:
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			fmt.Println(r.Msg.GetId().GetExternalId())
 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
 					Value: []byte(benthosConfig),
@@ -320,7 +317,6 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			fmt.Println(r.Msg.GetId().GetExternalId())
 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
 					Value: []byte(benthosConfig),
@@ -388,7 +384,6 @@ output:
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			fmt.Println(r.Msg.GetId().GetExternalId())
 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
 					Value: []byte(benthosConfig),
@@ -477,7 +472,6 @@ output:
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-			fmt.Println(r.Msg.GetId().GetExternalId())
 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
 					Value: []byte(benthosConfig),

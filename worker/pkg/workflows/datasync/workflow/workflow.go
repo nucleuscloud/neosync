@@ -161,7 +161,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		redisDependsOn[cfg.Name] = cfg.RedisDependsOn
 	}
 
-	fmt.Println("should poll", initialCheckAccountStatusResponse.ShouldPoll)
 	// spawn account status checker in loop
 	stopChan := workflow.NewNamedChannel(ctx, "account-status")
 	if initialCheckAccountStatusResponse.ShouldPoll {
@@ -175,7 +174,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					selector := workflow.NewNamedSelector(ctx, "account-status-select")
 					timer := workflow.NewTimer(ctx, accountStatusTimerDuration)
 					selector.AddFuture(timer, func(f workflow.Future) {
-						fmt.Println("account-status-check timer fired")
 						err := f.Get(ctx, nil)
 						if err != nil {
 							logger.Error("time receive failed", "error", err)
@@ -189,7 +187,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 							a.CheckAccountStatus,
 							&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId}).
 							Get(ctx, &result)
-						fmt.Println("account-status-check result", result)
 						if err != nil {
 							logger.Error("encountered error while checking account status", "error", err)
 							stopChan.Send(ctx, true)
