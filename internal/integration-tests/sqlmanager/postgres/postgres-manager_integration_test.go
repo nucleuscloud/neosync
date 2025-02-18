@@ -164,7 +164,6 @@ func Test_PostgresManager(t *testing.T) {
 			},
 		})
 	})
-
 	t.Run("GetForeignKeyConstraintsMap_BasicCircular", func(t *testing.T) {
 		t.Parallel()
 		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
@@ -265,6 +264,23 @@ func Test_PostgresManager(t *testing.T) {
 		require.Len(t, uniques, 1)
 		entry := uniques[0]
 		require.ElementsMatch(t, []string{"email", "username"}, entry)
+	})
+
+	t.Run("GetUniqueIndexesMap", func(t *testing.T) {
+		t.Parallel()
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		indexes, ok := actual.UniqueIndexes[buildTable(schema, "table_with_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1"}, indexes[0])
+
+		indexes, ok = actual.UniqueIndexes[buildTable(schema, "table_with_composite_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, indexes[0])
 	})
 
 	t.Run("GetRolePermissionsMap", func(t *testing.T) {

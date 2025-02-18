@@ -79,6 +79,13 @@ func createPostgresSyncJob(
 		if config.JobOptions.SubsetByForeignKeyConstraints {
 			subsetByForeignKeyConstraints = true
 		}
+		var batchSize, maxInFlight *uint32
+		if config.JobOptions.BatchSize != nil {
+			batchSize = config.JobOptions.BatchSize
+		}
+		if config.JobOptions.MaxInFlight != nil {
+			maxInFlight = config.JobOptions.MaxInFlight
+		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -87,6 +94,10 @@ func createPostgresSyncJob(
 						TruncateBeforeInsert: config.JobOptions.Truncate,
 					},
 					SkipForeignKeyViolations: config.JobOptions.SkipForeignKeyViolations,
+					Batch: &mgmtv1alpha1.BatchConfig{
+						Count: batchSize,
+					},
+					MaxInFlight: maxInFlight,
 				},
 			},
 		}
@@ -943,4 +954,74 @@ func cleanupPostgresSchemas(ctx context.Context, postgres *tcpostgres.PostgresTe
 	errgrp.Go(func() error { return postgres.Source.DropSchemas(errctx, schemas) })
 	errgrp.Go(func() error { return postgres.Target.DropSchemas(errctx, schemas) })
 	return errgrp.Wait()
+}
+
+func test_postgres_small_batch_size(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := "small_batch"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"uuids/create-tables.sql", "humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	defaultMappings := pg_uuids.GetDefaultSyncJobMappings(schema)
+	transformHumanresourcesMappings := pg_humanresources.GetDefaultSyncJobMappings(schema)
+
+	limit := uint32(1)
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "tablesync_pages",
+		JobMappings: slices.Concat(defaultMappings, transformHumanresourcesMappings),
+		JobOptions: &TestJobOptions{
+			Truncate:        true,
+			TruncateCascade: true,
+			InitSchema:      true,
+			BatchSize:       &limit,
+			MaxInFlight:     &limit,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: tablesync_pages")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: tablesync_pages")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "store_notifications", rowCount: 20},
+		{schema: schema, table: "stores", rowCount: 20},
+		{schema: schema, table: "store_customers", rowCount: 20},
+		{schema: schema, table: "referral_codes", rowCount: 20},
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: tablesync_pages Table: %s", expected.table))
+	}
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
+	require.NoError(t, err)
 }

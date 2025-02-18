@@ -678,6 +678,66 @@ func (_c *MockQuerier_GetPostgresRolePermissions_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetUniqueIndexesBySchema provides a mock function with given fields: ctx, db, schema
+func (_m *MockQuerier) GetUniqueIndexesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetUniqueIndexesBySchemaRow, error) {
+	ret := _m.Called(ctx, db, schema)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUniqueIndexesBySchema")
+	}
+
+	var r0 []*GetUniqueIndexesBySchemaRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetUniqueIndexesBySchemaRow, error)); ok {
+		return rf(ctx, db, schema)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetUniqueIndexesBySchemaRow); ok {
+		r0 = rf(ctx, db, schema)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetUniqueIndexesBySchemaRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schema)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUniqueIndexesBySchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUniqueIndexesBySchema'
+type MockQuerier_GetUniqueIndexesBySchema_Call struct {
+	*mock.Call
+}
+
+// GetUniqueIndexesBySchema is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schema []string
+func (_e *MockQuerier_Expecter) GetUniqueIndexesBySchema(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetUniqueIndexesBySchema_Call {
+	return &MockQuerier_GetUniqueIndexesBySchema_Call{Call: _e.mock.On("GetUniqueIndexesBySchema", ctx, db, schema)}
+}
+
+func (_c *MockQuerier_GetUniqueIndexesBySchema_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetUniqueIndexesBySchema_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUniqueIndexesBySchema_Call) Return(_a0 []*GetUniqueIndexesBySchemaRow, _a1 error) *MockQuerier_GetUniqueIndexesBySchema_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUniqueIndexesBySchema_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetUniqueIndexesBySchemaRow, error)) *MockQuerier_GetUniqueIndexesBySchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockQuerier creates a new instance of MockQuerier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockQuerier(t interface {

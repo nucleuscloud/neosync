@@ -76,6 +76,8 @@ packages:
     interfaces:
       sqlProvider:
       sqlDbtx:
+  github.com/nucleuscloud/neosync/internal/benthos-stream:
+    interfaces:
       BenthosStreamClient:
       BenthosStreamManagerClient:
   github.com/prometheus/client_golang/api/prometheus/v1:

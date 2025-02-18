@@ -1,469 +1,550 @@
 package sync_activity
 
-// import (
-// 	"context"
-// 	"errors"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"os"
-// 	"strings"
-// 	"testing"
+import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
-// 	"connectrpc.com/connect"
-// 	"github.com/google/uuid"
-// 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-// 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-// 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-// 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
-// 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
-// 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
-// 	"github.com/nucleuscloud/neosync/internal/testutil"
-// 	benthosstream "github.com/nucleuscloud/neosync/worker/internal/benthos-stream"
-// 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/mock"
-// 	"github.com/stretchr/testify/require"
-// 	"go.opentelemetry.io/otel/metric"
-// 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
-// 	"go.temporal.io/sdk/log"
-// 	"go.temporal.io/sdk/testsuite"
-// )
+	"connectrpc.com/connect"
+	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 
-// func Test_Sync_RunContext_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	benthosstream "github.com/nucleuscloud/neosync/internal/benthos-stream"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/metric"
+	metricsdk "go.opentelemetry.io/otel/sdk/metric"
+	"go.temporal.io/sdk/log"
+	"go.temporal.io/sdk/testsuite"
+)
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
+func Test_Sync_RunContext_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	mux := http.NewServeMux()
-// 	benthosConfig := strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `)
-// 	accountId := uuid.NewString()
+	benthosStreamManager := benthosstream.NewBenthosStreamManager()
 
-// 	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
-// 		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
-// 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-// 			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
-// 				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
-// 					Value: []byte(benthosConfig),
-// 				}), nil
-// 			}
-// 			return nil, errors.New("invalid test account id")
-// 		},
-// 	))
-// 	srv := startHTTPServer(t, mux)
+	mux := http.NewServeMux()
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+	accountId := uuid.NewString()
 
-// 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
-// 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
 
-// 	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
 
-// 	env.RegisterActivity(activity.SyncTable)
+	srv := startHTTPServer(t, mux)
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		AccountId: accountId,
-// 		Id:        "test",
-// 		JobRunId:  "test",
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	var meter metric.Meter
 
-// func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
+	env.RegisterActivity(activity.SyncTable)
 
-// 	activity := New(nil, nil, nil, nil, nil, benthosStreamManager)
+	val, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+		Id:                "test",
+		AccountId:         accountId,
+		JobRunId:          "job-run-id",
+		ContinuationToken: nil,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
 
-// 	env.RegisterActivity(activity.SyncTable)
+func Test_Sync_RunContext_WithContinuationToken(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err)
-// 	require.Nil(t, val)
-// }
+	benthosStreamManager := benthosstream.NewBenthosStreamManager()
 
-// func Test_Sync_Run_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	mux := http.NewServeMux()
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+	accountId := uuid.NewString()
 
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
 
-// 	env.RegisterActivity(activity.SyncTable)
+	srv := startHTTPServer(t, mux)
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(
+		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+		connectionmanager.WithCloseOnRelease(),
+	)
+	mongoconnmanager := connectionmanager.NewConnectionManager(
+		mongoprovider.NewProvider(),
+		connectionmanager.WithCloseOnRelease(),
+	)
+	var meter metric.Meter
 
-// func Test_Sync_Run_Metrics_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
+	env.RegisterActivity(activity.SyncTable)
 
-// 	meterProvider := metricsdk.NewMeterProvider()
-// 	meter := meterProvider.Meter("test")
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
+	t.Run("valid continuation token", func(t *testing.T) {
+		validToken := continuation_token.
+			NewFromContents(continuation_token.NewContents([]any{"dummy"})).
+			String()
 
-// 	env.RegisterActivity(activity.SyncTable)
+		val, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+			Id:                "test",
+			AccountId:         accountId,
+			JobRunId:          "job-run-id",
+			ContinuationToken: &validToken,
+		}, &SyncMetadata{Schema: "public", Table: "test"})
+		require.NoError(t, err)
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// metrics:
-//   otel_collector: {}
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+		var resp SyncTableResponse
+		err = val.Get(&resp)
+		require.NoError(t, err)
 
-// func Test_Sync_Fake_Mutation_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+		require.Nil(t, resp.ContinuationToken)
+	})
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
-// 	env.RegisterActivity(activity.SyncTable)
+	t.Run("invalid continuation token", func(t *testing.T) {
+		invalidToken := "not-a-valid-token"
+		_, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+			Id:                "test",
+			AccountId:         accountId,
+			JobRunId:          "job-run-id",
+			ContinuationToken: &invalidToken,
+		}, &SyncMetadata{Schema: "public", Table: "test"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to load continuation token")
+	})
+}
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors:
-//     - mutation: |
-//         root.name = generate_first_name()
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// func Test_Sync_Run_Success_Javascript(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	benthosStreamManager := benthosstream.NewBenthosStreamManager()
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
+	activity := New(nil, nil, nil, nil, nil, benthosStreamManager)
 
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
-// 	env.RegisterActivity(activity.SyncTable)
+	env.RegisterActivity(activity.SyncTable)
 
-// 	tmpFile, err := os.CreateTemp("", "test")
-// 	if err != nil {
-// 		t.Fatalf("Failed to create temp file: %v", err)
-// 	}
-// 	defer os.Remove(tmpFile.Name())
+	val, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Nil(t, val)
+}
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
-// input:
-//   generate:
-//     mapping: root = {"name":"evis"}
-//     interval: 1s
-//     count: 1
-// pipeline:
-//   processors:
-//     - neosync_javascript:
-//         code: |
-//           (() => {
-//           function fn_name(value, input){
-//           var a = value + "test";
-//           return a };
-//           const input = benthos.v0_msg_as_structured();
-//           const output = { ...input };
-//           output["name"] = fn_name(input["name"], input);
-//           benthos.v0_msg_set_structured(output);
-//           })();
-// output:
-//   label: ""
-//   file:
-//     path:  %s
-//     codec: lines
-// `, tmpFile.Name())),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	assert.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	assert.NoError(t, err)
+func Test_Sync_Run_Metrics_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	stdoutBytes, err := os.ReadFile(tmpFile.Name())
-// 	if err != nil {
-// 		t.Fatalf("Failed to read from temp file: %v", err)
-// 	}
-// 	stringResult := string(stdoutBytes)
+	accountId := uuid.NewString()
 
-// 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+metrics:
+  otel_collector: {}
+  `)
 
-// 	assert.Equal(t, `{"name":"evistest"}`, returnValue)
-// }
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
 
-// func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
-// 	env.RegisterActivity(activity.SyncTable)
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
 
-// 	tmpFile, err := os.CreateTemp("", "test")
-// 	if err != nil {
-// 		t.Fatalf("Failed to create temp file: %v", err)
-// 	}
-// 	defer os.Remove(tmpFile.Name())
+	srv := startHTTPServer(t, mux)
 
-// 	val, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
-// input:
-//   generate:
-//     mapping: root = {"name":"evis"}
-//     interval: 1s
-//     count: 1
-// pipeline:
-//   processors:
-//     - mutation:
-//         root.name = this.name.reverse()
-//     - neosync_javascript:
-//         code: |
-//           (() => {
-//           function fn1(value, input){
-//           var a = value + "test";
-//           return a };
-//           const input = benthos.v0_msg_as_structured();
-//           const output = { ...input };
-//           output["name"] = fn1(input["name"], input);
-//           benthos.v0_msg_set_structured(output);
-//           })();
-// output:
-//   label: ""
-//   file:
-//     path:  %s
-//     codec: lines
-//   `, tmpFile.Name())),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	assert.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	assert.NoError(t, err)
+	meterProvider := metricsdk.NewMeterProvider()
+	meter := meterProvider.Meter("test")
+	benthosStreamManager := benthosstream.NewBenthosStreamManager()
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
 
-// 	stdoutBytes, err := os.ReadFile(tmpFile.Name())
-// 	if err != nil {
-// 		t.Fatalf("Failed to read from temp file: %v", err)
-// 	}
-// 	stringResult := string(stdoutBytes)
+	env.RegisterActivity(activity.SyncTable)
 
-// 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+	val, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+		Id:                "test",
+		AccountId:         accountId,
+		JobRunId:          "job-run-id",
+		ContinuationToken: nil,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
 
-// 	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
-// }
+func Test_Sync_Run_Processor_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// func Test_Sync_Run_Processor_Error(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	accountId := uuid.NewString()
+	benthosConfig := strings.TrimSpace(`
+  input:
+    generate:
+      count: 1000
+      interval: ""
+      mapping: 'root = { "name": "nick" }'
+  pipeline:
+    threads: 1
+    processors:
+      - error:
+          error_msg: ${! error()}
+  output:
+    label: ""
+    stdout:
+      codec: lines
+  `)
 
-// 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
 
-// 	env.RegisterActivity(activity.SyncTable)
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
 
-// 	_, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1000
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors:
-//     - error:
-//         error_msg: ${! error()}
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err, "error was nil when it should be present")
-// }
+	srv := startHTTPServer(t, mux)
 
-// func Test_Sync_Run_Output_Error(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	benthosStreamManager := benthosstream.NewBenthosStreamManager()
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	var meter metric.Meter
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager)
 
-// 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
-// 	mockBenthosStream := NewMockBenthosStreamClient(t)
+	env.RegisterActivity(activity.SyncTable)
 
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager)
+	_, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+		Id:                "test",
+		AccountId:         accountId,
+		JobRunId:          "job-run-id",
+		ContinuationToken: nil,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err, "error was nil when it should be present")
+}
 
-// 	env.RegisterActivity(activity.SyncTable)
+func Test_Sync_Run_Output_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
-// 	errmsg := "duplicate key value violates unique constraint"
-// 	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
-// 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
+	accountId := uuid.NewString()
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  error:
+    error_msg: ${! meta("fallback_error")}
+`)
 
-// 	_, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1000
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors: []
-// output:
-//   label: ""
-//   error:
-//      error_msg: ${! meta("fallback_error")}
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err, "error was nil when it should be present")
-// 	require.Contains(t, err.Error(), "activity error")
-// }
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
 
-// func Test_Sync_Run_BenthosError(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
-// 	env := testSuite.NewTestActivityEnvironment()
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
 
-// 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
-// 	mockBenthosStream := NewMockBenthosStreamClient(t)
-// 	config := strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1000
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `)
+	srv := startHTTPServer(t, mux)
 
-// 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
-// 	errmsg := "benthos error"
-// 	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
-// 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
+	mockBenthosStreamManager := benthosstream.NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := benthosstream.NewMockBenthosStreamClient(t)
 
-// 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
-// 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
-// 	var meter metric.Meter
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	var meter metric.Meter
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager)
 
-// 	activity := New(nil, nil, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager)
+	env.RegisterActivity(activity.SyncTable)
 
-// 	env.RegisterActivity(activity.SyncTable)
-// 	_, err := env.ExecuteActivity(activity.SyncTable, &SyncRequest{
-// 		BenthosConfig: config,
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err)
-// 	require.Contains(t, err.Error(), errmsg)
-// }
+	errmsg := "duplicate key value violates unique constraint"
+	mockBenthosStreamManager.
+		On("NewBenthosStreamFromBuilder", mock.Anything).
+		Return(mockBenthosStream, nil).
+		Once()
 
-// func Test_getEnvVarLookupFn(t *testing.T) {
-// 	fn := getEnvVarLookupFn(nil)
-// 	assert.NotNil(t, fn)
-// 	val, ok := fn("foo")
-// 	assert.False(t, ok)
-// 	assert.Empty(t, val)
+	mockBenthosStream.
+		On("Run", mock.Anything).
+		Return(errors.New(errmsg)).
+		Once()
 
-// 	fn = getEnvVarLookupFn(map[string]string{"foo": "bar"})
-// 	assert.NotNil(t, fn)
-// 	val, ok = fn("foo")
-// 	assert.True(t, ok)
-// 	assert.Equal(t, val, "bar")
+	mockBenthosStream.
+		On("StopWithin", mock.Anything).
+		Return(nil).
+		Maybe()
 
-// 	val, ok = fn("bar")
-// 	assert.False(t, ok)
-// 	assert.Empty(t, val)
-// }
+	_, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+		Id:                "test",
+		AccountId:         accountId,
+		JobRunId:          "job-run-id",
+		ContinuationToken: nil,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err, "error was nil when it should be present")
+	require.Contains(t, err.Error(), "activity error")
+}
 
-// func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
-// 	tb.Helper()
-// 	srv := httptest.NewUnstartedServer(h)
-// 	srv.EnableHTTP2 = true
-// 	srv.Start()
-// 	tb.Cleanup(srv.Close)
-// 	return srv
-// }
+func Test_Sync_Run_BenthosError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
+
+	accountId := uuid.NewString()
+	mockBenthosStreamManager := benthosstream.NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := benthosstream.NewMockBenthosStreamClient(t)
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			} else if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetConnectionIdsExternalId() {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(`["conn-id-1"]`),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+				Connection: &mgmtv1alpha1.Connection{
+					Id: "conn-id-1",
+				},
+			}), nil
+		},
+	))
+
+	srv := startHTTPServer(t, mux)
+
+	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
+	errmsg := "benthos error"
+	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
+	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
+	var meter metric.Meter
+
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager)
+
+	env.RegisterActivity(activity.SyncTable)
+	_, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{
+		Id:                "test",
+		AccountId:         accountId,
+		JobRunId:          "job-run-id",
+		ContinuationToken: nil,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), errmsg)
+}
+
+func Test_getEnvVarLookupFn(t *testing.T) {
+	fn := getEnvVarLookupFn(nil)
+	assert.NotNil(t, fn)
+	val, ok := fn("foo")
+	assert.False(t, ok)
+	assert.Empty(t, val)
+
+	fn = getEnvVarLookupFn(map[string]string{"foo": "bar"})
+	assert.NotNil(t, fn)
+	val, ok = fn("foo")
+	assert.True(t, ok)
+	assert.Equal(t, val, "bar")
+
+	val, ok = fn("bar")
+	assert.False(t, ok)
+	assert.Empty(t, val)
+}
+
+func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
+	tb.Helper()
+	srv := httptest.NewUnstartedServer(h)
+	srv.EnableHTTP2 = true
+	srv.Start()
+	tb.Cleanup(srv.Close)
+	return srv
+}

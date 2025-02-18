@@ -252,7 +252,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				cancelHandler()
 
 				// empty depends on map will clean up all redis inserts
-				redisErr := runRedisCleanUpActivity(ctx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
+				detachedCtx, _ := workflow.NewDisconnectedContext(ctx)
+				redisErr := runRedisCleanUpActivity(detachedCtx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
