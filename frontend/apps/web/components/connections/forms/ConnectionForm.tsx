@@ -41,7 +41,6 @@ export interface ViewProps<T> extends BaseProps<T> {
   connectionId: string;
 
   canViewSecrets?: boolean;
-  getValueWithSecrets(): Promise<T>;
   toFormValues(connection: Connection): T | undefined;
 }
 

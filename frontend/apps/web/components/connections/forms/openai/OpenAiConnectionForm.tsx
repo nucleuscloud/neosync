@@ -32,6 +32,7 @@ export default function OpenAiConnectionForm(props: Props): ReactElement {
         Form={OpenAiForm}
         canViewSecrets={true}
         toFormValues={(connection) => {
+          // todo: pull this into common function that is used by edit form
           if (!connection.connectionConfig) {
             return undefined;
           }

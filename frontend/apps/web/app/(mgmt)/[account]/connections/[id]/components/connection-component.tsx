@@ -359,12 +359,11 @@ export function useGetConnectionComponentDetails(
             view={() => (
               <OpenAiConnectionForm
                 mode="view"
+                // todo: maybe instead pass in entire connection and nix initialValues
+                // Then both view and edit can use the same toFormValues internal function!
+                // Or maybe we type it slightly better and have it be the typed ConnectionConfig object
                 connectionId={connection.id}
                 initialValues={values}
-                getValueWithSecrets={() => {
-                  console.log('getValueWithSecrets', values);
-                  return Promise.resolve(values);
-                }}
               />
             )}
             edit={() => (
