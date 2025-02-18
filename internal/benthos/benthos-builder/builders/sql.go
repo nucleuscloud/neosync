@@ -29,6 +29,7 @@ type sqlSyncBuilder struct {
 	redisConfig        *neosync_redis.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
+	pageLimit          int // default page limit for queries
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
@@ -46,6 +47,7 @@ func NewSqlSyncBuilder(
 	redisConfig *neosync_redis.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	pageLimit int,
 ) bb_internal.BenthosBuilder {
 	return &sqlSyncBuilder{
 		transformerclient:            transformerclient,
@@ -54,6 +56,7 @@ func NewSqlSyncBuilder(
 		driver:                       databaseDriver,
 		selectQueryBuilder:           selectQueryBuilder,
 		isNotForeignKeySafeSubsetMap: map[string]map[tabledependency.RunType]bool{},
+		pageLimit:                    pageLimit,
 	}
 }
 
@@ -140,7 +143,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo, b.pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}

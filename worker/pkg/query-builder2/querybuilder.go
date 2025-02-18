@@ -20,7 +20,7 @@ import (
 
 const (
 	mysqlDialect = "custom-mysql-dialect"
-	pageLimit    = 100_000
+	// pageLimit    = 100_000
 )
 
 func init() {
@@ -87,9 +87,10 @@ type QueryBuilder struct {
 	tablesWithWhereConditions     set
 	pathCache                     set
 	aliasCounter                  int
+	pageLimit                     uint
 }
 
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, pageLimit int) *QueryBuilder {
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
@@ -101,6 +102,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 		tablesWithWhereConditions:     make(set),
 		pathCache:                     make(set),
 		aliasCounter:                  0,
+		pageLimit:                     uint(pageLimit),
 	}
 }
 
@@ -149,12 +151,12 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 		return "", nil, "", false, err
 	}
 
-	sql, args, err := query.Limit(pageLimit).ToSQL()
+	sql, args, err := query.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
 
-	pageSql, _, err := pageQuery.Limit(pageLimit).ToSQL()
+	pageSql, _, err := pageQuery.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
 	}

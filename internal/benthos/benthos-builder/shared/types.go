@@ -28,6 +28,7 @@ type SelectQueryMapBuilder interface {
 		runConfigs []*tabledependency.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+		pageLimit int,
 	) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error)
 }
 
