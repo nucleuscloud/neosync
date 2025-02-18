@@ -2,6 +2,7 @@ package sqlmanager_mssql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -181,6 +182,44 @@ func Test_MssqlManager(t *testing.T) {
 			require.Equalf(t, expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
 			require.Equalf(t, expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
 		}
+	})
+
+	t.Run("GetUniqueConstraintsMap", func(t *testing.T) {
+		t.Parallel()
+		schema := "mssqlinit"
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		jsonF, _ := json.MarshalIndent(actual, "", " ")
+		fmt.Printf("\n\n %s \n\n", string(jsonF))
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		uniques, ok := actual.UniqueConstraints[buildTable(schema, "table_with_unique_constraint")]
+		require.True(t, ok)
+		require.Len(t, uniques, 1)
+		require.ElementsMatch(t, []string{"column1"}, uniques[0])
+
+		uniques, ok = actual.UniqueConstraints[buildTable(schema, "table_with_unique_constraint_composite")]
+		require.True(t, ok)
+		require.Len(t, uniques, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, uniques[0])
+	})
+
+	t.Run("GetUniqueIndexesMap", func(t *testing.T) {
+		t.Parallel()
+		schema := "mssqlinit"
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		indexes, ok := actual.UniqueIndexes[buildTable(schema, "table_with_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1"}, indexes[0])
+
+		indexes, ok = actual.UniqueIndexes[buildTable(schema, "table_with_composite_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, indexes[0])
 	})
 
 	t.Run("GetSchemaInitStatements", func(t *testing.T) {
