@@ -339,6 +339,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
+	maxIterations := 100
 	tablesync_workflow_register.Register(
 		w,
 		connclient,
@@ -347,6 +348,7 @@ func serve(ctx context.Context) error {
 		mongoconnmanager,
 		syncActivityMeter,
 		benthosstream.NewBenthosStreamManager(),
+		maxIterations,
 	)
 
 	if cascadelicense.IsValid() {

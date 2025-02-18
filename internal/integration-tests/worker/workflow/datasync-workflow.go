@@ -42,6 +42,7 @@ type TestWorkflowEnv struct {
 	redisconfig   *neosync_redis.RedisConfig
 	fakeEELicense *testutil.FakeEELicense
 	pageLimit     int
+	maxIterations int
 	TestEnv       *testsuite.TestWorkflowEnvironment
 	Redisclient   redis.UniversalClient
 }
@@ -73,6 +74,12 @@ func WithPageLimit(pageLimit int) Option {
 	}
 }
 
+func WithMaxIterations(maxIterations int) Option {
+	return func(c *TestWorkflowEnv) {
+		c.maxIterations = maxIterations
+	}
+}
+
 // NewTestDataSyncWorkflowEnv creates and configures a new test datasync workflow environment
 func NewTestDataSyncWorkflowEnv(
 	t testing.TB,
@@ -85,6 +92,8 @@ func NewTestDataSyncWorkflowEnv(
 	workflowEnv := &TestWorkflowEnv{
 		neosyncApi:    neosyncApi,
 		fakeEELicense: testutil.NewFakeEELicense(),
+		pageLimit:     10,
+		maxIterations: 5,
 	}
 
 	for _, opt := range opts {
@@ -141,6 +150,7 @@ func NewTestDataSyncWorkflowEnv(
 		dbManagers.MongoConnManager,
 		activityMeter,
 		benthosstream.NewBenthosStreamManager(),
+		workflowEnv.maxIterations,
 	)
 
 	env.SetTestTimeout(600 * time.Second)

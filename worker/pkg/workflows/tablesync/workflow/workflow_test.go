@@ -25,7 +25,7 @@ func Test_TableSync_SingleIteration(t *testing.T) {
 	env := ts.NewTestWorkflowEnvironment()
 
 	// Register the workflow.
-	tsWf := New()
+	tsWf := New(1)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// Register a fake activity implementation.
@@ -69,7 +69,7 @@ func Test_TableSync_MultipleIterations(t *testing.T) {
 	var ts testsuite.WorkflowTestSuite
 	env := ts.NewTestWorkflowEnvironment()
 
-	tsWf := New()
+	tsWf := New(1)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// Use a counter so that the first activity call returns a token and the second returns nil.
@@ -122,7 +122,7 @@ func Test_TableSync_ContinueAsNew(t *testing.T) {
 	var ts testsuite.WorkflowTestSuite
 	env := ts.NewTestWorkflowEnvironment()
 
-	tsWf := New()
+	tsWf := New(2)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// The activity always returns a non-nil token.
