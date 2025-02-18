@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Jeffail/shutdown"
-
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
@@ -62,8 +60,6 @@ type pooledInput struct {
 	rows *sql.Rows
 
 	recordMapper record_mapper_builder.DatabaseRecordMapper[any]
-
-	shutSig *shutdown.Signaller
 
 	stopActivityChannel chan<- error
 	onHasMorePages      OnHasMorePagesFn
@@ -127,7 +123,6 @@ func newInput(
 
 	return &pooledInput{
 		logger:              mgr.Logger(),
-		shutSig:             shutdown.NewSignaller(),
 		connectionId:        connectionId,
 		driver:              driver,
 		queryStatic:         queryStatic,
@@ -150,13 +145,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db != nil {
-		return nil
-	}
-
 	db, err := s.provider.GetDb(ctx, s.connectionId)
 	if err != nil {
-		return nil
+		return err
 	}
 	s.db = db
 	s.logger.Debug(fmt.Sprintf("connected to database %s", s.connectionId))
@@ -202,20 +193,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	s.rows = rows
 	s.rowsRead = 0
-	go func() {
-		<-s.shutSig.HardStopChan()
-
-		s.dbMut.Lock()
-		if s.rows != nil {
-			_ = s.rows.Close()
-			s.rows = nil
-		}
-		// not closing the connection here as that is managed by an outside force
-		s.db = nil
-		s.dbMut.Unlock()
-
-		s.shutSig.TriggerHasStopped()
-	}()
 	return nil
 }
 
@@ -239,19 +216,18 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	}
 	if !s.rows.Next() {
 		// Check if any error occurred.
-		if err := s.rows.Err(); err != nil {
-			_ = s.rows.Close()
-			s.rows = nil
+		rows := s.rows
+		s.rows = nil
+		_ = rows.Close()
+		if err := rows.Err(); err != nil {
 			return nil, nil, err
 		}
-		// For non-Postgres drivers, simply close and return EndOfInput
-		_ = s.rows.Close()
-		s.rows = nil
+
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
 			s.logger.Debug(fmt.Sprintf("[ROW END] rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
 			if s.rowsRead >= *s.expectedTotalRows {
-				s.logger.Debug("[ROW END] emitting order by column values")
+				s.logger.Debug("[ROW END] emitting onHasMorePages as rows read >= expected total rows")
 				s.onHasMorePages(s.lastReadOrderValues)
 			}
 		}
@@ -288,6 +264,12 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	return msg, emptyAck, nil
 }
 
+// emptyAck is a no-op ack function
+// Original benthos input returns this, which causes downstream messages to continually be retried.
+// Not sure we really want to ever enable this though because it's not clear how to handle the case in our system today.
+// Also our broker will retry messages endlessly until we enable the escape hatch (critical errors).
+//
+//	// return service.AutoRetryNacksToggled(conf, input)
 func emptyAck(ctx context.Context, err error) error {
 	// Nacks are handled by AutoRetryNacks because we don't have an explicit
 	// ack mechanism right now.
@@ -295,28 +277,16 @@ func emptyAck(ctx context.Context, err error) error {
 }
 
 func (s *pooledInput) Close(ctx context.Context) error {
-	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
-
-	isNil := s.db == nil
-	if isNil {
-		s.dbMut.Unlock()
-		return nil
-	}
+	defer s.dbMut.Unlock()
 
 	if s.rows != nil {
 		_ = s.rows.Close()
 		s.rows = nil
 	}
 
-	s.db = nil // not closing here since it's managed by the pool
-
-	s.dbMut.Unlock()
-
-	select {
-	case <-s.shutSig.HasStoppedChan():
-	case <-ctx.Done():
-		return ctx.Err()
+	if s.db != nil {
+		s.db = nil // not closing here since it's managed by the pool
 	}
 	return nil
 }
