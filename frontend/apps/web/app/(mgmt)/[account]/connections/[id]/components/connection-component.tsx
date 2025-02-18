@@ -2,6 +2,7 @@
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
+import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   Connection,
@@ -10,13 +11,11 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
-import { getPgConnectionFormValues } from '../../../new/connection/postgres/PostgresForm';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MssqlForm from './MssqlForm';
-import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
   name: string;
@@ -112,9 +111,6 @@ export function useGetConnectionComponentDetails(
     case 'pgConfig': {
       const value = connection.connectionConfig.config.value;
       const headerType = getPgHeaderType(value);
-      const { db, url, envVar } = getPgConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
 
       return {
         name: connection.name,
@@ -141,56 +137,69 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <PostgresForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              db,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: value.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: value.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: value.connectionOptions?.maxOpenDuration,
-              },
-              clientTls: {
-                rootCert: value.clientTls?.rootCert
-                  ? value.clientTls.rootCert
-                  : '',
-                clientCert: value.clientTls?.clientCert
-                  ? value.clientTls.clientCert
-                  : '',
-                clientKey: value.clientTls?.clientKey
-                  ? value.clientTls.clientKey
-                  : '',
-                serverName: value.clientTls?.serverName
-                  ? value.clientTls.serverName
-                  : '',
-              },
-              tunnel: {
-                host: value.tunnel?.host ?? '',
-                port: value.tunnel?.port ?? 22,
-                knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
-                user: value.tunnel?.user ?? '',
-                passphrase:
-                  value.tunnel && value.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        value.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  value.tunnel && value.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        value.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
-            // onSaveFailed={onSaveFailed}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <PostgresConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <PostgresConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          // <PostgresForm
+          //   connectionId={connection.id}
+          //   defaultValues={{
+          //     connectionName: connection.name,
+          //     db,
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: value.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: value.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: value.connectionOptions?.maxOpenDuration,
+          //     },
+          //     clientTls: {
+          //       rootCert: value.clientTls?.rootCert
+          //         ? value.clientTls.rootCert
+          //         : '',
+          //       clientCert: value.clientTls?.clientCert
+          //         ? value.clientTls.clientCert
+          //         : '',
+          //       clientKey: value.clientTls?.clientKey
+          //         ? value.clientTls.clientKey
+          //         : '',
+          //       serverName: value.clientTls?.serverName
+          //         ? value.clientTls.serverName
+          //         : '',
+          //     },
+          //     tunnel: {
+          //       host: value.tunnel?.host ?? '',
+          //       port: value.tunnel?.port ?? 22,
+          //       knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
+          //       user: value.tunnel?.user ?? '',
+          //       passphrase:
+          //         value.tunnel && value.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               value.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         value.tunnel && value.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               value.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          //   // onSaveFailed={onSaveFailed}
+          // />
         ),
       };
     }

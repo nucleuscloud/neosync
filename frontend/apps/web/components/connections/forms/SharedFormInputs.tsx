@@ -482,6 +482,7 @@ export function CheckConnectionButton(
       setIsChecking(true);
       const res = await checkConnectionConfig(getRequest());
       setValidationResponse(res);
+      setOpenPermissionDialog(!!res?.isConnected);
     } catch (err) {
       setValidationResponse(
         createMessage(CheckConnectionConfigResponseSchema, {
@@ -508,7 +509,12 @@ export function CheckConnectionButton(
         connectionType={connectionType}
       />
       <div className="flex justify-end">
-        <Button variant="outline" disabled={!isValid} onClick={onClick}>
+        <Button
+          variant="outline"
+          disabled={!isValid}
+          onClick={onClick}
+          type="button"
+        >
           <ButtonText
             leftIcon={isChecking ? <Spinner /> : undefined}
             text="Test Connection"

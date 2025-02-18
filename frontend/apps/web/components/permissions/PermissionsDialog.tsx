@@ -2,6 +2,7 @@ import { Alert } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -51,10 +52,10 @@ export default function PermissionsDialog(props: Props): ReactElement {
             <DialogTitle>Connection Permissions</DialogTitle>
             {isValidating ? <Spinner /> : null}
           </div>
-          <div className="text-muted-foreground text-sm">
+          <DialogDescription className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
             <LearnMoreLink href="https://docs.neosync.dev/connections/postgres#permissions" />{' '}
-          </div>
+          </DialogDescription>
         </DialogHeader>
         <PermissionsDataTable
           ConnectionAlert={

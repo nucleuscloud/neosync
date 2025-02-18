@@ -209,44 +209,54 @@ export const MysqlFormValues = Yup.object<
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
 
-export const PostgresFormValues = Yup.object({
-  connectionName: connectionNameSchema,
-  db: Yup.object({
-    host: Yup.string().when('$activeTab', {
-      is: 'host', // Only require if activeTab is 'host'
-      then: (schema) => schema.required('The host name is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    name: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database name is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    user: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database user is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    pass: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database password is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    port: Yup.number()
-      .integer()
-      .positive()
-      .when('$activeTab', {
-        is: 'host',
-        then: (schema) => schema.required('The database port is required'),
-        otherwise: (schema) => schema.notRequired(),
-      }),
-    sslMode: Yup.string().optional(),
+const PostgresDbFormValue = Yup.object().shape({
+  host: Yup.string().when('$activeTab', {
+    is: 'host', // Only require if activeTab is 'host'
+    then: (schema) => schema.required('The host name is required.'),
+    otherwise: (schema) => schema.notRequired(),
   }),
+  name: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database name is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  user: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database user is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  pass: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database password is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  port: Yup.number()
+    .integer()
+    .positive()
+    .when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database port is required'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  sslMode: Yup.string().optional(),
+});
+
+export const PostgresFormValues = Yup.object<
+  PostgresCreateConnectionFormContext | PostgresEditConnectionFormContext
+>().shape({
+  connectionName: connectionNameSchema,
+  db: PostgresDbFormValue,
   url: UrlFormValue,
   envVar: UrlEnvVarFormValue,
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<ActiveConnectionTab>([
+    'url',
+    'host',
+    'url-env',
+  ]),
 });
 
 export type PostgresFormValues = Yup.InferType<typeof PostgresFormValues>;
