@@ -17,22 +17,20 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/util/util';
 import { create } from '@bufbuild/protobuf';
-import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
+import { useQuery } from '@connectrpc/connect-query';
 import {
   ConnectionConfig,
   ConnectionConfigSchema,
   ConnectionRolePrivilege,
   ConnectionService,
-  GetConnectionResponseSchema,
 } from '@neosync/sdk';
 import { UpdateIcon } from '@radix-ui/react-icons';
-import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
-import { getConnectionComponentDetails } from '../components/connection-component';
+import { useGetConnectionComponentDetails } from '../components/connection-component';
 
 function getPermissionColumnType(
   connConfig: ConnectionConfig
@@ -56,10 +54,10 @@ export default function PermissionsPage({ params }: PageProps) {
   const { account } = useAccount();
   const { data, isLoading } = useQuery(
     ConnectionService.method.getConnection,
-    { id },
+    { id, excludeSensitive: true },
     { enabled: !!id }
   );
-  const queryclient = useQueryClient();
+
   const {
     data: connData,
     isLoading: isCheckConnLoading,
@@ -80,6 +78,27 @@ export default function PermissionsPage({ params }: PageProps) {
     [isLoading]
   );
 
+  const connectionComponent = useGetConnectionComponentDetails({
+    mode: 'view',
+    connection: data?.connection!,
+    extraPageHeading: (
+      <div className="flex flex-row items-center gap-4">
+        {data?.connection?.connectionConfig?.config.case &&
+          data?.connection?.id && (
+            <CloneConnectionButton id={data?.connection?.id ?? ''} />
+          )}
+        <RemoveConnectionButton connectionId={id} />
+      </div>
+    ),
+    subHeading: (
+      <ResourceId
+        labelText={data?.connection?.id ?? ''}
+        copyText={data?.connection?.id ?? ''}
+        onHoverText="Copy the connection id"
+      />
+    ),
+  });
+
   if (!id) {
     return <Error statusCode={404} />;
   }
@@ -93,49 +112,6 @@ export default function PermissionsPage({ params }: PageProps) {
   if (!isLoading && !data?.connection) {
     return <Error statusCode={404} />;
   }
-
-  const connectionComponent = getConnectionComponentDetails({
-    connection: data?.connection!,
-    onSaved: (resp) => {
-      queryclient.setQueryData(
-        createConnectQueryKey({
-          schema: ConnectionService.method.getConnection,
-          input: { id: resp.connection?.id },
-          cardinality: undefined,
-        }),
-        create(GetConnectionResponseSchema, {
-          connection: resp.connection,
-        })
-      );
-      toast.success('Successfully updated connection!');
-    },
-    onSaveFailed: (err) =>
-      toast.error('Unable to update connection!', {
-        description: getErrorMessage(err),
-      }),
-    extraPageHeading: (
-      <div className="flex flex-row items-center gap-4">
-        {data?.connection?.connectionConfig?.config.case &&
-          data?.connection?.id && (
-            <CloneConnectionButton
-              connectionConfig={
-                data?.connection?.connectionConfig ??
-                create(ConnectionConfigSchema, {})
-              }
-              id={data?.connection?.id ?? ''}
-            />
-          )}
-        <RemoveConnectionButton connectionId={id} />
-      </div>
-    ),
-    subHeading: (
-      <ResourceId
-        labelText={data?.connection?.id ?? ''}
-        copyText={data?.connection?.id ?? ''}
-        onHoverText="Copy the connection id"
-      />
-    ),
-  });
 
   const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
 

@@ -90,7 +90,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `GetConnectionRequest`
-<ProtoMessage key={18} message={{"name":"GetConnectionRequest","longName":"GetConnectionRequest","fullName":"mgmt.v1alpha1.GetConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The unique identifier of the connection to get","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+<ProtoMessage key={18} message={{"name":"GetConnectionRequest","longName":"GetConnectionRequest","fullName":"mgmt.v1alpha1.GetConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The unique identifier of the connection to get","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"exclude_sensitive","description":"Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
 ### `GetConnectionResponse`
@@ -98,7 +98,7 @@ _**package** mgmt.v1alpha1_
 
 
 ### `GetConnectionsRequest`
-<ProtoMessage key={20} message={{"name":"GetConnectionsRequest","longName":"GetConnectionsRequest","fullName":"mgmt.v1alpha1.GetConnectionsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The unique identifier of the account to get connections for","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+<ProtoMessage key={20} message={{"name":"GetConnectionsRequest","longName":"GetConnectionsRequest","fullName":"mgmt.v1alpha1.GetConnectionsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"The unique identifier of the account to get connections for","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"exclude_sensitive","description":"Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
 
 
 ### `GetConnectionsResponse`

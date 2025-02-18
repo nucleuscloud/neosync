@@ -467,3 +467,31 @@ class SetUserRoleRequest(_message.Message):
 class SetUserRoleResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class HasPermissionRequest(_message.Message):
+    __slots__ = ("account_id", "resource_id", "permission")
+    class Permission(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        PERMISSION_UNSPECIFIED: _ClassVar[HasPermissionRequest.Permission]
+        PERMISSION_CREATE: _ClassVar[HasPermissionRequest.Permission]
+        PERMISSION_READ: _ClassVar[HasPermissionRequest.Permission]
+        PERMISSION_UPDATE: _ClassVar[HasPermissionRequest.Permission]
+        PERMISSION_DELETE: _ClassVar[HasPermissionRequest.Permission]
+    PERMISSION_UNSPECIFIED: HasPermissionRequest.Permission
+    PERMISSION_CREATE: HasPermissionRequest.Permission
+    PERMISSION_READ: HasPermissionRequest.Permission
+    PERMISSION_UPDATE: HasPermissionRequest.Permission
+    PERMISSION_DELETE: HasPermissionRequest.Permission
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    RESOURCE_ID_FIELD_NUMBER: _ClassVar[int]
+    PERMISSION_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    resource_id: str
+    permission: HasPermissionRequest.Permission
+    def __init__(self, account_id: _Optional[str] = ..., resource_id: _Optional[str] = ..., permission: _Optional[_Union[HasPermissionRequest.Permission, str]] = ...) -> None: ...
+
+class HasPermissionResponse(_message.Message):
+    __slots__ = ("has_permission",)
+    HAS_PERMISSION_FIELD_NUMBER: _ClassVar[int]
+    has_permission: bool
+    def __init__(self, has_permission: bool = ...) -> None: ...

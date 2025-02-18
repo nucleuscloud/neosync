@@ -1,24 +1,16 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
+import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
+import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
+import SqlServerConnectionForm from '@/components/connections/forms/sql-server/SqlServerConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  Connection,
-  PostgresConnectionConfig,
-  SSHAuthentication,
-  UpdateConnectionResponse,
-} from '@neosync/sdk';
+import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
-import { getMysqlConnectionFormValues } from '../../../new/connection/mysql/MysqlForm';
-import { getPgConnectionFormValues } from '../../../new/connection/postgres/PostgresForm';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
-import MssqlForm from './MssqlForm';
-import MysqlForm from './MysqlForm';
-import OpenAiForm from './OpenAiForm';
-import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
   name: string;
@@ -27,13 +19,33 @@ interface ConnectionComponent {
   header: ReactElement;
 }
 
-interface GetConnectionComponentDetailsProps {
+type BaseConnectionComponentDetailsProps = {
   connection?: Connection;
-  onSaved(updatedConnResp: UpdateConnectionResponse): void;
-  onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
   subHeading?: ReactElement;
-}
+};
+
+type ViewModeProps = BaseConnectionComponentDetailsProps & {
+  mode?: 'view';
+  onSaved?: never;
+  onSaveFailed?: never;
+};
+
+type EditModeProps = BaseConnectionComponentDetailsProps & {
+  mode: 'edit';
+  onSaved: (connection: Connection) => void;
+  onSaveFailed: (err: unknown) => void;
+};
+
+// type CloneModeProps = BaseConnectionComponentDetailsProps & {
+//   mode: 'clone';
+//   connection?: never;
+
+//   connectionId: string;
+//   onSuccess: (connection: Connection) => void;
+// };
+
+type GetConnectionComponentDetailsProps = ViewModeProps | EditModeProps;
 
 function getPgHeaderType(
   connection: PostgresConnectionConfig
@@ -56,19 +68,44 @@ function getPgHeaderType(
   }
 }
 
-export function getConnectionComponentDetails(
+interface ModeViewProps {
+  mode: 'view' | 'edit';
+  view(): ReactElement;
+  edit(): ReactElement;
+}
+function ModeView(props: ModeViewProps): ReactElement {
+  const { mode, view, edit } = props;
+
+  if (mode === 'view') {
+    return view();
+  }
+
+  return edit();
+}
+
+export function useGetConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
-  const { connection, onSaved, extraPageHeading, onSaveFailed, subHeading } =
-    props;
+  const {
+    connection,
+
+    onSaved,
+    extraPageHeading,
+    onSaveFailed,
+    subHeading,
+    mode = 'view',
+  } = props;
+
+  async function onSuccess(connection: Connection): Promise<void> {
+    if (onSaved) {
+      onSaved(connection);
+    }
+  }
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig': {
       const value = connection.connectionConfig.config.value;
       const headerType = getPgHeaderType(value);
-      const { db, url, envVar } = getPgConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
 
       return {
         name: connection.name,
@@ -95,64 +132,78 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <PostgresForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              db,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: value.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: value.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: value.connectionOptions?.maxOpenDuration,
-              },
-              clientTls: {
-                rootCert: value.clientTls?.rootCert
-                  ? value.clientTls.rootCert
-                  : '',
-                clientCert: value.clientTls?.clientCert
-                  ? value.clientTls.clientCert
-                  : '',
-                clientKey: value.clientTls?.clientKey
-                  ? value.clientTls.clientKey
-                  : '',
-                serverName: value.clientTls?.serverName
-                  ? value.clientTls.serverName
-                  : '',
-              },
-              tunnel: {
-                host: value.tunnel?.host ?? '',
-                port: value.tunnel?.port ?? 22,
-                knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
-                user: value.tunnel?.user ?? '',
-                passphrase:
-                  value.tunnel && value.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        value.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  value.tunnel && value.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        value.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-            }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <PostgresConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <PostgresConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          // <PostgresForm
+          //   connectionId={connection.id}
+          //   defaultValues={{
+          //     connectionName: connection.name,
+          //     db,
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: value.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: value.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: value.connectionOptions?.maxOpenDuration,
+          //     },
+          //     clientTls: {
+          //       rootCert: value.clientTls?.rootCert
+          //         ? value.clientTls.rootCert
+          //         : '',
+          //       clientCert: value.clientTls?.clientCert
+          //         ? value.clientTls.clientCert
+          //         : '',
+          //       clientKey: value.clientTls?.clientKey
+          //         ? value.clientTls.clientKey
+          //         : '',
+          //       serverName: value.clientTls?.serverName
+          //         ? value.clientTls.serverName
+          //         : '',
+          //     },
+          //     tunnel: {
+          //       host: value.tunnel?.host ?? '',
+          //       port: value.tunnel?.port ?? 22,
+          //       knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
+          //       user: value.tunnel?.user ?? '',
+          //       passphrase:
+          //         value.tunnel && value.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               value.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         value.tunnel && value.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               value.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          //   // onSaveFailed={onSaveFailed}
+          // />
         ),
       };
     }
 
     case 'mysqlConfig': {
-      const mysqlValue = connection.connectionConfig.config.value;
-      const { db, url, envVar } = getMysqlConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
+      // const mysqlValue = connection.connectionConfig.config.value;
+      // const { db, url, envVar } = getMysqlConnectionFormValues(
+      //   connection.connectionConfig.config.value
+      // );
 
       return {
         name: connection.name,
@@ -170,56 +221,69 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <MysqlForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              db,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit:
-                  mysqlValue.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: mysqlValue.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: mysqlValue.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: mysqlValue.connectionOptions?.maxOpenDuration,
-              },
-              tunnel: {
-                host: mysqlValue.tunnel?.host ?? '',
-                port: mysqlValue.tunnel?.port ?? 22,
-                knownHostPublicKey: mysqlValue.tunnel?.knownHostPublicKey ?? '',
-                user: mysqlValue.tunnel?.user ?? '',
-                passphrase:
-                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        mysqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        mysqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-              clientTls: {
-                rootCert: mysqlValue.clientTls?.rootCert
-                  ? mysqlValue.clientTls.rootCert
-                  : '',
-                clientCert: mysqlValue.clientTls?.clientCert
-                  ? mysqlValue.clientTls.clientCert
-                  : '',
-                clientKey: mysqlValue.clientTls?.clientKey
-                  ? mysqlValue.clientTls.clientKey
-                  : '',
-                serverName: mysqlValue.clientTls?.serverName
-                  ? mysqlValue.clientTls.serverName
-                  : '',
-              },
-            }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <MysqlConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <MysqlConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          // <MysqlForm
+          //   connectionId={connection.id}
+          //   defaultValues={{
+          //     connectionName: connection.name,
+          //     db,
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit:
+          //         mysqlValue.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: mysqlValue.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: mysqlValue.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: mysqlValue.connectionOptions?.maxOpenDuration,
+          //     },
+          //     tunnel: {
+          //       host: mysqlValue.tunnel?.host ?? '',
+          //       port: mysqlValue.tunnel?.port ?? 22,
+          //       knownHostPublicKey: mysqlValue.tunnel?.knownHostPublicKey ?? '',
+          //       user: mysqlValue.tunnel?.user ?? '',
+          //       passphrase:
+          //         mysqlValue.tunnel && mysqlValue.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               mysqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         mysqlValue.tunnel && mysqlValue.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               mysqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //     clientTls: {
+          //       rootCert: mysqlValue.clientTls?.rootCert
+          //         ? mysqlValue.clientTls.rootCert
+          //         : '',
+          //       clientCert: mysqlValue.clientTls?.clientCert
+          //         ? mysqlValue.clientTls.clientCert
+          //         : '',
+          //       clientKey: mysqlValue.clientTls?.clientKey
+          //         ? mysqlValue.clientTls.clientKey
+          //         : '',
+          //       serverName: mysqlValue.clientTls?.serverName
+          //         ? mysqlValue.clientTls.serverName
+          //         : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          // />
         ),
       };
     }
@@ -275,8 +339,8 @@ export function getConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -297,17 +361,18 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <OpenAiForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              sdk: {
-                url: connection.connectionConfig.config.value.apiUrl,
-                apiKey: connection.connectionConfig.config.value.apiKey,
-              },
-            }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <OpenAiConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <OpenAiConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
         ),
       };
@@ -375,8 +440,8 @@ export function getConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -406,8 +471,8 @@ export function getConnectionComponentDetails(
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -461,18 +526,13 @@ export function getConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
     }
     case 'mssqlConfig': {
-      const mssqlValue = connection.connectionConfig.config.value;
-      const { url, envVar } = getMssqlConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
-
       return {
         name: connection.name,
         summary: (
@@ -489,55 +549,64 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <MssqlForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit:
-                  mssqlValue.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
-              },
-              tunnel: {
-                host: mssqlValue.tunnel?.host ?? '',
-                port: mssqlValue.tunnel?.port ?? 22,
-                knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
-                user: mssqlValue.tunnel?.user ?? '',
-                passphrase:
-                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        mssqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        mssqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-              clientTls: {
-                rootCert: mssqlValue.clientTls?.rootCert
-                  ? mssqlValue.clientTls.rootCert
-                  : '',
-                clientCert: mssqlValue.clientTls?.clientCert
-                  ? mssqlValue.clientTls.clientCert
-                  : '',
-                clientKey: mssqlValue.clientTls?.clientKey
-                  ? mssqlValue.clientTls.clientKey
-                  : '',
-                serverName: mssqlValue.clientTls?.serverName
-                  ? mssqlValue.clientTls.serverName
-                  : '',
-              },
-            }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <SqlServerConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <SqlServerConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit:
+          //         mssqlValue.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
+          //     },
+          //     tunnel: {
+          //       host: mssqlValue.tunnel?.host ?? '',
+          //       port: mssqlValue.tunnel?.port ?? 22,
+          //       knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
+          //       user: mssqlValue.tunnel?.user ?? '',
+          //       passphrase:
+          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               mssqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               mssqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //     clientTls: {
+          //       rootCert: mssqlValue.clientTls?.rootCert
+          //         ? mssqlValue.clientTls.rootCert
+          //         : '',
+          //       clientCert: mssqlValue.clientTls?.clientCert
+          //         ? mssqlValue.clientTls.clientCert
+          //         : '',
+          //       clientKey: mssqlValue.clientTls?.clientKey
+          //         ? mssqlValue.clientTls.clientKey
+          //         : '',
+          //       serverName: mssqlValue.clientTls?.serverName
+          //         ? mssqlValue.clientTls.serverName
+          //         : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          // />
         ),
       };
     }
@@ -557,29 +626,5 @@ export function getConnectionComponentDetails(
           </div>
         ),
       };
-  }
-}
-
-function getPassphraseFromSshAuthentication(
-  sshauth: SSHAuthentication
-): string | undefined {
-  switch (sshauth.authConfig.case) {
-    case 'passphrase':
-      return sshauth.authConfig.value.value;
-    case 'privateKey':
-      return sshauth.authConfig.value.passphrase;
-    default:
-      return undefined;
-  }
-}
-
-function getPrivateKeyFromSshAuthentication(
-  sshauth: SSHAuthentication
-): string | undefined {
-  switch (sshauth.authConfig.case) {
-    case 'privateKey':
-      return sshauth.authConfig.value.value;
-    default:
-      return undefined;
   }
 }

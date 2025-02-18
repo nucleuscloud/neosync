@@ -39,7 +39,7 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
     <DeleteConfirmationDialog
       trigger={
         <Button variant="destructive">
-          <ButtonText leftIcon={<TrashIcon />} text="Delete Connection" />
+          <ButtonText leftIcon={<TrashIcon />} text="Delete" />
         </Button>
       }
       headerText="Are you sure you want to delete this connection?"

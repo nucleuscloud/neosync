@@ -22,6 +22,7 @@ var _ EntityEnforcer = (*UserEntityEnforcer)(nil)
 type EntityEnforcer interface {
 	EnforceJob(ctx context.Context, job DomainEntity, action rbac.JobAction) error
 	EnforceConnection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) error
+	Connection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) (bool, error)
 	EnforceAccount(ctx context.Context, account Identifier, action rbac.AccountAction) error
 }
 
@@ -43,6 +44,13 @@ func (u *UserEntityEnforcer) EnforceConnection(ctx context.Context, connection D
 		return nil
 	}
 	return u.enforcer.EnforceConnection(ctx, u.user, rbac.NewAccountIdEntity(connection.GetAccountId()), rbac.NewConnectionIdEntity(connection.GetId()), action)
+}
+
+func (u *UserEntityEnforcer) Connection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) (bool, error) {
+	if err := u.enforceAccountAccess(ctx, connection.GetAccountId()); err != nil {
+		return false, err
+	}
+	return u.enforcer.Connection(ctx, u.user, rbac.NewAccountIdEntity(connection.GetAccountId()), rbac.NewConnectionIdEntity(connection.GetId()), action)
 }
 
 func (u *UserEntityEnforcer) EnforceAccount(ctx context.Context, account Identifier, action rbac.AccountAction) error {

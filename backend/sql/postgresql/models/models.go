@@ -20,11 +20,11 @@ type ConnectionConfig struct {
 	MssqlConfig           *MssqlConfig                    `json:"mssqlConfig,omitempty"`
 }
 
-func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
+func (c *ConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.ConnectionConfig, error) {
 	if c.PgConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.PgConfig.SSHTunnel != nil {
-			tunnel = c.PgConfig.SSHTunnel.ToDto()
+			tunnel = c.PgConfig.SSHTunnel.ToDto(canViewSensitive)
 		}
 		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 		if c.PgConfig.ConnectionOptions != nil {
@@ -32,9 +32,13 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		}
 		var clientTls *mgmtv1alpha1.ClientTlsConfig
 		if c.PgConfig.ClientTls != nil {
-			clientTls = c.PgConfig.ClientTls.ToDto()
+			clientTls = c.PgConfig.ClientTls.ToDto(canViewSensitive)
 		}
 		if c.PgConfig.Connection != nil {
+			pass := c.PgConfig.Connection.Pass
+			if !canViewSensitive && pass != "" {
+				pass = sensitiveValue
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
@@ -44,7 +48,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 								Port:    c.PgConfig.Connection.Port,
 								Name:    c.PgConfig.Connection.Name,
 								User:    c.PgConfig.Connection.User,
-								Pass:    c.PgConfig.Connection.Pass,
+								Pass:    pass,
 								SslMode: c.PgConfig.Connection.SslMode,
 							},
 						},
@@ -55,6 +59,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				},
 			}, nil
 		} else if c.PgConfig.Url != nil {
+			// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
@@ -84,7 +89,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.MysqlConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.MysqlConfig.SSHTunnel != nil {
-			tunnel = c.MysqlConfig.SSHTunnel.ToDto()
+			tunnel = c.MysqlConfig.SSHTunnel.ToDto(canViewSensitive)
 		}
 		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 		if c.MysqlConfig.ConnectionOptions != nil {
@@ -92,16 +97,20 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		}
 		var clientTls *mgmtv1alpha1.ClientTlsConfig
 		if c.MysqlConfig.ClientTls != nil {
-			clientTls = c.MysqlConfig.ClientTls.ToDto()
+			clientTls = c.MysqlConfig.ClientTls.ToDto(canViewSensitive)
 		}
 		if c.MysqlConfig.Connection != nil {
+			pass := c.MysqlConfig.Connection.Pass
+			if !canViewSensitive && pass != "" {
+				pass = sensitiveValue
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
 							Connection: &mgmtv1alpha1.MysqlConnection{
 								User:     c.MysqlConfig.Connection.User,
-								Pass:     c.MysqlConfig.Connection.Pass,
+								Pass:     pass,
 								Protocol: c.MysqlConfig.Connection.Protocol,
 								Host:     c.MysqlConfig.Connection.Host,
 								Port:     c.MysqlConfig.Connection.Port,
@@ -115,6 +124,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				},
 			}, nil
 		} else if c.MysqlConfig.Url != nil {
+			// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
@@ -144,7 +154,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.AwsS3Config != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
-				AwsS3Config: c.AwsS3Config.ToDto(),
+				AwsS3Config: c.AwsS3Config.ToDto(canViewSensitive),
 			},
 		}, nil
 	} else if c.LocalDirectoryConfig != nil {
@@ -156,11 +166,11 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.OpenAiConfig != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_OpenaiConfig{
-				OpenaiConfig: c.OpenAiConfig.ToDto(),
+				OpenaiConfig: c.OpenAiConfig.ToDto(canViewSensitive),
 			},
 		}, nil
 	} else if c.MongoConfig != nil {
-		mdto, err := c.MongoConfig.ToDto()
+		mdto, err := c.MongoConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +190,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 			},
 		}, nil
 	} else if c.DynamoDBConfig != nil {
-		dto, err := c.DynamoDBConfig.ToDto()
+		dto, err := c.DynamoDBConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +200,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 			},
 		}, nil
 	} else if c.MssqlConfig != nil {
-		mdto, err := c.MssqlConfig.ToDto()
+		mdto, err := c.MssqlConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -315,19 +325,20 @@ type MongoConnectionConfig struct {
 	ClientTls *ClientTls `json:"clientTls,omitempty"`
 }
 
-func (m *MongoConnectionConfig) ToDto() (*mgmtv1alpha1.MongoConnectionConfig, error) {
+func (m *MongoConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MongoConnectionConfig, error) {
 	if m.Url == nil {
 		return nil, errors.New("mongo connection does not contain url")
 	}
 	var tunnel *mgmtv1alpha1.SSHTunnel
 	if m.SSHTunnel != nil {
-		tunnel = m.SSHTunnel.ToDto()
+		tunnel = m.SSHTunnel.ToDto(canViewSensitive)
 	}
 	var clienttls *mgmtv1alpha1.ClientTlsConfig
 	if m.ClientTls != nil {
-		clienttls = m.ClientTls.ToDto()
+		clienttls = m.ClientTls.ToDto(canViewSensitive)
 	}
 	return &mgmtv1alpha1.MongoConnectionConfig{
+		// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 		ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
 			Url: *m.Url,
 		},
@@ -387,20 +398,21 @@ type MssqlConfig struct {
 	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
-func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
+func (d *MssqlConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 	if d.ConnectionOptions != nil {
 		connectionOptions = d.ConnectionOptions.ToDto()
 	}
 	var tunnel *mgmtv1alpha1.SSHTunnel
 	if d.SSHTunnel != nil {
-		tunnel = d.SSHTunnel.ToDto()
+		tunnel = d.SSHTunnel.ToDto(canViewSensitive)
 	}
 	var clientTls *mgmtv1alpha1.ClientTlsConfig
 	if d.ClientTls != nil {
-		clientTls = d.ClientTls.ToDto()
+		clientTls = d.ClientTls.ToDto(canViewSensitive)
 	}
 	if d.Url != nil {
+		// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 		return &mgmtv1alpha1.MssqlConnectionConfig{
 			ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 				Url: *d.Url,
@@ -459,10 +471,10 @@ type DynamoDBConfig struct {
 	Endpoint    *string           `json:"Endpoint,omitempty"`
 }
 
-func (d *DynamoDBConfig) ToDto() (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
+func (d *DynamoDBConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
 	var creds *mgmtv1alpha1.AwsS3Credentials
 	if d.Credentials != nil {
-		creds = d.Credentials.ToDto()
+		creds = d.Credentials.ToDto(canViewSensitive)
 	}
 	return &mgmtv1alpha1.DynamoDBConnectionConfig{
 		Credentials: creds,
@@ -534,10 +546,10 @@ type SSHTunnel struct {
 	SSHAuthentication  *SSHAuthentication `json:"sshAuthentication,omitempty"`
 }
 
-func (s *SSHTunnel) ToDto() *mgmtv1alpha1.SSHTunnel {
+func (s *SSHTunnel) ToDto(canViewSensitive bool) *mgmtv1alpha1.SSHTunnel {
 	var auth *mgmtv1alpha1.SSHAuthentication
 	if s.SSHAuthentication != nil {
-		auth = s.SSHAuthentication.ToDto()
+		auth = s.SSHAuthentication.ToDto(canViewSensitive)
 	}
 	return &mgmtv1alpha1.SSHTunnel{
 		Host:               s.Host,
@@ -566,19 +578,34 @@ type SSHAuthentication struct {
 	SSHPrivateKey *SSHPrivateKey `json:"sshPrivateKey,omitempty"`
 }
 
-func (s *SSHAuthentication) ToDto() *mgmtv1alpha1.SSHAuthentication {
+const sensitiveValue = "********"
+
+func (s *SSHAuthentication) ToDto(canViewSensitive bool) *mgmtv1alpha1.SSHAuthentication {
 	if s.SSHPassphrase != nil {
+		value := s.SSHPassphrase.Value
+		if !canViewSensitive {
+			value = sensitiveValue
+		}
 		return &mgmtv1alpha1.SSHAuthentication{
 			AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
-				Passphrase: &mgmtv1alpha1.SSHPassphrase{Value: s.SSHPassphrase.Value},
+				Passphrase: &mgmtv1alpha1.SSHPassphrase{Value: value},
 			},
 		}
 	} else if s.SSHPrivateKey != nil {
+		sshPrivateKeyValue := s.SSHPrivateKey.Value
+		if !canViewSensitive {
+			sshPrivateKeyValue = sensitiveValue
+		}
+		sshPrivateKeyPassphrase := s.SSHPrivateKey.Passphrase
+		if !canViewSensitive {
+			v := sensitiveValue
+			sshPrivateKeyPassphrase = &v
+		}
 		return &mgmtv1alpha1.SSHAuthentication{
 			AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 				PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-					Value:      s.SSHPrivateKey.Value,
-					Passphrase: s.SSHPrivateKey.Passphrase,
+					Value:      sshPrivateKeyValue,
+					Passphrase: sshPrivateKeyPassphrase,
 				},
 			},
 		}
@@ -616,11 +643,16 @@ type ClientTls struct {
 	ServerName *string `json:"serverName,omitempty"`
 }
 
-func (c *ClientTls) ToDto() *mgmtv1alpha1.ClientTlsConfig {
+func (c *ClientTls) ToDto(canViewSensitive bool) *mgmtv1alpha1.ClientTlsConfig {
+	clientKey := c.ClientKey
+	if !canViewSensitive {
+		v := sensitiveValue
+		clientKey = &v
+	}
 	return &mgmtv1alpha1.ClientTlsConfig{
 		RootCert:   c.RootCert,
 		ClientCert: c.ClientCert,
-		ClientKey:  c.ClientKey,
+		ClientKey:  clientKey,
 		ServerName: c.ServerName,
 	}
 }
@@ -663,11 +695,16 @@ type AwsS3Credentials struct {
 	RoleExternalId  *string `json:"roleExternalId,omitempty"`
 }
 
-func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
+func (a *AwsS3Credentials) ToDto(canViewSensitive bool) *mgmtv1alpha1.AwsS3Credentials {
+	secretAccessKey := a.SecretAccessKey
+	if !canViewSensitive && secretAccessKey != nil && *secretAccessKey != "" {
+		v := sensitiveValue
+		secretAccessKey = &v
+	}
 	return &mgmtv1alpha1.AwsS3Credentials{
 		Profile:         a.Profile,
 		AccessKeyId:     a.AccessKeyId,
-		SecretAccessKey: a.SecretAccessKey,
+		SecretAccessKey: secretAccessKey,
 		SessionToken:    a.SessionToken,
 		FromEc2Role:     a.FromEc2Role,
 		RoleArn:         a.RoleArn,
@@ -705,9 +742,14 @@ type OpenAiConnectionConfig struct {
 	ApiKey string `json:"apiKey"`
 }
 
-func (o *OpenAiConnectionConfig) ToDto() *mgmtv1alpha1.OpenAiConnectionConfig {
+func (o *OpenAiConnectionConfig) ToDto(canViewSensitive bool) *mgmtv1alpha1.OpenAiConnectionConfig {
+	apiKey := o.ApiKey
+	if !canViewSensitive && apiKey != "" {
+		v := sensitiveValue
+		apiKey = v
+	}
 	return &mgmtv1alpha1.OpenAiConnectionConfig{
-		ApiKey: o.ApiKey,
+		ApiKey: apiKey,
 		ApiUrl: o.ApiUrl,
 	}
 }
@@ -729,7 +771,7 @@ type AwsS3ConnectionConfig struct {
 	Endpoint    *string
 }
 
-func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
+func (a *AwsS3ConnectionConfig) ToDto(canViewSensitive bool) *mgmtv1alpha1.AwsS3ConnectionConfig {
 	var bucket = a.Bucket
 	if a.Bucket == "" && a.BucketArn != "" {
 		bucket = strings.ReplaceAll(a.BucketArn, "arn:aws:s3:::", "")
@@ -738,7 +780,7 @@ func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
 	return &mgmtv1alpha1.AwsS3ConnectionConfig{
 		Bucket:      bucket,
 		PathPrefix:  a.PathPrefix,
-		Credentials: a.Credentials.ToDto(),
+		Credentials: a.Credentials.ToDto(canViewSensitive),
 		Region:      a.Region,
 		Endpoint:    a.Endpoint,
 	}
