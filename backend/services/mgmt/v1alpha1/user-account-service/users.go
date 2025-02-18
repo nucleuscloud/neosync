@@ -823,3 +823,11 @@ func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request
 		},
 	}), nil
 }
+
+func (s *Service) HasPermission(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.HasPermissionRequest],
+) (*connect.Response[mgmtv1alpha1.HasPermissionResponse], error) {
+	// todo: implement
+	return connect.NewResponse(&mgmtv1alpha1.HasPermissionResponse{HasPermission: false}), nil
+}

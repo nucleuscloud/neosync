@@ -48,10 +48,12 @@ interface Props {
   initialValues?: OpenAiFormValues;
   onSubmit?(values: OpenAiFormValues): Promise<void>;
   canViewSecrets?: boolean;
+  getValueWithSecrets?(): Promise<OpenAiFormValues>;
 }
 
 export default function OpenAiForm(props: Props): ReactElement {
-  const { mode, initialValues, onSubmit, canViewSecrets } = props;
+  const { mode, initialValues, onSubmit, canViewSecrets, getValueWithSecrets } =
+    props;
   const { account } = useAccount();
   const {
     formData,
@@ -88,6 +90,8 @@ export default function OpenAiForm(props: Props): ReactElement {
         context: {
           accountId: account?.id ?? '',
           isConnectionNameAvailable: isConnectionNameAvailableAsync,
+          originalConnectionName:
+            mode === 'edit' ? initialValues?.connectionName : undefined,
         },
       });
 
@@ -111,8 +115,9 @@ export default function OpenAiForm(props: Props): ReactElement {
   const submitText = mode === 'create' ? 'Create' : 'Update';
 
   async function onRevealPassword(): Promise<string> {
-    //
-    return '123';
+    console.log('onRevealPassword');
+    const values = await getValueWithSecrets?.();
+    return values?.sdk.apiKey ?? '';
   }
 
   const formContent = (

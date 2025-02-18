@@ -11,15 +11,15 @@ import OpenAiForm from './OpenAiForm';
 
 type CreateProps = Omit<
   BaseCreateProps<OpenAiFormValues>,
-  'ConnectionForm' | 'buildConnectionConfig'
+  'Form' | 'buildConnectionConfig'
 >;
 type EditProps = Omit<
   BaseEditProps<OpenAiFormValues>,
-  'ConnectionForm' | 'buildConnectionConfig'
+  'Form' | 'buildConnectionConfig'
 >;
 type ViewProps = Omit<
   BaseViewProps<OpenAiFormValues>,
-  'ConnectionForm' | 'buildConnectionConfig'
+  'Form' | 'buildConnectionConfig' | 'toFormValues'
 >;
 
 type Props = CreateProps | EditProps | ViewProps;
@@ -31,6 +31,21 @@ export default function OpenAiConnectionForm(props: Props): ReactElement {
         {...props}
         Form={OpenAiForm}
         canViewSecrets={true}
+        toFormValues={(connection) => {
+          if (!connection.connectionConfig) {
+            return undefined;
+          }
+          if (connection.connectionConfig.config.case !== 'openaiConfig') {
+            return undefined;
+          }
+          return {
+            connectionName: connection.name,
+            sdk: {
+              url: connection.connectionConfig.config.value.apiUrl,
+              apiKey: connection.connectionConfig.config.value.apiKey,
+            },
+          };
+        }}
       />
     );
   }

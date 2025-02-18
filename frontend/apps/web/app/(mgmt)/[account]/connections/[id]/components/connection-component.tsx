@@ -189,8 +189,9 @@ export function useGetConnectionComponentDetails(
                     : '',
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
+            // onSaveFailed={onSaveFailed}
           />
         ),
       };
@@ -265,8 +266,8 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -324,7 +325,7 @@ export function useGetConnectionComponentDetails(
               },
             }}
             onSaved={(resp) => onSaved?.(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -336,6 +337,7 @@ export function useGetConnectionComponentDetails(
           apiKey: connection.connectionConfig.config.value.apiKey,
         },
       };
+
       return {
         name: connection.name,
         summary: (
@@ -359,6 +361,10 @@ export function useGetConnectionComponentDetails(
                 mode="view"
                 connectionId={connection.id}
                 initialValues={values}
+                getValueWithSecrets={() => {
+                  console.log('getValueWithSecrets', values);
+                  return Promise.resolve(values);
+                }}
               />
             )}
             edit={() => (
@@ -436,8 +442,8 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -467,8 +473,8 @@ export function useGetConnectionComponentDetails(
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -522,8 +528,8 @@ export function useGetConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
@@ -596,8 +602,8 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved(resp)}
-            onSaveFailed={onSaveFailed}
+            onSaved={(resp) => onSaved?.(resp)}
+            onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };

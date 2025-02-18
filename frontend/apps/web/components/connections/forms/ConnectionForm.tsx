@@ -1,6 +1,9 @@
 import { create as createMessage } from '@bufbuild/protobuf';
+import { useMutation } from '@connectrpc/connect-query';
 import {
+  Connection,
   ConnectionConfig,
+  ConnectionService,
   CreateConnectionRequest,
   CreateConnectionRequestSchema,
   UpdateConnectionRequest,
@@ -15,6 +18,7 @@ export interface BaseProps<T> {
     initialValues?: T;
     onSubmit?(values: T): Promise<void>;
     canViewSecrets?: boolean;
+    getValueWithSecrets?(): Promise<T>;
   }>;
 }
 
@@ -37,6 +41,8 @@ export interface ViewProps<T> extends BaseProps<T> {
   connectionId: string;
 
   canViewSecrets?: boolean;
+  getValueWithSecrets(): Promise<T>;
+  toFormValues(connection: Connection): T | undefined;
 }
 
 type Props<T> = CreateProps<T> | EditProps<T> | ViewProps<T>;
@@ -45,6 +51,10 @@ export default function ConnectionForm<T extends { connectionName: string }>(
   props: Props<T>
 ): ReactElement {
   const { mode, initialValues, Form: ConnectionForm } = props;
+
+  const { mutateAsync: getConnection } = useMutation(
+    ConnectionService.method.getConnection
+  );
 
   async function handleSubmit(values: T): Promise<void> {
     if (mode === 'view') {
@@ -70,12 +80,32 @@ export default function ConnectionForm<T extends { connectionName: string }>(
     }
   }
 
+  async function getValueWithSecrets(): Promise<T> {
+    if (mode !== 'view') {
+      return initialValues as T;
+    }
+
+    // todo: handle errors?
+    const connectionResp = await getConnection({
+      id: props.connectionId,
+      excludeSensitive: false,
+    });
+    if (connectionResp.connection) {
+      const formValues = props.toFormValues(connectionResp.connection);
+      if (formValues) {
+        return formValues;
+      }
+    }
+    return initialValues as T;
+  }
+
   if (mode === 'view') {
     return (
       <ConnectionForm
         mode={mode}
         initialValues={initialValues}
         canViewSecrets={props.canViewSecrets}
+        getValueWithSecrets={getValueWithSecrets}
       />
     );
   }
