@@ -68,32 +68,40 @@ export function useConnection<T extends { connectionName: string }>(
   const [initialValues, setInitialValues] = useState<T | undefined>(undefined);
 
   useEffect(() => {
-    async function loadValuesForClone(): Promise<void> {
-      if (mode === 'create') {
-        setIsLoading(false);
-        return;
-      }
-      if (mode !== 'clone') {
-        setIsLoading(false);
-        setInitialValues(props.toFormValues(props.connection));
-        return;
-      }
+    async function loadValues(): Promise<void> {
       setIsLoading(true);
       try {
-        const connectionResp = await getConnection({
-          id: props.connectionId,
-          excludeSensitive: false,
-        });
-        if (connectionResp.connection) {
-          setInitialValues(props.toFormValues(connectionResp.connection));
+        if (mode === 'create') {
+          setInitialValues(undefined);
+          return;
         }
-      } catch (err) {
+
+        if (mode === 'clone') {
+          const connectionResp = await getConnection({
+            id: props.connectionId,
+            excludeSensitive: false,
+          });
+          if (connectionResp.connection) {
+            setInitialValues(props.toFormValues(connectionResp.connection));
+          }
+          return;
+        }
+
+        // For view/edit modes
+        const values = props.toFormValues(props.connection);
+        if (mode === 'view' || initialValues === undefined) {
+          setInitialValues(values);
+        }
       } finally {
         setIsLoading(false);
       }
     }
-    loadValuesForClone();
-  }, [mode]);
+    loadValues();
+  }, [
+    mode,
+    mode === 'view' ? props.connection : undefined,
+    mode === 'clone' ? props.connectionId : undefined,
+  ]);
 
   async function handleSubmit(values: T): Promise<void> {
     if (mode === 'view' || !account?.id) {

@@ -18,7 +18,7 @@ import {
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlFormValues,
 } from '@/yup-validations/connections';
-import { ReactElement, useState } from 'react';
+import { ReactElement } from 'react';
 import { SecretRevealProps } from '../SharedFormInputs';
 
 interface Props extends SecretRevealProps<MysqlFormValues> {
@@ -32,6 +32,9 @@ interface Props extends SecretRevealProps<MysqlFormValues> {
   onEnvVarValueChange(value: MysqlFormValues['envVar']): void;
 
   errors: Record<string, string>;
+
+  activeTab: ActiveConnectionTab;
+  setActiveTab(tab: ActiveConnectionTab): void;
 }
 
 export default function DatabaseCredentials(props: Props): ReactElement {
@@ -46,9 +49,9 @@ export default function DatabaseCredentials(props: Props): ReactElement {
     isViewMode,
     canViewSecrets,
     onRevealClick,
+    activeTab,
+    setActiveTab,
   } = props;
-
-  const [activeTab, setActiveTab] = useState<ActiveConnectionTab>('url');
 
   return (
     <div className="flex flex-col gap-4">

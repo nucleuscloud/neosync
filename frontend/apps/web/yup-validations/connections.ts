@@ -46,14 +46,8 @@ const connectionNameSchema = Yup.string<string, EditConnectionFormContext>()
       }
 
       try {
-        const isConnectionNameAvailable:
-          | UseMutateAsyncFunction<
-              IsConnectionNameAvailableResponse,
-              ConnectError,
-              MessageInitShape<typeof IsConnectionNameAvailableRequestSchema>,
-              unknown
-            >
-          | undefined = context?.options?.context?.isConnectionNameAvailable;
+        const isConnectionNameAvailable =
+          context?.options?.context?.isConnectionNameAvailable;
         if (isConnectionNameAvailable) {
           const res = await isConnectionNameAvailable(
             create(IsConnectionNameAvailableRequestSchema, {
@@ -195,7 +189,9 @@ const MysqlDbFormValue = Yup.object().shape({
   }),
 });
 
-export const MysqlFormValues = Yup.object({
+export const MysqlFormValues = Yup.object<
+  MysqlCreateConnectionFormContext | MysqlEditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   db: MysqlDbFormValue,
   url: UrlFormValue,
@@ -203,6 +199,12 @@ export const MysqlFormValues = Yup.object({
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<ActiveConnectionTab>([
+    'url',
+    'host',
+    'url-env',
+  ]),
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;

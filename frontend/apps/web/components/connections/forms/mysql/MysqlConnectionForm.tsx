@@ -102,31 +102,35 @@ function toFormValues(connection: Connection): MysqlFormValues | undefined {
 // extracts the connection config and returns the values for the form
 function getMysqlConnectionFormValues(
   connection: MysqlConnectionConfig
-): Pick<MysqlFormValues, 'db' | 'url' | 'envVar'> {
+): Pick<MysqlFormValues, 'db' | 'url' | 'envVar' | 'activeTab'> {
   switch (connection.connectionConfig.case) {
     case 'connection':
       return {
         db: connection.connectionConfig.value,
         url: undefined,
         envVar: undefined,
+        activeTab: 'host',
       };
     case 'url':
       return {
         db: {},
         url: connection.connectionConfig.value,
         envVar: undefined,
+        activeTab: 'url',
       };
     case 'urlFromEnv':
       return {
         db: {},
         url: undefined,
         envVar: connection.connectionConfig.value,
+        activeTab: 'url-env',
       };
     default:
       return {
         db: {},
-        url: undefined,
-        envVar: undefined,
+        url: '',
+        envVar: '',
+        activeTab: 'url',
       };
   }
 }

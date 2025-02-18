@@ -70,7 +70,7 @@ export function SqlConnectionOptions(
           htmlFor="maxConnectionLimit"
           title="Max Connection Limit"
           description="The maximum number of concurrent database connections allowed. If set to 0 then there is no limit on the number of open connections. -1 to leave unset and use system default."
-          isErrored={!!errors.maxConnectionLimit}
+          isErrored={!!errors['options.maxConnectionLimit']}
         />
         <Input
           id="maxConnectionLimit"
@@ -84,14 +84,14 @@ export function SqlConnectionOptions(
             })
           }
         />
-        <FormErrorMessage message={errors.maxConnectionLimit} />
+        <FormErrorMessage message={errors['options.maxConnectionLimit']} />
       </div>
       <div className="space-y-2">
         <FormHeader
           htmlFor="maxOpenDuration"
           title="Max Open Duration"
           description="The maximum amount of time a connection may be reused. Expired connections may be closed laizly before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
-          isErrored={!!errors.maxOpenDuration}
+          isErrored={!!errors['options.maxOpenDuration']}
         />
         <Input
           id="maxOpenDuration"
@@ -104,14 +104,14 @@ export function SqlConnectionOptions(
             })
           }
         />
-        <FormErrorMessage message={errors.maxOpenDuration} />
+        <FormErrorMessage message={errors['options.maxOpenDuration']} />
       </div>
       <div className="space-y-2">
         <FormHeader
           htmlFor="maxIdleLimit"
           title="Max Idle Limit"
           description="The maximum number of idle database connections allowed. If set to 0 then there is no limit on the number of idle connections. -1 to leave unset and use system default."
-          isErrored={!!errors.maxIdleLimit}
+          isErrored={!!errors['options.maxIdleLimit']}
         />
         <Input
           id="maxIdleLimit"
@@ -125,14 +125,14 @@ export function SqlConnectionOptions(
             })
           }
         />
-        <FormErrorMessage message={errors.maxIdleLimit} />
+        <FormErrorMessage message={errors['options.maxIdleLimit']} />
       </div>
       <div className="space-y-2">
         <FormHeader
           htmlFor="maxIdleDuration"
           title="Max Idle Duration"
           description="The maximum amount of time a connection may be idle. Expired connections may be closed laizly before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
-          isErrored={!!errors.maxIdleDuration}
+          isErrored={!!errors['options.maxIdleDuration']}
         />
         <Input
           id="maxIdleDuration"
@@ -145,7 +145,7 @@ export function SqlConnectionOptions(
             })
           }
         />
-        <FormErrorMessage message={errors.maxIdleDuration} />
+        <FormErrorMessage message={errors['options.maxIdleDuration']} />
       </div>
     </>
   );
@@ -197,14 +197,14 @@ export function ClientTls(props: ClientTlsProps): ReactElement {
                       server's certificate. Root certificates are used to
                       authenticate the server to the client. They ensure that
                       the server the client is connecting to is trusted.`}
-          isErrored={!!errors.rootCert}
+          isErrored={!!errors['clientTls.rootCert']}
         />
         <Textarea
           id="rootCert"
           value={value.rootCert || ''}
           onChange={(e) => onChange({ ...value, rootCert: e.target.value })}
         />
-        <FormErrorMessage message={errors.rootCert} />
+        <FormErrorMessage message={errors['clientTls.rootCert']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -212,14 +212,14 @@ export function ClientTls(props: ClientTlsProps): ReactElement {
           title="Client Certificate"
           description={`A public key certificate issued to the client by a trusted
                       Certificate Authority (CA).`}
-          isErrored={!!errors.clientCert}
+          isErrored={!!errors['clientTls.clientCert']}
         />
         <Textarea
           id="clientCert"
           value={value.clientCert || ''}
           onChange={(e) => onChange({ ...value, clientCert: e.target.value })}
         />
-        <FormErrorMessage message={errors.clientCert} />
+        <FormErrorMessage message={errors['clientTls.clientCert']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -228,7 +228,7 @@ export function ClientTls(props: ClientTlsProps): ReactElement {
           description={`A private key corresponding to the client certificate.
                       The client key is used to authenticate the client to the
                       server.`}
-          isErrored={!!errors.clientKey}
+          isErrored={!!errors['clientTls.clientKey']}
         />
         {isViewMode ? (
           <SecurePasswordInput
@@ -250,7 +250,7 @@ export function ClientTls(props: ClientTlsProps): ReactElement {
             onChange={(e) => onChange({ ...value, clientKey: e.target.value })}
           />
         )}
-        <FormErrorMessage message={errors.clientKey} />
+        <FormErrorMessage message={errors['clientTls.clientKey']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -261,14 +261,14 @@ export function ClientTls(props: ClientTlsProps): ReactElement {
                       handshake to support virtual hosting unless it is an IP
                       address. This is only required if performing full tls
                       verification.`}
-          isErrored={!!errors.serverName}
+          isErrored={!!errors['clientTls.serverName']}
         />
         <Textarea
           id="serverName"
           value={value.serverName || ''}
           onChange={(e) => onChange({ ...value, serverName: e.target.value })}
         />
-        <FormErrorMessage message={errors.serverName} />
+        <FormErrorMessage message={errors['clientTls.serverName']} />
       </div>
     </>
   );
@@ -317,28 +317,29 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
           htmlFor="host"
           title="Host"
           description="The hostname of the bastion host that will be used for SSH tunneling."
-          isErrored={!!errors.host}
+          isErrored={!!errors['tunnel.host']}
         />
         <Input
           id="host"
           value={value.host || ''}
           onChange={(e) => onChange({ ...value, host: e.target.value })}
         />
-        <FormErrorMessage message={errors.host} />
+        <FormErrorMessage message={errors['tunnel.host']} />
       </div>
       <div className="space-y-2">
         <FormHeader
           htmlFor="port"
           title="Port"
           description="The port of the bastion host."
-          isErrored={!!errors.port}
+          isErrored={!!errors['tunnel.port']}
         />
         <Input
           id="port"
+          type="number"
           value={value.port || ''}
           onChange={(e) => onChange({ ...value, port: e.target.valueAsNumber })}
         />
-        <FormErrorMessage message={errors.port} />
+        <FormErrorMessage message={errors['tunnel.port']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -346,14 +347,14 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
           title="User"
           description="The name of the user that will be used to authenticate. If using passphrase auth, provide that in
                       the appropriate field below."
-          isErrored={!!errors.user}
+          isErrored={!!errors['tunnel.user']}
         />
         <Input
           id="user"
           value={value.user || ''}
           onChange={(e) => onChange({ ...value, user: e.target.value })}
         />
-        <FormErrorMessage message={errors.user} />
+        <FormErrorMessage message={errors['tunnel.user']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -361,7 +362,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
           title="Private Key"
           description={`The private key for the bastion host. If using passphrase auth, provide that in
                       the appropriate field below.`}
-          isErrored={!!errors.privateKey}
+          isErrored={!!errors['tunnel.privateKey']}
         />
         {isViewMode ? (
           <SecurePasswordInput
@@ -383,7 +384,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
             onChange={(e) => onChange({ ...value, privateKey: e.target.value })}
           />
         )}
-        <FormErrorMessage message={errors.privateKey} />
+        <FormErrorMessage message={errors['tunnel.privateKey']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -392,7 +393,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
           description="The passphrase that will be used to authenticate with. If
                       the SSH Key provided above is encrypted, provide the
                       password for it here."
-          isErrored={!!errors.passphrase}
+          isErrored={!!errors['tunnel.passphrase']}
         />
         {isViewMode ? (
           <SecurePasswordInput
@@ -414,7 +415,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
             onChange={(e) => onChange({ ...value, passphrase: e.target.value })}
           />
         )}
-        <FormErrorMessage message={errors.passphrase} />
+        <FormErrorMessage message={errors['tunnel.passphrase']} />
       </div>
       <div className="space-y-2">
         <FormHeader
@@ -424,7 +425,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
                       like what is found in the \`~/.ssh/known_hosts\` file,
                       excluding the hostname. If this is not provided, any host
                       public key will be accepted.`}
-          isErrored={!!errors.knownHostPublicKey}
+          isErrored={!!errors['tunnel.knownHostPublicKey']}
         />
         <Input
           id="knownHostPublicKey"
@@ -434,7 +435,7 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
           }
           placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlkjd9s7aJkfdLk3jSLkfj2lk3j2lkfj2l3kjf2lkfj2l"
         />
-        <FormErrorMessage message={errors.knownHostPublicKey} />
+        <FormErrorMessage message={errors['tunnel.knownHostPublicKey']} />
       </div>
     </>
   );

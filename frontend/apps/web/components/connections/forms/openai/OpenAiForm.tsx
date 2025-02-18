@@ -63,17 +63,20 @@ export default function OpenAiForm(props: Props): ReactElement {
     setSubmitting,
     isSubmitting,
     init,
+    resetForm,
   } = useFormStore();
-
-  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    ConnectionService.method.isConnectionNameAvailable
-  );
 
   useEffect(() => {
     if (initialValues) {
       init?.(initialValues);
+    } else {
+      resetForm();
     }
-  }, []);
+  }, [initialValues, init, resetForm]);
+
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    ConnectionService.method.isConnectionNameAvailable
+  );
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();

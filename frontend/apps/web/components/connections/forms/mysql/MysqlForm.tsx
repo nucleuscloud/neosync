@@ -95,17 +95,20 @@ export default function MysqlForm(props: Props): ReactElement {
     setSubmitting,
     isSubmitting,
     init,
+    resetForm,
   } = useFormStore();
-
-  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
-    ConnectionService.method.isConnectionNameAvailable
-  );
 
   useEffect(() => {
     if (initialValues) {
       init?.(initialValues);
+    } else {
+      resetForm();
     }
-  }, []);
+  }, [initialValues, init, resetForm]);
+
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    ConnectionService.method.isConnectionNameAvailable
+  );
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -124,6 +127,7 @@ export default function MysqlForm(props: Props): ReactElement {
           isConnectionNameAvailable: isConnectionNameAvailableAsync,
           originalConnectionName:
             mode === 'edit' ? initialValues?.connectionName : undefined,
+          activeTab: formData.activeTab ?? 'url',
         },
       });
 
@@ -159,6 +163,8 @@ export default function MysqlForm(props: Props): ReactElement {
       />
       <DatabaseCredentials
         errors={errors}
+        activeTab={formData.activeTab ?? 'url'}
+        setActiveTab={(value) => setFormData({ activeTab: value })}
         dbValue={formData.db}
         onDbValueChange={(value) =>
           isViewMode ? () => {} : setFormData({ db: value })
