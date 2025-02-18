@@ -85,13 +85,7 @@ export default function PermissionsPage({ params }: PageProps) {
       <div className="flex flex-row items-center gap-4">
         {data?.connection?.connectionConfig?.config.case &&
           data?.connection?.id && (
-            <CloneConnectionButton
-              connectionConfig={
-                data?.connection?.connectionConfig ??
-                create(ConnectionConfigSchema, {})
-              }
-              id={data?.connection?.id ?? ''}
-            />
+            <CloneConnectionButton id={data?.connection?.id ?? ''} />
           )}
         <RemoveConnectionButton connectionId={id} />
       </div>

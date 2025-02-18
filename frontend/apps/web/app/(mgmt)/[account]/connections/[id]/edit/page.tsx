@@ -35,11 +35,11 @@ export default function EditConnectionPage({ params }: PageProps) {
   const connectionComponent = useGetConnectionComponentDetails({
     mode: 'edit',
     connection: data?.connection!,
-    onSaved: (resp) => {
+    onSaved: (updatedConnection) => {
       toast.success('Successfully updated connection!');
       // maybe use the query cache here for faster round trip and navigation
       mutateGetConnection().finally(() => {
-        router.push(`/${account?.name}/connections/${resp.connection?.id}`);
+        router.push(`/${account?.name}/connections/${updatedConnection.id}`);
       });
     },
     onSaveFailed: (err) =>

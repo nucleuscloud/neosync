@@ -20,6 +20,7 @@ export interface EditProps<T> {
   mode: 'edit';
   connection: Connection;
   buildConnectionConfig(formValues: T): ConnectionConfig;
+  toFormValues(connection: Connection): T | undefined;
   onSuccess(conn: Connection): Promise<void> | void;
 }
 
@@ -63,12 +64,18 @@ export function useConnection<T extends { connectionName: string }>(
   const { mutateAsync: updateConnection } = useMutation(
     ConnectionService.method.updateConnection
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [initialValues, setInitialValues] = useState<T | undefined>(undefined);
 
   useEffect(() => {
     async function loadValuesForClone(): Promise<void> {
+      if (mode === 'create') {
+        setIsLoading(false);
+        return;
+      }
       if (mode !== 'clone') {
+        setIsLoading(false);
+        setInitialValues(props.toFormValues(props.connection));
         return;
       }
       setIsLoading(true);

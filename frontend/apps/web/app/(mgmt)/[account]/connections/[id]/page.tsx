@@ -8,9 +8,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
-import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
-import { ConnectionConfigSchema, ConnectionService } from '@neosync/sdk';
+import { ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -35,13 +34,7 @@ export default function ConnectionPage({ params }: PageProps): ReactElement {
       <div className="flex flex-row items-center gap-4">
         {data?.connection?.connectionConfig?.config.case &&
           data?.connection?.id && (
-            <CloneConnectionButton
-              connectionConfig={
-                data?.connection?.connectionConfig ??
-                create(ConnectionConfigSchema, {})
-              }
-              id={data?.connection?.id ?? ''}
-            />
+            <CloneConnectionButton id={data?.connection?.id ?? ''} />
           )}
         <RemoveConnectionButton connectionId={id} />
         <Button
