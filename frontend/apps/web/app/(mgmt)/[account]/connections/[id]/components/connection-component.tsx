@@ -320,14 +320,6 @@ export function useGetConnectionComponentDetails(
         ),
       };
     case 'openaiConfig':
-      // const values: OpenAiFormValues = {
-      //   connectionName: connection.name,
-      //   sdk: {
-      //     url: connection.connectionConfig.config.value.apiUrl,
-      //     apiKey: connection.connectionConfig.config.value.apiKey,
-      //   },
-      // };
-
       return {
         name: connection.name,
         summary: (

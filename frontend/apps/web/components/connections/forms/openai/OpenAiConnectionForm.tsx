@@ -37,7 +37,7 @@ export default function OpenAiConnectionForm(props: Props): ReactElement {
   const connectionProps = {
     ...props,
     buildConnectionConfig: buildConnectionConfigOpenAi,
-    toFormValues: (connection: Connection) => {
+    toFormValues: (connection: Connection): OpenAiFormValues | undefined => {
       if (
         connection.connectionConfig?.config.case !== 'openaiConfig' ||
         !connection.connectionConfig?.config.value
