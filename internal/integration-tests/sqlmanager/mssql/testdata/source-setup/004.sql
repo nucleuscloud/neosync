@@ -218,3 +218,33 @@ CREATE TABLE mssqlinit.Composite (
 	discount DECIMAL (4, 2) NOT NULL DEFAULT 0,
 	PRIMARY KEY (order_id, item_id),
 );
+
+
+CREATE TABLE mssqlinit.table_with_unique_constraint (
+    column1 NVARCHAR(255),
+    column2 INT,
+    CONSTRAINT UQ_table_with_unique_constraint_column1 UNIQUE (column1)
+);
+
+CREATE TABLE mssqlinit.table_with_unique_constraint_composite (
+    column1 NVARCHAR(255),
+    column2 INT,
+    CONSTRAINT UQ_table_with_unique_constraint_column1_and_column2 UNIQUE (column1, column2)
+);
+
+
+CREATE TABLE mssqlinit.table_with_unique_index (
+    column1 NVARCHAR(255),
+    column2 INT
+);
+
+CREATE UNIQUE INDEX unique_index_on_column1
+ON mssqlinit.table_with_unique_index (column1);
+
+CREATE TABLE mssqlinit.table_with_composite_unique_index (
+    column1 NVARCHAR(255),
+    column2 INT
+);
+
+CREATE UNIQUE INDEX unique_index_on_column1_and_column2
+ON mssqlinit.table_with_composite_unique_index (column1, column2);

@@ -150,6 +150,37 @@ CREATE TABLE defaults_table (
     serial_number SERIAL
 );
 
+-- unique constraint and unique index
+CREATE TABLE table_with_unique_constraint (
+    column1 TEXT,
+    column2 INTEGER,
+    UNIQUE (column1) 
+);
+
+CREATE TABLE table_with_unique_constraint_composite (
+    column1 TEXT,
+    column2 INTEGER,
+    UNIQUE (column1, column2)  -- This enforces uniqueness on column1
+);
+
+CREATE TABLE table_with_unique_index (
+    column1 TEXT,
+    column2 INTEGER
+);
+
+-- Create a unique index on column1 to enforce uniqueness
+CREATE UNIQUE INDEX unique_index_on_column1
+ON table_with_unique_index(column1);
+
+CREATE TABLE table_with_composite_unique_index (
+    column1 TEXT,
+    column2 INTEGER
+);
+
+-- Create a unique index on column1 to enforce uniqueness
+CREATE UNIQUE INDEX unique_index_on_column1_and_column2
+ON table_with_composite_unique_index(column1, column2);
+
 
 CREATE SCHEMA IF NOT EXISTS "CaPiTaL";
 CREATE TABLE IF NOT EXISTS "CaPiTaL"."BadName" (
@@ -350,5 +381,3 @@ ALTER TABLE ONLY ticket_flights
 
 ALTER TABLE ONLY tickets
     ADD CONSTRAINT tickets_book_ref_fkey FOREIGN KEY (book_ref) REFERENCES bookings(book_ref);
-
-
