@@ -101,7 +101,6 @@ function SdkApiKey(props: SdkApiKeyProps): ReactElement {
       />
       {isViewMode ? (
         <SecurePasswordInput
-          maskedValue="••••••••"
           value={value || ''}
           disabled={!canViewSecrets}
           onRevealPassword={canViewSecrets ? onRevealPassword : undefined}

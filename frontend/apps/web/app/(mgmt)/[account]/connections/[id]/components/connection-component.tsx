@@ -1,5 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
 import {
@@ -9,14 +10,12 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
-import { getMysqlConnectionFormValues } from '../../../new/connection/mysql/MysqlForm';
 import { getPgConnectionFormValues } from '../../../new/connection/postgres/PostgresForm';
 import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MssqlForm from './MssqlForm';
-import MysqlForm from './MysqlForm';
 import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
@@ -43,6 +42,14 @@ type EditModeProps = BaseConnectionComponentDetailsProps & {
   onSaved: (connection: Connection) => void;
   onSaveFailed: (err: unknown) => void;
 };
+
+// type CloneModeProps = BaseConnectionComponentDetailsProps & {
+//   mode: 'clone';
+//   connection?: never;
+
+//   connectionId: string;
+//   onSuccess: (connection: Connection) => void;
+// };
 
 type GetConnectionComponentDetailsProps = ViewModeProps | EditModeProps;
 
@@ -87,6 +94,7 @@ export function useGetConnectionComponentDetails(
 ): ConnectionComponent {
   const {
     connection,
+
     onSaved,
     extraPageHeading,
     onSaveFailed,
@@ -188,10 +196,10 @@ export function useGetConnectionComponentDetails(
     }
 
     case 'mysqlConfig': {
-      const mysqlValue = connection.connectionConfig.config.value;
-      const { db, url, envVar } = getMysqlConnectionFormValues(
-        connection.connectionConfig.config.value
-      );
+      // const mysqlValue = connection.connectionConfig.config.value;
+      // const { db, url, envVar } = getMysqlConnectionFormValues(
+      //   connection.connectionConfig.config.value
+      // );
 
       return {
         name: connection.name,
@@ -209,56 +217,69 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <MysqlForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              db,
-              url,
-              envVar,
-              options: {
-                maxConnectionLimit:
-                  mysqlValue.connectionOptions?.maxConnectionLimit,
-                maxIdleDuration: mysqlValue.connectionOptions?.maxIdleDuration,
-                maxIdleLimit: mysqlValue.connectionOptions?.maxIdleConnections,
-                maxOpenDuration: mysqlValue.connectionOptions?.maxOpenDuration,
-              },
-              tunnel: {
-                host: mysqlValue.tunnel?.host ?? '',
-                port: mysqlValue.tunnel?.port ?? 22,
-                knownHostPublicKey: mysqlValue.tunnel?.knownHostPublicKey ?? '',
-                user: mysqlValue.tunnel?.user ?? '',
-                passphrase:
-                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? (getPassphraseFromSshAuthentication(
-                        mysqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-                privateKey:
-                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? (getPrivateKeyFromSshAuthentication(
-                        mysqlValue.tunnel.authentication
-                      ) ?? '')
-                    : '',
-              },
-              clientTls: {
-                rootCert: mysqlValue.clientTls?.rootCert
-                  ? mysqlValue.clientTls.rootCert
-                  : '',
-                clientCert: mysqlValue.clientTls?.clientCert
-                  ? mysqlValue.clientTls.clientCert
-                  : '',
-                clientKey: mysqlValue.clientTls?.clientKey
-                  ? mysqlValue.clientTls.clientKey
-                  : '',
-                serverName: mysqlValue.clientTls?.serverName
-                  ? mysqlValue.clientTls.serverName
-                  : '',
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <MysqlConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <MysqlConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
+          // <MysqlForm
+          //   connectionId={connection.id}
+          //   defaultValues={{
+          //     connectionName: connection.name,
+          //     db,
+          //     url,
+          //     envVar,
+          //     options: {
+          //       maxConnectionLimit:
+          //         mysqlValue.connectionOptions?.maxConnectionLimit,
+          //       maxIdleDuration: mysqlValue.connectionOptions?.maxIdleDuration,
+          //       maxIdleLimit: mysqlValue.connectionOptions?.maxIdleConnections,
+          //       maxOpenDuration: mysqlValue.connectionOptions?.maxOpenDuration,
+          //     },
+          //     tunnel: {
+          //       host: mysqlValue.tunnel?.host ?? '',
+          //       port: mysqlValue.tunnel?.port ?? 22,
+          //       knownHostPublicKey: mysqlValue.tunnel?.knownHostPublicKey ?? '',
+          //       user: mysqlValue.tunnel?.user ?? '',
+          //       passphrase:
+          //         mysqlValue.tunnel && mysqlValue.tunnel.authentication
+          //           ? (getPassphraseFromSshAuthentication(
+          //               mysqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //       privateKey:
+          //         mysqlValue.tunnel && mysqlValue.tunnel.authentication
+          //           ? (getPrivateKeyFromSshAuthentication(
+          //               mysqlValue.tunnel.authentication
+          //             ) ?? '')
+          //           : '',
+          //     },
+          //     clientTls: {
+          //       rootCert: mysqlValue.clientTls?.rootCert
+          //         ? mysqlValue.clientTls.rootCert
+          //         : '',
+          //       clientCert: mysqlValue.clientTls?.clientCert
+          //         ? mysqlValue.clientTls.clientCert
+          //         : '',
+          //       clientKey: mysqlValue.clientTls?.clientKey
+          //         ? mysqlValue.clientTls.clientKey
+          //         : '',
+          //       serverName: mysqlValue.clientTls?.serverName
+          //         ? mysqlValue.clientTls.serverName
+          //         : '',
+          //     },
+          //   }}
+          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
+          //   onSaveFailed={(err) => onSaveFailed?.(err)}
+          // />
         ),
       };
     }
