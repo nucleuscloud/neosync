@@ -312,6 +312,7 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("unable to get redis client: %w", err)
 	}
 
+	pageLimit := 100_000
 	genbenthosActivity := genbenthosconfigs_activity.New(
 		jobclient,
 		connclient,
@@ -319,6 +320,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		redisconfig,
 		otelconfig.IsEnabled,
+		pageLimit,
 	)
 
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)

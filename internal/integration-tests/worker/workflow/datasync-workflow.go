@@ -41,9 +41,9 @@ type TestWorkflowEnv struct {
 	neosyncApi    *tcneosyncapi.NeosyncApiTestClient
 	redisconfig   *neosync_redis.RedisConfig
 	fakeEELicense *testutil.FakeEELicense
-
-	TestEnv     *testsuite.TestWorkflowEnvironment
-	Redisclient redis.UniversalClient
+	pageLimit     int
+	TestEnv       *testsuite.TestWorkflowEnvironment
+	Redisclient   redis.UniversalClient
 }
 
 // WithRedis creates redis client with provided URL
@@ -63,6 +63,13 @@ func WithRedis(url string) Option {
 func WithValidEELicense() Option {
 	return func(c *TestWorkflowEnv) {
 		c.fakeEELicense = testutil.NewFakeEELicense(testutil.WithIsValid())
+	}
+}
+
+// WithPageLimit sets the page limit for the test workflow
+func WithPageLimit(pageLimit int) Option {
+	return func(c *TestWorkflowEnv) {
+		c.pageLimit = pageLimit
 	}
 }
 
@@ -106,6 +113,7 @@ func NewTestDataSyncWorkflowEnv(
 		dbManagers.SqlManager,
 		workflowEnv.redisconfig,
 		false,
+		workflowEnv.pageLimit,
 	)
 
 	var activityMeter metric.Meter
