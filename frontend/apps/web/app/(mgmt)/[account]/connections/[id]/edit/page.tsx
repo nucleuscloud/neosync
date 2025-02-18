@@ -26,7 +26,7 @@ export default function EditConnectionPage({ params }: PageProps) {
     refetch: mutateGetConnection,
   } = useQuery(
     ConnectionService.method.getConnection,
-    { id: id, excludeSensitive: true },
+    { id: id, excludeSensitive: false },
     { enabled: !!id }
   );
 

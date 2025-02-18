@@ -48,7 +48,7 @@ interface Props {
   initialValues?: OpenAiFormValues;
   onSubmit?(values: OpenAiFormValues): Promise<void>;
   canViewSecrets?: boolean;
-  getValueWithSecrets?(): Promise<OpenAiFormValues>;
+  getValueWithSecrets?(): Promise<OpenAiFormValues | undefined>;
 }
 
 export default function OpenAiForm(props: Props): ReactElement {
@@ -115,7 +115,6 @@ export default function OpenAiForm(props: Props): ReactElement {
   const submitText = mode === 'create' ? 'Create' : 'Update';
 
   async function onRevealPassword(): Promise<string> {
-    console.log('onRevealPassword');
     const values = await getValueWithSecrets?.();
     return values?.sdk.apiKey ?? '';
   }

@@ -1,60 +1,73 @@
 import { buildConnectionConfigOpenAi } from '@/app/(mgmt)/[account]/connections/util';
 import { OpenAiFormValues } from '@/yup-validations/connections';
-import ConnectionForm, {
-  CreateProps as BaseCreateProps,
-  EditProps as BaseEditProps,
-  ViewProps as BaseViewProps,
-} from '../ConnectionForm';
 
+import SkeletonForm from '@/components/skeleton/SkeletonForm';
+import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { useConnection } from '../useConnection';
 import OpenAiForm from './OpenAiForm';
 
-type CreateProps = Omit<
-  BaseCreateProps<OpenAiFormValues>,
-  'Form' | 'buildConnectionConfig'
->;
-type EditProps = Omit<
-  BaseEditProps<OpenAiFormValues>,
-  'Form' | 'buildConnectionConfig'
->;
-type ViewProps = Omit<
-  BaseViewProps<OpenAiFormValues>,
-  'Form' | 'buildConnectionConfig' | 'toFormValues'
->;
+interface CreateProps {
+  mode: 'create';
+  onSuccess(conn: Connection): Promise<void>;
+}
 
-type Props = CreateProps | EditProps | ViewProps;
+interface EditProps {
+  mode: 'edit';
+  connection: Connection;
+  onSuccess(conn: Connection): Promise<void>;
+}
+
+interface ViewProps {
+  mode: 'view';
+  connection: Connection;
+}
+
+interface CloneProps {
+  mode: 'clone';
+  connectionId: string;
+  onSuccess(conn: Connection): Promise<void>;
+}
+
+type Props = CreateProps | EditProps | ViewProps | CloneProps;
 
 export default function OpenAiConnectionForm(props: Props): ReactElement {
-  if (props.mode === 'view') {
-    return (
-      <ConnectionForm<OpenAiFormValues>
-        {...props}
-        Form={OpenAiForm}
-        canViewSecrets={true}
-        toFormValues={(connection) => {
-          // todo: pull this into common function that is used by edit form
-          if (!connection.connectionConfig) {
-            return undefined;
-          }
-          if (connection.connectionConfig.config.case !== 'openaiConfig') {
-            return undefined;
-          }
-          return {
-            connectionName: connection.name,
-            sdk: {
-              url: connection.connectionConfig.config.value.apiUrl,
-              apiKey: connection.connectionConfig.config.value.apiKey,
-            },
-          };
-        }}
-      />
-    );
+  const { mode } = props;
+
+  const connectionProps = {
+    ...props,
+    buildConnectionConfig: buildConnectionConfigOpenAi,
+    toFormValues: (connection: Connection) => {
+      if (
+        connection.connectionConfig?.config.case !== 'openaiConfig' ||
+        !connection.connectionConfig?.config.value
+      ) {
+        return undefined;
+      }
+      return {
+        connectionName: connection.name,
+        sdk: {
+          url: connection.connectionConfig.config.value.apiUrl,
+          apiKey: connection.connectionConfig.config.value.apiKey,
+        },
+      };
+    },
+  };
+
+  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
+    useConnection<OpenAiFormValues>(connectionProps);
+
+  if (isLoading) {
+    return <SkeletonForm />;
   }
+
   return (
-    <ConnectionForm<OpenAiFormValues>
-      {...props}
-      Form={OpenAiForm}
-      buildConnectionConfig={buildConnectionConfigOpenAi}
+    <OpenAiForm
+      mode={mode === 'clone' ? 'create' : mode}
+      initialValues={initialValues}
+      onSubmit={handleSubmit}
+      canViewSecrets={mode === 'view'}
+      getValueWithSecrets={getValueWithSecrets}
     />
   );
 }

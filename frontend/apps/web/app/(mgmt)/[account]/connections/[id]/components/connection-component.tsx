@@ -2,15 +2,10 @@
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
-import { OpenAiFormValues } from '@/yup-validations/connections';
-import { useMutation } from '@connectrpc/connect-query';
 import {
   Connection,
-  ConnectionService,
   PostgresConnectionConfig,
   SSHAuthentication,
-  UpdateConnectionRequest,
-  UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { getMssqlConnectionFormValues } from '../../../new/connection/mssql/MssqlForm';
@@ -45,7 +40,7 @@ type ViewModeProps = BaseConnectionComponentDetailsProps & {
 
 type EditModeProps = BaseConnectionComponentDetailsProps & {
   mode: 'edit';
-  onSaved: (updatedConnResp: UpdateConnectionResponse) => void;
+  onSaved: (connection: Connection) => void;
   onSaveFailed: (err: unknown) => void;
 };
 
@@ -99,14 +94,9 @@ export function useGetConnectionComponentDetails(
     mode = 'view',
   } = props;
 
-  const { mutateAsync: updateConnection } = useMutation(
-    ConnectionService.method.updateConnection
-  );
-
-  async function onSubmit(values: UpdateConnectionRequest): Promise<void> {
-    const resp = await updateConnection(values);
+  async function onSuccess(connection: Connection): Promise<void> {
     if (onSaved) {
-      onSaved(resp);
+      onSaved(connection);
     }
   }
 
@@ -189,7 +179,7 @@ export function useGetConnectionComponentDetails(
                     : '',
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
             // onSaveFailed={onSaveFailed}
           />
@@ -266,7 +256,7 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
@@ -324,19 +314,19 @@ export function useGetConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
       };
     case 'openaiConfig':
-      const values: OpenAiFormValues = {
-        connectionName: connection.name,
-        sdk: {
-          url: connection.connectionConfig.config.value.apiUrl,
-          apiKey: connection.connectionConfig.config.value.apiKey,
-        },
-      };
+      // const values: OpenAiFormValues = {
+      //   connectionName: connection.name,
+      //   sdk: {
+      //     url: connection.connectionConfig.config.value.apiUrl,
+      //     apiKey: connection.connectionConfig.config.value.apiKey,
+      //   },
+      // };
 
       return {
         name: connection.name,
@@ -357,21 +347,13 @@ export function useGetConnectionComponentDetails(
           <ModeView
             mode={mode}
             view={() => (
-              <OpenAiConnectionForm
-                mode="view"
-                // todo: maybe instead pass in entire connection and nix initialValues
-                // Then both view and edit can use the same toFormValues internal function!
-                // Or maybe we type it slightly better and have it be the typed ConnectionConfig object
-                connectionId={connection.id}
-                initialValues={values}
-              />
+              <OpenAiConnectionForm mode="view" connection={connection} />
             )}
             edit={() => (
               <OpenAiConnectionForm
                 mode="edit"
-                connectionId={connection.id}
-                onSubmit={onSubmit}
-                initialValues={values}
+                connection={connection}
+                onSuccess={onSuccess}
               />
             )}
           />
@@ -441,7 +423,7 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
@@ -472,7 +454,7 @@ export function useGetConnectionComponentDetails(
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
@@ -527,7 +509,7 @@ export function useGetConnectionComponentDetails(
                 region: connection.connectionConfig.config.value.region,
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
@@ -601,7 +583,7 @@ export function useGetConnectionComponentDetails(
                   : '',
               },
             }}
-            onSaved={(resp) => onSaved?.(resp)}
+            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
             onSaveFailed={(err) => onSaveFailed?.(err)}
           />
         ),
