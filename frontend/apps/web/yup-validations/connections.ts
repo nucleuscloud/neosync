@@ -274,26 +274,38 @@ export type AwsCredentialsFormValues = Yup.InferType<
   typeof AwsCredentialsFormValues
 >;
 
-export const AwsFormValues = Yup.object({
-  connectionName: connectionNameSchema,
-  s3: Yup.object({
+const AwsS3DbFormValue = Yup.object()
+  .shape({
     bucket: Yup.string().required('The Bucket name is required.'),
     pathPrefix: Yup.string().optional(),
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),
     credentials: AwsCredentialsFormValues.optional(),
-  }).required('The AWS form fields are required.'),
+  })
+  .required('The AWS form fields are required.');
+
+export const AwsFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
+  connectionName: connectionNameSchema,
+  s3: AwsS3DbFormValue,
 });
 
 export type AwsFormValues = Yup.InferType<typeof AwsFormValues>;
 
-export const DynamoDbFormValues = Yup.object({
-  connectionName: connectionNameSchema,
-  db: Yup.object({
+const DynamoDbDbFormValue = Yup.object()
+  .shape({
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),
     credentials: AwsCredentialsFormValues.optional(),
-  }).required('The Dynamo DB form fields are required.'),
+  })
+  .required('The Dynamo DB form fields are required.');
+
+export const DynamoDbFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
+  connectionName: connectionNameSchema,
+  db: DynamoDbDbFormValue,
 });
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
@@ -313,7 +325,9 @@ export const MssqlFormValues = Yup.object<
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
 
-export const GcpCloudStorageFormValues = Yup.object({
+export const GcpCloudStorageFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   gcp: Yup.object({
     bucket: Yup.string().required('The Bucket is required.'),
