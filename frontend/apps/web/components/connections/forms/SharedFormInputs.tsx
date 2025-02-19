@@ -1,6 +1,7 @@
 import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
+import { PasswordInput } from '@/components/PasswordComponent';
 import { PermissionConnectionType } from '@/components/permissions/columns';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { SecurePasswordInput } from '@/components/SecurePasswordInput';
@@ -14,8 +15,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  AwsAdvancedFormValues,
+  AwsCredentialsFormValues,
   ClientTlsFormValues,
   SqlOptionsFormValues,
   SshTunnelFormValues,
@@ -548,5 +552,197 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
+  );
+}
+
+interface AwsAdvancedConfigAccordionProps {
+  value: AwsAdvancedFormValues;
+  onChange(value: AwsAdvancedFormValues): void;
+  errors: Record<string, string>;
+}
+
+export function AwsAdvancedConfigAccordion(
+  props: AwsAdvancedConfigAccordionProps
+): ReactElement {
+  return (
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="advanced">
+        <AccordionTrigger>AWS Advanced Configuration</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-4 p-2">
+          <p className="text-sm">
+            This is an optional section and is used if you need to tweak the AWS
+            SDK to connect to a different region or endpoint other than the
+            default.
+          </p>
+          <AwsAdvancedConfig {...props} />
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+interface AwsAdvancedConfigProps {
+  value: AwsAdvancedFormValues;
+  onChange(value: AwsAdvancedFormValues): void;
+  errors: Record<string, string>;
+}
+
+function AwsAdvancedConfig(props: AwsAdvancedConfigProps): ReactElement {
+  const { value, onChange, errors } = props;
+
+  return (
+    <>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="region"
+          title="Region"
+          description="The AWS region to target"
+          isErrored={!!errors['advanced.region']}
+        />
+        <Input
+          id="region"
+          value={value.region || ''}
+          onChange={(e) => onChange({ ...value, region: e.target.value })}
+        />
+        <FormErrorMessage message={errors['advanced.region']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="endpoint"
+          title="Endpoint"
+          description="The endpoint to target"
+          isErrored={!!errors['advanced.endpoint']}
+        />
+        <Input
+          id="endpoint"
+          value={value.endpoint || ''}
+          onChange={(e) => onChange({ ...value, endpoint: e.target.value })}
+        />
+        <FormErrorMessage message={errors['advanced.endpoint']} />
+      </div>
+    </>
+  );
+}
+
+interface AwsCredentialsFormProps
+  extends SecretRevealProps<AwsCredentialsFormValues> {
+  value: AwsCredentialsFormValues;
+  onChange(value: AwsCredentialsFormValues): void;
+  errors: Record<string, string>;
+}
+
+export function AwsCredentialsForm(
+  props: AwsCredentialsFormProps
+): ReactElement {
+  const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
+    props;
+
+  return (
+    <>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="accessKeyId"
+          title="Access Key ID"
+          description="The AWS access key ID"
+          isErrored={!!errors['credentials.accessKeyId']}
+        />
+        <Input
+          id="accessKeyId"
+          value={value.accessKeyId || ''}
+          onChange={(e) => onChange({ ...value, accessKeyId: e.target.value })}
+        />
+        <FormErrorMessage message={errors['credentials.accessKeyId']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="secretAccessKey"
+          title="Secret Access Key"
+          description="The AWS secret access key"
+          isErrored={!!errors['credentials.secretAccessKey']}
+        />
+        {isViewMode ? (
+          <SecurePasswordInput
+            value={value.secretAccessKey || ''}
+            disabled={!canViewSecrets}
+            onRevealPassword={
+              canViewSecrets
+                ? async () => {
+                    const values = await onRevealClick();
+                    return values?.secretAccessKey ?? '';
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <PasswordInput
+            id="secretAccessKey"
+            value={value.secretAccessKey || ''}
+            onChange={(e) =>
+              onChange({ ...value, secretAccessKey: e.target.value })
+            }
+          />
+        )}
+        <FormErrorMessage message={errors['credentials.secretAccessKey']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="sessionToken"
+          title="Session Token"
+          description="The AWS session token"
+          isErrored={!!errors['credentials.sessionToken']}
+        />
+        <Input
+          id="sessionToken"
+          value={value.sessionToken || ''}
+          onChange={(e) => onChange({ ...value, sessionToken: e.target.value })}
+        />
+        <FormErrorMessage message={errors['credentials.sessionToken']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="fromEc2Role"
+          title="From EC2 Role"
+          description="If true, the SDK will use the EC2 role assigned to the instance"
+        />
+        <Switch
+          id="fromEc2Role"
+          checked={value.fromEc2Role}
+          onCheckedChange={(checked) =>
+            onChange({ ...value, fromEc2Role: checked })
+          }
+        />
+        <FormErrorMessage message={errors['credentials.fromEc2Role']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="roleArn"
+          title="Role ARN"
+          description="The AWS role ARN"
+          isErrored={!!errors['credentials.roleArn']}
+        />
+        <Input
+          id="roleArn"
+          value={value.roleArn || ''}
+          onChange={(e) => onChange({ ...value, roleArn: e.target.value })}
+        />
+        <FormErrorMessage message={errors['credentials.roleArn']} />
+      </div>
+      <div className="space-y-2">
+        <FormHeader
+          htmlFor="roleExternalId"
+          title="Role External ID"
+          description="The AWS role external ID"
+          isErrored={!!errors['credentials.roleExternalId']}
+        />
+        <Input
+          id="roleExternalId"
+          value={value.roleExternalId || ''}
+          onChange={(e) =>
+            onChange({ ...value, roleExternalId: e.target.value })
+          }
+        />
+        <FormErrorMessage message={errors['credentials.roleExternalId']} />
+      </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import DynamoDbConnectionForm from '@/components/connections/forms/dynamodb/DynamoDbConnectionForm';
 import MongoDbConnectionForm from '@/components/connections/forms/mongodb/MongoDbConnectionForm';
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
@@ -9,7 +10,6 @@ import PageHeader from '@/components/headers/PageHeader';
 import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
-import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 
 interface ConnectionComponent {
@@ -476,40 +476,18 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <DynamoDBForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              db: {
-                credentials: {
-                  accessKeyId:
-                    connection.connectionConfig.config.value.credentials
-                      ?.accessKeyId,
-                  secretAccessKey:
-                    connection.connectionConfig.config.value.credentials
-                      ?.secretAccessKey,
-                  sessionToken:
-                    connection.connectionConfig.config.value.credentials
-                      ?.sessionToken,
-                  fromEc2Role:
-                    connection.connectionConfig.config.value.credentials
-                      ?.fromEc2Role,
-                  roleArn:
-                    connection.connectionConfig.config.value.credentials
-                      ?.roleArn,
-                  roleExternalId:
-                    connection.connectionConfig.config.value.credentials
-                      ?.roleExternalId,
-                  profile:
-                    connection.connectionConfig.config.value.credentials
-                      ?.profile,
-                },
-                endpoint: connection.connectionConfig.config.value.endpoint,
-                region: connection.connectionConfig.config.value.region,
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <DynamoDbConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <DynamoDbConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
         ),
       };
@@ -544,51 +522,6 @@ export function useGetConnectionComponentDetails(
               />
             )}
           />
-          //     url,
-          //     envVar,
-          //     options: {
-          //       maxConnectionLimit:
-          //         mssqlValue.connectionOptions?.maxConnectionLimit,
-          //       maxIdleDuration: mssqlValue.connectionOptions?.maxIdleDuration,
-          //       maxIdleLimit: mssqlValue.connectionOptions?.maxIdleConnections,
-          //       maxOpenDuration: mssqlValue.connectionOptions?.maxOpenDuration,
-          //     },
-          //     tunnel: {
-          //       host: mssqlValue.tunnel?.host ?? '',
-          //       port: mssqlValue.tunnel?.port ?? 22,
-          //       knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
-          //       user: mssqlValue.tunnel?.user ?? '',
-          //       passphrase:
-          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
-          //           ? (getPassphraseFromSshAuthentication(
-          //               mssqlValue.tunnel.authentication
-          //             ) ?? '')
-          //           : '',
-          //       privateKey:
-          //         mssqlValue.tunnel && mssqlValue.tunnel.authentication
-          //           ? (getPrivateKeyFromSshAuthentication(
-          //               mssqlValue.tunnel.authentication
-          //             ) ?? '')
-          //           : '',
-          //     },
-          //     clientTls: {
-          //       rootCert: mssqlValue.clientTls?.rootCert
-          //         ? mssqlValue.clientTls.rootCert
-          //         : '',
-          //       clientCert: mssqlValue.clientTls?.clientCert
-          //         ? mssqlValue.clientTls.clientCert
-          //         : '',
-          //       clientKey: mssqlValue.clientTls?.clientKey
-          //         ? mssqlValue.clientTls.clientKey
-          //         : '',
-          //       serverName: mssqlValue.clientTls?.serverName
-          //         ? mssqlValue.clientTls.serverName
-          //         : '',
-          //     },
-          //   }}
-          //   onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-          //   onSaveFailed={(err) => onSaveFailed?.(err)}
-          // />
         ),
       };
     }
